@@ -274,12 +274,13 @@ class BaseDataset(Dataset):
                 try:
                     im = np.load(fn)
                     npy_channels = im.shape[-1] if im.ndim >= 3 else 1
-                    if npy_channels != self.channels:
+                    if npy_channels != self.channels or im.dtype == np.uint16:
                         LOGGER.warning(
-                            f"{self.prefix}Removing stale *.npy image file {fn} with {npy_channels} channels, expected {self.channels}"
+                            f"{self.prefix}Refreshing stale *.npy image file {fn} with {npy_channels} channels and "
+                            f"{im.dtype} dtype"
                         )
-                        Path(fn).unlink(missing_ok=True)
                         im = imread(f, flags=self.cv2_flag)
+                        np.save(fn.as_posix(), im, allow_pickle=False)  # keep disk-cache benefits for this image
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)

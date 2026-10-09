@@ -418,17 +418,25 @@ class BaseModel(torch.nn.Module):
 
         valid = idx >= 0
         state_dict = self.state_dict()
-        # Exact class-logit conv weight/bias keys from the detection head(s) — restricting to these avoids
-        # class-ordering tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
-        cls_keys = {
-            f"{name}.{attr}.{i}.{len(seq) - 1}.{p}"
-            for name, m in self.named_modules()
-            if isinstance(m, Detect)
-            for attr in ("cv3", "one2one_cv3")
-            for i, seq in enumerate(getattr(m, attr, ()))
-            if getattr(seq[-1], "out_channels", None) == tgt_nc
-            for p in ("weight", "bias")
-        }
+
+        # Only remap class-logit convs, never other tensors that happen to share the class dimension.
+        cls_keys = set()
+        for name, m in self.named_modules():
+            if isinstance(m, Detect):
+                branches = {
+                    f"{attr}.{i}": seq
+                    for attr in ("cv3", "one2one_cv3")
+                    for i, seq in enumerate(getattr(m, attr, None) or ())
+                }
+                branches["proto.semseg"] = getattr(getattr(m, "proto", None), "semseg", None)
+            elif isinstance(m, SemanticSegment):
+                branches = {"classifier": m.classifier, "aux_head": m.aux_head}
+            else:
+                continue
+            for prefix, seq in branches.items():
+                if seq is not None and getattr(seq[-1], "out_channels", None) == tgt_nc:
+                    cls_keys.update(f"{name}.{prefix}.{len(seq) - 1}.{p}" for p in ("weight", "bias"))
+
         remapped = 0
         for k in cls_keys & csd.keys():
             v_src, v_tgt = csd[k], state_dict[k]

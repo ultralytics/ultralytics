@@ -282,10 +282,12 @@ class OBBValidator(DetectionValidator):
             pred_merged_txt.mkdir(parents=True, exist_ok=True)
             merged_results = defaultdict(list)
             LOGGER.info(f"Saving merged predictions with DOTA format to {pred_merged_txt}...")
+            pattern = re.compile(r"\d+___\d+")
             for d in data:
-                image_id = d["image_id"].split("__", 1)[0]
-                pattern = re.compile(r"\d+___\d+")
-                x, y = (int(c) for c in re.findall(pattern, d["image_id"])[0].split("___"))
+                image_id = str(d["image_id"])
+                tile = pattern.search(image_id)
+                image_id = image_id.split("__", 1)[0] if tile else image_id
+                x, y = map(int, tile[0].split("___")) if tile else (0, 0)  # untiled images have no offset
                 bbox, score, cls = d["rbox"], d["score"], d["category_id"] - 1
                 bbox[0] += x
                 bbox[1] += y

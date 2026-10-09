@@ -31,9 +31,9 @@ class ReID:
         Args:
             model (str): Path to a ReID model. `.pt` runs through the YOLO predictor (embed-layer extraction); other
                 extensions go through `AutoBackend`.
-            imgsz (int): Square crop size on the AutoBackend path when the input shape is dynamic or unavailable.
-                Static ONNX height and width override it, including rectangular inputs. A static height also sets the
-                fallback width when width is dynamic; a static width overrides only the width.
+            imgsz (int): Square crop size on the AutoBackend path when the input shape is dynamic or unavailable. Static
+                ONNX height and width override it, including rectangular inputs. A static height also sets the fallback
+                width when width is dynamic; a static width overrides only the width.
             device (str | torch.device | None): Inference device; defaults to CUDA if available.
             fp16 (bool): Request half precision on the AutoBackend path when the backend supports it. Ignored for `.pt`
                 models; models exported with FP16 inputs run in half precision regardless.

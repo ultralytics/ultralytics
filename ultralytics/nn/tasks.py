@@ -419,29 +419,24 @@ class BaseModel(torch.nn.Module):
         valid = idx >= 0
         state_dict = self.state_dict()
 
-        def cls_seqs(m):
-            """Yield (state-dict key prefix, sequence) for every nc-indexed class-logit branch of a head."""
+        # Only remap class-logit convs, never other tensors that happen to share the class dimension.
+        cls_keys = set()
+        for name, m in self.named_modules():
             if isinstance(m, Detect):
-                for attr in ("cv3", "one2one_cv3"):
-                    for i, seq in enumerate(getattr(m, attr, None) or ()):
-                        yield f"{attr}.{i}", seq
-                semseg = getattr(getattr(m, "proto", None), "semseg", None)  # YOLO26 Segment per-pixel class logits
-                if semseg is not None:
-                    yield "proto.semseg", semseg
+                branches = {
+                    f"{attr}.{i}": seq
+                    for attr in ("cv3", "one2one_cv3")
+                    for i, seq in enumerate(getattr(m, attr, None) or ())
+                }
+                branches["proto.semseg"] = getattr(getattr(m, "proto", None), "semseg", None)
             elif isinstance(m, SemanticSegment):
-                yield "classifier", m.classifier
-                if m.aux_head is not None:
-                    yield "aux_head", m.aux_head
+                branches = {"classifier": m.classifier, "aux_head": m.aux_head}
+            else:
+                continue
+            for prefix, seq in branches.items():
+                if seq is not None and getattr(seq[-1], "out_channels", None) == tgt_nc:
+                    cls_keys.update(f"{name}.{prefix}.{len(seq) - 1}.{p}" for p in ("weight", "bias"))
 
-        # Exact class-logit conv weight/bias keys from the head(s) — restricting to these avoids class-ordering
-        # tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
-        cls_keys = {
-            f"{name}.{prefix}.{len(seq) - 1}.{p}"
-            for name, m in self.named_modules()
-            for prefix, seq in cls_seqs(m)
-            if getattr(seq[-1], "out_channels", None) == tgt_nc
-            for p in ("weight", "bias")
-        }
         remapped = 0
         for k in cls_keys & csd.keys():
             v_src, v_tgt = csd[k], state_dict[k]

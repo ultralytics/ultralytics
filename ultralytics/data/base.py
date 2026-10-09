@@ -274,9 +274,11 @@ class BaseDataset(Dataset):
                 try:
                     im = np.load(fn)
                     npy_channels = im.shape[-1] if im.ndim >= 3 else 1
-                    if npy_channels != self.channels:
+                    if npy_channels != self.channels or im.dtype == np.uint16:
+                        # stale: wrong channel count, or a pre-16-bit-conversion uint16 cache (raw values that bypass /255)
                         LOGGER.warning(
-                            f"{self.prefix}Removing stale *.npy image file {fn} with {npy_channels} channels, expected {self.channels}"
+                            f"{self.prefix}Removing stale *.npy image file {fn} with {npy_channels} channels and "
+                            f"{im.dtype} dtype, expected {self.channels} channels and uint8"
                         )
                         Path(fn).unlink(missing_ok=True)
                         im = imread(f, flags=self.cv2_flag)

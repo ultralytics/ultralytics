@@ -269,6 +269,72 @@ def test_autobackend_memory_format(tmp_path):
     assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
 
 
+def test_autobackend_static_batch_split(isolated_model):
+    """Static-batch exports chunk oversized inputs to the export batch with parity; a later call cannot corrupt results."""
+    from ultralytics.nn.autobackend import AutoBackend
+
+    f = YOLO(isolated_model).export(format="onnx", imgsz=160, batch=2)  # static graph, batch pinned in export metadata
+    model = YOLO(f)
+    srcs = [SOURCE, ASSETS / "zidane.jpg", SOURCE]  # 3 > 2: one full chunk plus a short zero-padded tail chunk
+    batched = model(srcs, imgsz=160, verbose=False)
+    assert [Path(r.path).name for r in batched] == [Path(s).name for s in srcs]  # order survives chunk-and-concat
+    assert sum(len(r.boxes) for r in batched) > 0  # parity below compares real detections, not two empty sets
+    for r, s in zip(batched, srcs):
+        single = model(s, imgsz=160, verbose=False)[0]
+        assert torch.allclose(r.boxes.xyxy, single.boxes.xyxy) and r.boxes.conf.tolist() == single.boxes.conf.tolist()
+
+    ab = AutoBackend(f, device=torch.device("cpu"))
+    x = torch.rand(3, 3, 160, 160)
+    y = ab.forward(x)  # oversized input at the backend level
+    assert y.shape[0] == 3 and torch.allclose(y[:2], ab.forward(x[:2])) and torch.allclose(y[2:], ab.forward(x[2:]))
+    ab.forward(torch.rand(3, 3, 160, 160))  # backends may reuse output buffers across calls
+    assert torch.allclose(y, ab.forward(x))  # the earlier chunk-and-concat result survives intact
+
+
+def test_autobackend_split_unpinned_metadata(isolated_model, tmp_path):
+    """Chunking requires fully pinned export metadata; unpinned graphs, list outputs included, stay single-call."""
+    import onnx
+
+    from tests.conftest import isolated_model_path
+    from ultralytics.nn.autobackend import AutoBackend
+
+    def third_party(src, name, props=None):
+        """Copy an export with metadata_props replaced, emulating a third-party model file."""
+        graph = onnx.load(src)
+        graph.metadata_props.clear()
+        if props:
+            for key, value in props.items():
+                entry = graph.metadata_props.add()
+                entry.key, entry.value = key, value
+        dst = tmp_path / name
+        onnx.save(graph, dst)
+        return dst
+
+    def session_calls(path, n):
+        """Forward a batch of n random images, counting backend session.run calls."""
+        ab = AutoBackend(path, device=torch.device("cpu"))
+        calls, run = [], ab.backend.session.run
+
+        def counting(*args, **kwargs):
+            calls.append(1)
+            return run(*args, **kwargs)
+
+        ab.backend.session.run = counting
+        y = ab.forward(torch.rand(n, 3, 64, 64))
+        return len(calls), (y[0] if isinstance(y, list) else y).shape[0]
+
+    f_static = Path(YOLO(isolated_model).export(format="onnx", imgsz=64, batch=2)).replace(tmp_path / "static.onnx")
+    f_dynamic = YOLO(isolated_model).export(format="onnx", imgsz=64, dynamic=True)
+    calls, b = session_calls(third_party(f_dynamic, "stripped.onnx"), 8)
+    assert (calls, b) == (1, 8)  # metadata-less dynamic graph: never chunked per image on a guessed batch
+    calls, b = session_calls(third_party(f_static, "stamped.onnx", {"license": "MIT"}), 2)
+    assert (calls, b) == (1, 2)  # foreign props synthesize dynamic=False without a batch pin: still no chunking
+
+    seg = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo26n-seg.pt")).export(format="onnx", imgsz=64, batch=2)
+    ys = AutoBackend(seg, device=torch.device("cpu")).forward(torch.rand(3, 3, 64, 64))  # list output, short tail
+    assert isinstance(ys, list) and {t.shape[0] for t in ys} == {3}  # every output concatenated across chunks
+
+
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
     import pathlib

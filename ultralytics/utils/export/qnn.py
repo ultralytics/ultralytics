@@ -41,7 +41,6 @@ def onnx2qnn(
     transform_fn,
     name: str = "73",
     metadata: dict | None = None,
-    batch: int = 0,
     prefix: str = "",
 ) -> str:
     """Convert an ONNX model to a Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
@@ -64,12 +63,13 @@ def onnx2qnn(
             chip when exporting on a host without a Snapdragon NPU.
         metadata (dict | None): Ultralytics model metadata ensured present in the context model's `metadata_props` (ONNX
             Runtime normally carries the source model's metadata through, but this is not a documented guarantee).
-        batch (int): Static batch dimension of the ONNX graph used to tile undersized calibration batches, or 0 for
-            dynamic-batch models.
         prefix (str): Prefix for log messages.
 
     Returns:
         (str): Path to the exported `*_qnn.onnx` file.
+
+    Raises:
+        RuntimeError: If no QNN devices are found after plugin registration, or the context binary is not generated.
 
     Notes:
         `onnxruntime-qnn` wheels may expose QNN either as a plugin library or as a built-in ONNX Runtime provider.
@@ -106,7 +106,7 @@ def onnx2qnn(
         # 16-bit activations + 8-bit weights is the ORT-recommended accuracy/perf balance for the HTP backend
         qdq_config = get_qnn_qdq_config(
             str(pre_file),
-            onnx_calibration_reader(dataset, transform_fn, batch=batch),
+            onnx_calibration_reader(dataset, transform_fn),
             activation_type=QuantType.QUInt16,
             weight_type=QuantType.QUInt8,
         )

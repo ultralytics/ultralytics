@@ -66,7 +66,7 @@ If conflicts persist, install without dependencies first, then manually install 
 
 ```bash
 !pip install --no-deps ultralytics
-!pip install torch torchvision opencv-python matplotlib pillow pyyaml requests
+!pip install torch torchvision numpy opencv-python matplotlib pillow pyyaml requests psutil polars ultralytics-thop
 ```
 
 #### Method 3: Restart Kernel After Installation

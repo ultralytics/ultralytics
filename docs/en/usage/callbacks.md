@@ -11,13 +11,13 @@ Ultralytics framework supports callbacks, which serve as entry points at strateg
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ENQXiK7HF5o"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/GW5z7HX4Jds"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to use Ultralytics Callbacks | Predict, Train, Validate and Export Callbacks | Ultralytics YOLO🚀
+  <strong>Watch:</strong> How to use Ultralytics Callbacks | Predict, Train, Validate and Export Callbacks | Ultralytics YOLO26 🚀
 </p>
 
 ## Examples
@@ -83,11 +83,13 @@ model.train(data="coco8.yaml", epochs=1)
 `unwrap_model()` handles both single-device and DistributedDataParallel training. Do not attach a locally defined hook
 to `trainer.ema.ema`, because training checkpoints serialize the EMA model and another process may not be able to import
 the callback when loading the checkpoint. If the same preprocessing must run during training validation, implement it
-as an importable model component instead of a runtime hook.
+as an importable model component instead of a runtime hook. NaN recovery rebuilds the EMA from the training model, so a
+hook registered this way is copied into the EMA and saved checkpoints after a recovery; define the hook function in an
+importable module if checkpoints must load in another process.
 
-Standalone `model.val()` copies the loaded model for each call. Prediction creates and caches a copy on its first call, so register
-hooks on `model.model` before the first `model.predict()` or `model.track()` call; hooks added afterward do not reach
-the cached predictor. Register runtime hooks again after loading a checkpoint in a new process.
+Standalone `model.val()` copies the loaded model for each call. Prediction creates and caches a copy on its first call,
+so register hooks on `model.model` before the first `model.predict()` or `model.track()` call; hooks added afterward do
+not reach the cached predictor. Register runtime hooks again after loading a checkpoint in a new process.
 
 ### Access Model metrics using the `on_model_save` callback
 
@@ -197,28 +199,25 @@ for result, frame in model.predict():
 
 Customize your Ultralytics training routine by injecting logic at specific stages of the training process. Ultralytics YOLO provides a variety of training callbacks, such as `on_train_start`, `on_train_end`, and `on_train_batch_end`, which allow you to add custom metrics, processing, or logging.
 
-Here's how to freeze BatchNorm statistics when freezing layers with callbacks:
+Here's how to log the learning rate of each optimizer parameter group at the end of every training epoch:
 
 ```python
 from ultralytics import YOLO
 
 
-# Add a callback to put the frozen layers in eval mode to prevent BN values from changing
-def put_in_eval_mode(trainer):
-    n_layers = trainer.args.freeze
-    if not isinstance(n_layers, int):
-        return
-
-    for i, (name, module) in enumerate(trainer.model.named_modules()):
-        if name.endswith("bn") and int(name.split(".")[1]) < n_layers:
-            module.eval()
-            module.track_running_stats = False
+def log_learning_rates(trainer):
+    """Print the current learning rates after each training epoch."""
+    print(f"Epoch {trainer.epoch + 1}: {trainer.lr}")
 
 
 model = YOLO("yolo26n.pt")
-model.add_callback("on_train_epoch_start", put_in_eval_mode)
-model.train(data="coco.yaml", epochs=10)
+model.add_callback("on_train_epoch_end", log_learning_rates)
+model.train(data="coco8.yaml", epochs=3)
 ```
+
+!!! tip
+
+    You don't need a callback to freeze [BatchNorm](https://www.ultralytics.com/glossary/batch-normalization) statistics when using `freeze`: the trainer automatically puts the BatchNorm layers of frozen layers in eval mode at the start of every epoch.
 
 For more details on effectively using training callbacks, see the [Training Guide](../modes/train.md).
 

@@ -7,8 +7,7 @@
 FROM nvcr.io/nvidia/l4t-cuda:10.2.460-runtime
 
 # Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
@@ -22,7 +21,6 @@ RUN wget -q -O - https://repo.download.nvidia.com/jetson/jetson-ota-public.asc |
 
 # Install dependencies
 # pkg-config and libhdf5-dev (not included) are needed to build 'h5py==3.11.0' aarch64 wheel required by 'tensorflow'
-# gnupg required for Edge TPU install
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git python3.8 python3.8-dev python3-pip python3-libnvinfer libopenmpi-dev libopenblas-base libomp-dev gcc && \
@@ -49,12 +47,12 @@ RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install uv
 # Install pip packages and remove extra build files
 # Onnxruntime and TensorRT from https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
-RUN uv pip install --system \
+RUN uv pip install --system --no-cache \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.8.0-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/tensorrt-8.2.0.6-cp38-none-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-1.11.0a0+gitbc2c6ed-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.12.0a0+9b5a3fe-cp38-cp38-linux_aarch64.whl && \
-    uv pip install --system -e ".[export]" && \
+    uv pip install --system --no-cache -e ".[export]" && \
     # Remove extra build files
     rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
 

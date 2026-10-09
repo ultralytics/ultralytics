@@ -17,7 +17,7 @@ from .vl_combiner import SAM3VLBackbone
 
 
 def _update_out(out, out_name, out_value, auxiliary=True, update_aux=True):
-    """Helper function to update output dictionary with main and auxiliary outputs."""
+    """Update the output dictionary with main and, optionally, auxiliary outputs."""
     out[out_name] = out_value[-1] if auxiliary else out_value
     if auxiliary and update_aux:
         if "aux_outputs" not in out:
@@ -31,6 +31,8 @@ class SAM3SemanticModel(torch.nn.Module):
     """SAM3 model for semantic segmentation with vision-language backbone."""
 
     mask_threshold: float = 0.0
+    # Max text prompts per grounding pass; each prompt is a batch item, so VRAM scales linearly with the count
+    max_text_batch: int = 16
 
     def __init__(
         self,
@@ -284,9 +286,37 @@ class SAM3SemanticModel(torch.nn.Module):
             backbone_out.pop("backbone_fpn", None)
 
     def forward_grounding(
-        self, backbone_out: dict[str, torch.Tensor], text_ids: torch.Tensor, geometric_prompt: Prompt = None
+        self, backbone_out: dict[str, torch.Tensor], text_ids: torch.Tensor, geometric_prompt: Prompt | None = None
     ):
-        """Forward pass for grounding (detection + segmentation) given input images and text."""
+        """Run grounding (detection + segmentation) on backbone features for the given text prompts.
+
+        Args:
+            backbone_out (dict[str, torch.Tensor]): Image backbone outputs with "backbone_fpn" and "vision_pos_enc".
+            text_ids (torch.Tensor): Indices of the text prompts (from set_classes) to ground, one per batch item.
+            geometric_prompt (Prompt | None): Optional box prompts, batched to match text_ids.
+
+        Returns:
+            (dict): Outputs including "pred_logits", "pred_boxes" (normalized CxCyWH), "pred_boxes_xyxy", and, when a
+                segmentation head is present, "pred_masks", "semantic_seg", and "presence_logit".
+        """
+        if len(text_ids) > self.max_text_batch and (
+            geometric_prompt is None or geometric_prompt.box_embeddings.shape[0] == 0
+        ):
+            # Chunk text prompts to bound peak VRAM; prompts are independent batch items so results concatenate
+            # exactly. An empty geometric prompt carries no boxes, so slicing its batch dim preserves numerics.
+            outs = []
+            for i in range(0, len(text_ids), self.max_text_batch):
+                prompt = None
+                if geometric_prompt is not None:
+                    prompt = Prompt(
+                        box_embeddings=geometric_prompt.box_embeddings[:, i : i + self.max_text_batch],
+                        box_mask=geometric_prompt.box_mask[i : i + self.max_text_batch],
+                        box_labels=geometric_prompt.box_labels[:, i : i + self.max_text_batch],
+                    )
+                outs.append(self.forward_grounding(backbone_out, text_ids[i : i + self.max_text_batch], prompt))
+            return {
+                k: torch.cat([o[k] for o in outs]) if isinstance(v, torch.Tensor) else v for k, v in outs[0].items()
+            }
         backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = SAM2Model._prepare_backbone_features(
             self, backbone_out, batch=len(text_ids)
         )

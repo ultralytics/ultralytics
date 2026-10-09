@@ -9,7 +9,7 @@ keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted it
 
 [Ultralytics Platform](https://platform.ultralytics.com) implements a 30-day soft delete policy, allowing you to recover accidentally deleted projects, datasets, and models. Deleted items are moved to Trash where they can be restored before permanent deletion.
 
-![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/1fda3fe06d0527f579017b71afa6a2ff.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/63c5caae0d664afcbcfd9713453f37e5.avif)<!-- screenshot -->
 
 ## Soft Delete Policy
 
@@ -137,7 +137,8 @@ To permanently delete one item without waiting:
 
 For projects, permanent deletion also removes related deployments and export files that belong to the deleted workspace
 resources. If a deployment cannot be deleted, the Platform warns you and leaves it
-listed on the [Deployments](../deploy/endpoints.md) page so you can retry from there.
+listed on your profile's [Deployments tab](../deploy/index.md#deployments-tab); open its deployment page to retry
+deletion.
 
 ## Storage and Trash
 

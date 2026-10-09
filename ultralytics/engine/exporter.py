@@ -10,9 +10,11 @@ ONNX                    | `onnx`                    | yolo26n.onnx
 OpenVINO                | `openvino`                | yolo26n_openvino_model/
 TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
+Apple Core AI           | `coreai`                  | yolo26n.aimodel
 TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolo26n.pb
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
+LiteRT                  | `litert`                  | yolo26n.tflite
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -22,10 +24,9 @@ ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
-LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
-Apple Core AI           | `coreai`                  | yolo26n.aimodel
+AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -47,9 +48,11 @@ Inference:
                          yolo26n_openvino_model     # OpenVINO
                          yolo26n.engine             # TensorRT
                          yolo26n.mlpackage          # CoreML (macOS-only)
+                         yolo26n.aimodel            # Apple Core AI (export on macOS 26+ Apple silicon or x86_64 Linux)
                          yolo26n_saved_model        # TensorFlow SavedModel
                          yolo26n.pb                 # TensorFlow GraphDef
                          yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolo26n.tflite             # LiteRT
                          yolo26n_paddle_model       # PaddlePaddle
                          yolo26n.mnn                # MNN
                          yolo26n_ncnn_model         # NCNN
@@ -59,9 +62,9 @@ Inference:
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
-                         yolo26n.tflite             # LiteRT
+                         yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
-                         yolo26n.aimodel            # Apple Core AI (macOS 26+, Apple silicon)
+                         yolo26n_xilinx_model       # AMD Xilinx
 """
 
 from __future__ import annotations
@@ -113,6 +116,7 @@ from ultralytics.utils import (
     SETTINGS,
     TORCH_VERSION,
     WINDOWS,
+    XILINX_TARGETS,
     YAML,
     callbacks,
     colorstr,
@@ -122,10 +126,13 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_9,
     IS_PYTHON_MINIMUM_3_13,
+    check_data_portable,
     check_imgsz,
+    check_python,
     check_requirements,
     check_version,
     is_intel,
+    rocm_is_available,
 )
 from ultralytics.utils.export.axelera import AXELERA_SDK
 from ultralytics.utils.files import file_size
@@ -188,12 +195,21 @@ def export_formats():
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "quantize", "nms"], "coreml"],
         [
+            "Core AI",
+            "coreai",
+            ".aimodel",
+            True,
+            False,
+            ["batch", "quantize"],
+            "base",
+        ],
+        [
             "TensorFlow SavedModel",
             "saved_model",
             "_saved_model",
             True,
             True,
-            ["batch", "data", "fraction", "quantize", "opset", "keras", "nms"],
+            ["batch", "data", "fraction", "quantize", "opset", "nms"],
             "tensorflow",
         ],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch", "opset"], "tensorflow"],
@@ -206,6 +222,7 @@ def export_formats():
             ["data", "fraction", "quantize", "opset"],
             "tensorflow",
         ],
+        ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "opset", "simplify", "nms"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
@@ -247,7 +264,6 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "fraction", "data"],
             "base",
         ],
-        ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
         [
             "Hailo",
             "hailo",
@@ -267,13 +283,13 @@ def export_formats():
             "base",
         ],
         [
-            "Core AI",
-            "coreai",
-            ".aimodel",
+            "AMD Xilinx",
+            "xilinx",
+            "_xilinx_model",
             True,
             False,
-            ["batch", "quantize"],
-            "base",
+            ["name", "quantize", "data", "fraction", "opset", "simplify"],
+            "isolated-xilinx",
         ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
@@ -316,7 +332,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=coreml model=yolo26n.pt imgsz=32"],
     },
     "mnn": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base"],
         "torch": None,
         "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
@@ -325,7 +341,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=mnn model=yolo26n.pt imgsz=32"],
     },
     "ncnn": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base"],
         "torch": None,
         "requirements": ["ncnn", "pnnx==20260526"],
@@ -334,7 +350,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=ncnn model=yolo26n.pt imgsz=32"],
     },
     "executorch": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base", "export-executorch"],
         "torch": ">=2.12",
         "requirements": [],
@@ -386,20 +402,26 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml"],
     },
     "isolated-deepx": {
-        # dx-com 2.3.0 does not provide Python 3.13 wheels.
-        "python": "3.12",
+        "python": "3.14",
         "extras": ["export-base", "export-deepx"],
         "torch": ">=2.8,<2.12",
         "requirements": [],
-        "indexes": [
-            ("--find-links", "https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html"),
-        ],
+        "indexes": [],
         # DeepX export is only supported on non-aarch64 Linux.
         "env": {},
         "smoke": ["yolo export format=deepx model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
+    "isolated-xilinx": {
+        "python": "3.12",
+        "extras": ["export-base", "export-xilinx"],
+        "torch": None,
+        "requirements": [],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=xilinx model=yolo26n.pt imgsz=64 data=coco8.yaml"],
+    },
     "litert": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base", "export-litert"],
         "torch": None,
         "requirements": [],
@@ -412,7 +434,7 @@ EXPORT_ENVS = {
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
 FP16_FORMATS = frozenset(
-    {"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend", "coreai"}
+    {"torchscript", "onnx", "openvino", "engine", "coreml", "coreai", "mnn", "ncnn", "rknn", "ascend"}
 )
 INT8_FORMATS = frozenset(
     {
@@ -422,20 +444,19 @@ INT8_FORMATS = frozenset(
         "coreml",
         "saved_model",
         "edgetpu",
+        "litert",
         "mnn",
         "imx",
         "rknn",
         "axelera",
         "deepx",
         "hailo",
-        "litert",
+        "xilinx",
     }
 )
-W8A16_FORMATS = frozenset(
-    {"coreml", "imx", "qnn", "litert"}
-)  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
+W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -451,12 +472,12 @@ def validate_args(format, passed_args, valid_args):
     Args:
         format (str): The export format.
         passed_args (SimpleNamespace): The arguments used during export.
-        valid_args (list): List of valid arguments for the format.
+        valid_args (list | None): List of valid arguments for the format.
 
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    # Format-specific args come from the export table; skip inference args and quantize (validated above)
+    # Format-specific args from the export table; skip conf/iou/name, nms (handled by Exporter) and quantize (below)
     export_args = sorted(set().union(*export_formats()["Arguments"]) - {"conf", "iou", "name", "quantize", "nms"})
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
@@ -523,6 +544,8 @@ class Exporter:
         pretty_name (str): Formatted model name for display purposes.
         metadata (dict): Model metadata including description, author, version, etc.
         device (torch.device): Device on which the model is loaded.
+        dla (str | None): TensorRT DLA core ('0' or '1') when exporting with device='dla:N', otherwise None.
+        qat (bool): Whether the model is a quantization-aware trained (QAT) model.
         imgsz (list): Input image size for the model.
 
     Methods:
@@ -532,6 +555,7 @@ class Exporter:
         export_onnx: Export model to ONNX format.
         export_openvino: Export model to OpenVINO format.
         export_paddle: Export model to PaddlePaddle format.
+        export_litert: Export model to LiteRT format.
         export_mnn: Export model to MNN format.
         export_ncnn: Export model to NCNN format.
         export_coreml: Export model to CoreML format.
@@ -545,6 +569,10 @@ class Exporter:
         export_coreai: Export model to Apple Core AI format.
         export_axelera: Export model to Axelera format.
         export_deepx: Export model to DEEPX format.
+        export_qnn: Export model to Qualcomm QNN format.
+        export_hailo: Export model to Hailo HEF format.
+        export_ascend: Export model to Huawei Ascend format.
+        export_xilinx: Export model to AMD Xilinx Vitis AI format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -571,20 +599,28 @@ class Exporter:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
-    def __call__(self, model=None) -> str:
+    def __call__(self, model: torch.nn.Module) -> str:
         """Export a model and return the final exported path as a string.
+
+        Args:
+            model (torch.nn.Module): The YOLO PyTorch model to export.
 
         Returns:
             (str): Path to the exported file or directory (the last export artifact).
+
+        Raises:
+            ValueError: If the export format is invalid or the model/arguments are unsupported for the format.
         """
         t = time.time()
-        fmt = self.args.format.lower()  # to lowercase
+        fmt = self.args.format = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
-            fmt = "engine"
-        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
-            fmt = "coreml"
+            fmt = self.args.format = "engine"
+        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios"}:  # 'coreml' aliases, legacy 'mlmodel' kept
+            fmt, self.args.format = "coreml", "mlmodel" if fmt == "mlmodel" else "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
             fmt = self.args.format = "ascend"
+        if fmt in {"vitis", "vitisai", "versal"}:  # 'xilinx' aliases
+            fmt = self.args.format = "xilinx"
         if fmt in {"tflite", "tfjs"}:  # deprecated formats, replaced by the unified Google LiteRT export
             LOGGER.warning(
                 f"format='{fmt}' is deprecated as of 8.4.83 and has been replaced by the unified Google LiteRT "
@@ -602,7 +638,7 @@ class Exporter:
                 msg = "Model is already in PyTorch format." if fmt == "pt" else f"Invalid export format='{fmt}'."
                 raise ValueError(f"{msg} Valid formats are {fmts}")
             LOGGER.warning(f"Invalid export format='{fmt}', updating to format='{matches[0]}'")
-            fmt = matches[0]
+            fmt = self.args.format = matches[0]
         is_tf_format = fmt in {"saved_model", "pb", "edgetpu"}
 
         # Device
@@ -623,10 +659,13 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "xilinx"} and self.args.quantize not in {
+            8,
+            "w8a16",
+        }:
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
-        if fmt in {"axelera", "hailo"} and not self.args.data:
+        if fmt in {"axelera", "hailo", "xilinx"} and not self.args.data:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
@@ -772,6 +811,11 @@ class Exporter:
             assert self.args.name in QNN_HTP_TARGETS, (
                 f"Invalid Qualcomm QNN target '{self.args.name}'. Valid targets are {tuple(QNN_HTP_TARGETS)}."
             )
+        if fmt == "xilinx":
+            self.args.name = str(self.args.name or XILINX_TARGETS[0]).lower()
+            assert self.args.name in XILINX_TARGETS, (
+                f"Invalid AMD Xilinx device '{self.args.name}'. Valid devices are {XILINX_TARGETS}."
+            )
         if self.args.nms and "nms" not in fmt_keys:
             LOGGER.warning(f"format={fmt} does not support embedded NMS; exporting native outputs for external NMS.")
             self.args.nms = None
@@ -816,14 +860,10 @@ class Exporter:
                 )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning("'dynamic=True' export requires a maximum batch size, e.g. 'batch=16'.")
-        if fmt == "edgetpu":
-            if not LINUX or ARM64:
-                raise SystemError(
-                    "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
-                )
-            elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
-                LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
-                self.args.batch = 1
+        if fmt == "edgetpu" and (not LINUX or ARM64):
+            raise SystemError(
+                "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
+            )
         self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
         if self.qat:
             assert fmt in {"onnx", "engine"}, (
@@ -835,7 +875,7 @@ class Exporter:
                 f"other precisions."
             )
             self.args.quantize = 8  # the graph carries Q/DQ nodes whether or not INT8 was requested
-        if self.args.quantize in {8, "w8a16"} and not self.args.data and not self.qat:
+        if self.args.quantize in {8, "w8a16"} and not self.args.data and not self.qat and "data" in fmt_keys:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
@@ -877,7 +917,7 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
-            if isinstance(m, Attention) and fmt == "coreml" and self.args.format.lower() != "mlmodel":
+            if isinstance(m, Attention) and fmt == "coreml" and self.args.format != "mlmodel":
                 m.format = fmt
             if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
@@ -913,15 +953,13 @@ class Exporter:
 
         if model.task == "semantic" and fmt in {"qnn", "coreml", "ascend"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
-            # forces consumers to dequantize and argmax ~20M floats on the CPU every frame (measured erratic
-            # 123-1065 ms on Hexagon). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
+            # forces consumers to dequantize and argmax ~8M floats at 640px (~20M at 1024px) on the CPU every frame
+            # (measured erratic 123-1065 ms on Hexagon at 1024px). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
             # indices) and a whole-graph CPU fallback is slower than GPU logits + consumer-side argmax. Python
             # predict/val accept both forms.
             model = ClassMapModel(model)
 
-        y = None
-        for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
+        y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)  # dry run
         if self.args.quantize == 16 and fmt in {"onnx", "torchscript"} and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
@@ -988,9 +1026,11 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
+            d = f"data={data}" if check_data_portable(data) else ""  # omit host paths that would not run here
             inference_commands = (
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} "
+                f"{d} {q} {s}"
                 if fmt in AutoBackend._BACKEND_MAP
                 else ""
             )
@@ -1013,14 +1053,14 @@ class Exporter:
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-            data = check_cls_dataset(self.args.data, split=self.args.split)
+            data = check_cls_dataset(self.args.data, split=split)
             if not isinstance(cfg.fraction, list):
                 cfg.fraction = [cfg.fraction] * 3
             dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
-            data = check_det_dataset(self.args.data, split=self.args.split)
+            data = check_det_dataset(self.args.data, split=split)
             cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction
             dataset = build_yolo_dataset(
                 cfg,
@@ -1046,6 +1086,16 @@ class Exporter:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
         return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
 
+    def _int8_calibration_images(self, prefix=""):
+        """Collect calibration batches directly into one BHWC float32 array."""
+        loader = self.get_int8_calibration_dataloader(prefix)
+        images = np.empty((len(loader) * loader.batch_size, *self.imgsz, self.im.shape[1]), dtype=np.float32)
+        for i, batch in enumerate(loader):
+            images[i * loader.batch_size : (i + 1) * loader.batch_size] = (
+                torch.nn.functional.interpolate(batch["img"].float(), size=self.imgsz).permute(0, 2, 3, 1).numpy()
+            )
+        return images
+
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):  # noqa: B008
         """Export YOLO model to TorchScript format."""
@@ -1066,8 +1116,9 @@ class Exporter:
         if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8 and not self.qat):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
-            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+            # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
+            ort = "onnxruntime-gpu" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
+            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai")]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)
@@ -1076,7 +1127,11 @@ class Exporter:
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
 
         opset = self.args.opset or best_onnx_opset(onnx)
-        assert not isinstance(self.model.model[-1], RTDETRDecoder) or opset >= 16, "RTDETR export requires opset>=16"
+        # nearest Upsample needs 9, NMS and depth align_corners Resize need 11, RT-DETR GridSample needs 16
+        min_opset = {"classify": 7, "depth": 11}.get(self.model.task, 11 if self.args.nms else 9)
+        if isinstance(self.model.model[-1], RTDETRDecoder):
+            min_opset = 16
+        assert opset >= min_opset, f"ONNX export requires opset>={min_opset} for this model, but got opset={opset}"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         if self.args.nms:
             assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"
@@ -1106,6 +1161,7 @@ class Exporter:
             and self.args.quantize == 8
             and self.model.task in {"detect", "segment", "pose", "obb"}
             and not self.metadata["end2end"]
+            and self.metadata["head"] != "RTDETRDecoder"
         ):
             from ultralytics.utils.export.engine import _NormalizeCoords
 
@@ -1166,13 +1222,10 @@ class Exporter:
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
         if self.args.quantize == 16 and self.args.format == "onnx" and self.device.type == "cpu":
-            try:
-                from onnxruntime.transformers import float16
+            from onnxruntime.transformers import float16
 
-                LOGGER.info(f"{prefix} converting to FP16...")
-                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
-            except Exception as e:
-                LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
+            LOGGER.info(f"{prefix} converting to FP16...")
+            model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
 
         onnx.save(model_onnx, f)
         del model_onnx
@@ -1186,7 +1239,6 @@ class Exporter:
                 f_int8,
                 self.get_int8_calibration_dataloader(prefix),
                 self._transform_fn,
-                batch=0 if self.args.dynamic else self.args.batch,
                 prefix=prefix,
             )
             source.unlink(missing_ok=True)
@@ -1309,7 +1361,7 @@ class Exporter:
     @try_export
     def export_coreml(self, prefix=colorstr("CoreML:")):  # noqa: B008
         """Export YOLO model to CoreML format."""
-        mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
+        mlmodel = self.args.format == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
 
         # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
@@ -1319,8 +1371,6 @@ class Exporter:
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
-        if f.is_dir():
-            shutil.rmtree(f)
 
         if self.args.nms and self.model.task == "detect":
             model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel)
@@ -1349,7 +1399,8 @@ class Exporter:
             )
             inputs = [ct.TensorType("image", shape=input_shape)]
         else:
-            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, bias=[0.0, 0.0, 0.0])]
+            layout = ct.colorlayout.GRAYSCALE if self.im.shape[1] == 1 else ct.colorlayout.RGB
+            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, color_layout=layout)]
 
         quantize = 16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize
         self.metadata["args"]["quantize"] = quantize
@@ -1380,15 +1431,7 @@ class Exporter:
         if self.model.task == "classify":
             ct_model.user_defined_metadata.update({"com.apple.coreml.model.preview.type": "imageClassifier"})
 
-        try:
-            ct_model.save(str(f))  # save *.mlpackage
-        except Exception as e:
-            LOGGER.warning(
-                f"{prefix} CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
-                f"Known coremltools Python 3.11 and Windows bugs https://github.com/apple/coremltools/issues/1928."
-            )
-            f = f.with_suffix(".mlmodel")
-            ct_model.save(str(f))
+        ct_model.save(str(f))  # save *.mlpackage or *.mlmodel
         return f
 
     @try_export
@@ -1429,16 +1472,6 @@ class Exporter:
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
 
-        # Export to TF
-        images = None
-        if self.args.quantize == 8 and self.args.data:
-            images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-            images = (
-                torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
-                .permute(0, 2, 3, 1)
-                .numpy()
-            )
-
         # Export to ONNX
         if isinstance(self.model.model[-1], RTDETRDecoder):
             self.args.opset = self.args.opset or 19
@@ -1449,9 +1482,10 @@ class Exporter:
             f_onnx,
             f,
             quantize=self.args.quantize,
-            images=images,
+            # built inline as a temporary so onnx2saved_model's `del images` frees it before the conversion phase
+            images=self._int8_calibration_images(prefix) if self.args.quantize == 8 and self.args.data else None,
             disable_group_convolution=self.args.format == "edgetpu",
-            cuda=self.device.type == "cuda",
+            cuda=self.device.type == "cuda" and not rocm_is_available(),  # TensorFlow and onnxruntime-gpu are CUDA-only
             prefix=prefix,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
@@ -1506,8 +1540,8 @@ class Exporter:
     @try_export
     def export_coreai(self, prefix=colorstr("Core AI:")):  # noqa: B008
         """Export YOLO model to Apple Core AI *.aimodel format."""
-        assert MACOS and ARM64 and MACOS_VERSION >= "26.0", (
-            "Core AI export requires macOS>=26 on Apple silicon; coreai-core publishes macosx_26_0_arm64 wheels only."
+        assert (MACOS and ARM64 and MACOS_VERSION >= "26.0") or (LINUX and not ARM64), (
+            "Core AI export requires macOS>=26 on Apple silicon or x86_64 Linux, the platforms coreai-core publishes."
         )
         assert TORCH_2_8, f"Core AI export requires torch>=2.8.0 but torch=={TORCH_VERSION} is installed"
         from ultralytics.utils.export.coreai import torch2coreai
@@ -1522,7 +1556,7 @@ class Exporter:
         )
 
     @try_export
-    def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):  # noqa: B008
+    def export_edgetpu(self, tflite_model: Path, prefix=colorstr("Edge TPU:")):  # noqa: B008
         """Export YOLO model to Edge TPU format https://coral.ai/docs/edgetpu/models-intro/."""
         from ultralytics.utils.export.tensorflow import tflite2edgetpu
 
@@ -1591,7 +1625,7 @@ class Exporter:
     def export_imx(self, prefix=colorstr("IMX:")):  # noqa: B008
         """Export YOLO model to IMX format."""
         assert LINUX, (
-            "Export only supported on Linux."
+            "Export only supported on Linux. "
             "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
         assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
@@ -1644,7 +1678,23 @@ class Exporter:
             transform_fn=self._transform_fn,
             name=self.args.name,
             metadata=self.metadata,
-            batch=0 if self.args.dynamic else self.args.batch,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_xilinx(self, prefix=colorstr("AMD Xilinx:")):  # noqa: B008
+        """Export YOLO model to AMD Xilinx Vitis AI format for Versal AI Edge Series Gen 2 NPUs."""
+        assert LINUX, "AMD Xilinx export is only supported on Linux."
+        check_python(">=3.11,<3.14")  # AMD Quark wheels, checked before the ONNX trace
+        from ultralytics.utils.export.xilinx import onnx2xilinx
+
+        self.args.opset = self.args.opset or 17  # opset validated by AMD for YOLO on Vitis AI
+        return onnx2xilinx(
+            onnx_file=self.export_onnx(),
+            output_dir=self.file.parent / f"{self.file.stem}_xilinx_model",
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            transform_fn=self._transform_fn,
+            name=self.args.name,
             prefix=prefix,
         )
 
@@ -1652,13 +1702,12 @@ class Exporter:
     def export_hailo(self, prefix=colorstr("Hailo:")):  # noqa: B008
         """Export a YOLO model to Hailo Executable Format (HEF)."""
         try:
-            import tensorflow as tf
             from hailo_sdk_client import ClientRunner
         except ImportError as e:
             raise ImportError("Hailo export requires the Hailo Dataflow Compiler.") from e
 
-        calibration_dataloader = self.get_int8_calibration_dataloader(prefix)
-        calibration_size = len(calibration_dataloader.dataset)
+        calibration_images = self._int8_calibration_images(prefix)  # fixed set, every DFC pass must see the same images
+        calibration_size = len(calibration_images)
         LOGGER.warning(
             f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
             "Hailo recommends at least 1,024 representative images for best accuracy. "
@@ -1771,17 +1820,7 @@ class Exporter:
                     model_script.append("allocator_param(width_splitter_defuse=disabled)")
             runner.load_model_script("\n".join(model_script))
 
-            def calibration_dataset():
-                for batch in calibration_dataloader:
-                    for image in batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32):
-                        yield image, {}
-
-            runner.optimize(
-                lambda: tf.data.Dataset.from_generator(
-                    calibration_dataset,
-                    output_signature=(tf.TensorSpec(shape=(*self.imgsz, 3), dtype=tf.float32), {}),
-                )
-            )
+            runner.optimize(calibration_images)
             (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
             YAML.save(
                 output_dir / "metadata.yaml",
@@ -1805,13 +1844,19 @@ class Exporter:
         with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
             zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
 
-    @staticmethod
-    def _transform_fn(data_item) -> np.ndarray:
-        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
+    def _transform_fn(self, data_item) -> np.ndarray:
+        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN).
+
+        Calibration datasets smaller than the export batch yield undersized batches that static-batch graphs reject, so
+        images are tiled up to exactly the export batch.
+        """
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
         assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
-        return im[None] if im.ndim == 3 else im
+        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to float32 and 0 - 255 to 0.0 - 1.0
+        im = im[None] if im.ndim == 3 else im
+        if not self.args.dynamic and len(im) < self.args.batch:  # tile up to the static batch dimension
+            im = np.tile(im, (-(-self.args.batch // len(im)), 1, 1, 1))[: self.args.batch]
+        return im
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""
@@ -1927,7 +1972,7 @@ class NMSModel(torch.nn.Module):
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
-            pad = pred.new_zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:])
+            pad = pred.new_zeros((self.args.batch - torch._shape_as_tensor(pred)[0]).clamp(min=0), *pred.shape[1:])
             pred = torch.cat((pred, pad))
         if self.args.dynamic and self.args.format == "onnx" and self.obb:
             pred = torch.cat((pred, pred.new_zeros(pred.shape[0], self.args.max_det * 5, pred.shape[2])), dim=1)
@@ -1943,6 +1988,8 @@ class NMSModel(torch.nn.Module):
                 score *= mask
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
+            elif self.args.format in {"coreml", "mlmodel"}:  # CoreML aborts on an empty gather: keep the top anchor
+                mask, score = torch.logical_or(mask, score == score.max()), score * mask
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb

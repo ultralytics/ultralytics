@@ -16,8 +16,6 @@ class ObjectCropper(BaseSolution):
     Attributes:
         crop_dir (str): Directory where cropped object images are stored.
         crop_idx (int): Counter for the total number of cropped objects.
-        iou (float): IoU (Intersection over Union) threshold for non-maximum suppression.
-        conf (float): Confidence threshold for filtering detections.
 
     Methods:
         process: Crop detected objects from the input image and save them to the output directory.
@@ -44,8 +42,6 @@ class ObjectCropper(BaseSolution):
             self.LOGGER.warning(f"show=True is not supported for ObjectCropper; saving crops to '{self.crop_dir}'.")
             self.CFG["show"] = False
         self.crop_idx = 0  # Initialize counter for total cropped objects
-        self.iou = self.CFG["iou"]
-        self.conf = self.CFG["conf"]
 
     def process(self, im0) -> SolutionResults:
         """Crop detected objects from the input image and save them as separate images.
@@ -64,21 +60,14 @@ class ObjectCropper(BaseSolution):
             >>> print(f"Total cropped objects: {results.total_crop_objects}")
         """
         with self.profilers[0]:
-            results = self.model.predict(
-                im0,
-                classes=self.classes,
-                conf=self.conf,
-                iou=self.iou,
-                device=self.CFG["device"],
-                imgsz=self.CFG["imgsz"],
-                verbose=False,
-            )[0]
-            self.clss = results.boxes.cls.tolist()  # required for logging only.
+            results = self.model.predict(im0, classes=self.classes, verbose=False, **self.track_add_args)[0]
+            boxes = results.obb if results.obb is not None else results.boxes  # OBB models only fill results.obb
+            self.clss = boxes.cls.tolist()  # required for logging only.
 
-        for box in results.boxes:
+        for box in boxes:
             self.crop_idx += 1
             save_one_box(
-                box.xyxy,
+                box.xyxyxyxy if results.obb is not None else box.xyxy,
                 im0,
                 file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
                 BGR=True,

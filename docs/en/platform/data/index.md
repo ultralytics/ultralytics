@@ -28,30 +28,28 @@ The Data section of Ultralytics Platform helps you:
 - **Import from a URL** by pasting a direct link to an archive or NDJSON export, or from [Roboflow](../integrations/roboflow.md)
 - **Connect** [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) and use your data in place without uploading a copy
 - **Keep pixels on premise** with Enterprise [On Premise](../integrations/on-premise.md) CPU/GPU workers
-- **Annotate** with manual drawing tools and Smart annotation with SAM ([SAM 2.1](../../models/sam-2.md), [SAM 3](../../models/sam-3.md), or the default [SAM 3.1](../../models/sam-3.md#sam-31)), YOLO models, or class-prompted models — hosted open-source or paid provider models — on detection datasets with 1–100 classes
+- **Annotate** with manual drawing tools and Smart annotation with SAM ([SAM 2.1](../../models/sam-2.md), [SAM 3](../../models/sam-3.md), or the default [SAM 3.1](../../models/sam-3.md#sam-31)), YOLO models, or class-prompted models — hosted open-source or paid provider models — on detection datasets with 1–200 classes
 - **Manage classes** by renaming, recoloring, merging, and deleting them across the whole dataset
+- **Expand** datasets with [Find Similar Images](datasets.md#find-similar-images) or [Generate Similar Images](datasets.md#generate-similar-images), then annotate the images you keep
+- **Blur faces** in [existing images or future uploads](datasets.md#blur-faces)
 - **Analyze** your data with statistics, visualizations, and embedding-based clustering
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
-![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.ul.run/i/c6f7198b77344ed8d712d8c34ec82459.avif)<!-- screenshot -->
+![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.ul.run/i/a349cc731c3f6ac36ccac5617ab02d61.avif)<!-- screenshot -->
 
 ## Workflow
 
 ```mermaid
-graph LR
-    A[Upload]:::start --> B[Annotate]:::proc
-    B --> D[Train]:::out
-    B --> C[Analyze]:::proc
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload]) --> B[Annotate]
+    B --> C[Analyze]
+    B --> D([Train])
 ```
 
 | Stage        | Description                                                                                                                                                                                                                 |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Upload**   | Import images, videos, or archives with automatic processing                                                                                                                                                                |
-| **Annotate** | Label data with manual tools, or use Smart annotation with SAM (detect, segment, semantic, and OBB), YOLO, or class-prompted models — hosted open-source or paid provider models — on detection datasets with 1–100 classes |
+| **Annotate** | Label data with manual tools, or use Smart annotation with SAM (detect, segment, semantic, and OBB), YOLO, or class-prompted models — hosted open-source or paid provider models — on detection datasets with 1–200 classes |
 | **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters                                                                                                                                    |
 | **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use                                                                                                                       |
 
@@ -88,7 +86,7 @@ Ultralytics Platform manages storage efficiently:
 Reference datasets using the `ul://` URI format (see [Using Platform Datasets](../api/index.md#using-platform-datasets)):
 
 ```bash
-yolo train data=ul://username/datasets/my-dataset
+yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset
 ```
 
 This allows training on the platform's datasets from any machine with your [API key](../account/api-keys.md) configured.
@@ -116,14 +114,14 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | **Classes**  | View, rename, recolor, merge, and delete classes with per-class label counts |
 | **Charts**   | Automatic statistics: split distribution, class counts, heatmaps             |
 | **Models**   | [Models](../train/models.md) trained on this dataset with metrics and status |
-| **Versions** | Create, download, and restore immutable NDJSON snapshots for reproducibility |
+| **Versions** | Create, compare, download, and restore immutable NDJSON snapshots            |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
 `Classes` appears when the dataset has images and its task has classes, while `Charts` appears whenever it has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
 
 ### Clustering
 
-Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. Analysis needs between 20 and 200,000 non-errored images. The same embeddings let you [find similar images](datasets.md#find-similar-images) in public datasets and add them to yours. See [Clustering](datasets.md#clustering) for details.
+Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region or click a point to filter the gallery to those images. Analysis needs between 20 and 200,000 non-errored images. The same embeddings let you [find similar images](datasets.md#find-similar-images) in public, your own, and team datasets and add them to yours. See [Clustering](datasets.md#clustering) for details.
 
 ### Statistics and Visualization
 
@@ -155,7 +153,7 @@ Ultralytics Platform supports:
 
 **Videos:** MP4, WebM, MOV, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
-**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format) or COCO JSON labels or [semantic PNG masks](datasets.md#preparing-your-dataset), plus [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) exports
+**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format), COCO JSON, or [LabelMe](../integrations/labelme.md) JSON labels, [semantic PNG masks](datasets.md#preparing-your-dataset), or [depth maps](../../datasets/depth/index.md#depth-map-format), plus [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON exports
 
 Any of these archive or NDJSON formats can also be imported by pasting a direct HTTP(S) link in the `URL` tab of the `New Dataset` dialog. Pascal VOC XML labels are detected but not imported.
 

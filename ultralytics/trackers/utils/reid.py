@@ -34,7 +34,8 @@ class ReID:
             imgsz (int): Square input size used for crop preprocessing on the AutoBackend path. Overridden by the
                 model's own static input size when one is detected.
             device (str | torch.device | None): Inference device; defaults to CUDA if available.
-            fp16 (bool): Use half precision when the backend supports it.
+            fp16 (bool): Request half precision on the AutoBackend path when the backend supports it. Ignored for `.pt`
+                models; models exported with FP16 inputs run in half precision regardless.
         """
         self.imgsz = imgsz
         self.batch_size = None
@@ -47,8 +48,8 @@ class ReID:
             from ultralytics import YOLO
 
             self.model = YOLO(model)
-            # Initialize predictor with embed=[idx] so subsequent calls return embeddings.
-            self.model(embed=[len(self.model.model.model) - 2], device=self.device, verbose=False, save=False)
+            # Set up the embedding predictor that __call__ reuses for crops.
+            self.model.embed(np.zeros((32, 32, 3), dtype=np.uint8), device=self.device, verbose=False, save=False)
             self.fp16 = False
         else:
             from pathlib import Path
@@ -95,7 +96,15 @@ class ReID:
 
     @torch.no_grad()
     def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray | None]:
-        """Extract embeddings for detected objects."""
+        """Extract embeddings for detected objects.
+
+        Args:
+            img (np.ndarray): BGR image containing the detections.
+            dets (np.ndarray): Detections in xywh format (first 4 columns used).
+
+        Returns:
+            (list[np.ndarray | None]): One embedding per detection, or None where the crop is empty.
+        """
         crops = self._crop_detections(img, dets)
         valid = [bool(c.size) for c in crops]
         valid_crops = [crop for crop, keep in zip(crops, valid) if keep]
@@ -118,7 +127,7 @@ class ReID:
                     chunk = batch[s : s + bs]
                     if chunk.shape[0] < bs:
                         chunk = torch.cat([chunk, chunk[-1:].expand(bs - chunk.shape[0], *chunk.shape[1:])], 0)
-                    outs.append(self.model(chunk))
+                    outs.append(self.model(chunk).clone())  # IO binding reuses output buffers
                 feats = torch.cat(outs, 0)[:n]
             valid_feats = [f.cpu().numpy() for f in feats]
 

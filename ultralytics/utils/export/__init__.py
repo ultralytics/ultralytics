@@ -8,6 +8,7 @@ from .deepx import onnx2deepx
 from .engine import onnx2engine, torch2onnx
 from .executorch import torch2executorch
 from .imx import torch2imx
+from .litert import torch2litert
 from .mnn import onnx2mnn
 from .ncnn import torch2ncnn
 from .openvino import torch2openvino
@@ -16,6 +17,7 @@ from .qnn import onnx2qnn
 from .rknn import onnx2rknn
 from .tensorflow import keras2pb, onnx2saved_model, tflite2edgetpu
 from .torchscript import torch2torchscript
+from .xilinx import onnx2xilinx
 
 __all__ = [
     "keras2pb",
@@ -26,12 +28,14 @@ __all__ = [
     "onnx2qnn",
     "onnx2rknn",
     "onnx2saved_model",
+    "onnx2xilinx",
     "tflite2edgetpu",
     "torch2axelera",
     "torch2coreai",
     "torch2coreml",
     "torch2executorch",
     "torch2imx",
+    "torch2litert",
     "torch2ncnn",
     "torch2onnx",
     "torch2openvino",

@@ -97,8 +97,8 @@ EXPORT_POOL = ["torchscript", "onnx", "openvino"]  # CPU-friendly formats instal
 # The last field overrides CLAMPS: RT-DETR's 300-query decoder needs >=160px of anchors (below that is a T2 gap).
 ALTERNATE_CORPUS = (
     ("detect", "rtdetr-l.pt", "coco8.yaml", {"val", "predict", "export"}, "imgsz=160"),
-    ("detect", "yolov8s-worldv2.pt", "coco8.yaml", {"predict", "export"}, ""),
-    ("segment", "yoloe-11s-seg-pf.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
+    ("segment", "yoloe-26n-seg.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
+    ("segment", "yoloe-26n-seg-pf.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
 )
 
 # Controlled variations for cost-sensitive keys excluded from arbitrary mutation.
@@ -381,7 +381,7 @@ def prepare_sources(uni):
     empty_image.touch()
     corrupt_image.write_bytes(b"not an image")
     empty_dir.mkdir(exist_ok=True)
-    video = source_dir / "decelera_portrait_min.mov"
+    video = WEIGHTS_DIR / "solution_assets" / "decelera_portrait_min.mov"  # restored with the CI asset cache
     safe_download(f"{ASSETS_URL}/{video.name}", file=video)
     uni["sources"] = {
         "predict": [
@@ -674,12 +674,24 @@ def classify(trial, rc, stderr):
         return "env-skip", None, None
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None
+    cause_exc, cause_frames = parse_traceback(stderr.rsplit("The above exception was the direct cause", 1)[0])
     if trial.get("mutated") and (
         # Intentional unsupported-choice errors are expected; abstract "not implemented" gaps keep their signatures
         (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
-        or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
+        or (exc == "AssertionError" and "ONNX export requires opset>=" in stderr)
+        or (exc == "RuntimeError" and "opset" in trial["mutated"] and "Unsupported onnx_opset_version" in stderr)
+        # The trainer wraps missing requested splits in RuntimeError; classify the original validation error.
+        or (
+            exc == "RuntimeError"
+            and "split" in trial["mutated"]
+            and frames
+            and frames[-1] == "ultralytics/engine/trainer.py:get_dataset"
+            and cause_exc in EXPECTED_TYPES
+            and cause_frames
+            and cause_frames[-1].startswith(EXPECTED_MODULES)
+        )
         # Both dataset-validation layers summarise as RuntimeError, so the wrapper — not data/utils.py — is the
         # deepest frame: get_dataset re-raises YAML errors, and get_labels reports the per-file reasons once the
         # label cache exists (an uncached first trial raises ValueError from cache_labels instead). Excused only
@@ -897,7 +909,8 @@ def cmd_repro(args):
     argv = [portable(a) for a in argv]
     mode = next((a for a in argv if a in MODES), "predict")
     task = next((a for a in argv if a in uni["tasks"]), "detect")
-    trial = {"mode": mode, "task": task, "argv": argv, "mutated": ["repro"]}  # replayed commands were fuzz-mutated
+    # replayed commands were fuzz-mutated, so every supplied key counts as mutated for key-gated expected rules
+    trial = {"mode": mode, "task": task, "argv": argv, "mutated": ["repro", *(a.partition("=")[0] for a in argv)]}
     outcomes = []
     for i in range(args.runs):
         rc, stderr, duration = run_trial(trial, timeout=args.debug_timeout)

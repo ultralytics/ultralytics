@@ -27,10 +27,10 @@ The Deployment section helps you:
 
 - **Test** models directly in the browser with the `Predict` tab
 - **Deploy** to dedicated endpoints in 42 global regions
-- **Monitor** request metrics, logs, health checks, and temporary predictions on paid endpoints
+- **Monitor** request metrics, logs, health checks, and temporary predictions on every dedicated endpoint
 - **Choose resources**: default endpoints scale to zero; custom sizes keep a warm instance with uptime billing
 
-![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.ul.run/i/a2b4289abc2df5bc00a704a7b9575515.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/61603cb9902cf112660c2a5d2fb5bc44.avif)<!-- screenshot -->
 
 ## Deployment Options
 
@@ -38,22 +38,18 @@ Ultralytics Platform offers multiple deployment paths:
 
 | Option                                        | Description                                              | Best For                |
 | --------------------------------------------- | -------------------------------------------------------- | ----------------------- |
-| **[Predict Tab](inference.md)**               | Browser-based inference with image, webcam, and examples | Development, validation |
+| **[Predict Tab](inference.md)**               | Image, webcam, examples; IP camera on own endpoints      | Development, validation |
 | **Shared Inference**                          | Multi-tenant service across 3 data regions               | Light usage, testing    |
 | **[Dedicated Endpoints](endpoints.md)**       | Single-tenant services across 42 regions                 | Production, low latency |
-| **[Export](../train/models.md#export-model)** | Download weights in 20 formats for local or edge runtime | Offline, on-device      |
+| **[Export](../train/models.md#export-model)** | Download weights in 22 formats for local or edge runtime | Offline, on-device      |
 
 ## Workflow
 
 ```mermaid
-graph LR
-    A[✅ Test]:::start --> B[⚙️ Configure]:::proc
-    B --> C[🌐 Deploy]:::proc
-    C --> D[📊 Monitor]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Test]) --> B[Configure]
+    B --> C[Deploy]
+    C --> D([Monitor])
 ```
 
 | Stage         | Description                                                                       |
@@ -71,17 +67,12 @@ The shared inference service runs in 3 key regions. Requests to a model are rout
 [data region](../account/settings.md), so results stay inside the region where the model is stored:
 
 ```mermaid
-graph TB
-    User[User Request]:::start --> API[Platform API]:::proc
-    API --> Router{Model Data Region}:::decide
-    Router -->|US models| US["US Predict Service<br/>Iowa"]:::out
-    Router -->|EU models| EU["EU Predict Service<br/>Belgium"]:::out
-    Router -->|AP models| AP["AP Predict Service<br/>Taiwan"]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([User request]) --> B[Platform API]
+    B --> C{Model data region?}
+    C -->|US| D[Iowa]
+    C -->|EU| E[Belgium]
+    C -->|AP| F[Taiwan]
 ```
 
 {% include "macros/platform-data-regions.md" %}
@@ -103,25 +94,27 @@ Each endpoint is a single-tenant service with:
 - Its own API key binding, so only that key can call the endpoint
 - Independent monitoring, logs, and health checks
 
-## Deployments Page
+## Deployments Tab
 
-Access the global deployments page from the sidebar under `Deploy`. This page shows:
+All your deployments are listed on the **Deployments** tab of your profile (`/{username}?tab=deployments`), next to
+Datasets and Projects. The sidebar's **Deployments** section lists your deployments, each linking to its deployment
+page, with a `+` button to create one and a link to the full tab. The tab shows:
 
 - **World map** with deployed region pins; click a region to open the `New Deployment` dialog
-- **Overview cards**: HTTP Requests (24h), Active Deployments, HTTP Error Rate (24h), HTTP P95 Latency (24h)
-- **Deployments list** with three view modes: cards, compact, and table
+- **Overview cards**: Active Deployments, HTTP Requests (24h), HTTP Error Rate (24h), HTTP P95 Latency (24h)
+- **Deployments list** with search, sorting, and three view modes: cards, compact, and table; each deployment links to
+  its own page with `Overview`, `Monitoring`, `Predict`, and `Logs` tabs
 - **New Deployment** button to create endpoints from any completed model
-- **Refresh** button and an `Updated` timestamp in the page header
 
-![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.ul.run/i/3367ece0827e0f9d43b9acf8d233a49a.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab Overview Cards And Deployments List](https://cdn.ul.run/i/b46672351aac3f3b75e8359a819e941e.avif)<!-- screenshot -->
 
 !!! info "Automatic Polling"
 
-    The page refreshes automatically, polling faster while deployments are in a transitional state (`creating`, `deploying`, or `stopping`). See [Monitoring](monitoring.md) for details.
+    The tab refreshes automatically, and faster while a deployment is changing state (`creating`, `deploying`, or `stopping`). See [Monitoring](monitoring.md) for details.
 
 !!! warning "Lightweight, Temporary Monitoring"
 
-    Paid endpoints provide charts and example images held only in the serving instance's memory. Stopping, restarting, redeploying, resizing, or replacing the model can clear this data. Save examples to a dataset and wait for ingestion to finish to keep them. See [Monitoring](monitoring.md#monitoring-tab).
+    Every ready dedicated endpoint provides charts and example images held only in the serving instance's memory. Stopping, restarting, redeploying, resizing, or replacing the model can clear this data. Save examples to a dataset and wait for ingestion to finish to keep them. See [Monitoring](monitoring.md#monitoring-tab).
 
 ## Key Features
 
@@ -155,7 +148,7 @@ Each running deployment includes an automatic health check with:
 - Live status indicator (healthy/unhealthy)
 - Response latency display
 - Auto-retry when unhealthy, stopping once healthy
-- Manual refresh button
+- Manual re-ping button
 
 ## Quick Start
 
@@ -191,7 +184,7 @@ Create a deployment:
 | **Scale**       | Managed by Platform          | Default: scales to zero; custom: stays warm |
 | **Regions**     | 3 data regions               | Choose from 42 deployment regions           |
 | **URL**         | Platform model API           | Generated deployment endpoint URL           |
-| **Testing**     | Model `Predict` tab          | Deployment-card `Predict` tab or API        |
+| **Testing**     | Model `Predict` tab          | Deployment page `Predict` tab or API        |
 | **Rate limits** | 20 requests/minute           | No Platform rate limit on direct calls      |
 | **Auth**        | Any workspace API key        | Only the API key bound to the deployment    |
 
@@ -214,7 +207,7 @@ Default-resource endpoints scale to zero when idle:
 - First request triggers cold start
 - Subsequent requests are fast
 
-First requests after an idle period trigger a cold start. Opening the deployment card runs a health check that warms
+First requests after an idle period trigger a cold start. Opening the deployment page runs a health check that warms
 the endpoint, so a test prediction right after it responds quickly.
 
 Custom-resource endpoints stay warm and are charged for uptime, including idle time. Stop an endpoint to stop its uptime charge.

@@ -52,14 +52,14 @@ from ultralytics.data.utils import save_depth_png
 VAL_ENVS = {"neighborhood"}  # environments held out for validation
 src, dst = Path("data"), Path("datasets/depth-tartanair")
 for depth_file in sorted(src.rglob("depth_left/*_left_depth.npy")):
-    env, traj = depth_file.parts[-5], depth_file.parts[-3]
+    env, level, traj = depth_file.parts[-5:-2]  # e.g. neighborhood, Easy, P000
     out = "val" if env.lower() in VAL_ENVS else "train"
     (dst / f"images/{out}").mkdir(parents=True, exist_ok=True)
     (dst / f"depth/{out}").mkdir(parents=True, exist_ok=True)
     depth = np.load(depth_file)
     depth[depth > 80.0] = 0.0  # sky/extreme range → 0 = invalid
     frame = depth_file.name.replace("_depth.npy", "")  # e.g. 000000_left
-    name = f"{env}_{traj}_{frame}"
+    name = f"{env}_{level}_{traj}_{frame}"  # Easy and Hard reuse trajectory names such as P000
     save_depth_png(dst / f"depth/{out}/{name}.png", depth, scale=256)
     shutil.copy(depth_file.parents[1] / "image_left" / f"{frame}.png", dst / f"images/{out}/{name}.png")
 ```

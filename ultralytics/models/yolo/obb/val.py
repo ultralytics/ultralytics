@@ -29,11 +29,12 @@ class OBBValidator(DetectionValidator):
     Methods:
         init_metrics: Initialize evaluation metrics for YOLO.
         _process_batch: Process batch of detections and ground truth boxes to compute IoU matrix.
+        postprocess: Postprocess OBB predictions by concatenating angles to bounding boxes.
         _prepare_batch: Prepare batch data for OBB validation.
-        _prepare_pred: Prepare predictions for evaluation against ground truth.
         plot_predictions: Plot predicted bounding boxes on input images.
         pred_to_json: Serialize YOLO predictions to COCO json format.
         save_one_txt: Save YOLO detections to a txt file in normalized coordinates.
+        scale_preds: Scale predictions to the original image size.
         eval_json: Evaluate YOLO output in JSON format and return performance statistics.
 
     Examples:
@@ -120,6 +121,7 @@ class OBBValidator(DetectionValidator):
                 - ori_shape: Original image shapes
                 - img: Batch of images
                 - ratio_pad: Ratio and padding information
+                - im_file: Image file paths
 
         Returns:
             (dict[str, Any]): Prepared batch data with scaled bounding boxes and metadata.
@@ -141,13 +143,16 @@ class OBBValidator(DetectionValidator):
             "im_file": batch["im_file"][si],
         }
 
-    def plot_predictions(self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int) -> None:
+    def plot_predictions(
+        self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int, max_det: int | None = None
+    ) -> None:
         """Plot predicted bounding boxes on input images and save the result.
 
         Args:
             batch (dict[str, Any]): Batch data containing images, file paths, and other metadata.
             preds (list[dict[str, torch.Tensor]]): List of prediction dictionaries for each image in the batch.
             ni (int): Batch index used for naming the output file.
+            max_det (int | None): Maximum number of detections to plot per image, defaults to `args.max_det`.
 
         Examples:
             >>> validator = OBBValidator()
@@ -160,7 +165,8 @@ class OBBValidator(DetectionValidator):
         for i, pred in enumerate(preds):
             pred["batch_idx"] = torch.ones_like(pred["conf"]) * i
         keys = preds[0].keys()
-        batched_preds = {k: torch.cat([x[k] for x in preds], dim=0) for k in keys}
+        max_det = max_det or self.args.max_det
+        batched_preds = {k: torch.cat([x[k][:max_det] for x in preds], dim=0) for k in keys}
         plot_images(
             images=batch["img"],
             labels=batched_preds,
@@ -231,7 +237,7 @@ class OBBValidator(DetectionValidator):
         ).save_txt(file, save_conf=save_conf)
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Scales predictions to the original image size."""
+        """Scale predictions to the original image size."""
         return {
             **predn,
             "bboxes": ops.scale_boxes(
@@ -254,6 +260,8 @@ class OBBValidator(DetectionValidator):
             from collections import defaultdict
 
             pred_json = self.save_dir / "predictions.json"  # predictions
+            for f in self.save_dir.glob("predictions*_txt/Task1_*.txt"):  # appended below, drop a previous run's
+                f.unlink()
             pred_txt = self.save_dir / "predictions_txt"  # predictions
             pred_txt.mkdir(parents=True, exist_ok=True)
             with open(pred_json) as f:

@@ -33,7 +33,7 @@ For open-vocabulary work that also needs instance masks, visual prompts, or a pr
 
 2. **Efficiency and Performance:** YOLO-World slashes computational and resource requirements without sacrificing performance, offering a robust alternative to models like SAM but at a fraction of the computational cost, enabling real-time applications.
 
-3. **Inference with Offline Vocabulary:** YOLO-World introduces a "prompt-then-detect" strategy, employing an offline vocabulary to enhance efficiency further. This approach enables the use of custom prompts computed apriori, including captions or categories, to be encoded and stored as offline vocabulary embeddings, streamlining the detection process.
+3. **Inference with Offline Vocabulary:** YOLO-World introduces a "prompt-then-detect" strategy, employing an offline vocabulary to enhance efficiency further. This approach enables the use of custom prompts computed a priori, including captions or categories, to be encoded and stored as offline vocabulary embeddings, streamlining the detection process.
 
 4. **Powered by YOLOv8:** Built upon [Ultralytics YOLOv8](yolov8.md), YOLO-World leverages the latest advancements in real-time object detection to facilitate open-vocabulary detection with unparalleled accuracy and speed.
 
@@ -245,6 +245,8 @@ For instance, if your application only requires detecting 'person' and 'bus' obj
     ```python
     model.set_classes(["person", "bus", ""])
     ```
+
+    The empty string stays in `model.names` as a class of its own, including in any model you save, so its detections come back with an empty label. Pass `classes=[0, 1]` at prediction time to keep only your real classes.
 
 You can also save a model after setting custom classes. By doing this you create a version of the YOLO-World model that is specialized for your specific use case. This process embeds your custom class definitions directly into the model file, making the model ready to use with your specified classes without further adjustments. Follow these steps to save and load your custom YOLO-World model:
 

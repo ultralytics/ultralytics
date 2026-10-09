@@ -2,7 +2,6 @@
 
 import torch
 
-from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import ops
@@ -16,13 +15,12 @@ class RTDETRPredictor(BasePredictor):
 
     Attributes:
         imgsz (int): Image size for inference (must be square and scale-filled).
-        args (dict): Argument overrides for the predictor.
+        args (SimpleNamespace): Configuration arguments for the predictor.
         model (torch.nn.Module): The loaded RT-DETR model.
         batch (list): Current batch of processed inputs.
 
     Methods:
         postprocess: Postprocess raw model predictions to generate bounding boxes and confidence scores.
-        pre_transform: Pre-transform input images before feeding them into the model for inference.
 
     Examples:
         >>> from ultralytics.utils import ASSETS
@@ -32,6 +30,8 @@ class RTDETRPredictor(BasePredictor):
         >>> predictor.predict_cli()
     """
 
+    scale_fill = True
+
     def postprocess(self, preds, img, orig_imgs):
         """Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
 
@@ -40,8 +40,8 @@ class RTDETRPredictor(BasePredictor):
         boxes.
 
         Args:
-            preds (list | tuple): List of [predictions, extra] from the model, where predictions have shape (bs,
-                num_queries, 6) with format [cx, cy, w, h, score, class].
+            preds (torch.Tensor | list | tuple): Model predictions with shape (bs, num_queries, 6) and format [cx, cy,
+                w, h, score, class] with normalized box coordinates, or a list/tuple whose first element is that tensor.
             img (torch.Tensor): Processed input images with shape (N, 3, H, W).
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 
@@ -67,17 +67,3 @@ class RTDETRPredictor(BasePredictor):
             pred[..., [1, 3]] *= oh  # scale y coordinates to original height
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results
-
-    def pre_transform(self, im):
-        """Pre-transform input images before feeding them into the model for inference.
-
-        The input images are letterboxed to ensure a square aspect ratio and scale-filled.
-
-        Args:
-            im (list[np.ndarray]): Input images of shape [(H, W, 3) x N].
-
-        Returns:
-            (list): List of pre-transformed images ready for model inference.
-        """
-        letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
-        return [letterbox(image=x) for x in im]

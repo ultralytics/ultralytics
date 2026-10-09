@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import os
 import shutil
+import sys
 from pathlib import Path
 
 import numpy.testing  # noqa: F401  # Pre-import before any test can corrupt numpy via in-place upgrade
@@ -74,6 +76,17 @@ def pytest_collection_modifyitems(config, items):
         fmt = _export_format_from_item(item, env_by_format)
         if fmt and env_by_format.get(fmt) != export_env:
             item.add_marker(pytest.mark.skip(reason=f"export format '{fmt}' belongs to env '{env_by_format[fmt]}'"))
+
+
+def pytest_runtest_logreport(report):
+    """Annotate test failures and xdist worker crashes on the GitHub Actions run summary."""
+    if not report.failed or os.environ.get("GITHUB_ACTIONS") != "true" or "PYTEST_XDIST_WORKER" in os.environ:
+        return
+    crash = getattr(report.longrepr, "reprcrash", None)
+    title = "Worker crashed" if report.when == "???" else f"Test failed ({report.when})"
+    message = f"{report.nodeid}\n{crash.message if crash else report.longrepr}"
+    message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    print(f"::error file={report.location[0]},title={title}::{message}", file=sys.stderr, flush=True)
 
 
 def isolated_model_path(tmp_path, model):

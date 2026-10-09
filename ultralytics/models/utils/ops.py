@@ -16,21 +16,17 @@ class HungarianMatcher(nn.Module):
     """A module implementing the HungarianMatcher for optimal assignment between predictions and ground truth.
 
     HungarianMatcher performs optimal bipartite assignment over predicted and ground truth bounding boxes using a cost
-    function that considers classification scores, bounding box coordinates, and optionally mask predictions. This is
-    used in end-to-end object detection models like DETR.
+    function that considers classification scores and bounding box coordinates. This is used in end-to-end object
+    detection models like DETR.
 
     Attributes:
-        cost_gain (dict[str, float]): Dictionary of cost coefficients for 'class', 'bbox', 'giou', 'mask', and 'dice'
-            components.
+        cost_gain (dict[str, float]): Dictionary of cost coefficients for 'class', 'bbox', and 'giou' components.
         use_fl (bool): Whether to use Focal Loss for classification cost calculation.
-        with_mask (bool): Whether the model makes mask predictions.
-        num_sample_points (int): Number of sample points used in mask cost calculation.
         alpha (float): Alpha factor in Focal Loss calculation.
         gamma (float): Gamma factor in Focal Loss calculation.
 
     Methods:
         forward: Compute optimal assignment between predictions and ground truths for a batch.
-        _cost_mask: Compute mask cost and dice cost if masks are predicted.
 
     Examples:
         Initialize a HungarianMatcher with custom cost gains
@@ -49,8 +45,6 @@ class HungarianMatcher(nn.Module):
         self,
         cost_gain: dict[str, float] | None = None,
         use_fl: bool = True,
-        with_mask: bool = False,
-        num_sample_points: int = 12544,
         alpha: float = 0.25,
         gamma: float = 2.0,
     ):
@@ -58,20 +52,16 @@ class HungarianMatcher(nn.Module):
 
         Args:
             cost_gain (dict[str, float], optional): Dictionary of cost coefficients for different matching cost
-                components. Should contain keys 'class', 'bbox', 'giou', 'mask', and 'dice'.
+                components. Should contain keys 'class', 'bbox', and 'giou'.
             use_fl (bool): Whether to use Focal Loss for classification cost calculation.
-            with_mask (bool): Whether the model makes mask predictions.
-            num_sample_points (int): Number of sample points used in mask cost calculation.
             alpha (float): Alpha factor in Focal Loss calculation.
             gamma (float): Gamma factor in Focal Loss calculation.
         """
         super().__init__()
         if cost_gain is None:
-            cost_gain = {"class": 1, "bbox": 5, "giou": 2, "mask": 1, "dice": 1}
+            cost_gain = {"class": 1, "bbox": 5, "giou": 2}
         self.cost_gain = cost_gain
         self.use_fl = use_fl
-        self.with_mask = with_mask
-        self.num_sample_points = num_sample_points
         self.alpha = alpha
         self.gamma = gamma
 
@@ -82,13 +72,11 @@ class HungarianMatcher(nn.Module):
         gt_bboxes: torch.Tensor,
         gt_cls: torch.Tensor,
         gt_groups: list[int],
-        masks: torch.Tensor | None = None,
-        gt_mask: list[torch.Tensor] | None = None,
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
         """Compute optimal assignment between predictions and ground truth using Hungarian algorithm.
 
-        This method calculates matching costs based on classification scores, bounding box coordinates, and optionally
-        mask predictions, then finds the optimal bipartite assignment between predictions and ground truth.
+        This method calculates matching costs based on classification scores and bounding box coordinates, then finds
+        the optimal bipartite assignment between predictions and ground truth.
 
         Args:
             pred_bboxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4).
@@ -97,14 +85,13 @@ class HungarianMatcher(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (num_gts, 4).
             gt_cls (torch.Tensor): Ground truth class labels with shape (num_gts,).
             gt_groups (list[int]): Number of ground truth boxes for each image in the batch.
-            masks (torch.Tensor, optional): Predicted masks with shape (batch_size, num_queries, height, width).
-            gt_mask (list[torch.Tensor], optional): Ground truth masks, each with shape (num_masks, Height, Width).
 
         Returns:
             (list[tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple (index_i,
                 index_j), where index_i is the tensor of indices of the selected predictions (in order) and index_j is
-                the tensor of indices of the corresponding selected ground truth targets (in order).
-            For each batch element, it holds: len(index_i) = len(index_j) = min(num_queries, num_target_boxes).
+                the tensor of indices of the corresponding selected ground truth targets (in order), offset into the
+                concatenated `gt_bboxes`. For each batch element, len(index_i) = len(index_j) =
+                min(num_queries, num_target_boxes).
         """
         bs, nq, _ = pred_scores.shape
 
@@ -114,9 +101,9 @@ class HungarianMatcher(nn.Module):
         # Pad targets to compute costs within each image.
         gt_bboxes = torch.nn.utils.rnn.pad_sequence(gt_bboxes.split(gt_groups), batch_first=True)
         gt_cls = torch.nn.utils.rnn.pad_sequence(gt_cls.split(gt_groups), batch_first=True)
-        pred_scores = pred_scores.detach()
-        pred_scores = F.sigmoid(pred_scores) if self.use_fl else F.softmax(pred_scores, dim=-1)
-        pred_bboxes = pred_bboxes.detach()
+        pred_scores = pred_scores.detach().float()  # avoid saturated AMP probabilities and non-finite focal costs
+        pred_scores = pred_scores.sigmoid() if self.use_fl else F.softmax(pred_scores, dim=-1)
+        pred_bboxes = pred_bboxes.detach().float()
 
         # Compute classification cost
         pred_scores = pred_scores.gather(2, gt_cls[:, None].expand(-1, nq, -1))
@@ -140,13 +127,6 @@ class HungarianMatcher(nn.Module):
             + self.cost_gain["giou"] * cost_giou
         )
 
-        # Add mask costs if available
-        if self.with_mask:
-            mask_cost = self._cost_mask(bs, gt_groups, masks, gt_mask).view(bs, nq, -1)
-            C += torch.nn.utils.rnn.pad_sequence(
-                [c[i].T for i, c in enumerate(mask_cost.split(gt_groups, -1))], batch_first=True
-            ).transpose(1, 2)
-
         # Set invalid values (NaNs and infinities) to 0
         C[C.isnan() | C.isinf()] = 0.0
 
@@ -158,39 +138,9 @@ class HungarianMatcher(nn.Module):
             for k, (i, j) in enumerate(indices)
         ]
 
-    # This function is for future RT-DETR Segment models
-    # def _cost_mask(self, bs, num_gts, masks=None, gt_mask=None):
-    #     assert masks is not None and gt_mask is not None, 'Make sure the input has `mask` and `gt_mask`'
-    #     # all masks share the same set of points for efficient matching
-    #     sample_points = torch.rand([bs, 1, self.num_sample_points, 2])
-    #     sample_points = 2.0 * sample_points - 1.0
-    #
-    #     out_mask = F.grid_sample(masks.detach(), sample_points, align_corners=False).squeeze(-2)
-    #     out_mask = out_mask.flatten(0, 1)
-    #
-    #     tgt_mask = torch.cat(gt_mask).unsqueeze(1)
-    #     sample_points = torch.cat([a.repeat(b, 1, 1, 1) for a, b in zip(sample_points, num_gts) if b > 0])
-    #     tgt_mask = F.grid_sample(tgt_mask, sample_points, align_corners=False).squeeze([1, 2])
-    #
-    #     with torch.amp.autocast("cuda", enabled=False):
-    #         # binary cross entropy cost
-    #         pos_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.ones_like(out_mask), reduction='none')
-    #         neg_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.zeros_like(out_mask), reduction='none')
-    #         cost_mask = torch.matmul(pos_cost_mask, tgt_mask.T) + torch.matmul(neg_cost_mask, 1 - tgt_mask.T)
-    #         cost_mask /= self.num_sample_points
-    #
-    #         # dice cost
-    #         out_mask = F.sigmoid(out_mask)
-    #         numerator = 2 * torch.matmul(out_mask, tgt_mask.T)
-    #         denominator = out_mask.sum(-1, keepdim=True) + tgt_mask.sum(-1).unsqueeze(0)
-    #         cost_dice = 1 - (numerator + 1) / (denominator + 1)
-    #
-    #         C = self.cost_gain['mask'] * cost_mask + self.cost_gain['dice'] * cost_dice
-    #     return C
-
 
 def get_cdn_group(
-    batch: dict[str, Any],
+    batch: dict[str, Any] | None,
     num_classes: int,
     num_queries: int,
     class_embed: torch.Tensor,
@@ -205,9 +155,9 @@ def get_cdn_group(
     boxes and class labels. It generates both positive and negative samples to improve model robustness.
 
     Args:
-        batch (dict[str, Any]): Batch dictionary containing 'cls' (torch.Tensor with shape (num_gts,)), 'bboxes'
+        batch (dict[str, Any] | None): Batch dictionary containing 'cls' (torch.Tensor with shape (num_gts,)), 'bboxes'
             (torch.Tensor with shape (num_gts, 4)), 'batch_idx' (torch.Tensor), and 'gt_groups' (list[int]) indicating
-            number of ground truths per image.
+            number of ground truths per image. None disables denoising.
         num_classes (int): Total number of object classes.
         num_queries (int): Number of object queries.
         class_embed (torch.Tensor): Class embedding weights to map labels to embedding space.
@@ -220,7 +170,8 @@ def get_cdn_group(
         padding_cls (torch.Tensor | None): Modified class embeddings for denoising with shape (bs, num_dn, embed_dim).
         padding_bbox (torch.Tensor | None): Modified bounding boxes for denoising with shape (bs, num_dn, 4).
         attn_mask (torch.Tensor | None): Attention mask for denoising with shape (tgt_size, tgt_size).
-        dn_meta (dict[str, Any] | None): Meta information dictionary containing denoising parameters.
+        dn_meta (dict[str, Any] | None): Meta information dictionary with 'dn_pos_idx', 'dn_gt_idx', 'dn_num_group', and
+            'dn_num_split' keys.
 
     Examples:
         Generate denoising group for training
@@ -265,9 +216,8 @@ def get_cdn_group(
     dn_bbox = gt_bbox.repeat(2 * num_group, 1)  # 2*num_group*bs*num, 4
     dn_b_idx = b_idx.repeat(2 * num_group).view(-1)  # (2*num_group*bs*num, )
 
-    # Positive and negative mask
-    # (bs*num*num_group, ), the second total_num*num_group part as negative samples
-    neg_idx = torch.arange(total_num * num_group, dtype=torch.long, device=gt_bbox.device) + num_group * total_num
+    # Negative sample indices, the second total_num block of each (positive, negative) group
+    neg_idx = torch.arange(2 * num_group * total_num, device=gt_bbox.device).view(num_group, 2, -1)[:, 1].flatten()
 
     if cls_noise_ratio > 0:
         # Apply class label noise to half of the samples
@@ -297,7 +247,7 @@ def get_cdn_group(
     padding_bbox = torch.zeros(bs, num_dn, 4, device=gt_bbox.device)
 
     map_indices = torch.cat([torch.tensor(range(num), dtype=torch.long) for num in gt_groups])
-    pos_idx = torch.stack([map_indices + max_nums * i for i in range(num_group)], dim=0)
+    pos_idx = torch.stack([map_indices + max_nums * 2 * i for i in range(num_group)], dim=0)
 
     map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)])
     padding_cls[(dn_b_idx, map_indices)] = dn_cls_embed

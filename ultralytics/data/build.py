@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 import os
 import random
@@ -62,8 +63,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
         Create an infinite DataLoader for training
         >>> dataset = YOLODataset(...)
         >>> dataloader = InfiniteDataLoader(dataset, batch_size=16, shuffle=True)
-        >>> for batch in dataloader:  # Infinite iteration
-        >>>     train_step(batch)
+        >>> for batch in dataloader:  # one epoch of batches, workers persist across epochs
+        ...     train_step(batch)
     """
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -237,7 +238,7 @@ def seed_worker(worker_id: int) -> None:
 
 def build_yolo_dataset(
     cfg: IterableSimpleNamespace,
-    img_path: str,
+    img_path: str | list[str],
     batch: int,
     data: dict[str, Any],
     mode: str = "train",
@@ -246,7 +247,23 @@ def build_yolo_dataset(
     multi_modal: bool = False,
     fraction: float | None = None,
 ) -> Dataset:
-    """Build and return a YOLO dataset based on configuration parameters."""
+    """Build and return a YOLO dataset based on configuration parameters.
+
+    Args:
+        cfg (IterableSimpleNamespace): Configuration namespace with dataset and augmentation hyperparameters.
+        img_path (str | list[str]): Path to the images directory, image list file, or list of either.
+        batch (int): Batch size.
+        data (dict[str, Any]): Dataset configuration dictionary.
+        mode (str, optional): Dataset mode, 'train' enables augmentation; any other value is treated as evaluation.
+        rect (bool, optional): Whether to use rectangular batches (also enabled when cfg.rect is True).
+        stride (int, optional): Model stride used for rectangular batch shapes.
+        multi_modal (bool, optional): Whether to build a YOLOMultiModalDataset with text annotations.
+        fraction (float | None, optional): Fraction of the dataset to use. If None, it is derived from cfg.fraction.
+
+    Returns:
+        (Dataset): A DepthDataset, SemanticDataset, PolygonSemanticDataset, YOLOMultiModalDataset, or YOLODataset
+            depending on cfg.task, the dataset configuration, and multi_modal.
+    """
     pad = 0.0 if mode == "train" else 0.5
     rect = cfg.rect or rect
     if cfg.task == "depth":
@@ -265,7 +282,7 @@ def build_yolo_dataset(
     if data.get("complete"):
         fraction = 1.0  # already limited during dataset download
     elif fraction is None:
-        fraction = get_split_fraction(cfg.fraction, mode)
+        fraction = get_split_fraction(cfg.fraction, "train" if mode == "train" else cfg.split)
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
@@ -295,7 +312,21 @@ def build_grounding(
     stride: int = 32,
     max_samples: int = 80,
 ) -> Dataset:
-    """Build and return a GroundingDataset based on configuration parameters."""
+    """Build and return a GroundingDataset based on configuration parameters.
+
+    Args:
+        cfg (IterableSimpleNamespace): Configuration namespace with dataset and augmentation hyperparameters.
+        img_path (str): Path to the images directory.
+        json_file (str): Path to the grounding annotation JSON file.
+        batch (int): Batch size.
+        mode (str, optional): Dataset mode, 'train' enables augmentation.
+        rect (bool, optional): Whether to use rectangular batches (also enabled when cfg.rect is True).
+        stride (int, optional): Model stride used for rectangular batch shapes.
+        max_samples (int, optional): Maximum number of text samples per image.
+
+    Returns:
+        (Dataset): The GroundingDataset instance.
+    """
     return GroundingDataset(
         img_path=img_path,
         json_file=json_file,
@@ -312,12 +343,11 @@ def build_grounding(
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,
-        fraction=get_split_fraction(cfg.fraction, mode),
     )
 
 
 def build_dataloader(
-    dataset,
+    dataset: Dataset,
     batch: int,
     workers: int,
     shuffle: bool = True,
@@ -334,7 +364,8 @@ def build_dataloader(
         workers (int): Number of worker processes for data loading.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
-        drop_last (bool, optional): Whether to drop the last incomplete batch.
+        drop_last (bool, optional): Whether to drop the last incomplete batch of each rank's shard. A shard smaller than
+            one batch is kept.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
 
@@ -357,7 +388,7 @@ def build_dataloader(
         else ContiguousDistributedSampler(dataset)
     )
     samples = len(sampler) if sampler is not None else dataset_len
-    drop_last = drop_last and bool(batch) and dataset_len % batch != 0
+    drop_last = drop_last and samples > batch > 0 and samples % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
     device_type = getattr(device, "type", str(device).split(":")[0])
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
@@ -402,6 +433,9 @@ def check_source(
         in_memory (bool): Whether the source is an in-memory object.
         tensor (bool): Whether the source is a torch.Tensor.
 
+    Raises:
+        TypeError: If the source type is not supported.
+
     Examples:
         Check a file path source
         >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source("image.jpg")
@@ -413,14 +447,20 @@ def check_source(
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
-        is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
-        is_file = (urlsplit(source_lower).path if is_url else source_lower).rpartition(".")[-1] in (
-            IMG_FORMATS | VID_FORMATS
-        )
-        webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
+        is_stream = source_lower.startswith(("rtsp://", "rtmp://", "tcp://"))  # streams even with a video suffix
+        is_url = source_lower.startswith(("https://", "http://"))
+        is_file = is_url and urlsplit(source_lower).path.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
+        webcam = source.isnumeric() or source.endswith(".streams") or is_stream or (is_url and not is_file)
         screenshot = source_lower == "screen"
-        if is_url and is_file:
+        if is_file:
             source = check_file(source)  # download
+        elif is_url:  # a URL without a media suffix is one image if it returns a sized image/* response
+            import requests  # scoped as slow import
+
+            with contextlib.suppress(requests.RequestException), requests.get(source, stream=True, timeout=3) as r:
+                webcam = not (r.headers.get("Content-Type", "").startswith("image/") and "Content-Length" in r.headers)
+            if not webcam:
+                source, from_img = autocast_list([source]), True
     elif isinstance(source, LOADERS):
         in_memory = True
     elif isinstance(source, (list, tuple)):

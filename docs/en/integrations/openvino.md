@@ -124,6 +124,7 @@ The OpenVINO format supports the [Export](../modes/export.md), [Predict](../mode
 | `batch`    | `int`                     | `1`          | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`     | `str`                     | `None`       | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
 | `fraction` | `float`, `int`, or `list` | `1.0`        | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                         |
+| `device`   | `str`                     | `None`       | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                    |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -155,9 +156,9 @@ When you export a model to OpenVINO format, it results in a directory containing
 
 1. **XML file**: Describes the network topology.
 2. **BIN file**: Contains the weights and biases binary data.
-3. **Mapping file**: Holds mapping of original model output tensors to OpenVINO tensor names.
+3. **Metadata file**: `metadata.yaml` holds model metadata such as class names, image size, and task, which Ultralytics reads when loading the model.
 
-You can use these files to run inference with the OpenVINO Inference Engine.
+You can use these files to run inference with the OpenVINO Runtime.
 
 ## Using OpenVINO Export in Deployment
 
@@ -608,7 +609,7 @@ Yes, you can benchmark YOLO26 models in various formats including PyTorch, Torch
         # Load a YOLO26n PyTorch model
         model = YOLO("yolo26n.pt")
 
-        # Benchmark YOLO26n speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset for all export formats
+        # Benchmark YOLO26n speed and accuracy on the COCO8 dataset for all export formats
         results = model.benchmark(data="coco8.yaml")
         ```
 

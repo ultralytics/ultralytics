@@ -68,8 +68,7 @@ class ObjectCounter(BaseSolution):
 
         Examples:
             >>> counter = ObjectCounter()
-            >>> track_line = {1: [100, 200], 2: [110, 210], 3: [120, 220]}
-            >>> box = [130, 230, 150, 250]
+            >>> counter.initialize_region()
             >>> track_id_num = 1
             >>> previous_position = (120, 220)
             >>> class_to_count = 0  # In COCO model, class 0 = person
@@ -107,16 +106,13 @@ class ObjectCounter(BaseSolution):
                 and self.r_s.crosses(self.LineString([prev_position, current_centroid]))
             )
         ):
-            # Judge direction by the object's dominant motion axis over its recent track, not by the
-            # region's shape; a ~5-frame baseline is robust to tracker jitter where a 1-frame delta is not.
-            # The baseline is the oldest recent point OUTSIDE the region, so the entry vector is not
-            # polluted by an uncounted first frame that spawned inside (quick exit and re-entry).
-            window = self.track_history[track_id][-5:] or [prev_position]
-            baseline = next((p for p in window if not self.r_s.contains(self.Point(p))), window[0])
-            dx = current_centroid[0] - baseline[0]
-            dy = current_centroid[1] - baseline[1]
-            moving_in = dx > 0 if abs(dx) > abs(dy) else dy > 0  # moving right or downward
-            if moving_in:
+            # Direction follows the region's shape like a thick line: tall regions count horizontal motion, wide
+            # regions vertical motion, so every object in one lane counts the same way whatever its angle
+            region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
+            region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
+            if (region_width < region_height and current_centroid[0] > prev_position[0]) or (
+                region_width >= region_height and current_centroid[1] > prev_position[1]
+            ):  # Moving right or downward
                 self.in_count += 1
                 self.classwise_count[self.names[cls]]["IN"] += 1
             else:  # Moving left or upward
@@ -125,7 +121,11 @@ class ObjectCounter(BaseSolution):
             self.counted_ids.add(track_id)
 
     def forget_tracks(self, track_ids: list[int]) -> None:
-        """Drop retired IDs from `counted_ids` so it doesn't grow across a 24/7 stream (see BaseSolution)."""
+        """Drop retired IDs from `counted_ids` so it doesn't grow across a 24/7 stream (see BaseSolution).
+
+        Args:
+            track_ids (list[int]): Track IDs removed by the tracker in the latest frame.
+        """
         super().forget_tracks(track_ids)
         self.counted_ids.difference_update(track_ids)
 
@@ -150,7 +150,7 @@ class ObjectCounter(BaseSolution):
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
     def process(self, im0) -> SolutionResults:
-        """Process input data (frames or object tracks) and update object counts.
+        """Process an input frame and update object counts.
 
         This method initializes the counting region, extracts tracks, draws bounding boxes and regions, updates object
         counts, and displays the results on the input image.
@@ -161,7 +161,7 @@ class ObjectCounter(BaseSolution):
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'in_count' (int, count of objects entering the
                 region), 'out_count' (int, count of objects exiting the region), 'classwise_count' (dict, per-class
-                object count), and 'total_tracks' (int, total number of tracked objects).
+            {"IN": int, "OUT": int} counts), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> counter = ObjectCounter()
@@ -181,7 +181,7 @@ class ObjectCounter(BaseSolution):
 
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
-            # Draw bounding box and counting region
+            # Draw bounding box and label
             self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
             self.store_tracking_history(track_id, box)  # Store track history
 

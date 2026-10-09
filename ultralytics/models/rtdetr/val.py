@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
-
 import torch
 
 from ultralytics.data import YOLODataset
@@ -30,26 +27,12 @@ class RTDETRDataset(YOLODataset):
 
     Methods:
         load_image: Load one image from dataset index.
-        build_transforms: Build transformation pipeline for the dataset.
 
     Examples:
         Initialize an RT-DETR dataset
-        >>> dataset = RTDETRDataset(img_path="path/to/images", imgsz=640)
+        >>> dataset = RTDETRDataset(img_path="path/to/images", data={"names": {0: "person"}}, imgsz=640)
         >>> image, hw0, hw = dataset.load_image(0)
     """
-
-    def __init__(self, *args, data=None, **kwargs):
-        """Initialize the RTDETRDataset class by inheriting from the YOLODataset class.
-
-        This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection TRansformer)
-        model, building upon the base YOLODataset functionality.
-
-        Args:
-            *args (Any): Variable length argument list passed to the parent YOLODataset class.
-            data (dict | None): Dictionary containing dataset information. If None, default values will be used.
-            **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
-        """
-        super().__init__(*args, data=data, **kwargs)
 
     def load_image(self, i, rect_mode=False):
         """Load one image from dataset index 'i'.
@@ -65,15 +48,14 @@ class RTDETRDataset(YOLODataset):
 
         Examples:
             Load an image from the dataset
-            >>> dataset = RTDETRDataset(img_path="path/to/images")
+            >>> dataset = RTDETRDataset(img_path="path/to/images", data={"names": {0: "person"}})
             >>> image, hw0, hw = dataset.load_image(0)
         """
         return super().load_image(i=i, rect_mode=rect_mode)
 
 
 class RTDETRValidator(DetectionValidator):
-    """RTDETRValidator extends the DetectionValidator class to provide validation capabilities specifically tailored for
-    the RT-DETR (Real-Time DETR) object detection model.
+    """Validator extending DetectionValidator for the RT-DETR (Real-Time DETR) object detection model.
 
     The class allows building of an RTDETR-specific dataset for validation, applies confidence thresholding for
     post-processing, and updates evaluation metrics accordingly.
@@ -126,10 +108,6 @@ class RTDETRValidator(DetectionValidator):
             else get_split_fraction(self.args.fraction, self.args.split or "val"),
         )
 
-    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Return predictions unchanged as RT-DETR handles scaling in postprocessing."""
-        return predn
-
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
     ) -> list[dict[str, torch.Tensor]]:
@@ -160,30 +138,3 @@ class RTDETRValidator(DetectionValidator):
             {"bboxes": bbox[m], "conf": score[m], "cls": label[m]}
             for bbox, score, label, m in zip(bboxes, scores, labels, masks)
         ]
-
-    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
-        """Serialize YOLO predictions to COCO json format.
-
-        Args:
-            predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys with
-                bounding box coordinates, confidence scores, and class predictions.
-            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
-        """
-        path = Path(pbatch["im_file"])
-        stem = path.stem
-        image_id = int(stem) if stem.isnumeric() else stem
-        box = predn["bboxes"].clone()
-        box[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
-        box[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
-        box = ops.xyxy2xywh(box)  # xywh
-        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-        for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
-            self.jdict.append(
-                {
-                    "image_id": image_id,
-                    "file_name": path.name,
-                    "category_id": self.class_map[int(c)],
-                    "bbox": [round(x, 3) for x in b],
-                    "score": round(s, 5),
-                }
-            )

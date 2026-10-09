@@ -70,7 +70,7 @@ def check_class_names(names: list | dict) -> dict[int, str]:
             from ultralytics.utils import ROOT, YAML
 
             names_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
-            names = {k: names_map[v] for k, v in names.items()}
+            names = {k: names_map.get(v, v) for k, v in names.items()}
     return names
 
 
@@ -102,38 +102,40 @@ class AutoBackend(nn.Module):
     range of formats, each with specific naming conventions as outlined below:
 
         Supported Formats and Naming Conventions:
-            | Format                | File Suffix       |
-            | --------------------- | ----------------- |
-            | PyTorch               | *.pt              |
-            | TorchScript           | *.torchscript     |
-            | ONNX Runtime          | *.onnx            |
-            | ONNX OpenCV DNN       | *.onnx (dnn=True) |
-            | OpenVINO              | *openvino_model/  |
-            | CoreML                | *.mlpackage       |
-            | TensorRT              | *.engine          |
-            | TensorFlow SavedModel | *_saved_model/    |
-            | TensorFlow GraphDef   | *.pb              |
-            | TensorFlow Edge TPU   | *_edgetpu.tflite  |
-            | PaddlePaddle          | *_paddle_model/   |
-            | MNN                   | *.mnn             |
-            | NCNN                  | *_ncnn_model/     |
-            | IMX                   | *_imx_model/      |
-            | RKNN                  | *_rknn_model/     |
-            | Triton Inference      | triton://model    |
-            | ExecuTorch            | *.pte             |
-            | Axelera AI            | *_axelera_model/  |
-            | DEEPX                 | *_deepx_model/    |
-            | Qualcomm QNN          | *_qnn.onnx        |
-            | LiteRT                | *.tflite          |
-            | Hailo                 | *_hailo_model/    |
-            | Huawei Ascend         | *_ascend_model/   |
+            | Format                | File Suffix            |
+            | --------------------- | ---------------------- |
+            | PyTorch               | *.pt                   |
+            | TorchScript           | *.torchscript          |
+            | ONNX Runtime          | *.onnx                 |
+            | ONNX OpenCV DNN       | *.onnx (dnn=True)      |
+            | OpenVINO              | *_openvino_model/      |
+            | CoreML                | *.mlpackage            |
+            | Core AI               | *.aimodel              |
+            | TensorRT              | *.engine               |
+            | TensorFlow SavedModel | *_saved_model/         |
+            | TensorFlow GraphDef   | *.pb                   |
+            | TensorFlow Edge TPU   | *_edgetpu.tflite       |
+            | LiteRT                | *.tflite               |
+            | PaddlePaddle          | *_paddle_model/        |
+            | MNN                   | *.mnn                  |
+            | NCNN                  | *_ncnn_model/          |
+            | IMX                   | *_imx_model/           |
+            | RKNN                  | *_rknn_model/          |
+            | Triton Inference      | http:// or grpc:// URL |
+            | ExecuTorch            | *_executorch_model/    |
+            | Axelera AI            | *_axelera_model/       |
+            | DEEPX                 | *_deepx_model/         |
+            | Qualcomm QNN          | *_qnn.onnx             |
+            | Hailo                 | *_hailo_model/         |
+            | Huawei Ascend         | *_ascend_model/        |
+            | AMD Xilinx            | *_xilinx_model/        |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
         format (str): The model format (e.g., 'pt', 'onnx', 'engine').
-        model: The underlying model (nn.Module for PyTorch backends, backend instance otherwise).
+        model: The underlying model, delegated from `backend.model` (nn.Module for PyTorch, runtime object otherwise).
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
-        task (str): The type of task the model performs (detect, segment, semantic, classify, pose, obb).
+        task (str): The type of task the model performs (detect, segment, semantic, depth, classify, pose, obb).
         names (dict): A dictionary of class names that the model can detect.
         stride (int): The model stride, typically 32 for YOLO models.
         fp16 (bool): Whether the model uses half-precision (FP16) inference.
@@ -146,8 +148,9 @@ class AutoBackend(nn.Module):
         _model_type: Determine the model type from file path.
 
     Examples:
-        >>> model = AutoBackend(model="yolo26n.pt", device="cuda")
-        >>> results = model(img)
+        >>> import torch
+        >>> model = AutoBackend(model="yolo26n.pt", device=torch.device("cpu"))
+        >>> preds = model(torch.zeros(1, 3, 640, 640))
     """
 
     _BACKEND_MAP = {
@@ -158,9 +161,11 @@ class AutoBackend(nn.Module):
         "openvino": OpenVINOBackend,
         "engine": TensorRTBackend,
         "coreml": CoreMLBackend,
+        "coreai": CoreAIBackend,
         "saved_model": TensorFlowBackend,
         "pb": TensorFlowBackend,
         "edgetpu": TensorFlowBackend,
+        "litert": LiteRTBackend,
         "paddle": PaddleBackend,
         "mnn": MNNBackend,
         "ncnn": NCNNBackend,
@@ -171,17 +176,16 @@ class AutoBackend(nn.Module):
         "axelera": AxeleraBackend,
         "deepx": DeepXBackend,
         "qnn": QNNBackend,
-        "litert": LiteRTBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
-        "coreai": CoreAIBackend,
+        "xilinx": ONNXBackend,
     }
 
     @smart_inference_mode(False)
     def __init__(
         self,
-        model: str | torch.nn.Module = "yolo26n.pt",
-        device: torch.device | None = None,
+        model: str | Path | torch.nn.Module = "yolo26n.pt",
+        device: torch.device | str | None = None,
         dnn: bool = False,
         data: str | Path | None = None,
         fp16: bool = False,
@@ -193,8 +197,9 @@ class AutoBackend(nn.Module):
         """Initialize the AutoBackend for inference.
 
         Args:
-            model (str | torch.nn.Module): Path to the model weights file or a module instance.
-            device (torch.device): Device to run the model on.
+            model (str | Path | torch.nn.Module): Path to the model weights file or a module instance.
+            device (torch.device | str, optional): Device to run the model on, or a 'tpu', 'intel' or 'vulkan' device
+                string from `select_device`. Defaults to CPU when None.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
@@ -214,8 +219,8 @@ class AutoBackend(nn.Module):
         ):
             model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
-        # Check if format supports FP16
-        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine"}
+        # Check if format supports FP16; PyTorch CPU FP16 is slow and breaks some models (e.g. RT-DETR returns no boxes)
+        fp16 &= format in {"onnx", "openvino", "engine"} or (format in {"pt", "torchscript"} and str(device) != "cpu")
 
         # Set device
         if (
@@ -282,10 +287,10 @@ class AutoBackend(nn.Module):
         without explicit copying.
 
         Args:
-            name: Attribute name to look up.
+            name (str): Attribute name to look up.
 
         Returns:
-            The attribute value from the backend.
+            (Any): The attribute value from the backend.
 
         Raises:
             AttributeError: If the attribute is not found in backend.
@@ -305,17 +310,30 @@ class AutoBackend(nn.Module):
 
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
-            augment (bool): Whether to perform data augmentation during inference.
-            embed (list, optional): A list of layer indices to return embeddings from.
-            **kwargs (Any): Additional keyword arguments for model configuration.
+            augment (bool): Whether to apply test-time augmentation (native PyTorch models only).
+            embed (list, optional): A list of layer indices to return embeddings from (native PyTorch models only).
+            **kwargs (Any): Additional keyword arguments passed to native PyTorch models; ignored by other formats.
 
         Returns:
             (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
         """
+        nms = self.metadata.get("args", {}).get("nms")
+        if nms and self.format not in {"coreml", "imx"} and im.shape[0] > self.batch:
+            # NMSModel graphs only process their export batch per call; clone chunks as backends reuse outputs
+            ys = []
+            for x in im.split(self.batch):
+                y = self.forward(x)
+                ys.append([t.clone() for t in y] if isinstance(y, list) else y.clone())
+            return [torch.cat(t) for t in zip(*ys)] if isinstance(ys[0], list) else torch.cat(ys)
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
         if self.backend.fp16 and im.dtype != torch.float16:
             im = im.half()
+        fixed = not self.metadata.get("dynamic") and (
+            nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"}
+        )
+        if (pad := self.batch - im.shape[0] if fixed else 0) > 0:  # static-batch exports reject short batches
+            im = torch.cat((im, im.new_zeros(pad, *im.shape[1:])))
 
         # Build forward kwargs based on backend type
         forward_kwargs = {}
@@ -323,6 +341,8 @@ class AutoBackend(nn.Module):
             forward_kwargs = {"augment": augment, "embed": embed, **kwargs}
 
         y = self.backend.forward(im, **forward_kwargs)
+        if pad > 0:  # drop the zero-padded rows
+            y = [x[:-pad] for x in y] if isinstance(y, (list, tuple)) else y[:-pad]
 
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
@@ -371,11 +391,11 @@ class AutoBackend(nn.Module):
                 non_max_suppression(warmup_boxes)  # warmup NMS
 
     @staticmethod
-    def _model_type(p: str = "path/to/model.pt", dnn: bool = False) -> str:
+    def _model_type(p: str | Path = "path/to/model.pt", dnn: bool = False) -> str:
         """Take a path to a model file and return the model format string.
 
         Args:
-            p (str): Path to the model file.
+            p (str | Path): Path to the model file or Triton URL.
             dnn (bool): Whether to use OpenCV DNN module for ONNX inference.
 
         Returns:
@@ -391,18 +411,18 @@ class AutoBackend(nn.Module):
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)
         name = Path(p).name
-        types = [s in name for s in sf]
-        types[5] |= name.endswith(".mlmodel")
-        format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
-        if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
-            format = "qnn"
-        elif name.endswith(".tflite") and not name.endswith("_edgetpu.tflite"):
-            format = "litert"  # bare .tflite files (incl. legacy TFLite exports) load via LiteRT
-        elif format == "-":
+        # The suffix ending last wins, then the longest, i.e. 'best.pt.onnx' -> onnx, 'best_qnn.onnx' -> qnn
+        matches = [
+            (name.rfind(s) + len(s), len(s), f)
+            for s, f in zip([*sf, ".mlmodel"], [*export_formats()["Argument"], "coreml"])
+            if s in name
+        ]
+        format = max(matches)[2] if matches else None
+        if format == "-":
             format = "pt"
         elif format == "onnx" and dnn:
             format = "dnn"
-        elif not any(types):
+        elif format is None:
             from urllib.parse import urlsplit
 
             url = urlsplit(p)

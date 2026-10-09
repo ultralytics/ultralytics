@@ -8,9 +8,9 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.cfg import get_cfg
+from ultralytics.cfg import _handle_deprecation, get_cfg
 from ultralytics.data.build import load_inference_source
-from ultralytics.engine.model import Model
+from ultralytics.engine.model import PREDICTOR_SETUP_KEYS, Model
 from ultralytics.models import yolo
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.backends.base import BaseBackend
@@ -57,15 +57,16 @@ class YOLO(Model):
         >>> model = YOLO("yolo26n.yaml")
     """
 
-    def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
+    def __init__(self, model: str | Path | Model = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
         This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
         YOLOE) based on the model filename.
 
         Args:
-            model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
-            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'semantic', 'depth', 'classify',
+            model (str | Path | Model): Model name or path to model file, e.g. 'yolo26n.pt', 'yolo26n.yaml', or an
+                already initialized Model instance.
+            task (str, optional): YOLO task specification, e.g. 'detect', 'segment', 'semantic', 'depth', 'classify',
                 'pose', 'obb'. Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
         """
@@ -169,14 +170,15 @@ class YOLOWorld(Model):
         >>> model.set_classes(["person", "car", "bicycle"])
     """
 
-    def __init__(self, model: str | Path = "yolov8s-world.pt", verbose: bool = False) -> None:
+    def __init__(self, model: str | Path | Model = "yolov8s-world.pt", verbose: bool = False) -> None:
         """Initialize YOLOv8-World model with a pre-trained model file.
 
         Loads a YOLOv8-World model for object detection. If no custom class names are provided, it assigns default COCO
         class names.
 
         Args:
-            model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.
+            model (str | Path | Model): Path to the pre-trained model file (*.pt or *.yaml), or an already initialized
+                Model instance.
             verbose (bool): If True, prints additional information during initialization.
         """
         super().__init__(model=model, task="detect", verbose=verbose)
@@ -201,14 +203,10 @@ class YOLOWorld(Model):
         """Set the model's class names for detection.
 
         Args:
-            classes (list[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories, e.g. ["person"].
         """
         self.model.set_classes(classes)
-        # Remove background if it's given
-        background = " "
-        if background in classes:
-            classes.remove(background)
-        self.model.names = classes
+        self.model.names = [c for c in classes if c != " "]  # drop the background class without mutating `classes`
 
         self.predictor = None
 
@@ -217,7 +215,7 @@ class YOLOE(Model):
     """YOLOE object detection and segmentation model.
 
     YOLOE is an enhanced YOLO model that supports both object detection and instance segmentation tasks with improved
-    performance and additional features like visual and text positional embeddings.
+    performance and additional features like visual and text prompt embeddings.
 
     Attributes:
         model: The loaded YOLOE model instance.
@@ -227,8 +225,8 @@ class YOLOE(Model):
     Methods:
         __init__: Initialize YOLOE model with a pre-trained model file.
         task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
-        get_text_pe: Get text positional embeddings for the given texts.
-        get_visual_pe: Get visual positional embeddings for the given image and visual features.
+        get_text_pe: Get text prompt embeddings for the given texts.
+        get_visual_pe: Get visual prompt embeddings for the given image and visual features.
         set_vocab: Set vocabulary and class names for the YOLOE model.
         get_vocab: Get the vocabulary for the given class names, which become the model's classes as the head is fused.
         set_classes: Set the model's class names and embeddings for detection.
@@ -280,14 +278,21 @@ class YOLOE(Model):
         }
 
     def get_text_pe(self, texts):
-        """Get text positional embeddings for the given texts."""
+        """Get text prompt embeddings for the given texts.
+
+        Args:
+            texts (list[str]): Text prompts (e.g. class names) to embed.
+
+        Returns:
+            (torch.Tensor): Text prompt embeddings with shape (1, len(texts), embed_dim).
+        """
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_text_pe(texts)
 
     def get_visual_pe(self, img, visual):
-        """Get visual positional embeddings for the given image and visual features.
+        """Get visual prompt embeddings for the given image and visual features.
 
-        This method extracts positional embeddings from visual features based on the input image. It requires that the
+        This method extracts prompt embeddings from visual features based on the input image. It requires that the
         model is an instance of YOLOEModel.
 
         Args:
@@ -295,7 +300,7 @@ class YOLOE(Model):
             visual (torch.Tensor): Visual features extracted from the image.
 
         Returns:
-            (torch.Tensor): Visual positional embeddings.
+            (torch.Tensor): Visual prompt embeddings.
 
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")
@@ -334,7 +339,14 @@ class YOLOE(Model):
         self.model.set_vocab(vocab, names=names, one2one_vocab=one2one_vocab)
 
     def get_vocab(self, names):
-        """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
+        """Get the vocabulary for the given class names, which become the model's classes as the head is fused.
+
+        Args:
+            names (list[str]): Class names to build the vocabulary for.
+
+        Returns:
+            (torch.nn.ModuleList): Fused classification layers to pass to `set_vocab` with the same names.
+        """
         assert isinstance(self.model, YOLOEModel)
         self.predictor = None  # the delegate destructively fuses the promptable head
         return self.model.get_vocab(names)
@@ -343,14 +355,14 @@ class YOLOE(Model):
         """Set the model's class names and embeddings for detection.
 
         Args:
-            classes (list[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories, e.g. ["person"].
             embeddings (torch.Tensor, optional): Embeddings corresponding to the classes.
         """
         # Verify no background class is present
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
         names = list(self.model.names.values()) if isinstance(self.model.names, dict) else list(self.model.names)
-        if embeddings is not None or names != classes:
+        if embeddings is not None or names != list(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
@@ -436,15 +448,17 @@ class YOLOE(Model):
         """Validate the model using text or visual prompts.
 
         Args:
-            validator (callable, optional): A callable validator function. If None, a default validator is loaded.
+            validator (type, optional): Validator class to instantiate. If None, the task's default validator is used.
             load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
             refer_data (str, optional): Path to the reference data for visual prompts.
             **kwargs (Any): Additional keyword arguments to override default settings.
 
         Returns:
-            (dict): Validation statistics containing metrics computed during validation.
+            (DetMetrics | SegmentMetrics): Validation metrics computed by the validator.
         """
         custom = {"rect": not load_vp}  # method defaults
+        if kwargs.get("data") is None:
+            kwargs["data"] = self._val_data()
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
@@ -468,12 +482,11 @@ class YOLOE(Model):
                 paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a generator as they
                 are computed.
-            visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
-                model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one array per
-                image for an explicit list, tuple, or 4-D tensor source with no refer_image.
+            visual_prompts (dict[str, np.ndarray | list[np.ndarray]], optional): Dictionary containing visual prompts
+                for the model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one
+                array per image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
-                YOLOEVPDetectPredictor.
+            predictor (type): Predictor class for visual prompt predictions. Defaults to YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -521,26 +534,17 @@ class YOLOE(Model):
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)
+            overrides = {"verbose": refer_image is None, **self.overrides, **_handle_deprecation(kwargs)}
+            overrides.update(task=self.model.task, mode="predict", save=False, batch=1)
             if type(self.predictor) is not predictor:
-                args = get_cfg(overrides={**self.overrides, **kwargs})
-                self.predictor = predictor(
-                    overrides={
-                        "task": self.model.task,
-                        "mode": "predict",
-                        "save": False,
-                        "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
-                        "batch": 1,
-                        "device": args.device,
-                        "quantize": args.quantize,
-                        "imgsz": args.imgsz,
-                    },
-                    _callbacks=self.callbacks,
-                )
+                self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
+            else:  # setup_model below applies this call's setup args, with unset quantize as FP32 like Model.predict
+                setup = {"quantize": None, **{k: overrides[k] for k in PREDICTOR_SETUP_KEYS if k in overrides}}
+                self.predictor.args = get_cfg(self.predictor.args, setup)
 
-            self.model.model[-1].nc = num_cls
-            self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
             self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
+            self.predictor.model.names = {i: f"object{i}" for i in range(num_cls)}  # predictor-scoped prompt classes
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)
@@ -549,11 +553,11 @@ class YOLOE(Model):
                     refer_image = next(iter(dataset))[1][0]
             if refer_image is not None:
                 vpe = self.predictor.get_vpe(refer_image)
-                self.model.set_classes(self.model.names, vpe)
+                self.model.set_classes(self.predictor.model.names, vpe)
                 self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
                 self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             self.predictor = None  # reset predictor if no visual prompts
-        self.overrides["agnostic_nms"] = True  # use agnostic nms for YOLOE default
+        kwargs.setdefault("agnostic_nms", True)  # use agnostic nms for YOLOE predict default
 
         return super().predict(source, stream, **kwargs)

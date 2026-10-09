@@ -33,7 +33,8 @@ class SAM(Model):
 
     Attributes:
         model (torch.nn.Module): The loaded SAM model.
-        is_sam2 (bool): Indicates whether the model is SAM2 variant.
+        is_sam2 (bool): Indicates whether the model is a SAM2 variant.
+        is_sam3 (bool): Indicates whether the model is a SAM3 variant.
         task (str): The task type, set to "segment" for SAM models.
 
     Methods:
@@ -95,7 +96,7 @@ class SAM(Model):
             **kwargs (Any): Additional keyword arguments for prediction.
 
         Returns:
-            (list): The model predictions.
+            (list[Results] | Generator[Results]): The model predictions, as a generator if `stream=True`.
 
         Examples:
             >>> sam = SAM("sam_b.pt")
@@ -124,7 +125,7 @@ class SAM(Model):
             **kwargs (Any): Additional keyword arguments to be passed to the predict method.
 
         Returns:
-            (list): The model predictions, typically containing segmentation masks and other relevant information.
+            (list[Results] | Generator[Results]): The model predictions, as a generator if `stream=True`.
 
         Examples:
             >>> sam = SAM("sam_b.pt")
@@ -141,12 +142,12 @@ class SAM(Model):
             verbose (bool): If True, prints the information to the console.
 
         Returns:
-            (tuple): A tuple containing the model's information (string representations of the model).
+            (tuple | None): Tuple of (layers, parameters, gradients, GFLOPs) if `verbose=True`, otherwise None.
 
         Examples:
             >>> sam = SAM("sam_b.pt")
             >>> info = sam.info()
-            >>> print(info[0])  # Print summary information
+            >>> print(info[0])  # Print number of layers
         """
         return model_info(self.model, detailed=detailed, verbose=verbose)
 
@@ -156,7 +157,8 @@ class SAM(Model):
 
         Returns:
             (dict[str, dict[str, type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding
-                Predictor class. For SAM2 models, it maps to SAM2Predictor, otherwise to the standard Predictor.
+                Predictor class. SAM2 models map to SAM2Predictor, SAM3 models to SAM3Predictor, and all others to the
+                standard Predictor.
 
         Examples:
             >>> sam = SAM("sam_b.pt")

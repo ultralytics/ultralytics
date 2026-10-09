@@ -10,20 +10,21 @@ import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
-from ultralytics.utils import AUTOINSTALL, LINUX, LOGGER, MACOS
-from ultralytics.utils.checks import (
-    IS_PYTHON_MINIMUM_3_13,
-    check_apt_requirements,
-    check_requirements,
-    check_version,
-    is_sudo_available,
-)
-from ultralytics.utils.downloads import attempt_download_asset
+from ultralytics.utils import ARM64, AUTOINSTALL, LINUX, LOGGER, MACOS, USER_CONFIG_DIR
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_requirements, check_version
+from ultralytics.utils.downloads import attempt_download_asset, safe_download
 from ultralytics.utils.tal import make_anchors
 
 
 def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
-    """A wrapper for TensorFlow export compatibility (TF-specific handling is now in head modules)."""
+    """Patch Detect and Pose head decoding with TensorFlow-export-compatible normalized implementations.
+
+    Args:
+        model (torch.nn.Module): Model whose Detect (and Pose) heads are patched in place.
+
+    Returns:
+        (torch.nn.Module): The same model with patched head methods.
+    """
     for m in model.modules():
         if not isinstance(m, Detect):
             continue
@@ -90,7 +91,7 @@ def onnx2saved_model(
 
     Notes:
         - Auto-installs tensorflow, onnx2tf, and all required dependencies if not present.
-        - Downloads calibration data if INT8 quantization is enabled.
+        - Downloads the onnx2tf calibration sample data file if not already present.
         - Removes temporary files and renames quantized models after conversion.
     """
     try:
@@ -143,6 +144,7 @@ def onnx2saved_model(
         if images is not None:
             output_dir.mkdir(parents=True, exist_ok=True)
             np.save(str(tmp_file), images)  # BHWC
+            del images
             np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 
     # Patch onnx.helper for onnx_graphsurgeon compatibility with ONNX>=1.17
@@ -207,7 +209,7 @@ def keras2pb(keras_model, output_file: Path | str, prefix: str = "") -> str:
 
     Args:
         keras_model (keras.Model): Keras model to convert to frozen graph format.
-        output_file (Path | str): Output file path (suffix will be changed to .pb).
+        output_file (Path | str): Output ``.pb`` file path.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
@@ -242,42 +244,50 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     Returns:
         (str): Path to the exported Edge TPU model file.
 
+    Raises:
+        FileNotFoundError: If the Edge TPU compiler is missing and auto-install is disabled.
+
     Notes:
         Auto-installs the Edge TPU compiler if not found. The function compiles the TFLite model
         for optimal performance on Google's Edge TPU hardware accelerator.
     """
     import shlex
+    import shutil
     import subprocess
 
-    # Install Edge TPU compiler if not found
-    check_cmd = "edgetpu_compiler --version"
     help_url = "https://coral.ai/docs/edgetpu/compiler/"
-    assert LINUX, f"export only supported on Linux. See {help_url}"
-    if (
-        subprocess.run(
-            check_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, check=False
-        ).returncode
-        != 0
-    ):
+    assert LINUX and not ARM64, f"export only supported on Linux x86_64. See {help_url}"
+    # Google's Coral apt repo is gone, so a missing compiler installs from the unmodified edgetpu-compiler 16.0
+    # package files, needing no apt or sudo
+    bundle = USER_CONFIG_DIR / "edgetpu-compiler" / "usr" / "bin" / "edgetpu_compiler_bin"
+    system = shutil.which("edgetpu_compiler")
+    if not system and not (bundle / "edgetpu_compiler").is_file():
         if not AUTOINSTALL:
             raise FileNotFoundError(
                 f"Edge TPU compiler not found and YOLO_AUTOINSTALL=False. Install it from {help_url}"
             )
-        LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
-        sudo = "sudo " if is_sudo_available() else ""
-        for c in (
-            f"{sudo}mkdir -p /etc/apt/keyrings",
-            f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --no-tty --dearmor -o /etc/apt/keyrings/google.gpg",
-            f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
-        ):
-            subprocess.run(c, shell=True, check=True)
-        check_apt_requirements(["edgetpu-compiler"])
+        LOGGER.info(f"\n{prefix} export requires Edge TPU compiler, downloading...")
+        safe_download(
+            "https://github.com/ultralytics/assets/releases/download/v0.0.0/edgetpu-compiler_16.0_amd64.tar.gz",
+            dir=bundle.parents[2],
+            delete=True,
+        )
+        for f in bundle.iterdir():
+            f.chmod(0o755)  # tar extraction does not restore mode bits
+    # The bundled loader runs directly: Google's launcher script breaks on paths with spaces
+    compiler = (
+        [system]
+        if system
+        else [str(bundle / "ld-linux-x86-64.so.2"), "--library-path", str(bundle), str(bundle / "edgetpu_compiler")]
+    )
 
-    ver = subprocess.run(check_cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    ver = (
+        subprocess.run([*compiler, "--version"], capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    )
     LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
 
     cmd = [
-        "edgetpu_compiler",
+        *compiler,
         "--out_dir",
         str(output_dir),
         "--show_operations",

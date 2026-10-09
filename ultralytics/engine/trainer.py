@@ -96,12 +96,14 @@ class BaseTrainer:
         epochs (int): Number of epochs to train for.
         start_epoch (int): Starting epoch for training.
         device (torch.device): Device to use for training.
+        world_size (int): Number of devices used for training (0 for CPU/MPS).
         amp (bool): Whether Automatic Mixed Precision is enabled.
         scaler (torch.amp.GradScaler): Gradient scaler for AMP.
         data (dict): Dataset dictionary containing paths and metadata.
         ema (ModelEMA): EMA (Exponential Moving Average) of the model.
         resume (bool): Resume training from a checkpoint.
-        lf (callable): Learning rate scheduling function.
+        lf (Callable): Learning rate scheduling function.
+        optimizer (torch.optim.Optimizer): Optimizer for training.
         scheduler (torch.optim.lr_scheduler._LRScheduler): Learning rate scheduler.
         best_fitness (float): The best fitness value achieved.
         fitness (float): Current fitness value.
@@ -122,8 +124,9 @@ class BaseTrainer:
         build_optimizer: Construct an optimizer for the model.
 
     Examples:
-        Initialize a trainer and start training
-        >>> trainer = BaseTrainer(cfg="config.yaml")
+        Initialize a task trainer (a BaseTrainer subclass) and start training
+        >>> from ultralytics.models.yolo.detect import DetectionTrainer
+        >>> trainer = DetectionTrainer(overrides={"model": "yolo26n.pt", "data": "coco8.yaml", "epochs": 1})
         >>> trainer.train()
     """
 
@@ -140,6 +143,11 @@ class BaseTrainer:
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
+            if any(isinstance(t, A.Lambda) for t in self.args.augmentations):  # to_dict() can't store user functions
+                raise TypeError(
+                    "A.Lambda augmentations can't be saved in checkpoints. Subclass A.ImageOnlyTransform or "
+                    "A.DualTransform in an importable module instead."
+                )
             self.args.augmentations = [A.to_dict(t) for t in self.args.augmentations]  # YAML/pickle-safe, DDP-safe
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
@@ -197,6 +205,7 @@ class BaseTrainer:
 
         # Optimization utils init
         self.lf = None
+        self.optimizer = None
         self.scheduler = None
 
         # Epoch level metrics
@@ -290,36 +299,42 @@ class BaseTrainer:
         )
 
     def _build_train_pipeline(self):
-        """Build dataloaders, optimizer, and scheduler for current batch size."""
+        """Build dataloaders and update optimizer settings for the current batch size."""
         batch_size = self.batch_size // max(self.world_size, 1)
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
         final_batch_size = len(self.train_loader.sampler) % self.train_loader.batch_size or self.train_loader.batch_size
-        if self.args.imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
+        min_imgsz = max(self.stride, int(self.args.imgsz * (1 - self.args.multi_scale))) // self.stride * self.stride
+        if min_imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
             raise ValueError(
-                f"final batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
-                f"change batch or use imgsz >= {2 * self.stride}"
+                f"final batch=1 training at imgsz={min_imgsz} gives BatchNorm a single value per channel; "
+                f"change batch, or use imgsz and multi_scale that keep every size >= {2 * self.stride}"
             )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
-            self.data.get("val") or self.data.get("test"),
+            self.data[self.args.split],
             batch_size=batch_size if self.args.task in {"obb", "semantic", "depth"} else batch_size * 2,
             rank=LOCAL_RANK,
             mode="val",
         )
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
-        iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
-        self.optimizer = self.build_optimizer(
-            model=self.model,
-            name=self.args.optimizer,
-            lr=self.args.lr0,
-            momentum=self.args.momentum,
-            decay=weight_decay,
-            iterations=iterations,
-        )
-        self._setup_scheduler()
+        if self.optimizer is None:
+            iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
+            self.optimizer = self.build_optimizer(
+                model=self.model,
+                name=self.args.optimizer,
+                lr=self.args.lr0,
+                momentum=self.args.momentum,
+                decay=weight_decay,
+                iterations=iterations,
+            )
+            self._setup_scheduler()
+        else:
+            for group in self.optimizer.param_groups:
+                if group.get("param_group") in {"weight", "muon"}:
+                    group["weight_decay"] = weight_decay
 
     def _setup_train(self):
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
@@ -568,9 +583,12 @@ class BaseTrainer:
                     )
                     batch = loss = preds = None
                     self.loss = self.loss_items = self.tloss = None
+                    if hasattr(self.train_loader, "close"):
+                        self.train_loader.close()  # free the replaced loader's workers and prefetched batches
                     self._clear_memory()
-                    self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
+                    self._build_train_pipeline()  # retain optimizer state across OOM retries
                     mosaic_closed = not self.args.close_mosaic  # the rebuilt loader reopened mosaic, re-arm the gate
+                    self.validator.dataloader = self.test_loader  # the validator holds the pre-halving loader
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)
@@ -604,7 +622,6 @@ class BaseTrainer:
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
                     )
-                    self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
                         self.plot_training_samples(batch, ni)
 
@@ -635,6 +652,8 @@ class BaseTrainer:
 
             # NaN recovery
             if self._handle_nan_recovery(epoch):
+                last_opt_step = -1  # redo the epoch with normal step cadence, like the OOM restart
+                self.optimizer.zero_grad()  # drop the corrupted pass's gradients, including NaNs still in .grad
                 continue
 
             self.nan_recovery_attempts = 0
@@ -730,7 +749,7 @@ class BaseTrainer:
         import polars as pl  # scope for faster 'import ultralytics'
 
         try:
-            return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
+            return pl.read_csv(self.csv.read_bytes(), infer_schema_length=None).to_dict(as_series=False)
         except Exception:
             return {}
 
@@ -743,7 +762,11 @@ class BaseTrainer:
                 m.eval()
 
     def save_model(self):
-        """Save model training checkpoints with additional metadata."""
+        """Save model training checkpoints with additional metadata.
+
+        Returns:
+            (bool): True once the checkpoints have been written.
+        """
         import io
 
         # A transient NaN/Inf permanently poisons the EMA running average (ema = decay*ema + (1-decay)*model), so
@@ -774,6 +797,7 @@ class BaseTrainer:
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
+                "stopper": {"best_fitness": self.stopper.best_fitness, "best_epoch": self.stopper.best_epoch},
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
@@ -813,13 +837,16 @@ class BaseTrainer:
 
         Returns:
             (dict): A dictionary containing the training/validation/test dataset and category names.
+
+        Raises:
+            RuntimeError: If the dataset cannot be found or checked.
         """
         try:
-            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction, split=self.args.split)
 
             # Task-specific dataset checking
             if self.args.task == "classify":
-                data = check_cls_dataset(self.args.data)
+                data = check_cls_dataset(self.args.data, split=self.args.split)
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",
@@ -828,7 +855,7 @@ class BaseTrainer:
                 "semantic",
                 "depth",
             }:
-                data = check_det_dataset(self.args.data)
+                data = check_det_dataset(self.args.data, split=self.args.split)
                 if "yaml_file" in data:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
@@ -913,7 +940,7 @@ class BaseTrainer:
         return metrics, fitness
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Get model and raise NotImplementedError for loading cfg files."""
+        """Raise NotImplementedError (must return a model built from cfg and weights in subclasses)."""
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
@@ -940,9 +967,6 @@ class BaseTrainer:
 
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance. Override in subclasses."""
-
-    def build_targets(self, preds, targets):
-        """Build target tensors for training YOLO model."""
 
     def progress_string(self):
         """Return a string describing training progress."""
@@ -1006,13 +1030,13 @@ class BaseTrainer:
                     "Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
                     "i.e. 'yolo train resume model=path/to/last.pt'"
                 ) from e
-            if self.args.data or (not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists()):
+            if self.args.data:
                 ckpt_args["data"] = self.args.data
 
             resume = True
             self.args = get_cfg(ckpt_args)
             self.args.model = self.args.resume = str(last)  # reinstate model
-            for k in (
+            allowed = {  # allow arg updates to reduce memory or update device on resume
                 "imgsz",
                 "batch",
                 "device",
@@ -1029,14 +1053,22 @@ class BaseTrainer:
                 "channels_last",
                 "distill_model",
                 "save_dir",
-            ):  # allow arg updates to reduce memory or update device on resume
-                if k in overrides:
-                    setattr(self.args, k, overrides[k])
+            }
+            ignored = []
+            for k, v in overrides.items():
+                if k in allowed:
+                    setattr(self.args, k, v)
+                elif k not in {"model", "data", "mode", "resume", "pretrained"} and v != getattr(self.args, k, None):
+                    ignored.append(k)
+            if ignored:
+                LOGGER.warning(f"Resume ignores {ignored}, using checkpoint values. Start a new run to change them.")
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):
-        """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
+        """Load optimizer, scaler, EMA, best_fitness, and early stopping state from checkpoint."""
         if ckpt.get("optimizer") is not None:
+            for saved, group in zip(ckpt["optimizer"]["param_groups"], self.optimizer.param_groups):
+                saved["fused"] = group.get("fused")  # runtime device, not the checkpoint, picks the kernel
             self.optimizer.load_state_dict(ckpt["optimizer"])
         if ckpt.get("scaler"):
             self.scaler.load_state_dict(ckpt["scaler"])
@@ -1047,6 +1079,7 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
+        self.stopper.__dict__.update(ckpt.get("stopper") or {})  # older checkpoints keep a fresh stopper
 
     def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss by loading last checkpoint."""
@@ -1129,6 +1162,9 @@ class BaseTrainer:
 
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.
+
+        Raises:
+            NotImplementedError: If the optimizer name is not supported.
         """
         g = [{}, {}, {}, {}]  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
@@ -1137,12 +1173,12 @@ class BaseTrainer:
         if name == "auto":
             LOGGER.info(
                 f"{colorstr('optimizer:')} 'optimizer=auto' found, "
-                f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
-                f"determining best 'optimizer', 'lr0' and 'momentum' automatically... "
+                f"ignoring 'lr0={self.args.lr0}' and determining best 'optimizer' and 'lr0' automatically... "
             )
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
+            self.args.optimizer, self.args.lr0 = name, lr  # resume rebuilds this choice from train_args
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"

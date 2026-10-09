@@ -53,7 +53,7 @@ def _interp_plot(plot, n=101):
     else:
         y_new = np.array([np.interp(x_new, x, yi) for yi in y])
 
-    # Also interpolate ap if present (for PR curves)
+    # Keep ap as-is if present (per-class scalars for PR curves, not interpolated)
     result = {**plot, "x": x_new.tolist(), "y": y_new.tolist()}
     if "ap" in plot:
         result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)
@@ -254,6 +254,18 @@ def _get_project_name(trainer):
     return project, slugify(str(trainer.args.name or "train"))
 
 
+def _get_system_metrics(ctx):
+    """Sample the run's system logger without making optional host monitoring a training dependency."""
+    try:
+        if not ctx["system_logger"]:
+            from ultralytics.utils.logger import SystemLogger
+
+            ctx["system_logger"] = SystemLogger(all_drives=True)
+        return ctx["system_logger"].get_metrics(rates=True)
+    except Exception:
+        return None
+
+
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start."""
     global _api_key
@@ -323,6 +335,7 @@ def on_pretrain_routine_start(trainer):
             "epochs": trainer.epochs,
             "device": str(trainer.device),
             "environment": environment,
+            "system": _get_system_metrics(ctx),
         },
         project,
         name,
@@ -379,21 +392,10 @@ def on_fit_epoch_end(trainer):
         except Exception:
             pass
 
-    # Get system metrics (cache SystemLogger in platform context for efficiency)
-    system = {}
-    try:
-        if not ctx["system_logger"]:
-            from ultralytics.utils.logger import SystemLogger
-
-            ctx["system_logger"] = SystemLogger(all_drives=True)
-        system = ctx["system_logger"].get_metrics(rates=True)
-    except Exception:
-        pass
-
     payload = {
         "epoch": trainer.epoch,
         "metrics": metrics,
-        "system": system,
+        "system": _get_system_metrics(ctx),
         "fitness": trainer.fitness,
         "best_fitness": trainer.best_fitness,
     }
@@ -446,13 +448,14 @@ def on_train_end(trainer):
         ctx["console_logger"].stop_capture()
         ctx["console_logger"] = None
 
-    # Upload best model (blocking with progress bar to ensure it completes)
+    # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None
-    if trainer.best and Path(trainer.best).exists():
+    model_path = trainer.best if trainer.best and Path(trainer.best).exists() else trainer.last
+    if Path(model_path).exists():
         if ctx["checkpoint_upload"]:
             ctx["checkpoint_upload"].result()
         artifact = _upload_model(
-            trainer.best,
+            model_path,
             project,
             name,
             progress=True,

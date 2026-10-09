@@ -30,7 +30,7 @@ The output of a semantic segmentation model is a single height-by-width class ma
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 semantic segmentation models pretrained on the [Cityscapes](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml) dataset are shown below.
+YOLO26 Semantic models pretrained on the [Cityscapes](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml) dataset are shown below.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -40,9 +40,7 @@ YOLO26 semantic segmentation models pretrained on the [Cityscapes](https://githu
 - **Speed** metrics are averaged over Cityscapes validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
-YOLO26 semantic segmentation models pretrained on the [ADE20K](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ade20k.yaml) dataset are shown below.
-
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+YOLO26 Semantic models pretrained on the [ADE20K](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ade20k.yaml) dataset are shown below.
 
 {% include "macros/yolo-semantic-ade20k-perf.md" %}
 
@@ -89,7 +87,7 @@ See full `train` mode details in the [Train](../modes/train.md) page. Semantic s
 
 ### Dataset format
 
-Semantic segmentation datasets use single-channel mask images, typically PNG, where each pixel value represents a class ID. Pixels with value 255 are treated as "ignore" and excluded from loss computation. The dataset YAML should specify paths to images and their corresponding mask directories. See the [Semantic Segmentation Dataset Guide](../datasets/semantic/index.md) for format details. Supported datasets include [Cityscapes](../datasets/semantic/cityscapes.md) and [ADE20K](../datasets/semantic/ade20k.md). You can manage and label semantic datasets with [Ultralytics Platform annotation](../platform/data/annotation.md).
+Semantic segmentation datasets use single-channel mask images, typically PNG, where each pixel value represents a class ID. Pixels with value 255 are treated as "ignore" and excluded from loss computation. The dataset YAML should specify paths to images and their corresponding mask directories. Datasets with YOLO polygon labels train directly, converted to masks on the fly (see [Can I use instance segmentation data](#can-i-use-instance-segmentation-data-to-train-semantic-segmentation) below). See the [Semantic Segmentation Dataset Guide](../datasets/semantic/index.md) for format details. Supported datasets include [Cityscapes](../datasets/semantic/cityscapes.md) and [ADE20K](../datasets/semantic/ade20k.md). You can manage and label semantic datasets with [Ultralytics Platform annotation](../platform/data/annotation.md).
 
 ## Val
 
@@ -115,8 +113,8 @@ Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo semantic val model=yolo26n-sem.pt data=cityscapes.yaml    # validate official model
-        yolo semantic val model=path/to/best.pt data=path/to/data.yaml # validate custom model
+        yolo semantic val model=yolo26n-sem.pt data=cityscapes.yaml    # val official model
+        yolo semantic val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
 
 ## Predict
@@ -163,7 +161,6 @@ belong to separate objects.
 | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Class IDs; dtype selected by class count. |
 | `result.masks`              | -                                               | -       | No instance masks.                        |
 | `result.boxes`              | -                                               | -       | No instance boxes/confidences.            |
-| `result.masks.xy`           | -                                               | -       | No default polygons.                      |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
@@ -240,13 +237,13 @@ To train a YOLO26 semantic segmentation model on a custom dataset, you need to p
         model = YOLO("yolo26n-sem.pt")
 
         # Train the model
-        results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=512)
+        results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=1024)
         ```
 
     === "CLI"
 
         ```bash
-        yolo semantic train data=path/to/your_dataset.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
+        yolo semantic train data=path/to/your_dataset.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 Check the [Configuration](../usage/cfg.md) page for more available arguments.

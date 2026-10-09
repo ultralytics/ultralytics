@@ -25,7 +25,6 @@ class SegmentationValidator(DetectionValidator):
         process (callable): Function to process masks based on save_json and save_txt flags.
         args (SimpleNamespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
-        stats (dict): Dictionary to store statistics during validation.
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationValidator
@@ -62,7 +61,7 @@ class SegmentationValidator(DetectionValidator):
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
-        """Initialize metrics and select mask processing function based on save_json flag.
+        """Initialize metrics and select mask processing function based on save_json and save_txt flags.
 
         Args:
             model (torch.nn.Module): Model to validate.
@@ -166,20 +165,24 @@ class SegmentationValidator(DetectionValidator):
         tp.update({"tp_m": tp_m})  # update tp with mask IoU
         return tp
 
-    def plot_predictions(self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int) -> None:
+    def plot_predictions(
+        self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int, max_det: int | None = None
+    ) -> None:
         """Plot batch predictions with masks and bounding boxes.
 
         Args:
             batch (dict[str, Any]): Batch containing images and annotations.
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
+            max_det (int | None): Maximum number of detections to plot per image, defaults to `args.max_det`.
         """
+        max_det = max_det or self.args.max_det
         for p in preds:
             masks = p["masks"]
-            if masks.shape[0] > self.args.max_det:
-                LOGGER.warning(f"Limiting validation plots to 'max_det={self.args.max_det}' items.")
-            p["masks"] = torch.as_tensor(masks[: self.args.max_det], dtype=torch.uint8).cpu()
-        super().plot_predictions(batch, preds, ni, max_det=self.args.max_det)  # plot bboxes
+            if masks.shape[0] > max_det:
+                LOGGER.warning(f"Limiting validation plots to 'max_det={max_det}' items.")
+            p["masks"] = torch.as_tensor(masks[:max_det], dtype=torch.uint8).cpu()
+        super().plot_predictions(batch, preds, ni, max_det=max_det)  # plot bboxes
 
     def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """Save YOLO detections to a txt file in normalized coordinates in a specific format.
@@ -209,18 +212,22 @@ class SegmentationValidator(DetectionValidator):
         """
 
         def to_string(counts: list[int]) -> str:
-            """Converts the RLE object into a compact string representation. Each count is delta-encoded and
-            variable-length encoded as a string.
+            """Convert RLE counts into a compact string representation.
+
+            Each count is delta-encoded and variable-length encoded as a string, matching the COCO compressed RLE format.
 
             Args:
                 counts (list[int]): List of RLE counts.
+
+            Returns:
+                (str): Compressed RLE string.
             """
             result = []
 
             for i in range(len(counts)):
                 x = int(counts[i])
 
-                # Apply delta encoding for all counts after the second entry
+                # Apply delta encoding for all counts after the third entry
                 if i > 2:
                     x -= int(counts[i - 2])
 
@@ -241,7 +248,7 @@ class SegmentationValidator(DetectionValidator):
 
             return "".join(result)
 
-        def multi_encode(pixels: torch.Tensor) -> list[int]:
+        def multi_encode(pixels: torch.Tensor) -> list[list[int]]:
             """Convert multiple binary masks using Run-Length Encoding (RLE).
 
             Args:
@@ -291,12 +298,13 @@ class SegmentationValidator(DetectionValidator):
             self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Scales predictions to the original image size."""
+        """Scale predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[
-                0
-            ].byte(),
+            # The masks are binary at the network input size; threshold the bilinear rescale instead of truncating it
+            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[0]
+            .gt_(0.5)
+            .byte(),
         }
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:

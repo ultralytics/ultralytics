@@ -37,7 +37,6 @@ class ClassificationTrainer(BaseTrainer):
         preprocess_batch: Preprocess a batch of images and classes.
         progress_string: Return a formatted string showing training progress.
         get_validator: Return an instance of ClassificationValidator.
-        final_eval: Evaluate trained model and save validation results.
         plot_training_samples: Plot training samples with their annotations.
 
     Examples:
@@ -59,6 +58,7 @@ class ClassificationTrainer(BaseTrainer):
         if overrides is None:
             overrides = {}
         overrides["task"] = "classify"
+        overrides["multi_scale"] = 0.0  # classification batches are never rescaled
         if overrides.get("imgsz") is None:
             overrides["imgsz"] = 224
         super().__init__(cfg, overrides, _callbacks)
@@ -67,12 +67,12 @@ class ClassificationTrainer(BaseTrainer):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data["names"]
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True):
+    def get_model(self, cfg: str | dict | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a modified PyTorch model configured for training YOLO classification.
 
         Args:
-            cfg (Any, optional): Model configuration.
-            weights (Any, optional): Pre-trained model weights.
+            cfg (str | dict, optional): Model configuration file path or dictionary.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool, optional): Whether to display model information.
 
         Returns:
@@ -121,7 +121,11 @@ class ClassificationTrainer(BaseTrainer):
             (ClassificationDataset): Dataset for the specified mode.
         """
         return ClassificationDataset(
-            img_path, self.args, augment=mode == "train", prefix=mode, names=self.data["names"]
+            img_path,
+            self.args,
+            augment=mode == "train",
+            prefix="train" if mode == "train" else self.args.split,
+            names=self.data["names"],
         )
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):

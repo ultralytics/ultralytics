@@ -9,7 +9,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 [Ultralytics Platform](https://platform.ultralytics.com) is a comprehensive end-to-end computer vision platform that streamlines the entire ML workflow from data preparation to model deployment. Built for teams and individuals who need production-ready [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions without the infrastructure complexity.
 
-![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/2990f4be3ba5e24b885f6a1ea278a793.avif)<!-- screenshot -->
+![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/2141b069efb0284ebee4bc23847f999c.avif)<!-- screenshot -->
 
 ## What is Ultralytics Platform?
 
@@ -20,33 +20,28 @@ Ultralytics Platform brings dataset management and annotation, experiment tracki
 The Platform provides an end-to-end workflow:
 
 ```mermaid
-graph LR
-    subgraph Data["📁 Data"]
-        A[Upload]:::start --> B[Annotate]:::proc
+flowchart TD
+    subgraph data["Data"]
+        direction TB
+        A([Upload]) --> B[Annotate]
     end
-    subgraph Train["🚀 Train"]
-        D[Configure]:::proc --> E[Train on GPU]:::proc
-        E --> F[View Metrics]:::out
+    subgraph train["Train"]
+        direction TB
+        C[Configure] --> D[Train on GPU]
     end
-    subgraph Deploy["🌐 Export or Deploy"]
-        G[Export]:::proc
-        H[Deploy Endpoint]:::proc --> I[Monitor]:::out
-    end
-    Data --> Train
-    E --> G
-    E --> H
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+    data --> train
+    train --> E{Export or deploy?}
+    E -->|export| F([Export])
+    E -->|deploy| G[Deploy endpoint]
+    G --> H([Monitor])
 ```
 
 | Stage        | Features                                                                                                                                                                                                                                                                                                                                                                                   |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                                                                                                                                                                                                |
-| **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM models for detect, segment, semantic, and OBB, YOLO models for those tasks and pose, or class-prompted models (hosted open-source or paid provider models) for detection datasets with 1–100 classes (see [supported task types](data/annotation.md#supported-task-types)) |
+| **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM models for detect, segment, semantic, and OBB, YOLO models for those tasks and pose, or class-prompted models (hosted open-source or paid provider models) for detection datasets with 1–200 classes (see [supported task types](data/annotation.md#supported-task-types)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                                                                                                                                                                                                  |
-| **Export**   | [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                                                                                                                                              |
+| **Export**   | [22 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                                                                                                                                              |
 | **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                                                                                                                                                                                              |
 
 **What you can do:**
@@ -54,7 +49,7 @@ graph LR
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for the 6 YOLO task types supported by the annotation editor (see [supported task types](data/annotation.md#supported-task-types))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
-- **Export** to [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
+- **Export** to [22 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
 - **Deploy** to 42 global regions with one-click dedicated endpoints
 - **Build [Agents workflows](agents.md)** that connect models, conditions, dataset collection, Slack alerts, and webhooks
 - **Monitor** training progress, deployment health, and usage metrics
@@ -81,26 +76,19 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 - **Dataset Management**: Create datasets from local files, a URL, connected [cloud storage](integrations/index.md), or an [on-premise host](integrations/on-premise.md), with automatic processing
 - **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation tools for 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported task types](data/annotation.md#supported-task-types))
 - **Skeleton Templates**: Built-in (Person, Hand, Dog, Face, Box) and custom skeleton templates for one-click pose annotation
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) from the annotation toolbar for detect, segment, semantic, and OBB tasks, pretrained Ultralytics YOLO models and your own fine-tuned YOLO models for those tasks and pose, or class-prompted models on detection datasets with 1–100 classes: six hosted open-source models (Moondream 3.1 by default) or paid vision models from OpenAI, Anthropic, Google, DeepSeek, Z.ai, and Kimi with a provider key from **Settings > API Keys**
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) from the annotation toolbar for detect, segment, semantic, and OBB tasks, pretrained Ultralytics YOLO models and your own fine-tuned YOLO models for those tasks and pose, or class-prompted models on detection datasets with 1–200 classes: six hosted open-source models (Moondream 3.1 by default), hosted text-prompted SAM 3 and SAM 3.1, or paid vision models from OpenAI, Anthropic, Google, Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo with a provider key from **Settings > API Keys**
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions, then download or restore any version for reproducible training
 - **Statistics**: Class distribution, split distribution, location heatmaps, and bounding box dimension analysis
 
 ```mermaid
-graph LR
-    A[Upload Dataset/Images/Video]:::start --> B[Auto-Process]:::proc
-    B --> C[Browse & Filter]:::proc
-    C --> D{Annotate}:::decide
-    D --> E[Manual Tools]:::proc
-    D --> F[SAM Smart]:::proc
-    D --> G[YOLO Auto-Label]:::proc
-    E --> H[Train-Ready Dataset]:::out
-    F --> H
-    G --> H
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload data]) --> B[Automatic processing]
+    B --> C[Browse and filter]
+    C --> D{Annotation mode?}
+    D -->|draw| E[Manual tools]
+    D -->|smart| F[SAM or model labels]
+    E --> G([Train-ready dataset])
+    F --> G
 ```
 
 !!! tip "Supported Task Types"
@@ -113,9 +101,9 @@ graph LR
 - **Remote Training**: Train anywhere and stream metrics to Ultralytics Platform
 - **Advanced Settings**: Override any Ultralytics training argument from a built-in YAML editor in the training dialog
 - **Project Organization**: Group related models, compare experiments, track activity
-- **20 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
+- **22 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
 
-![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/fd80b9795191f02b24d9b8d8d1c8380b.avif)<!-- screenshot -->
+![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/78d6e38a07e3885956acdce96a7fc061.avif)<!-- screenshot -->
 
 You can train models either through the web UI (cloud training) or from your own machine (remote training):
 
@@ -165,24 +153,19 @@ You can train models either through the web UI (cloud training) or from your own
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
 
 ```mermaid
-graph LR
-    A[Trained Model]:::start --> B{Action}:::decide
-    B --> C[Browser Predict]:::proc
-    B --> D[Export Format]:::proc
-    B --> E[Deploy Endpoint]:::proc
-    D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]:::out
-    E --> G[42 Global Regions]:::proc
-    G --> H[API Endpoint URL]:::proc
-    H --> I[Monitor & Scale]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Trained model]) --> B{Test it first?}
+    B -->|yes| C[Test in the browser]
+    B -->|no| D{Export or deploy?}
+    C --> D
+    D -->|export| E[22 formats]
+    D -->|deploy| F[42 regions]
+    F --> G[Endpoint URL]
+    G --> H([Monitor and scale])
 ```
 
 Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` are optional form fields that default to
-`0.25`, `0.7`, and `640`:
+`0.25`, `0.7`, and the model's training image size (640 if unavailable):
 
 === "Python"
 
@@ -252,7 +235,7 @@ Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` 
 Get started with these resources:
 
 - [**Quickstart**](quickstart.md): Create your first project and train a model in minutes
-- [**Explore**](explore.md): Browse and clone public datasets and projects
+- [**Explore**](explore.md): Browse and clone public datasets and projects, and search images by what they show
 - [**Data**](data/index.md): Dataset preparation overview
 - [**Datasets**](data/datasets.md): Upload and manage your training data
 - [**Annotation**](data/annotation.md): Label your data with manual and AI-assisted tools
@@ -298,7 +281,7 @@ Get started with these resources:
 
 | Problem                 | Solution                                                                                                                    |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Endpoint not responding | Check endpoint status (Ready vs Stopped). A cold start after idle can take up to ~45 seconds on the first request           |
+| Endpoint not responding | Check endpoint status (Ready vs Stopped). A cold start after idle can take up to a minute on the first request              |
 | 401 Unauthorized        | Verify the API key is active and copied correctly                                                                           |
 | Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
 | Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
@@ -329,7 +312,7 @@ Get started with these resources:
 
 ??? question "How do I share my work publicly?"
 
-    Open the project or dataset, click its **Private** badge in the top navigation bar, and confirm **Make Public**.
+    Open the project or dataset, click its **Private** badge in the top navigation bar, and confirm **Make public**.
     Public content appears on the Explore page.
 
 ??? question "What are the file size limits?"
@@ -368,7 +351,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **42 Deploy Regions**: Deploy models close to your users worldwide
 - **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, pose, and OBB (see [task docs](../tasks/index.md))
-- **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM, YOLO, and class-prompted models (detection datasets with 1–100 classes) to speed up data preparation
+- **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM, YOLO, and class-prompted models (detection datasets with 1–200 classes) to speed up data preparation
 
 ### What GPU options are available for cloud training?
 
@@ -435,29 +418,29 @@ The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
 - **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Dog, Face, Box) or custom templates
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) for click-based annotation on detect, segment, semantic, and OBB datasets, run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for those tasks and pose, or run class-prompted models on detection datasets with 1–100 classes: six hosted open-source models (Moondream 3.1 by default) or paid vision models from OpenAI, Anthropic, Google, DeepSeek, Z.ai, and Kimi with a provider key from **Settings > API Keys**
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) for click-based annotation on detect, segment, semantic, and OBB datasets, run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for those tasks and pose, or run class-prompted models on detection datasets with 1–200 classes: six hosted open-source models (Moondream 3.1 by default), hosted text-prompted SAM 3 and SAM 3.1, or paid vision models from OpenAI, Anthropic, Google, Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo with a provider key from **Settings > API Keys**
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys, listed in the editor's shortcuts popover
 
-| Shortcut               | Action                                          |
-| ---------------------- | ----------------------------------------------- |
-| `V`                    | Manual (draw) mode                              |
-| `S`                    | Smart mode (SAM, YOLO, or class-prompted model) |
-| `P`                    | Predict (in Smart mode)                         |
-| `A`                    | Toggle auto-apply (SAM Smart mode)              |
-| `1` - `9`              | Select class by number                          |
-| `H`                    | Toggle annotation visibility                    |
-| `Space` + drag         | Pan the canvas                                  |
-| `Delete` / `Backspace` | Delete selected annotation                      |
-| `Ctrl+S`               | Save annotations                                |
-| `Ctrl+Z`               | Undo                                            |
-| `Ctrl+Y`               | Redo                                            |
-| `Escape`               | Save / deselect / exit                          |
+| Shortcut                            | Action                                          |
+| ----------------------------------- | ----------------------------------------------- |
+| `V`                                 | Manual (draw) mode                              |
+| `S`                                 | Smart mode (SAM, YOLO, or class-prompted model) |
+| `P`                                 | Predict (in Smart mode)                         |
+| `A`                                 | Toggle auto-apply (SAM Smart mode)              |
+| `1` - `9`                           | Select class by number                          |
+| `H`                                 | Toggle annotation visibility                    |
+| `Space` + drag or middle-click drag | Pan the canvas                                  |
+| `Delete` / `Backspace`              | Delete selected annotation                      |
+| `Ctrl+S`                            | Save annotations                                |
+| `Ctrl+Z`                            | Undo                                            |
+| `Ctrl+Y`                            | Redo                                            |
+| `Escape`                            | Save / deselect / exit                          |
 
 See [Annotation](data/annotation.md) for the complete guide.
 
 ### What export formats are supported?
 
-The Platform supports the same 20 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
+The Platform supports the same 22 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
 
 {% include "macros/export-table.md" %}
 

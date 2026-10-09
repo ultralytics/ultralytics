@@ -136,7 +136,7 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
 
-AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the [AMD integration guide](../integrations/amd.md) for installation and the current MIGraphX, DirectML, and Ryzen AI NPU support status.
+AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the [AMD integration guide](../integrations/amd.md) for ROCm installation, multi-GPU training, AMP notes, and [MIGraphX inference](../integrations/amd.md#export-and-inference-with-migraphx) of exported models.
 
 Intel GPU training uses `device=xpu:0`, or multiple XPU IDs with a PyTorch build that provides XCCL.
 
@@ -213,7 +213,6 @@ The auto-selection algorithm prioritizes GPUs with:
 
 1. Lower current utilization percentages
 2. Higher available memory (free VRAM)
-3. Lower temperature and power consumption
 
 This feature is especially valuable in shared computing environments or when running multiple training jobs across different models. It automatically adapts to changing system conditions, ensuring optimal resource allocation without manual intervention.
 
@@ -293,7 +292,7 @@ It is **recommended for longer YOLO26 training runs and larger datasets**, where
 
 Only 2D linear weights and 4D convolutional filters (reshaped to 2D) receive the Muon style update together with SGD, while all other parameters, such as batch normalization weights and bias terms, remain on standard SGD.
 
-When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**.
+When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**. In `auto` mode, the trainer also selects the learning rate, so a user-provided `lr0` is ignored. To control these settings manually, select an optimizer explicitly, for example `optimizer=AdamW lr0=0.001`.
 
 Example usage:
 
@@ -345,7 +344,7 @@ To use Comet:
         # pip install comet_ml
         import comet_ml
 
-        comet_ml.init()
+        comet_ml.login()
         ```
 
 Remember to sign in to your Comet account on their website and get your API key. You will need to add this to your environment variables or your script to log your experiments.
@@ -481,7 +480,7 @@ The `cls_pw` argument controls class weighting power based on inverse class freq
 - `cls_pw=1.0`: Applies full inverse frequency weighting
 - Values between `0.0` and `1.0`: Provide partial weighting for moderate imbalance
 
-The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0.
+The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0. Classes without training labels, such as those excluded by `classes=`, get a weight of 1.0.
 
 !!! example "Training on Imbalanced Dataset"
 

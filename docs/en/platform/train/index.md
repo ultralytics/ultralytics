@@ -29,22 +29,18 @@ The Training section helps you:
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
-- **Export** to 20 deployment formats (see [supported formats](models.md#supported-formats))
+- **Export** to 22 deployment formats (see [supported formats](models.md#supported-formats))
 
-![Ultralytics Platform Train Overview](https://cdn.ul.run/i/4ec82b7ca5d7c33caab98e08da93ea05.avif)<!-- screenshot -->
+![Ultralytics Platform Train Overview](https://cdn.ul.run/i/19e52629fb54e22f8a73cd7e1bb3ea76.avif)<!-- screenshot -->
 
 ## Workflow
 
 ```mermaid
-graph LR
-    A[📁 Project]:::start --> B[⚙️ Configure]:::proc
-    B --> C[🚀 Train]:::proc
-    C --> D[📈 Monitor]:::proc
-    D --> E[📦 Export]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Project]) --> B[Configure]
+    B --> C[Train]
+    C --> D[Monitor]
+    D --> E([Export])
 ```
 
 | Stage         | Description                                                                |
@@ -53,7 +49,7 @@ graph LR
 | **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
-| **Export**    | Convert to 20 deployment formats ([details](models.md#supported-formats))  |
+| **Export**    | Convert to 22 deployment formats ([details](models.md#supported-formats))  |
 
 ## Training Options
 
@@ -90,16 +86,24 @@ Available GPUs for cloud training on Ultralytics Cloud:
 During training, view live metrics across three subtabs:
 
 ```mermaid
-graph LR
-    A[Charts]:::start --> B[Loss Curves]:::out
-    A --> C[Task Metrics]:::out
-    D[Console]:::start --> E[Live Logs]:::out
-    D --> F[Error Detection]:::out
-    G[System]:::start --> H[GPU, CPU & Memory]:::out
-    G --> I[Network & Disk I/O]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    subgraph charts["Charts"]
+        direction TB
+        A[Losses]
+        B[Task metrics]
+    end
+    subgraph console["Console"]
+        direction TB
+        C[Live logs]
+        D[Error detection]
+    end
+    subgraph system["System"]
+        direction TB
+        E[GPU stats]
+        F["CPU, RAM, I/O"]
+    end
+    charts ~~~ console
+    console ~~~ system
 ```
 
 | Subtab      | Metrics                                                                                          |
@@ -178,9 +182,9 @@ Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro al
 If training fails:
 
 1. The model is marked failed and the compute instance is terminated
-2. The model page shows an error banner with the captured error, a link to the console output, and a **Retry**
-   action that reopens the training dialog with the same configuration
-3. A run that stops reporting activity for several hours is automatically marked failed and its compute released
+2. The model page shows an error banner with the captured error, a link to the console output, and a **Retry
+   Training** action that reopens the training dialog with the same configuration
+3. A run that stops reporting activity for 4 hours is automatically marked failed and its compute released
 4. If cloud compute had started, elapsed GPU time is charged; failures before compute starts have no GPU usage charge
 
 ### How do I choose the right GPU?

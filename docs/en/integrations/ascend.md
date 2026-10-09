@@ -40,12 +40,12 @@ Huawei Ascend export supports all seven Ultralytics tasks. Semantic segmentation
 
 Pass the target SoC with `name`; ATC bakes it into the `.om` as `--soc_version`, so it must match the board you deploy to. Locally you can compile for any SoC your CANN installation provides kernels for. [Ultralytics Platform](https://platform.ultralytics.com) supports the Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets.
 
-| `name`        | Devices                           | Local export | Platform |
-| :------------ | :-------------------------------- | :----------- | :------- |
-| `Ascend310P3` | Atlas 300I Pro, Atlas 300V Pro    | ✅           | ✅       |
-| `Ascend310P1` | Atlas 300I                        | ✅           | ✅       |
-| `Ascend310B4` | OrangePi AIPro 20T, Atlas 200I A2 | ✅           | ✅       |
-| `Ascend310B1` | OrangePi AIPro 8T                 | ✅           | ✅       |
+| `name`        | Devices                                     | Local export | Platform |
+| :------------ | :------------------------------------------ | :----------- | :------- |
+| `Ascend310P3` | Atlas 300I Pro, Atlas 300V Pro              | ✅           | ✅       |
+| `Ascend310P1` | Atlas 300I                                  | ✅           | ✅       |
+| `Ascend310B4` | OrangePi AIPro 8T, Atlas 200I A2 (8 TOPS)   | ✅           | ✅       |
+| `Ascend310B1` | OrangePi AIPro 20T, Atlas 200I A2 (20 TOPS) | ✅           | ✅       |
 
 ## Export to Ascend: Converting Your YOLO Model
 
@@ -116,6 +116,7 @@ The Ascend format supports the [Export](../modes/export.md), [Predict](../modes/
 | `opset`    | `int`            | `17`            | ONNX opset for the intermediate graph. Capped at 17, the highest version the CANN ONNX parser accepts.                                                                                               |
 | `simplify` | `bool`           | `True`          | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                              |
 | `nms`      | `bool`, optional | `None`          | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                          |
+| `device`   | `str`            | `None`          | Device for the intermediate ONNX export step, CPU by default (`device=cpu`). ATC compilation does not use it.                                                                                        |
 
 !!! note "Why is FP32 unavailable?"
 

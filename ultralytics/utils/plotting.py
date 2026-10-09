@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import math
+import weakref
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -183,7 +184,7 @@ class Colors:
         return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
 
 
-colors = Colors()  # create instance for 'from utils.plots import colors'
+colors = Colors()  # create instance for 'from ultralytics.utils.plotting import colors'
 
 
 # Spectral_r anchors (RGB, far→near) baked into a LUT so colorize_depth needs no matplotlib import.
@@ -278,6 +279,7 @@ class Annotator:
         light_colors (set): Set of colors considered light for text contrast.
 
     Examples:
+        >>> import cv2
         >>> from ultralytics.utils.plotting import Annotator
         >>> im0 = cv2.imread("test.png")
         >>> annotator = Annotator(im0, line_width=10)
@@ -293,7 +295,18 @@ class Annotator:
         pil: bool = False,
         example: str = "abc",
     ):
-        """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
+        """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs.
+
+        Args:
+            im (np.ndarray | Image.Image | torch.Tensor): Image to annotate. Arrays and tensors are HWC BGR uint8;
+                grayscale is expanded to 3 channels, 2-channel images are zero-padded, and extra channels are dropped.
+            line_width (int, optional): Line width. Defaults to ~0.3% of the mean image dimension, at least 2.
+            font_size (int, optional): Font size for PIL text. Defaults to ~3.5% of the mean image dimension, at least
+                12.
+            font (str): Font file name used for PIL text.
+            pil (bool): Whether to draw with PIL instead of cv2. Forced True for PIL images and non-ASCII `example`.
+            example (str): Example label text used to detect non-ASCII characters that require PIL and a Unicode font.
+        """
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
         input_is_tensor = isinstance(im, torch.Tensor)
@@ -325,7 +338,8 @@ class Annotator:
                 self.font = ImageFont.load_default()
             # Deprecation fix for w, h = getsize(string) -> _, _, w, h = getbox(string)
             if check_version(pil_version, "9.2.0"):
-                self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
+                font = weakref.proxy(self.font)
+                self.font.getsize = lambda x: font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
             assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
                 "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
@@ -394,6 +408,7 @@ class Annotator:
             (tuple): Text color for label.
 
         Examples:
+            >>> import cv2
             >>> from ultralytics.utils.plotting import Annotator
             >>> im0 = cv2.imread("test.png")
             >>> annotator = Annotator(im0, line_width=10)
@@ -410,12 +425,14 @@ class Annotator:
         """Draw a bounding box on an image with a given label.
 
         Args:
-            box (tuple): The bounding box coordinates (x1, y1, x2, y2).
+            box (tuple | list | torch.Tensor | np.ndarray): The bounding box coordinates (x1, y1, x2, y2), or a list of
+                polygon points with shape (n, 2), e.g. the 4 corners of an oriented box.
             label (str, optional): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle.
-            txt_color (tuple, optional): The color of the text.
+            color (tuple, optional): The color of the box outline and label background.
+            txt_color (tuple, optional): The color of the text, overridden for known dark or light box colors.
 
         Examples:
+            >>> import cv2
             >>> from ultralytics.utils.plotting import Annotator
             >>> im0 = cv2.imread("test.png")
             >>> annotator = Annotator(im0, line_width=10)
@@ -564,12 +581,12 @@ class Annotator:
         """Plot keypoints on the image.
 
         Args:
-            kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
-            shape (tuple, optional): Image shape (h, w).
-            radius (int, optional): Keypoint radius.
+            kpts (torch.Tensor | np.ndarray): Keypoints with shape [nkpt, 2] (x, y) or [nkpt, 3] (x, y, confidence).
+            shape (tuple, optional): Image shape (h, w). Currently unused.
+            radius (int, optional): Keypoint radius. Defaults to the annotator line width.
             kpt_line (bool, optional): Draw lines between keypoints.
             conf_thres (float, optional): Confidence threshold.
-            kpt_color (tuple, optional): Keypoint color.
+            kpt_color (tuple, optional): Color for all keypoints and limbs, overriding the default pose palette.
 
         Notes:
             - `kpt_line=True` currently only supports human pose plotting.
@@ -631,7 +648,7 @@ class Annotator:
             xy (list[int]): Top-left coordinates for text placement.
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color.
-            anchor (str, optional): Text anchor position ('top' or 'bottom').
+            anchor (str, optional): Text anchor position ('top' or 'bottom'), used by PIL drawing only.
             box_color (tuple, optional): Box background color with optional alpha.
         """
         self._to_numpy()
@@ -666,7 +683,7 @@ class Annotator:
             self.im = self.im.cpu().numpy()
 
     def result(self, pil=False):
-        """Return annotated image as array or PIL image."""
+        """Return annotated image as a BGR NumPy array, or as an RGB PIL image if `pil` is True."""
         self._to_numpy()
         im = np.asarray(self.im)  # self.im is in BGR
         return Image.fromarray(im[..., ::-1]) if pil else im
@@ -700,9 +717,8 @@ class Annotator:
 
         Examples:
             >>> from ultralytics.utils.plotting import Annotator
-            >>> im0 = cv2.imread("test.png")
-            >>> annotator = Annotator(im0, line_width=10)
-            >>> annotator.get_bbox_dimension(bbox=[10, 20, 30, 40])
+            >>> Annotator.get_bbox_dimension(bbox=[10, 20, 30, 40])
+            (20, 20, 400)
         """
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min
@@ -712,13 +728,14 @@ class Annotator:
 
 @TryExcept()
 @plt_settings()
-def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
+def plot_labels(boxes, cls, names: dict[int, str] | None = None, save_dir=Path(""), on_plot=None):
     """Plot training labels including class histograms and box statistics.
 
     Args:
-        boxes (np.ndarray): Bounding box coordinates in format [x, y, width, height].
+        boxes (np.ndarray): Normalized bounding boxes with shape (N, 4) in format [x_center, y_center, width, height].
         cls (np.ndarray): Class indices.
-        names (dict, optional): Dictionary mapping class indices to class names.
+        names (dict[int, str], optional): Dictionary mapping class indices to class names, used for x-axis tick labels
+            when there are fewer than 30 classes.
         save_dir (Path, optional): Directory to save the plot.
         on_plot (Callable, optional): Function to call after plot is saved.
     """
@@ -739,7 +756,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     for i in range(nc):
         y[2].patches[i].set_color([x / 255 for x in colors(i)])
     ax[0].set_ylabel("instances")
-    if 0 < len(names) < 30:
+    if names and len(names) < 30:
         ax[0].set_xticks(range(len(names)))
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
         ax[0].bar_label(y[2])
@@ -786,9 +803,9 @@ def save_one_box(
     bounding box.
 
     Args:
-        xyxy (torch.Tensor | list): A tensor or list representing the bounding box in xyxy format.
-        im (np.ndarray): The input image.
-        file (Path, optional): The path where the cropped image will be saved.
+        xyxy (torch.Tensor | list): A bounding box in xyxy format, or (4, 2) OBB corners for a rotation-aligned crop.
+        im (np.ndarray): The input BGR image with shape (H, W, C).
+        file (Path, optional): Output path, saved as JPEG with an incremented name if the JPEG path already exists.
         gain (float, optional): A multiplicative factor to increase the size of the bounding box.
         pad (int, optional): The number of pixels to add to the width and height of the bounding box.
         square (bool, optional): If True, the bounding box will be transformed into a square.
@@ -799,15 +816,19 @@ def save_one_box(
         (np.ndarray): The cropped image.
 
     Examples:
+        >>> from pathlib import Path
+        >>> import cv2
         >>> from ultralytics.utils.plotting import save_one_box
         >>> xyxy = [50, 50, 150, 150]
         >>> im = cv2.imread("image.jpg")
-        >>> cropped_im = save_one_box(xyxy, im, file="cropped.jpg", square=True)
+        >>> cropped_im = save_one_box(xyxy, im, file=Path("cropped.jpg"), square=True)
     """
-    if isinstance(xyxy, np.ndarray):
-        xyxy = torch.from_numpy(xyxy)
-    elif not isinstance(xyxy, torch.Tensor):  # may be list
-        xyxy = torch.stack(xyxy)
+    xyxy = torch.as_tensor(xyxy, dtype=torch.float32)  # float so integer boxes keep fractional centers and gain/pad
+    if xyxy.shape[-2:] == (4, 2):  # OBB corners: warp the box upright at its size, then crop the whole warp below
+        p = xyxy.reshape(4, 2).cpu().numpy()
+        w, h = (max(round(float(np.linalg.norm(p[0] - p[i]))), 1) for i in (3, 1))
+        M = cv2.getAffineTransform(p[:3], np.float32([[w, h], [w, 0], [0, 0]]))
+        im, xyxy = cv2.warpAffine(im, M, (w, h)).reshape(h, w, -1), torch.tensor([0.0, 0.0, w, h])
     b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
@@ -818,7 +839,7 @@ def save_one_box(
     crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR or grayscale else -1)]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
-        f = str(increment_path(file).with_suffix(".jpg"))
+        f = str(increment_path(file.with_suffix(".jpg")))
         # cv2.imwrite(f, crop)  # save BGR, https://github.com/ultralytics/yolov5/issues/7007 chroma subsampling issue
         im_save = crop.squeeze(-1) if grayscale else crop[..., ::-1] if BGR else crop
         Image.fromarray(im_save).save(f, quality=95, subsampling=0)  # save RGB
@@ -830,7 +851,7 @@ def plot_images(
     labels: dict[str, Any],
     images: torch.Tensor | np.ndarray | None = None,
     paths: list[str] | None = None,
-    fname: str = "images.jpg",
+    fname: str | Path = "images.jpg",
     names: dict[int, str] | None = None,
     on_plot: Callable | None = None,
     max_size: int = 1920,
@@ -844,10 +865,11 @@ def plot_images(
 
     Args:
         labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks',
-            'keypoints', 'batch_idx', 'img'.
-        images (torch.Tensor | np.ndarray): Batch of images to plot. Shape: (batch_size, channels, height, width).
+            'keypoints', 'semantic_mask', 'depth', 'batch_idx', 'img'. 'img', if present, overrides `images`.
+        images (torch.Tensor | np.ndarray | None): Batch of images to plot. Shape: (batch_size, channels, height,
+            width).
         paths (list[str] | None): List of file paths for each image in the batch.
-        fname (str): Output filename for the plotted image grid.
+        fname (str | Path): Output filename for the plotted image grid.
         names (dict[int, str] | None): Dictionary mapping class indices to class names.
         on_plot (Callable | None): Callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
@@ -858,7 +880,8 @@ def plot_images(
         show_conf (bool): Whether to display confidence values.
 
     Returns:
-        (np.ndarray | None): Plotted image grid as a numpy array if save is False, None otherwise.
+        (np.ndarray | None): Plotted image grid as a numpy array if save is False, None otherwise. Runs in a background
+            thread and returns the `threading.Thread` instead unless called with `threaded=False`.
 
     Notes:
         This function supports both tensor and numpy array inputs. It will automatically
@@ -1044,14 +1067,16 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
-    """Plot training results from a results CSV file. The function supports various types of data including detection,
-    instance segmentation, semantic segmentation, depth estimation, classification, and pose estimation. Plots are
-    saved as 'results.png' in the directory where the CSV is located.
+def plot_results(file: str | Path = "", dir: str | Path = "", on_plot: Callable | None = None):
+    """Plot training results from a results CSV file.
+
+    The function supports various types of data including detection, instance segmentation, semantic segmentation, depth
+    estimation, classification, and pose estimation. All 'results*.csv' files in the CSV's directory are plotted and
+    saved as 'results.png' in that directory.
 
     Args:
-        file (str, optional): Path to the CSV file containing the training results.
-        dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
+        file (str | Path, optional): Path to the CSV file containing the training results.
+        dir (str | Path, optional): Directory where the CSV file is located if 'file' is not provided.
         on_plot (Callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
 
     Examples:
@@ -1069,19 +1094,20 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     fig, ax = None, None
     for i, f in enumerate(files):
         try:
-            data = pl.read_csv(f, infer_schema_length=None)
+            data = pl.read_csv(f.read_bytes(), infer_schema_length=None)
             if i == 0:
                 for c in data.columns:
                     if "loss" in c:
                         loss_keys.append(c)
                     elif "metric" in c:
                         metric_keys.append(c)
-                loss_mid, metric_mid = len(loss_keys) // 2, len(metric_keys) // 2
+                loss_mid, metric_mid = len(loss_keys) // 2, (len(metric_keys) + 1) // 2
                 columns = (
                     loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
                 )
-                fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
+                fig, ax = plt.subplots(2, (len(columns) + 1) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
                 ax = ax.ravel()
+                ax[-1].set_visible(len(columns) % 2 == 0)
             x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(columns):
                 y = data.select(j).to_numpy().flatten().astype("float")
@@ -1172,11 +1198,11 @@ def plot_depth_panels(
     titles: list[str] | None = None,
     max_images: int = 4,
 ) -> None:
-    """Write a depth panel grid: one row per image, columns RGB | GT (if provided) | one per entry of ``preds``.
+    """Write a depth panel grid: one row per image, columns RGB | GT (if provided) | one per entry of `preds`.
 
-    All depth columns share the GT valid-pixel range per row, so a scale error between GT and any prediction shows up
-    directly as a color mismatch. Panels are resized to the RGB image size, so predictions at head stride need no prior
-    interpolation.
+    With GT, all depth columns share the GT valid-pixel range per row, so a scale error between GT and any prediction
+    shows up directly as a color mismatch; without GT, each prediction uses its own valid-pixel range. Panels are
+    resized to the RGB image size, so predictions at head stride need no prior interpolation.
 
     Args:
         imgs (torch.Tensor): (B,3,H,W) float image tensor in [0,1].
@@ -1230,11 +1256,14 @@ def plot_depth_panels(
 def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fitness_points: bool = True):
     """Plot the evolution results stored in a tuning NDJSON file.
 
+    Saves 'tune_scatter_plots.png' and 'tune_fitness.png' next to the results file.
+
     Args:
         results_file (str, optional): Path to the NDJSON file containing the tuning results.
         exclude_zero_fitness_points (bool, optional): Don't include points with zero fitness in tuning plots.
 
     Examples:
+        >>> from ultralytics.utils.plotting import plot_tune_results
         >>> plot_tune_results("path/to/tune_results.ndjson")
     """
     import json
@@ -1258,7 +1287,6 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
         [[r.get("fitness", 0.0)] + [r.get("hyperparameters", {}).get(k, np.nan) for k in keys] for r in records],
         dtype=float,
     )
-    len(x)
     all_fitness = x[:, 0]  # fitness
     zero_mask = slice(None)
     if exclude_zero_fitness_points:
@@ -1285,7 +1313,7 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
         plt.subplot(n, n, i + 1)
         plt_color_scatter(v, fitness, cmap="viridis", alpha=0.8, edgecolors="none")
         plt.plot(mu, fitness.max(), "k+", markersize=15)
-        plt.title(f"{k} = {mu:.3g}", fontdict={"size": 9})  # limit to 40 characters
+        plt.title(f"{k} = {mu:.3g}", fontdict={"size": 9})
         plt.tick_params(axis="both", labelsize=8)  # Set axis label size to 8
         if i % n != 0:
             plt.yticks([])

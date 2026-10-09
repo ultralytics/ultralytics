@@ -88,19 +88,13 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         random.Random(0).shuffle(image_files)  # deterministic, so re-splitting never mixes train and val images
         split_idx = int(len(image_files) * train_ratio)
 
-        for images, target, previous in (
-            (image_files[:split_idx], train_path, val_path),
-            (image_files[split_idx:], val_path, train_path),
-        ):
-            for img in images:
-                old = previous / class_dir.name / img.name
-                try:
-                    old.unlink(missing_ok=True)
-                except PermissionError:  # Windows cannot unlink a read-only image copied from a read-only source
-                    with suppress(FileNotFoundError):  # another DDP rank may have already removed it
-                        old.chmod(0o666)
-                    old.unlink(missing_ok=True)
-                shutil.copy2(img, target / class_dir.name / img.name)
+        for i, img in enumerate(image_files):
+            target, previous = (train_path, val_path) if i < split_idx else (val_path, train_path)
+            old = previous / class_dir.name / img.name
+            with suppress(FileNotFoundError):  # another rank may already have removed the previous copy
+                old.chmod(0o666)  # copy2 preserves read-only attributes, which prevent unlinking on Windows
+                old.unlink()
+            shutil.copy2(img, target / class_dir.name / img.name)
 
     LOGGER.info(f"Split complete in {split_path} ✅")
     return split_path

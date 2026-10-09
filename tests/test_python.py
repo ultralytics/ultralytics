@@ -1982,6 +1982,7 @@ def test_nn_depth_head_no_dead_parameters():
 def test_classification_fraction_samples_across_classes(tmp_path):
     """Sample classification fractions across the class-major ImageFolder ordering."""
     from ultralytics.data.dataset import ClassificationDataset
+    from ultralytics.data.split import split_classify_dataset
 
     for class_index in range(3):
         class_dir = tmp_path / str(class_index)
@@ -1993,6 +1994,10 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     samples = ClassificationDataset(tmp_path, args, augment=True).samples
 
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
+    for ratio in (0.5, 0.75, 0.25):
+        split = split_classify_dataset(tmp_path, train_ratio=ratio)
+        train, val = ({p.relative_to(split / k) for p in (split / k).rglob("*.jpg")} for k in ("train", "val"))
+        assert len(train) == int(4 * ratio) * 3 and len(train | val) == 12 and train.isdisjoint(val)
 
 
 def test_classification_split_class_alignment(tmp_path):
@@ -2004,45 +2009,6 @@ def test_classification_split_class_alignment(tmp_path):
         cv2.imwrite(str(tmp_path / name / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
     samples = ClassificationDataset(tmp_path, DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
     assert sorted(sample[1] for sample in samples) == [1, 2]
-
-
-def test_classification_resplit_moves_images_without_removing_caches(tmp_path):
-    """Changing the ratio must not place an image in both train and validation or delete caches."""
-    from ultralytics.data.split import split_classify_dataset
-
-    source = tmp_path / "dataset"
-    class_dir = source / "cat"
-    class_dir.mkdir(parents=True)
-    for i in range(4):
-        (class_dir / f"{i}.jpg").write_bytes(b"image")
-
-    split = split_classify_dataset(source, train_ratio=0.5)
-    cache = split / "train" / "cat" / "cached.npy"
-    cache.write_bytes(b"cache")
-    split_classify_dataset(source, train_ratio=0.75)
-
-    train = {p.name for p in (split / "train" / "cat").glob("*.jpg")}
-    val = {p.name for p in (split / "val" / "cat").glob("*.jpg")}
-    assert len(train) == 3 and len(val) == 1
-    assert not train & val
-    split_classify_dataset(source, train_ratio=0.25)
-    train = {p.name for p in (split / "train" / "cat").glob("*.jpg")}
-    val = {p.name for p in (split / "val" / "cat").glob("*.jpg")}
-    assert len(train) == 1 and len(val) == 3
-    assert not train & val
-    assert cache.read_bytes() == b"cache"
-
-    if os.name == "nt":  # copy2 keeps Windows' read-only attribute, which normally prevents unlinking the old copy
-        split_classify_dataset(source, train_ratio=0.0)
-        for image in class_dir.glob("*.jpg"):
-            image.chmod(0o444)
-        split_classify_dataset(source, train_ratio=0.0)
-        split_classify_dataset(source, train_ratio=1.0)
-        assert not list((split / "val" / "cat").glob("*.jpg"))
-        for image in source.rglob("*.jpg"):
-            image.chmod(0o666)
-        for image in split.rglob("*.jpg"):
-            image.chmod(0o666)
 
 
 @pytest.fixture

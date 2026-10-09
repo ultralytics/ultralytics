@@ -287,6 +287,14 @@ class Predictor(BasePredictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
+    @staticmethod
+    def _scale_masks(masks, input_shape, orig_shape):
+        """Scale (N, h, w) mask logits to orig_shape, via input_shape when the letterbox content ends mid-pixel."""
+        gain = min(input_shape[0] / orig_shape[0], input_shape[1] / orig_shape[1])
+        if len(masks) and any(round(o * gain) * m % i for o, m, i in zip(orig_shape, masks.shape[-2:], input_shape)):
+            masks = F.interpolate(masks[None].float(), tuple(input_shape), mode="bilinear")[0]
+        return ops.scale_masks(masks[None].float(), orig_shape, padding=False)[0]
+
     def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
         """Prepare and transform the input prompts for processing based on the destination shape.
 
@@ -546,7 +554,7 @@ class Predictor(BasePredictor):
                 masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
                 idx = pred_scores > self.args.conf
-                masks = ops.scale_masks(masks[idx][None].float(), orig_img.shape[:2], padding=False)[0]
+                masks = self._scale_masks(masks[idx], img.shape[2:], orig_img.shape[:2])
                 if self.non_overlap_masks:
                     masks = self.model._apply_non_overlapping_constraints(masks[:, None])[:, 0]
                 masks = masks > self.model.mask_threshold  # to bool
@@ -713,7 +721,7 @@ class Predictor(BasePredictor):
         if pred_masks.shape[0] == 0:
             pred_masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
         else:
-            pred_masks = ops.scale_masks(pred_masks[None].float(), src_shape, padding=False)[0]
+            pred_masks = self._scale_masks(pred_masks, dst_shape, src_shape)
             pred_masks = pred_masks > self.model.mask_threshold  # to bool
             pred_bboxes = batched_mask_to_box(pred_masks)
             # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.

@@ -1028,13 +1028,32 @@ Yes. Drag files onto the dataset gallery or click the upload icon in the page he
 
 Yes. Copy or cut images in one dataset and paste them into another dataset you can edit; they keep their labels and splits, and **Cut** removes them from the source. Classes are matched by name, and the **Map classes** dialog handles any the destination does not have. See [Copy and Move Images](#copy-and-move-images).
 
-### How do I move images between splits?
+### Can I download my dataset in YOLO format?
 
-Use the bulk move-to-split feature:
+Platform exports datasets as [NDJSON](#export-dataset), not as YOLO folders. You usually don't need to convert it: pass the NDJSON file, or the dataset's [`ul://` URI](#dataset-uri), straight to `model.train(data=...)` and Ultralytics downloads the images and builds the YOLO folders for you. To get the folders without training, convert the file locally:
 
-1. Select images in the table view
-2. Right-click and choose `Move to split`
-3. Select the target split (Train, Validation, or Test)
+```python
+import asyncio
+
+from ultralytics.data.converter import convert_ndjson_to_yolo
+
+yaml_path = asyncio.run(convert_ndjson_to_yolo("my-dataset.ndjson", output_path="datasets"))
+```
+
+The image links in an export expire 7 days after the export is generated, and a cached export may have only a day left, so convert it promptly. [On Premise](../integrations/on-premise.md) datasets cannot be exported.
+
+### How does Platform split my images into train, val and test?
+
+Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification datasets use their folder structure instead, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
+
+To change the split afterwards:
+
+- **Change the ratio**: click the split bar in the dataset toolbar and set the percentages, or click **Auto** for 80/20 train/val. See [Split Redistribution](#split-redistribution).
+- **Move specific images**: select them in **Table** view, right-click, and choose `Move to split`. See [Bulk Move to Split](#bulk-move-to-split).
+
+### Are my datasets private?
+
+Check the visibility toggle before you create a dataset: new datasets default to **Public** on Free and Pro plans and to **Private** on Enterprise. A public dataset can be viewed by anyone, including people who are not signed in, and appears on [Explore](../explore.md). A private dataset is visible only to you and permitted workspace members. Members with edit access can change visibility from the badge next to the dataset name, and [On Premise](../integrations/on-premise.md) datasets are always private. Making a dataset private does not remove copies other users have already cloned. See [Visibility Settings](#visibility-settings).
 
 ### What label formats are supported?
 

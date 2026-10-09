@@ -336,6 +336,26 @@ class BaseModel(torch.nn.Module):
         """
         model = (weights.get("ema") or weights["model"]) if isinstance(weights, dict) else weights  # ema first
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
+        # Detect cls branch width (c3) depends on nc, so rebuild it at the source width to transfer its hidden layers,
+        # but only when the head input widths match, since a branch from another model scale cannot run on this neck
+        head, src_head = self.model[-1], getattr(model, "model", [None])[-1]
+        if (
+            isinstance(head, Detect)
+            and isinstance(src_head, Detect)
+            and not (self.is_fused() or model.is_fused())
+            and [m[0].conv.in_channels for m in head.cv2] == [m[0].conv.in_channels for m in src_head.cv2]
+        ):
+            for attr in ("cv3", "one2one_cv3"):
+                dst, src = getattr(head, attr, None), getattr(src_head, attr, None)
+                if dst is not None and src is not None and dst[0][-1].in_channels != src[0][-1].in_channels:
+                    src = deepcopy(src)
+                    for s, d in zip(src, dst):
+                        if s[-1].out_channels != d[-1].out_channels:  # new class count
+                            s[-1] = nn.Conv2d(s[-1].in_channels, d[-1].out_channels, 1)
+                        for sp, dp in zip(s.parameters(), d.parameters()):
+                            sp.requires_grad_(dp.requires_grad)
+                    setattr(head, attr, src.to(dst[0][-1].weight.device, dst[0][-1].weight.dtype).train(dst.training))
+                    head.bias_init()
 
         # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)
         cls_remapped = self._remap_cls_by_names(csd, model, verbose=verbose)
@@ -412,7 +432,7 @@ class BaseModel(torch.nn.Module):
         remapped = 0
         for k in cls_keys & csd.keys():
             v_src, v_tgt = csd[k], state_dict[k]
-            if v_src.shape[1:] != v_tgt.shape[1:]:  # cls-conv weight input width (c3) differs across nc; copy bias only
+            if v_src.shape[1:] != v_tgt.shape[1:]:  # cls-conv input width differs across model scales; copy bias only
                 continue
             v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
             csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order

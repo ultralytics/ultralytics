@@ -607,6 +607,13 @@ The YAML editor also supports **importing configurations from previous training 
 
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
 
+### Why didn't my learning rate setting take effect?
+
+With the default `optimizer: auto`, training picks the optimizer and initial learning rate for you and ignores your
+`lr0`. To use your own `lr0`, choose a specific optimizer such as `SGD` or `AdamW` in **Advanced Settings**. The
+training console logs the optimizer and learning rate the run selected; the **Training Configuration** card shows the
+arguments you submitted, so with `auto` it can still list your `lr0`.
+
 ### Can I retry a failed run?
 
 Yes. A failed model shows an error banner with a **Retry Training** action that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.

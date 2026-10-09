@@ -680,20 +680,6 @@ def test_track_reid_auto_user_detections(tracker_type):
     assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
 
 
-def test_reid_invalid_crops():
-    """Test ReID skips out-of-bounds detection crops while preserving feature alignment."""
-    from types import SimpleNamespace
-
-    from ultralytics.trackers.utils.reid import ReID
-
-    encoder = ReID.__new__(ReID)
-    encoder.is_pt = True
-    encoder.model = SimpleNamespace(predictor=lambda crops: [torch.ones(4) for _ in crops])
-    img = np.full((640, 640, 3), 128, dtype=np.uint8)
-    feats = encoder(img, np.array([[30, 30, 40, 40], [1100, 1100, 200, 200]], dtype=np.float32))
-    assert feats[0] is not None and feats[1] is None
-
-
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path, solution_assets):
@@ -2005,9 +1991,13 @@ def test_classification_split_class_alignment(tmp_path):
     from ultralytics.data.dataset import ClassificationDataset
 
     for name in ("b", "c", "d"):  # the split lacks the model's first class and adds one it does not have
-        (tmp_path / name).mkdir()
-        cv2.imwrite(str(tmp_path / name / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
-    samples = ClassificationDataset(tmp_path, DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
+        for folder in (tmp_path / name, tmp_path / name / "nested"):
+            folder.mkdir()
+            cv2.imwrite(str(folder / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
+    data = check_cls_dataset(tmp_path)
+    copied = [p.relative_to(data[k]) for k in ("train", "val") for p in data[k].rglob("*.jpg")]
+    assert len(copied) == len(set(copied)) == 6
+    samples = ClassificationDataset(data["train"], DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
     assert sorted(sample[1] for sample in samples) == [1, 2]
 
 

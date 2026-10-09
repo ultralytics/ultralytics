@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import random
 import shutil
-from contextlib import suppress
 from pathlib import Path
 
 from ultralytics.data.utils import IMG_FORMATS, img2label_paths
@@ -74,9 +73,10 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
 
     # Process class directories
     class_dirs = [d for d in source_path.iterdir() if d.is_dir()]
-    total_images = sum(len([f for f in d.glob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]) for d in class_dirs)
-    stats = f"{len(class_dirs)} classes, {total_images} images"
-    LOGGER.info(f"Splitting {source_path} ({stats}) into {train_ratio:.0%} train, {1 - train_ratio:.0%} val...")
+    LOGGER.info(
+        f"Splitting {source_path} ({len(class_dirs)} classes) into {train_ratio:.0%} train, {1 - train_ratio:.0%} val..."
+    )
+    total_images = 0
 
     for class_dir in class_dirs:
         # Create class directories
@@ -84,19 +84,19 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         (val_path / class_dir.name).mkdir(exist_ok=True)
 
         # Split and copy files
-        image_files = sorted(f for f in class_dir.glob("*.*") if f.suffix[1:].lower() in IMG_FORMATS)
+        image_files = sorted(f for f in class_dir.rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS)
+        total_images += len(image_files)
         random.Random(0).shuffle(image_files)  # deterministic, so re-splitting never mixes train and val images
         split_idx = int(len(image_files) * train_ratio)
 
         for i, img in enumerate(image_files):
             target, previous = (train_path, val_path) if i < split_idx else (val_path, train_path)
-            old = previous / class_dir.name / img.name
-            with suppress(FileNotFoundError):  # another rank may already have removed the previous copy
-                old.chmod(0o666)  # copy2 preserves read-only attributes, which prevent unlinking on Windows
-                old.unlink()
-            shutil.copy2(img, target / class_dir.name / img.name)
+            relative = Path(class_dir.name, img.relative_to(class_dir))
+            (previous / relative).unlink(missing_ok=True)  # a changed ratio or image set reassigns this image
+            (target / relative).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(img, target / relative)
 
-    LOGGER.info(f"Split complete in {split_path} ✅")
+    LOGGER.info(f"Split complete in {split_path} ({total_images} images) ✅")
     return split_path
 
 

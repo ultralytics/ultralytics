@@ -277,11 +277,11 @@ class BaseDataset(Dataset):
                     if npy_channels != self.channels or im.dtype == np.uint16:
                         # stale: wrong channel count, or a pre-16-bit-conversion uint16 cache (raw values that bypass /255)
                         LOGGER.warning(
-                            f"{self.prefix}Removing stale *.npy image file {fn} with {npy_channels} channels and "
+                            f"{self.prefix}Refreshing stale *.npy image file {fn} with {npy_channels} channels and "
                             f"{im.dtype} dtype, expected {self.channels} channels and uint8"
                         )
-                        Path(fn).unlink(missing_ok=True)
                         im = imread(f, flags=self.cv2_flag)
+                        np.save(fn.as_posix(), im, allow_pickle=False)  # keep disk-cache benefits for this image
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)

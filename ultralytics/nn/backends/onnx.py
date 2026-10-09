@@ -290,8 +290,8 @@ class ONNXBackend(BaseBackend):
 
         Returns:
             (tuple[np.ndarray, ...] | list[np.ndarray] | list[torch.Tensor]): Model predictions as a tuple of numpy
-                arrays (OpenCV DNN), a list of numpy arrays (ONNX Runtime), or a list of bound output tensors (GPU IO
-                binding).
+                arrays (OpenCV DNN), a list of numpy arrays (ONNX Runtime), or a list of bound output tensors (GPU
+                IO binding).
         """
         if self.format == "dnn":
             # OpenCV DNN

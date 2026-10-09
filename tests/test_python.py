@@ -714,6 +714,8 @@ def test_track_stream(model, tmp_path, solution_assets):
 
     # Default end-to-end run for all built-in trackers
     for tracker_type in TRACKER_MAP:
+        if tracker_type == "kpttrack" and model.task != "pose":  # matches keypoints, pose models only
+            continue
         kwargs = {"save_frames": True} if tracker_type == "botsort" else {}
         model.track(video_url, imgsz=160, tracker=f"{tracker_type}.yaml", **kwargs)
 

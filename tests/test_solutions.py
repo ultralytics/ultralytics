@@ -160,7 +160,7 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             "demo_video",
             {"region": REGION, "model": MODEL, "show": SHOW},
         ),
-        ("AIGym", solutions.AIGym, False, "pose_video", {"kpts": [6, 8, 10], "show": SHOW}),
+        ("AIGym", solutions.AIGym, False, "pose_video", {"kpts": [6, 8, 10], "show": SHOW, "tracker": "kpttrack.yaml"}),
         (
             "ParkingManager",
             solutions.ParkingManagement,

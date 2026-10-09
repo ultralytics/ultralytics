@@ -1,0 +1,23 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# KPTTracker defaults for mode="track": people matched by their keypoints instead of their boxes (pose models)
+# Docs: https://docs.ultralytics.com/modes/track
+# Frame counts below assume ~30 FPS; scale them with your video's frame rate
+
+tracker_type: kpttrack # (str) Tracker backend: kpttrack; needs a pose model
+track_high_thresh: 0.25 # (float) Confident detections: matched to any track, lost ones included, and may start one
+track_low_thresh: 0.1 # (float) Low-confidence detections (between the two thresholds) only continue a track seen last frame
+new_track_thresh: 0.25 # (float) Start a tentative track from an unmatched detection ≥ this; it gets an ID if matched next frame
+track_buffer: 30 # (int) Frames to keep lost tracks alive; their gate widens meanwhile
+kpt_conf: 0.5 # (float) A keypoint counts as seen above this confidence
+kpt_nms: 0.1 # (float) Drop a detection whose keypoints lie within this mean distance, over the size, of a more confident one's
+match_gate: 0.1 # (float) Max mean keypoint distance, over the person's size (box's longer side), to a track seen last frame
+wobble_gate: 3.0 # (float) ... or this many times the track's wobble (how far its matches usually land), if wider
+lost_gate: 0.5 # (float) Max distance to a track lost for lost_ramp frames or more
+lost_ramp: 30 # (int) Frames over which a lost track's gate widens from match_gate to lost_gate and its velocity fades
+recover_gate: 0.15 # (float) Confident detections left are matched to the tracks left seen last frame in a gate at least this wide (lost ones: lost_gate)
+flip_cost: 0.02 # (float) Cost added to a left-right flipped match (COCO keypoints only)
+velocity_smoothing: 0.2 # (float) Smoothing factor of the track velocity and wobble; higher follows motion changes faster
+joint_memory: 60 # (int) Frames over which an unseen keypoint's weight in the match fades
+size_smoothing: 0.1 # (float) Smoothing factor of the person's size and bone lengths
+scale_weight: 0.5 # (float) Cost weight of a lost track's skeleton scale mismatch (COCO keypoints only)

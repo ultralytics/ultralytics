@@ -12,6 +12,7 @@ from .bot_sort import BOTSORT
 from .byte_tracker import BYTETracker
 from .deep_oc_sort import DeepOCSORT
 from .fast_tracker import FASTTracker
+from .kpt_tracker import KPTTracker
 from .oc_sort import OCSORT
 from .track_tracker import TRACKTRACK
 
@@ -23,6 +24,7 @@ TRACKER_MAP = {
     "fasttrack": FASTTracker,
     "ocsort": OCSORT,
     "deepocsort": DeepOCSORT,
+    "kpttrack": KPTTracker,
 }
 
 
@@ -127,6 +129,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
         det = (src := result.obb if is_obb else result.boxes).cpu().numpy()
         kwargs = {"feats": getattr(result, "feats", None)}
+        if result.keypoints is not None:  # pose models: keypoint-based trackers match on them, others ignore them
+            kwargs["kpts"] = result.keypoints.data.cpu().numpy()
         if dets_del_list is not None:
             kwargs["dets_del"] = dets_del_list[i]
         tracks = tracker.update(det, result.orig_img, **kwargs)

@@ -817,6 +817,7 @@ nav:
           - byte_tracker: reference/trackers/byte_tracker.md
           - deep_oc_sort: reference/trackers/deep_oc_sort.md
           - fast_tracker: reference/trackers/fast_tracker.md
+          - kpt_tracker: reference/trackers/kpt_tracker.md
           - oc_sort: reference/trackers/oc_sort.md
           - track: reference/trackers/track.md
           - track_tracker: reference/trackers/track_tracker.md

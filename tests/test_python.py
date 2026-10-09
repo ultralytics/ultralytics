@@ -360,17 +360,72 @@ def test_model_load_remaps_cls_head_by_names():
     src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
     tgt.load(src, verbose=False)  # YOLOE cv3 outputs embeddings, not class rows
 
+    from ultralytics.models.yolo.semantic.train import SemanticSegmentationTrainer
+    from ultralytics.nn.tasks import SemanticSegmentationModel
+
+    # YOLO26 Segment per-pixel semseg rows remap like cv3 rows; unmatched rows keep their init
+    src = SegmentationModel("yolo26n-seg.yaml", nc=3, verbose=False)
+    tgt = SegmentationModel("yolo26n-seg.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "new"}
+    for m, bias in ((src, [10.0, 20.0, 30.0]), (tgt, [-1.0, -2.0])):
+        last = m.model[-1].proto.semseg[-1]
+        last.bias.data.copy_(torch.tensor(bias))
+        last.weight.data.copy_(torch.full_like(last.weight, bias[0] * -1))
+    tgt.load(src, verbose=False)
+    sem = tgt.model[-1].proto.semseg[-1]
+    assert sem.bias.tolist() == [20.0, -2.0]
+    assert torch.equal(sem.weight[0], src.model[-1].proto.semseg[-1].weight[1]) and torch.all(sem.weight[1] == 1.0)
+
+    # same-count class reordering permutes rows instead of copying them in order
+    src = SegmentationModel("yolo26n-seg.yaml", nc=3, verbose=False)
+    tgt = SegmentationModel("yolo26n-seg.yaml", nc=3, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat", 2: "car"}
+    src.model[-1].proto.semseg[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
+    tgt.load(src, verbose=False)
+    assert tgt.model[-1].proto.semseg[-1].bias.tolist() == [20.0, 10.0, 30.0]
+
+    # SemanticSegment classifier and aux_head rows follow the same remap
+    src = SemanticSegmentationModel("yolo26n-sem.yaml", nc=3, verbose=False)
+    tgt = SemanticSegmentationModel("yolo26n-sem.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "new"}
+    for m, bias in ((src, [10.0, 20.0, 30.0]), (tgt, [-1.0, -2.0])):
+        for attr in ("classifier", "aux_head"):
+            getattr(m.model[-1], attr)[-1].bias.data.copy_(torch.tensor(bias))
+    tgt.load(src, verbose=False)
+    assert tgt.model[-1].classifier[-1].bias.tolist() == [20.0, -2.0]
+    assert tgt.model[-1].aux_head[-1].bias.tolist() == [20.0, -2.0]
+
+    # aux_head=None models remap through classifier only
+    src = SemanticSegmentationModel("yolo26n-sem.yaml", nc=3, verbose=False)
+    tgt = SemanticSegmentationModel("yolo26n-sem.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+    src.model[-1].aux_head = tgt.model[-1].aux_head = None
+    src.model[-1].classifier[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
+    tgt.load(src, verbose=False)
+    assert tgt.model[-1].classifier[-1].bias.tolist() == [20.0, 10.0]
+
     names = {0: "dog", 1: "cat"}
     for trainer_cls, model in (
         (DetectionTrainer, DetectionModel("yolo26n.yaml", nc=2, verbose=False)),
         (SegmentationTrainer, SegmentationModel("yolo26n-seg.yaml", nc=2, verbose=False)),
         (PoseTrainer, PoseModel("yolo26n-pose.yaml", nc=2, data_kpt_shape=[17, 3], verbose=False)),
         (OBBTrainer, OBBModel("yolo26n-obb.yaml", nc=2, verbose=False)),
+        (SemanticSegmentationTrainer, SemanticSegmentationModel("yolo26n-sem.yaml", nc=2, verbose=False)),
     ):
         trainer = object.__new__(trainer_cls)
         trainer.args = SimpleNamespace(cls_remap=True)
         trainer.data = {"names": names}
         assert trainer.set_model_names_for_load(model).names == names
+
+    # the semantic trainer sets target names before loading weights, so its get_model remaps
+    src = SemanticSegmentationModel("yolo26n-sem.yaml", nc=3, verbose=False)
+    src.names = {0: "cat", 1: "dog", 2: "car"}
+    src.model[-1].classifier[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
+    trainer = object.__new__(SemanticSegmentationTrainer)
+    trainer.args = SimpleNamespace(cls_remap=True)
+    trainer.data = {"nc": 2, "names": {0: "dog", 1: "cat"}, "channels": 3}
+    model = trainer.get_model("yolo26n-sem.yaml", weights=src, verbose=False)
+    assert model.names == {0: "dog", 1: "cat"} and model.model[-1].classifier[-1].bias.tolist() == [20.0, 10.0]
 
 
 def test_model_profile():

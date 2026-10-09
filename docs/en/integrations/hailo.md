@@ -335,7 +335,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     !!! note
 
-        Validation for the above benchmarks was done using COCO128 for detection, Cityscapes8 for semantic segmentation, Depth8 for depth estimation, and ImageNet100 for classification. Inference time does not include pre/post-processing.
+        Validation for the above benchmarks was done using COCO128 for detection, Cityscapes8 for semantic segmentation, Depth8 for depth estimation, and ImageNet100 for classification. Cityscapes8 and Depth8 contain only 4 validation images each, so treat their semantic segmentation and depth accuracy values as smoke-test results, not accuracy-retention measurements; validate on a full dataset such as Cityscapes or NYU Depth V2 before drawing accuracy conclusions. Inference time does not include pre/post-processing.
 
 ## Hailo Compared with Other YOLO Export Formats
 

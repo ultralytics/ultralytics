@@ -9,6 +9,7 @@ import torch
 
 from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
 from ultralytics.data.augment import LoadVisualPrompt
+from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.nn.tasks import YOLOEModel, YOLOESegModel
@@ -99,6 +100,8 @@ class YOLOETrainer(DetectionTrainer):
         return build_yolo_dataset(
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
+
+    set_class_weights = BaseTrainer.set_class_weights  # cls channels are prompt positions, not dataset classes
 
 
 class YOLOEPETrainer(DetectionTrainer):

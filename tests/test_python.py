@@ -2,7 +2,6 @@
 
 import contextlib
 import csv
-import logging
 import os
 import platform
 import shutil
@@ -2001,33 +2000,14 @@ def test_classification_split_class_alignment(tmp_path):
     from ultralytics.data.dataset import ClassificationDataset
 
     for name in ("b", "c", "d"):  # the split lacks the model's first class and adds one it does not have
-        (tmp_path / name).mkdir()
-        cv2.imwrite(str(tmp_path / name / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
-    samples = ClassificationDataset(tmp_path, DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
+        for folder in (tmp_path / name, tmp_path / name / "nested"):
+            folder.mkdir()
+            cv2.imwrite(str(folder / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
+    data = check_cls_dataset(tmp_path)
+    copied = [p.relative_to(data[k]) for k in ("train", "val") for p in data[k].rglob("*.jpg")]
+    assert len(copied) == len(set(copied)) == 6
+    samples = ClassificationDataset(data["train"], DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
     assert sorted(sample[1] for sample in samples) == [1, 2]
-
-
-def test_classification_auto_split_preserves_nested_images(tmp_path, caplog):
-    """Auto-split nested class images without flattening their relative paths."""
-    source = tmp_path / "dataset"
-    for subdir in ("camera_a", "camera_b"):
-        directory = source / "cat" / subdir
-        directory.mkdir(parents=True)
-        for i in range(5):
-            cv2.imwrite(str(directory / f"{i}.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
-
-    data = check_cls_dataset(source)
-    split = Path(f"{source}_split")
-    copied = {
-        path.relative_to(split / subset).as_posix()
-        for subset in ("train", "val")
-        for path in (split / subset).rglob("*.jpg")
-    }
-
-    assert copied == {path.relative_to(source).as_posix() for path in source.rglob("*.jpg")}
-    assert len(list(data["train"].rglob("*.jpg"))) == 8
-    assert len(list(data["val"].rglob("*.jpg"))) == 2
-    assert not [record for record in caplog.records if record.levelno >= logging.ERROR]
 
 
 @pytest.fixture

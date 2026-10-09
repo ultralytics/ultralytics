@@ -154,9 +154,10 @@ class DetectionTrainer(BaseTrainer):
         return np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
 
     def compute_class_weights(self, class_counts):
-        """Convert class counts to inverse-frequency weights raised to the power of cls_pw."""
-        class_counts = np.where(class_counts == 0, 1.0, class_counts)
-        return (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
+        """Return inverse-frequency weights raised to cls_pw, giving classes without train labels the mean weight."""
+        present = class_counts > 0
+        weights = (1.0 / np.where(present, class_counts, 1.0)) ** self.args.cls_pw
+        return np.where(present, weights, weights[present].mean())
 
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance.

@@ -575,11 +575,10 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     # Upsampling all N masks at once allocates an N*H*W float intermediate (~9 GB on a large image with many
     # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget, thresholding each chunk to
     # uint8 immediately so the float intermediate stays small, then crop the assembled uint8 stack.
-    step = max(1, 32_000_000 // (h * w))
-    masks = [
-        scale_masks(coeffs[i : i + step].view(-1, mh, mw)[None], shape)[0].gt_(0.0).byte()
-        for i in range(0, coeffs.shape[0], step)
-    ]
+    masks = []
+    for chunk in coeffs.view(-1, mh, mw).split(max(1, 32_000_000 // (h * w + 16 * mh * mw))):
+        chunk = F.interpolate(chunk[None], (4 * mh, 4 * mw), mode="bilinear")  # input size: letterbox pad is whole px
+        masks.append(scale_masks(chunk, shape)[0].gt_(0.0).byte())
     return crop_mask(torch.cat(masks), bboxes)
 
 

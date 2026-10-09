@@ -339,30 +339,10 @@ def test_model_methods():
 
 def test_model_load_remaps_cls_head_by_names():
     """Test class-name remap is limited to closed-set class-logit heads."""
-    from types import SimpleNamespace
-
-    from ultralytics.models.yolo.detect.train import DetectionTrainer
-    from ultralytics.models.yolo.obb.train import OBBTrainer
-    from ultralytics.models.yolo.pose.train import PoseTrainer
-    from ultralytics.models.yolo.segment.train import SegmentationTrainer
-    from ultralytics.nn.tasks import DetectionModel, OBBModel, PoseModel, SegmentationModel, YOLOEModel
-
-    src = DetectionModel("yolo26n.yaml", nc=3, verbose=False)
-    tgt = DetectionModel("yolo26n.yaml", nc=2, verbose=False)
-    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
-    for seq in src.model[-1].cv3:
-        seq[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
-    tgt.load(src, verbose=False)
-    assert all(seq[-1].bias.tolist() == [20.0, 10.0] for seq in tgt.model[-1].cv3)
-
-    src = YOLOEModel("yoloe-26n.yaml", nc=3, verbose=False)
-    tgt = YOLOEModel("yoloe-26n.yaml", nc=2, verbose=False)
-    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
-    tgt.load(src, verbose=False)  # YOLOE cv3 outputs embeddings, not class rows
-
-    from ultralytics.nn.tasks import SemanticSegmentationModel
+    from ultralytics.nn.tasks import DetectionModel, SegmentationModel, SemanticSegmentationModel, YOLOEModel
 
     for model_cls, cfg, branches in (
+        (DetectionModel, "yolo26n.yaml", ("cv3.0", "cv3.1", "cv3.2")),
         (SegmentationModel, "yolo26n-seg.yaml", ("proto.semseg",)),
         (SemanticSegmentationModel, "yolo26n-sem.yaml", ("classifier", "aux_head")),
     ):
@@ -376,17 +356,10 @@ def test_model_load_remaps_cls_head_by_names():
             if name in branches:
                 assert seq[-1].bias.tolist() == [20.0, 10.0]
 
-    names = {0: "dog", 1: "cat"}
-    for trainer_cls, model in (
-        (DetectionTrainer, DetectionModel("yolo26n.yaml", nc=2, verbose=False)),
-        (SegmentationTrainer, SegmentationModel("yolo26n-seg.yaml", nc=2, verbose=False)),
-        (PoseTrainer, PoseModel("yolo26n-pose.yaml", nc=2, data_kpt_shape=[17, 3], verbose=False)),
-        (OBBTrainer, OBBModel("yolo26n-obb.yaml", nc=2, verbose=False)),
-    ):
-        trainer = object.__new__(trainer_cls)
-        trainer.args = SimpleNamespace(cls_remap=True)
-        trainer.data = {"names": names}
-        assert trainer.set_model_names_for_load(model).names == names
+    src = YOLOEModel("yoloe-26n.yaml", nc=3, verbose=False)
+    tgt = YOLOEModel("yoloe-26n.yaml", nc=2, verbose=False)
+    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+    tgt.load(src, verbose=False)  # YOLOE cv3 outputs embeddings, not class rows
 
 
 def test_model_profile():

@@ -281,7 +281,7 @@ class ONNXBackend(BaseBackend):
 
     def forward(
         self, im: torch.Tensor | dict[str, torch.Tensor | np.ndarray]
-    ) -> np.ndarray | list[np.ndarray] | list[torch.Tensor]:
+    ) -> tuple[np.ndarray, ...] | list[np.ndarray] | list[torch.Tensor]:
         """Run ONNX inference using IO binding (CUDA and ROCm/MIGraphX) or standard session execution.
 
         Args:
@@ -289,13 +289,14 @@ class ONNXBackend(BaseBackend):
                 input names to tensors/arrays for multi-input ONNX Runtime models.
 
         Returns:
-            (np.ndarray | list[np.ndarray] | list[torch.Tensor]): Model predictions as a numpy array (OpenCV DNN), a
-                list of numpy arrays (ONNX Runtime), or a list of bound output tensors (GPU IO binding).
+            (tuple[np.ndarray, ...] | list[np.ndarray] | list[torch.Tensor]): Model predictions as a tuple of numpy
+                arrays (OpenCV DNN), a list of numpy arrays (ONNX Runtime), or a list of bound output tensors (GPU
+                IO binding).
         """
         if self.format == "dnn":
             # OpenCV DNN
             self.net.setInput(im.cpu().numpy())
-            return self.net.forward()
+            return self.net.forward(self.net.getUnconnectedOutLayersNames())
 
         # ONNX Runtime
         if isinstance(im, dict):  # multi-input model

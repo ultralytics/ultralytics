@@ -318,8 +318,22 @@ class AutoBackend(nn.Module):
             (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
         """
         nms = self.metadata.get("args", {}).get("nms")
-        if nms and self.format not in {"coreml", "imx"} and im.shape[0] > self.batch:
-            # NMSModel graphs only process their export batch per call; clone chunks as backends reuse outputs
+        dynamic = self.metadata.get("dynamic")
+        fixed = not dynamic and (nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"})
+        if (
+            self.format != "pt"  # native PyTorch runs any batch directly
+            and im.shape[0] > self.batch
+            and (
+                (nms and self.format not in {"coreml", "imx"})  # NMS models reuse outputs across calls
+                or (
+                    dynamic is False
+                    and self.metadata.get("batch") is not None  # export metadata pins graph AND batch
+                    and self.format not in {"coreml", "imx", "torchscript", "ncnn", "deepx", "axelera"}
+                )
+            )
+        ):
+            # Static-batch graphs and NMS models only process their export batch per call; clone chunks as backends
+            # reuse outputs. Short tail chunks recurse into the zero-pad path below.
             ys = []
             for x in im.split(self.batch):
                 y = self.forward(x)
@@ -329,9 +343,6 @@ class AutoBackend(nn.Module):
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
         if self.backend.fp16 and im.dtype != torch.float16:
             im = im.half()
-        fixed = not self.metadata.get("dynamic") and (
-            nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"}
-        )
         if (pad := self.batch - im.shape[0] if fixed else 0) > 0:  # static-batch exports reject short batches
             im = torch.cat((im, im.new_zeros(pad, *im.shape[1:])))
 

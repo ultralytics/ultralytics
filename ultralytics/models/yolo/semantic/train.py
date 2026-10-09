@@ -58,9 +58,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
             (SemanticSegmentationModel): Semantic segmentation model.
         """
         model = self.set_model_names_for_load(
-            SemanticSegmentationModel(
-                cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1
-            )
+            SemanticSegmentationModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         )
         if weights:
             model.load(weights)

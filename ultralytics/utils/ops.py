@@ -620,6 +620,12 @@ def scale_masks(
         (gain_h, gain_w), (pad_w, pad_h) = ratio_pad
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
     bottom, right = top + round(im0_h * gain_h), left + round(im0_w * gain_w)  # content end, odd pads extra at end
+    if ratio_pad and abs(im0_h * gain_h + top - bottom) + abs(im0_w * gain_w + left - right) > 1e-3:  # ends mid-pixel
+        sh, sw = im0_h * gain_h / im1_h, im0_w * gain_w / im1_w  # sample the exact content span instead of cropping
+        masks = masks.float()
+        theta = masks.new_tensor([[[sw, 0, sw + 2 * left / im1_w - 1], [0, sh, sh + 2 * top / im1_h - 1]]])
+        grid = F.affine_grid(theta, (1, 1, im0_h, im0_w), align_corners=False).expand(len(masks), -1, -1, -1)
+        return F.grid_sample(masks, grid, mode=mode, padding_mode="border", align_corners=False)
     return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
 
 

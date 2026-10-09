@@ -8,6 +8,7 @@ from .instance_segmentation import InstanceSegmentation
 from .object_blurrer import ObjectBlurrer
 from .object_counter import ObjectCounter
 from .object_cropper import ObjectCropper
+from .ocr import OCR
 from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .region_counter import RegionCounter
@@ -19,6 +20,7 @@ from .trackzone import TrackZone
 from .vision_eye import VisionEye
 
 __all__ = (
+    "OCR",
     "AIGym",
     "Analytics",
     "DistanceCalculation",

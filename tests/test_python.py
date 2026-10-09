@@ -694,6 +694,47 @@ def test_reid_invalid_crops():
     assert feats[0] is not None and feats[1] is None
 
 
+@pytest.mark.parametrize(
+    ("shape", "expected"),
+    [
+        ((128, 64), (128, 64)),
+        ((64, 128), (64, 128)),
+        ((128, 128), (128, 128)),
+        ((128, "width"), (128, 128)),
+        (("height", 64), (96, 64)),
+        (("height", "width"), (96, 96)),
+    ],
+)
+def test_reid_onnx_input_shape(shape, expected, tmp_path):
+    """Test real ONNX ReID preprocessing respects static axes and preserves dynamic-size fallbacks."""
+    import onnx
+
+    from tests.conftest import isolated_model_path
+    from ultralytics.trackers.utils.reid import ReID
+
+    model = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo26n-cls.pt"))
+    head = model.model.model[-1]
+    embedding = torch.nn.Sequential(torch.nn.AdaptiveAvgPool2d((1, 1)), torch.nn.Flatten(start_dim=1))
+    embedding.f, embedding.i = head.f, head.i
+    model.model.model[-1] = embedding
+    path = model.export(format="onnx", imgsz=32, dynamic=True, opset=12, simplify=False, device="cpu")
+    graph = onnx.load(path)
+    for dim, size in zip(graph.graph.input[0].type.tensor_type.shape.dim[2:], shape):
+        if isinstance(size, int):
+            dim.dim_value = size
+        else:
+            dim.dim_param = size
+    onnx.checker.check_model(graph)
+    onnx.save(graph, path)
+
+    encoder = ReID(path, imgsz=96, device="cpu")
+    crops = [np.full((40, 20, 3), 127, dtype=np.uint8), np.full((20, 40, 3), 64, dtype=np.uint8)]
+    batch = encoder._crops_to_tensor(crops)
+
+    assert batch.shape == (2, 3, *expected)
+    assert encoder.model(batch).shape[0] == len(crops)
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path, solution_assets):

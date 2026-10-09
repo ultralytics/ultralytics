@@ -303,15 +303,11 @@ Device-only performance measurements isolate Hailo inference from video decoding
 
 ## Benchmarks
 
-Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy between PyTorch and Hailo.
+The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy between PyTorch and Hailo.
 
 !!! tip "Performance"
 
     === "Raspberry Pi 5 + AI HAT+ (Hailo-8)"
-
-        <div align="center">
-        <img width="800" src="https://cdn.ul.run/i/857bf50e3c613f76c2b26b28311106ce.avif" alt="Raspberry Pi 5 Hailo 8 NPU vs PyTorch benchmarks">
-        </div>
 
         | Model   | Format  | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
         | ------- | ------- | ------ | --------- | ------------------- | ---------------------- |

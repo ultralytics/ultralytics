@@ -48,7 +48,7 @@ def test_amp():
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize("input_name", ["images", "input"])
 def test_onnx_input_binding(tmp_path, input_name):
-    """Run a real classifier through CUDA binding with both input names and memory layouts."""
+    """Run a real classifier through CUDA binding with both input names and contiguous or strided inputs."""
     from torchvision.models import resnet18
 
     from ultralytics.nn.backends import ONNXBackend
@@ -59,10 +59,16 @@ def test_onnx_input_binding(tmp_path, input_name):
     file = torch2onnx(model, image, tmp_path / "resnet18.onnx", input_names=[input_name])
     backend = ONNXBackend(file, device=torch.device(f"cuda:{DEVICES[0]}"))
     assert backend.use_io_binding and "CUDAExecutionProvider" in backend.session.get_providers()
+    image = image.to(backend.device)
     with torch.inference_mode():
-        for x in (image, image.transpose(2, 3)):
-            expected = torch.from_numpy(backend.session.run(None, {input_name: x.numpy()})[0])
-            assert torch.allclose(backend(x.to(backend.device))[0].cpu(), expected, rtol=1e-4, atol=1e-5)
+        for x in (
+            image,
+            image.transpose(2, 3),
+            image.contiguous(memory_format=torch.channels_last),
+            image.repeat_interleave(2, dim=3)[..., ::2],
+        ):
+            expected = torch.from_numpy(backend.session.run(None, {input_name: x.cpu().numpy()})[0])
+            assert torch.allclose(backend(x)[0].cpu(), expected, rtol=1e-4, atol=1e-5)
 
 
 @pytest.mark.slow

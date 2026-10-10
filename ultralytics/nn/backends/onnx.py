@@ -304,15 +304,16 @@ class ONNXBackend(BaseBackend):
             return self.session.run(self.output_names, im)
 
         if self.use_io_binding:
+            im = im.contiguous()
             if self.device.type == "cpu":
                 im = im.cpu()
             if torch.version.hip:  # the MIGraphX plugin EP binds GPU tensors through DLPack
                 from onnxruntime import OrtValue
 
-                self.io.bind_ortvalue_input("images", OrtValue.from_dlpack(im))
+                self.io.bind_ortvalue_input(self.session.get_inputs()[0].name, OrtValue.from_dlpack(im))
             else:
                 self.io.bind_input(
-                    name="images",
+                    name=self.session.get_inputs()[0].name,
                     device_type=im.device.type,
                     device_id=im.device.index if im.device.type == "cuda" else 0,
                     element_type=np.float16 if self.fp16 else np.float32,

@@ -26,6 +26,65 @@ def test_func(*args, **kwargs):
     print("callback test passed")
 
 
+@pytest.mark.parametrize(
+    "gt_boxes,gt_cls,pred_boxes,pred_cls,expected",
+    [
+        # Higher-confidence detection claims the only GT; the second takes it once the first falls below threshold
+        ([[0, 0, 10, 10]], [0], [[0, 0, 8.2, 10], [0, 0, 9.2, 10]], [0, 0], ["1111111000", "0000000110"]),
+        # Second detection falls back to the unclaimed alternate GT
+        (
+            [[0, 0, 10, 10], [6, 0, 16, 10]],
+            [0, 0],
+            [[0, 0, 9.2, 10], [1, 0, 14, 10]],
+            [0, 0],
+            ["1111111110", "1000000000"],
+        ),
+        # Equal-IoU targets prefer the last GT
+        (
+            [[0, 0, 10, 10], [6, 0, 16, 10]],
+            [0, 0],
+            [[3, 0, 13, 10], [0, 0, 10, 10]],
+            [0, 0],
+            ["1000000000", "1111111111"],
+        ),
+        # Second detection matches the alternate GT at low thresholds and the preferred GT at high thresholds
+        (
+            [[0, 0, 10, 10], [3, 0, 11, 10]],
+            [0, 0],
+            [[-2.2, 0, 7.8, 10], [0, 0, 9.2, 10]],
+            [0, 0],
+            ["1110000000", "1101111110"],
+        ),
+        # Highest-IoU GT has the wrong class
+        ([[0, 0, 10, 10], [1, 0, 11, 10]], [0, 1], [[0, 0, 10, 10]], [1], ["1111111000"]),
+        # No GT has the predicted class
+        ([[0, 0, 10, 10]], [0], [[0, 0, 10, 10]], [1], ["0000000000"]),
+    ],
+)
+def test_val_confidence_ordered_matching(gt_boxes, gt_cls, pred_boxes, pred_cls, expected, tmp_path):
+    """Match confidence-ordered detections to available same-class GTs at every IoU threshold."""
+    validator = detect.DetectionValidator(save_dir=tmp_path)
+    predictions = {
+        "bboxes": torch.tensor(pred_boxes, dtype=torch.float32),
+        "cls": torch.tensor(pred_cls, dtype=torch.float32),
+    }
+    batch = {"bboxes": torch.tensor(gt_boxes, dtype=torch.float32), "cls": torch.tensor(gt_cls, dtype=torch.float32)}
+    tp = validator._process_batch(predictions, batch)["tp"]
+    assert tp.tolist() == [[c == "1" for c in row] for row in expected]
+
+
+@pytest.mark.parametrize("use_scipy", [False, True])
+@pytest.mark.parametrize("num_gt,num_pred", [(0, 0), (0, 2), (2, 0)])
+def test_val_match_predictions_empty(num_gt, num_pred, use_scipy, tmp_path):
+    """Return an all-False (N, 10) matrix when there are no predictions or no GTs."""
+    validator = detect.DetectionValidator(save_dir=tmp_path)
+    correct = validator.match_predictions(
+        torch.zeros(num_pred), torch.zeros(num_gt), torch.zeros(num_gt, num_pred), use_scipy=use_scipy
+    )
+    assert correct.shape == (num_pred, 10)
+    assert not correct.any()
+
+
 def test_export(monkeypatch, tmp_path):
     """Test model exporting functionality by adding a callback and verifying its execution."""
     monkeypatch.chdir(tmp_path)

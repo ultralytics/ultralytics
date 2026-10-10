@@ -319,7 +319,7 @@ class BaseValidator:
         """Match predictions to ground truth objects using IoU.
 
         Args:
-            pred_classes (torch.Tensor): Predicted class indices of shape (N,).
+            pred_classes (torch.Tensor): Predicted class indices of shape (N,), ordered by descending confidence.
             true_classes (torch.Tensor): Target class indices of shape (M,).
             iou (torch.Tensor): An MxN tensor containing the pairwise IoU values for ground truth (rows) and predictions
                 (columns).
@@ -334,23 +334,28 @@ class BaseValidator:
         correct_class = true_classes[:, None] == pred_classes
         iou = iou * correct_class  # zero out the wrong classes
         iou = iou.cpu().numpy()
-        for i, threshold in enumerate(self.iouv.cpu().tolist()):
-            if use_scipy:
+        thresholds = self.iouv.cpu().numpy()
+        if use_scipy:
+            for i, threshold in enumerate(thresholds):
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
                     labels_idx, detections_idx = linear_sum_assignment(-cost_matrix)  # negate to maximize IoU
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True
-            else:
-                matches = np.nonzero(iou >= threshold)  # IoU >= threshold and classes match
-                matches = np.array(matches).T
-                if matches.shape[0]:
-                    if matches.shape[0] > 1:
-                        matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
-                        matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                        matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-                    correct[matches[:, 1].astype(int), i] = True
+        else:
+            used = np.zeros((iou.shape[0], len(thresholds)), dtype=bool)
+            columns = np.arange(len(thresholds))
+            eligible = iou >= thresholds.min()
+            for detection in np.flatnonzero(eligible.any(axis=0)):
+                # Match in confidence order, retrying available targets and preferring the last target on equal IoU.
+                candidates = np.flatnonzero(eligible[:, detection])[::-1]
+                available = np.where(used[candidates], -1, iou[candidates, detection, None])
+                best = available.argmax(axis=0)
+                targets = candidates[best]
+                valid = available[best, columns] >= thresholds
+                correct[detection] = valid
+                used[targets[valid], columns[valid]] = True
         return torch.from_numpy(correct)
 
     @smart_inference_mode(False)

@@ -26,6 +26,25 @@ def test_func(*args, **kwargs):
     print("callback test passed")
 
 
+@pytest.mark.parametrize(
+    "gt_boxes,pred_boxes,expected",
+    [
+        ([[0, 0, 10, 10]], [[0, 0, 8, 10], [0, 0, 9, 10]], [True, False]),
+        ([[0, 0, 10, 10], [6, 0, 16, 10]], [[0, 0, 9, 10], [1, 0, 14, 10]], [True, True]),
+        ([[0, 0, 10, 10], [6, 0, 16, 10]], [[3, 0, 13, 10], [0, 0, 10, 10]], [True, True]),
+    ],
+)
+def test_val_confidence_ordered_matching(gt_boxes, pred_boxes, expected, tmp_path):
+    """Match confidence-ordered detections to available GTs, including alternate matches and equal-IoU ties."""
+    validator = detect.DetectionValidator(save_dir=tmp_path)
+    predictions = {
+        "bboxes": torch.tensor(pred_boxes, dtype=torch.float32),
+        "cls": torch.zeros(len(pred_boxes)),
+    }
+    batch = {"bboxes": torch.tensor(gt_boxes, dtype=torch.float32), "cls": torch.zeros(len(gt_boxes))}
+    assert validator._process_batch(predictions, batch)["tp"][:, 0].tolist() == expected
+
+
 def test_export(monkeypatch, tmp_path):
     """Test model exporting functionality by adding a callback and verifying its execution."""
     monkeypatch.chdir(tmp_path)

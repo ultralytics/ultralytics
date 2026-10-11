@@ -344,18 +344,12 @@ class BaseValidator:
                     if valid.any():
                         correct[detections_idx[valid], i] = True
         else:
-            used = np.zeros((iou.shape[0], len(thresholds)), dtype=bool)
-            columns = np.arange(len(thresholds))
-            eligible = iou >= thresholds.min()
-            for detection in np.flatnonzero(eligible.any(axis=0)):
-                # Match in confidence order, retrying available targets and preferring the last target on equal IoU.
-                candidates = np.flatnonzero(eligible[:, detection])[::-1]
-                available = np.where(used[candidates], -1, iou[candidates, detection, None])
-                best = available.argmax(axis=0)
-                targets = candidates[best]
-                valid = available[best, columns] >= thresholds
-                correct[detection] = valid
-                used[targets[valid], columns[valid]] = True
+            matched = np.zeros((iou.shape[0], len(thresholds)), dtype=bool)  # targets claimed at each threshold
+            for j in np.flatnonzero((iou >= thresholds.min()).any(0)):  # detections in descending confidence order
+                available = np.where(matched, 0, iou[:, j, None])  # IoU with each unclaimed target per threshold
+                k = available.argmax(0)  # best unclaimed target per threshold
+                correct[j] = available[k, range(len(thresholds))] >= thresholds
+                matched[k, range(len(thresholds))] |= correct[j]
         return torch.from_numpy(correct)
 
     @smart_inference_mode(False)

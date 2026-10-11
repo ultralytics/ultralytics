@@ -256,8 +256,6 @@ class ONNXBackend(BaseBackend):
 
             # Check if dynamic shapes
             self.dynamic = isinstance(self.session.get_outputs()[0].shape[0], str)
-            if not self.metadata and isinstance(batch := self.session.get_inputs()[0].shape[0], int):
-                self.apply_metadata({"batch": batch})  # third-party or pre-metadata export: use the graph's batch
             self.fp16 = "float16" in self.session.get_inputs()[0].type
 
             # Setup IO binding for CUDA and MIGraphX
@@ -280,6 +278,11 @@ class ONNXBackend(BaseBackend):
                             buffer_ptr=y_tensor.data_ptr(),
                         )
                     self.bindings.append(y_tensor)
+
+            # Third-party or pre-metadata export: a fixed input batch makes the graph static whatever its output shapes
+            if not self.metadata and isinstance(batch := self.session.get_inputs()[0].shape[0], int):
+                self.dynamic = False
+                self.apply_metadata({"batch": batch})
 
     def forward(
         self, im: torch.Tensor | dict[str, torch.Tensor | np.ndarray]

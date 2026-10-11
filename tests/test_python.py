@@ -1236,6 +1236,74 @@ def test_labels_and_crops(tmp_path):
     assert any((tmp_path / "crop/crops").rglob("*.jpg")), "save_crop=True alone must write crop files"
 
 
+@pytest.mark.parametrize("annotated_only", [False, True])
+@pytest.mark.parametrize("sizes", [(), (1,), (1, 2, 3, 7)])
+@pytest.mark.parametrize("external_ids", [False, True])
+def test_autosplit_groups(tmp_path, annotated_only, sizes, external_ids):
+    """Test grouped split integrity, default byte compatibility, and deterministic assignment before label filtering."""
+    import random
+
+    from ultralytics.data.split import autosplit
+
+    images = tmp_path / "images"
+    images.mkdir()
+    files, labeled, ids = [], set(), {}
+    for group, size in enumerate(sizes):
+        folder = images / str(group) / "video"  # repeated leaf names must remain distinct directory groups
+        folder.mkdir(parents=True)
+        for frame in range(size):
+            image = folder / f"{frame}.jpg"
+            Image.new("RGB", (8, 8)).save(image)
+            files.append(image)
+            ids[image] = group % 2  # external identifiers can join images across directories
+            if frame % 2 == 0 and group != 1:  # an entirely unlabeled group still receives an assignment
+                label = tmp_path / "labels" / str(group) / "video" / f"{frame}.txt"
+                label.parent.mkdir(parents=True, exist_ok=True)
+                label.write_text("0 0.5 0.5 0.2 0.2\n")
+                labeled.add(image)
+    files.sort()
+    names = ("train", "val", "test")
+    expected = {name: b"" for name in names}
+    for image, index in zip(files, random.Random(0).choices(range(3), weights=(0.6, 0.3, 0.1), k=len(files))):
+        if not annotated_only or image in labeled:
+            expected[names[index]] += (f"./{image.relative_to(tmp_path).as_posix()}" + os.linesep).encode()
+
+    def manifests():
+        return {
+            name: path.read_bytes() if (path := tmp_path / f"autosplit_{name}.txt").exists() else b"" for name in names
+        }
+
+    autosplit(images, weights=(0.6, 0.3, 0.1), annotated_only=annotated_only)
+    assert manifests() == expected
+    key = (lambda image: ids[image]) if external_ids else (lambda image: image.parent)
+    random_state = random.getstate()
+    autosplit(images, weights=(0.6, 0.3, 0.1), group_key=key)
+    expected_grouped = manifests()
+    if annotated_only:
+        expected_grouped = {
+            name: b"".join(
+                row for row in content.splitlines(keepends=True) if tmp_path / row.decode().strip() in labeled
+            )
+            for name, content in expected_grouped.items()
+        }
+    autosplit(images, weights=(0.6, 0.3, 0.1), annotated_only=annotated_only, group_key=key)
+    assert random.getstate() == random_state
+    grouped = manifests()
+    assert grouped == expected_grouped
+    owners, seen = {}, []
+    for name, content in grouped.items():
+        for row in content.decode().splitlines():
+            image = tmp_path / row
+            assert owners.setdefault(key(image), name) == name
+            seen.append(image)
+    assert len(seen) == len(set(seen))
+    assert set(seen) == (labeled if annotated_only else set(files))
+    autosplit(images, weights=(0.6, 0.3, 0.1), annotated_only=annotated_only, group_key=key)
+    assert manifests() == grouped
+    autosplit(images, weights=(1, 0, 0), group_key=key)
+    assert not manifests()["val"] and not manifests()["test"]
+
+
 def test_data_utils(tmp_path):
     """Test data utility functions including auto-splitting and zip archiving."""
     from ultralytics.data.split import autosplit

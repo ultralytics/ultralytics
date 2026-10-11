@@ -532,8 +532,8 @@ logging.getLogger("sentry_sdk").setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=""):
-    """Return platform-dependent emoji-safe version of string."""
-    return string.encode().decode("ascii", "ignore") if WINDOWS else string
+    """Return platform-dependent emoji-safe version of string, removing only emojis on Windows."""
+    return re.sub(r"[\u2300-\u23ff\u2600-\u27bf\ufe0f\U0001f000-\U0001faff]", "", string) if WINDOWS else string
 
 
 class ThreadingLocked:

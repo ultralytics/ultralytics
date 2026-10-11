@@ -309,6 +309,10 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     === "Raspberry Pi 5 + AI HAT+ (Hailo-8)"
 
+        <div align="center">
+        <img width="800" src="https://cdn.ul.run/i/819fc70745c567ecb814812b2f75f9ce.avif" alt="Raspberry Pi 5 Hailo 8 NPU vs PyTorch benchmarks">
+        </div>
+
         | Model   | Format  | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
         | ------- | ------- | ------ | --------- | ------------------- | ---------------------- |
         | YOLO26n | PyTorch | ✅     | 5.3       | 0.477               | 364.6                  |

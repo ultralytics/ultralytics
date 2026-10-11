@@ -562,7 +562,7 @@ class BasePredictor:
                 self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
-                    fps=fps,
+                    fps=round(fps) if MACOS else fps,  # AVFoundation uses an integer time scale
                     frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 

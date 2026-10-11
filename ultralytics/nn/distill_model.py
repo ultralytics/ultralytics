@@ -30,6 +30,74 @@ class FeatureHook:
         self.feat_dict[self.idx] = output
 
 
+class ScaleDecoupledFeature(nn.Module):
+    """ScaleKD scale-decoupled feature (SDF) module splitting one feature map into multi-scale embeddings.
+
+    A residual 1x1-3x3-1x1 bottleneck whose 3x3 weights are shared across dilation rates, so each branch focuses on a
+    different object scale (small dilations for small objects) at the memory cost of a single branch. The last 1x1
+    conv is zero-initialized so distillation starts as plain feature mimicking.
+    """
+
+    def __init__(self, c: int, dilations: tuple[int, ...] = (1, 2, 3)):
+        """Initialize the module.
+
+        Args:
+            c (int): Input and output channels.
+            dilations (tuple[int, ...]): Dilation rate of the shared 3x3 conv in each branch.
+        """
+        super().__init__()
+        c_ = c // 4
+        self.dilations = dilations
+        self.cv1 = nn.Conv2d(c, c_, 1)
+        self.cv2 = nn.Conv2d(c_, c_, 3)
+        self.cv3 = nn.Conv2d(c_, c, 1)
+        self.act = nn.SiLU()
+        nn.init.zeros_(self.cv3.weight)
+        nn.init.zeros_(self.cv3.bias)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Return the concatenated per-scale embeddings of shape (N, C * len(dilations), H, W)."""
+        y = self.act(self.cv1(x))
+        w, b = self.cv2.weight, self.cv2.bias
+        return torch.cat([x + self.cv3(self.act(F.conv2d(y, w, b, padding=d, dilation=d))) for d in self.dilations], 1)
+
+
+class CrossScaleAssistant(nn.Module):
+    """ScaleKD cross-scale assistant (CSA) refining student features with teacher knowledge.
+
+    Multi-scale cross-attention: queries come from the student, while each head attends to teacher keys/values aggregated
+    at its own down-sampling rate, so small objects are not drowned out by large salient ones as in plain cross-attention.
+    """
+
+    def __init__(self, cs: int, ct: int, rates: tuple[int, ...] = (2, 4, 8, 16)):
+        """Initialize the module.
+
+        Args:
+            cs (int): Student feature channels.
+            ct (int): Teacher feature channels.
+            rates (tuple[int, ...]): Teacher token down-sampling rate of each attention head.
+        """
+        super().__init__()
+        self.rates = rates
+        self.dh = cs // len(rates)  # head dim
+        self.q = nn.Conv2d(cs, cs, 1)
+        self.kv = nn.ModuleList(nn.Conv2d(ct, 2 * self.dh, 1) for _ in rates)  # per-head aggregation MLP
+        self.pe = nn.ModuleList(nn.Conv2d(self.dh, self.dh, 3, 1, 1, groups=self.dh) for _ in rates)  # depth-wise P(V)
+        self.proj = nn.Conv2d(cs, cs, 1)
+
+    def forward(self, s: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+        """Return student features (N, Cs, H, W) refined by attending to teacher features (N, Ct, H, W)."""
+        b, c, h, w = s.shape
+        q = self.q(s).view(b, len(self.rates), self.dh, h * w)
+        heads = []
+        for i, r in enumerate(self.rates):
+            k, v = self.kv[i](F.adaptive_avg_pool2d(t, (-(-h // r), -(-w // r)))).chunk(2, 1)
+            v = (v + self.pe[i](v)).flatten(2)
+            attn = (q[:, i].transpose(1, 2) @ k.flatten(2) * self.dh**-0.5).softmax(-1)  # (N, H*W, tokens)
+            heads.append(v @ attn.transpose(1, 2))
+        return s + self.proj(torch.cat(heads, 1).view(b, c, h, w))
+
+
 class DistillationModel(nn.Module):
     """YOLO knowledge distillation model.
 
@@ -42,12 +110,15 @@ class DistillationModel(nn.Module):
         feats_idx (list): Student layer indices for feature extraction.
         teacher_feats_idx (list): Teacher layer indices at the same feature levels.
         projector (nn.ModuleList): MLP projector aligning student features to teacher dimensions.
+        sdf (nn.ModuleList): ScaleKD scale-decoupled feature modules, only with `distill_method='scalekd'`.
+        csa (nn.ModuleList): ScaleKD cross-scale assistants, only with `distill_method='scalekd'`.
         dis (float): Distillation loss weight factor.
 
     Methods:
         get_distill_layers: Auto-detect distillation feature layers from the Detect head.
         forward: Run the student model, or compute the combined loss when given a training batch.
         loss: Compute combined detection and distillation loss.
+        loss_scalekd: Compute the ScaleKD feature, assistant, and output distillation losses.
         loss_sl2: Compute score-weighted L2 distillation loss for a feature pair.
         decouple_outputs: Normalize teacher/student head outputs across train/val formats.
         fuse: Fuse and return the student model for inference and export.
@@ -59,6 +130,7 @@ class DistillationModel(nn.Module):
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="coco8.yaml", distill_model="yolo26s.pt")
+        >>> model.train(data="coco8.yaml", distill_model="yolo26s.pt", distill_method="scalekd")
     """
 
     def __init__(self, teacher_model: str | Path | nn.Module, student_model: nn.Module):
@@ -105,18 +177,24 @@ class DistillationModel(nn.Module):
 
         copy_attr(self, student_model)
         self.dis = self.student_model.args.dis
-        projectors = []
-        for student_out, teacher_out in zip(student_output[:-1], teacher_output[:-1]):
-            student_dim = self.decouple_outputs(student_out).shape[1]
-            teacher_dim = self.decouple_outputs(teacher_out).shape[1]
-            projectors.append(
-                nn.Sequential(
-                    nn.Conv2d(student_dim, teacher_dim, kernel_size=1, stride=1, padding=0),
-                    nn.ReLU(inplace=True),
-                    nn.Conv2d(teacher_dim, teacher_dim, kernel_size=1, stride=1, padding=0),
-                )
+        method = self.student_model.args.distill_method
+        if method not in {"sl2", "scalekd"}:
+            raise ValueError(f"Invalid distill_method='{method}', valid options are 'sl2' and 'scalekd'")
+        dims = [
+            (self.decouple_outputs(s).shape[1], self.decouple_outputs(t).shape[1])
+            for s, t in zip(student_output[:-1], teacher_output[:-1])
+        ]
+        self.projector = nn.ModuleList(
+            nn.Sequential(
+                nn.Conv2d(student_dim, teacher_dim, kernel_size=1, stride=1, padding=0),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(teacher_dim, teacher_dim, kernel_size=1, stride=1, padding=0),
             )
-        self.projector = nn.ModuleList(projectors).to(device)
+            for student_dim, teacher_dim in dims
+        ).to(device)
+        if method == "scalekd":
+            self.sdf = nn.ModuleList(ScaleDecoupledFeature(ct) for _, ct in dims).to(device)
+            self.csa = nn.ModuleList(CrossScaleAssistant(cs, ct) for cs, ct in dims).to(device)
 
     def __getstate__(self):
         """Return a copy of state for pickling without captured features or hook handles.
@@ -252,6 +330,8 @@ class DistillationModel(nn.Module):
                 preds = self.student_model(batch["img"])
             regular_loss, loss_items = self.student_model.loss(batch, preds)
             loss_items["dis_loss"] = loss_distill.detach()
+            if getattr(self, "csa", None) is not None:
+                loss_items["csa_loss"] = loss_distill.detach()
             return torch.cat([regular_loss, loss_distill]), loss_items
 
         # Clear feature dicts before forward passes
@@ -263,6 +343,8 @@ class DistillationModel(nn.Module):
         preds = self.student_model(batch["img"])  # hooks capture student features
 
         regular_loss, loss_items = self.student_model.loss(batch, preds)
+        if getattr(self, "csa", None) is not None:
+            return self.loss_scalekd(batch, preds, regular_loss, loss_items)
         n = len(self.feats_idx) - 1  # neck levels; level n is the Detect head
         teacher_head_feat = self._teacher_feats[n]
         teacher_scores = (
@@ -283,6 +365,49 @@ class DistillationModel(nn.Module):
         loss_items["dis_loss"] = loss_distill.detach()
         loss_distill = loss_distill * batch["img"].shape[0]
         return torch.cat([regular_loss, loss_distill]), loss_items
+
+    def loss_scalekd(self, batch: dict, preds: dict, regular_loss: torch.Tensor, loss_items: dict):
+        """Compute the ScaleKD loss (Zhu et al., CVPR 2023) on top of the student detection loss.
+
+        Combines scale-decoupled feature distillation, the ground-truth detection loss that trains the cross-scale
+        assistant through the shared student head, and classification/box distillation from the assistant's outputs.
+
+        Args:
+            batch (dict): Training batch.
+            preds (dict): Student training predictions.
+            regular_loss (torch.Tensor): Student detection loss.
+            loss_items (dict[str, torch.Tensor]): Detached student detection loss components.
+
+        Returns:
+            loss (torch.Tensor): Student loss with the distillation and assistant losses appended.
+            loss_items (dict[str, torch.Tensor]): Detached loss components, including `dis_loss` and `csa_loss`.
+        """
+        bs = batch["img"].shape[0]
+        n = len(self.feats_idx) - 1  # neck levels; level n is the Detect head
+        teacher_feats = [self._teacher_feats[i] for i in range(n)]
+        student_feats = [self._student_feats[i] for i in range(n)]
+        loss_distill = 0.0
+        for i in range(n):
+            with torch.no_grad():
+                target = self.sdf[i](teacher_feats[i])
+            loss_distill += F.mse_loss(self.sdf[i](self.projector[i](student_feats[i])), target)
+
+        head = self.student_model.model[self.feats_idx[-1]]
+        csa_preds = head([csa(s.detach(), t) for csa, s, t in zip(self.csa, student_feats, teacher_feats)])
+        csa_loss = self.criterion(csa_preds, batch)[0].sum()
+        branches = ("one2many", "one2one") if "one2one" in preds else (None,)
+        for k in branches:
+            student, assistant = (preds[k], csa_preds[k]) if k else (preds, csa_preds)
+            scores = assistant["scores"].detach().sigmoid()  # (N, nc, A)
+            w = scores.amax(1)  # assistant confidence weights per anchor (N, A)
+            bce = F.binary_cross_entropy_with_logits(student["scores"], scores, reduction="none").sum(1)
+            l1 = (head.dfl(student["boxes"]) - head.dfl(assistant["boxes"].detach())).abs().sum(1)
+            loss_distill += ((bce + l1) * w).sum() / (w.sum() * len(branches))
+        loss_distill = (loss_distill * self.dis).view(1)
+
+        loss_items["dis_loss"] = loss_distill.detach()
+        loss_items["csa_loss"] = csa_loss.detach().view(1) / bs
+        return torch.cat([regular_loss, loss_distill * bs, csa_loss.view(1)]), loss_items
 
     def loss_sl2(
         self, student_feat: torch.Tensor, teacher_feat: torch.Tensor, feat_idx: int, teacher_scores: tuple

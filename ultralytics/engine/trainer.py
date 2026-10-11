@@ -894,8 +894,9 @@ class BaseTrainer:
             # teacher is stripped from the checkpoint to save memory/disk; rebuild it from the distill_model path
             teacher_model = weights.teacher_model if weights.teacher_model is not None else self.args.distill_model
             model = DistillationModel(student_model=student_model, teacher_model=teacher_model)
-            if getattr(weights, "projector", None) is not None:
-                model.projector.load_state_dict(weights.projector.state_dict())  # restore the trained projector
+            for name, m in weights.named_children():  # restore the trained distillation modules (projector, ...)
+                if name not in {"student_model", "teacher_model"}:
+                    getattr(model, name).load_state_dict(m.state_dict())
             model.criterion = None
             self.model = model
         else:
@@ -1111,9 +1112,9 @@ class BaseTrainer:
         model = unwrap_model(self.model)
         if hasattr(model, "student_model"):
             # Distillation: the EMA is stripped of the teacher (rebuilt from the distill_model path), so only the
-            # student and projector are restored; loading them separately keeps a strict key match.
-            model.student_model.load_state_dict(ema.student_model.state_dict())
-            model.projector.load_state_dict(ema.projector.state_dict())
+            # student and distillation modules are restored; loading them separately keeps a strict key match.
+            for name, m in ema.named_children():
+                getattr(model, name).load_state_dict(m.state_dict())
         else:
             model.load_state_dict(ema_state)  # Load EMA weights into model
         self._load_checkpoint_state(ckpt)  # Load optimizer/scaler/EMA/best_fitness

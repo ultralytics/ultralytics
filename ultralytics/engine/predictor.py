@@ -553,7 +553,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
-            fps = max(1, round(fps / self.args.vid_stride))  # skipped frames must not shorten the saved video
+            fps = max(1, fps / self.args.vid_stride)  # preserve fractional rates after skipping frames
             frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
@@ -562,7 +562,7 @@ class BasePredictor:
                 self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
-                    fps=fps,  # integer required, floats produce error in MP4 codec
+                    fps=fps,
                     frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 

@@ -75,6 +75,18 @@ def test_export_onnx(nms, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+def test_export_onnx_static_batch_without_metadata(isolated_model):
+    """Split and pad inputs for a static-batch ONNX graph that carries no Ultralytics metadata."""
+    import onnx
+
+    file = YOLO(isolated_model).export(format="onnx", imgsz=32, batch=2)
+    model = onnx.load(file)
+    del model.metadata_props[:]
+    onnx.save(model, file)
+    for n in (1, 3):  # short and oversized batches
+        assert len(YOLO(file, task="detect").predict([SOURCE] * n, imgsz=32, batch=n)) == n
+
+
 @pytest.mark.skipif(not TORCH_1_13, reason="ONNX export with NMS requires torch>=1.13")
 def test_export_onnx_nms_conf(isolated_model):
     """Bake explicit zero confidence into the NMS graph instead of the 0.25 default."""

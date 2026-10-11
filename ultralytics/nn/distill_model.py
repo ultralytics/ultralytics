@@ -34,8 +34,8 @@ class ScaleDecoupledFeature(nn.Module):
     """ScaleKD scale-decoupled feature (SDF) module splitting one feature map into multi-scale embeddings.
 
     A residual 1x1-3x3-1x1 bottleneck whose 3x3 weights are shared across dilation rates, so each branch focuses on a
-    different object scale (small dilations for small objects) at the memory cost of a single branch. The last 1x1
-    conv is zero-initialized so distillation starts as plain feature mimicking.
+    different object scale (small dilations for small objects) at the memory cost of a single branch. The last 1x1 conv
+    is zero-initialized so distillation starts as plain feature mimicking.
     """
 
     def __init__(self, c: int, dilations: tuple[int, ...] = (1, 2, 3)):
@@ -65,8 +65,9 @@ class ScaleDecoupledFeature(nn.Module):
 class CrossScaleAssistant(nn.Module):
     """ScaleKD cross-scale assistant (CSA) refining student features with teacher knowledge.
 
-    Multi-scale cross-attention: queries come from the student, while each head attends to teacher keys/values aggregated
-    at its own down-sampling rate, so small objects are not drowned out by large salient ones as in plain cross-attention.
+    Multi-scale cross-attention: queries come from the student, while each head attends to teacher keys/values
+    aggregated at its own down-sampling rate, so small objects are not drowned out by large salient ones as in plain
+    cross-attention.
     """
 
     def __init__(self, cs: int, ct: int, rates: tuple[int, ...] = (2, 4, 8, 16)):

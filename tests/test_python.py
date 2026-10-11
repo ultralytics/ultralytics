@@ -1298,6 +1298,16 @@ def test_autosplit_groups(tmp_path, annotated_only, sizes, external_ids):
             seen.append(image)
     assert len(seen) == len(set(seen))
     assert set(seen) == (labeled if annotated_only else set(files))
+    if len(sizes) > 1:
+        assert owners == (
+            {0: "val", 1: "val"}
+            if external_ids
+            else {
+                images / str(group) / "video": split
+                for group, split in enumerate(("val", "val", "train", "train"))
+                if not annotated_only or group != 1
+            }
+        )
     autosplit(images, weights=(0.6, 0.3, 0.1), annotated_only=annotated_only, group_key=key)
     assert manifests() == grouped
     autosplit(images, weights=(1, 0, 0), group_key=key)

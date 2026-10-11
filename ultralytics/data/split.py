@@ -5,6 +5,7 @@ from __future__ import annotations
 import random
 import shutil
 from pathlib import Path
+from typing import Callable, Hashable
 
 from ultralytics.data.utils import IMG_FORMATS, img2label_paths
 from ultralytics.utils import DATASETS_DIR, LOGGER, TQDM
@@ -104,6 +105,7 @@ def autosplit(
     path: str | Path = DATASETS_DIR / "coco8/images",
     weights: tuple[float, float, float] = (0.9, 0.1, 0.0),
     annotated_only: bool = False,
+    group_key: Callable[[Path], Hashable] | None = None,
 ) -> None:
     """Automatically split a dataset into train/val/test splits saved as autosplit_*.txt files.
 
@@ -111,6 +113,9 @@ def autosplit(
         path (str | Path): Path to images directory.
         weights (tuple[float, float, float]): Train, validation, and test split fractions.
         annotated_only (bool): If True, only images with an associated txt file are used.
+        group_key (Callable | None): Optional function mapping each image path to a stable, hashable group identifier.
+            Images with the same key are assigned to the same split. Weights apply to groups, so image fractions may
+            differ, and small group counts may leave splits empty. Group assignment precedes annotation filtering.
 
     Examples:
         Split images with default weights
@@ -119,11 +124,20 @@ def autosplit(
 
         Split with custom weights and annotated images only
         >>> autosplit(path="path/to/images", weights=(0.8, 0.15, 0.05), annotated_only=True)
+
+        Keep frames from each source-video directory in one split
+        >>> autosplit(path="path/to/images", group_key=lambda image: image.parent)
     """
     path = Path(path)  # images dir
     files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
     n = len(files)  # number of files
-    indices = random.Random(0).choices([0, 1, 2], weights=weights, k=n)  # assign each image reproducibly
+    if group_key is None:
+        indices = random.Random(0).choices([0, 1, 2], weights=weights, k=n)  # assign each image reproducibly
+    else:
+        groups = [group_key(img) for img in files]
+        keys = dict.fromkeys(groups)  # retain sorted-file discovery order
+        assignments = dict(zip(keys, random.Random(0).choices([0, 1, 2], weights=weights, k=len(keys))))
+        indices = [assignments[group] for group in groups]
 
     txt = ["autosplit_train.txt", "autosplit_val.txt", "autosplit_test.txt"]  # 3 txt files
     for x in txt:

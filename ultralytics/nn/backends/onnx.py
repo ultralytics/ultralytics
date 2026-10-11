@@ -304,9 +304,7 @@ class ONNXBackend(BaseBackend):
             return self.session.run(self.output_names, im)
 
         if self.use_io_binding:
-            im = im.contiguous()
-            if self.device.type == "cpu":
-                im = im.cpu()
+            im = im.contiguous()  # binding reads raw memory, so strided views need a dense copy
             if torch.version.hip:  # the MIGraphX plugin EP binds GPU tensors through DLPack
                 from onnxruntime import OrtValue
 

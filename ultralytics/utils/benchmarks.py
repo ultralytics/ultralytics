@@ -107,7 +107,7 @@ def benchmark(
     """
     from ultralytics.cfg import _handle_deprecation
 
-    kwargs = _handle_deprecation(kwargs)
+    quantize = _handle_deprecation(kwargs).pop("quantize", quantize)  # updates kwargs in place, half/int8 -> quantize
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
@@ -211,7 +211,7 @@ def benchmark(
             # Export
             if export_format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
-                exported_model = deepcopy(model)  # PyTorch format
+                exported_model = deepcopy(model, {id(model.predictor): None, id(model.trainer): None})  # PyTorch format
             else:
                 export_data = data if "data" in valid_args else None
                 filename = model.export(
@@ -419,8 +419,8 @@ class ProfileModels:
         for path in self.paths:
             path = Path(path)
             if path.is_dir():
-                extensions = ["*.pt", "*.onnx", "*.yaml"]
-                files.extend([file for ext in extensions for file in glob.glob(str(path / ext))])
+                extensions = ["*.onnx", "*.yaml", "*.pt"]  # one file per stem, so a model's own ONNX export is skipped
+                files.extend({Path(f).stem: f for ext in extensions for f in glob.glob(str(path / ext))}.values())
             elif path.suffix in {".pt", ".yaml", ".yml"}:  # add non-existing
                 files.append(str(path))
             else:

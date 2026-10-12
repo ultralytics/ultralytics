@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from itertools import count
+import sys
 from typing import Any
 
 import numpy as np
@@ -533,7 +533,7 @@ class BYTETracker:
 
     def reset_id(self):
         """Restart this tracker's track IDs at 1."""
-        self._ids = count(1)
+        self._ids = iter(range(1, sys.maxsize))
 
     def reset(self):
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""

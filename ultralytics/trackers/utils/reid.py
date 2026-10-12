@@ -84,7 +84,8 @@ class ReID:
         Returns:
             (list[np.ndarray]): Cropped image patches.
         """
-        return [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
+        # BGR=True keeps crops frame-native: _crops_to_tensor and the .pt predictor path both flip BGR->RGB downstream
+        return [save_one_box(det, img, save=False, BGR=True) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
 
     def _crops_to_tensor(self, crops: list[np.ndarray]) -> torch.Tensor:
         """Stack a list of valid image crops into a normalized BCHW float tensor at self.imgsz."""

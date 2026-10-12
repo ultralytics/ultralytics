@@ -503,11 +503,10 @@ def test_predict_ndarray_channels():
     assert gray.ndim == 2, "Expected a 2D grayscale array for this test"
     assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
-    bgra = np.zeros((8, 8, 4), dtype="float64")
-    assert LoadPilAndNumpy(bgra, channels=3).im0[0].shape == (8, 8, 3)  # non-OpenCV dtype also falls back for BGRA
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
-        im = np.zeros((8, 8, source_channels), dtype=np.uint8)
-        assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
+        for dtype in (np.uint8, np.float64):  # float64 is a dtype cvtColor rejects
+            im = np.zeros((8, 8, source_channels), dtype=dtype)
+            assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
 
 
 def test_single_check_channel_order_and_contiguity():

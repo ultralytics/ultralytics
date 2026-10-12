@@ -860,6 +860,12 @@ class Exporter:
                 )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning("'dynamic=True' export requires a maximum batch size, e.g. 'batch=16'.")
+        if self.args.nms and self.args.dynamic and self.args.batch > 1:
+            LOGGER.warning(
+                f"'nms=True' with 'dynamic=True' processes at most 'batch={self.args.batch}' images per call: the "
+                "embedded NMS loop is traced at the export batch, so larger runtime batches silently return empty "
+                "detections for the extra images. Chunk larger batches or export with 'dynamic=False'."
+            )
         if fmt == "edgetpu" and (not LINUX or ARM64):
             raise SystemError(
                 "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"

@@ -91,7 +91,7 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         random.Random(0).shuffle(image_files)  # deterministic, so re-splitting never mixes train and val images
         split_idx = int(len(image_files) * train_ratio)
 
-        source_files[class_dir.name] = {img.name for img in image_files}
+        source_files[class_dir.name] = {img.relative_to(class_dir) for img in image_files}
         for i, img in enumerate(image_files):
             target, previous = (train_path, val_path) if i < split_idx else (val_path, train_path)
             relative = Path(class_dir.name, img.relative_to(class_dir))
@@ -111,16 +111,18 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
     # current source; cache artifacts (*.npy, *.cache) are left untouched
     for split in (train_path, val_path):
         for out_class in split.iterdir():
-            if out_class.is_dir():
-                for f in out_class.rglob("*"):
-                    if (
-                        f.is_file()
-                        and f.suffix[1:].lower() in IMG_FORMATS
-                        and f.name not in source_files.get(out_class.name, ())
-                    ):
-                        f.unlink()
-                if not any(out_class.iterdir()):  # rmdir only removes empty dirs, keeping any cache artifacts intact
-                    out_class.rmdir()
+            if not out_class.is_dir():
+                continue
+            source = source_files.get(out_class.name, ())
+            for f in out_class.rglob("*"):
+                if f.is_file() and f.suffix[1:].lower() in IMG_FORMATS and f.relative_to(out_class) not in source:
+                    f.unlink()
+            dirs = sorted((d for d in out_class.rglob("*") if d.is_dir()), key=lambda d: len(d.parts), reverse=True)
+            for d in dirs:
+                if not any(d.iterdir()):  # rmdir only removes empty dirs, keeping any cache artifacts intact
+                    d.rmdir()
+            if not any(out_class.iterdir()):
+                out_class.rmdir()
 
     LOGGER.info(f"Split complete in {split_path} ({total_images} images) ✅")
     return split_path

@@ -161,8 +161,7 @@ def modelopt_quantize_onnx(
     if quantize == 8 and dataset is None:
         raise ValueError("INT8 ModelOpt quantization requires a calibration dataset.")
 
-    # Require modelopt >= 0.44: older releases import onnx.mapping which was removed in onnx >= 1.18 and crash
-    # Pin torch so the resolver cannot replace a CUDA build with a PyPI wheel (modelopt>=0.44 requires torch>=2.8)
+    # modelopt<0.44 imports onnx.mapping (removed in onnx 1.18); pin torch so modelopt's torch>=2.8 can't replace it
     check_requirements("nvidia-modelopt[onnx]>=0.44", constrain=(f"torch=={TORCH_VERSION}",))
     import onnx
 

@@ -301,10 +301,9 @@ class SegmentationValidator(DetectionValidator):
         """Scale predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            # The masks are binary at the network input size; threshold the bilinear rescale instead of truncating it
-            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[0]
-            .gt_(0.5)
-            .byte(),
+            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[
+                0
+            ].byte(),
         }
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:

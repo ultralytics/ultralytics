@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_requirements
@@ -61,9 +62,7 @@ class OpenVINOBackend(BaseBackend):
         # NPU returns wrong results for batch>1, so compile batch 1 and loop over the batch in forward()
         self.npu = device_name.startswith("NPU")
         if self.npu:
-            shape = ov_model.input().get_partial_shape()
-            shape[0] = 1
-            ov_model.reshape(shape)
+            ov.set_batch(ov_model, 1)
             if self.task == "depth":  # NPU gets the final align_corners=True upsample wrong, so run it in forward()
                 up = ov_model.output().get_node().input_value(0).get_node()
                 ov_model = ov.Model([up.input_value(0)], ov_model.get_parameters())
@@ -124,11 +123,9 @@ class OpenVINOBackend(BaseBackend):
             self.ov_compiled_model = self.compile_model(ov_model)
 
         if self.npu:
-            outs = [list(self.ov_compiled_model(x[None]).values()) for x in im]
-            outs = [np.concatenate(o) for o in zip(*outs)]
+            outs = [np.concatenate(o) for o in zip(*(self.ov_compiled_model(x[None]).values() for x in im))]
             if self.task == "depth":
-                depth = torch.from_numpy(outs[0])
-                depth = torch.nn.functional.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=True)
+                depth = F.interpolate(torch.from_numpy(outs[0]), scale_factor=4.0, mode="bilinear", align_corners=True)
                 outs = [depth.numpy()]
             return outs
         return list(self.ov_compiled_model(im).values())

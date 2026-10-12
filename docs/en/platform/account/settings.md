@@ -18,8 +18,8 @@ extra-wide screens a sidebar next to the tabs lists your five most recent traini
 
 ## Profile Tab
 
-The `Profile` tab contains your profile information, social links, data region, connected accounts, and account
-management options.
+The `Profile` tab contains your profile information, email, social links, data region, connected accounts, and
+account management options.
 
 ### Profile Information
 
@@ -90,31 +90,20 @@ Connect your professional profiles:
 
 Social links appear on your public profile page.
 
-### Emails
+### Email
 
-Manage email addresses linked to your account in the `Profile` tab. The Emails card appears on personal accounts only —
-team workspaces have no separate email list.
+The **Email** card on the `Profile` tab of your personal workspace shows your sign-in email with a **Verified** or
+**Unverified** badge, plus a **Company** badge for a verified work address. Team workspaces have no email card.
 
-![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/3e2708ac6f049cf9e30d3f807f6166b2.avif)<!-- screenshot -->
-
-| Action             | Description                                                                |
-| ------------------ | -------------------------------------------------------------------------- |
-| **Add**            | Add a new email address, which immediately sends a 6-digit code            |
-| **Verify**         | Enter the 6-digit code sent to the address (use **Resend** to get another) |
-| **Set as primary** | Set a verified email as your primary address                               |
-| **Remove**         | Remove a non-primary email address                                         |
-
-Each address is labeled with **Primary**, **Verified** or **Unverified**, and **Company** badges.
-
-!!! note "Primary Email"
-
-    Your primary email is used for notifications and account recovery. Only verified emails can be set as primary.
+To change it, enter the new address under **Change email address**, click **Send code**, then enter the 6-digit code
+sent to that address and click **Verify** (**Resend** sends another). The new address replaces the old one for sign-in,
+notifications, and account recovery.
 
 !!! tip "Company Email Bonus"
 
-    Verifying a company or work email address (not gmail.com, outlook.com, and similar consumer domains) adds the
-    remaining $20 of the $25 signup credit to your balance. The bonus is granted once per account. See
-    [Billing](billing.md#free-plan).
+    Changing your email to a verified company or work address (not gmail.com, outlook.com, and similar consumer
+    domains) adds the remaining $20 of the $25 signup credit to your balance. The bonus is granted once per account.
+    See [Billing](billing.md#free-plan).
 
 ### Data Region
 
@@ -439,11 +428,9 @@ Feedback is private and sent directly to the Ultralytics team to help prioritize
 
 ### How do I change my email?
 
-Manage your email addresses directly on the platform:
-
-1. Go to **Settings > Profile**
-2. Scroll to the **Emails** section
-3. Add a new email, enter the 6-digit code sent to it, then click **Set as primary**
+1. In your personal workspace, go to **Settings > Profile**
+2. In the **Email** card, enter the new address and click **Send code**
+3. Enter the 6-digit code sent to it and click **Verify**
 
 ### How do I change my password?
 

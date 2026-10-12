@@ -38,7 +38,7 @@ The Account section helps you:
 
 | Feature      | Description                                                 |
 | ------------ | ----------------------------------------------------------- |
-| **Settings** | Profile, emails, social links, and data region              |
+| **Settings** | Profile, email, social links, and data region               |
 | **API Keys** | Generate AES-256-GCM encrypted keys for programmatic access |
 | **Plans**    | Free, Pro, and Enterprise plan comparison                   |
 | **Billing**  | Credits, payment methods, and transaction history           |
@@ -51,17 +51,17 @@ The Account section helps you:
 
 Account management is organized into nine tabs within `Settings` (in order):
 
-| Tab            | Description                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------- |
-| `Profile`      | Display name, bio, company, use case, emails, social links, data region, connected accounts |
-| `API Keys`     | Create and manage API keys for remote training and programmatic access                      |
-| `Plans`        | Compare Free, Pro, and Enterprise plans                                                     |
-| `Billing`      | Credit balance, top-ups, promo codes, payment methods, billing address, transactions        |
-| `Usage`        | Spend over time, usage events, and storage breakdown for the active workspace               |
-| `Referrals`    | Personal referral link and the $10 credit earned once a referred friend tops up $10         |
-| `Teams`        | Member list, roles, invites, seat allocation, and the permission matrix                     |
-| `Integrations` | Connect cloud or On Premise storage and compute, Slack notifications, and dataset imports   |
-| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                               |
+| Tab            | Description                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| `Profile`      | Display name, bio, company, use case, email, social links, data region, connected accounts |
+| `API Keys`     | Create and manage API keys for remote training and programmatic access                     |
+| `Plans`        | Compare Free, Pro, and Enterprise plans                                                    |
+| `Billing`      | Credit balance, top-ups, promo codes, payment methods, billing address, transactions       |
+| `Usage`        | Spend over time, usage events, and storage breakdown for the active workspace              |
+| `Referrals`    | Personal referral link and the $10 credit earned once a referred friend tops up $10        |
+| `Teams`        | Member list, roles, invites, seat allocation, and the permission matrix                    |
+| `Integrations` | Connect cloud or On Premise storage and compute, Slack notifications, and dataset imports  |
+| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                              |
 
 ## Security
 
@@ -104,11 +104,8 @@ Usernames cannot be changed after account creation. Your username is set during 
 
 ### How do I change my email?
 
-Manage your email addresses directly on the platform:
-
-1. Go to `Settings > Profile`
-2. Scroll to the **Emails** section
-3. Add a new email, enter the 6-digit code sent to it, then set it as primary
+Change it in the **Email** card of `Settings > Profile` by confirming a 6-digit code sent to the new address. See
+[Settings](settings.md#email).
 
 ### How do I delete my account?
 

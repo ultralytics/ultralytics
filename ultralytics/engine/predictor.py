@@ -553,7 +553,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
-            fps = max(1, fps / self.args.vid_stride)  # preserve fractional rates after skipping frames
+            fps = max(1, fps / self.args.vid_stride)  # skipped frames must not shorten the saved video
             frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
@@ -562,7 +562,7 @@ class BasePredictor:
                 self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
-                    fps=round(fps) if MACOS else fps,  # AVFoundation uses an integer time scale
+                    fps=fps,  # float keeps fractional rates, e.g. 29.97 or 30 / vid_stride
                     frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 

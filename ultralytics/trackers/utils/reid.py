@@ -82,9 +82,8 @@ class ReID:
             dets (np.ndarray): Detections in xywh format (first 4 columns used).
 
         Returns:
-            (list[np.ndarray]): Cropped image patches.
+            (list[np.ndarray]): Cropped BGR image patches, converted to RGB by both inference paths.
         """
-        # BGR=True keeps crops frame-native: _crops_to_tensor and the .pt predictor path both flip BGR->RGB downstream
         return [save_one_box(det, img, save=False, BGR=True) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
 
     def _crops_to_tensor(self, crops: list[np.ndarray]) -> torch.Tensor:

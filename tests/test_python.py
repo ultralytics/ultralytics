@@ -1993,9 +1993,9 @@ def test_classification_split_class_alignment(tmp_path):
 def test_classification_resplit_converges_to_source(tmp_path, monkeypatch):
     """Re-splitting converges to the current source while cache artifacts and unchanged files stay in place.
 
-    Covers duplicate basenames in different subdirectories (cat/a/0.jpg and cat/b/0.jpg), removal of deleted
-    classes and images including their emptied nested directories, survival of *.npy/*.cache artifacts, and
-    that an unchanged re-split performs no copies at all.
+    Covers duplicate basenames in different subdirectories (cat/a/0.jpg and cat/b/0.jpg), removal of deleted classes and
+    images including their emptied nested directories, survival of *.npy/*.cache artifacts, and that an unchanged
+    re-split performs no copies at all.
     """
     from ultralytics.data.split import split_classify_dataset
 

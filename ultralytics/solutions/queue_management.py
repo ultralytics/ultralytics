@@ -3,6 +3,7 @@
 from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import colors
 
 
@@ -43,6 +44,11 @@ class QueueManager(BaseSolution):
         self.counts = 0  # Queue counts information
         self.rect_color = (255, 255, 255)  # Rectangle color for visualization
         self.region_length = len(self.region)  # Store region length for further usage
+        if self.region_length < 3:
+            LOGGER.warning(
+                "QueueManager requires a polygonal 'region' with 3+ points: line regions are not supported and "
+                "objects will not be counted."
+            )
 
     def process(self, im0) -> SolutionResults:
         """Process queue management for a single frame of video.

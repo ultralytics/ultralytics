@@ -12,7 +12,14 @@ from torch import nn
 
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
-from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
+from ultralytics.utils.tal import (
+    PoseTaskAlignedAssigner,
+    RotatedTaskAlignedAssigner,
+    TaskAlignedAssigner,
+    dist2bbox,
+    dist2rbox,
+    make_anchors,
+)
 from ultralytics.utils.torch_utils import autocast
 
 from .metrics import bbox_iou, probiou
@@ -435,6 +442,7 @@ class v8DetectionLoss:
 
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
+        gt_bboxes = self.assign_boxes(preds, batch, gt_bboxes, anchor_points, stride_tensor, imgsz)
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
@@ -474,6 +482,10 @@ class v8DetectionLoss:
             loss,
             dict(zip(self.loss_names, loss.detach())),
         )  # loss(box, cls, dfl)
+
+    def assign_boxes(self, preds, batch, gt_bboxes, anchor_points, stride_tensor, imgsz) -> torch.Tensor:
+        """Return the ground-truth boxes the assigner and box loss use; identity for detection."""
+        return gt_bboxes
 
     def parse_output(
         self, preds: dict[str, torch.Tensor] | tuple[torch.Tensor, dict[str, torch.Tensor]]
@@ -688,6 +700,52 @@ class v8PoseLoss(v8DetectionLoss):
                 raise ValueError(f"'kpt_oks_sigmas' must be {nkpt} positive values, got {sigmas.tolist()}")
 
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
+        self.pose_assign = getattr(self.hyp, "pose_assign", "box")
+        if self.pose_assign == "oks":
+            a = self.assigner
+            self.assigner = PoseTaskAlignedAssigner(
+                sigmas=sigmas,
+                oks_weight=self.hyp.pose_assign_w,
+                topk=a.topk,
+                num_classes=a.num_classes,
+                alpha=a.alpha,
+                beta=a.beta,
+                stride=a.stride,
+                topk2=a.topk2,
+            )
+        elif self.pose_assign != "box" and self.pose_assign != "kptbox":
+            raise ValueError(f"pose_assign must be 'box', 'kptbox' or 'oks', got '{self.pose_assign}'")
+
+    def assign_boxes(self, preds, batch, gt_bboxes, anchor_points, stride_tensor, imgsz) -> torch.Tensor:
+        """Apply the `pose_assign` mode: swap in visible-keypoint boxes (kptbox) or set the OKS context (oks)."""
+        if self.pose_assign == "box":
+            return gt_bboxes
+        bs, n_max = gt_bboxes.shape[:2]
+        kpts = batch["keypoints"].to(self.device).float()
+        if kpts.shape[-1] == 2:
+            kpts = torch.cat((kpts, torch.ones_like(kpts[..., :1])), -1)  # no visibility flag: all visible
+        gt_kpts = torch.zeros(bs, n_max, *kpts.shape[1:], device=self.device)
+        batch_idx = batch["batch_idx"].view(-1).long().to(self.device)
+        if len(batch_idx):  # same within-image slots as preprocess()
+            offsets = torch.zeros(bs + 1, dtype=torch.long, device=self.device)
+            offsets.scatter_add_(0, batch_idx + 1, torch.ones_like(batch_idx)).cumsum_(0)
+            gt_kpts[batch_idx, torch.arange(len(batch_idx), device=self.device) - offsets[batch_idx]] = kpts
+        gt_kpts[..., 0] *= imgsz[1]
+        gt_kpts[..., 1] *= imgsz[0]
+        vis = gt_kpts[..., 2] > 0
+        if self.pose_assign == "kptbox":  # boxes from >=3 visible keypoints replace the annotated box everywhere
+            xy = gt_kpts[..., :2]
+            lo = torch.where(vis[..., None], xy, float("inf")).amin(-2)
+            hi = torch.where(vis[..., None], xy, float("-inf")).amax(-2)
+            c, wh = (lo + hi) / 2, (hi - lo) * self.hyp.pose_assign_s
+            kbox = torch.cat((c - wh / 2, c + wh / 2), -1)
+            kbox = torch.minimum(kbox.clamp(min=0), imgsz[[1, 0, 1, 0]])
+            return torch.where((vis.sum(-1) >= 3)[..., None], kbox.to(gt_bboxes.dtype), gt_bboxes)
+        pred_kpts = preds["kpts"].detach().permute(0, 2, 1).reshape(bs, -1, *self.kpt_shape)
+        pred_kpts = self.kpts_decode(anchor_points, pred_kpts)[..., :2] * stride_tensor[:, None]
+        area = xyxy2xywh(gt_bboxes)[..., 2:].prod(-1) * 0.53  # cocoeval convention, as in PoseValidator
+        self.assigner.pose_ctx = (pred_kpts, gt_kpts, area)
+        return gt_bboxes
 
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]

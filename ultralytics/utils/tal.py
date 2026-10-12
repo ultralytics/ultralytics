@@ -382,6 +382,73 @@ class TaskAlignedAssigner(nn.Module):
         return target_gt_idx, fg_mask, mask_pos
 
 
+class PoseTaskAlignedAssigner(TaskAlignedAssigner):
+    """Task-aligned assigner whose overlap term mixes box IoU with keypoint OKS: (1 - w) * IoU + w * OKS.
+
+    Set ``pose_ctx = (pd_kpts, gt_kpts, area)`` before each call: predicted keypoints (b, h*w, K, 2) and ground-truth
+    keypoints (b, n_max_boxes, K, 3) in pixels, and the OKS area (b, n_max_boxes). GTs without visible keypoints keep
+    the plain IoU.
+    """
+
+    def __init__(self, sigmas: torch.Tensor, oks_weight: float = 0.5, **kwargs):
+        """Initialize with keypoint OKS sigmas (K,) and the OKS weight in the overlap mix."""
+        super().__init__(**kwargs)
+        self.sigmas = sigmas
+        self.oks_weight = oks_weight
+        self.pose_ctx = None
+
+    @torch.no_grad()
+    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+        """Assign like the parent, falling back to one image at a time on OOM with the matching pose context."""
+        self.bs, self.n_max_boxes = pd_scores.shape[0], gt_bboxes.shape[1]
+        if self.n_max_boxes == 0:
+            return super().forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+        try:
+            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+        except RuntimeError as e:
+            if "out of memory" not in str(e).lower():
+                raise
+        ctx, bs, outs = self.pose_ctx, self.bs, []
+        try:
+            self.bs = 1
+            for i in range(bs):
+                self.pose_ctx = tuple(x[i : i + 1] for x in ctx)
+                s = slice(i, i + 1)
+                outs.append(
+                    self._forward(pd_scores[s], pd_bboxes[s], anc_points, gt_labels[s], gt_bboxes[s], mask_gt[s])
+                )
+        finally:
+            self.pose_ctx, self.bs = ctx, bs
+        return tuple(torch.cat(x) for x in zip(*outs))
+
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
+        """Compute the alignment metric with the IoU/OKS overlap mix on candidate anchor-GT pairs."""
+        na = pd_bboxes.shape[-2]
+        mask_gt = mask_gt.bool()  # b, max_num_obj, h*w
+        shape = self.bs, self.n_max_boxes, na
+        indices = mask_gt.nonzero(as_tuple=True)
+        b, g, a = indices
+        bbox_scores = pd_scores[b, a, gt_labels[b, g, 0].long()]
+        overlap_values = self.iou_calculation(gt_bboxes[b, g], pd_bboxes[b, a])
+
+        pd_kpts, gt_kpts, area = self.pose_ctx
+        gk = gt_kpts[b, g]  # (P, K, 3)
+        vis = gk[..., 2] > 0
+        d = (pd_kpts[b, a].float() - gk[..., :2]).pow(2).sum(-1)  # (P, K)
+        e = d / ((2 * self.sigmas).pow(2) * (area[b, g, None] + self.eps) * 2)  # from cocoeval
+        nvis = vis.sum(-1)
+        oks = ((-e).exp() * vis).sum(-1) / nvis.clamp(min=1)
+        mixed = (1 - self.oks_weight) * overlap_values + self.oks_weight * oks.to(overlap_values.dtype)
+        overlap_values = torch.where(nvis > 0, mixed, overlap_values)
+        align_values = bbox_scores.pow(self.alpha) * overlap_values.pow(self.beta)
+
+        overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)
+        align_metric = torch.zeros(shape, dtype=align_values.dtype, device=pd_scores.device)
+        overlaps[indices] = overlap_values
+        align_metric[indices] = align_values
+        return align_metric, overlaps
+
+
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
     """Assigns ground-truth objects to rotated bounding boxes using a task-aligned metric."""
 

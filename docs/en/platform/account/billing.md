@@ -38,9 +38,9 @@ Get started at no cost:
 
 !!! tip "Company Email Bonus"
 
-    Sign up with, or later add and verify, a company email address (not gmail.com, outlook.com, and similar consumer
-    domains) to top your signup credit up from $5 to $25. The bonus is granted once per account — add the address in
-    [`Settings > Profile`](settings.md#emails).
+    Sign up with a company email address (not gmail.com, outlook.com, and similar consumer domains), or later change your
+    account email to one and confirm it, to top your signup credit up from $5 to $25. The bonus is granted once per
+    account — change the address in [`Settings > Profile`](settings.md#email).
 
 ### Pro Plan
 
@@ -378,8 +378,8 @@ no extra charge for the rest of the period. See [Teams](teams.md#inviting-member
 
 ### Is there a free trial?
 
-The Free plan includes $5 in signup credit, and no credit card is required. To raise it to $25, add and verify a company
+The Free plan includes $5 in signup credit, and no credit card is required. To raise it to $25, change your account email to a company
 email address (not Gmail, Outlook or another consumer domain) from your personal workspace in
-[`Settings > Profile`](settings.md#emails); the extra
+[`Settings > Profile`](settings.md#email) and confirm it; the extra
 $20 is added once per account. If you have a promo code you didn't use at signup, redeem it from your personal workspace
 under **Settings > Billing**. See [Redeem a Promo Code](#redeem-a-promo-code).

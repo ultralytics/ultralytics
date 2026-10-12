@@ -136,16 +136,15 @@ class YOLOEPETrainer(DetectionTrainer):
         del model.model[-1].savpe
 
         assert weights is not None, "Pretrained weights must be provided for linear probing."
-        if weights:
-            model.load(weights)
-
-        model.eval()
+        head = model.model[-1]
         names = list(self.data["names"].values())
-        # NOTE: `get_text_pe` related to text model and YOLOEDetect.reprta,
-        # it'd get correct results as long as loading proper pretrained weights.
-        tpe = model.get_text_pe(names)
-        model.set_classes(names, tpe)
-        model.model[-1].fuse(model.pe)  # fuse text embeddings to classify head
+        model.eval()
+        if weights.model[-1].is_fused:  # resume or continued fine-tuning: build the fused head, then load into it
+            model.set_classes(names, torch.zeros(1, len(names), head.embed))
+            head.fuse(model.pe)
+        model.load(weights)
+        if not head.is_fused:
+            model.get_vocab(names)  # fuse text embeddings to classify head
         model.model[-1].cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
         model.model[-1].cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
         model.model[-1].cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)

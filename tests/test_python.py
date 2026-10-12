@@ -1563,6 +1563,16 @@ def test_utils_init():
     is_github_action_running()
 
 
+def test_emojis_keeps_non_emoji_text():
+    """Test that emojis() removes only the package's emojis on Windows and keeps other non-ASCII text."""
+    from ultralytics.utils import emojis
+
+    text = "人 狗 大象 runs/detect/结果 ⌘ ping: 0.4±0.2 ms"
+    emitted = "🚀✅❌⚠️💡⚡⏱❎❔😃"
+    assert emojis(text) == text
+    assert emojis(f"{emitted} {text}") == (f" {text}" if WINDOWS else f"{emitted} {text}")
+
+
 def test_utils_checks(monkeypatch):
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
 

@@ -64,6 +64,9 @@ class OpenVINOBackend(BaseBackend):
             shape = ov_model.input().get_partial_shape()
             shape[0] = 1
             ov_model.reshape(shape)
+            if self.task == "depth":  # NPU gets the final align_corners=True upsample wrong, so run it in forward()
+                up = ov_model.output().get_node().input_value(0).get_node()
+                ov_model = ov.Model([up.input_value(0)], ov_model.get_parameters())
 
         # OpenVINO CPU plugin crashes running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
         # newer), see https://github.com/openvinotoolkit/openvino/issues/37577, so run those as static models by
@@ -122,5 +125,10 @@ class OpenVINOBackend(BaseBackend):
 
         if self.npu:
             outs = [list(self.ov_compiled_model(x[None]).values()) for x in im]
-            return [np.concatenate(o) for o in zip(*outs)]
+            outs = [np.concatenate(o) for o in zip(*outs)]
+            if self.task == "depth":
+                depth = torch.from_numpy(outs[0])
+                depth = torch.nn.functional.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=True)
+                outs = [depth.numpy()]
+            return outs
         return list(self.ov_compiled_model(im).values())

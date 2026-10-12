@@ -21,7 +21,7 @@ def on_pretrain_routine_end(trainer) -> None:
     """Set the EMA model classes from the validation dataset names at the end of the pretrain routine."""
     # Set on all ranks: validation runs on every rank, but txt_feats/nc are not DDP buffers so they don't sync
     names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
-    trainer.ema.ema.set_classes(names, cache_clip_model=False)
+    trainer.ema.ema.set_classes(names)
 
 
 class WorldTrainer(DetectionTrainer):
@@ -162,7 +162,7 @@ class WorldTrainer(DetectionTrainer):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")
         assert self.model is not None
-        txt_feats = unwrap_model(self.model).get_text_pe(texts, batch, cache_clip_model=False)
+        txt_feats = unwrap_model(self.model).get_text_pe(texts, batch)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)
         return txt_map

@@ -174,8 +174,7 @@ class YOLOEDetectValidator(DetectionValidator):
                 model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
             model.eval().to(self.device)
             data = check_det_dataset(refer_data or self.args.data)
-            fused = model.model[-1].is_fused  # fused classes keep the full names they were trained with
-            names = [name if fused else name.split("/", 1)[0] for name in data["names"].values()]
+            names = [name.split("/", 1)[0] for name in list(data["names"].values())]
 
             if refer_data is not None:
                 eval_data = check_det_dataset(self.args.data)

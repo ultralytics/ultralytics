@@ -1,0 +1,19 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# The H7 COCO GT ruler for `yolo val` on a 2D pose model: COCO's own 17x3 annotation of all 2,346 val2017 images.
+# Same images and labels as coco-pose-gt.yaml; only the list file differs. It is named val.txt and holds absolute
+# image paths, so labels resolve to the shared tree while `is_coco` stays False — a val2017.txt would force
+# save_json on and hand the score to pycocotools instead of the internal metric the pose3d column uses.
+# Example usage: yolo val task=pose model=yolo26n-pose.pt data=research/experiments/h7-2d-parity/coco-pose-gt-cli.yaml
+
+path: /home/rick/coco-pose-gt-17x3 # holds only val.txt
+train:
+val: val.txt
+test:
+
+# No `kpt_oks_sigmas`: [17, 3] selects OKS_SIGMA, the standard COCO ruler.
+kpt_shape: [17, 3]
+flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
+
+names:
+  0: person

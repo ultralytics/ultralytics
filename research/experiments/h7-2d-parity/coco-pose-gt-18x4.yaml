@@ -1,0 +1,21 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# The H7 COCO GT ruler for `yolo val` on a pose3d model: COCO's own annotation of all 2,346 val2017 images, rewritten
+# in the 18x4 layout by research/src/coco_gt_to_pose3d.py. COCO joints carry visibility 1 (2D only) and the root
+# visibility 0, so OKS scores exactly the 17 COCO joints with OKS_SIGMA — the same number eval_2d_parity.py reports —
+# and the 3D columns stay empty. Read only Box and Pose mAP.
+# Example usage: yolo val task=pose3d model=best.pt data=research/experiments/h7-2d-parity/coco-pose-gt-18x4.yaml
+
+path: /home/rick/coco-pose-gt-18x4
+train:
+val: val.txt # not val2017.txt, which would set is_coco and route scoring through pycocotools
+test:
+
+kpt_shape: [18, 4]
+flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15, 17]
+# OKS_SIGMA for the 17 COCO joints; the root's 0.107 never applies because its label is always unlabelled.
+kpt_oks_sigmas: [0.026, 0.025, 0.025, 0.035, 0.035, 0.079, 0.079, 0.072, 0.072, 0.062, 0.062, 0.107, 0.107, 0.087, 0.087, 0.089, 0.089, 0.107]
+focal_ratio: 1.2
+
+names:
+  0: person

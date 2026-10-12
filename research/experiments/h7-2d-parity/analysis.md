@@ -137,3 +137,26 @@ residual on the easy subset as the annotator's share.
   metric's 0.5676 — two independent evaluators agreeing on the truncated 17-joint predictions.
 - Boxes are byte-identical between the two label trees (the pseudo-labeller copies COCO's box verbatim), so the
   box mAP difference across columns is the loaded-image difference, nothing else.
+
+## Reproduced with the `yolo` CLI (2026-10-12)
+
+`eval_2d_parity.py` is a harness; the same ruler is now reachable with `yolo val` and no code. The pose2d column uses
+`coco-pose-gt-cli.yaml` (the same 17x3 labels, a list file named `val.txt` so `is_coco` cannot route scoring to
+pycocotools). The pose3d column uses `coco-pose-gt-18x4.yaml`, COCO's labels rewritten in the 18x4 layout by
+`research/src/coco_gt_to_pose3d.py`: COCO joints at visibility 1, root at 0, so OKS scores the same 17 joints with
+the same sigmas and the 3D columns print 0. Run on ultra15, `~/sam3d/venv` (8.4.153, torch 2.11) with
+`PYTHONPATH=~/ultralytics_pose3d`, commands in `~/cli_val.sh`.
+
+| model | box mAP50-95 | pose mAP50 | pose mAP50-95 |
+| --- | ---: | ---: | ---: |
+| pose2d (`yolo26n-pose`) | 0.669 | **0.826** | **0.568** |
+| E_refocal | 0.626 | 0.733 | 0.435 |
+| F_clip | **0.694** | 0.789 | 0.475 |
+| H_rootmask | 0.692 | 0.787 | 0.474 |
+
+These are `yolo val` defaults, which differ from the script in one place: `Model.val` sets `rect=True`, the script's
+bare validator ran `rect=False`. With `rect=False` on the command line the CLI reproduces the script to the printed
+precision — F_clip 0.689 / 0.473 against 0.6891 / 0.4732, pose2d 0.665 / 0.568 against 0.6645 / 0.5676 — so the
+two rulers are the same metric and the residual ±0.005 box swing above is letterboxing alone. The ranking does not
+move under either setting. F_clip on `3dpw-pose3d-r12.yaml` through the CLI gives MPJPE 110 mm, PA-MPJPE 83 mm,
+AbsRel(Z) 0.0456, delta1(Z) 0.657, pose mAP50-95 0.758, matching H8.

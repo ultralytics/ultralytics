@@ -3,6 +3,7 @@
 # Tests Ultralytics Solutions: https://docs.ultralytics.com/solutions,
 # Includes all solutions except DistanceCalculation and the Security Alarm System.
 
+import logging
 import os
 from unittest.mock import patch
 
@@ -13,7 +14,7 @@ import torch
 
 from tests import MODEL
 from ultralytics import solutions
-from ultralytics.utils import IS_RASPBERRYPI, TORCH_VERSION
+from ultralytics.utils import IS_RASPBERRYPI, LOGGER, TORCH_VERSION
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_4
 
@@ -394,3 +395,36 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
+def test_queue_manager_line_region_warns_once(solution_assets):
+    """A two-point line region warns exactly once at init and never counts; polygons and the default region stay silent."""
+    records = []
+
+    class ProbeHandler(logging.Handler):
+        def emit(self, record):
+            records.append(record.getMessage())
+
+    probe = ProbeHandler()
+    LOGGER.addHandler(probe)
+    try:
+        queue = solutions.QueueManager(region=HORIZONTAL_LINE, model=MODEL, show=SHOW)
+        line_warnings = [m for m in records if "polygonal" in m]
+        assert len(line_warnings) == 1, f"a line region must warn exactly once, got {line_warnings}"
+
+        cap = cv2.VideoCapture(str(solution_assets("demo_video")))
+        assert cap.isOpened(), "Error reading demo video file"
+        success, im0 = cap.read()
+        cap.release()
+        assert success
+        for _ in range(2):  # two passes give tracks history; the line region must never count
+            assert queue(im0.copy()).queue_count == 0
+        assert len([m for m in records if "polygonal" in m]) == 1, "processing must not repeat the init warning"
+
+        records.clear()
+        solutions.QueueManager(region=REGION, model=MODEL, show=SHOW)
+        solutions.QueueManager(model=MODEL, show=SHOW)  # region=None falls back to the default 4-point polygon
+        assert not [m for m in records if "polygonal" in m], "polygonal and default regions must not warn"
+    finally:
+        LOGGER.removeHandler(probe)

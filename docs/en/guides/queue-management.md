@@ -40,7 +40,7 @@ Queue management using [Ultralytics YOLO26](https://github.com/ultralytics/ultra
 
 ## Manage Queues with YOLO26
 
-The `QueueManager` solution counts the objects that remain inside a defined region each frame, giving you a live queue length you can write to an output video. Pass a polygon region covering the waiting area, then run it over your video source with either the Python API or the CLI.
+The `QueueManager` solution counts the objects that remain inside a defined region each frame, giving you a live queue length you can write to an output video. Pass a polygon region with at least 3 points covering the waiting area (two-point line regions are not supported for queue counting and emit a warning), then run it over your video source with either the Python API or the CLI.
 
 !!! example "Queue Management using Ultralytics YOLO"
 

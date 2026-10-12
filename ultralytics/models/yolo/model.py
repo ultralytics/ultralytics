@@ -206,7 +206,7 @@ class YOLOWorld(Model):
             classes (list[str]): A list of categories, e.g. ["person"].
         """
         self.model.set_classes(classes)
-        self.model.names = [c for c in classes if c != " "]  # drop the background class without mutating `classes`
+        self.model.names = list(classes)
 
         self.predictor = None
 

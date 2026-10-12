@@ -743,19 +743,24 @@ class Exporter:
                             "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
                         )
 
-                    if (
-                        self.args.quantize == 8
-                        and check_version(trt.__version__, ">=10.3.0,<10.4.0")  # JetPack 6 builds report 10.3.0.x
-                        and is_jetson(jetpack=6)
-                    ):
-                        # https://github.com/ultralytics/ultralytics/issues/23841
-                        model.end2end = False
-                        LOGGER.warning(
-                            "TensorRT 10.3.0 on JetPack 6 with INT8 cannot build NMS-free exports; selecting one-to-many outputs. "
-                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
-                        )
                 except ImportError:
                     pass
+        if fmt == "engine" and self.args.quantize == 8 and (self.args.nms or getattr(model, "end2end", False)):
+            try:
+                import tensorrt as trt
+
+                # https://github.com/ultralytics/ultralytics/issues/23841, the NMS-free head and the nms=True graph both fail
+                # on TensorRT 10.3.0, which JetPack 6 builds report as 10.3.0.x
+                if check_version(trt.__version__, ">=10.3.0,<10.4.0") and is_jetson(jetpack=6):
+                    model.end2end = False
+                    if self.args.nms:  # nms=True wraps the one-to-many outputs in an NMS graph that trips the same bug
+                        self.args.nms = None
+                    LOGGER.warning(
+                        "TensorRT 10.3.0 on JetPack 6 with INT8 cannot build NMS-free or nms=True exports; selecting one-to-many outputs. "
+                        "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
+                    )
+            except ImportError:
+                pass
         if self.args.quantize == 16 and fmt == "torchscript" and self.device.type == "cpu":
             raise ValueError("FP16 TorchScript export is only supported on GPU, i.e. use device=0.")
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size

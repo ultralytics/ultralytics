@@ -1990,6 +1990,57 @@ def test_classification_split_class_alignment(tmp_path):
     assert sorted(sample[1] for sample in samples) == [1, 2]
 
 
+def test_classification_resplit_converges_to_source(tmp_path, monkeypatch):
+    """Re-splitting converges to the current source while cache artifacts and unchanged files stay in place.
+
+    Covers duplicate basenames in different subdirectories (cat/a/0.jpg and cat/b/0.jpg), removal of deleted
+    classes and images including their emptied nested directories, survival of *.npy/*.cache artifacts, and
+    that an unchanged re-split performs no copies at all.
+    """
+    from ultralytics.data.split import split_classify_dataset
+
+    source = tmp_path / "src"
+    for rel in ("cat/a/0.jpg", "cat/b/0.jpg", "cat/c/1.jpg", "dog/sub/2.jpg", "dog/3.jpg", "bird/4.jpg"):
+        path = source / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(path), np.zeros((16, 16, 3), dtype=np.uint8))
+
+    split = split_classify_dataset(source, train_ratio=0.75)
+
+    def split_images():
+        return sorted(str(p.relative_to(split / s)) for s in ("train", "val") for p in (split / s).rglob("*.jpg"))
+
+    # cache=disk artifacts planted inside the split must survive every re-split
+    artifacts = (split / "train/cat/a/labels.npy", split / "val/cat/images.cache")
+    for artifact in artifacts:
+        artifact.parent.mkdir(parents=True, exist_ok=True)
+        artifact.write_bytes(b"cache")
+    before = split_images()
+
+    real_copy2 = shutil.copy2
+    copied = []
+
+    def counting_copy2(src, dst):
+        copied.append(dst)
+        real_copy2(src, dst)
+
+    monkeypatch.setattr("ultralytics.data.split.shutil.copy2", counting_copy2)
+    split_classify_dataset(source, train_ratio=0.75)  # unchanged re-split rewrites nothing
+    assert not copied and split_images() == before
+    assert all(a.is_file() for a in artifacts)
+
+    shutil.rmtree(source / "dog")  # class deleted wholesale, with a nested directory
+    (source / "bird/4.jpg").unlink()  # class emptied while its directory remains
+    (source / "cat/c/1.jpg").unlink()
+    split_classify_dataset(source, train_ratio=0.75)
+    assert split_images() == ["cat/a/0.jpg", "cat/b/0.jpg"]  # duplicate basenames both kept, ghosts swept
+    assert len(list((split / "train/cat").rglob("*.jpg"))) == 1  # exactly one of the pair stays in train
+    assert not (split / "train/dog").exists() and not (split / "val/dog").exists()
+    assert not (split / "train/bird").exists() and not (split / "val/bird").exists()
+    assert all(a.is_file() for a in artifacts)
+    assert not [d for d in split.rglob("*") if d.is_dir() and not any(d.iterdir())]  # no husk directories remain
+
+
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""

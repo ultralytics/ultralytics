@@ -2349,6 +2349,7 @@ def test_reid_crop_channel_order(monkeypatch):
     """ReID crops stay frame-native BGR so both the exported-backend and `.pt` predictor paths receive RGB tensors."""
     from types import SimpleNamespace
 
+    from ultralytics.nn.tasks import BaseModel
     from ultralytics.trackers.utils.reid import ReID
 
     frame = np.zeros((64, 64, 3), dtype=np.uint8)
@@ -2377,17 +2378,32 @@ def test_reid_crop_channel_order(monkeypatch):
     means = encoder.model.inputs[0].mean(dim=(2, 3))[0] * 255  # channel means of the normalized batch
     assert np.allclose(means.numpy(), [210, 90, 30], atol=1), "exported backends must receive RGB"
 
-    class CapturePredictor:
-        """Predictor stand-in: the real predictor converts BGR crops to RGB before the model."""
+    class EmbeddingStub(BaseModel):
+        """Embedding-model stand-in honoring the BaseModel embed contract; records the preprocessed batch."""
 
-        def __call__(self, crops):
-            self.crops = crops
-            return torch.zeros(len(crops), 3)
+        def __init__(self):
+            torch.nn.Module.__init__(self)  # stand-in only: skip BaseModel's YAML model construction
+            self.model = torch.nn.Sequential(torch.nn.Identity())  # BaseModel._apply/fuse index the last layer
+            self.batches = []
 
-    predictor = CapturePredictor()
+        def fuse(self, verbose=True):
+            return self
+
+        def forward(self, im, augment=False, visualize=False, embed=None):
+            self.batches.append(im.detach().clone())
+            return [torch.zeros(4) for _ in im]
+
+    from ultralytics.models.yolo.classify.predict import ClassificationPredictor
+
+    stub = EmbeddingStub()
+    predictor = ClassificationPredictor(
+        overrides={"model": stub, "imgsz": 32, "device": "cpu", "embed": [-2], "verbose": False}
+    )
     encoder_pt = ReID.__new__(ReID)  # skip model loading; only the predictor path is exercised
     encoder_pt.is_pt = True
     encoder_pt.device = torch.device("cpu")
     encoder_pt.model = SimpleNamespace(predictor=predictor)
-    encoder_pt(frame, dets)
-    assert np.allclose(predictor.crops[0].reshape(-1, 3).mean(0), [30, 90, 210]), "predictor receives BGR and converts"
+    assert encoder_pt(frame, dets)[0] is not None
+    # the real predictor preprocessing flips the BGR crop to RGB before the embedding model sees it
+    expected = predictor.transforms(Image.fromarray(np.full((40, 40, 3), (210, 90, 30), dtype=np.uint8)))
+    assert torch.allclose(stub.batches[-1][0], expected), "the .pt predictor must feed the embedding model RGB"

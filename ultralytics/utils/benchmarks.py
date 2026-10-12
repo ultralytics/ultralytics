@@ -87,7 +87,7 @@ def benchmark(
         imgsz (int | list[int]): Square image size for the benchmark.
         quantize (int | str | None): Requested precision: 16 (FP16), 8 (INT8), or None/32 (FP32). Exported rows apply it
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
-            PyTorch row is not exported and only 16 affects it, selecting FP16 inference. Each format then runs
+            PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
         device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps'.
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that

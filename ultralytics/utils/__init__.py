@@ -531,12 +531,9 @@ LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in 
 logging.getLogger("sentry_sdk").setLevel(logging.CRITICAL + 1)
 
 
-EMOJIS = dict.fromkeys(map(ord, "🚀✅❌⚠💡⚡⏱❎❔😃\ufe0f"))  # emojis emitted by the package, removed on Windows
-
-
 def emojis(string=""):
     """Return platform-dependent emoji-safe version of string, removing only the package's emojis on Windows."""
-    return string.translate(EMOJIS) if WINDOWS else string
+    return string.translate(str.maketrans("", "", "🚀✅❌⚠💡⚡⏱❎❔😃\ufe0f")) if WINDOWS else string
 
 
 class ThreadingLocked:

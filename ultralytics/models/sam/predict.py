@@ -605,6 +605,7 @@ class Predictor(BasePredictor):
         """Set up the data source for SAM inference."""
         if source is None:  # handle the situation when set_imgsz in advance
             return
+        self.reset_image()
         super().setup_source(source, self.stride)
         assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
             f"SAM models only support square image size, but got {self.imgsz}."
@@ -1209,8 +1210,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         Args:
             predictor (SAM2VideoPredictor): The predictor object for which to initialize the state.
         """
-        if len(predictor.inference_state) > 0:  # means initialized
-            return
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
         predictor.inference_state = predictor._init_state(predictor.dataset.frames)
@@ -2669,8 +2668,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         Args:
             predictor (SAM3VideoSemanticPredictor): The predictor object for which to initialize the state.
         """
-        if len(predictor.inference_state) > 0:  # means initialized
-            return
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
         num_frames = predictor.dataset.frames

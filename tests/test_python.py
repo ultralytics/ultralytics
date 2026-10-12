@@ -8,7 +8,7 @@ import shutil
 import tarfile
 import urllib
 import zipfile
-from copy import copy
+from copy import copy, deepcopy
 from pathlib import Path
 
 import cv2
@@ -1799,6 +1799,26 @@ def test_scale_masks_odd_letterbox_pad():
         scaled = ops.scale_masks(masks, im0_shape, ratio_pad=ratio_pad)
         assert (scaled > 0.5).all()  # every original pixel is content: no padded row or column survived the crop
         assert torch.equal(scaled, ops.scale_masks(masks, im0_shape))  # the ratio_pad=None crop is unchanged
+
+
+def test_albumentations_reseeds_per_dataloader_worker():
+    """Albumentations draws must differ between DataLoader workers and repeat for the same worker seed."""
+    A = pytest.importorskip("albumentations")
+    if not hasattr(A.Compose([]), "set_random_seed"):
+        pytest.skip("albumentations<1.4.21 draws from the global random state")
+
+    from ultralytics.data.augment import Albumentations
+
+    transform = Albumentations(p=1.0, transforms=[A.RandomBrightnessContrast(p=1.0)])
+
+    def worker(seed):
+        """Run one draw the way a DataLoader worker does: on a copy of the transform, under its own torch seed."""
+        with torch.random.fork_rng():
+            torch.manual_seed(seed)
+            return deepcopy(transform)({"img": np.full((8, 8, 3), 128, dtype=np.uint8)})["img"].mean()
+
+    assert worker(1) != worker(2)
+    assert worker(1) == worker(1)
 
 
 def test_nms_end2end_classes_before_max_det():

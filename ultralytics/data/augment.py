@@ -2140,6 +2140,7 @@ class Albumentations(BaseTransform):
         self.p = p
         self.flip_idx = flip_idx
         self.transform = None
+        self.seed = None
         prefix = colorstr("albumentations: ")
 
         try:
@@ -2193,7 +2194,8 @@ class Albumentations(BaseTransform):
             )
             if hasattr(self.transform, "set_random_seed"):
                 # Required for deterministic transforms in albumentations>=1.4.21
-                self.transform.set_random_seed(torch.initial_seed())
+                self.seed = torch.initial_seed()
+                self.transform.set_random_seed(self.seed)
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
@@ -2236,6 +2238,10 @@ class Albumentations(BaseTransform):
         """
         if self.transform is None or random.random() >= self.p:
             return labels
+        if self.seed is not None and self.seed != torch.initial_seed():
+            # DataLoader workers start from copies of the same generator; reseed from each worker's own seed
+            self.seed = torch.initial_seed()
+            self.transform.set_random_seed(self.seed)
 
         im = labels["img"]
         if im.shape[2] not in {1, 3}:  # Albumentations supports grayscale and color images only

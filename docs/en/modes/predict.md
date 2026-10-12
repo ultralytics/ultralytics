@@ -400,9 +400,9 @@ Below are code examples for using each source type:
 
 ### Fixed shape vs minimum rectangle (`rect`)
 
-By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or a dynamic-shape export such as dynamic ONNX). Otherwise, images are padded to the **full** `imgsz` target.
+By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or a dynamic-shape export such as dynamic ONNX). Otherwise, images are padded to the **full** `imgsz` target. Depth and RT-DETR models ignore `rect` and stretch every image to the full `imgsz` without padding.
 
-Use **`rect=False`** to always pad to the full `imgsz` target. This is recommended when you need a fixed input size to match exported models (ONNX, TensorRT, etc.).
+Use **`rect=False`** to always use the full `imgsz` target. This is recommended when you need a fixed input size to match exported models (ONNX, TensorRT, etc.).
 
 **Integer vs tuple `imgsz`**
 

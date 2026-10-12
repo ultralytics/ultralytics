@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import io
+import logging
 import shutil
 import sys
 import threading
@@ -22,6 +23,7 @@ from ultralytics.utils import (
     ARM64,
     IS_RASPBERRYPI,
     LINUX,
+    LOGGER,
     MACOS,
     MACOS_VERSION,
     WEIGHTS_DIR,
@@ -90,6 +92,30 @@ def test_export_onnx_nms_conf(isolated_model):
         if n.op_type == "Greater" and n.input[1] in initializers
     }
     assert 0.0 in thresholds
+
+
+@pytest.mark.skipif(not TORCH_1_13, reason="ONNX export with NMS requires torch>=1.13")
+@pytest.mark.parametrize(
+    ("dynamic", "nms", "batch"), [(True, True, 1), (True, True, 2), (True, False, 2), (False, True, 2)]
+)
+def test_export_onnx_nms_dynamic_warning(isolated_model, dynamic, nms, batch):
+    """The nms+dynamic over-batch warning fires for every export batch, and only when both options are enabled."""
+    records = []
+
+    class ProbeHandler(logging.Handler):
+        def emit(self, record):
+            records.append(record.getMessage())
+
+    probe = ProbeHandler()
+    LOGGER.addHandler(probe)
+    try:
+        YOLO(isolated_model).export(format="onnx", imgsz=32, dynamic=dynamic, nms=nms, batch=batch)
+    finally:
+        LOGGER.removeHandler(probe)
+    warns = [m for m in records if "processes at most" in m]  # the adjacent 'maximum batch size' warning is excluded
+    assert len(warns) == (1 if dynamic and nms else 0), warns
+    if warns:
+        assert f"batch={batch}" in warns[0]  # the warning names the traced batch
 
 
 @pytest.mark.slow

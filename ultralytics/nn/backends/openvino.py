@@ -58,6 +58,13 @@ class OpenVINOBackend(BaseBackend):
 
         self.apply_metadata(self.read_metadata(w))
 
+        # NPU returns wrong results for batch>1, so compile batch 1 and loop over the batch in forward()
+        self.npu = device_name.startswith("NPU")
+        if self.npu:
+            shape = ov_model.input().get_partial_shape()
+            shape[0] = 1
+            ov_model.reshape(shape)
+
         # OpenVINO CPU plugin crashes running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
         # newer), see https://github.com/openvinotoolkit/openvino/issues/37577, so run those as static models by
         # reshaping and recompiling per input shape in forward() instead
@@ -113,4 +120,7 @@ class OpenVINOBackend(BaseBackend):
             ov_model.reshape(list(im.shape))
             self.ov_compiled_model = self.compile_model(ov_model)
 
+        if self.npu:
+            outs = [list(self.ov_compiled_model(x[None]).values()) for x in im]
+            return [np.concatenate(o) for o in zip(*outs)]
         return list(self.ov_compiled_model(im).values())

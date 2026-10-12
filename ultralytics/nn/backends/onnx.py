@@ -281,7 +281,7 @@ class ONNXBackend(BaseBackend):
 
     def forward(
         self, im: torch.Tensor | dict[str, torch.Tensor | np.ndarray]
-    ) -> np.ndarray | list[np.ndarray] | list[torch.Tensor]:
+    ) -> tuple[np.ndarray, ...] | list[np.ndarray] | list[torch.Tensor]:
         """Run ONNX inference using IO binding (CUDA and ROCm/MIGraphX) or standard session execution.
 
         Args:
@@ -289,13 +289,14 @@ class ONNXBackend(BaseBackend):
                 input names to tensors/arrays for multi-input ONNX Runtime models.
 
         Returns:
-            (np.ndarray | list[np.ndarray] | list[torch.Tensor]): Model predictions as a numpy array (OpenCV DNN), a
-                list of numpy arrays (ONNX Runtime), or a list of bound output tensors (GPU IO binding).
+            (tuple[np.ndarray, ...] | list[np.ndarray] | list[torch.Tensor]): Model predictions as a tuple of numpy
+                arrays (OpenCV DNN), a list of numpy arrays (ONNX Runtime), or a list of bound output tensors (GPU
+                IO binding).
         """
         if self.format == "dnn":
             # OpenCV DNN
             self.net.setInput(im.cpu().numpy())
-            return self.net.forward()
+            return self.net.forward(self.net.getUnconnectedOutLayersNames())
 
         # ONNX Runtime
         if isinstance(im, dict):  # multi-input model
@@ -303,15 +304,14 @@ class ONNXBackend(BaseBackend):
             return self.session.run(self.output_names, im)
 
         if self.use_io_binding:
-            if self.device.type == "cpu":
-                im = im.cpu()
+            im = im.contiguous()  # binding reads raw memory, so strided views need a dense copy
             if torch.version.hip:  # the MIGraphX plugin EP binds GPU tensors through DLPack
                 from onnxruntime import OrtValue
 
-                self.io.bind_ortvalue_input("images", OrtValue.from_dlpack(im))
+                self.io.bind_ortvalue_input(self.session.get_inputs()[0].name, OrtValue.from_dlpack(im))
             else:
                 self.io.bind_input(
-                    name="images",
+                    name=self.session.get_inputs()[0].name,
                     device_type=im.device.type,
                     device_id=im.device.index if im.device.type == "cuda" else 0,
                     element_type=np.float16 if self.fp16 else np.float32,

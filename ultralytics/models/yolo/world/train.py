@@ -9,6 +9,7 @@ from typing import Any
 import torch
 
 from ultralytics.data import build_yolo_dataset
+from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
@@ -113,6 +114,8 @@ class WorldTrainer(DetectionTrainer):
         if mode == "train":
             self.set_text_embeddings([dataset], batch)  # cache text embeddings to accelerate training
         return dataset
+
+    set_class_weights = BaseTrainer.set_class_weights  # cls channels are prompt positions, not dataset classes
 
     def set_text_embeddings(self, datasets: list[Any], batch: int | None) -> None:
         """Set text embeddings for datasets to accelerate training by caching category names.

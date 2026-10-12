@@ -920,7 +920,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         else:
             files = [path for path in v.rglob("*.*") if path.suffix[1:].lower() in IMG_FORMATS]
             nf = len(files)  # number of files
-            nd = len({file.parent for file in files})  # number of directories
+            nd = len({file.relative_to(v).parts[0] for file in files})  # number of classes
             if nf == 0:
                 if k == "train":
                     raise FileNotFoundError(f"{dataset} '{k}:' no training images found")

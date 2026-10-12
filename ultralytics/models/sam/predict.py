@@ -546,7 +546,11 @@ class Predictor(BasePredictor):
                 masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
                 idx = pred_scores > self.args.conf
-                masks = ops.scale_masks(masks[idx][None].float(), orig_img.shape[:2], padding=False)[0]
+                gain = min(i / o for i, o in zip(img.shape[2:], orig_img.shape[:2]))  # letterbox gain at the input
+                ratio = [
+                    round(o * gain) * m / i / o for o, m, i in zip(orig_img.shape[:2], masks.shape[1:], img.shape[2:])
+                ]
+                masks = ops.scale_masks(masks[idx][None].float(), orig_img.shape[:2], (ratio, (0, 0)), padding=False)[0]
                 if self.non_overlap_masks:
                     masks = self.model._apply_non_overlapping_constraints(masks[:, None])[:, 0]
                 masks = masks > self.model.mask_threshold  # to bool
@@ -713,7 +717,9 @@ class Predictor(BasePredictor):
         if pred_masks.shape[0] == 0:
             pred_masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
         else:
-            pred_masks = ops.scale_masks(pred_masks[None].float(), src_shape, padding=False)[0]
+            gain = min(i / o for i, o in zip(dst_shape, src_shape))  # letterbox gain at the input
+            ratio = [round(o * gain) * m / i / o for o, m, i in zip(src_shape, pred_masks.shape[1:], dst_shape)]
+            pred_masks = ops.scale_masks(pred_masks[None].float(), src_shape, (ratio, (0, 0)), padding=False)[0]
             pred_masks = pred_masks > self.model.mask_threshold  # to bool
             pred_bboxes = batched_mask_to_box(pred_masks)
             # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.

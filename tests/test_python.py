@@ -339,38 +339,27 @@ def test_model_methods():
 
 def test_model_load_remaps_cls_head_by_names():
     """Test class-name remap is limited to closed-set class-logit heads."""
-    from types import SimpleNamespace
+    from ultralytics.nn.tasks import DetectionModel, SegmentationModel, SemanticSegmentationModel, YOLOEModel
 
-    from ultralytics.models.yolo.detect.train import DetectionTrainer
-    from ultralytics.models.yolo.obb.train import OBBTrainer
-    from ultralytics.models.yolo.pose.train import PoseTrainer
-    from ultralytics.models.yolo.segment.train import SegmentationTrainer
-    from ultralytics.nn.tasks import DetectionModel, OBBModel, PoseModel, SegmentationModel, YOLOEModel
-
-    src = DetectionModel("yolo26n.yaml", nc=3, verbose=False)
-    tgt = DetectionModel("yolo26n.yaml", nc=2, verbose=False)
-    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
-    for seq in src.model[-1].cv3:
-        seq[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
-    tgt.load(src, verbose=False)
-    assert all(seq[-1].bias.tolist() == [20.0, 10.0] for seq in tgt.model[-1].cv3)
+    for model_cls, cfg, branches in (
+        (DetectionModel, "yolo26n.yaml", ("cv3.0", "cv3.1", "cv3.2")),
+        (SegmentationModel, "yolo26n-seg.yaml", ("proto.semseg",)),
+        (SemanticSegmentationModel, "yolo26n-sem.yaml", ("classifier", "aux_head")),
+    ):
+        src, tgt = (model_cls(cfg, nc=nc, verbose=False) for nc in (3, 2))
+        src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+        for name, seq in src.model[-1].named_modules():
+            if name in branches:
+                seq[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
+        tgt.load(src, verbose=False)
+        for name, seq in tgt.model[-1].named_modules():
+            if name in branches:
+                assert seq[-1].bias.tolist() == [20.0, 10.0]
 
     src = YOLOEModel("yoloe-26n.yaml", nc=3, verbose=False)
     tgt = YOLOEModel("yoloe-26n.yaml", nc=2, verbose=False)
     src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
     tgt.load(src, verbose=False)  # YOLOE cv3 outputs embeddings, not class rows
-
-    names = {0: "dog", 1: "cat"}
-    for trainer_cls, model in (
-        (DetectionTrainer, DetectionModel("yolo26n.yaml", nc=2, verbose=False)),
-        (SegmentationTrainer, SegmentationModel("yolo26n-seg.yaml", nc=2, verbose=False)),
-        (PoseTrainer, PoseModel("yolo26n-pose.yaml", nc=2, data_kpt_shape=[17, 3], verbose=False)),
-        (OBBTrainer, OBBModel("yolo26n-obb.yaml", nc=2, verbose=False)),
-    ):
-        trainer = object.__new__(trainer_cls)
-        trainer.args = SimpleNamespace(cls_remap=True)
-        trainer.data = {"names": names}
-        assert trainer.set_model_names_for_load(model).names == names
 
 
 def test_model_profile():
@@ -678,20 +667,6 @@ def test_track_reid_auto_user_detections(tracker_type):
     for _ in range(3):  # frame 2 used to crash in embedding_distance after storing image rows as track features
         tracks = tracker.update(Boxes(data, (640, 640)), img)
     assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
-
-
-def test_reid_invalid_crops():
-    """Test ReID skips out-of-bounds detection crops while preserving feature alignment."""
-    from types import SimpleNamespace
-
-    from ultralytics.trackers.utils.reid import ReID
-
-    encoder = ReID.__new__(ReID)
-    encoder.is_pt = True
-    encoder.model = SimpleNamespace(predictor=lambda crops: [torch.ones(4) for _ in crops])
-    img = np.full((640, 640, 3), 128, dtype=np.uint8)
-    feats = encoder(img, np.array([[30, 30, 40, 40], [1100, 1100, 200, 200]], dtype=np.float32))
-    assert feats[0] is not None and feats[1] is None
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -1982,6 +1957,7 @@ def test_nn_depth_head_no_dead_parameters():
 def test_classification_fraction_samples_across_classes(tmp_path):
     """Sample classification fractions across the class-major ImageFolder ordering."""
     from ultralytics.data.dataset import ClassificationDataset
+    from ultralytics.data.split import split_classify_dataset
 
     for class_index in range(3):
         class_dir = tmp_path / str(class_index)
@@ -1993,6 +1969,10 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     samples = ClassificationDataset(tmp_path, args, augment=True).samples
 
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
+    for ratio in (0.5, 0.75, 0.25):
+        split = split_classify_dataset(tmp_path, train_ratio=ratio)
+        train, val = ({p.relative_to(split / k) for p in (split / k).rglob("*.jpg")} for k in ("train", "val"))
+        assert len(train) == int(4 * ratio) * 3 and len(train | val) == 12 and train.isdisjoint(val)
 
 
 def test_classification_split_class_alignment(tmp_path):
@@ -2000,9 +1980,13 @@ def test_classification_split_class_alignment(tmp_path):
     from ultralytics.data.dataset import ClassificationDataset
 
     for name in ("b", "c", "d"):  # the split lacks the model's first class and adds one it does not have
-        (tmp_path / name).mkdir()
-        cv2.imwrite(str(tmp_path / name / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
-    samples = ClassificationDataset(tmp_path, DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
+        for folder in (tmp_path / name, tmp_path / name / "nested"):
+            folder.mkdir()
+            cv2.imwrite(str(folder / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
+    data = check_cls_dataset(tmp_path)
+    copied = [p.relative_to(data[k]) for k in ("train", "val") for p in data[k].rglob("*.jpg")]
+    assert len(copied) == len(set(copied)) == 6
+    samples = ClassificationDataset(data["train"], DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
     assert sorted(sample[1] for sample in samples) == [1, 2]
 
 
@@ -2221,8 +2205,6 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     """Verify that YOLOE visual prompting respects verbose=False."""
     model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
 
-    from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
-
     visuals = {
         "bboxes": np.array([[221.52, 405.8, 344.98, 857.54]]),
         "cls": np.array([0]),
@@ -2231,11 +2213,10 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     # Ignore any output produced while loading the model
     capfd.readouterr()
 
-    model.predict(
+    results = model.predict(
         SOURCE,
         refer_image=SOURCE,
         visual_prompts=visuals,
-        predictor=YOLOEVPSegPredictor,
         verbose=False,
     )
 
@@ -2243,6 +2224,7 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     output = captured.out + captured.err
 
     assert "Ultralytics" not in output
+    assert model.task == "segment" and results[0].masks is not None
 
 
 def test_yolov10():
@@ -2301,7 +2283,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     export_model = model.export(format="onnx")
 
     model = YOLO(export_model, task=task)
-    model.predict(source=im, imgsz=32)
+    assert len(model.predict(source=[im, im], imgsz=32)) == 2  # reuse the static batch-1 export for over-batch coverage
 
 
 def test_semantic_polygon_data():

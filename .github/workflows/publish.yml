@@ -172,7 +172,7 @@ jobs:
 
   notify:
     needs: [check, publish, sbom]
-    if: always() && needs.check.outputs.increment == 'True'
+    if: always() && needs.check.outputs.increment == 'True' && github.run_attempt == '1'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -196,7 +196,7 @@ jobs:
           payload: |
             text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ✅ `${{ github.repository }}` ${{ steps.release.outputs.title || needs.check.outputs.current_tag }}  <https://github.com/${{ github.repository }}/releases/tag/${{ needs.check.outputs.current_tag }}|*Release*>  ·  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"
       - name: Notify Failure # automatic first attempts only; manual dispatches and re-runs stay quiet
-        if: (needs.publish.result != 'success' || needs.sbom.result != 'success') && github.event_name == 'push' && github.run_attempt == '1'
+        if: (needs.publish.result != 'success' || needs.sbom.result != 'success') && github.event_name == 'push'
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook

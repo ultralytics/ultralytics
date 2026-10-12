@@ -475,7 +475,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
     Notes:
         - On Windows, this function attempts to reconfigure stdout to use UTF-8 encoding if possible.
-        - If reconfiguration is not possible, it falls back to a custom formatter that handles non-UTF-8 environments.
+        - On Windows, emojis are removed from log messages.
         - The function sets up a StreamHandler with the appropriate formatter and level.
         - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
@@ -493,12 +493,8 @@ def set_logging(name=LOGGING_NAME, verbose=True):
                 record.msg = f"{prefix} {record.msg}"
 
             # Handle emojis in message based on platform
-            formatted_message = emojis(super().format(record))
-            if WINDOWS:  # drop characters a stream that could not be switched to UTF-8 cannot encode
-                encoding = getattr(stream_handler.stream, "encoding", None) or "utf-8"
-                with contextlib.suppress(LookupError):
-                    formatted_message = formatted_message.encode(encoding, "ignore").decode(encoding)
-            return formatted_message
+            formatted_message = super().format(record)
+            return emojis(formatted_message)
 
     formatter = PrefixFormatter("%(message)s")
 

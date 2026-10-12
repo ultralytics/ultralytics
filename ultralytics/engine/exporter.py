@@ -860,7 +860,7 @@ class Exporter:
                 )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning("'dynamic=True' export requires a maximum batch size, e.g. 'batch=16'.")
-        if self.args.nms and self.args.dynamic and self.args.batch > 1:
+        if self.args.nms and self.args.dynamic:
             LOGGER.warning(
                 f"'nms=True' with 'dynamic=True' processes at most 'batch={self.args.batch}' images per call: the "
                 "embedded NMS loop is traced at the export batch, so larger runtime batches silently return empty "

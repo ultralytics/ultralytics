@@ -213,7 +213,7 @@ def benchmark(
             # Export
             if export_format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
-                exported_model = deepcopy(model)  # PyTorch format
+                exported_model = deepcopy(model, {id(model.predictor): None, id(model.trainer): None})  # PyTorch format
             else:
                 export_data = data if "data" in valid_args else None
                 filename = model.export(

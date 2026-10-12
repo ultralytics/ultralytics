@@ -107,9 +107,8 @@ def benchmark(
     """
     from ultralytics.cfg import _handle_deprecation
 
-    kwargs = _handle_deprecation(kwargs)
-    legacy = kwargs.pop("quantize", None)  # half/int8 mapped by _handle_deprecation; an explicit quantize wins
-    quantize = legacy if quantize is None else quantize
+    kwargs = _handle_deprecation({"quantize": quantize, **kwargs} if quantize is not None else kwargs)
+    quantize = kwargs.pop("quantize", None)  # legacy half/int8 map onto quantize unless it is passed explicitly
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
@@ -421,13 +420,8 @@ class ProfileModels:
         for path in self.paths:
             path = Path(path)
             if path.is_dir():
-                extensions = ["*.pt", "*.onnx", "*.yaml"]
-                files.extend(
-                    file
-                    for ext in extensions
-                    for file in glob.glob(str(path / ext))
-                    if ext != "*.onnx" or not any(Path(file).with_suffix(s).is_file() for s in (".pt", ".yaml"))
-                )
+                extensions = ["*.onnx", "*.yaml", "*.pt"]  # one file per stem, so a model's own ONNX export is skipped
+                files.extend({Path(f).stem: f for ext in extensions for f in glob.glob(str(path / ext))}.values())
             elif path.suffix in {".pt", ".yaml", ".yml"}:  # add non-existing
                 files.append(str(path))
             else:

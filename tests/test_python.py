@@ -2343,3 +2343,51 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
+
+
+def test_reid_crop_channel_order(monkeypatch):
+    """ReID crops stay frame-native BGR so both the exported-backend and `.pt` predictor paths receive RGB tensors."""
+    from types import SimpleNamespace
+
+    from ultralytics.trackers.utils.reid import ReID
+
+    frame = np.zeros((64, 64, 3), dtype=np.uint8)
+    frame[..., 0], frame[..., 1], frame[..., 2] = 30, 90, 210  # distinct B, G, R channel values
+    dets = np.array([[8.0, 8.0, 48.0, 48.0]])
+
+    # Crops must keep the frame's BGR order: every downstream consumer flips to RGB itself
+    (crop,) = ReID._crop_detections(frame, dets)
+    assert np.allclose(crop.reshape(-1, 3).mean(0), [30, 90, 210])
+
+    class CaptureBackend:
+        """AutoBackend stand-in that records the exact tensor it is handed."""
+
+        fp16 = False
+
+        def __init__(self, *args, **kwargs):
+            self.inputs = []
+
+        def __call__(self, batch):
+            self.inputs.append(batch.clone())
+            return batch
+
+    monkeypatch.setattr("ultralytics.trackers.utils.reid.AutoBackend", CaptureBackend)
+    encoder = ReID("fake.onnx", imgsz=32, device="cpu")
+    assert encoder(frame, dets) is not None
+    means = encoder.model.inputs[0].mean(dim=(2, 3))[0] * 255  # channel means of the normalized batch
+    assert np.allclose(means.numpy(), [210, 90, 30], atol=1), "exported backends must receive RGB"
+
+    class CapturePredictor:
+        """Predictor stand-in: the real predictor converts BGR crops to RGB before the model."""
+
+        def __call__(self, crops):
+            self.crops = crops
+            return torch.zeros(len(crops), 3)
+
+    predictor = CapturePredictor()
+    encoder_pt = ReID.__new__(ReID)  # skip model loading; only the predictor path is exercised
+    encoder_pt.is_pt = True
+    encoder_pt.device = torch.device("cpu")
+    encoder_pt.model = SimpleNamespace(predictor=predictor)
+    encoder_pt(frame, dets)
+    assert np.allclose(predictor.crops[0].reshape(-1, 3).mean(0), [30, 90, 210]), "predictor receives BGR and converts"

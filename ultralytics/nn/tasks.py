@@ -1161,7 +1161,7 @@ class WorldModel(DetectionModel):
         self.clip_model = None  # CLIP model placeholder
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
-    def set_classes(self, text, batch=80, cache_clip_model=True):
+    def set_classes(self, text, batch=80, cache_clip_model=False):
         """Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
@@ -1172,7 +1172,7 @@ class WorldModel(DetectionModel):
         self.txt_feats = self.get_text_pe(text, batch=batch, cache_clip_model=cache_clip_model)
         self.model[-1].nc = len(text)
 
-    def get_text_pe(self, text, batch=80, cache_clip_model=True):
+    def get_text_pe(self, text, batch=80, cache_clip_model=False):
         """Get text prompt embeddings using the CLIP model.
 
         Args:

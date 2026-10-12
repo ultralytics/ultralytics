@@ -422,7 +422,12 @@ class ProfileModels:
             path = Path(path)
             if path.is_dir():
                 extensions = ["*.pt", "*.onnx", "*.yaml"]
-                files.extend([file for ext in extensions for file in glob.glob(str(path / ext))])
+                files.extend(
+                    file
+                    for ext in extensions
+                    for file in glob.glob(str(path / ext))
+                    if ext != "*.onnx" or not any(Path(file).with_suffix(s).is_file() for s in (".pt", ".yaml"))
+                )
             elif path.suffix in {".pt", ".yaml", ".yml"}:  # add non-existing
                 files.append(str(path))
             else:

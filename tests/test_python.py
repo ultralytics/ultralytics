@@ -506,8 +506,9 @@ def test_predict_ndarray_channels():
     bgra = np.zeros((8, 8, 4), dtype="float64")
     assert LoadPilAndNumpy(bgra, channels=3).im0[0].shape == (8, 8, 3)  # non-OpenCV dtype also falls back for BGRA
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
-        im = np.zeros((8, 8, source_channels), dtype=np.uint8)
-        assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
+        for dtype in (np.uint8, np.float64):
+            im = np.zeros((8, 8, source_channels), dtype=dtype)
+            assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
 
 
 def test_single_check_channel_order_and_contiguity():

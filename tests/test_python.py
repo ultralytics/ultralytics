@@ -1563,6 +1563,43 @@ def test_utils_init():
     is_github_action_running()
 
 
+@pytest.mark.parametrize("windows", [True, False])
+def test_emojis_keeps_non_ascii_text(monkeypatch, windows):
+    """Test that emojis() strips only the package's emojis on Windows and leaves other platforms unchanged."""
+    from ultralytics import utils
+
+    monkeypatch.setattr(utils, "WINDOWS", windows)
+    text = "人 狗 大象 runs/detect/结果 ping: 0.4±0.2 ms"
+    emitted = "🚀✅❌⚠️💡⚡⏱❎❔😃"
+    assert utils.emojis(text) == text
+    assert utils.emojis(f"{emitted} {text}") == (f" {text}" if windows else f"{emitted} {text}")
+
+
+def test_set_logging_non_utf8_stream_without_reconfigure(monkeypatch):
+    """Test that Windows logging to a non-UTF-8 stream without reconfigure or buffer drops unencodable text."""
+    from ultralytics import utils
+
+    class Cp1252Stream:
+        encoding = "cp1252"
+
+        def __init__(self):
+            self.text = ""
+
+        def write(self, s):
+            s.encode(self.encoding)  # raise like a real cp1252 console on unencodable characters
+            self.text += s
+
+        def flush(self):
+            pass
+
+    stream = Cp1252Stream()
+    monkeypatch.setattr(utils, "WINDOWS", True)
+    monkeypatch.setattr(utils.sys, "stdout", stream)
+    logger = utils.set_logging("ultralytics_test_cp1252")
+    logger.info("人 class 0.4±0.2 ms 🚀")
+    assert stream.text == " class 0.4±0.2 ms \n"
+
+
 def test_utils_checks(monkeypatch):
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
 

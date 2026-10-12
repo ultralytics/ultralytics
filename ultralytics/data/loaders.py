@@ -143,7 +143,7 @@ class LoadStreams:
                 self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
                     "inf"
                 )  # infinite stream fallback
-                self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
+                self.fps[i] = max(fps if math.isfinite(fps) else 0, 0) or 30  # 30 FPS fallback
 
                 success, im = self.caps[i].read()  # guarantee first frame
                 if not success or im is None:

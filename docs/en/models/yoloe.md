@@ -241,7 +241,7 @@ Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This most
 
 ### Predict Usage
 
-The text-prompt call is the one shown in [Quick Start](#quick-start). The remaining two modes each need an extra argument:
+The text-prompt call is the one shown in [Quick Start](#quick-start). Visual prompting adds a `visual_prompts` argument, and prompt-free prediction loads a `-pf` checkpoint instead:
 
 !!! example
 

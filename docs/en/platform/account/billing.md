@@ -378,8 +378,8 @@ no extra charge for the rest of the period. See [Teams](teams.md#inviting-member
 
 ### Is there a free trial?
 
-The Free plan includes $5 in signup credit, and no credit card is required. To raise it to $25, change your account email to a company
-email address (not Gmail, Outlook or another consumer domain) from your personal workspace in
-[`Settings > Profile`](settings.md#email) and confirm it; the extra
-$20 is added once per account. If you have a promo code you didn't use at signup, redeem it from your personal workspace
-under **Settings > Billing**. See [Redeem a Promo Code](#redeem-a-promo-code).
+The Free plan includes $5 in signup credit, and no credit card is required. To raise it to $25, change your account
+email to a company address (not Gmail, Outlook or another consumer domain) from your personal workspace in
+[`Settings > Profile`](settings.md#email) and confirm it; the extra $20 is added once per account. If you have a promo
+code you didn't use at signup, redeem it from your personal workspace under **Settings > Billing**. See
+[Redeem a Promo Code](#redeem-a-promo-code).

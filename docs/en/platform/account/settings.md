@@ -18,8 +18,8 @@ extra-wide screens a sidebar next to the tabs lists your five most recent traini
 
 ## Profile Tab
 
-The `Profile` tab contains your profile information, social links, data region, connected accounts, and account
-management options.
+The `Profile` tab contains your profile information, email, social links, data region, connected accounts, and
+account management options.
 
 ### Profile Information
 
@@ -101,9 +101,9 @@ notifications, and account recovery.
 
 !!! tip "Company Email Bonus"
 
-    Changing your email to a verified company or work address (not gmail.com, outlook.com, and similar consumer domains) adds the
-    remaining $20 of the $25 signup credit to your balance. The bonus is granted once per account. See
-    [Billing](billing.md#free-plan).
+    Changing your email to a verified company or work address (not gmail.com, outlook.com, and similar consumer
+    domains) adds the remaining $20 of the $25 signup credit to your balance. The bonus is granted once per account.
+    See [Billing](billing.md#free-plan).
 
 ### Data Region
 

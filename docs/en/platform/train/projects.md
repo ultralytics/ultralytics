@@ -51,7 +51,7 @@ The project page has two main areas:
 | **Models Sidebar** | Resizable list of all models in the project, with checkboxes for chart selection |
 | **Main Panel**     | Charts dashboard or comparison table (toggle between views)                      |
 
-A controls row above both areas holds the model search box, **Compare with AI** (Editor role or higher, once two or more models have finished training), the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
+A controls row above both areas holds the model search box, **Compare with AI** (Editor role or higher, once the project has two or more completed models), the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
 
 ![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/4ebc844d81876e0499e28cf106859b4a.avif)<!-- screenshot -->
 

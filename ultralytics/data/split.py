@@ -14,7 +14,8 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
     """Split classification dataset into train and val directories in a new directory.
 
     Creates a new directory '{source_dir}_split' with train/val subdirectories, preserving the original class structure
-    with an 80/20 split by default. Only files with extensions matching IMG_FORMATS are copied.
+    with an 80/20 split by default. Only files with extensions matching IMG_FORMATS are copied. Re-splitting converges
+    to the current source: images removed from the source are dropped from the split.
 
     Directory structure:
         Before:
@@ -77,6 +78,7 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         f"Splitting {source_path} ({len(class_dirs)} classes) into {train_ratio:.0%} train, {1 - train_ratio:.0%} val..."
     )
     total_images = 0
+    source_files = {}  # image file names per class, to detect split files whose source image no longer exists
 
     for class_dir in class_dirs:
         # Create class directories
@@ -89,12 +91,36 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         random.Random(0).shuffle(image_files)  # deterministic, so re-splitting never mixes train and val images
         split_idx = int(len(image_files) * train_ratio)
 
+        source_files[class_dir.name] = {img.name for img in image_files}
         for i, img in enumerate(image_files):
             target, previous = (train_path, val_path) if i < split_idx else (val_path, train_path)
             relative = Path(class_dir.name, img.relative_to(class_dir))
             (previous / relative).unlink(missing_ok=True)  # a changed ratio or image set reassigns this image
-            (target / relative).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(img, target / relative)
+            dst = target / relative
+            src_stat = img.stat()
+            if (
+                dst.is_file()
+                and dst.stat().st_size == src_stat.st_size
+                and dst.stat().st_mtime_ns == src_stat.st_mtime_ns
+            ):
+                continue  # already copied: skipping the rewrite keeps the file readable for concurrent readers
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(img, dst)
+
+    # Drop split images whose source file no longer exists (removed image or class) so re-splitting converges to the
+    # current source; cache artifacts (*.npy, *.cache) are left untouched
+    for split in (train_path, val_path):
+        for out_class in split.iterdir():
+            if out_class.is_dir():
+                for f in out_class.rglob("*"):
+                    if (
+                        f.is_file()
+                        and f.suffix[1:].lower() in IMG_FORMATS
+                        and f.name not in source_files.get(out_class.name, ())
+                    ):
+                        f.unlink()
+                if not any(out_class.iterdir()):  # rmdir only removes empty dirs, keeping any cache artifacts intact
+                    out_class.rmdir()
 
     LOGGER.info(f"Split complete in {split_path} ({total_images} images) ✅")
     return split_path

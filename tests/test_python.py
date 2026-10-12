@@ -1994,8 +1994,8 @@ def test_classification_resplit_converges_to_source(tmp_path, monkeypatch):
     """Re-splitting converges to the current source while cache artifacts and unchanged files stay in place.
 
     Covers duplicate basenames in different subdirectories (cat/a/0.jpg and cat/b/0.jpg), removal of deleted classes and
-    images including their emptied nested directories, survival of *.npy/*.cache artifacts, and that an unchanged
-    re-split performs no copies at all.
+    images including their emptied nested directories, basename shielding (deleting one duplicate still sweeps it while
+    the other survives), survival of *.npy/*.cache artifacts, and that an unchanged re-split performs no copies at all.
     """
     from ultralytics.data.split import split_classify_dataset
 
@@ -2039,6 +2039,13 @@ def test_classification_resplit_converges_to_source(tmp_path, monkeypatch):
     assert not (split / "train/bird").exists() and not (split / "val/bird").exists()
     assert all(a.is_file() for a in artifacts)
     assert not [d for d in split.rglob("*") if d.is_dir() and not any(d.iterdir())]  # no husk directories remain
+
+    (source / "cat/a/0.jpg").unlink()  # the surviving cat/b/0.jpg shares the basename and must not shield the ghost
+    split_classify_dataset(source, train_ratio=0.75)
+    assert split_images() == [
+        "cat/b/0.jpg"
+    ]  # the deleted duplicate leaves both splits; the survivor stays exactly once
+    assert all(a.is_file() for a in artifacts)
 
 
 @pytest.fixture

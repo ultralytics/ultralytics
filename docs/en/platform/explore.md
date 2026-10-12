@@ -71,12 +71,13 @@ click an image to view it full size with its source dataset and license.
 
 The dropdown in the toolbar holds sort options on the Datasets and Projects tabs and filters on all three tabs:
 
-| Sort Option             | Description                                                            |
-| ----------------------- | ---------------------------------------------------------------------- |
-| **Stars**               | Community star count (descending)                                      |
-| **Created**             | Creation date, newest (default) or oldest first                        |
-| **Name**                | Alphabetical, ascending or descending                                  |
-| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first |
+| Sort Option             | Description                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------ |
+| **Relevance**           | Datasets tab default: best search matches first, newest first without a search |
+| **Stars**               | Community star count (descending)                                              |
+| **Created**             | Creation date, newest or oldest first; newest is the Projects tab default      |
+| **Name**                | Alphabetical, ascending or descending                                          |
+| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first         |
 
 | Filter         | Tabs                       | Availability   | Description                                                                                      |
 | -------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
@@ -253,7 +254,7 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 | **Datasets**  | Public datasets (default tab)                     |
 | **Projects**  | Public projects with models                       |
 
-The Datasets and Projects tabs use the same search, sort, and view controls as the Explore page.
+The Datasets and Projects tabs use the same search, sort, and view controls as the Explore page, without the **Relevance** sort.
 
 ### Follow Users
 

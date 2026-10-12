@@ -107,8 +107,7 @@ def benchmark(
     """
     from ultralytics.cfg import _handle_deprecation
 
-    kwargs = _handle_deprecation({"quantize": quantize, **kwargs} if quantize is not None else kwargs)
-    quantize = kwargs.pop("quantize", None)  # legacy half/int8 map onto quantize unless it is passed explicitly
+    quantize = _handle_deprecation(kwargs).pop("quantize", quantize)  # updates kwargs in place, half/int8 -> quantize
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 

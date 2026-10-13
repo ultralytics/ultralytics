@@ -151,11 +151,9 @@ def on_fit_epoch_end(trainer):
 
 
 def on_train_epoch_end(trainer):
-    """Log training losses and learning rates at each training epoch end, plus training plots after the second epoch."""
+    """Log training losses and learning rates at each training epoch end."""
     wb.run.log(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
     wb.run.log(trainer.lr, step=trainer.epoch + 1)
-    if trainer.epoch == 1:
-        _log_plots(trainer.plots, step=trainer.epoch + 1)
 
 
 def on_train_end(trainer):

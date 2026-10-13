@@ -474,6 +474,11 @@ def on_train_end(trainer):
     for info in getattr(getattr(trainer, "validator", None), "plots", {}).values():
         if info.get("data") and info["data"].get("type"):
             plots_by_type.setdefault(info["data"]["type"], info["data"])  # Don't overwrite trainer plots
+    # Curve rows only cover classes with val labels: send their model class indices when any class is missing
+    if pr := plots_by_type.get("pr_curve"):
+        classes = [int(c) for c in trainer.validator.metrics.ap_class_index]
+        if len(classes) < len(trainer.validator.names):
+            plots_by_type["pr_curve"] = {**pr, "classes": classes}
     plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
 
     # Get class names

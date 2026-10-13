@@ -262,8 +262,8 @@ class BaseTrainer:
                 self._do_train()
         finally:
             unset_deterministic()  # never leave deterministic state on, including the DDP parent and failed runs
-        if not self.ddp:
-            self.run_callbacks("teardown")
+            if not self.ddp:
+                self.run_callbacks("teardown")
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -320,6 +320,8 @@ class BaseTrainer:
         )
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
+        if not self.args.time:  # time mode re-estimates epochs after the first epoch
+            self.accumulate = min(self.accumulate, len(self.train_loader) * self.epochs)
         if self.optimizer is None:
             iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
             self.optimizer = self.build_optimizer(

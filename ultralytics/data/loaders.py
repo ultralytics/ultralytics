@@ -574,6 +574,7 @@ class LoadPilAndNumpy:
             raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
         pil = isinstance(im, Image.Image)
         if pil:
+            im = ImageOps.exif_transpose(im)
             if im.mode.startswith("I;16"):  # convert() clips 16-bit values at 255, scale them like cv2 does
                 im = Image.fromarray((np.asarray(im) >> 8).astype(np.uint8))
             flag = "L" if channels == 1 else "RGB"
@@ -708,7 +709,7 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            if str(im).startswith("http"):  # requests follows HTTP 308 redirects that urllib lacks pre-3.11
+            if str(im).lower().startswith(("https://", "http://")):  # requests: urllib pre-3.11 lacks 308 redirects
                 import requests  # scoped as slow import
 
                 im = BytesIO(requests.get(im).content)

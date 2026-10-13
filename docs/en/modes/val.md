@@ -90,6 +90,12 @@ When validating YOLO models, several arguments can be fine-tuned to optimize the
 
 Each of these settings plays a vital role in the validation process, allowing for a customizable and efficient evaluation of YOLO models. Adjusting these parameters according to your specific needs and resources can help achieve the best balance between accuracy and performance.
 
+### Rectangular validation geometry (`rect`)
+
+When rectangular validation is used (`rect=True`), each batch shape is rounded **up** to `ceil(shape * imgsz / stride + 0.5) * stride`. The `+ 0.5` term adds half a stride of padding on every side, even when the letterboxed image is already stride-aligned. For example, a square 640×640 image validated at `imgsz=640` with stride 32 runs as a 672×672 input, shifted 16 px off the stride grid, while `predict()` on the same image runs at 640×640 with no offset.
+
+Two consequences follow. First, validation metrics can differ from deployment geometry: a model that is sensitive to the half-stride shift may score differently under `rect` validation than under `predict()` or a fixed-shape export. Passing `rect=False` to `model.val()` validates at the `predict()` geometry for square, stride-aligned inputs. Second, per-epoch validation during training always uses rectangular batches regardless of the `rect` setting, so `model.train(..., rect=False)` still selects `best.pt` on the shifted geometry. This default is intentional and unchanged; the note exists so checkpoint selection can be interpreted accordingly.
+
 ### Example Validation with Arguments
 
 <p align="center">

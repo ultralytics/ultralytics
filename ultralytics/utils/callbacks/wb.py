@@ -124,7 +124,7 @@ def on_pretrain_routine_start(trainer):
         from datetime import datetime
         from pathlib import Path
 
-        name = str(trainer.args.name).replace("/", "-").replace(" ", "_")
+        name = str(trainer.args.name)
         latest_run = Path(trainer.save_dir) / "wandb" / "latest-run"
         resuming = trainer.args.resume and latest_run.exists()
         wb.init(
@@ -135,7 +135,7 @@ def on_pretrain_routine_start(trainer):
             config=vars(trainer.args),
             id=next(latest_run.glob("run-*.wandb")).stem[4:]
             if resuming
-            else f"{name[:64]}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
+            else f"{re.sub('[^A-Za-z0-9_.-]', '_', name)[:64]}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
             resume="allow" if resuming else None,
             dir=str(trainer.save_dir),
         )

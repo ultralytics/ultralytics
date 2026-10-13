@@ -619,7 +619,7 @@ Yes. Use [Batch Annotation](#batch-annotation) from **More actions > Batch Annot
 
 ### Which class-prompted model should I use?
 
-In an Ultralytics Platform benchmark of every class-prompted model on 108 images from 36 detection datasets spanning medical, aerial, industrial, retail, and everyday scenes, `gemini-4-argon` was the most accurate. `claude-haiku-5-5` and `gemini-3.5-flash-lite` gave the most accuracy for their low cost, and Qwen3.8 27B was the most accurate hosted model, with no provider key needed. Accuracy depends heavily on the domain: models that find nearly every object in everyday photos miss many objects in medical, X-ray, PCB, and retail images, so run a few predictions on your own images before starting [Batch Annotation](#batch-annotation).
+In an October 2026 Ultralytics Platform benchmark of every class-prompted model on 108 images from 36 detection datasets spanning medical, aerial, industrial, retail, and everyday scenes, `gemini-4-argon` was the most accurate. `claude-haiku-5-5` and `gemini-3.5-flash-lite` were the most accurate low-cost models, and Qwen3.8 27B was the most accurate hosted model, with no provider key needed. Accuracy depends heavily on the domain: models that find nearly every object in everyday photos miss many objects in PCB, X-ray, retail, and traffic images and in some medical datasets, so run a few predictions on your own images before starting [Batch Annotation](#batch-annotation).
 
 ### Can I create custom skeleton templates for pose annotation?
 

@@ -1,4 +1,5 @@
 ---
+title: FastSAM Real-Time Segment Anything Model
 comments: true
 description: Discover FastSAM, a real-time CNN-based solution for segmenting any object in an image. Efficient, competitive, and ideal for various vision tasks.
 keywords: FastSAM, Fast Segment Anything Model, Ultralytics, real-time segmentation, instance segmentation, FastSAM vs YOLO, FastSAM vs SAM, YOLOv8-seg, YOLO26-seg, zero-shot segmentation, object segmentation, Meta

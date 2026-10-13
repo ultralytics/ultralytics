@@ -1,4 +1,5 @@
 ---
+title: Image Classification Datasets for YOLO
 comments: true
 description: Learn how to structure datasets for YOLO classification tasks. Detailed folder structure and usage examples for effective training.
 keywords: YOLO, image classification, dataset structure, CIFAR-10, Ultralytics, machine learning, training data, model evaluation

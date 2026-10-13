@@ -2,6 +2,7 @@
 
 import contextlib
 import csv
+import json
 import os
 import platform
 import shutil
@@ -1523,6 +1524,41 @@ def test_verify_image_label_keeps_polygons_sharing_a_box(tmp_path):
     lb.write_text("\n".join([*rows, rows[0]]))
     _, labels, _, segments, *_ = verify_image_label((str(im), str(lb), "", False, 1, 0, 0, False))
     assert len(labels) == len(segments) == 2
+
+
+def test_grounding_dataset_keeps_polygons_sharing_a_box(tmp_path):
+    """Keep distinct grounding polygons and exact-repeat deduplication across cached task switches."""
+    from ultralytics.data.dataset import GroundingDataset
+    from ultralytics.utils import DEFAULT_CFG
+
+    cv2.imwrite(str(tmp_path / "image.jpg"), np.zeros((32, 32, 3), np.uint8))
+    polygons = [[4, 4, 28, 4, 28, 28], [4, 4, 4, 28, 28, 28]]
+    annotations = [
+        {"image_id": 1, "bbox": [4, 4, 24, 24], "iscrowd": 0, "tokens_positive": [[0, 6]], "segmentation": [p]}
+        for p in [*polygons, polygons[0]]
+    ]
+    path = tmp_path / "annotations.json"
+    path.write_text(
+        json.dumps(
+            {
+                "images": [{"id": 1, "width": 32, "height": 32, "file_name": "image.jpg", "caption": "object"}],
+                "annotations": annotations,
+            }
+        )
+    )
+    for task, count in (("segment", 2), ("detect", 1), ("segment", 2), ("segment", 2)):
+        ds = GroundingDataset(
+            img_path=str(tmp_path),
+            json_file=str(path),
+            task=task,
+            imgsz=32,
+            batch_size=1,
+            augment=False,
+            hyp=DEFAULT_CFG,
+        )
+        assert len(ds.labels[0]["cls"]) == len(ds.labels[0]["segments"]) == count
+        if task == "segment":
+            assert ds[0]["masks"].unique().tolist() == [0, 1, 2]
 
 
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):

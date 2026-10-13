@@ -117,7 +117,7 @@ def _log_plots(plots, step):
             _processed_plots[name] = timestamp
 
 
-def on_pretrain_routine_start(trainer):
+def on_pretrain_routine_end(trainer):
     """Initialize and start wandb project if module is present."""
     if not wb.run:
         import re
@@ -179,15 +179,15 @@ def on_train_end(trainer):
                 x_title=x_title,
                 y_title=y_title,
             )
-    wb.run.finish()  # required or run continues on dashboard
 
 
 callbacks = (
     {
-        "on_pretrain_routine_start": on_pretrain_routine_start,
+        "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
+        "teardown": lambda trainer: wb.finish(),  # also after a failed train, so the next train() starts a new run
     }
     if wb
     else {}

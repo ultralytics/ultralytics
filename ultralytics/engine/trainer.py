@@ -262,8 +262,8 @@ class BaseTrainer:
                 self._do_train()
         finally:
             unset_deterministic()  # never leave deterministic state on, including the DDP parent and failed runs
-        if not self.ddp:
-            self.run_callbacks("teardown")
+            if not self.ddp:
+                self.run_callbacks("teardown")
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""

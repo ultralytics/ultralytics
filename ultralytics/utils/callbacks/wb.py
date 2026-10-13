@@ -185,7 +185,6 @@ callbacks = (
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
-        # runs in train()'s finally, so the next train() starts a new run; exit code 1 while an exception propagates
         "teardown": lambda trainer: wb.finish(exit_code=int(sys.exc_info()[0] is not None)),
     }
     if wb

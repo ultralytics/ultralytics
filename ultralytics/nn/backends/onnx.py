@@ -259,7 +259,7 @@ class ONNXBackend(BaseBackend):
             self.fp16 = "float16" in self.session.get_inputs()[0].type
 
             # Setup IO binding for CUDA and MIGraphX
-            self.use_io_binding = not self.dynamic and cuda
+            self.use_io_binding = cuda and all(isinstance(d, int) for o in self.session.get_outputs() for d in o.shape)
             if self.use_io_binding:
                 self.io = self.session.io_binding()
                 self.bindings = []

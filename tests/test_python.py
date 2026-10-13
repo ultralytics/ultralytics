@@ -472,25 +472,30 @@ def test_load_tensor_uint8():
 
 
 def test_predict_gray_and_4ch(tmp_path):
-    """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""
+    """Test YOLO prediction on grayscale, 4-channel, and EXIF-rotated images with various filenames."""
     im = Image.open(SOURCE)
 
     source_grayscale = tmp_path / "grayscale.jpg"
     source_rgba = tmp_path / "4ch.png"
     source_non_utf = tmp_path / "non_UTF_测试文件_tést_image.jpg"
     source_spaces = tmp_path / "image with spaces.jpg"
+    source_exif = tmp_path / "exif.jpg"
 
     im.convert("L").save(source_grayscale)  # grayscale
     im.convert("RGBA").save(source_rgba)  # 4-ch PNG with alpha
     im.save(source_non_utf)  # non-UTF characters in filename
     im.save(source_spaces)  # spaces in filename
+    exif = im.getexif()
+    exif[274] = 6  # stored landscape, displayed portrait
+    im.rotate(90, expand=True).save(source_exif, exif=exif)
 
     # Inference
     model = YOLO(MODEL)
-    for f in source_rgba, source_grayscale, source_non_utf, source_spaces:
+    for f in source_rgba, source_grayscale, source_non_utf, source_spaces, source_exif:
         for source in Image.open(f), cv2.imread(str(f)), f:
             results = model(source, save=True, verbose=True, imgsz=32)
             assert len(results) == 1, f"Expected 1 result for {f.name}, got {len(results)}"
+            np.testing.assert_array_equal(results[0].orig_img, cv2.imread(str(f)))
         f.unlink()  # cleanup
 
 

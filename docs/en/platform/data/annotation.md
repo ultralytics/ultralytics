@@ -333,7 +333,24 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 
 ### Class-Prompted Smart Annotation
 
-On a detection dataset with 1–200 classes, the model picker's **Open-source models** project lists six hosted models — **Moondream 3.1** (the default when you open Smart mode on a detection dataset), **Qwen3.8 27B**, **YOLOE-26x**, **Florence-2 Large**, **OWLv2 Large**, and **Grounding DINO Base**. The **Meta** project adds the hosted text-prompted **SAM 3 Text** and **SAM 3.1 Text**, which detect the dataset's classes across the whole image, and Meta's paid **muse-spark-1.3**. The **OpenAI**, **Anthropic**, **Google**, **SpaceXAI**, **DeepSeek**, **Z.ai**, **Kimi**, and **Xiaomi MiMo** projects list each provider's paid vision models. Select one and click `Predict` (or press `P`): the model detects the dataset's classes with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
+On a detection dataset with 1–200 classes, select a class-prompted model and click `Predict` (or press `P`): it detects the dataset's classes across the whole image with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
+
+Hosted models run on Ultralytics Platform with no provider key; Moondream 3.1 is the default:
+
+| Model                                            | Picker project     | Parameters |
+| ------------------------------------------------ | ------------------ | ---------- |
+| **Moondream 3.1**                                | Open-source models | 9B         |
+| **Qwen3.8 27B**                                  | Open-source models | 27B        |
+| [**YOLOE-26x**](../../models/yoloe.md)           | Open-source models | 0.09B      |
+| **Florence-2 Large**                             | Open-source models | 0.78B      |
+| **OWLv2 Large**                                  | Open-source models | 0.44B      |
+| **Grounding DINO Base**                          | Open-source models | 0.23B      |
+| [**SAM 3 Text**](../../models/sam-3.md)          | Meta               | 0.86B      |
+| [**SAM 3.1 Text**](../../models/sam-3.md#sam-31) | Meta               | 0.87B      |
+
+Paid vision models from OpenAI, Anthropic, Google, Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo appear under each provider's project in the picker, by API name:
+
+<platform-annotation-models></platform-annotation-models>
 
 A paid provider model runs with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation); without one, the prediction fails with an **Add API key** action. The provider bills your key for each prediction. After each prediction, the toast shows the number of objects detected, the elapsed time, and the cost: **Free** for a hosted model; for a paid model, the estimated provider cost when one is returned, otherwise **Billed by** and the provider name.
 

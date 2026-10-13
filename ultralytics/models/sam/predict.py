@@ -322,14 +322,14 @@ class Predictor(BasePredictor):
             assert points.shape[-2] == labels.shape[-1], (
                 f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
             )
-            points *= r
+            points = points * r
             if points.ndim == 2:
                 # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
                 points, labels = points[:, None, :], labels[:, None]
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=self.torch_dtype, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
-            bboxes *= r
+            bboxes = bboxes * r
         if masks is not None:
             masks = np.asarray(masks, dtype=np.uint8)
             masks = masks[None] if masks.ndim == 2 else masks

@@ -1620,6 +1620,36 @@ def test_utils_torchutils():
     time_sync()
 
 
+@pytest.mark.parametrize("momentum", [0.0, 0.9])
+def test_rmsprop_checkpoint_preserves_square_avg(tmp_path, momentum):
+    """RMSprop checkpoint compression must preserve small second moments and resumed update magnitudes."""
+    from copy import deepcopy
+
+    from ultralytics.utils.patches import torch_load
+    from ultralytics.utils.torch_utils import convert_optimizer_state_dict_to_fp16
+
+    param = torch.nn.Parameter(torch.ones(1))
+    optimizer = torch.optim.RMSprop([param], lr=0.01, momentum=momentum)
+    for _ in range(100):
+        param.grad = torch.full_like(param, 1e-4)
+        optimizer.step()
+    state = deepcopy(optimizer.state_dict())
+    checkpoint = tmp_path / "optimizer.pt"
+    torch.save(convert_optimizer_state_dict_to_fp16(deepcopy(state)), checkpoint)
+    saved = torch_load(checkpoint)
+    assert torch.equal(saved["state"][0]["square_avg"], state["state"][0]["square_avg"])
+
+    updates = []
+    for checkpoint_state in (state, saved):
+        resumed_param = torch.nn.Parameter(torch.ones(1))
+        resumed = torch.optim.RMSprop([resumed_param], lr=0.01, momentum=momentum)
+        resumed.load_state_dict(checkpoint_state)
+        resumed_param.grad = torch.full_like(resumed_param, 1e-6)
+        resumed.step()
+        updates.append(1 - resumed_param.detach())
+    assert torch.allclose(updates[0], updates[1], rtol=1e-3, atol=1e-6)
+
+
 def test_rtdetr_remap_cls_by_names():
     """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising partial transfer)."""
     from types import SimpleNamespace

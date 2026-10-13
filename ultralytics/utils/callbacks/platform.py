@@ -479,7 +479,7 @@ def on_train_end(trainer):
         classes = [int(c) for c in trainer.validator.metrics.ap_class_index]
         if len(classes) < len(trainer.validator.names):
             plots_by_type["pr_curve"] = {**pr, "classes": classes}
-    plots =[_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
+    plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
 
     # Get class names
     names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")

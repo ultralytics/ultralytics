@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import sys
+
 from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -117,22 +119,23 @@ def _log_plots(plots, step):
             _processed_plots[name] = timestamp
 
 
-def on_pretrain_routine_start(trainer):
+def on_pretrain_routine_end(trainer):
     """Initialize and start wandb project if module is present."""
     if not wb.run:
+        import re
         from datetime import datetime
         from pathlib import Path
 
-        name = str(trainer.args.name).replace("/", "-").replace(" ", "_")
+        name = str(trainer.args.name)
         latest_run = Path(trainer.save_dir) / "wandb" / "latest-run"
         resuming = trainer.args.resume and latest_run.exists()
         wb.init(
-            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
+            project=re.sub(r"[/\\#?%:]", "-", str(trainer.args.project or "Ultralytics"))[-128:],
             name=name,
             config=vars(trainer.args),
-            id=latest_run.resolve().name.split("-", 2)[2]
+            id=next(latest_run.glob("run-*.wandb")).stem[4:]
             if resuming
-            else f"{name[:64]}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
+            else f"{re.sub('[^A-Za-z0-9_.-]', '_', name)[:64]}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
             resume="allow" if resuming else None,
             dir=str(trainer.save_dir),
         )
@@ -148,17 +151,15 @@ def on_fit_epoch_end(trainer):
 
 
 def on_train_epoch_end(trainer):
-    """Log training losses and learning rates at each training epoch end, plus training plots after the second epoch."""
+    """Log training losses and learning rates at each training epoch end."""
     wb.run.log(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
     wb.run.log(trainer.lr, step=trainer.epoch + 1)
-    if trainer.epoch == 1:
-        _log_plots(trainer.plots, step=trainer.epoch + 1)
 
 
 def on_train_end(trainer):
     """Save the best model as an artifact and log final plots at the end of training."""
-    _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
-    _log_plots(trainer.plots, step=trainer.epoch + 1)
+    _log_plots(trainer.validator.plots, step=wb.run.step)
+    _log_plots(trainer.plots, step=wb.run.step)
     if trainer.args.save and trainer.best.exists():
         art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")
         art.add_file(trainer.best)
@@ -176,15 +177,15 @@ def on_train_end(trainer):
                 x_title=x_title,
                 y_title=y_title,
             )
-    wb.run.finish()  # required or run continues on dashboard
 
 
 callbacks = (
     {
-        "on_pretrain_routine_start": on_pretrain_routine_start,
+        "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
+        "teardown": lambda trainer: wb.finish(exit_code=int(sys.exc_info()[0] is not None)),
     }
     if wb
     else {}

@@ -198,6 +198,7 @@ jobs:
             docker build \
               --platform ${{ matrix.platforms }} \
               --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+              --label "org.opencontainers.image.revision=${{ github.sha }}" \
               --label "org.opencontainers.image.description=Ultralytics image" \
               --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
               -f docker/${{ matrix.dockerfile }} \
@@ -221,6 +222,7 @@ jobs:
             if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
               docker build --platform ${{ matrix.platforms }} --build-arg PYTHON_VERSION=3.13 \
                 --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+                --label "org.opencontainers.image.revision=${{ github.sha }}" \
                 --label "org.opencontainers.image.description=Ultralytics image" \
                 --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
                 -f docker/Dockerfile-python \
@@ -319,10 +321,22 @@ jobs:
               done
             fi
 
-            # Push all images (base + derivatives)
+            # Push all images (base + derivatives), but never over a tag built from a newer commit, as when an older
+            # run is rerun after a newer one pushed; derivatives inherit the base's revision label
+            git fetch --quiet origin main # resolves the commits of images pushed by newer runs
             for tag in "${images_to_push[@]}"; do
-              docker push "ultralytics/ultralytics:$tag"
-              docker push "ghcr.io/ultralytics/ultralytics:$tag"
+              for registry in ultralytics/ultralytics ghcr.io/ultralytics/ultralytics; do
+                if ! revision=$(docker buildx imagetools inspect "$registry:$tag" --format '{{with .Image.Config}}{{index .Labels "org.opencontainers.image.revision"}}{{end}}' 2>&1); then
+                  [[ "$revision" == *": not found" ]] || { printf '%s\n' "$revision" >&2; exit 1; }
+                  revision=""
+                fi
+                if [[ -n "$revision" && "$revision" != "$GITHUB_SHA" ]] && git merge-base --is-ancestor "$GITHUB_SHA" "$revision" 2>/dev/null &&
+                  git merge-base --is-ancestor "$revision" FETCH_HEAD 2>/dev/null; then # only main's newer commits win
+                  echo "Skipping $registry:$tag: it holds newer commit $revision"
+                else
+                  docker push "$registry:$tag"
+                fi
+              done
 
               # Check each image so new derivatives receive version tags without overwriting existing releases.
               if [[ "${{ matrix.dockerfile }}" != "Dockerfile-conda" ]]; then

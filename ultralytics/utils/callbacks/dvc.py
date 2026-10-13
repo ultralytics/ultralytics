@@ -2,11 +2,10 @@
 
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, checks
+from ultralytics.utils import LOGGER, TESTS_RUNNING, checks
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["dvc"] is True  # verify integration is enabled
     import dvclive
 
     assert checks.check_version("dvclive", "2.11.0", verbose=True)

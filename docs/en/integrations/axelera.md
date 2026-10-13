@@ -17,30 +17,21 @@ Axelera AI provides dedicated hardware acceleration for [computer vision](https:
 Axelera AI offers various form factors to suit different deployment constraints. The chart below helps identify the optimal hardware for your Ultralytics YOLO deployment.
 
 ```mermaid
-graph TD
-    A[Start: Select Deployment Target]:::start --> B{Device Type?}:::decide
-    B -->|Edge Server / Workstation| C{Throughput Needs?}:::decide
-    B -->|Embedded / Robotics| D{Space Constraints?}:::decide
-    B -->|Standalone / R&D| E[Dev Kits & Systems]:::proc
+flowchart TD
+    A([Choose Metis hardware]) --> B{30+ streams?}
+    B -->|yes| C[Metis PCIe x4]
+    B -->|no| D{PC host?}
+    D -->|no| F{Standalone device?}
+    D -->|yes| E[Metis PCIe x1]
+    F -->|yes| G[Metis Compute Board]
+    F -->|no| H{Advanced thermal needs?}
+    H -->|yes| J[Metis M.2 MAX]
+    H -->|no| I[Metis M.2]
 
-    C -->|Max Density <br> 30+ Streams| F[**Metis PCIe x4**<br>856 TOPS]:::out
-    C -->|Standard PC <br> Low Profile| G[**Metis PCIe x1**<br>214 TOPS]:::out
-
-    D -->|Drones & Handhelds| H[**Metis M.2**<br>2280 M-Key]:::out
-    D -->|High Performance Embedded| I[**Metis M.2 MAX**<br>Extended Thermal]:::out
-
-    E -->|ARM-based All-in-One| J[**Metis Compute Board**<br>RK3588 + AIPU]:::out
-    E -->|Prototyping| K[**Arduino Portenta x8**<br>Integration Kit]:::out
-
-    click F "https://store.axelera.ai/"
+    click C "https://store.axelera.ai/"
+    click E "https://store.axelera.ai/"
     click G "https://store.axelera.ai/"
-    click H "https://store.axelera.ai/"
-    click J "https://store.axelera.ai/"
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+    click I "https://store.axelera.ai/"
 ```
 
 ## Hardware Portfolio

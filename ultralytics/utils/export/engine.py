@@ -167,8 +167,8 @@ def modelopt_quantize_onnx(
     if quantize == 8 and dataset is None:
         raise ValueError("INT8 ModelOpt quantization requires a calibration dataset.")
 
-    # Require modelopt >= 0.44: older releases import onnx.mapping which was removed in onnx >= 1.18 and crash
-    check_requirements("nvidia-modelopt[onnx]>=0.44")
+    # modelopt<0.44 imports onnx.mapping (removed in onnx 1.18); pin torch so modelopt's torch>=2.8 can't replace it
+    check_requirements("nvidia-modelopt[onnx]>=0.44", constrain=(f"torch=={TORCH_VERSION}",))
     import onnx
 
     graph_inputs = onnx.load(onnx_file, load_external_data=False).graph.input
@@ -486,12 +486,13 @@ def onnx2engine(
         # as `modelopt_quantize_onnx` does. Scope this to the head: every SiLU activation is also a Sigmoid, and
         # constraining all of them costs INT8 speed across backbone and neck.
         names = [network.get_layer(i).name for i in range(network.num_layers)]
-        indices = [int(m.group(1)) for n in names if (m := re.match(r"/model\.(\d+)/", n))]
+        # search, not match: nms=True exports wrap the model in NMSModel, prefixing every name with "/model"
+        indices = [int(m.group(1)) for n in names if (m := re.search(r"/model\.(\d+)/", n))]
         head = f"/model.{max(indices)}/" if indices else "/"
         count = 0
         for i in range(network.num_layers):
             layer = network.get_layer(i)
-            if not layer.name.startswith(head):
+            if head not in layer.name:
                 continue
             if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
                 dtype = trt.float32

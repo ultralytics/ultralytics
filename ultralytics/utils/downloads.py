@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
 import tarfile
+import time
 import zlib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -378,7 +380,7 @@ def safe_download(
             for i in range(retry + 1):
                 try:
                     resume = f.stat().st_size if f.exists() else 0  # partial bytes kept from a failed attempt
-                    if (curl or i > 0) and not resume and curl_installed:  # curl download or fallback
+                    if curl and not resume and curl_installed:  # explicit curl download
                         s = "sS" * (not progress)  # silent
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
@@ -477,12 +479,15 @@ def safe_download(
                         raise ConnectionError(
                             emojis(f"❌  Download failure for {uri}. Environment may be offline.")
                         ) from e
-                    elif i >= retry:
+                    status = getattr(getattr(e, "response", None), "status_code", None)
+                    # A 4xx other than timeout, range or rate-limit answers will not change on retry, so fail fast
+                    if i >= retry or (status and status < 500 and status not in {408, 416, 429}):
                         f.unlink(missing_ok=True)
-                        raise ConnectionError(
-                            emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
-                        ) from e
-                    LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
+                        limit = "Retry limit reached. " * (i >= retry)
+                        raise ConnectionError(emojis(f"❌  Download failure for {uri}. {limit}{e}")) from e
+                    delay = 5 * 2**i  # 5, 10, 20 s rides out the ~20-40 s HTTP 5xx bursts GitHub Releases returns
+                    LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} in {delay}s {uri}... {e}")
+                    time.sleep(delay)
             else:  # no attempt reached `break`, so every one failed size validation and unlinked its download
                 raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached."))
 
@@ -516,6 +521,7 @@ def safe_download(
                         target.parent.mkdir(parents=True, exist_ok=True)
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
+                        os.utime(target, (m.mtime, m.mtime))  # keep archive mtimes so re-extraction keeps caches valid
             if len(top_level_dirs) == 1:
                 unzip_dir /= next(iter(top_level_dirs))  # return the single extracted file or directory
         else:
@@ -593,9 +599,7 @@ def attempt_download_asset(
     from ultralytics.utils import SETTINGS  # scoped for circular import
 
     # YOLOv3/5u updates
-    file = str(file)
-    file = checks.check_yolov5u_filename(file)
-    file = Path(file.strip().replace("'", ""))
+    file = Path(checks.check_yolov5u_filename(str(file).strip().replace("'", "")))
     if file.exists():
         return str(file)
     elif (SETTINGS["weights_dir"] / file).exists():

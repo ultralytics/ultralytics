@@ -105,6 +105,14 @@ QNN_HTP_TARGETS = {
     "iq-8275": ("soc_model", "82"),  # Dragonwing IQ-8275
     "qcs8275": ("soc_model", "82"),
 }  # Qualcomm Hexagon HTP targets and their ONNX Runtime QNN provider option
+XILINX_TARGETS = (
+    "ve2-xc2ve3858",
+    "ve2-xc2ve3504",
+    "ve2-xc2ve3558",
+    "ve2-xc2ve3804",
+    "ve2-xc2ve3304",
+    "ve2-xc2ve3358",
+)  # AMD Versal AI Edge Series Gen 2 Vitis AI compiler devices, the first is the VEK385 evaluation kit default
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -467,7 +475,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
     Notes:
         - On Windows, this function attempts to reconfigure stdout to use UTF-8 encoding if possible.
-        - If reconfiguration is not possible, it falls back to a custom formatter that handles non-UTF-8 environments.
+        - On Windows, emojis are removed from log messages.
         - The function sets up a StreamHandler with the appropriate formatter and level.
         - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
@@ -524,8 +532,8 @@ logging.getLogger("sentry_sdk").setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=""):
-    """Return platform-dependent emoji-safe version of string."""
-    return string.encode().decode("ascii", "ignore") if WINDOWS else string
+    """Return platform-dependent emoji-safe version of string, removing only the package's emojis on Windows."""
+    return string.translate(str.maketrans("", "", "🚀✅❌⚠💡⚡⏱❎❔😃\ufe0f")) if WINDOWS else string
 
 
 class ThreadingLocked:

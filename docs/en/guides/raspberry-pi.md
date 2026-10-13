@@ -61,7 +61,7 @@ You can set up the Ultralytics package on Raspberry Pi in two ways for your next
 
 The fastest way to get started with Ultralytics YOLO26 on Raspberry Pi is to run with a pre-built Docker image for Raspberry Pi.
 
-Execute the below command to pull the Docker container and run on Raspberry Pi. This is based on the [arm64v8/ubuntu](https://hub.docker.com/r/arm64v8/ubuntu) Docker image, which runs Ubuntu 24.04 in a Python3 environment.
+Execute the below command to pull the Docker container and run on Raspberry Pi. This is based on the official [Python](https://hub.docker.com/_/python) `3.13-slim-trixie` image, which runs Debian 13 with Python 3.13.
 
 ```bash
 t=ultralytics/ultralytics:latest-arm64

@@ -88,14 +88,16 @@ class LiteRTBackend(BaseBackend):
                 x[:, [0, 2]] *= w
                 x[:, [1, 3]] *= h
                 if self.task == "pose":
-                    x[:, kpt_start::3] *= w
-                    x[:, kpt_start + 1 :: 3] *= h
+                    nd = self.kpt_shape[1]  # 2 (x, y) or 3 (x, y, visibility) values per keypoint
+                    x[:, kpt_start::nd] *= w
+                    x[:, kpt_start + 1 :: nd] *= h
             elif x.ndim == 3 and self.end2end and self.nhwc:
                 x[:, :, [0, 2]] *= w
                 x[:, :, [1, 3]] *= h
                 if self.task == "pose":  # post-NMS [B, N, box(4)+conf+cls+kpts], keypoints start at 6
-                    x[:, :, 6::3] *= w
-                    x[:, :, 7::3] *= h
+                    nd = self.kpt_shape[1]
+                    x[:, :, 6::nd] *= w
+                    x[:, :, 7::nd] *= h
             y.append(x)
 
         if self.task == "segment" and y[0].ndim == 4:  # order as (detections, protos)

@@ -48,7 +48,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if (task := predictor.args.task) in TASKS and task not in trackable:  # unknown third-party tasks are left alone
         raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {', '.join(trackable)}")
 
-    if hasattr(predictor, "trackers") and persist:
+    needed = predictor.dataset.bs if predictor.dataset.mode == "stream" else 1  # non-stream reuses one tracker
+    if persist and len(getattr(predictor, "trackers", ())) >= needed:
         return
 
     tracker = check_yaml(predictor.args.tracker)
@@ -64,7 +65,11 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if hasattr(predictor, "_orig_postprocess"):  # restore any raw-preds wrapper left by a prior TRACKTRACK run
         predictor.postprocess = predictor._orig_postprocess
         del predictor._orig_postprocess
-    if cfg.tracker_type in {"botsort", "tracktrack", "deepocsort"} and cfg.with_reid and cfg.model == "auto":
+    if (
+        cfg.tracker_type in {"botsort", "tracktrack", "deepocsort"}
+        and cfg.with_reid
+        and getattr(cfg, "model", "auto") == "auto"
+    ):
         from ultralytics.nn.modules.head import Detect
 
         if not (
@@ -81,13 +86,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
             predictor._hook = predictor.model.model.model[-1].register_forward_pre_hook(pre_hook)
 
-    trackers = []
-    for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg)
-        trackers.append(tracker)
-        if predictor.dataset.mode != "stream":  # non-stream modes reuse a single tracker
-            break
-    predictor.trackers = trackers
+    trackers = getattr(predictor, "trackers", []) if persist else []  # persist keeps the state of existing slots
+    predictor.trackers = trackers + [TRACKER_MAP[cfg.tracker_type](args=cfg) for _ in range(needed - len(trackers))]
     predictor.vid_path = [None] * predictor.dataset.bs  # used to reset the tracker when switching videos
 
     tracker_cls = TRACKER_MAP[cfg.tracker_type]
@@ -131,6 +131,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             kwargs["dets_del"] = dets_del_list[i]
         tracks = tracker.update(det, result.orig_img, **kwargs)
         if len(tracks) == 0:
+            if any(not t.is_activated for t in tracker.tracked_stracks):  # hide new tracks until confirmed
+                predictor.results[i] = result[:0]
             continue
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = result[idx]

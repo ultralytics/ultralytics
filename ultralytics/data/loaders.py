@@ -139,11 +139,11 @@ class LoadStreams:
                     raise ConnectionError(f"{st}Failed to open {s}")
                 w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
                 h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
-                fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
+                fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0, nan or a 90 kHz RTP clock rate
                 self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
                     "inf"
                 )  # infinite stream fallback
-                self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
+                self.fps[i] = fps if 0 < fps < 1000 else 30  # 30 FPS fallback
 
                 success, im = self.caps[i].read()  # guarantee first frame
                 if not success or im is None:
@@ -333,10 +333,10 @@ class LoadImagesAndVideos:
         cap (cv2.VideoCapture): Video capture object for OpenCV.
         frame (int): Frame counter for video.
         frames (int): Number of frames in the current video after applying vid_stride.
-        fps (int): Frames per second of the current video.
+        fps (float): Frames per second of the current video as reported by OpenCV.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
-        cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
+        cv2_flag (int): OpenCV flag for image reading (grayscale, color/BGR, or unchanged for other channel counts).
 
     Methods:
         __init__: Initialize the LoadImagesAndVideos object.
@@ -379,18 +379,18 @@ class LoadImagesAndVideos:
                 rows = list(csv.reader(content.splitlines()))
                 rows = rows[1:] if rows[:1] == [["source"]] else rows  # optional header row
                 path = [p for row in rows for p in row]
-            path = [p.strip() for p in path]
+            path = [p.strip() for p in path if p.strip()]
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
+            if parent and not (glob.glob(a, recursive=True) if "*" in a else os.path.exists(a)):
+                a = str((parent / p).absolute())  # resolve unmatched manifest entries relative to the manifest
             if "*" in a:
                 files.extend(sorted(glob.glob(a, recursive=True)))  # glob
             elif os.path.isdir(a):
                 files.extend(sorted(glob.glob(os.path.join(glob.escape(a), "*.*"))))  # dir
             elif os.path.isfile(a):
                 files.append(a)  # files (absolute or relative to CWD)
-            elif parent and (parent / p).is_file():
-                files.append(str((parent / p).absolute()))  # files (relative to *.txt file parent)
             else:
                 raise FileNotFoundError(f"{p} does not exist")
 
@@ -411,7 +411,7 @@ class LoadImagesAndVideos:
         self.mode = "video" if ni == 0 else "image"  # default to video if no images
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
+        self.cv2_flag = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)
         if any(videos):
             self._new_video(videos[0])  # new video
         else:
@@ -508,7 +508,7 @@ class LoadImagesAndVideos:
         """Create a new video capture object for the given path and initialize video-related attributes."""
         self.frame = 0
         self.cap = cv2.VideoCapture(path)
-        self.fps = int(self.cap.get(cv2.CAP_PROP_FPS))
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)  # keep the float, int() turns 29.97 into 29 and stretches the video
         if not self.cap.isOpened():
             raise FileNotFoundError(f"Failed to open video {path}")
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
@@ -574,10 +574,10 @@ class LoadPilAndNumpy:
             raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
         pil = isinstance(im, Image.Image)
         if pil:
+            if im.mode.startswith("I;16"):  # convert() clips 16-bit values at 255, scale them like cv2 does
+                im = Image.fromarray((np.asarray(im) >> 8).astype(np.uint8))
             flag = "L" if channels == 1 else "RGB"
             im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
-            if flag == "L":
-                im = im[..., None]
         im = np.atleast_3d(im)
         # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
         # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check, and
@@ -597,6 +597,7 @@ class LoadPilAndNumpy:
                 return cv2.cvtColor(im[..., 0], cv2.COLOR_GRAY2BGR)
             return np.repeat(im, channels, axis=2)
         if channels == 1:
+            im = im.astype(np.float32, copy=False) if im.dtype.kind == "f" else im
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
         return cv2.cvtColor(im, cv2.COLOR_BGRA2BGR) if u8 and c == 4 else np.ascontiguousarray(im[..., :3])
 
@@ -745,8 +746,6 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
 
     Notes:
         - Requires additional libraries based on the chosen method: pytubefix, pafy, or yt-dlp.
-        - The "pytube" and "yt-dlp" methods only return streams of at least 1080p resolution, and return None if
-          none is found.
         - For the "yt-dlp" method, it looks for formats with video codec, no audio, and *.mp4 extension.
     """
     if method == "pytube":
@@ -757,7 +756,7 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
         stream = (
             YouTube(url).streams.filter(file_extension="mp4", only_video=True).order_by("resolution").desc().first()
         )
-        if stream and int(stream.resolution[:-1]) >= 1080:  # check if highest resolution is at least 1080p
+        if stream:
             return stream.url
 
     elif method == "pafy":
@@ -773,9 +772,8 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
         with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
             info_dict = ydl.extract_info(url, download=False)  # extract info
         for f in reversed(info_dict.get("formats", [])):  # reversed because best is usually last
-            # Find a format with video codec, no audio, *.mp4 extension at least 1920x1080 size
-            good_size = (f.get("width") or 0) >= 1920 or (f.get("height") or 0) >= 1080
-            if good_size and f["vcodec"] != "none" and f["acodec"] == "none" and f["ext"] == "mp4":
+            # Find a format with video codec, no audio, *.mp4 extension
+            if f["vcodec"] != "none" and f["acodec"] == "none" and f["ext"] == "mp4":
                 return f.get("url")
 
 

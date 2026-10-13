@@ -48,8 +48,8 @@ The confidence score represents the model's certainty that a detected object bel
 
 Two mAP metrics are most commonly reported:
 
-- *mAP@.5:* Measures the average precision at a single IoU threshold of 0.5. This metric checks if the model can correctly find objects with a looser accuracy requirement. It focuses on whether the object is roughly in the right place, not needing perfect placement, and helps see if the model is generally good at spotting objects.
-- *mAP@.5:.95:* Averages the mAP values calculated at multiple IoU thresholds, from 0.5 to 0.95 in 0.05 increments. This metric is more detailed and strict. It gives a fuller picture of how accurately the model can find objects at different levels of strictness and is especially useful for applications that need precise object detection.
+- _mAP@.5:_ Measures the average precision at a single IoU threshold of 0.5. This metric checks if the model can correctly find objects with a looser accuracy requirement. It focuses on whether the object is roughly in the right place, not needing perfect placement, and helps see if the model is generally good at spotting objects.
+- _mAP@.5:.95:_ Averages the mAP values calculated at multiple IoU thresholds, from 0.5 to 0.95 in 0.05 increments. This metric is more detailed and strict. It gives a fuller picture of how accurately the model can find objects at different levels of strictness and is especially useful for applications that need precise object detection.
 
 Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
 
@@ -63,9 +63,9 @@ You can evaluate a trained YOLO26 model with the [validation mode](../modes/val.
 
 ### Handling Variable Image Sizes
 
-Evaluating your model on images of different sizes helps you understand its performance on diverse datasets. Validation uses rectangular batching by default (`rect=True` in `model.val()`): it groups images by aspect ratio and pads each batch to the smallest shape that fits, so rectangular images are evaluated without being forced into a square.
+Evaluating your model on images of different sizes helps you understand its performance on diverse datasets. Validation uses rectangular batching by default (`rect=True` in `model.val()`): it groups images by aspect ratio and pads each batch to a rectangular shape, so rectangular images are evaluated without being forced into a square.
 
-The `imgsz` parameter sets the image size used during validation, applied as a square. If you don't set it explicitly, YOLO26 reuses the value saved in the model's settings (640 for the official pretrained models, or whatever size a custom checkpoint was trained at). With `rect=true`, YOLO26 constrains the longer side to `imgsz` and pads the shorter side to a stride multiple, preserving the aspect ratio. Adjust `imgsz` based on your dataset's dimensions and the GPU memory available.
+The `imgsz` parameter sets the image size used during validation. If you don't set it explicitly, YOLO26 reuses the value saved in the model's settings (640 for the official pretrained models, or whatever size a custom checkpoint was trained at). With `rect=True`, validation shapes can differ from predict (see [`rect`](../modes/val.md#arguments-for-yolo-model-validation)). Adjust `imgsz` based on your dataset's dimensions and the GPU memory available.
 
 ### Accessing YOLO26 Metrics
 

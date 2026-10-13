@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from collections import deque
 from functools import wraps
 from typing import Any
@@ -382,6 +383,7 @@ class TRACKTRACK:
         self.args = args
         self.max_time_lost = args.track_buffer
         self.kalman_filter = KalmanFilterXYWH()
+        self._ids = iter(range(1, sys.maxsize))
 
         self.match_thr = getattr(args, "match_thresh", 0.7)
         self.lost_match_thr = getattr(args, "lost_match_thr", 0.0)
@@ -478,6 +480,7 @@ class TRACKTRACK:
         def _new_track(box, score, cls, feat=None):
             track = TTSTrack(box, score, cls, feat) if feat is not None else TTSTrack(box, score, cls)
             track.min_track_len = self.min_track_len
+            track.next_id = self._ids.__next__  # IDs are per tracker, so other trackers cannot reissue them
             return track
 
         high_boxes, high_scores, high_cls = boxes[high_mask], scores[high_mask], results.cls[high_mask]
@@ -590,11 +593,11 @@ class TRACKTRACK:
         )
 
     def reset(self) -> None:
-        """Clear all tracker state including GMC warp history and the global ID counter."""
+        """Clear all tracker state including GMC warp history and the track ID counter."""
         self.tracked_stracks = []
         self.lost_stracks = []
         self.removed_stracks = []
         self.frame_id = 0
         self.kalman_filter = KalmanFilterXYWH()
-        TTSTrack.reset_id()
+        self._ids = iter(range(1, sys.maxsize))
         self.gmc.reset_params()

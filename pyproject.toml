@@ -51,6 +51,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -62,8 +63,6 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
-    "cloudpickle>=3.1.1",
-    "filelock>=3.16.1",
     "numpy>=1.23.0; platform_system != 'Darwin'",
     "numpy>=1.23.0,!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,!=2.3.1,!=2.3.2,!=2.3.3,!=2.3.4; platform_system == 'Darwin'",  # Accelerate matmul bug fixed in 2.3.5
     "matplotlib>=3.3.0",
@@ -77,7 +76,7 @@ dependencies = [
     "psutil>=5.8.0", # system utilization
     "polars>=0.20.0",
     "nvidia-ml-py>=12.0.0", # NVIDIA GPU monitoring https://pypi.org/project/nvidia-ml-py
-    "ultralytics-thop>=2.2.0", # FLOPs computation https://github.com/ultralytics/thop
+    "ultralytics-thop>=2.2.2", # FLOPs computation https://github.com/ultralytics/thop
     "ultralytics-platform>=0.1.45; python_version >= '3.11'",
 ]
 
@@ -133,8 +132,11 @@ export-executorch = [
     "numpy<=2.3.5",
 ]
 export-deepx = [
-    "dx_com",
+    "dx_com>=2.4.1",
     "numpy<2; python_version < '3.13'",  # NumPy 1.x wheels stop at Python 3.12
+]
+export-xilinx = [  # AMD Xilinx Versal AI Edge Gen 2 export, AMD Quark quantizer
+    "amd-quark>=0.13.0,<0.14.0; platform_system == 'Linux' and python_version >= '3.11' and python_version < '3.14'",
 ]
 export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai-edge-litert/quantizer)
     "litert-torch>=0.9.0; ((platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin') and python_version >= '3.10'",
@@ -147,8 +149,8 @@ export = [
     "ultralytics[export-tensorflow]",
     "ultralytics[export-coreml]",
     "ultralytics[export-litert]",
-    # Raspberry Pi Python 3.11 ExecuTorch inference requires the last known-good Linux ARM64 Torch 2.12 stack.
-    "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64' and python_version == '3.11'",
+    # Raspberry Pi Python 3.11 ExecuTorch inference requires the last known-good Linux ARM64 Torch 2.14 stack.
+    "torch>=2.12.0,<2.15.0; platform_system == 'Linux' and platform_machine == 'aarch64' and python_version == '3.11'",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
@@ -193,8 +195,7 @@ ultralytics = "ultralytics.cfg:entrypoint"
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
 packages = { find = { where = ["."], include = ["ultralytics", "ultralytics.*"] } }
-# Tests included below for checking Conda builds in https://github.com/conda-forge/ultralytics-feedstock
-package-data = { "ultralytics" = ["**/*.yaml", "**/*.sh", "../tests/*.py"], "ultralytics.assets" = ["*.jpg"], "ultralytics.solutions.templates" = ["*.html"]}
+package-data = { "ultralytics" = ["**/*.yaml", "**/*.sh"], "ultralytics.assets" = ["*.jpg"], "ultralytics.solutions.templates" = ["*.html"]}
 
 [tool.setuptools.dynamic]
 version = { attr = "ultralytics.__version__" }
@@ -205,12 +206,17 @@ conflicts = [
     [{ extra = "export-deepx" }, { extra = "export-executorch" }, { extra = "export-tensorflow" }],
     [{ extra = "export-legacy-torch" }, { extra = "export-openvino" }],
     [{ extra = "export-legacy-torch" }, { extra = "export-tensorflow" }],
+    [{ extra = "export-xilinx" }, { extra = "export" }, { extra = "export-legacy-torch" }],
+    [{ extra = "export-xilinx" }, { extra = "export-tensorflow" }, { extra = "export-deepx" }],
 ]
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules --durations=30 --color=yes"
 markers = [
     "slow: skip slow tests unless --slow is set",
+]
+filterwarnings = [
+    "ignore::torch.jit.TracerWarning", # pytest discards the import-time filter in ultralytics/utils/__init__.py
 ]
 norecursedirs = [".git", "dist", "build"]
 

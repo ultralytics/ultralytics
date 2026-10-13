@@ -47,13 +47,30 @@ on:
         type: boolean
         description: Dockerfile-conda
         default: true
+      Dockerfile-amd:
+        type: boolean
+        description: Dockerfile-amd
+        default: true
       push:
         type: boolean
         description: Publish to DockerHub and ghcr.io
 
 jobs:
+  Assets:
+    if: github.repository == 'ultralytics/ultralytics'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ultralytics/actions/setup-uv@main # outside the composite so it adds no post step to every consumer
+        with:
+          python-version: "3.13"
+      - uses: ./.github/actions/ci-assets
+        with:
+          build: true
+
   docker:
     if: github.repository == 'ultralytics/ultralytics'
+    needs: Assets
     name: Build
     strategy:
       fail-fast: false
@@ -97,14 +114,17 @@ jobs:
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
             derivatives: ""
+          - dockerfile: "Dockerfile-amd"
+            tags: "latest-amd"
+            platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
+            derivatives: ""
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
           #   derivatives: ""
 
     runs-on: ${{ matrix.runs_on }}
-    outputs:
-      new_release: ${{ steps.check_tag.outputs.new_release }}
     steps:
       - name: Cleanup disk space
         if: ${{ !startsWith(matrix.dockerfile, 'Dockerfile-jetson-') }}
@@ -167,24 +187,6 @@ jobs:
           echo "Intended version tag: $VERSION_TAG"
           echo "version_tag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Check if version tag exists on DockerHub
-        id: check_tag
-        run: |
-          RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG")
-          MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
-          if [[ "$MESSAGE" == "null" ]]; then
-              echo "Tag $VERSION_TAG already exists on DockerHub."
-              echo "new_release=false" >> "$GITHUB_OUTPUT"
-          elif [[ "$MESSAGE" == *"404"* ]]; then
-              echo "Tag $VERSION_TAG does not exist on DockerHub."
-              echo "new_release=true" >> "$GITHUB_OUTPUT"
-          else
-              echo "Unexpected response from DockerHub. Please check manually."
-              echo "new_release=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
-
       - name: Build Base Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
         uses: ultralytics/actions/retry@main
@@ -214,6 +216,19 @@ jobs:
           retries: 2
           run: |
             docker builder prune -af
+
+            # Reuse the Python Dockerfile for exports whose dependencies stop at Python 3.13.
+            if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
+              docker build --platform ${{ matrix.platforms }} --build-arg PYTHON_VERSION=3.13 \
+                --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+                --label "org.opencontainers.image.description=Ultralytics image" \
+                --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
+                -f docker/Dockerfile-python \
+                -t ultralytics/ultralytics:latest-python-3.13 \
+                -t ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-python-3.13 \
+                -t ghcr.io/ultralytics/ultralytics:latest-python-3.13 \
+                -t ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-python-3.13 .
+            fi
 
             derivatives='${{ matrix.derivatives }}'
             if [[ -n "$derivatives" ]]; then
@@ -247,18 +262,38 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
         run: docker builder prune -af
 
+      # Restored only after every image is built and mounted at the images' default asset dirs in throwaway containers,
+      # so pushed images never contain test assets (only the fonts and yolo26n.pt their Dockerfiles add)
+      - if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.dockerfile != 'Dockerfile-conda'
+        uses: ./.github/actions/ci-assets
+        with:
+          configure: false
+
       - name: Run Tests
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda' && matrix.dockerfile != 'Dockerfile-amd'
         run: |
-          test_torch=""
+          test_images=("${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }}")
           if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
-            test_torch="'torch<2.7'"
+            test_images+=("latest-python")
           fi
-          docker run --rm ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false python3 tests/cache_test_assets.py && YOLO_AUTOINSTALL=false pytest tests --export-env base"
+          tests="tests"
+          if [[ "${{ matrix.dockerfile }}" == "Dockerfile-jetson-jetpack4" ]]; then
+            tests="tests/test_cli.py" # its GPU-only torch 1.11 wheel runs CPU inference ~50x slower than other images
+          fi
+          for image in "${test_images[@]}"; do
+            test_torch=""
+            test_extras="solutions"
+            if [[ "$image" == "latest-python-export" ]]; then
+              test_torch="'torch<2.7'"
+            elif [[ "$image" == "latest-python" ]]; then
+              test_extras="export-base,export-openvino,solutions"
+            fi
+            docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/datasets" ultralytics/ultralytics:$image /bin/bash -c "uv pip install --system --break-system-packages -e '.[$test_extras]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false pytest $tests --export-env base"
+          done
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run --rm ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "YOLO_AUTOINSTALL=false yolo benchmark model=yolo26n.pt imgsz=160 format=onnx verbose=0.216"
+        run: docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/datasets" ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "YOLO_AUTOINSTALL=false yolo benchmark model=yolo26n.pt imgsz=160 format=onnx verbose=0.216"
 
       - name: Push All Images
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
@@ -270,6 +305,9 @@ jobs:
           run: |
             # Create array of all images to push (base + derivatives)
             images_to_push=("${{ matrix.tags }}")
+            if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
+              images_to_push+=("latest-python-3.13")
+            fi
 
             # Add derivative images to array
             derivatives='${{ matrix.derivatives }}'
@@ -286,24 +324,31 @@ jobs:
               docker push "ultralytics/ultralytics:$tag"
               docker push "ghcr.io/ultralytics/ultralytics:$tag"
 
-              # Push version tag if new release
-              if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" && "${{ matrix.dockerfile }}" != "Dockerfile-conda" ]]; then
+              # Check each image so new derivatives receive version tags without overwriting existing releases.
+              if [[ "${{ matrix.dockerfile }}" != "Dockerfile-conda" ]]; then
                 version_tag=$(echo "$tag" | sed "s/latest/${{ steps.get_version.outputs.version }}/")
-                docker push "ultralytics/ultralytics:$version_tag"
-                docker push "ghcr.io/ultralytics/ultralytics:$version_tag"
+                for registry in ultralytics/ultralytics ghcr.io/ultralytics/ultralytics; do
+                  version_image="$registry:$version_tag"
+                  if ! manifest=$(docker buildx imagetools inspect "$version_image" 2>&1); then
+                    if [[ "$manifest" != *": not found" ]]; then
+                      printf '%s\n' "$manifest" >&2
+                      exit 1
+                    fi
+                    docker push "$version_image"
+                  fi
+                done
               fi
             done
 
   notify:
     runs-on: ubuntu-latest
-    needs: docker
-    if: always()
+    needs: [Assets, docker]
+    if: always() && contains(needs.*.result, 'failure') && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
+    permissions:
+      actions: read # read failed job logs
     steps:
-      - name: Check for failure and notify
-        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v4.0.0
+      - uses: ultralytics/actions/failure-alert@main
         with:
-          webhook-type: incoming-webhook
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
-          payload: |
-            text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ❌ `${{ github.repository }}`  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+          mention: "<!subteam^S082BPCRAJ3>"
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}

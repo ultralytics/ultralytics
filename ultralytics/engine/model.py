@@ -28,6 +28,9 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.torch_utils import unwrap_model
 
+# Predictor arguments applied at model or tracker setup, so changing one rebuilds the predictor and its trackers
+PREDICTOR_SETUP_KEYS = ("device", "dnn", "data", "nms", "compile", "channels_last", "quantize", "tracker")
+
 
 class Model(torch.nn.Module):
     """A base class for implementing YOLO models, unifying APIs across different model types.
@@ -522,7 +525,8 @@ class Model(torch.nn.Module):
             - If 'source' is not provided, it defaults to the ASSETS directory (or a sample image for OBB) with a
               warning.
             - The method sets up a new predictor if not already present and updates its arguments with each call,
-              rebuilding it when device, channels_last, nms, or quantize changes.
+              rebuilding it when an argument applied at model or tracker setup changes or a different `predictor` class
+              is passed.
             - For SAM-type models, 'prompts' can be passed as a keyword argument.
         """
         if source is None:
@@ -537,12 +541,12 @@ class Model(torch.nn.Module):
         kwargs = _handle_deprecation(kwargs)
         prompts = kwargs.pop("prompts", None)  # for SAM-type models
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
+        args["quantize"] = QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)  # unset quantize is FP32
 
-        setup_keys = ("device", "dnn", "data", "nms", "compile", "channels_last", "quantize")  # applied at model setup
         if (
             not self.predictor
-            or any(getattr(self.predictor.args, k) != args[k] for k in ("device", "channels_last", "nms") if k in args)
-            or self.predictor.args.quantize != QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
+            or (predictor and type(self.predictor) is not predictor)
+            or any(getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args)
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
@@ -552,7 +556,7 @@ class Model(torch.nn.Module):
             base_args = {
                 **DEFAULT_CFG_DICT,
                 **self.overrides,
-                **{k: getattr(self.predictor.args, k) for k in setup_keys},
+                **{k: getattr(self.predictor.args, k) for k in PREDICTOR_SETUP_KEYS},
             }
             self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
             if self.predictor.args.show:
@@ -703,7 +707,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
                 - imgsz (int | list[int]): Image size for benchmarking.
                 - quantize (int | str): Requested precision: 16 (FP16), 8 (INT8), or 32/None (FP32) where
-                  supported; only 16 changes the native PyTorch row.
+                  supported; only 16 changes the native PyTorch row, and only off CPU.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
 
         Returns:

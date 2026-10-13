@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, integrations, Slack, alerts, data import, Robofl
 
 [Ultralytics Platform](https://platform.ultralytics.com) [integrations](../../integrations/index.md) connect your workspace to other tools and services you already use. Send job results to Slack, import existing datasets with a single API key, or connect your cloud storage and use the data where it lives.
 
-![Ultralytics Platform Settings Integrations Tab](https://cdn.ul.run/i/ff5b55316ea85e8eadcffa272698239c.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Integrations Tab](https://cdn.ul.run/i/9693d3023f855f1f852df1827b0c7014.avif)<!-- screenshot -->
 
 ## Accessing Integrations
 
@@ -36,7 +36,7 @@ selected bucket before anything is saved.
 | [**Slack**](slack.md)                               | Notifications  | Posts selected training, auto-annotation, export, and deployment results to one Slack channel |
 | [**Roboflow**](roboflow.md)                         | Imports        | Imports every supported dataset in a Roboflow workspace from an API key                       |
 | [**Labelbox**](labelbox.md)                         | Imports        | Reads Labelbox NDJSON exports as datasets                                                     |
-| [**LabelMe**](labelme.md)                           | Imports        | Imports the YOLO export produced by the LabelMe Toolkit                                       |
+| [**LabelMe**](labelme.md)                           | Imports        | Reads zipped LabelMe JSON annotations as detection or segmentation datasets                   |
 | [**CVAT**](cvat.md)                                 | Imports        | Imports CVAT Ultralytics YOLO and COCO exports — direct import coming soon                    |
 | [**Label Studio**](label-studio.md)                 | Imports        | Imports Label Studio YOLO and COCO exports — direct import coming soon                        |
 

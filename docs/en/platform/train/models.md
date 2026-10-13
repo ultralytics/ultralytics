@@ -192,7 +192,7 @@ When the training run provides them, the **Validation** view also displays perfo
 
 ### Per-Image Diagnostics
 
-Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis, which points at the data behind a disappointing score:
+Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis under **Validation insights** in the **Validation** view, which points at the data behind a disappointing score:
 
 - **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
 - **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
@@ -222,7 +222,7 @@ Export your model to 22 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
-3. Configure export arguments (image size, precision, dynamic, etc.)
+3. Configure export arguments: image size, precision, dynamic, NMS, and batch for most formats, plus format-specific options such as **Simplify** and **Opset** for ONNX (opset 9–23; leave it on auto unless your runtime needs a specific version) and **Workspace** for TensorRT
 4. For GPU-required formats (TensorRT), select a GPU type
 5. Click **Start Export**
 6. Download when complete

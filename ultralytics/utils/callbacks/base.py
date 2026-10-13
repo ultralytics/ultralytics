@@ -184,9 +184,9 @@ def add_integration_callbacks(instance):
             type of instance determines which callbacks are loaded.
 
     Examples:
-        >>> from ultralytics.engine.trainer import BaseTrainer
-        >>> trainer = BaseTrainer()
-        >>> add_integration_callbacks(trainer)
+        >>> from ultralytics.models.yolo.detect import DetectionPredictor
+        >>> predictor = DetectionPredictor()
+        >>> add_integration_callbacks(predictor)
     """
     from ultralytics.utils import SETTINGS
     from ultralytics.utils.events import callbacks as events_cb

@@ -714,8 +714,9 @@ def plot_pr_curve(
     fig.savefig(save_dir, dpi=250)
     plt.close(fig)
     if on_plot:
+        # Pass PR curve data for interactive plotting (class names stored at model level)
         # Transpose py to match other curves: y[class][point] format
-        on_plot(save_dir, {"type": "pr_curve", "x": px.tolist(), "y": py.T.tolist(), "ap": ap.tolist(), "names": names})
+        on_plot(save_dir, {"type": "pr_curve", "x": px.tolist(), "y": py.T.tolist(), "ap": ap.tolist()})
 
 
 @plt_settings()
@@ -761,7 +762,8 @@ def plot_mc_curve(
     fig.savefig(save_dir, dpi=250)
     plt.close(fig)
     if on_plot:
-        on_plot(save_dir, {"type": f"{ylabel.lower()}_curve", "x": px.tolist(), "y": py.tolist(), "names": names})
+        # Pass metric-confidence curve data for interactive plotting (class names stored at model level)
+        on_plot(save_dir, {"type": f"{ylabel.lower()}_curve", "x": px.tolist(), "y": py.tolist()})
 
 
 def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.ndarray, np.ndarray]:

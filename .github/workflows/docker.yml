@@ -326,11 +326,12 @@ jobs:
             git fetch --quiet origin main # resolves the commits of images pushed by newer runs
             for tag in "${images_to_push[@]}"; do
               for registry in ultralytics/ultralytics ghcr.io/ultralytics/ultralytics; do
-                if ! revision=$(docker buildx imagetools inspect "$registry:$tag" --format '{{index .Image.Config.Labels "org.opencontainers.image.revision"}}' 2>&1); then
+                if ! revision=$(docker buildx imagetools inspect "$registry:$tag" --format '{{with .Image.Config}}{{index .Labels "org.opencontainers.image.revision"}}{{end}}' 2>&1); then
                   [[ "$revision" == *": not found" ]] || { printf '%s\n' "$revision" >&2; exit 1; }
                   revision=""
                 fi
-                if [[ -n "$revision" && "$revision" != "$GITHUB_SHA" ]] && git merge-base --is-ancestor "$GITHUB_SHA" "$revision" 2>/dev/null; then
+                if [[ -n "$revision" && "$revision" != "$GITHUB_SHA" ]] && git merge-base --is-ancestor "$GITHUB_SHA" "$revision" 2>/dev/null &&
+                  git merge-base --is-ancestor "$revision" FETCH_HEAD 2>/dev/null; then # only main's newer commits win
                   echo "Skipping $registry:$tag: it holds newer commit $revision"
                 else
                   docker push "$registry:$tag"

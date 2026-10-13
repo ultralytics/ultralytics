@@ -701,11 +701,13 @@ class v8PoseLoss(v8DetectionLoss):
 
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
         self.pose_assign = getattr(self.hyp, "pose_assign", "box")
-        if self.pose_assign == "oks":
+        oks_parts = {"oks": "both", "oks_select": "select", "oks_target": "target"}
+        if self.pose_assign in oks_parts:
             a = self.assigner
             self.assigner = PoseTaskAlignedAssigner(
                 sigmas=sigmas,
                 oks_weight=self.hyp.pose_assign_w,
+                parts=oks_parts[self.pose_assign],
                 topk=a.topk,
                 num_classes=a.num_classes,
                 alpha=a.alpha,
@@ -714,7 +716,9 @@ class v8PoseLoss(v8DetectionLoss):
                 topk2=a.topk2,
             )
         elif self.pose_assign != "box" and self.pose_assign != "kptbox":
-            raise ValueError(f"pose_assign must be 'box', 'kptbox' or 'oks', got '{self.pose_assign}'")
+            raise ValueError(
+                f"pose_assign must be 'box', 'kptbox' or one of {list(oks_parts)}, got '{self.pose_assign}'"
+            )
 
     def assign_boxes(self, preds, batch, gt_bboxes, anchor_points, stride_tensor, imgsz) -> torch.Tensor:
         """Apply the `pose_assign` mode: swap in visible-keypoint boxes (kptbox) or set the OKS context (oks)."""

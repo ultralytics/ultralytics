@@ -166,16 +166,18 @@ class TaskAlignedAssigner(nn.Module):
         # Assigned target
         target_labels, target_bboxes, target_scores = self.get_targets(gt_labels, gt_bboxes, target_gt_idx, fg_mask)
 
-        # Normalize
+        target_scores = self.scale_targets(target_scores, align_metric, overlaps, mask_pos)
+        return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
+
+    def scale_targets(self, target_scores, align_metric, overlaps, mask_pos):
+        """Scale one-hot target scores by the alignment metric normalized to each GT's best positive overlap."""
         align_metric *= mask_pos
         pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
         overlaps *= mask_pos
         pos_overlaps = overlaps.amax(dim=-1, keepdim=True)  # b, max_num_obj
         align_metric.mul_(pos_overlaps).div_(pos_align_metrics + self.eps)
         norm_align_metric = align_metric.amax(-2).unsqueeze(-1)
-        target_scores = target_scores * norm_align_metric
-
-        return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
+        return target_scores * norm_align_metric
 
     def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
         """Get positive mask for each ground truth box.
@@ -385,17 +387,37 @@ class TaskAlignedAssigner(nn.Module):
 class PoseTaskAlignedAssigner(TaskAlignedAssigner):
     """Task-aligned assigner whose overlap term mixes box IoU with keypoint OKS: (1 - w) * IoU + w * OKS.
 
-    Set ``pose_ctx = (pd_kpts, gt_kpts, area)`` before each call: predicted keypoints (b, h*w, K, 2) and ground-truth
+    ``parts`` ablates where the mix acts: 'both', 'select' (positives and conflicts by the mix, soft labels by IoU) or
+    'target' (positives and conflicts by IoU, soft labels by the mix). Set ``pose_ctx = (pd_kpts, gt_kpts, area)``
+    before each call: predicted keypoints (b, h*w, K, 2) and ground-truth
     keypoints (b, n_max_boxes, K, 3) in pixels, and the OKS area (b, n_max_boxes). GTs without visible keypoints keep
     the plain IoU.
     """
 
-    def __init__(self, sigmas: torch.Tensor, oks_weight: float = 0.5, **kwargs):
-        """Initialize with keypoint OKS sigmas (K,) and the OKS weight in the overlap mix."""
+    def __init__(self, sigmas: torch.Tensor, oks_weight: float = 0.5, parts: str = "both", **kwargs):
+        """Initialize with keypoint OKS sigmas (K,), the OKS weight in the overlap mix and where the mix acts."""
         super().__init__(**kwargs)
         self.sigmas = sigmas
         self.oks_weight = oks_weight
+        self.parts = parts
         self.pose_ctx = None
+
+    def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+        """Assign with the IoU/OKS mix, or with it split between positive selection and soft labels per ``parts``."""
+        if self.parts == "both":
+            return super()._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
+        args = (pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
+        mixed, iou = self.get_box_metrics(*args), super().get_box_metrics(*args)
+        (sel_align, sel_overlaps), (align_metric, overlaps) = (mixed, iou) if self.parts == "select" else (iou, mixed)
+        mask_topk = self.select_topk_candidates(sel_align, topk_mask=mask_gt.expand(-1, -1, self.topk).bool())
+        mask_pos = mask_topk.mul_(mask_in_gts).mul_(mask_gt.bool())
+        target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(
+            mask_pos, sel_overlaps, self.n_max_boxes, sel_align
+        )
+        target_labels, target_bboxes, target_scores = self.get_targets(gt_labels, gt_bboxes, target_gt_idx, fg_mask)
+        target_scores = self.scale_targets(target_scores, align_metric, overlaps, mask_pos)
+        return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
 
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):

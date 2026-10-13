@@ -107,7 +107,7 @@ dfl: 1.5 # (float) box distance loss gain (DFL when reg_max > 1, L1 on DFL-free 
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)
-pose_assign: box # (str) pose label assignment box: 'box' annotated box, 'kptbox' visible-keypoint box, 'oks' IoU+OKS metric
+pose_assign: box # (str) pose label assignment box: 'box' annotated box, 'kptbox' visible-keypoint box, 'oks' IoU+OKS metric, 'oks_select'/'oks_target' ablations
 pose_assign_s: 1.3 # (float) expansion of the visible-keypoint box about its center (pose_assign=kptbox)
 pose_assign_w: 0.5 # (float) OKS weight in the assignment overlap (1-w)*IoU + w*OKS (pose_assign=oks)
 angle: 1.0 # (float) oriented angle loss gain (obb tasks)

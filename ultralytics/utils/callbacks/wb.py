@@ -130,7 +130,7 @@ def on_pretrain_routine_start(trainer):
             project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
             name=name,
             config=vars(trainer.args),
-            id=latest_run.resolve().name.split("-", 2)[2]
+            id=next(latest_run.glob("run-*.wandb")).stem[4:]
             if resuming
             else f"{name[:64]}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
             resume="allow" if resuming else None,

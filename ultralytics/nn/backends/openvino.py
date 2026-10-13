@@ -80,8 +80,10 @@ class OpenVINOBackend(BaseBackend):
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
         if device_name.startswith("NPU"):  # NPU is wrong at batch>1, so compile batch 1 and AutoBackend splits batches
-            ov_model.reshape([1, *list(ov_model.input().partial_shape)[1:]])
+            # NPU needs static shapes, so pin dynamic exports to imgsz and run them as fixed letterbox models
+            ov_model.reshape([1, ov_model.input().partial_shape[1], *self.imgsz])
             self.batch = 1
+            self.dynamic = self.metadata["dynamic"] = False
             if self.task == "depth":  # drop the final upsample NPU gets wrong; depth predict/val resize to input size
                 up = ov_model.output().get_node().input_value(0).get_node()
                 ov_model = ov.Model([up.input_value(0)], ov_model.get_parameters())

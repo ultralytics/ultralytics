@@ -617,6 +617,10 @@ SAM smart annotation is available for **detect**, **segment**, **semantic**, and
 
 Yes. Use [Batch Annotation](#batch-annotation) from **More actions > Batch Annotation** on the dataset page. It runs one model over the dataset: an official YOLO model, one of your own trained or uploaded models from `My Models`, or, on detection datasets with 1–200 classes, a class-prompted model such as SAM 3.1 Text that detects your class names. By default it annotates only unlabeled images, existing labels are kept, and a dataset version is saved first so you can restore it. It costs $1.00 per 1,000 images processed (minimum $0.01), and paid provider models are also billed by the provider. Batch Annotation works on Platform-hosted datasets with up to three image channels and is not available for depth.
 
+### Which class-prompted model should I use?
+
+In an Ultralytics Platform benchmark of every class-prompted model on 108 images from 36 detection datasets spanning medical, aerial, industrial, retail, and everyday scenes, `gemini-4-argon` was the most accurate. `claude-haiku-5-5` and `gemini-3.5-flash-lite` gave the most accuracy for their low cost, and Qwen3.8 27B was the most accurate hosted model, with no provider key needed. Accuracy depends heavily on the domain: models that find nearly every object in everyday photos miss many objects in medical, X-ray, PCB, and retail images, so run a few predictions on your own images before starting [Batch Annotation](#batch-annotation).
+
 ### Can I create custom skeleton templates for pose annotation?
 
 Yes. Open the skeleton template picker and choose **New Template...** to open the template editor. Place keypoints, name them, draw connections, and save. Custom templates are stored in the dataset's workspace and available across all of its pose datasets.

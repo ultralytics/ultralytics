@@ -8,6 +8,7 @@ Instructions for `docs/`; `CLAUDE.md` points here. Follow the root `AGENTS.md` f
 - Shared tables live in `docs/macros/` (`augmentation-args.md`, `export-args.md`, `export-table.md`, `platform-*.md`, ...) and are included into pages such as `docs/en/usage/cfg.md`; edit the macro owner, never copy a table into a consuming page. Jinja default values come from `ultralytics/cfg/default.yaml`.
 - `docs/en/reference/` is generated from Python docstrings — API prose belongs in the docstring, not in the reference page. `reference/index.md` is the one hand-written page there.
 - Comparison pages are imported from the `ultralytics/docs` GitHub repository during the full build.
+- `<canvas id="modelComparisonChart">` and `<platform-annotation-models></platform-annotation-models>` are components the production publisher renders (the benchmark chart, and Platform's paid annotation models from its model registry); keep them even though they render empty locally and on GitHub.
 
 ## Commands
 

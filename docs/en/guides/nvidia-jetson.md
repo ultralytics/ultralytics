@@ -21,7 +21,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Unlock Faster Inference with Ultralytics YOLO26 on ‪NVIDIA‬ Jetson Devices 🚀
+  <strong>Watch:</strong> Unlock Faster Inference with Ultralytics YOLO26 on NVIDIA Jetson Devices 🚀
 </p>
 
 <img width="1024" src="https://cdn.ul.run/i/139ebce373930a635f74f71401d829b0.avif" alt="NVIDIA Jetson Ecosystem">

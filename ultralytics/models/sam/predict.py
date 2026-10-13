@@ -206,12 +206,6 @@ class Predictor(BasePredictor):
             >>> predictor.set_image("image.jpg")
             >>> results = predictor(bboxes=[[0, 0, 100, 100]])
         """
-        # Override prompts if any stored in self.prompts
-        bboxes = self.prompts.pop("bboxes", bboxes)
-        points = self.prompts.pop("points", points)
-        masks = self.prompts.pop("masks", masks)
-        labels = self.prompts.pop("labels", labels)
-
         if all(i is None for i in [bboxes, points, masks]):
             return self.generate(im, *args, **kwargs)
 
@@ -601,10 +595,10 @@ class Predictor(BasePredictor):
             self.features = self.get_im_features(im)
             break
 
-    def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
+    def stream_inference(self, source=None, model=None, *args, **kwargs):
         """Run inference, passing prompts stored by `set_prompts` to every image of the source, not only the first."""
         prompts, self.prompts = {k: v for k, v in self.prompts.items() if v is not None}, {}
-        return super().__call__(source, model, stream, *args, **{**kwargs, **prompts})
+        return super().stream_inference(source, model, *args, **{**kwargs, **prompts})
 
     def setup_source(self, source):
         """Set up the data source for SAM inference."""
@@ -964,12 +958,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         Raises:
             RuntimeError: If no prompts have been added before tracking.
         """
-        # Override prompts if any stored in self.prompts
-        bboxes = self.prompts.pop("bboxes", bboxes)
-        points = self.prompts.pop("points", points)
-        masks = self.prompts.pop("masks", masks)
-        labels = self.prompts.pop("labels", labels)
-
         frame = self.dataset.frame
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
@@ -2396,9 +2384,6 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def inference(self, im, bboxes=None, labels=None, text: str | list[str] | None = None, *args, **kwargs):
         """Perform inference on a single image with optional box and text prompts."""
-        bboxes = self.prompts.pop("bboxes", bboxes)
-        labels = self.prompts.pop("labels", labels)
-        text = self.prompts.pop("text", text)
         features = self.get_im_features(im) if self.features is None else self.features
         prompts = self._prepare_geometric_prompts(self.src_shape, bboxes, labels)
         return self._inference_features(features, *prompts, text=text)

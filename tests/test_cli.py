@@ -176,6 +176,9 @@ def test_mobilesam() -> None:
     # Predict a segment based on a box prompt
     model.predict(source, bboxes=[439, 437, 524, 709], save=True)
 
+    # A box prompt applies to every image of a directory source, not only the first
+    assert [len(r.masks) for r in model(ASSETS, bboxes=[439, 437, 524, 709])] == [1, 1]
+
     # Predict all
     # model(source)
 

@@ -601,6 +601,11 @@ class Predictor(BasePredictor):
             self.features = self.get_im_features(im)
             break
 
+    def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
+        """Run inference, passing prompts stored by `set_prompts` to every image of the source, not only the first."""
+        prompts, self.prompts = {k: v for k, v in self.prompts.items() if v is not None}, {}
+        return super().__call__(source, model, stream, *args, **{**kwargs, **prompts})
+
     def setup_source(self, source):
         """Set up the data source for SAM inference."""
         if source is None:  # handle the situation when set_imgsz in advance

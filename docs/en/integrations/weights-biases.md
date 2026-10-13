@@ -20,7 +20,7 @@ keywords: YOLO26, Weights & Biases, model training, experiment tracking, Ultraly
   <strong>Watch:</strong> How to use Ultralytics YOLO26 with Weights and Biases
 </p>
 
-This guide showcases Ultralytics YOLO26 integration with Weights & Biases for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, and visualizing results using Weights & Biases' interactive features.
+This guide showcases Ultralytics YOLO26 integration with Weights & Biases for enhanced experiment tracking, best-model artifacts, and visualization of model performance. It also includes instructions for setting up the integration, training, and visualizing results using Weights & Biases' interactive features.
 
 ## Weights & Biases
 
@@ -65,8 +65,8 @@ Start by initializing the Weights & Biases environment in your workspace. You ca
         ```python
         import wandb
 
-        # Initialize your Weights & Biases environment
-        wandb.login(key="YOUR_API_KEY")
+        # Initialize your Weights & Biases environment (prompts for the API key, or reads WANDB_API_KEY)
+        wandb.login()
         ```
 
     === "CLI"
@@ -125,13 +125,17 @@ Before diving into the usage instructions for YOLO26 model training with Weights
         yolo settings wandb=False
         ```
 
+!!! tip "Offline Mode and Resume"
+
+    Set `WANDB_MODE=offline` to log without a network connection, then upload the run with `wandb sync <save_dir>/wandb/offline-run-*`. Resuming training with `resume=True` continues the same W&B run, online or offline.
+
 ### Understanding the Output
 
 Upon running the usage code snippet above, you can expect the following key outputs:
 
 - The setup of a new run with its unique ID, indicating the start of the training process.
 - A concise summary of the model's structure, including the number of layers and parameters.
-- Regular updates on important metrics such as box loss, cls loss, box-distance loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [mAP scores](https://www.ultralytics.com/glossary/mean-average-precision-map) during each training [epoch](https://www.ultralytics.com/glossary/epoch).
+- Regular updates on important metrics such as the training losses, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [mAP scores](https://www.ultralytics.com/glossary/mean-average-precision-map) during each training [epoch](https://www.ultralytics.com/glossary/epoch).
 - At the end of training, detailed metrics including the model's inference speed, and overall [accuracy](https://www.ultralytics.com/glossary/accuracy) metrics are displayed.
 - Links to the Weights & Biases dashboard for in-depth analysis and visualization of the training process, along with information on local log file locations.
 
@@ -143,7 +147,7 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 - **Real-Time Metrics Tracking**: Observe metrics like loss, accuracy, and validation scores as they evolve during the training, offering immediate insights for model tuning. [See how experiments are tracked using Weights & Biases](https://imgur.com/D6NVnmN).
 
-- **Hyperparameter Optimization**: Weights & Biases aids in fine-tuning critical parameters such as [learning rate](https://www.ultralytics.com/glossary/learning-rate), [batch size](https://www.ultralytics.com/glossary/batch-size), and more, enhancing the performance of YOLO26. This helps you find the optimal configuration for your specific dataset and task.
+- **Hyperparameter Comparison**: Every run logs its training arguments, such as [learning rate](https://www.ultralytics.com/glossary/learning-rate) and [batch size](https://www.ultralytics.com/glossary/batch-size), so you can compare configurations across runs. For automated search with W&B logging, use [Ray Tune](../integrations/ray-tune.md).
 
 - **Comparative Analysis**: The platform allows side-by-side comparisons of different training runs, essential for assessing the impact of various model configurations and understanding which changes improve performance.
 
@@ -151,15 +155,15 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 - **Resource Monitoring**: Keep track of CPU, GPU, and memory usage to optimize the efficiency of the training process and identify potential bottlenecks in your workflow.
 
-- **Model Artifacts Management**: Access and share model checkpoints, facilitating easy deployment and collaboration with team members on complex projects.
+- **Model Artifacts Management**: Access and share the best model checkpoint, uploaded as a W&B artifact at the end of training, facilitating easy deployment and collaboration with team members on complex projects.
 
 By using these features, you can effectively track, analyze, and optimize your YOLO26 model's training, ensuring the best possible performance and efficiency for your [object detection](https://www.ultralytics.com/glossary/object-detection) tasks.
 
 ## Summary
 
-This guide helped you explore the Ultralytics YOLO integration with Weights & Biases. It illustrates the ability of this integration to efficiently track and visualize model training and prediction results. By leveraging W&B's powerful features, you can streamline your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflow, make data-driven decisions, and improve your model's performance.
+This guide helped you explore the Ultralytics YOLO integration with Weights & Biases. It illustrates the ability of this integration to efficiently track and visualize model training results. By leveraging W&B's powerful features, you can streamline your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflow, make data-driven decisions, and improve your model's performance.
 
-For further details on usage, visit [Weights & Biases' official documentation](https://docs.wandb.ai/models/integrations/ultralytics) or explore [Soumik Rakshit's presentation](https://www.ultralytics.com/blog/supercharging-ultralytics-with-weights-biases) from YOLO VISION 2023 on this integration.
+For further details, explore [Soumik Rakshit's presentation](https://www.ultralytics.com/blog/supercharging-ultralytics-with-weights-biases) from YOLO VISION 2023 on this integration.
 
 Also, be sure to check out the [Ultralytics integration guide page](../integrations/index.md), to learn more about different exciting integrations like [MLflow](../integrations/mlflow.md) and [Comet ML](../integrations/comet.md).
 
@@ -178,10 +182,8 @@ To integrate Weights & Biases with Ultralytics YOLO26:
 
 2. Log in to your Weights & Biases account:
 
-    ```python
-    import wandb
-
-    wandb.login(key="YOUR_API_KEY")
+    ```bash
+    wandb login
     ```
 
 3. Train your YOLO26 model with W&B logging enabled:
@@ -200,7 +202,7 @@ This will automatically log metrics, hyperparameters, and model artifacts to you
 The key features include:
 
 - Real-time metrics tracking during training
-- Hyperparameter optimization tools
+- Hyperparameter comparison across runs
 - Comparative analysis of different training runs
 - Visualization of training progress through graphs
 - Resource monitoring (CPU, GPU, memory usage)
@@ -240,7 +242,7 @@ Weights & Biases helps optimize YOLO26 models by:
 
 1. Providing detailed visualizations of training metrics
 2. Enabling easy comparison between different model versions
-3. Offering tools for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning)
+3. Logging the training arguments of every run for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) comparisons
 4. Allowing for collaborative analysis of model performance
 5. Facilitating easy sharing of model artifacts and results
 

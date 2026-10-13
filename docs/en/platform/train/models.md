@@ -222,7 +222,7 @@ Export your model to 22 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
-3. Configure export arguments: image size, precision, dynamic, NMS, and batch for most formats, plus format-specific options such as **Simplify** and **Opset** for ONNX (opset 9–23; leave it on auto unless your runtime needs a specific version) and **Workspace** for TensorRT
+3. Configure export arguments: image size and precision for every format, plus batch, dynamic, and NMS (**Post-processing**) where the format supports them, and format-specific options such as **Simplify** and **Opset** for ONNX (opset 9–23; leave it on auto unless your runtime needs a specific version) and **Workspace (GB)** for TensorRT
 4. For GPU-required formats (TensorRT), select a GPU type
 5. Click **Start Export**
 6. Download when complete

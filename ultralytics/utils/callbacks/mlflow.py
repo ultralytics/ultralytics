@@ -23,7 +23,7 @@ Commands:
 import os
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr, env_bool
+from ultralytics.utils import LOGGER, RUNS_DIR, TESTS_RUNNING, colorstr, env_bool
 
 PREFIX = colorstr("MLflow: ")
 
@@ -59,10 +59,6 @@ def on_pretrain_routine_end(trainer):
         MLFLOW_KEEP_RUN_ACTIVE: Whether to keep the MLflow run active after training ends. Truthy values are
             "1", "true", "yes", "on", "y", "t" (case-insensitive); anything else is False.
     """
-    # Resolve enablement at call time (not import time) so test/training order can never permanently disable MLflow:
-    # `add_integration_callbacks` imports this module on the first training, which may run with mlflow off.
-    if not mlflow or SETTINGS["mlflow"] is not True:
-        return
     if TESTS_RUNNING and "test_mlflow" not in os.environ.get("PYTEST_CURRENT_TEST", ""):
         return  # do not log during unrelated pytest tests
 

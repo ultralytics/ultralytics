@@ -157,8 +157,8 @@ def on_train_epoch_end(trainer):
 
 def on_train_end(trainer):
     """Save the best model as an artifact and log final plots at the end of training."""
-    _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
-    _log_plots(trainer.plots, step=trainer.epoch + 1)
+    _log_plots(trainer.validator.plots, step=wb.run.step)
+    _log_plots(trainer.plots, step=wb.run.step)
     if trainer.args.save and trainer.best.exists():
         art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")
         art.add_file(trainer.best)

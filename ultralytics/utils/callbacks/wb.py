@@ -120,6 +120,7 @@ def _log_plots(plots, step):
 def on_pretrain_routine_start(trainer):
     """Initialize and start wandb project if module is present."""
     if not wb.run:
+        import re
         from datetime import datetime
         from pathlib import Path
 
@@ -127,7 +128,9 @@ def on_pretrain_routine_start(trainer):
         latest_run = Path(trainer.save_dir) / "wandb" / "latest-run"
         resuming = trainer.args.resume and latest_run.exists()
         wb.init(
-            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
+            project=re.sub(r"[/\\#?%:]", "-", str(trainer.args.project))[-128:]
+            if trainer.args.project
+            else "Ultralytics",
             name=name,
             config=vars(trainer.args),
             id=next(latest_run.glob("run-*.wandb")).stem[4:]

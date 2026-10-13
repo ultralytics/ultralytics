@@ -1,8 +1,8 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM models for detect, segment, semantic, and OBB tasks, YOLO models for those tasks and pose, or class-prompted models (hosted open-source or paid provider models) for detection datasets with 1–200 classes.
-keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
+description: Annotate images in Ultralytics Platform by hand or with AI auto-annotation from SAM 3.1, YOLO, and models like Gemini 4 Argon, GPT-6.1 Sol, and Claude Opus 5.5.
+keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, Claude Fable 5.1, Claude Sonnet 5.5, Gemini 3.8 Flash, vision language models, Moondream, Qwen, YOLOE, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
 ---
 
 # Annotation Editor
@@ -348,7 +348,7 @@ Hosted models run on Ultralytics Platform with no provider key; Moondream 3.1 is
 | [**SAM 3 Text**](../../models/sam-3.md)          | Meta               | 0.86B      |
 | [**SAM 3.1 Text**](../../models/sam-3.md#sam-31) | Meta               | 0.87B      |
 
-Paid vision models from OpenAI, Anthropic, Google, Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo appear under each provider's project in the picker, by API name:
+Paid vision models from OpenAI (including GPT-6 Astra and GPT-6.1 Sol), Anthropic (including Claude Fable 5.1 and Claude Opus 5.5), Google (including Gemini 4 Argon), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo appear under each provider's project in the picker, by API name:
 
 <platform-annotation-models></platform-annotation-models>
 
@@ -617,9 +617,13 @@ SAM smart annotation is available for **detect**, **segment**, **semantic**, and
 
 Yes. Use [Batch Annotation](#batch-annotation) from **More actions > Batch Annotation** on the dataset page. It runs one model over the dataset: an official YOLO model, one of your own trained or uploaded models from `My Models`, or, on detection datasets with 1–200 classes, a class-prompted model such as SAM 3.1 Text that detects your class names. By default it annotates only unlabeled images, existing labels are kept, and a dataset version is saved first so you can restore it. It costs $1.00 per 1,000 images processed (minimum $0.01), and paid provider models are also billed by the provider. Batch Annotation works on Platform-hosted datasets with up to three image channels and is not available for depth.
 
+### Can I auto-annotate images with GPT, Claude, or Gemini models?
+
+Yes. On detection datasets with 1–200 classes, Smart annotation and [Batch Annotation](#batch-annotation) can run paid vision models such as Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, and Claude Fable 5.1 with your own provider key from [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation). Select the model under its provider in the model picker and click `Predict`; the provider bills your key for each prediction. The [class-prompted models](#class-prompted-smart-annotation) section lists every current model.
+
 ### Which class-prompted model should I use?
 
-In an October 2026 Ultralytics Platform benchmark of every class-prompted model on 108 images from 36 detection datasets spanning medical, aerial, industrial, retail, and everyday scenes, `gemini-4-argon` was the most accurate. `claude-haiku-5-5` and `gemini-3.5-flash-lite` were the most accurate low-cost models, and Qwen3.8 27B was the most accurate hosted model, with no provider key needed. Accuracy depends heavily on the domain: models that find nearly every object in everyday photos miss many objects in PCB, X-ray, retail, and traffic images and in some medical datasets, so run a few predictions on your own images before starting [Batch Annotation](#batch-annotation).
+In an October 2026 Ultralytics Platform benchmark of every class-prompted model on 108 images from 36 detection datasets spanning medical, aerial, industrial, retail, and everyday scenes, Gemini 4 Argon (`gemini-4-argon`) was the most accurate, ahead of GPT-6.1 Sol, Gemini 3.8 Flash, Claude Opus 5.5, and GPT-6 Astra. Claude Haiku 5.5 (`claude-haiku-5-5`) and Gemini 3.5 Flash-Lite (`gemini-3.5-flash-lite`) were the most accurate low-cost models, and Qwen3.8 27B was the most accurate hosted model, with no provider key needed. Accuracy depends heavily on the domain: models that find nearly every object in everyday photos miss many objects in PCB, X-ray, retail, and traffic images and in some medical datasets, so run a few predictions on your own images before starting [Batch Annotation](#batch-annotation).
 
 ### Can I create custom skeleton templates for pose annotation?
 

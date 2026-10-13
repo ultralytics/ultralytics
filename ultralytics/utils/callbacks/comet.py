@@ -9,12 +9,11 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, env_bool, ops
+from ultralytics.utils import LOGGER, RANK, TESTS_RUNNING, env_bool, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["comet"] is True  # verify integration is enabled
     import comet_ml
 
     assert hasattr(comet_ml, "__version__")  # verify package is not directory

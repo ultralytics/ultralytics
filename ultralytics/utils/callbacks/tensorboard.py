@@ -1,11 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr, torch_utils
+from ultralytics.utils import LOGGER, TESTS_RUNNING, colorstr, torch_utils
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["tensorboard"] is True  # verify integration is enabled
     WRITER = None  # TensorBoard SummaryWriter instance
     PREFIX = colorstr("TensorBoard: ")
 

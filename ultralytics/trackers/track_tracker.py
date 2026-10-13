@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import sys
 from collections import deque
 from functools import wraps
-from itertools import count
 from typing import Any
 
 import numpy as np
@@ -383,7 +383,7 @@ class TRACKTRACK:
         self.args = args
         self.max_time_lost = args.track_buffer
         self.kalman_filter = KalmanFilterXYWH()
-        self._ids = count(1)
+        self._ids = iter(range(1, sys.maxsize))
 
         self.match_thr = getattr(args, "match_thresh", 0.7)
         self.lost_match_thr = getattr(args, "lost_match_thr", 0.0)
@@ -599,5 +599,5 @@ class TRACKTRACK:
         self.removed_stracks = []
         self.frame_id = 0
         self.kalman_filter = KalmanFilterXYWH()
-        self._ids = count(1)
+        self._ids = iter(range(1, sys.maxsize))
         self.gmc.reset_params()

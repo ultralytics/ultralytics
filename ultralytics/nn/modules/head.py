@@ -1320,6 +1320,8 @@ class YOLOEDetect(Detect):
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
+        if self.is_fused:  # text embeddings are fused into cls_head, which then initializes like Detect
+            return super().bias_init()
         for i, (a, b, c) in enumerate(
             zip(self.one2many["box_head"], self.one2many["cls_head"], self.one2many["contrastive_head"])
         ):

@@ -53,8 +53,6 @@ class OpenVINOBackend(BaseBackend):
             w = next(w.glob("*.xml"))
 
         ov_model = core.read_model(model=str(w), weights=w.with_suffix(".bin"))
-        if ov_model.get_parameters()[0].get_layout().empty:
-            ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
         self.apply_metadata(self.read_metadata(w))
 
@@ -81,12 +79,14 @@ class OpenVINOBackend(BaseBackend):
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
-        if (
-            self.task == "classify"
-            and device_name.startswith("NPU")
-            and "NPU_TURBO" in core.get_property(device_name, "SUPPORTED_PROPERTIES")
-        ):
-            config["NPU_TURBO"] = "YES"
+        if device_name.startswith("NPU"):  # NPU is wrong at batch>1, so compile batch 1 and AutoBackend splits batches
+            ov_model.reshape([1, *list(ov_model.input().partial_shape)[1:]])
+            self.batch = 1
+            if self.task == "depth":  # drop the final upsample NPU gets wrong; depth predict/val resize to input size
+                up = ov_model.output().get_node().input_value(0).get_node()
+                ov_model = ov.Model([up.input_value(0)], ov_model.get_parameters())
+            if self.task == "classify" and "NPU_TURBO" in core.get_property(device_name, "SUPPORTED_PROPERTIES"):
+                config["NPU_TURBO"] = "YES"
 
         self.compile_model = partial(core.compile_model, device_name=device_name, config=config)
         self.ov_compiled_model = self.compile_model(ov_model)

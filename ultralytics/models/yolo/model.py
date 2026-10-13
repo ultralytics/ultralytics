@@ -206,7 +206,7 @@ class YOLOWorld(Model):
             classes (list[str]): A list of categories, e.g. ["person"].
         """
         self.model.set_classes(classes)
-        self.model.names = [c for c in classes if c != " "]  # drop the background class without mutating `classes`
+        self.model.names = list(classes)
 
         self.predictor = None
 
@@ -240,9 +240,8 @@ class YOLOE(Model):
         >>> model = YOLOE("yoloe-11s-seg.pt")
 
         Predict with visual prompts, whose 'cls' holds one class index per box
-        >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
         >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
-        >>> results = model.predict("image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
+        >>> results = model.predict("image.jpg", visual_prompts=prompts)
 
         Re-parameterize into a prompt-free model, which no longer accepts prompts
         >>> names = ["person", "car", "dog"]
@@ -497,9 +496,8 @@ class YOLOE(Model):
             >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> results = model.predict("path/to/image.jpg")
             >>> # With visual prompts, whose 'cls' holds one class index per box
-            >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
             >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
-            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
+            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):

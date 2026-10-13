@@ -65,7 +65,7 @@ Every new account receives free credits for cloud GPU training:
 
 !!! tip "Maximize Your Credits"
 
-    Sign up with a work email to receive $25 in credits. If you signed up with a personal email, you can verify a work email later to unlock the additional $20 in credits.
+    Sign up with a work email to receive $25 in credits. If you signed up with a personal email, you can change your account email to a work email later to unlock the additional $20 in credits.
 
 ### Complete Your Profile
 

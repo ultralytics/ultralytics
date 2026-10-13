@@ -139,11 +139,11 @@ class LoadStreams:
                     raise ConnectionError(f"{st}Failed to open {s}")
                 w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
                 h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
-                fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
+                fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0, nan or a 90 kHz RTP clock rate
                 self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
                     "inf"
                 )  # infinite stream fallback
-                self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
+                self.fps[i] = fps if 0 < fps < 1000 else 30  # 30 FPS fallback
 
                 success, im = self.caps[i].read()  # guarantee first frame
                 if not success or im is None:
@@ -597,6 +597,7 @@ class LoadPilAndNumpy:
                 return cv2.cvtColor(im[..., 0], cv2.COLOR_GRAY2BGR)
             return np.repeat(im, channels, axis=2)
         if channels == 1:
+            im = im.astype(np.float32, copy=False) if im.dtype.kind == "f" else im
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
         return cv2.cvtColor(im, cv2.COLOR_BGRA2BGR) if u8 and c == 4 else np.ascontiguousarray(im[..., :3])
 

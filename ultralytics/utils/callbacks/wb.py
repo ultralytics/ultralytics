@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import sys
+
 from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -183,7 +185,8 @@ callbacks = (
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
-        "teardown": lambda trainer: wb.finish(),  # also after a failed train, so the next train() starts a new run
+        # runs in train()'s finally, so the next train() starts a new run; exit code 1 while an exception propagates
+        "teardown": lambda trainer: wb.finish(exit_code=int(sys.exc_info()[0] is not None)),
     }
     if wb
     else {}

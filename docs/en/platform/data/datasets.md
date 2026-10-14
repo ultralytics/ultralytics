@@ -824,7 +824,7 @@ Create new training images from one you already have. In a dataset you can edit,
 | **Image Size**       | Target longest edge from `256` to `2048` px in steps of `64` (default `1024`)                                      |
 | **Instructions**     | Optional description of what to vary or keep, such as lighting, viewpoint, background, or objects                  |
 
-![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/d806fad25bce35fe7fc9f61df5223000.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/866578f36dfe1545fee093daf560bae3.avif)<!-- screenshot -->
 
 **Ultralytics Image 9B** and **Krea 2 Turbo** are also listed, but you can select them only after you turn on [Early access](../account/settings.md#early-access). Krea 2 Turbo is the slowest option. Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
 
@@ -832,7 +832,7 @@ Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear a
 
 #### Paid Image Generation Models
 
-![Ultralytics Platform Datasets Generate Similar Images Model Picker](https://cdn.ul.run/i/d806fad25bce35fe7fc9f61df5223000.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Generate Similar Images Model Picker](https://cdn.ul.run/i/2eca356efff699c2aaeb9410d28b7a30.avif)<!-- screenshot -->
 
 The model picker also lists paid models from each provider, by API name. OpenAI models generate at low quality.
 

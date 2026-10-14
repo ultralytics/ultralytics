@@ -341,7 +341,8 @@ def _create_prediction_metadata_map(model_predictions) -> dict:
 
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
     """Log the confusion matrix to Comet experiment."""
-    cm = trainer.validator.confusion_matrix
+    if (cm := trainer.validator.confusion_matrix) is None:  # e.g. depth has no confusion matrix
+        return
     names = [*cm.names.values(), "background"][: len(cm.matrix)]
     experiment.log_confusion_matrix(
         matrix=cm.matrix.T, labels=names, max_categories=len(names), epoch=curr_epoch, step=curr_step

@@ -75,9 +75,10 @@ def _log_confusion_matrix(validator) -> None:
     Args:
         validator (BaseValidator): The validator object whose confusion_matrix provides matrix and names.
     """
+    if (cm := validator.confusion_matrix) is None:  # e.g. depth has no confusion matrix
+        return
     targets = []
     preds = []
-    cm = validator.confusion_matrix
     names = [*cm.names.values(), "background"][: len(cm.matrix)]
 
     for ti, pred in enumerate(cm.matrix.T.astype(int)):

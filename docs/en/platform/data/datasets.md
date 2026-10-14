@@ -830,6 +830,14 @@ Create new training images from one you already have. In a dataset you can edit,
 
 Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear as they finish, all selected, and **Stop** ends a running batch while keeping the images that already arrived. To try other instructions or settings, change them and click **Generate more**: each new batch appears above the earlier ones, which keep their selection. Click an image to view it full size, clear the checkbox of any you don't want, and click **Add N to dataset**. The kept images are uploaded as JPEGs named after the source image, without labels, counted against your storage, and ready for [annotation](annotation.md). They use the active split filter: choose **Train** before generating to add them to `train`. With **All** selected, normal upload split assignment applies, including automatic validation splitting when needed. **Cancel** discards the previews without adding them. Generated images follow the dataset's [upload face-blurring setting](#blur-faces). The action is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets).
 
+#### Paid Image Generation Models
+
+The model picker also lists paid models from each provider, by API name. OpenAI models generate at low quality.
+
+<platform-image-models></platform-image-models>
+
+A paid model generates with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation), and the provider bills that key for each image, as with [paid annotation models](annotation.md#class-prompted-smart-annotation). Without a saved key, the batch fails before any image is generated, with an **Add API key** link; if the provider rejects the key, the error links to **Check API key**. In a team workspace, ask the workspace owner to add the key. Each batch lists its model, size, and cost: **Free** for a hosted model; for a paid model, what the provider charged, otherwise **Billed by** and the provider name. Above the results, **Total** shows the running cost of the paid batches as images arrive.
+
 ### Blur Faces
 
 In a dataset you can edit, blur the faces in its images, for example to protect the privacy of people in your data. Blur Faces is not available for [connected datasets](#what-is-not-available-for-connected-datasets) or for datasets with more than three image channels.

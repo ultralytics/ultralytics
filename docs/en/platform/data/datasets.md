@@ -832,6 +832,8 @@ Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear a
 
 #### Paid Image Generation Models
 
+![Ultralytics Platform Datasets Generate Similar Images Model Picker](https://cdn.ul.run/i/d806fad25bce35fe7fc9f61df5223000.avif)<!-- screenshot -->
+
 The model picker also lists paid models from each provider, by API name. OpenAI models generate at low quality.
 
 <platform-image-models></platform-image-models>

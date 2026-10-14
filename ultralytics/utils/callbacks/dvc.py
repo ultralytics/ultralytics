@@ -73,17 +73,14 @@ def _log_confusion_matrix(validator) -> None:
     into lists of target and prediction labels.
 
     Args:
-        validator (BaseValidator): The validator object containing the confusion matrix and class names. Must have
-            attributes confusion_matrix.matrix, confusion_matrix.task, and names.
+        validator (BaseValidator): The validator object whose confusion_matrix provides matrix and names.
     """
     targets = []
     preds = []
-    matrix = validator.confusion_matrix.matrix
-    names = list(validator.names.values())
-    if validator.confusion_matrix.task in {"detect", "obb"}:
-        names += ["background"]
+    cm = validator.confusion_matrix
+    names = [*cm.names.values(), "background"][: len(cm.matrix)]
 
-    for ti, pred in enumerate(matrix.T.astype(int)):
+    for ti, pred in enumerate(cm.matrix.T.astype(int)):
         for pi, num in enumerate(pred):
             targets.extend([names[ti]] * num)
             preds.extend([names[pi]] * num)

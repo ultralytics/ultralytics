@@ -1379,6 +1379,8 @@ GET /api/models/{owner}/{project}
 
 **Python SDK:** `client.models.list(owner, project)`
 
+Listed models omit their validation `plots` and `trainResults`; [Get Model](#get-model) returns them.
+
 **Query Parameters:**
 
 | Parameter | Type | Description                                      |

@@ -965,7 +965,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
 def convert_optimizer_state_dict_to_fp16(state_dict):
     """Convert the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
 
-    FP32 tensors are converted in place, except 'step', 'exp_avg_sq', and 'square_avg', which are kept in FP32.
+    FP32 tensors are converted in place, except 'step', 'exp_avg', 'exp_avg_sq', and 'square_avg', which are kept in FP32.
 
     Args:
         state_dict (dict): Optimizer state dictionary.
@@ -976,7 +976,7 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     for state in state_dict["state"].values():
         for k, v in state.items():
             if (
-                k not in {"step", "exp_avg_sq", "square_avg"}
+                k not in {"step", "exp_avg", "exp_avg_sq", "square_avg"}
                 and isinstance(v, torch.Tensor)
                 and v.dtype is torch.float32
             ):

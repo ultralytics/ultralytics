@@ -942,7 +942,7 @@ async def _convert_ndjson_to_yolo(
     import aiohttp
 
     def read_records():
-        with ndjson_path.open() as file:
+        with ndjson_path.open(encoding="utf-8") as file:
             return [json.loads(line) for line in file if line.strip()]
 
     lines = await asyncio.get_running_loop().run_in_executor(None, read_records)

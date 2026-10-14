@@ -2641,17 +2641,19 @@ GET /api/explore/search
 
 **Query Parameters:**
 
-| Parameter | Type    | Description                                                                                                                                                                               |
-| --------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `q`       | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match                                                                                           |
-| `type`    | string  | `all` (default), `projects`, `datasets`, or `images` (ignores `sort`)                                                                                                                     |
-| `sort`    | string  | `relevance` (default), `newest`, `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`; `relevance` ranks dataset matches for `q` by search score, otherwise newest first |
-| `offset`  | int     | Results to skip (default: 0)                                                                                                                                                              |
-| `limit`   | int     | Maximum results per resource type (default: 20, max: 100)                                                                                                                                 |
-| `task`    | string  | Comma-separated task filters: `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`                                                                                         |
-| `license` | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license                                                                                         |
-| `author`  | string  | Owner username filter                                                                                                                                                                     |
-| `starred` | boolean | Return only content starred by the authenticated caller; requires an API key                                                                                                              |
+| Parameter   | Type    | Description                                                                                                                                                                               |
+| ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q`         | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match                                                                                           |
+| `type`      | string  | `all` (default), `projects`, `datasets`, or `images` (ignores `sort`)                                                                                                                     |
+| `sort`      | string  | `relevance` (default), `newest`, `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`; `relevance` ranks dataset matches for `q` by search score, otherwise newest first |
+| `offset`    | int     | Results to skip (default: 0)                                                                                                                                                              |
+| `limit`     | int     | Maximum results per resource type (default: 20, max: 100)                                                                                                                                 |
+| `task`      | string  | Comma-separated task filters: `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`                                                                                         |
+| `license`   | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license                                                                                         |
+| `author`    | string  | Owner username filter                                                                                                                                                                     |
+| `starred`   | boolean | Return only content starred by the authenticated caller; requires an API key                                                                                                              |
+| `minImages` | int     | Return only datasets with at least this many images; ignored by `type=images`                                                                                                             |
+| `maxImages` | int     | Return only datasets with at most this many images; ignored by `type=images`                                                                                                              |
 
 **Response:** `projects`, `datasets`, and `hasMore`. `type=images` returns its matches in `images` instead, best match
 first, each with its source `dataset` and a 0–1 similarity `score`; it needs `q` and searches public datasets, plus your

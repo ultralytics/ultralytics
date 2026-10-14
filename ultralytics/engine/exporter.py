@@ -715,8 +715,9 @@ class Exporter:
             # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
             memo[id(getattr(model, "clip_model", None))] = None
         model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
+        # Distillation checkpoints export their student; foreign modules such as YOLO-NAS have no layer list
+        head = getattr(getattr(model, "student_model", model), "model", [model])[-1]
         if not getattr(model, "names", None):  # missing, None or empty on legacy and foreign checkpoints
-            head = model.model[-1]  # name the head's own classes so the metadata matches the output layer
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)
         model.names = check_class_names(model.names)
@@ -832,8 +833,8 @@ class Exporter:
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert fmt != "onnx" or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
             # A previously fused checkpoint may only have its one-to-one branch remaining.
-            if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
-                LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=None'.")
+            if getattr(model, "end2end", False) or not isinstance(head, Detect):
+                LOGGER.warning("'nms=True' is not available for end2end models or non-YOLO heads. Forcing 'nms=None'.")
                 self.args.nms = None
             self.args.conf = 0.25 if self.args.conf is None else self.args.conf  # set conf default for nms export
         if fmt == "mnn" and self.args.nms:
@@ -855,7 +856,7 @@ class Exporter:
                 assert not self.args.nms, (
                     "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
                 )
-                assert model.task != "classify" and not isinstance(model.model[-1], RTDETRDecoder), (
+                assert model.task != "classify" and not isinstance(head, RTDETRDecoder), (
                     "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
                 )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
@@ -864,6 +865,8 @@ class Exporter:
             raise SystemError(
                 "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
             )
+        # INT8 zeroes the pixel-space boxes decoded inside YOLO-NAS; tf_wrapper only normalizes Ultralytics heads
+        assert fmt != "edgetpu" or head is not model, "Edge TPU export is not supported for YOLO-NAS models."
         self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
         if self.qat:
             assert fmt in {"onnx", "engine"}, (
@@ -984,7 +987,7 @@ class Exporter:
             "docs": "https://docs.ultralytics.com",
             "stride": int(max(model.stride)),
             "task": model.task,
-            "head": type(model.model[-1]).__name__,
+            "head": type(head).__name__,
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
@@ -1129,7 +1132,7 @@ class Exporter:
         opset = self.args.opset or best_onnx_opset(onnx)
         # nearest Upsample needs 9, NMS and depth align_corners Resize need 11, RT-DETR GridSample needs 16
         min_opset = {"classify": 7, "depth": 11}.get(self.model.task, 11 if self.args.nms else 9)
-        if isinstance(self.model.model[-1], RTDETRDecoder):
+        if self.metadata["head"] == "RTDETRDecoder":
             min_opset = 16
         assert opset >= min_opset, f"ONNX export requires opset>={min_opset} for this model, but got opset={opset}"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
@@ -1283,7 +1286,7 @@ class Exporter:
             dynamic=self.args.dynamic,
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
-            int8_detect=isinstance(self.model.model[-1], (Detect, RTDETRDecoder)),
+            int8_detect=isinstance(getattr(self.model, "model", [None])[-1], (Detect, RTDETRDecoder)),
             prefix=prefix,
         )
 
@@ -1473,7 +1476,7 @@ class Exporter:
             shutil.rmtree(f)  # delete output folder
 
         # Export to ONNX
-        if isinstance(self.model.model[-1], RTDETRDecoder):
+        if self.metadata["head"] == "RTDETRDecoder":
             self.args.opset = self.args.opset or 19
             assert self.args.opset <= 19, "RTDETR TensorFlow export requires opset<=19"
         self.args.simplify = True

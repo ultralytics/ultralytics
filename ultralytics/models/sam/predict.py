@@ -329,7 +329,13 @@ class Predictor(BasePredictor):
             masks = masks[None] if masks.ndim == 2 else masks
             letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
             masks = np.stack([letterbox(image=x).squeeze() for x in masks], axis=0)
-            masks = torch.tensor(masks, dtype=self.torch_dtype, device=self.device)
+            # (N, H, W) --> (N, 1, h, w), downsampled to the low-resolution mask size (imgsz / 4) the encoder expects
+            masks = F.interpolate(
+                torch.as_tensor(masks, dtype=torch.float32, device=self.device)[:, None],
+                size=(dst_shape[0] // 4, dst_shape[1] // 4),
+                mode="bilinear",
+                align_corners=False,
+            ).to(self.torch_dtype)
         return bboxes, points, labels, masks
 
     def generate(

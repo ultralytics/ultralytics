@@ -413,7 +413,7 @@ Click any image to open the fullscreen viewer with:
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
-- **Blur faces**: Right-click an annotation to [preview and apply face blurring](#blur-faces) to the image when available
+- **Blur faces**: Right-click the image or an annotation to [preview and apply face blurring](#blur-faces) to the image when available
 - **Download**: Download the original image file
 - **Delete**: Delete the image from the dataset
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
@@ -834,7 +834,7 @@ Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear a
 
 In a dataset you can edit, blur the faces in its images, for example to protect the privacy of people in your data. Blur Faces is not available for [connected datasets](#what-is-not-available-for-connected-datasets) or for datasets with more than three image channels.
 
-- **One image:** right-click the image in **Grid** or **Compact** view (or a single selected row in **Table** view), or right-click an annotation in the fullscreen viewer, and choose **Blur faces**.
+- **One image:** right-click the image in **Grid** or **Compact** view (or a single selected row in **Table** view), or, while annotating in the fullscreen viewer (not on classification datasets), right-click the image or an annotation, and choose **Blur faces**.
 - **Whole dataset:** open **More actions** (`⋯`) on the dataset page and choose **Blur faces**.
 
 The dialog first previews the detected faces on up to six images (or on the one image) without changing them. Adjust **Confidence** (default `0.25`) and **Box scale** (`0.5`–`1.5`, default `1`, which scales each face box around its center) to re-run the preview, then click **Apply** to replace the original pixels of every image in which faces are found. Images without detected faces are left unchanged, labels and splits are kept, and some faces may be missed, so review the result. Blurring does not automatically create a [version snapshot](#versions-tab). Blurring a whole dataset costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run (billed as **Auto-Annotation**), and the dialog shows the estimate before you apply; previews and single-image blurring are free.

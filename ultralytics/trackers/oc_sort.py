@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from ..utils.ops import ltwh2xyxy, xyxy2ltwh
+from ..utils.ops import xyxy2ltwh
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
 from .utils import matching
@@ -51,7 +51,7 @@ class OCSortTrack(STrack):
             frame_id (int): Frame id at which the track is created.
         """
         super().activate(kalman_filter, frame_id)
-        self._record_observation(ltwh2xyxy(self.tlwh).astype(np.float32), frame_id)  # detection-space precision
+        self._record_observation(self.xyxy.astype(np.float32), frame_id)  # detection-space precision
         self._saved_mean = self.mean.copy()
         self._saved_covariance = self.covariance.copy()
 
@@ -62,7 +62,7 @@ class OCSortTrack(STrack):
             new_track (STrack): Matched detection for this frame.
             frame_id (int): Current frame id.
         """
-        self._record_observation(ltwh2xyxy(new_track.tlwh), frame_id)
+        self._record_observation(new_track.xyxy.copy(), frame_id)
         super().update(new_track, frame_id)
         self._saved_mean = self.mean.copy()
         self._saved_covariance = self.covariance.copy()
@@ -76,7 +76,7 @@ class OCSortTrack(STrack):
             frame_id (int): Current frame id.
             new_id (bool): If True, assign a fresh track id instead of reusing the old one.
         """
-        self._record_observation(ltwh2xyxy(new_track.tlwh), frame_id)
+        self._record_observation(new_track.xyxy.copy(), frame_id)
         super().re_activate(new_track, frame_id, new_id)
         self._saved_mean = self.mean.copy()
         self._saved_covariance = self.covariance.copy()
@@ -243,7 +243,7 @@ class OCSORT(BYTETracker):
                 track.update(det, self.frame_id)
                 activated.append(track)
             else:
-                track.apply_oru(ltwh2xyxy(det.tlwh), self.frame_id)
+                track.apply_oru(det.xyxy, self.frame_id)
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind.append(track)
         return list(u_track), list(u_det)

@@ -35,7 +35,7 @@ Before discussing the details of each step involved in a computer vision project
 - Finally, you [deploy](#step-7-model-deployment) your model into the real world and [monitor and maintain](#step-8-monitoring-maintenance-and-documentation) it based on new insights and feedback.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/18837ae5b526a4c39c50722c5f0e2411.avif" alt="Computer Vision Project Steps Overview">
+  <img width="100%" src="https://cdn.ul.run/i/92ee1c17e7216a471b75fe17c20fbe59.avif" alt="Computer Vision Project Steps Overview">
 </p>
 
 Now that we know what to expect, let's dive right into the steps and get your project moving forward.
@@ -64,7 +64,7 @@ Depending on the objective, you might choose to select the model first or after 
 Choosing between training from scratch or using [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) affects how you prepare your data. Training from scratch requires a diverse dataset to build the model's understanding from the ground up. Transfer learning, on the other hand, allows you to use a pretrained model and adapt it with a smaller, more specific dataset. Also, choosing a specific model to train will determine how you need to prepare your data, such as resizing images or adding annotations, according to the model's specific requirements.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/81fd8e026865f1c7b9e0d43faaf3df4f.avif" alt="Training From Scratch Vs. Using Transfer Learning">
+  <img width="100%" src="https://cdn.ul.run/i/38f85252012ecd0d532ab40895e139d9.avif" alt="Training From Scratch Vs. Using Transfer Learning">
 </p>
 
 !!! note "Consider deployment when choosing a model"
@@ -94,7 +94,7 @@ However, if you choose to collect images or take your own pictures, you'll need 
 - **[Image Segmentation](https://www.ultralytics.com/glossary/image-segmentation):** You'll label each pixel in the image according to the object it belongs to, creating detailed object boundaries.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/965f90688c9319c6cfa797be65b1d03a.avif" alt="Bounding box, polygon, and keypoint annotations">
+  <img width="100%" src="https://cdn.ul.run/i/f68a910da282d1c2031f8ed2a4927303.avif" alt="Types of image annotation for classification, object detection, semantic segmentation, and instance segmentation">
 </p>
 
 [Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. A dedicated annotation tool makes it faster: [Ultralytics Platform](https://platform.ultralytics.com) provides a built-in [annotation editor](../platform/data/annotation.md) with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) for detection, segmentation, and OBB data, saving labels directly in YOLO format.

@@ -289,6 +289,7 @@ class TTSTrack(BOTrack):
         self.mean, self.covariance = self.kalman_filter.update(
             self.mean, self.covariance, self.convert_coords(new_track.tlwh), confidence=new_track.score
         )
+        self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
         self._history.append((frame_id, self.xyxy))
         self.score = new_track.score  # set before update_features so the EMA weight uses the current confidence
         if new_track.curr_feat is not None:
@@ -299,7 +300,6 @@ class TTSTrack(BOTrack):
         self.frame_id = frame_id
         if new_id:
             self.track_id = self.next_id()
-        self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
 
     def update(self, new_track, frame_id: int) -> None:
         """Update a matched track with a new detection; promote to Tracked after min_track_len."""

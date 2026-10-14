@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import sys
 from typing import Any
 
@@ -65,6 +66,8 @@ class STrack(BaseTrack):
         super().__init__()
         # xywh+idx or xywha+idx
         assert len(xywh) in {5, 6}, f"expected 5 or 6 values but got {len(xywh)}"
+        if len(xywh) == 6 and xywh[2] < xywh[3]:  # long-edge form, so (w, h, a) and (h, w, a + pi/2) track alike
+            xywh = xywh[[0, 1, 3, 2, 4, 5]] + np.array([0, 0, 0, 0, np.pi / 2, 0])
         self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
@@ -172,8 +175,12 @@ class STrack(BaseTrack):
 
     @property
     def xyxy(self) -> np.ndarray:
-        """Get the bounding box in (min x, min y, max x, max y) format from the current state estimate."""
+        """Get the axis-aligned (min x, min y, max x, max y) box enclosing the current state estimate."""
         ret = self.tlwh  # already a fresh array, safe to mutate
+        if self.angle is not None:
+            (x, y, w, h), c, s = ret.tolist(), abs(math.cos(self.angle)), abs(math.sin(self.angle))
+            ew, eh = w * c + h * s, w * s + h * c  # extent of the rotated box about the same centre
+            ret[:] = x + (w - ew) / 2, y + (h - eh) / 2, ew, eh
         ret[2:] += ret[:2]
         return ret
 

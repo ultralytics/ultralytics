@@ -951,9 +951,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             masks (np.ndarray, optional): Binary object masks with shape (N, H, W).
 
         Returns:
-            pred_masks (torch.Tensor): The non-empty output mask logits with shape (C, H, W), where C is the number of
-                masks.
-            pred_scores (torch.Tensor): A tensor of ones with length C, as the video predictor does not score masks.
+            pred_masks (torch.Tensor): The output mask logits with shape (C, H, W), one per tracked object.
+            pred_scores (torch.Tensor): Scores with length C, 1 for non-empty masks and 0 for blank ones.
 
         Raises:
             RuntimeError: If no prompts have been added before tracking.
@@ -1004,9 +1003,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self._add_output_per_object(frame, current_out, storage_key)
         self.inference_state["frames_already_tracked"].add(frame)
         pred_masks = current_out["pred_masks"].flatten(0, 1)
-        pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
-
-        return pred_masks, torch.ones(pred_masks.shape[0], dtype=pred_masks.dtype, device=pred_masks.device)
+        return pred_masks, (pred_masks > self.model.mask_threshold).flatten(1).any(1).to(pred_masks.dtype)
 
     @smart_inference_mode()
     def add_new_prompts(
@@ -1968,8 +1965,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             update_memory (bool): Flag to indicate whether to update the memory with new objects.
 
         Returns:
-            pred_masks (torch.Tensor): The output mask logits with shape (C, H, W) for the C added objects.
-            pred_scores (torch.Tensor): Object presence scores for each mask with shape (C,), mapped to [0, 1].
+            pred_masks (torch.Tensor): The output mask logits with shape (C, H, W), one per object slot.
+            pred_scores (torch.Tensor): Object presence scores with shape (C,), mapped to [0, 1]; 0 for empty slots.
 
         Raises:
             RuntimeError: If no objects have been added to the memory yet.
@@ -2001,15 +1998,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         current_out = self.track_step()
         pred_masks, pred_scores = current_out["pred_masks"], current_out["object_score_logits"]
-        # filter the masks and logits based on the object indices
         if len(self.obj_idx_set) == 0:
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
-        idx = list(self.obj_idx_set)  # cls id
-        pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
+        idx = list(self.obj_idx_set)  # cls id; slots without an object keep score 0
         # The original scores are in [-32, 32]. An object score larger than 0 means the object is present.
         # Map scores to [0, 1] so that the object score logits are non-negative and can be used as a mask.
-        pred_scores = torch.clamp_(pred_scores / 32, min=0)
-        return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
+        scores = torch.zeros_like(pred_scores)
+        scores[idx] = torch.clamp(pred_scores[idx] / 32, min=0)
+        return pred_masks.flatten(0, 1), scores.flatten(0, 1)
 
     def get_im_features(self, img: torch.Tensor | np.ndarray) -> None:
         """Extract the image features for the current image and store them on the predictor.

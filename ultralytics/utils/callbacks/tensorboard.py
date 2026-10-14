@@ -113,12 +113,21 @@ def on_fit_epoch_end(trainer) -> None:
     _log_scalars(trainer.metrics, trainer.epoch + 1)
 
 
+def teardown(trainer) -> None:
+    """Flush and close the TensorBoard writer after training, including failed runs."""
+    global WRITER
+    if WRITER:
+        WRITER.close()
+        WRITER = None
+
+
 callbacks = (
     {
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_train_start": on_train_start,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_epoch_end": on_train_epoch_end,
+        "teardown": teardown,
     }
     if SummaryWriter
     else {}

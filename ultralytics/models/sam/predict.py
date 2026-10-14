@@ -265,6 +265,10 @@ class Predictor(BasePredictor):
             pred_scores (torch.Tensor): Quality scores for each mask, with length C.
         """
         points = (points, labels) if points is not None else None
+        if masks is not None:  # (N, 1, H, W) full-res --> (N, 1, H/4, W/4) low-res, as the prompt encoder expects
+            masks = F.interpolate(
+                masks.float(), size=(masks.shape[-2] // 4, masks.shape[-1] // 4), mode="bilinear", align_corners=False
+            ).to(self.torch_dtype)
         # Embed prompts
         sparse_embeddings, dense_embeddings = self.model.prompt_encoder(points=points, boxes=bboxes, masks=masks)
 
@@ -329,13 +333,8 @@ class Predictor(BasePredictor):
             masks = masks[None] if masks.ndim == 2 else masks
             letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
             masks = np.stack([letterbox(image=x).squeeze() for x in masks], axis=0)
-            # (N, H, W) --> (N, 1, h, w), downsampled to the low-resolution mask size (imgsz / 4) the encoder expects
-            masks = F.interpolate(
-                torch.as_tensor(masks, dtype=torch.float32, device=self.device)[:, None],
-                size=(dst_shape[0] // 4, dst_shape[1] // 4),
-                mode="bilinear",
-                align_corners=False,
-            ).to(self.torch_dtype)
+            # (N, H, W) --> (N, 1, H, W), kept at full resolution: the SAM2 video path downsamples mask prompts itself
+            masks = torch.as_tensor(masks, dtype=self.torch_dtype, device=self.device)[:, None]
         return bboxes, points, labels, masks
 
     def generate(
@@ -851,6 +850,12 @@ class SAM2Predictor(Predictor):
             pred_scores (torch.Tensor): Quality scores for each mask, with length C.
         """
         points = (points, labels) if points is not None else None
+        if masks is not None:  # downsize full-res mask prompts to the low-res mask size the encoder expects
+            enc = self.model.sam_prompt_encoder
+            if tuple(masks.shape[-2:]) != tuple(enc.mask_input_size):
+                masks = F.interpolate(masks.float(), size=enc.mask_input_size, mode="bilinear", align_corners=False).to(
+                    self.torch_dtype
+                )
         sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
             points=points,
             boxes=None,

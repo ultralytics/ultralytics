@@ -79,14 +79,15 @@ The dropdown in the toolbar holds sort options on the Datasets and Projects tabs
 | **Name**                | Alphabetical, ascending or descending                                          |
 | **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first         |
 
-| Filter         | Tabs                       | Availability   | Description                                                                                      |
-| -------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| **Task type**  | Datasets, Images           | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
-| **My starred** | Datasets, Images           | Signed in only | Show only datasets you have starred, or images from them                                         |
-| **License**    | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
+| Filter          | Tabs                       | Availability   | Description                                                                                      |
+| --------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| **Task**        | Datasets, Images           | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
+| **My starred**  | Datasets, Images, Projects | Signed in only | Show only datasets or projects you have starred, or images from those datasets                   |
+| **Image count** | Datasets                   | Everyone       | Show only datasets with **Under 1K**, **1K – 10K**, **10K – 100K**, or **100K+** images          |
+| **License**     | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
 
-Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `starred`, `license`, and `plicense`), so
-the browser back button restores the previous result list.
+Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `starred`, `imageCount`,
+`license`, and `plicense`), so the browser back button restores the previous result list.
 
 !!! note "Sorting by Stars"
 

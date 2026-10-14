@@ -182,8 +182,9 @@ Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro al
 If training fails:
 
 1. The model is marked failed and the compute instance is terminated
-2. The model page shows an error banner with the captured error, a link to the console output, and a **Retry
-   Training** action that reopens the training dialog with the same configuration
+2. The model page shows an error banner with the captured error, a link to the console output, and **Diagnose with
+   AI** and a **Retry Training** action (Editor role or higher) that reopens the training dialog with the same
+   configuration
 3. A run that stops reporting activity for 4 hours is automatically marked failed and its compute released
 4. If cloud compute had started, elapsed GPU time is charged; failures before compute starts have no GPU usage charge
 

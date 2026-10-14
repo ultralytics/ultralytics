@@ -179,7 +179,7 @@ class STrack(BaseTrack):
         ret = self.tlwh  # already a fresh array, safe to mutate
         if self.angle is not None:
             (x, y, w, h), c, s = ret.tolist(), abs(math.cos(self.angle)), abs(math.sin(self.angle))
-            ew, eh = w * c + h * s, w * s + h * c  # extent of the rotated box about the same centre
+            ew, eh = w * c + h * s, w * s + h * c  # extent of the rotated box about the same center
             ret[:] = x + (w - ew) / 2, y + (h - eh) / 2, ew, eh
         ret[2:] += ret[:2]
         return ret

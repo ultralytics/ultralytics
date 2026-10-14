@@ -951,9 +951,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             masks (np.ndarray, optional): Binary object masks with shape (N, H, W).
 
         Returns:
-            pred_masks (torch.Tensor): The non-empty output mask logits with shape (C, H, W), where C is the number of
-                masks.
-            pred_scores (torch.Tensor): A tensor of ones with length C, as the video predictor does not score masks.
+            pred_masks (torch.Tensor): The output mask logits with shape (C, H, W), one per tracked object.
+            pred_scores (torch.Tensor): Scores with length C, 1 for non-empty masks and 0 for blank ones.
 
         Raises:
             RuntimeError: If no prompts have been added before tracking.
@@ -1004,9 +1003,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self._add_output_per_object(frame, current_out, storage_key)
         self.inference_state["frames_already_tracked"].add(frame)
         pred_masks = current_out["pred_masks"].flatten(0, 1)
-        pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
-
-        return pred_masks, torch.ones(pred_masks.shape[0], dtype=pred_masks.dtype, device=pred_masks.device)
+        return pred_masks, (pred_masks > self.model.mask_threshold).flatten(1).any(1).to(pred_masks.dtype)
 
     @smart_inference_mode()
     def add_new_prompts(

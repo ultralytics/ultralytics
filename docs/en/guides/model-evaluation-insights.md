@@ -54,7 +54,7 @@ Two mAP metrics are most commonly reported:
 Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/d05182a0bc6cf4f2f45a598e9f414496.avif" alt="Mean average precision mAP metric">
+  <img width="100%" src="https://cdn.ul.run/i/d9b6876e9ad5785062ab71c81b790f78.avif" alt="Three ways to improve mean average precision: data quality, algorithm optimization, and annotation process improvement">
 </p>
 
 ## Evaluating a YOLO26 Model

@@ -87,7 +87,7 @@ Model maintenance keeps computer vision models accurate and relevant over time b
 Once a model is deployed, while monitoring, you may notice changes in data patterns or performance, indicating model drift. Regular updates and retraining become essential parts of model maintenance to ensure the model can handle new patterns and scenarios. There are a few techniques you can use based on how your data is changing.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/d89c0f2eb754d81da7eddf0620a6d0ab.avif" alt="Computer vision model drift causes">
+  <img width="100%" src="https://cdn.ul.run/i/1ba75e939cf4a420129f826b122750aa.avif" alt="Model accuracy decaying over time compared with a regularly retrained model">
 </p>
 
 For example, if the data is changing gradually over time, incremental learning is a good approach. Incremental learning involves updating the model with new data without completely retraining it from scratch, saving computational resources and time. However, if the data has changed drastically, a periodic full retraining might be a better option to ensure the model does not [overfit](https://www.ultralytics.com/glossary/overfitting) on the new data while losing track of older patterns.
@@ -99,7 +99,7 @@ Regardless of the method, validation and testing are a must after updates. It is
 The frequency of retraining your computer vision model depends on data changes and model performance. Retrain your model whenever you observe a significant performance drop or detect data drift. Regular evaluations can help determine the right retraining schedule by testing the model against new data. Monitoring performance metrics and data patterns lets you decide if your model needs more frequent updates to maintain [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/aa2ec516bfd018d5fffa591338ed3e6f.avif" alt="When to retrain ML models flowchart">
+  <img width="100%" src="https://cdn.ul.run/i/e3e2e8f8716aadefc8b53665bf48c64c.avif" alt="When to retrain ML models flowchart">
 </p>
 
 ## Documentation

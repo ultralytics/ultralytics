@@ -471,7 +471,7 @@ def on_train_end(trainer):
     for info in getattr(trainer, "plots", {}).values():
         if info.get("data") and info["data"].get("type"):
             plots_by_type[info["data"]["type"]] = info["data"]
-    for info in getattr(getattr(trainer, "validator", None), "plots", {}).values():
+    for info in reversed(getattr(getattr(trainer, "validator", None), "plots", {}).values()):
         if info.get("data") and info["data"].get("type"):
             plots_by_type.setdefault(info["data"]["type"], info["data"])  # Don't overwrite trainer plots
     # Curve rows only cover classes with val labels: send their model class indices when any class is missing

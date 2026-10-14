@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import MethodType
 from typing import Any
 
 import torch
@@ -33,7 +34,7 @@ class NAS(Model):
 
     Examples:
         >>> from ultralytics import NAS
-        >>> model = NAS("yolo_nas_s")
+        >>> model = NAS("yolo_nas_s.pt")
         >>> results = model.predict("ultralytics/assets/bus.jpg")
 
     Notes:
@@ -64,8 +65,15 @@ class NAS(Model):
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
 
-        # Standardize model attributes for compatibility
-        self.model.fuse = lambda verbose=True, imgsz=640: self.model
+        def forward(m, x):
+            """Return predictions in the Ultralytics detect layout (B, 4 + nc, N) with xywh boxes."""
+            y = type(m).forward(m, x)
+            b, scores = y if torch.jit.is_tracing() else y[0]  # super-gradients drops raw outputs when traced
+            return torch.cat(((b[..., :2] + b[..., 2:]) / 2, b[..., 2:] - b[..., :2], scores), -1).permute(0, 2, 1)
+
+        # Standardize model attributes for compatibility, binding methods to the module so its copies use their own weights
+        self.model.forward = MethodType(forward, self.model)
+        self.model.fuse = MethodType(lambda m, verbose=True, imgsz=640: m, self.model)
         self.model.stride = torch.tensor([32])
         self.model.names = dict(enumerate(self.model._class_names))
         self.model.is_fused = lambda: False  # for info()
@@ -74,6 +82,7 @@ class NAS(Model):
         self.model.task = "detect"  # for export()
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # for export()
         self.model.eval()
+        self.model_name = weights
 
     def info(self, detailed: bool = False, verbose: bool = True, imgsz: int | list[int] = 640) -> tuple:
         """Log model information.

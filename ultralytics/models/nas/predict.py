@@ -1,9 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import torch
-
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
-from ultralytics.utils import ops
 
 
 class NASPredictor(DetectionPredictor):
@@ -21,7 +18,7 @@ class NASPredictor(DetectionPredictor):
 
     Examples:
         >>> from ultralytics import NAS
-        >>> model = NAS("yolo_nas_s")
+        >>> model = NAS("yolo_nas_s.pt")
         >>> model.predict("ultralytics/assets/bus.jpg")  # creates model.predictor
         >>> predictor = model.predictor
 
@@ -31,29 +28,3 @@ class NASPredictor(DetectionPredictor):
     Notes:
         Typically, this class is not instantiated directly. It is used internally within the NAS class.
     """
-
-    def postprocess(self, preds_in, img, orig_imgs):
-        """Postprocess NAS model predictions to generate final detection results.
-
-        This method takes raw predictions from a YOLO NAS model, converts bounding box formats, and applies
-        post-processing operations to generate the final detection results compatible with Ultralytics result
-        visualization and analysis tools.
-
-        Args:
-            preds_in (list): Raw predictions from the NAS model, typically containing bounding boxes and class scores.
-            img (torch.Tensor): Input image tensor that was fed to the model, with shape (B, C, H, W).
-            orig_imgs (list | torch.Tensor | np.ndarray): Original images before preprocessing, used for scaling
-                coordinates back to original dimensions.
-
-        Returns:
-            (list[Results]): List of Results objects containing the processed predictions for each image in the batch.
-
-        Examples:
-            >>> model = NAS("yolo_nas_s")
-            >>> model.predict("ultralytics/assets/bus.jpg")  # creates model.predictor
-            >>> predictor = model.predictor
-            >>> results = predictor.postprocess(raw_preds, img, orig_imgs)
-        """
-        boxes = ops.xyxy2xywh(preds_in[0][0])  # Convert bounding boxes from xyxy to xywh format
-        preds = torch.cat((boxes, preds_in[0][1]), -1).permute(0, 2, 1)  # Concatenate boxes with class scores
-        return super().postprocess(preds, img, orig_imgs)

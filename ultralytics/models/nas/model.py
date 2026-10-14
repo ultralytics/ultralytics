@@ -10,6 +10,7 @@ import torch
 
 from ultralytics.engine.model import Model
 from ultralytics.utils import DEFAULT_CFG_DICT
+from ultralytics.utils.checks import check_model_file_from_stem
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.patches import torch_load
 from ultralytics.utils.torch_utils import model_info
@@ -45,25 +46,19 @@ class NAS(Model):
         """Initialize the NAS model with the provided or default model.
 
         Args:
-            model (str): Path to a pre-trained NAS model file (.pt) or a super-gradients model name (e.g. "yolo_nas_s").
+            model (str): Path to a pre-trained NAS model file (.pt) or a YOLO-NAS model name (e.g. "yolo_nas_s").
         """
         assert Path(model).suffix not in {".yaml", ".yml"}, "YOLO-NAS models only support pre-trained models."
         super().__init__(model, task="detect")
 
     def _load(self, weights: str, task=None) -> None:
-        """Load an existing NAS model weights or create a new NAS model with pretrained weights.
+        """Load NAS model weights from a file or a model name.
 
         Args:
             weights (str): Path to the model weights file or model name.
             task (str, optional): Task type for the model.
         """
-        import super_gradients
-
-        suffix = Path(weights).suffix
-        if suffix == ".pt":
-            self.model = torch_load(attempt_download_asset(weights))
-        elif suffix == "":
-            self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
+        self.model = torch_load(attempt_download_asset(check_model_file_from_stem(weights)))
 
         def forward(m, x):
             """Return predictions in the Ultralytics detect layout (B, 4 + nc, N) with xywh boxes."""

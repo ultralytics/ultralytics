@@ -99,7 +99,7 @@ Regardless of the method, validation and testing are a must after updates. It is
 The frequency of retraining your computer vision model depends on data changes and model performance. Retrain your model whenever you observe a significant performance drop or detect data drift. Regular evaluations can help determine the right retraining schedule by testing the model against new data. Monitoring performance metrics and data patterns lets you decide if your model needs more frequent updates to maintain [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/e3e2e8f8716aadefc8b53665bf48c64c.avif" alt="When to retrain ML models flowchart">
+  <img width="100%" src="https://cdn.ul.run/i/368650eea9b1be8ec43e061e92c3d804.avif" alt="When to retrain ML models flowchart">
 </p>
 
 ## Documentation

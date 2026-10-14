@@ -35,7 +35,7 @@ Before discussing the details of each step involved in a computer vision project
 - Finally, you [deploy](#step-7-model-deployment) your model into the real world and [monitor and maintain](#step-8-monitoring-maintenance-and-documentation) it based on new insights and feedback.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/360872146addd56b1e208aeb62e86142.avif" alt="Computer Vision Project Steps Overview">
+  <img width="100%" src="https://cdn.ul.run/i/92ee1c17e7216a471b75fe17c20fbe59.avif" alt="Computer Vision Project Steps Overview">
 </p>
 
 Now that we know what to expect, let's dive right into the steps and get your project moving forward.

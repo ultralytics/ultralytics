@@ -82,7 +82,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
     Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
 
-3. **Start Local MLflow Server**: Without `MLFLOW_TRACKING_URI`, runs are logged to MLflow's default local store in the directory where you train (`mlflow.db` on MLflow 3.7 and later, `mlruns/` on earlier versions). To view them, run this from the same directory:
+3. **Start Local MLflow Server**: Without `MLFLOW_TRACKING_URI`, runs are logged to MLflow's default local store in the directory where you train (`mlflow.db` on MLflow 3.7 and later unless the directory already holds an `mlruns/` history, `mlruns/` on earlier versions). To view them, run this from the same directory:
 
     ```bash
     mlflow ui

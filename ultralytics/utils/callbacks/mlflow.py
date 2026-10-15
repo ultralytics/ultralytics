@@ -3,7 +3,7 @@
 MLflow Logging for Ultralytics YOLO.
 
 This module enables MLflow logging for Ultralytics YOLO. It logs metrics, parameters, and model artifacts.
-A tracking URI may be specified with MLFLOW_TRACKING_URI (defaults to MLflow's own local store in the working directory).
+A tracking URI may be specified with MLFLOW_TRACKING_URI (defaults to MLflow's local store in the working directory).
 The logging can be customized using environment variables.
 
 Commands:
@@ -42,9 +42,9 @@ def sanitize_dict(x: dict) -> dict:
 def on_pretrain_routine_end(trainer):
     """Log training parameters to MLflow at the end of the pretraining routine.
 
-    This function sets up MLflow logging based on environment variables and trainer arguments. It sets the tracking URI,
-    experiment name, and run name, then starts the MLflow run if not already active. It finally logs the parameters from
-    the trainer.
+    This function sets up MLflow logging based on environment variables and trainer arguments. It sets the experiment
+    name and run name, then starts the MLflow run if not already active. It finally logs the parameters from the
+    trainer.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The training object with arguments and parameters to log.

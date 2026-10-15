@@ -3,7 +3,7 @@
 MLflow Logging for Ultralytics YOLO.
 
 This module enables MLflow logging for Ultralytics YOLO. It logs metrics, parameters, and model artifacts.
-A tracking URI may be specified with MLFLOW_TRACKING_URI (defaults to the 'mlflow' directory under the runs directory).
+A tracking URI may be specified with MLFLOW_TRACKING_URI (defaults to MLflow's local store in the working directory).
 The logging can be customized using environment variables.
 
 Commands:
@@ -13,17 +13,16 @@ Commands:
     2. To set a run name:
         `export MLFLOW_RUN=<your_run_name>` or use the name=<name> argument
 
-    3. To start a local MLflow server:
-        mlflow server --backend-store-uri runs/mlflow
+    3. To view local runs, start the MLflow UI from the training directory:
+        mlflow ui
        It will by default start a local server at http://127.0.0.1:5000.
        To specify a different URI, set the MLFLOW_TRACKING_URI environment variable.
 
 """
 
 import os
-from pathlib import Path
 
-from ultralytics.utils import LOGGER, RUNS_DIR, TESTS_RUNNING, colorstr, env_bool
+from ultralytics.utils import LOGGER, TESTS_RUNNING, colorstr, env_bool
 
 PREFIX = colorstr("MLflow: ")
 
@@ -43,16 +42,15 @@ def sanitize_dict(x: dict) -> dict:
 def on_pretrain_routine_end(trainer):
     """Log training parameters to MLflow at the end of the pretraining routine.
 
-    This function sets up MLflow logging based on environment variables and trainer arguments. It sets the tracking URI,
-    experiment name, and run name, then starts the MLflow run if not already active. It finally logs the parameters from
-    the trainer.
+    This function sets up MLflow logging based on environment variables and trainer arguments. It sets the experiment
+    name and run name, then starts the MLflow run if not already active. It finally logs the parameters from the
+    trainer.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The training object with arguments and parameters to log.
 
     Notes:
-        MLFLOW_TRACKING_URI: The URI for MLflow tracking. If not set, defaults to RUNS_DIR / 'mlflow' ('runs/mlflow' by
-            default).
+        MLFLOW_TRACKING_URI: The URI for MLflow tracking. If not set, MLflow uses its own default local store.
         MLFLOW_EXPERIMENT_NAME: The name of the MLflow experiment. If not set, defaults to trainer.args.project, or
             '/Shared/Ultralytics' if no project is set.
         MLFLOW_RUN: The name of the MLflow run. If not set, defaults to trainer.args.name.
@@ -62,9 +60,6 @@ def on_pretrain_routine_end(trainer):
     if TESTS_RUNNING and "test_mlflow" not in os.environ.get("PYTEST_CURRENT_TEST", ""):
         return  # do not log during unrelated pytest tests
 
-    uri = os.environ.get("MLFLOW_TRACKING_URI") or str(RUNS_DIR / "mlflow")
-    LOGGER.debug(f"{PREFIX} tracking uri: {uri}")
-
     # Set experiment and run names
     experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.project or "/Shared/Ultralytics"
     run_name = os.environ.get("MLFLOW_RUN") or trainer.args.name
@@ -72,16 +67,13 @@ def on_pretrain_routine_end(trainer):
     trainer._mlflow_active = False
     trainer._mlflow_started_run = False
     try:
-        mlflow.set_tracking_uri(uri)
         mlflow.set_experiment(experiment_name)
         mlflow.autolog()
         active_run = mlflow.active_run()
         if active_run is None:
             active_run = mlflow.start_run(run_name=run_name)
             trainer._mlflow_started_run = True
-        LOGGER.info(f"{PREFIX}logging run_id({active_run.info.run_id}) to {uri}")
-        if Path(uri).is_dir():
-            LOGGER.info(f"{PREFIX}view at http://127.0.0.1:5000 with 'mlflow server --backend-store-uri {uri}'")
+        LOGGER.info(f"{PREFIX}logging run_id({active_run.info.run_id}) to {mlflow.get_tracking_uri()}")
         LOGGER.info(f"{PREFIX}disable with 'yolo settings mlflow=False'")
         mlflow.log_params(dict(trainer.args))
         trainer._mlflow_active = True

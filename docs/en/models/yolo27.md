@@ -131,43 +131,78 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
 
-        --8<-- "docs/macros/yolo-det-perf.md"
+        | Model   | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------- | --------------------------- | -------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | YOLO27n | 640                         | —                          | —                                    | —                                                   | —                        | —                       |
+        | YOLO27s | 640                         | —                          | —                                    | —                                                   | —                        | —                       |
+        | YOLO27m | 640                         | —                          | —                                    | —                                                   | —                        | —                       |
+        | YOLO27l | 640                         | —                          | —                                    | —                                                   | —                        | —                       |
 
     === "Segmentation (COCO)"
 
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pretrained classes.
 
-        --8<-- "docs/macros/yolo-seg-perf.md"
+        | Model       | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ----------- | --------------------------- | -------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | YOLO27n-seg | 640                         | —                          | —                           | —                                    | —                                                   | —                        | —                       |
+        | YOLO27s-seg | 640                         | —                          | —                           | —                                    | —                                                   | —                        | —                       |
+        | YOLO27m-seg | 640                         | —                          | —                           | —                                    | —                                                   | —                        | —                       |
+        | YOLO27l-seg | 640                         | —                          | —                           | —                                    | —                                                   | —                        | —                       |
 
     === "Semantic Segmentation (Cityscapes)"
 
         See [Semantic Segmentation Docs](../tasks/semantic.md) for usage examples with these models trained on [Cityscapes](../datasets/semantic/cityscapes.md), which include 19 pretrained classes.
 
-        --8<-- "docs/macros/yolo-semantic-perf.md"
+        | Model       | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ----------- | --------------------------- | ------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | YOLO27n-sem | 1024 &times; 2048           | —                  | —                                    | —                                                   | —                        | —                       |
+        | YOLO27s-sem | 1024 &times; 2048           | —                  | —                                    | —                                                   | —                        | —                       |
+        | YOLO27m-sem | 1024 &times; 2048           | —                  | —                                    | —                                                   | —                        | —                       |
+        | YOLO27l-sem | 1024 &times; 2048           | —                  | —                                    | —                                                   | —                        | —                       |
 
     === "Depth Estimation (NYU Depth V2)"
 
         See [Depth Estimation Docs](../tasks/depth.md) for usage examples with these models pretrained on a broad multi-dataset mix and evaluated on [NYU Depth V2](../datasets/depth/nyu-depth-v2.md).
 
-        --8<-- "docs/macros/yolo-depth-perf.md"
+        | Model         | size<br><sup>(pixels)</sup> | delta1<sup>NYU\*</sup> | delta1<sup>KITTI-580\*</sup> | delta1<sup>bench mean</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------------- | --------------------------- | ---------------------- | ---------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | YOLO27n-depth | 768                         | —                      | —                            | —                           | —                                    | —                                                   | —                        | —                       |
+        | YOLO27s-depth | 768                         | —                      | —                            | —                           | —                                    | —                                                   | —                        | —                       |
+        | YOLO27m-depth | 768                         | —                      | —                            | —                           | —                                    | —                                                   | —                        | —                       |
+        | YOLO27l-depth | 768                         | —                      | —                            | —                           | —                                    | —                                                   | —                        | —                       |
 
     === "Classification (ImageNet)"
 
         See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pretrained classes.
 
-        --8<-- "docs/macros/yolo-cls-perf.md"
+        | Model       | size<br><sup>(pixels)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B) at 224</sup> |
+        | ----------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ------------------------------ |
+        | YOLO27n-cls | 224                         | —                                    | —                                                   | —                        | —                              |
+        | YOLO27s-cls | 224                         | —                                    | —                                                   | —                        | —                              |
+        | YOLO27m-cls | 224                         | —                                    | —                                                   | —                        | —                              |
+        | YOLO27l-cls | 224                         | —                                    | —                                                   | —                        | —                              |
 
     === "Pose (COCO)"
 
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pretrained class, 'person'.
 
-        --8<-- "docs/macros/yolo-pose-perf.md"
+        | Model        | size<br><sup>(pixels)</sup> | mAP<sup>pose<br>50-95</sup> | mAP<sup>pose<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------------ | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | YOLO27n-pose | 640                         | —                           | —                        | —                                    | —                                                   | —                        | —                       |
+        | YOLO27s-pose | 640                         | —                           | —                        | —                                    | —                                                   | —                        | —                       |
+        | YOLO27m-pose | 640                         | —                           | —                        | —                                    | —                                                   | —                        | —                       |
+        | YOLO27l-pose | 640                         | —                           | —                        | —                                    | —                                                   | —                        | —                       |
 
     === "OBB (DOTAv1)"
 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pretrained classes.
 
-        --8<-- "docs/macros/yolo-obb-perf.md"
+        | Model       | size<br><sup>(pixels)</sup> | mAP<sup>test<br>50-95</sup> | mAP<sup>test<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ----------- | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | YOLO27n-obb | 640                         | —                           | —                        | —                                    | —                                                   | —                        | —                       |
+        | YOLO27s-obb | 640                         | —                           | —                        | —                                    | —                                                   | —                        | —                       |
+        | YOLO27m-obb | 640                         | —                           | —                        | —                                    | —                                                   | —                        | —                       |
+        | YOLO27l-obb | 640                         | —                           | —                        | —                                    | —                                                   | —                        | —                       |
 
 _Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. Speed measurements select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
 

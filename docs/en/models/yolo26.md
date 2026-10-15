@@ -115,85 +115,43 @@ This unified framework covers real-time detection, instance segmentation, semant
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
 
-        | Model                                                                  | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | mAP<sup>val<br>50-95(e2e)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ---------------------------------------------------------------------- | --------------------------- | -------------------------- | ------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) | 640                         | 40.9                       | 40.1                            | 38.9 ± 0.7                           | 1.7 ± 0.0                                 | 2.4                      | 5.5                     |
-        | [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s) | 640                         | 48.6                       | 47.8                            | 87.2 ± 0.9                           | 2.5 ± 0.0                                 | 9.5                      | 20.9                    |
-        | [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m) | 640                         | 53.1                       | 52.5                            | 220.0 ± 1.4                          | 4.7 ± 0.1                                 | 20.4                     | 68.4                    |
-        | [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l) | 640                         | 55.0                       | 54.4                            | 286.2 ± 2.0                          | 6.2 ± 0.2                                 | 24.8                     | 86.8                    |
-        | [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x) | 640                         | 57.5                       | 56.9                            | 525.8 ± 4.0                          | 11.8 ± 0.2                                | 55.7                     | 194.4                   |
+        --8<-- "docs/macros/yolo-det-perf.md"
 
     === "Segmentation (COCO)"
 
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95(e2e)</sup> | mAP<sup>mask<br>50-95(e2e)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | ------------------------------- | -------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) | 640                         | 39.6                            | 33.9                             | 53.3 ± 0.5                           | 2.1 ± 0.0                                 | 2.7                      | 9.3                     |
-        | [YOLO26s-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-seg) | 640                         | 47.3                            | 40.0                             | 118.4 ± 0.9                          | 3.3 ± 0.0                                 | 10.4                     | 34.5                    |
-        | [YOLO26m-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-seg) | 640                         | 52.5                            | 44.1                             | 328.2 ± 2.4                          | 6.7 ± 0.1                                 | 23.6                     | 121.7                   |
-        | [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-seg) | 640                         | 54.4                            | 45.5                             | 387.0 ± 3.7                          | 8.0 ± 0.1                                 | 28.0                     | 140.1                   |
-        | [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg) | 640                         | 56.5                            | 47.0                             | 787.0 ± 6.8                          | 16.4 ± 0.1                                | 62.8                     | 314.0                   |
+        --8<-- "docs/macros/yolo-seg-perf.md"
 
     === "Semantic Segmentation (Cityscapes)"
 
         See [Semantic Segmentation Docs](../tasks/semantic.md) for usage examples with these models trained on [Cityscapes](../datasets/semantic/cityscapes.md), which include 19 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>RTX3090 PyTorch<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | ------------------ | ------------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLO26n-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-sem) | 1024 &times; 2048           | 78.3               | 4.4 ± 0.0                                   | 1.6                      | 23.8                    |
-        | [YOLO26s-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-sem) | 1024 &times; 2048           | 80.8               | 8.4 ± 0.0                                   | 6.5                      | 91.0                    |
-        | [YOLO26m-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-sem) | 1024 &times; 2048           | 82.0               | 19.9 ± 0.1                                  | 14.3                     | 305.5                   |
-        | [YOLO26l-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-sem) | 1024 &times; 2048           | 82.9               | 26.5 ± 0.1                                  | 17.8                     | 388.2                   |
-        | [YOLO26x-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-sem) | 1024 &times; 2048           | 83.6               | 48.9 ± 0.2                                  | 40.1                     | 866.9                   |
+        --8<-- "docs/macros/yolo-semantic-perf.md"
 
     === "Depth Estimation (NYU Depth V2)"
 
         See [Depth Estimation Docs](../tasks/depth.md) for usage examples with these models pretrained on a broad multi-dataset mix and evaluated on [NYU Depth V2](../datasets/depth/nyu-depth-v2.md).
 
-        | Model                                                                              | size<br><sup>(pixels)</sup> | delta1<sup>NYU</sup> | abs_rel<sup>NYU</sup> | rmse<sup>NYU</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ---------------------------------------------------------------------------------- | --------------------------- | -------------------- | --------------------- | ------------------ | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) | 768                         | 0.882                | 0.109                 | 0.414              | 272.0 ± 27.2                         | 2.7 ± 0.1                                 | 6.3                      | 46.9                    |
-        | [YOLO26s-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-depth) | 768                         | 0.896                | 0.104                 | 0.399              | 393.7 ± 13.1                         | 3.8 ± 0.0                                 | 13.2                     | 68.0                    |
-        | [YOLO26m-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-depth) | 768                         | 0.921                | 0.089                 | 0.364              | 621.5 ± 49.7                         | 6.0 ± 0.1                                 | 23.3                     | 130.4                   |
-        | [YOLO26l-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-depth) | 768                         | 0.930                | 0.083                 | 0.351              | 821.9 ± 50.7                         | 7.7 ± 0.1                                 | 27.7                     | 157.0                   |
-        | [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) | 768                         | 0.933                | 0.080                 | 0.344              | 1240.9 ± 73.3                        | 13.6 ± 0.2                                | 57.0                     | 301.7                   |
+        --8<-- "docs/macros/yolo-depth-perf.md"
 
     === "Classification (ImageNet)"
 
         See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | acc<br><sup>top1</sup> | acc<br><sup>top5</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B) at 224</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | ---------------------- | ---------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ------------------------------ |
-        | [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) | 224                         | 71.4                   | 90.1                   | 5.0 ± 0.3                            | 1.1 ± 0.0                                 | 2.8                      | 0.4                            |
-        | [YOLO26s-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-cls) | 224                         | 76.0                   | 92.9                   | 7.9 ± 0.2                            | 1.3 ± 0.0                                 | 6.7                      | 1.5                            |
-        | [YOLO26m-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-cls) | 224                         | 78.1                   | 94.2                   | 17.2 ± 0.4                           | 2.0 ± 0.0                                 | 11.6                     | 4.8                            |
-        | [YOLO26l-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-cls) | 224                         | 79.0                   | 94.6                   | 23.2 ± 0.3                           | 2.8 ± 0.0                                 | 14.1                     | 6.0                            |
-        | [YOLO26x-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-cls) | 224                         | 79.9                   | 95.0                   | 41.4 ± 0.9                           | 3.8 ± 0.0                                 | 29.6                     | 13.5                           |
+        --8<-- "docs/macros/yolo-cls-perf.md"
 
     === "Pose (COCO)"
 
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pretrained class, 'person'.
 
-        | Model                                                                            | size<br><sup>(pixels)</sup> | mAP<sup>pose<br>50-95(e2e)</sup> | mAP<sup>pose<br>50(e2e)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | -------------------------------------------------------------------------------- | --------------------------- | -------------------------------- | ----------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) | 640                         | 57.2                             | 83.3                          | 40.3 ± 0.5                           | 1.8 ± 0.0                                 | 2.9                      | 7.6                     |
-        | [YOLO26s-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-pose) | 640                         | 63.0                             | 86.6                          | 85.3 ± 0.9                           | 2.7 ± 0.0                                 | 10.4                     | 24.1                    |
-        | [YOLO26m-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-pose) | 640                         | 68.8                             | 89.6                          | 218.0 ± 1.5                          | 5.0 ± 0.1                                 | 21.5                     | 73.3                    |
-        | [YOLO26l-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-pose) | 640                         | 70.4                             | 90.5                          | 275.4 ± 2.4                          | 6.5 ± 0.1                                 | 25.9                     | 91.7                    |
-        | [YOLO26x-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-pose) | 640                         | 71.6                             | 91.6                          | 565.4 ± 3.0                          | 12.2 ± 0.2                                | 57.6                     | 202.3                   |
+        --8<-- "docs/macros/yolo-pose-perf.md"
 
     === "OBB (DOTAv1)"
 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>test<br>50-95(e2e)</sup> | mAP<sup>test<br>50(e2e)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | -------------------------------- | ----------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLO26n-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-obb) | 1024                        | 52.4                             | 78.9                          | 97.7 ± 0.9                           | 2.8 ± 0.0                                 | 2.4                      | 14.8                    |
-        | [YOLO26s-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-obb) | 1024                        | 54.8                             | 80.9                          | 218.0 ± 1.4                          | 4.9 ± 0.1                                 | 9.8                      | 56.7                    |
-        | [YOLO26m-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-obb) | 1024                        | 55.3                             | 81.0                          | 579.2 ± 3.8                          | 10.2 ± 0.3                                | 21.2                     | 184.9                   |
-        | [YOLO26l-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-obb) | 1024                        | 56.2                             | 81.6                          | 735.6 ± 3.1                          | 13.0 ± 0.2                                | 25.6                     | 232.4                   |
-        | [YOLO26x-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-obb) | 1024                        | 56.7                             | 81.7                          | 1485.7 ± 11.5                        | 30.5 ± 0.9                                | 57.6                     | 520.1                   |
+        --8<-- "docs/macros/yolo-obb-perf.md"
 
 _Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. Speed measurements select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
 

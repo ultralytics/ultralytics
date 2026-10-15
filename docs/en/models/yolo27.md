@@ -1,7 +1,7 @@
 ---
 title: Ultralytics YOLO27 Real-Time Object Detection
 comments: true
-description: Ultralytics YOLO27 is a real-time vision model family - four sizes, seven tasks, NMS-free detection. YOLO27l is first past 60 mAP on COCO.
+description: Preview Ultralytics YOLO27 - four sizes, seven tasks, and NMS-free detection. Models are undergoing final R&D and are not yet available. No launch date is set.
 keywords: YOLO27, Ultralytics YOLO, object detection, NMS-free, end-to-end detection, small object detection, computer vision, AI, real-time inference
 ---
 
@@ -15,10 +15,10 @@ keywords: YOLO27, Ultralytics YOLO, object detection, NMS-free, end-to-end detec
 
 [Ultralytics](https://www.ultralytics.com) YOLO27 is a family of real-time vision models whose detection models
 use two complementary designs: a streamlined CNN architecture for the compact N and S models, and a query-based,
-NMS-free architecture for the larger M and L models. Both designs are end-to-end and deploy through the same
-interface.
+NMS-free architecture for the larger M and L models. Both designs deploy through the same interface.
+N and S detection models default to the one-to-many head with NMS; use `nms=False` to select their NMS-free head.
 
-YOLO27 is the latest model family in the Ultralytics YOLO series, succeeding [YOLO26](yolo26.md). It comes in four
+YOLO27 is the upcoming model family in the Ultralytics YOLO series, succeeding [YOLO26](yolo26.md). It comes in four
 sizes — N, S, M and L — and supports [object detection](../tasks/detect.md),
 [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md),
 [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md),

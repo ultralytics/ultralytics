@@ -82,13 +82,13 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
     Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
 
-3. **Start Local MLflow Server**: To start tracking, use:
+3. **Start Local MLflow Server**: Without `MLFLOW_TRACKING_URI`, runs are logged to MLflow's default local store in the directory where you train (`mlflow.db` on MLflow 3.7 and later, `mlruns/` on earlier versions). To view them, run this from the same directory:
 
     ```bash
-    mlflow server --backend-store-uri runs/mlflow
+    mlflow ui
     ```
 
-    This will start a local server at `http://127.0.0.1:5000` by default and save all mlflow logs to the 'runs/mlflow' directory. To point your training runs at a different tracking server, export `MLFLOW_TRACKING_URI` before training:
+    This will start a local server at `http://127.0.0.1:5000` by default. To point your training runs at a different tracking server, export `MLFLOW_TRACKING_URI` before training:
 
     ```bash
     export MLFLOW_TRACKING_URI=http://127.0.0.1:5000
@@ -162,10 +162,10 @@ Next, enable MLflow logging in Ultralytics settings. This can be controlled usin
         yolo settings reset
         ```
 
-Finally, start a local MLflow server for tracking:
+Finally, after training, view your runs by starting a local MLflow server from the directory where you trained:
 
 ```bash
-mlflow server --backend-store-uri runs/mlflow
+mlflow ui
 ```
 
 ### What metrics and parameters can I log using MLflow with Ultralytics YOLO?
@@ -190,10 +190,10 @@ For further customization and resetting settings, refer to the [settings guide](
 
 ### How can I start and stop an MLflow server for Ultralytics YOLO tracking?
 
-To start an MLflow server for tracking your experiments in Ultralytics YOLO, use the following command:
+To view your Ultralytics YOLO experiments in a local MLflow server, run the following command from the directory where you trained:
 
 ```bash
-mlflow server --backend-store-uri runs/mlflow
+mlflow ui
 ```
 
 This command starts a local server at `http://127.0.0.1:5000` by default. Press `Ctrl+C` in that terminal to stop it.

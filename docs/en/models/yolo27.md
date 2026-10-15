@@ -30,7 +30,7 @@ RTX PRO 6000** — and up to **61.4 mAP** with YOLO27l at a larger 800-pixel inp
 model to surpass 60 mAP on COCO**, while the compact YOLO27n/s improve on YOLO26n/s accuracy at essentially the same
 speed.
 
-!!! example "Quickstart"
+!!! example "Quickstart (after release)"
 
     === "Python"
 
@@ -76,18 +76,20 @@ speed.
   in an UltraViT backbone that uses self-attention in its deepest stage to capture global context.
 
 - **One simple interface**
-  Both architectures are used through the same `YOLO` class. The right training, validation, prediction, and export
+  Both architectures are used through the same [`YOLO` Python interface](../usage/python.md). The right training, validation, prediction, and export
   pipeline is selected automatically from the model, so code written for one YOLO27 scale works unchanged for the
   others.
 
 ## Which YOLO27 Should I Use?
 
+The following guidance is for choosing a model once YOLO27 is released. For projects today, use [YOLO26](yolo26.md).
+
 - **YOLO27n / YOLO27s** — edge devices, drones, and real-time video: the fastest models in the family, with improved
   small-object detection from the dual-scale design. See [NVIDIA Jetson](../guides/nvidia-jetson.md) and
   [Raspberry Pi](../guides/raspberry-pi.md) for device-specific deployment.
-- **YOLO27m** — the accuracy-speed sweet spot on GPUs: improves on YOLO26m by 3.6 mAP at the same latency,
-  making it the default choice for production GPU deployment.
-- **YOLO27l** — accuracy-critical applications: the first Ultralytics model above 60 mAP on COCO, reaching 61.2 mAP
+- **YOLO27m** — the accuracy-speed sweet spot on GPUs: improves on YOLO26m accuracy at comparable latency,
+  making it the default choice for production [GPU deployment](../guides/model-deployment-options.md).
+- **YOLO27l** — accuracy-critical applications: the first Ultralytics model above 60 mAP on COCO, reaching 61.4 mAP
   at a larger input size while staying real-time on GPU.
 
 To compare against other families, see [all Ultralytics models](index.md). To measure the accuracy-speed trade-off
@@ -97,8 +99,7 @@ on your own hardware rather than ours, see [Benchmark mode](../modes/benchmark.m
 
 ## Supported Tasks and Modes
 
-YOLO27 supports the following tasks across its four model scales, all with training, validation, inference, and
-export support:
+The following table previews planned task and mode support across the four YOLO27 model scales. Checkmarks indicate intended support at release, not current public availability; all listed model files are unreleased.
 
 | Model        | Filenames                                                                   | Task                                          | Training | Validation | Inference | Export |
 | ------------ | --------------------------------------------------------------------------- | --------------------------------------------- | -------- | ---------- | --------- | ------ |
@@ -122,18 +123,21 @@ predict for multi-object tracking across video frames.
 
 ## Performance Metrics
 
-Detection accuracy is reported on the COCO validation set. For accuracy beyond COCO, see
+Detection accuracy is reported on the COCO validation set. See [YOLO Performance Metrics](../guides/yolo-performance-metrics.md) for explanations of mAP, precision, and recall. For accuracy beyond COCO, see
 [Ultralytics Benchmark](../datasets/detect/ultralytics-benchmark.md), which measures macro mAP50-95 across 37
-real-world detection datasets spanning medical imaging, remote sensing, industrial, retail, and more — YOLO27 leads
-every size class, with YOLO27n at 49.3 vs 44.1 for YOLO26n. Inference speed is measured on an NVIDIA RTX PRO 6000
-([TensorRT](../integrations/tensorrt.md) 11, FP16) for GPU and an AMD EPYC 9655 (ONNX Runtime, FP32) for CPU. Accuracy numbers can be reproduced
+real-world detection datasets spanning medical imaging, remote sensing, industrial, retail, and more. Inference speed is measured on an NVIDIA RTX PRO 6000
+([TensorRT](../integrations/tensorrt.md) 11, FP16) for GPU and an AMD EPYC 9655 ([ONNX Runtime](../integrations/onnx.md), FP32) for CPU. After release, accuracy numbers can be reproduced
 with `yolo val model=yolo27n.pt data=coco.yaml`.
+
+!!! note "Preliminary results"
+
+    These research results may change during final R&D. Public weights and reproduction instructions will accompany the release.
 
 !!! tip "Performance"
 
     === "Detection (COCO)"
 
-        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
+        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes. The table uses a 640-pixel input; the overview also reports YOLO27l at 800 pixels.
 
         | Model   | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ------- | --------------------------- | -------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
@@ -208,7 +212,7 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
         | YOLO27m-obb | 1024                        | 55.9                        | 82.6                     | 188.0 ± 0.7                          | 1.68 ± 0.00                                         | 22.8                     | 221.7                   |
         | YOLO27l-obb | 1024                        | 57.2                        | 82.7                     | 455.8 ± 1.1                          | 3.84 ± 0.00                                         | 68.7                     | 622.6                   |
 
-_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. Speed measurements select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
+_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. For detection, speed measurements select the NMS-free head with `nms=False`; N/S accuracy depends on the selected head. Pretrained checkpoints retain the full training architecture and may show higher counts._
 
 ---
 
@@ -216,13 +220,13 @@ _Params and FLOPs values are for the fused model after Conv/BatchNorm folding an
 
 This section provides simple YOLO27 training and inference examples. For full documentation on these and other
 [modes](../modes/index.md), see the [Predict](../modes/predict.md), [Train](../modes/train.md),
-[Val](../modes/val.md), and [Export](../modes/export.md) docs pages.
+[Val](../modes/val.md), and [Export](../modes/export.md) docs pages. For custom datasets, see [Tips for Best Training Results](../guides/model-training-tips.md) and the [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md).
 
 Note that the example below is for YOLO27 [Detect](../tasks/detect.md) models for [object
 detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks, see the
 [Segment](../tasks/segment.md) and [Classify](../tasks/classify.md) docs.
 
-!!! example
+!!! example "Training and inference (after release)"
 
     === "Python"
 
@@ -244,7 +248,7 @@ detection](https://www.ultralytics.com/glossary/object-detection). For additiona
 
     === "CLI"
 
-        CLI commands are available to directly run the models:
+        After release, use [CLI commands](../usage/cli.md) to directly run the models:
 
         ```bash
         # Load a COCO-pretrained YOLO27n model and run inference on the 'bus.jpg' image
@@ -253,11 +257,6 @@ detection](https://www.ultralytics.com/glossary/object-detection). For additiona
         # Load a COCO-pretrained YOLO27n model and train it on the COCO8 example dataset for 100 epochs
         yolo train model=yolo27n.pt data=coco8.yaml epochs=100 imgsz=640
         ```
-
-YOLO27 code, models, and documentation are available in the [Ultralytics GitHub
-repository](https://github.com/ultralytics/ultralytics) and [Ultralytics Docs](../index.md) under
-[AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and
-[Enterprise](https://www.ultralytics.com/license) licenses.
 
 ---
 
@@ -274,15 +273,13 @@ repository](https://github.com/ultralytics/ultralytics) and [Ultralytics Docs](.
 
 ### Should I upgrade from YOLO26?
 
-Yes, for most use cases. YOLO27 improves end-to-end accuracy at every scale: +2.5/+2.3 mAP for the compact n/s
-models at essentially the same speed, +3.6 mAP for m, and +3.6 mAP for l over the largest YOLO26 scale. YOLO27l is
-the first Ultralytics model to surpass 60 mAP on COCO.
+Not yet — YOLO27 is unreleased. Continue using [YOLO26](yolo26.md) for current projects. Preliminary results show improved accuracy across model sizes, with YOLO27l surpassing 60 mAP on COCO. Evaluate the final released models for your workload before migrating.
 
 ### Is YOLO27 a drop-in replacement for YOLO26?
 
-Yes. All YOLO27 models use the same `YOLO` class and the same train/val/predict/export API as YOLO26 — the correct
+After release, YOLO27 is intended to use the same `YOLO` class and the same train/val/predict/export API as YOLO26 — the correct
 pipeline (CNN or query-based) is selected automatically from the model. Swapping `yolo26n.pt` for `yolo27n.pt` is
-the only change required.
+the intended model-selection change once YOLO27 support and weights are available.
 
 ### Why do YOLO27 N and S predict on only two scales?
 
@@ -293,20 +290,16 @@ of detection-head computation, and the training improvements above keep the accu
 ### What accuracy and inference speed does YOLO27l achieve on COCO?
 
 YOLO27l is the first Ultralytics model to surpass 60 mAP on COCO, reaching 60.5 mAP at a 640-pixel input (1.9 ms on
-an NVIDIA RTX PRO 6000) and 61.2 mAP at an 800-pixel input (2.4 ms). It combines the UltraViT backbone, multi-scale
+an NVIDIA RTX PRO 6000) and 61.4 mAP at an 800-pixel input (2.4 ms). It combines the UltraViT backbone, multi-scale
 feature fusion, and a query-based detector that produces final detections directly, without NMS.
 
-### Is YOLO27 free to use?
+### When will YOLO27 be available?
 
-YOLO27 is open source under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), which is free
-to use provided you meet its source-provision obligations, including for software offered over a network. For
-commercial use without those obligations, Ultralytics offers an
-[Enterprise License](https://www.ultralytics.com/license).
+YOLO27 is undergoing final R&D, with a launch anticipated later this year. No launch date has been set. Model weights and implementation code are not publicly available yet.
 
 ### How do I get started with YOLO27?
 
-YOLO27 models are available through the `ultralytics` package. See [Quickstart](../quickstart.md) to install or
-update it, then load a model:
+Once YOLO27 is released, see [Quickstart](../quickstart.md) to install or update the `ultralytics` package, then load a model as shown below. This example is for use after release:
 
 ```python
 from ultralytics import YOLO
@@ -318,4 +311,4 @@ model = YOLO("yolo27n.pt")
 results = model("image.jpg")
 ```
 
-See the [Usage Examples](#usage-examples) section for training, validation, and export instructions.
+See [Usage Examples](#usage-examples) for training and inference examples, or the [Val](../modes/val.md) and [Export](../modes/export.md) guides for those modes.

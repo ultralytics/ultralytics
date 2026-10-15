@@ -86,7 +86,7 @@ class SAMModel(nn.Module):
             self.image_encoder.set_imgsz(imgsz)
         self.prompt_encoder.input_image_size = imgsz
         self.prompt_encoder.image_embedding_size = [x // 16 for x in imgsz]  # 16 is fixed as patch size of ViT model
-        self.prompt_encoder.mask_input_size = [x // 4 for x in imgsz]
+        self.prompt_encoder.mask_input_size = [4 * x for x in self.prompt_encoder.image_embedding_size]
         self.image_encoder.img_size = imgsz[0]
 
 

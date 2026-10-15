@@ -982,9 +982,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     else:
         raise ValueError(f"Unsupported operating system: {platform.system()}")
 
-    if p.exists():  # already created → trust it
-        return p
-    if is_dir_writeable(p.parent):  # create if possible
+    with contextlib.suppress(OSError):  # create if possible
         p.mkdir(parents=True, exist_ok=True)
         return p
 

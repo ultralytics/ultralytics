@@ -338,7 +338,7 @@ class YOLODataset(BaseDataset):
             if self.format_class is SemanticFormat:  # masks rasterize from self.labels; only these read polygons
                 self.use_segments = bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
         else:
-            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
+            transforms = Compose([LetterBox(new_shape=self.imgsz, scaleup=False)])
         transforms.append(
             self.format_class(
                 bbox_format="xywh",
@@ -557,7 +557,7 @@ class DepthDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if not self.augment:
             # stretch the image instead of padding
-            transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
+            transforms[-2] = LetterBox(new_shape=self.imgsz, scale_fill=True)
         return transforms
 
 

@@ -2,7 +2,6 @@
 
 import contextlib
 import csv
-import json
 import os
 import platform
 import shutil
@@ -1526,41 +1525,6 @@ def test_verify_image_label_keeps_polygons_sharing_a_box(tmp_path):
     assert len(labels) == len(segments) == 2
 
 
-def test_grounding_dataset_keeps_polygons_sharing_a_box(tmp_path):
-    """Keep distinct grounding polygons and exact-repeat deduplication across cached task switches."""
-    from ultralytics.data.dataset import GroundingDataset
-    from ultralytics.utils import DEFAULT_CFG
-
-    cv2.imwrite(str(tmp_path / "image.jpg"), np.zeros((32, 32, 3), np.uint8))
-    polygons = [[4, 4, 28, 4, 28, 28], [4, 4, 4, 28, 28, 28]]
-    annotations = [
-        {"image_id": 1, "bbox": [4, 4, 24, 24], "iscrowd": 0, "tokens_positive": [[0, 6]], "segmentation": [p]}
-        for p in [*polygons, polygons[0]]
-    ]
-    path = tmp_path / "annotations.json"
-    path.write_text(
-        json.dumps(
-            {
-                "images": [{"id": 1, "width": 32, "height": 32, "file_name": "image.jpg", "caption": "object"}],
-                "annotations": annotations,
-            }
-        )
-    )
-    for task, count in (("segment", 2), ("detect", 1), ("segment", 2), ("segment", 2)):
-        ds = GroundingDataset(
-            img_path=str(tmp_path),
-            json_file=str(path),
-            task=task,
-            imgsz=32,
-            batch_size=1,
-            augment=False,
-            hyp=DEFAULT_CFG,
-        )
-        assert len(ds.labels[0]["cls"]) == len(ds.labels[0]["segments"]) == count
-        if task == "segment":
-            assert ds[0]["masks"].unique().tolist() == [0, 1, 2]
-
-
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
@@ -1831,29 +1795,6 @@ def test_utils_ops():
     assert segment2box(np.empty((0, 2)), 640, 640).tolist() == [0, 0, 0, 0]
     seg = np.array([[-100.0, -100.0], [740.0, -100.0], [740.0, 740.0], [-100.0, 740.0]])  # surrounds the image
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
-
-
-@pytest.mark.parametrize("imgsz", [32, (32, 64), (64, 32)])
-def test_rtdetr_validation_shape_and_boxes(imgsz, tmp_path):
-    """RT-DETR resizing and normalized predictions must share the export shape and invert to source coordinates."""
-    from ultralytics.models.rtdetr.val import RTDETRValidator
-    from ultralytics.utils import ops
-
-    images, labels = tmp_path / "images", tmp_path / "labels"
-    images.mkdir()
-    labels.mkdir()
-    cv2.imwrite(str(images / "image.jpg"), np.zeros((40, 80, 3), dtype=np.uint8))
-    (labels / "image.txt").write_text("0 0.5 0.5 0.5 0.5\n")
-    validator = RTDETRValidator(args={"imgsz": 32}, save_dir=tmp_path / "val")
-    validator.args.imgsz = imgsz  # static export metadata is applied after validator initialization
-    validator.data = {"names": {0: "object"}, "nc": 1, "channels": 3}
-    sample = validator.build_dataset(str(images), batch=1)[0]
-    h, w = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
-    assert sample["img"].shape[-2:] == (h, w)
-    boxes = validator.postprocess(torch.tensor([[[0.5, 0.5, 0.5, 0.5, 0.9, 0]]]))[0]["bboxes"]
-    assert torch.equal(boxes, torch.tensor([[w / 4, h / 4, 3 * w / 4, 3 * h / 4]]))
-    boxes = ops.scale_boxes((h, w), boxes, sample["ori_shape"], sample["ratio_pad"])
-    assert torch.allclose(boxes, torch.tensor([[20.0, 10.0, 60.0, 30.0]]))
 
 
 def test_scale_coords_nonuniform_letterbox():

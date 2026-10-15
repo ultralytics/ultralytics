@@ -6,6 +6,7 @@ import os
 import shutil
 import sys
 import tempfile
+import traceback
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -15,6 +16,35 @@ from .torch_utils import TORCH_1_9
 
 if TYPE_CHECKING:
     from ultralytics.engine.trainer import BaseTrainer
+
+
+# Env var naming the file a failed run's error is reported to; set by the caller that launches training.
+FAILURE_FILE_ENV = "FAILURE_FILE_PATH"
+FAILURE_REPORT_MAX_BYTES = 1024
+_FAILURE_TRACE_FRAMES = 3
+
+
+def report_failure(exc: BaseException) -> None:
+    """Write a short report of `exc` to the file named by `FAILURE_FILE_PATH`, unless a report already exists.
+
+    Args:
+        exc (BaseException): The exception that failed training.
+    """
+    path = os.environ.get(FAILURE_FILE_ENV)
+    if not path:
+        return
+    headline = "".join(traceback.format_exception_only(type(exc), exc)).strip()
+    frames = traceback.extract_tb(exc.__traceback__)[-_FAILURE_TRACE_FRAMES:]
+    trace = "\n".join(f"  at {f.filename}:{f.lineno} in {f.name}" for f in frames)
+    budget = max(FAILURE_REPORT_MAX_BYTES - len(trace.encode()) - 1, 0)
+    report = headline.encode()[:budget].decode(errors="ignore") + (f"\n{trace}" if trace else "")
+    try:
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+    except OSError:
+        return
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(report)
 
 
 def find_free_network_port() -> int:
@@ -97,15 +127,20 @@ if __name__ == "__main__":
     sys.path = {sys.path!r}
 
     from ultralytics.utils import DEFAULT_CFG_DICT
+    from ultralytics.utils.dist import report_failure
     from ultralytics.utils.patches import torch_load
 
-    state = torch_load({str(path)!r}, map_location="cpu")
+    try:
+        state = torch_load({str(path)!r}, map_location="cpu")
 
-    cfg = DEFAULT_CFG_DICT.copy()
-    cfg.update(save_dir='')   # handle the extra key 'save_dir'
-    trainer = state["trainer"](cfg=cfg, overrides=state["args"], _callbacks=state["callbacks"])
-    trainer.model = state["model"]
-    trainer.train()
+        cfg = DEFAULT_CFG_DICT.copy()
+        cfg.update(save_dir='')   # handle the extra key 'save_dir'
+        trainer = state["trainer"](cfg=cfg, overrides=state["args"], _callbacks=state["callbacks"])
+        trainer.model = state["model"]
+        trainer.train()
+    except Exception as exc:
+        report_failure(exc)
+        raise
 """
         )
     return file.name

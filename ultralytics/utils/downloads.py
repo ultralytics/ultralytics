@@ -143,7 +143,7 @@ def zip_directory(
 
     # Zip with progress bar
     files = [f for f in directory.rglob("*") if f.is_file() and all(x not in f.name for x in exclude)]  # files to zip
-    zip_file = directory.with_suffix(".zip")
+    zip_file = directory.with_name(f"{directory.name}.zip")
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, "w", compression) as f:
         for file in TQDM(files, desc=f"Zipping {directory} to {zip_file}...", unit="files", disable=not progress):

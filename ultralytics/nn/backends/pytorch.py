@@ -117,8 +117,8 @@ class TorchScriptBackend(BaseBackend):
         # forwards, and the optimization it disables is the broken one on these versions.
         if TORCH_1_10 and not TORCH_2_1:
             torch._C._jit_set_texpr_fuser_enabled(False)
-        self.model = torch.jit.load(weight, map_location=self.device)
-        self.model.half() if self.fp16 else self.model.float()
+        self.model = torch.jit.load(weight, map_location="cpu" if self.device.type == "mps" else self.device)
+        self.model.to(device=self.device, dtype=torch.float16 if self.fp16 else torch.float32)
         self.apply_metadata(self.read_metadata(weight))
 
     def forward(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor]:

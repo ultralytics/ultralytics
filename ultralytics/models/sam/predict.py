@@ -265,10 +265,6 @@ class Predictor(BasePredictor):
             pred_scores (torch.Tensor): Quality scores for each mask, with length C.
         """
         points = (points, labels) if points is not None else None
-        if masks is not None:  # (N, 1, H, W) full-res --> (N, 1, H/4, W/4) low-res, as the prompt encoder expects
-            masks = F.interpolate(
-                masks.float(), size=(masks.shape[-2] // 4, masks.shape[-1] // 4), mode="bilinear", align_corners=False
-            ).to(self.torch_dtype)
         # Embed prompts
         sparse_embeddings, dense_embeddings = self.model.prompt_encoder(points=points, boxes=bboxes, masks=masks)
 
@@ -850,12 +846,6 @@ class SAM2Predictor(Predictor):
             pred_scores (torch.Tensor): Quality scores for each mask, with length C.
         """
         points = (points, labels) if points is not None else None
-        if masks is not None:  # downsize full-res mask prompts to the low-res mask size the encoder expects
-            enc = self.model.sam_prompt_encoder
-            if tuple(masks.shape[-2:]) != tuple(enc.mask_input_size):
-                masks = F.interpolate(masks.float(), size=enc.mask_input_size, mode="bilinear", align_corners=False).to(
-                    self.torch_dtype
-                )
         sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
             points=points,
             boxes=None,

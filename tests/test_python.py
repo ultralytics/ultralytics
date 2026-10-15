@@ -1833,6 +1833,29 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
+@pytest.mark.parametrize("imgsz", [32, (32, 64), (64, 32)])
+def test_rtdetr_validation_shape_and_boxes(imgsz, tmp_path):
+    """RT-DETR resizing and normalized predictions must share the export shape and invert to source coordinates."""
+    from ultralytics.models.rtdetr.val import RTDETRValidator
+    from ultralytics.utils import ops
+
+    images, labels = tmp_path / "images", tmp_path / "labels"
+    images.mkdir()
+    labels.mkdir()
+    cv2.imwrite(str(images / "image.jpg"), np.zeros((40, 80, 3), dtype=np.uint8))
+    (labels / "image.txt").write_text("0 0.5 0.5 0.5 0.5\n")
+    validator = RTDETRValidator(args={"imgsz": 32}, save_dir=tmp_path / "val")
+    validator.args.imgsz = imgsz  # static export metadata is applied after validator initialization
+    validator.data = {"names": {0: "object"}, "nc": 1, "channels": 3}
+    sample = validator.build_dataset(str(images), batch=1)[0]
+    h, w = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
+    assert sample["img"].shape[-2:] == (h, w)
+    boxes = validator.postprocess(torch.tensor([[[0.5, 0.5, 0.5, 0.5, 0.9, 0]]]))[0]["bboxes"]
+    assert torch.equal(boxes, torch.tensor([[w / 4, h / 4, 3 * w / 4, 3 * h / 4]]))
+    boxes = ops.scale_boxes((h, w), boxes, sample["ori_shape"], sample["ratio_pad"])
+    assert torch.allclose(boxes, torch.tensor([[20.0, 10.0, 60.0, 30.0]]))
+
+
 def test_scale_coords_nonuniform_letterbox():
     """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
     from ultralytics.data.augment import LetterBox

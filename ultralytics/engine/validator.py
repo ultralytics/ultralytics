@@ -203,12 +203,14 @@ class BaseValidator:
             if augment and not model.base_model:
                 LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
                 augment = False
-            imgsz = check_imgsz(self.args.imgsz, stride=stride)
+            imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2)
             if fmt != "pt" and hasattr(model, "imgsz") and not getattr(model, "dynamic", False):
-                self.args.imgsz = imgsz = max(model.imgsz)  # reuse square imgsz from export metadata
+                self.args.imgsz = imgsz = model.imgsz  # reuse the full input shape from export metadata
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
-                LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
+                LOGGER.info(
+                    f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz[0]}, {imgsz[1]})"
+                )
 
             if self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
@@ -235,7 +237,7 @@ class BaseValidator:
             model.eval()
             if self.args.compile:
                 model = attempt_compile(model, device=self.device, mode=self.args.compile)
-            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
+            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], *imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (

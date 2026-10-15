@@ -1021,19 +1021,13 @@ class Exporter:
         # Finish
         if f:
             square = self.imgsz[0] == self.imgsz[1]
-            s = (
-                ""
-                if square
-                else f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not "
-                f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
-            )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
             d = f"data={data}" if check_data_portable(data) else ""  # omit host paths that would not run here
             inference_commands = (
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
                 f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} "
-                f"{d} {q} {s}"
+                f"{d} {q}"
                 if fmt in AutoBackend._BACKEND_MAP
                 else ""
             )

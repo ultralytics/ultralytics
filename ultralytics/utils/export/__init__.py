@@ -15,6 +15,7 @@ from .openvino import torch2openvino
 from .paddle import torch2paddle
 from .qnn import onnx2qnn
 from .rknn import onnx2rknn
+from .stedgeai import onnx2stedgeai
 from .tensorflow import keras2pb, onnx2saved_model, tflite2edgetpu
 from .torchscript import torch2torchscript
 from .xilinx import onnx2xilinx
@@ -28,6 +29,7 @@ __all__ = [
     "onnx2qnn",
     "onnx2rknn",
     "onnx2saved_model",
+    "onnx2stedgeai",
     "onnx2xilinx",
     "tflite2edgetpu",
     "torch2axelera",

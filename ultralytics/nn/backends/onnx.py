@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import os
 import shutil
@@ -344,6 +345,41 @@ class ONNXBackend(BaseBackend):
             return self.bindings
         else:
             return self.session.run(self.output_names, {self.session.get_inputs()[0].name: im.cpu().numpy()})
+
+
+class STEdgeAIBackend(ONNXBackend):
+    """ONNX Runtime backend for ST Edge AI exports.
+
+    ST Edge AI exports (float or QDQ INT8) emit box and pose keypoint coordinates normalized to [0, 1] by the input size
+    so a single INT8 scale preserves class-score resolution; they are denormalized here by the input image size. Depth
+    exports emit raw log-depth at 1/4 input resolution, decoded here with the head's clamp, exp and calibration. Semantic
+    logits (1/8 resolution) and depth maps are upsampled by the predictor and validator, as for PyTorch models.
+    """
+
+    def forward(self, im: torch.Tensor) -> list[np.ndarray]:
+        """Run ONNX Runtime inference and restore pixel-space coordinates and metric depth.
+
+        Args:
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+
+        Returns:
+            (list[np.ndarray]): Model predictions with pixel-space coordinates or metric depth.
+        """
+        y = super().forward(im)
+        h, w = im.shape[2:4]
+        if self.task == "depth":  # Depth head decode: exp(clamp(log-depth)) ** cal_a * exp(cal_b)
+            a, b = ast.literal_eval(str(self.metadata.get("depth_calibration", [1.0, 0.0])))
+            y[0] = np.exp(np.clip(y[0], -4.0, 5.0)) ** a * float(np.exp(b))  # Python floats keep float32
+        elif self.task in {"detect", "segment", "pose", "obb"} and getattr(self, "head", None) != "RTDETRDecoder":
+            x = y[0]  # (B, 4 + nc + extra, anchors), extra are mask coefficients, keypoints or angle
+            x[:, [0, 2]] *= w
+            x[:, [1, 3]] *= h
+            if self.task == "pose":
+                nd = self.kpt_shape[1]  # 2 (x, y) or 3 (x, y, visibility) values per keypoint
+                kpt_start = 4 + len(self.names)  # keypoints follow the box (4) and class-score (nc) channels
+                x[:, kpt_start::nd] *= w
+                x[:, kpt_start + 1 :: nd] *= h
+        return y
 
 
 class ONNXIMXBackend(ONNXBackend):

@@ -35,6 +35,7 @@ from .backends import (
     PyTorchBackend,
     QNNBackend,
     RKNNBackend,
+    STEdgeAIBackend,
     TensorFlowBackend,
     TensorRTBackend,
     TorchScriptBackend,
@@ -182,6 +183,7 @@ class AutoBackend(nn.Module):
         "hailo": HailoBackend,
         "ascend": AscendBackend,
         "xilinx": ONNXBackend,
+        "stedgeai": STEdgeAIBackend,
     }
 
     @smart_inference_mode(False)

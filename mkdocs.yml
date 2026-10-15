@@ -596,6 +596,7 @@ nav:
       - Rockchip RKNN: integrations/rockchip-rknn.md
       - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
       - SONY IMX500: integrations/sony-imx500.md
+      - ST Edge AI: integrations/stedgeai.md
       - TensorBoard: integrations/tensorboard.md
       - TensorRT: integrations/tensorrt.md
       - TF GraphDef: integrations/tf-graphdef.md
@@ -870,6 +871,7 @@ nav:
               - paddle: reference/utils/export/paddle.md
               - qnn: reference/utils/export/qnn.md
               - rknn: reference/utils/export/rknn.md
+              - stedgeai: reference/utils/export/stedgeai.md
               - tensorflow: reference/utils/export/tensorflow.md
               - torchscript: reference/utils/export/torchscript.md
               - xilinx: reference/utils/export/xilinx.md

@@ -237,7 +237,9 @@ class BaseValidator:
             model.eval()
             if self.args.compile:
                 model = attempt_compile(model, device=self.device, mode=self.args.compile)
-            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], *imgsz))  # warmup
+            model.warmup(
+                imgsz=(1 if pt else self.dataloader.batch_size or self.args.batch, self.data["channels"], *imgsz)
+            )  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (

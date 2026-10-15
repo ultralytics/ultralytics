@@ -7,7 +7,7 @@ from torch import nn
 
 from . import LOGGER
 from .metrics import bbox_iou, probiou
-from .ops import xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
+from .ops import crop_mask, xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
 from .torch_utils import TORCH_1_11
 
 
@@ -380,6 +380,74 @@ class TaskAlignedAssigner(nn.Module):
         # Each anchor now serves at most one gt, so the column max is both its foreground flag and its gt index
         fg_mask, target_gt_idx = mask_pos.max(-2)  # (b, h*w)
         return target_gt_idx, fg_mask, mask_pos
+
+
+class SegTaskAlignedAssigner(TaskAlignedAssigner):
+    """Task-aligned assigner for instance segmentation whose overlap mixes box CIoU with predicted-mask IoU.
+
+    Positives, conflict resolution and the soft classification targets then favor anchors with accurate masks, so the
+    score ranks detections by mask quality. Set ``masks = (pd_coef, proto, gt_masks, scale)`` before each call: mask
+    coefficients (b, h*w, nm), prototypes (b, nm, mh, mw), binary ground-truth masks (b, max_num_obj, mh, mw) and the
+    prototype pixels per input pixel. Predicted masks are binarized and cropped to the predicted box, as in validation.
+    """
+
+    def __init__(self, mask_weight: float = 0.5, **kwargs):
+        """Initialize with the mask-IoU weight in the overlap and the TaskAlignedAssigner arguments."""
+        super().__init__(**kwargs)
+        self.mask_weight = mask_weight
+        self.masks = None
+
+    @torch.no_grad()
+    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+        """Assign like the parent; on CUDA OOM retry one image at a time with that image's masks."""
+        self.bs, self.n_max_boxes = pd_scores.shape[0], gt_bboxes.shape[1]
+        if self.n_max_boxes == 0:
+            return super().forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+        try:
+            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+        except RuntimeError as e:
+            if "out of memory" not in str(e).lower():
+                raise
+        masks, bs, results = self.masks, self.bs, []
+        try:
+            self.bs = 1
+            for i in range(bs):
+                s = slice(i, i + 1)
+                self.masks = (masks[0][s], masks[1][s], masks[2][s], masks[3])
+                results.append(
+                    self._forward(pd_scores[s], pd_bboxes[s], anc_points, gt_labels[s], gt_bboxes[s], mask_gt[s])
+                )
+        finally:
+            self.masks, self.bs = masks, bs
+        return tuple(torch.cat(x) for x in zip(*results))
+
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
+        """Compute the alignment metric with overlap = (1 - w) * CIoU + w * mask IoU on candidate pairs."""
+        b, g, a = indices = mask_gt.bool().nonzero(as_tuple=True)
+        iou = self.iou_calculation(gt_bboxes[b, g], pd_bboxes[b, a])
+        coef, proto, gt_masks, scale = self.masks
+        nm, mh, mw = proto.shape[1:]
+        miou = iou.new_zeros(iou.shape)
+        for i in range(self.bs):  # per image: decode each candidate anchor's mask once, IoU against all gts by matmul
+            sel = (b == i).nonzero().squeeze(1)
+            if len(sel) == 0:
+                continue
+            ai, inv = a[sel].unique(return_inverse=True)
+            pm = (coef[i, ai].float() @ proto[i].float().view(nm, -1)).view(-1, mh, mw).gt_(0).float()
+            pm = crop_mask(pm, pd_bboxes[i, ai].float() * scale).flatten(1)  # (n_a, mh*mw)
+            gm = gt_masks[i].flatten(1).float()  # (max_num_obj, mh*mw)
+            inter = gm @ pm.T
+            union = gm.sum(1, keepdim=True) + pm.sum(1) - inter
+            miou[sel] = (inter / union.clamp(min=1))[g[sel], inv].to(iou.dtype)
+        overlap_values = (1 - self.mask_weight) * iou + self.mask_weight * miou
+
+        shape = self.bs, self.n_max_boxes, pd_bboxes.shape[-2]
+        overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)
+        align_metric = torch.zeros(shape, dtype=overlap_values.dtype, device=pd_scores.device)
+        scores = pd_scores[b, a, gt_labels[b, g, 0].long()]
+        overlaps[indices] = overlap_values
+        align_metric[indices] = scores.pow(self.alpha) * overlap_values.pow(self.beta)
+        return align_metric, overlaps
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):

@@ -12,7 +12,14 @@ from torch import nn
 
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
-from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
+from ultralytics.utils.tal import (
+    RotatedTaskAlignedAssigner,
+    SegTaskAlignedAssigner,
+    TaskAlignedAssigner,
+    dist2bbox,
+    dist2rbox,
+    make_anchors,
+)
 from ultralytics.utils.torch_utils import autocast
 
 from .metrics import bbox_iou, probiou
@@ -509,6 +516,40 @@ class v8SegmentationLoss(v8DetectionLoss):
         self.loss_names = ("box_loss", "seg_loss", *self.loss_names[1:], "sem_loss")
         self.overlap = model.args.overlap_mask
         self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
+        seg_assign = getattr(self.hyp, "seg_assign", "box")
+        if seg_assign == "mask":
+            a = self.assigner
+            self.assigner = SegTaskAlignedAssigner(
+                mask_weight=self.hyp.seg_assign_w,
+                topk=a.topk,
+                num_classes=a.num_classes,
+                alpha=a.alpha,
+                beta=a.beta,
+                stride=a.stride,
+                topk2=a.topk2,
+            )
+        elif seg_assign != "box":
+            raise ValueError(f"seg_assign must be 'box' or 'mask', got '{seg_assign}'")
+
+    def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
+        """Give a mask-aware assigner the predicted mask coefficients, prototypes and per-object binary gt masks."""
+        batch_idx = batch["batch_idx"].view(-1).long().to(self.device)
+        if isinstance(self.assigner, SegTaskAlignedAssigner) and len(batch_idx):
+            proto = preds["proto"][0] if isinstance(preds["proto"], tuple) else preds["proto"]
+            bs, _, mh, mw = proto.shape
+            counts = torch.bincount(batch_idx, minlength=bs)
+            masks = batch["masks"].to(self.device)
+            if self.overlap:  # (bs, h, w) holding i + 1 for the i-th object of each image
+                gt = masks[:, None] == torch.arange(1, int(counts.max()) + 1, device=self.device)[None, :, None, None]
+            else:  # (n, h, w) in batch order: pad into per-image slots, same order as preprocess()
+                gt = masks.new_zeros((bs, int(counts.max()), *masks.shape[-2:]))
+                gt[batch_idx, torch.arange(len(batch_idx), device=self.device) - (counts.cumsum(0) - counts)[batch_idx]] = masks
+                gt = gt > 0.5
+            if tuple(gt.shape[-2:]) != (mh, mw):
+                gt = F.interpolate(gt.float(), (mh, mw), mode="nearest") > 0.5
+            scale = mh / (preds["feats"][0].shape[2] * self.stride[0])  # prototype pixels per input pixel
+            self.assigner.masks = (preds["mask_coefficient"].detach().permute(0, 2, 1), proto.detach(), gt, scale)
+        return super().get_assigned_targets_and_loss(preds, batch)
 
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]

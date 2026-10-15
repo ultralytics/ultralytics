@@ -118,7 +118,10 @@ predict for multi-object tracking across video frames.
 
 ## Performance Metrics
 
-Detection accuracy is reported on the COCO validation set. Inference speed is measured on an NVIDIA RTX PRO 6000
+Detection accuracy is reported on the COCO validation set. For accuracy beyond COCO, see
+[Ultralytics Benchmark](../datasets/detect/ultralytics-benchmark.md), which measures macro mAP50-95 across 37
+real-world detection datasets spanning medical imaging, remote sensing, industrial, retail, and more — YOLO27 leads
+every size class, with YOLO27n at 49.3 vs 44.1 for YOLO26n. Inference speed is measured on an NVIDIA RTX PRO 6000
 ([TensorRT](../integrations/tensorrt.md) 11, FP16) for GPU and an AMD EPYC 9655 (ONNX Runtime, FP32) for CPU. Accuracy numbers can be reproduced
 with `yolo val model=yolo27n.pt data=coco.yaml`.
 

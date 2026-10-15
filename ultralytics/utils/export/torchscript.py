@@ -33,6 +33,10 @@ def torch2torchscript(
 
     output_file = str(output_file)
     ts = torch.jit.trace(model, im, strict=False, check_trace=False)
+    for m in ts.modules():  # Python floats trace as float64 scalars that MPS cannot load; float32 keeps output dtypes
+        for n in m.graph.findAllNodes("prim::Constant") if m._c._has_method("forward") else ():
+            if n.output().type().kind() == "TensorType" and (t := n.t("value")).dtype == torch.float64 and not t.dim():
+                n.t_("value", t.float())
     extra_files = {"config.txt": json.dumps(metadata or {})}  # torch._C.ExtraFilesMap()
     ts.save(output_file, _extra_files=extra_files)
     return output_file

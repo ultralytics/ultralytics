@@ -344,11 +344,10 @@ def on_pretrain_routine_start(trainer):
     if response and response.get("modelId"):
         ctx["model_id"] = response["modelId"]
         ctx["run_id"] = response.get("runId")
-        # Server returns actual slug (may differ from requested name due to auto-increment, e.g. "train" → "train-2")
-        if response.get("modelSlug"):
-            ctx["model_slug"] = response["modelSlug"]
-            url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
-            LOGGER.info(f"{PREFIX}View model at {url}")
+        # Server resolves the owner, project and final slug (e.g. "train" → "train-2") into the model link
+        ctx["model_url"] = response.get("modelUrl")
+        if ctx["model_url"]:
+            LOGGER.info(f"{PREFIX}View model at {ctx['model_url']}")
         ctx["console_logger"].start_capture()  # only now: the run is tracked and model_id is known
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
         _handle_control_response(trainer, ctx, response)
@@ -510,8 +509,8 @@ def on_train_end(trainer):
         ctx["model_id"],
         retry=4,  # Critical, more retries
     )
-    url = f"{PLATFORM_URL}/{project}/{ctx.get('model_slug', name)}"
-    LOGGER.info(f"{PREFIX}View results at {url}")
+    if ctx.get("model_url"):
+        LOGGER.info(f"{PREFIX}View results at {ctx['model_url']}")
 
 
 callbacks = {

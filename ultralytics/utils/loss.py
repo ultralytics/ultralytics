@@ -866,23 +866,6 @@ class PoseLoss26(v8PoseLoss):
             topk2=a.topk2,
         )
 
-    def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
-        """Give the assigner predicted and ground-truth keypoints in pixels, then assign and compute detection losses."""
-        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
-        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device) * self.stride[0]
-        bs = preds["kpts"].shape[0]
-        pred_kpts = preds["kpts"].detach().permute(0, 2, 1).reshape(bs, -1, *self.kpt_shape)
-        pred_kpts = self.kpts_decode(anchor_points, pred_kpts)[..., :2] * stride_tensor[:, None]
-        gt_kpts = self._batch_keypoints(batch["keypoints"].to(self.device).float(), batch["batch_idx"], bs)
-        if gt_kpts.shape[-1] == 2:  # no visibility flag: every keypoint counts
-            gt_kpts = torch.cat((gt_kpts, torch.ones_like(gt_kpts[..., :1])), -1)
-        gt_kpts[..., :2] *= imgsz[[1, 0]]
-        self.assigner.kpts = pred_kpts, gt_kpts
-        try:
-            return super().get_assigned_targets_and_loss(preds, batch)
-        finally:
-            self.assigner.kpts = None
-
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
     ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
@@ -891,12 +874,7 @@ class PoseLoss26(v8PoseLoss):
         loss = torch.zeros(
             6 if self.rle_loss else 5, device=self.device
         )  # box, kpt_location, kpt_visibility, cls, dfl[, rle]
-        (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
-            self.get_assigned_targets_and_loss(preds, batch)
-        )
-        # NOTE: re-assign index for consistency for now. Need to be removed in the future.
-        loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
-
+        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
         batch_size = pred_kpts.shape[0]
         imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_kpts.dtype) * self.stride[0]
 
@@ -908,6 +886,18 @@ class PoseLoss26(v8PoseLoss):
             pred_kpts = torch.cat([pred_kpts, pred_sigma], dim=-1)  # (b, h*w, 17, 5)
 
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts)
+        gt_kpts = self._batch_keypoints(batch["keypoints"].to(self.device).float(), batch["batch_idx"], batch_size)
+        if gt_kpts.shape[-1] == 2:  # no visibility flag: every keypoint counts
+            gt_kpts = torch.cat((gt_kpts, torch.ones_like(gt_kpts[..., :1])), -1)
+        gt_kpts[..., :2] *= imgsz[[1, 0]]
+        self.assigner.kpts = pred_kpts.detach()[..., :2] * stride_tensor[:, None], gt_kpts
+        try:
+            (fg_mask, target_gt_idx, target_bboxes, _, stride_tensor), det_loss, _ = self.get_assigned_targets_and_loss(
+                preds, batch
+            )
+        finally:
+            self.assigner.kpts = None
+        loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 
         # Keypoint loss
         if fg_mask.sum():

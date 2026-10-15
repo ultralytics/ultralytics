@@ -135,8 +135,8 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
 
-        | Model                                                                  | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ---------------------------------------------------------------------- | --------------------------- | -------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | Model   | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------- | --------------------------- | -------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
         | YOLO27n | 640                         | 42.6                       | 16.1 ± 1.6                           | 0.44 ± 0.00                                         | 3.0                      | 7.2                     |
         | YOLO27s | 640                         | 50.1                       | 33.2 ± 0.1                           | 0.64 ± 0.00                                         | 11.8                     | 28.2                    |
         | YOLO27m | 640                         | 56.1                       | 74.8 ± 0.5                           | 1.01 ± 0.00                                         | 22.8                     | 65.0                    |
@@ -146,8 +146,8 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | -------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | Model       | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ----------- | --------------------------- | -------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
         | YOLO27n-seg | 640                         | 42.3                       | 36.4                        | 22.0 ± 2.2                           | 0.51 ± 0.00                                         | 3.0                      | 11.2                    |
         | YOLO27s-seg | 640                         | 50.0                       | 42.5                        | 45.8 ± 0.1                           | 0.75 ± 0.00                                         | 11.6                     | 43.1                    |
         | YOLO27m-seg | 640                         | 55.5                       | 47.3                        | 107.7 ± 0.2                          | 1.21 ± 0.00                                         | 26.9                     | 111.9                   |
@@ -157,8 +157,8 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         See [Semantic Segmentation Docs](../tasks/semantic.md) for usage examples with these models trained on [Cityscapes](../datasets/semantic/cityscapes.md), which include 19 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | ------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | Model       | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ----------- | --------------------------- | ------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
         | YOLO27n-sem | 1024 &times; 2048           | 78.8               | 95.6 ± 3.0                           | 0.70 ± 0.00                                         | 2.0                      | 34.0                    |
         | YOLO27s-sem | 1024 &times; 2048           | 81.2               | 169.6 ± 0.9                          | 1.21 ± 0.00                                         | 7.8                      | 131.5                   |
         | YOLO27m-sem | 1024 &times; 2048           | 82.4               | 336.9 ± 2.8                          | 2.18 ± 0.00                                         | 16.1                     | 385.4                   |
@@ -168,8 +168,8 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         See [Depth Estimation Docs](../tasks/depth.md) for usage examples with these models pretrained on a broad multi-dataset mix and evaluated on [NYU Depth V2](../datasets/depth/nyu-depth-v2.md).
 
-        | Model                                                                              | size<br><sup>(pixels)</sup> | delta1<sup>NYU\*</sup> | delta1<sup>KITTI-580\*</sup> | delta1<sup>bench mean</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ---------------------------------------------------------------------------------- | --------------------------- | ---------------------- | ---------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | Model         | size<br><sup>(pixels)</sup> | delta1<sup>NYU\*</sup> | delta1<sup>KITTI-580\*</sup> | delta1<sup>bench mean</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------------- | --------------------------- | ---------------------- | ---------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
         | YOLO27n-depth | 768                         | 0.8314                 | 0.8256                       | 0.7238                      | 47.2 ± 4.0                           | 0.79 ± 0.00                                         | 5.4                      | 49.3                    |
         | YOLO27s-depth | 768                         | 0.8682                 | 0.7835                       | 0.7454                      | 72.1 ± 0.5                           | 0.97 ± 0.00                                         | 13.0                     | 77.3                    |
         | YOLO27m-depth | 768                         | 0.8652                 | 0.7746                       | 0.7476                      | 120.2 ± 0.4                          | 1.34 ± 0.00                                         | 23.4                     | 143.6                   |
@@ -179,8 +179,8 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B) at 224</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ------------------------------ |
+        | Model       | size<br><sup>(pixels)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B) at 224</sup> |
+        | ----------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ------------------------------ |
         | YOLO27n-cls | 224                         | 1.9 ± 0.0                            | 0.18 ± 0.00                                         | 2.9                      | 0.5                            |
         | YOLO27s-cls | 224                         | 3.1 ± 0.1                            | 0.22 ± 0.00                                         | 6.9                      | 1.7                            |
         | YOLO27m-cls | 224                         | 6.0 ± 0.6                            | 0.29 ± 0.00                                         | 12.4                     | 6.1                            |
@@ -190,8 +190,8 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pretrained class, 'person'.
 
-        | Model                                                                            | size<br><sup>(pixels)</sup> | mAP<sup>pose<br>50-95</sup> | mAP<sup>pose<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | -------------------------------------------------------------------------------- | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | Model        | size<br><sup>(pixels)</sup> | mAP<sup>pose<br>50-95</sup> | mAP<sup>pose<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------------ | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
         | YOLO27n-pose | 640                         | 60.3                        | 85.0                     | 19.6 ± 0.1                           | 0.48 ± 0.00                                         | 3.1                      | 9.2                     |
         | YOLO27s-pose | 640                         | 66.7                        | 88.6                     | 36.6 ± 0.2                           | 0.69 ± 0.00                                         | 11.2                     | 31.1                    |
         | YOLO27m-pose | 640                         | 73.3                        | 91.0                     | 85.8 ± 0.9                           | 1.14 ± 0.01                                         | 24.6                     | 64.0                    |
@@ -201,8 +201,8 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>test<br>50-95</sup> | mAP<sup>test<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | Model       | size<br><sup>(pixels)</sup> | mAP<sup>test<br>50-95</sup> | mAP<sup>test<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ----------- | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
         | YOLO27n-obb | 1024                        | 54.0                        | 80.3                     | 42.6 ± 0.2                           | 0.56 ± 0.00                                         | 3.0                      | 19.7                    |
         | YOLO27s-obb | 1024                        | 55.8                        | 81.6                     | 88.2 ± 0.6                           | 0.97 ± 0.00                                         | 10.9                     | 76.6                    |
         | YOLO27m-obb | 1024                        | 55.9                        | 82.6                     | 188.0 ± 0.7                          | 1.68 ± 0.00                                         | 22.8                     | 221.7                   |

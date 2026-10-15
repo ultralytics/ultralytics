@@ -325,9 +325,8 @@ def on_pretrain_routine_start(trainer):
 
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
-    train_args = {k: str(v) for k, v in vars(trainer.args).items()}
     data = {
-        "trainArgs": train_args,
+        "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
         "epochs": trainer.epochs,
         "device": str(trainer.device),
         "environment": environment,
@@ -337,12 +336,12 @@ def on_pretrain_routine_start(trainer):
     # Resume continues the Platform model recorded in the run directory, a new run must not inherit it
     record = Path(trainer.save_dir) / "platform_model_id.txt"
     model_id = record.read_text() if trainer.args.resume and record.exists() else None
-    if not model_id:
+    if not trainer.args.resume:
         record.unlink(missing_ok=True)
 
     # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
     response = _send("training_started", data, project, name, model_id=model_id, retry=4)
-    if model_id and response and response.get("cancelled"):  # model ended on Platform, track the resume as a new one
+    if model_id and (not response or response.get("cancelled")):  # model gone or ended, track the resume as new
         response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
         record.write_text(response["modelId"])
@@ -353,6 +352,7 @@ def on_pretrain_routine_start(trainer):
             ctx["model_slug"] = response["modelSlug"]
             url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
             LOGGER.info(f"{PREFIX}View model at {url}")
+        ctx["console_logger"].chunk_id = int(time() * 1000)  # chunk ids stay unique across resumed processes
         ctx["console_logger"].start_capture()  # only now: the run is tracked and model_id is known
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
         _handle_control_response(trainer, ctx, response)

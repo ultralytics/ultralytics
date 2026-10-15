@@ -326,22 +326,26 @@ def on_pretrain_routine_start(trainer):
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
     train_args = {k: str(v) for k, v in vars(trainer.args).items()}
+    data = {
+        "trainArgs": train_args,
+        "epochs": trainer.epochs,
+        "device": str(trainer.device),
+        "environment": environment,
+        "system": _get_system_metrics(ctx),
+    }
+
+    # Resume continues the Platform model recorded in the run directory, a new run must not inherit it
+    record = Path(trainer.save_dir) / "platform_model_id.txt"
+    model_id = record.read_text() if trainer.args.resume and record.exists() else None
+    if not model_id:
+        record.unlink(missing_ok=True)
 
     # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
-    response = _send(
-        "training_started",
-        {
-            "trainArgs": train_args,
-            "epochs": trainer.epochs,
-            "device": str(trainer.device),
-            "environment": environment,
-            "system": _get_system_metrics(ctx),
-        },
-        project,
-        name,
-        retry=4,
-    )
+    response = _send("training_started", data, project, name, model_id=model_id, retry=4)
+    if model_id and response and response.get("cancelled"):  # model ended on Platform, track the resume as a new one
+        response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
+        record.write_text(response["modelId"])
         ctx["model_id"] = response["modelId"]
         ctx["run_id"] = response.get("runId")
         # Server returns actual slug (may differ from requested name due to auto-increment, e.g. "train" → "train-2")

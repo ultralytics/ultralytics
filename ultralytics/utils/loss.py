@@ -878,7 +878,10 @@ class PoseLoss26(v8PoseLoss):
             gt_kpts = torch.cat((gt_kpts, torch.ones_like(gt_kpts[..., :1])), -1)
         gt_kpts[..., :2] *= imgsz[[1, 0]]
         self.assigner.kpts = pred_kpts, gt_kpts
-        return super().get_assigned_targets_and_loss(preds, batch)
+        try:
+            return super().get_assigned_targets_and_loss(preds, batch)
+        finally:
+            self.assigner.kpts = None
 
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]

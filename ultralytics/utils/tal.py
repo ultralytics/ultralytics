@@ -408,18 +408,20 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         except RuntimeError as e:
             if "out of memory" not in str(e).lower():
                 raise
-        kpts, bs, results = self.kpts, self.bs, []
+        kpts, bs, results = self.kpts, self.bs, None
         try:
             self.bs = 1
             for i in range(bs):
                 s = slice(i, i + 1)
                 self.kpts = kpts[0][s], kpts[1][s]
-                results.append(
-                    self._forward(pd_scores[s], pd_bboxes[s], anc_points, gt_labels[s], gt_bboxes[s], mask_gt[s])
-                )
+                result = self._forward(pd_scores[s], pd_bboxes[s], anc_points, gt_labels[s], gt_bboxes[s], mask_gt[s])
+                if results is None:
+                    results = tuple(x.new_empty((bs, *x.shape[1:])) for x in result)
+                for output, x in zip(results, result):
+                    output[i] = x[0]
         finally:
             self.kpts, self.bs = kpts, bs
-        return tuple(torch.cat(x) for x in zip(*results))
+        return results
 
     def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
         """Compute the alignment metric with overlap = (IoU + OKS) / 2 on candidate anchor-ground-truth pairs."""

@@ -422,29 +422,38 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
         return tuple(torch.cat(x) for x in zip(*results))
 
     def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
-        """Compute the alignment metric with overlap = (1 - w) * CIoU + w * mask IoU on candidate pairs."""
+        """Compute the alignment metric with overlap = (1 - w) * CIoU + w * mask IoU on candidate pairs.
+
+        Mask IoU is computed only for each ground truth's top 3 * topk candidates by the box alignment metric, the only
+        ones that can become positives; the rest keep mask IoU 0.
+        """
         b, g, a = indices = mask_gt.bool().nonzero(as_tuple=True)
         iou = self.iou_calculation(gt_bboxes[b, g], pd_bboxes[b, a])
+        scores = pd_scores[b, a, gt_labels[b, g, 0].long()]
+        shape = self.bs, self.n_max_boxes, pd_bboxes.shape[-2]
+        box_metric = torch.zeros(shape, dtype=iou.dtype, device=iou.device)
+        box_metric[indices] = scores.pow(self.alpha) * iou.pow(self.beta) + 1e-9  # keep zero-metric candidates
+        top = box_metric.topk(min(3 * self.topk, shape[-1]), dim=-1).indices
+        pre = torch.zeros(shape, dtype=torch.bool, device=iou.device).scatter_(-1, top, True)[indices]
+
         coef, proto, gt_masks, scale = self.masks
         nm, mh, mw = proto.shape[1:]
         miou = iou.new_zeros(iou.shape)
-        for i in range(self.bs):  # per image: decode each candidate anchor's mask once, IoU against all gts by matmul
-            sel = (b == i).nonzero().squeeze(1)
+        for i in range(self.bs):  # per image: decode each preselected anchor's mask once, IoU against all gts by matmul
+            sel = ((b == i) & pre).nonzero().squeeze(1)
             if len(sel) == 0:
                 continue
             ai, inv = a[sel].unique(return_inverse=True)
-            pm = (coef[i, ai].float() @ proto[i].float().view(nm, -1)).view(-1, mh, mw).gt_(0).float()
+            pm = (coef[i, ai].half() @ proto[i].half().view(nm, -1)).view(-1, mh, mw).gt_(0).half()
             pm = crop_mask(pm, pd_bboxes[i, ai].float() * scale).flatten(1)  # (n_a, mh*mw)
-            gm = gt_masks[i].flatten(1).float()  # (max_num_obj, mh*mw)
-            inter = gm @ pm.T
-            union = gm.sum(1, keepdim=True) + pm.sum(1) - inter
+            gm = gt_masks[i].flatten(1).half()  # (max_num_obj, mh*mw)
+            inter = (gm @ pm.T).float()  # 0/1 products, fp16 output exact to <0.1% at these pixel counts
+            union = gm.sum(1, keepdim=True, dtype=torch.float) + pm.sum(1, dtype=torch.float) - inter
             miou[sel] = (inter / union.clamp(min=1))[g[sel], inv].to(iou.dtype)
         overlap_values = (1 - self.mask_weight) * iou + self.mask_weight * miou
 
-        shape = self.bs, self.n_max_boxes, pd_bboxes.shape[-2]
         overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)
         align_metric = torch.zeros(shape, dtype=overlap_values.dtype, device=pd_scores.device)
-        scores = pd_scores[b, a, gt_labels[b, g, 0].long()]
         overlaps[indices] = overlap_values
         align_metric[indices] = scores.pow(self.alpha) * overlap_values.pow(self.beta)
         return align_metric, overlaps

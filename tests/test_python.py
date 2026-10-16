@@ -1686,6 +1686,26 @@ def test_rtdetr_remap_cls_by_names():
     assert "decoder.denoising_class_embed.weight" not in csd  # popped so intersect_dicts skips it
 
 
+@pytest.mark.parametrize(
+    "dtype,sigma,residual",
+    [(dtype, sigma, 0.0) for dtype in (torch.float32, torch.float16, torch.bfloat16) for sigma in (0.0, -20.0, -100.0)]
+    + [(torch.float16, -9.0, 0.001)],
+)
+def test_pose_rle_sigma_underflow(dtype, sigma, residual):
+    """Finite sigma logits must not zero the RLE loss or produce non-finite losses and gradients."""
+    from ultralytics.utils.loss import PoseLoss26
+
+    model = YOLO("yolo26n-pose.yaml").model
+    model.args = get_cfg()
+    criterion = PoseLoss26(model)
+    pred = torch.tensor([[[0.0, 0.0, 0.0, sigma, sigma]] * 17], dtype=dtype, requires_grad=True)
+    target = torch.tensor([[[residual, residual, 2.0]] * 17])
+    loss = criterion.calculate_rle_loss(pred, target, torch.ones((1, 17), dtype=torch.bool))
+    assert torch.isfinite(loss) and loss != 0
+    loss.backward()
+    assert torch.isfinite(pred.grad).all()
+
+
 @pytest.mark.parametrize("nc", [1, 3])
 def test_semantic_loss_all_ignore(nc):
     """SemanticSegmentationLoss must stay finite when the whole batch is ignore (255), e.g. unlabeled/void frames."""

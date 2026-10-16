@@ -61,7 +61,7 @@ class TaskAlignedAssigner(nn.Module):
         self._oom_warned = False
 
     @torch.no_grad()
-    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra):
         """Compute the task-aligned assignment.
 
         Args:
@@ -71,6 +71,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
+            **extra (torch.Tensor): Batch-first tensors passed through to `get_box_metrics`.
 
         Returns:
             target_labels (torch.Tensor): Target labels with shape (bs, num_total_anchors).
@@ -97,7 +98,7 @@ class TaskAlignedAssigner(nn.Module):
             )
 
         try:
-            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra)
         except RuntimeError as e:
             if "out of memory" not in str(e).lower():
                 raise
@@ -128,6 +129,7 @@ class TaskAlignedAssigner(nn.Module):
                     gt_labels[i : i + 1, : self.n_max_boxes],
                     gt_bboxes[i : i + 1, : self.n_max_boxes],
                     mask_gt[i : i + 1, : self.n_max_boxes],
+                    **{k: v[i : i + 1] for k, v in extra.items()},
                 )
                 if results is None:
                     results = tuple(x.new_empty((bs, *x.shape[1:])) for x in result)
@@ -137,7 +139,7 @@ class TaskAlignedAssigner(nn.Module):
             self.bs, self.n_max_boxes = bs, n_max_boxes
         return results
 
-    def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+    def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra):
         """Compute the task-aligned assignment.
 
         Args:
@@ -156,7 +158,7 @@ class TaskAlignedAssigner(nn.Module):
             target_gt_idx (torch.Tensor): Target ground truth indices with shape (bs, num_total_anchors).
         """
         mask_pos, align_metric, overlaps = self.get_pos_mask(
-            pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
+            pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt, **extra
         )
 
         target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(
@@ -177,7 +179,7 @@ class TaskAlignedAssigner(nn.Module):
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
 
-    def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
+    def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt, **extra):
         """Get positive mask for each ground truth box.
 
         Args:
@@ -195,7 +197,9 @@ class TaskAlignedAssigner(nn.Module):
         """
         mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
         # Get anchor_align metric, (b, max_num_obj, h*w)
-        align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
+        align_metric, overlaps = self.get_box_metrics(
+            pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt, **extra
+        )
         # Get topk_metric mask, (b, max_num_obj, h*w)
         mask_topk = self.select_topk_candidates(align_metric, topk_mask=mask_gt.expand(-1, -1, self.topk).bool())
         # Merge all mask to a final mask, (b, max_num_obj, h*w)
@@ -386,51 +390,23 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
     """Task-aligned assigner for pose whose overlap is the mean of box IoU and keypoint OKS.
 
     Positives, conflict resolution and the soft classification targets then all favor anchors with accurate keypoints,
-    so the score ranks detections by pose quality. Set ``kpts = (pd_kpts, gt_kpts)`` before each call: predicted
-    keypoints (b, h*w, K, 2) and ground-truth keypoints (b, max_num_obj, K, 3) in pixels. Ground truths without visible
-    keypoints keep the plain IoU.
+    so the score ranks detections by pose quality. Call it with ``pd_kpts`` (b, h*w, K, 2) and ``gt_kpts``
+    (b, max_num_obj, K, 3) in pixels; ground truths without visible keypoints keep the plain IoU.
     """
 
     def __init__(self, sigmas: torch.Tensor, **kwargs):
         """Initialize with the per-keypoint OKS sigmas (K,) and the TaskAlignedAssigner arguments."""
         super().__init__(**kwargs)
         self.sigmas = sigmas
-        self.kpts = None
 
-    @torch.no_grad()
-    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
-        """Assign like the parent; on CUDA OOM retry one image at a time with that image's keypoints."""
-        self.bs, self.n_max_boxes = pd_scores.shape[0], gt_bboxes.shape[1]
-        if self.n_max_boxes == 0:
-            return super().forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
-        try:
-            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
-        except RuntimeError as e:
-            if "out of memory" not in str(e).lower():
-                raise
-        kpts, bs, results = self.kpts, self.bs, None
-        try:
-            self.bs = 1
-            for i in range(bs):
-                s = slice(i, i + 1)
-                self.kpts = kpts[0][s], kpts[1][s]
-                result = self._forward(pd_scores[s], pd_bboxes[s], anc_points, gt_labels[s], gt_bboxes[s], mask_gt[s])
-                if results is None:
-                    results = tuple(x.new_empty((bs, *x.shape[1:])) for x in result)
-                for output, x in zip(results, result):
-                    output[i] = x[0]
-        finally:
-            self.kpts, self.bs = kpts, bs
-        return results
-
-    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, pd_kpts, gt_kpts):
         """Compute the alignment metric with overlap = (IoU + OKS) / 2 on candidate anchor-ground-truth pairs."""
         b, g, a = indices = mask_gt.bool().nonzero(as_tuple=True)
         iou = self.iou_calculation(gt_bboxes[b, g], pd_bboxes[b, a])
-        gt_kpts = self.kpts[1][b, g]  # (P, K, 3)
+        gt_kpts = gt_kpts[b, g]  # (P, K, 3)
         vis = gt_kpts[..., 2] > 0
         area = (gt_bboxes[b, g, 2:] - gt_bboxes[b, g, :2]).prod(-1, keepdim=True) * 0.53  # as in PoseValidator
-        d = (self.kpts[0][b, a].float() - gt_kpts[..., :2]).pow(2).sum(-1)
+        d = (pd_kpts[b, a].float() - gt_kpts[..., :2]).pow(2).sum(-1)
         oks = ((-d / ((2 * self.sigmas).pow(2) * (area + self.eps) * 2)).exp() * vis).sum(-1) / vis.sum(-1).clamp(min=1)
         overlap_values = torch.where(vis.any(-1), (iou + oks.to(iou.dtype)) / 2, iou)
 

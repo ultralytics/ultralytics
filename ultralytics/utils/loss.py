@@ -416,7 +416,9 @@ class v8DetectionLoss:
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
-    def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
+    def get_assigned_targets_and_loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, Any], **assign_kwargs
+    ) -> tuple:
         """Calculate the box, cls, and dfl losses and return them with the assigned targets.
 
         Returns:
@@ -450,6 +452,7 @@ class v8DetectionLoss:
             gt_labels,
             gt_bboxes,
             mask_gt,
+            **assign_kwargs,
         )
 
         target_scores_sum = target_scores.sum().clamp_(min=1)  # on the device: no host sync
@@ -855,16 +858,8 @@ class PoseLoss26(v8PoseLoss):
             self.target_weights = (
                 torch.from_numpy(RLE_WEIGHT).to(self.device) if is_pose else torch.ones(nkpt, device=self.device)
             )
-        a = self.assigner
-        self.assigner = PoseTaskAlignedAssigner(
-            self.keypoint_loss.sigmas,
-            topk=a.topk,
-            num_classes=a.num_classes,
-            alpha=a.alpha,
-            beta=a.beta,
-            stride=a.stride,
-            topk2=a.topk2,
-        )
+        args = {k: getattr(self.assigner, k) for k in ("topk", "topk2", "num_classes", "alpha", "beta", "stride")}
+        self.assigner = PoseTaskAlignedAssigner(self.keypoint_loss.sigmas, **args)
 
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
@@ -890,13 +885,9 @@ class PoseLoss26(v8PoseLoss):
         if gt_kpts.shape[-1] == 2:  # no visibility flag: every keypoint counts
             gt_kpts = torch.cat((gt_kpts, torch.ones_like(gt_kpts[..., :1])), -1)
         gt_kpts[..., :2] *= imgsz[[1, 0]]
-        self.assigner.kpts = pred_kpts.detach()[..., :2] * stride_tensor[:, None], gt_kpts
-        try:
-            (fg_mask, target_gt_idx, target_bboxes, _, stride_tensor), det_loss, _ = self.get_assigned_targets_and_loss(
-                preds, batch
-            )
-        finally:
-            self.assigner.kpts = None
+        (fg_mask, target_gt_idx, target_bboxes, _, stride_tensor), det_loss, _ = self.get_assigned_targets_and_loss(
+            preds, batch, pd_kpts=pred_kpts.detach()[..., :2] * stride_tensor[:, None], gt_kpts=gt_kpts
+        )
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 
         # Keypoint loss

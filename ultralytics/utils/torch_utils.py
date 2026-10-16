@@ -1198,8 +1198,8 @@ def attempt_compile(
     Notes:
         - If the current PyTorch build does not provide torch.compile or `mode` is False, the function returns the input
           model immediately.
-        - Compilation is lazy and runs at the first forward pass, so the inductor CPU prerequisite of a host C++
-          compiler is verified up front and the original model is returned if none is available.
+        - Compilation is lazy and runs at the first forward pass, so the inductor prerequisites (a host C++ compiler on
+          CPU, a working Triton on CUDA) are verified up front and the original model is returned if one is missing.
         - Warmup runs under torch.inference_mode and may use torch.autocast for CUDA/MPS to align compute precision.
         - CUDA devices are synchronized after warmup to account for asynchronous kernel execution.
     """
@@ -1221,6 +1221,15 @@ def attempt_compile(
         except Exception as e:
             LOGGER.warning(f"{prefix} no C++ compiler found for the inductor backend, continuing uncompiled: {e}")
             return model
+    elif device.type == "cuda":
+        try:  # inductor CUDA codegen needs Triton and a GPU it supports (compute capability >= 7.0)
+            from torch.utils._triton import has_triton
+        except ImportError:
+            pass  # older torch without the probe, defer to torch.compile
+        else:
+            if not has_triton():
+                LOGGER.warning(f"{prefix} no working Triton found for the inductor backend, continuing uncompiled")
+                return model
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:

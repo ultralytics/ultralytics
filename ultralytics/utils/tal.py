@@ -439,17 +439,30 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
         coef, proto, gt_masks, scale = self.masks
         nm, mh, mw = proto.shape[1:]
         miou = iou.new_zeros(iou.shape)
-        for i in range(self.bs):  # per image: decode each preselected anchor's mask once, IoU against all gts by matmul
-            sel = ((b == i) & pre).nonzero().squeeze(1)
-            if len(sel) == 0:
-                continue
-            ai, inv = a[sel].unique(return_inverse=True)
-            pm = (coef[i, ai].half() @ proto[i].half().view(nm, -1)).view(-1, mh, mw).gt_(0).half()
-            pm = crop_mask(pm, pd_bboxes[i, ai].float() * scale).flatten(1)  # (n_a, mh*mw)
-            gm = gt_masks[i].flatten(1).half()  # (max_num_obj, mh*mw)
-            inter = (gm @ pm.T).float()  # 0/1 products, fp16 output exact to <0.1% at these pixel counts
-            union = gm.sum(1, keepdim=True, dtype=torch.float) + pm.sum(1, dtype=torch.float) - inter
-            miou[sel] = (inter / union.clamp(min=1))[g[sel], inv].to(iou.dtype)
+        sel = pre.nonzero().squeeze(1)
+        if len(sel):
+            # Decode each preselected anchor's mask once: pack the unique (image, anchor) pairs into per-image slots
+            na = shape[-1]
+            key, inv = (b[sel] * na + a[sel]).unique(return_inverse=True)
+            ub, ua = key // na, key % na
+            cnt = torch.bincount(ub, minlength=self.bs)
+            slot = torch.arange(len(key), device=key.device) - (cnt.cumsum(0) - cnt)[ub]
+            u = int(cnt.max())
+            pc = coef.new_zeros((self.bs, u, nm), dtype=torch.half)
+            pc[ub, slot] = coef[ub, ua].half()
+            pb = pd_bboxes.new_zeros((self.bs, u, 4))
+            pb[ub, slot] = pd_bboxes[ub, ua] * scale
+            gm = gt_masks.flatten(2).half()  # (b, max_num_obj, mh*mw)
+            ga = gm.sum(-1, dtype=torch.float)  # (b, max_num_obj)
+            ious = torch.empty((self.bs, self.n_max_boxes, u), device=iou.device)
+            step = max(1, (1 << 28) // (u * mh * mw))  # images per chunk, ~512 MB of fp16 masks
+            for i in range(0, self.bs, step):  # IoU of all gts vs all decoded masks by batched matmul
+                s = slice(i, i + step)
+                pm = (pc[s] @ proto[s].half().flatten(2)).gt_(0).half()  # (c, u, mh*mw)
+                pm = crop_mask(pm.view(-1, mh, mw), pb[s].reshape(-1, 4).float()).view(pm.shape)
+                inter = (gm[s] @ pm.transpose(1, 2)).float()  # 0/1 products, fp16 exact to <0.1% at these counts
+                ious[s] = inter / (ga[s, :, None] + pm.sum(-1, dtype=torch.float)[:, None] - inter).clamp(min=1)
+            miou[sel] = ious[b[sel], g[sel], slot[inv]].to(iou.dtype)
         overlap_values = (1 - self.mask_weight) * iou + self.mask_weight * miou
 
         overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)

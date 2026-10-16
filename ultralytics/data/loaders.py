@@ -111,7 +111,7 @@ class LoadStreams:
         self.vid_stride = vid_stride  # video frame-rate stride
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
-        sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
+        sources = Path(sources).read_text().lstrip("\ufeff").rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.bs = n
         self.fps = [0] * n  # frames per second
@@ -372,7 +372,7 @@ class LoadImagesAndVideos:
         source_path = path
         parent = None
         if isinstance(path, (str, Path)) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
-            parent, content = Path(path).parent, Path(path).read_text()
+            parent, content = Path(path).parent, Path(path).read_text().lstrip("\ufeff")
             if Path(path).suffix == ".txt":
                 path = content.splitlines()
             else:

@@ -691,3 +691,15 @@ def test_export_engine_jetpack6_trt103_int8_nms(monkeypatch):
     # nms=True with quantize=8 on TRT 10.3 / JetPack 6 must raise ValueError pointing to the upgrade guide
     with pytest.raises(ValueError, match=r"TensorRT 10\.3\.0 on JetPack 6 with INT8 cannot build 'nms=True' exports"):
         model.export(format="engine", quantize=8, nms=True, device="cpu")
+
+    # QAT model with default quantize=None and nms=True must also trigger the guard
+    monkeypatch.setattr(exporter, "is_qat", lambda m: True)
+    with pytest.raises(ValueError, match=r"TensorRT 10\.3\.0 on JetPack 6 with INT8 cannot build 'nms=True' exports"):
+        model.export(format="engine", quantize=None, nms=True, device="cpu")
+
+    # If tensorrt is not installed (ImportError), guard passes cleanly without raising the diagnostic
+    monkeypatch.setattr(exporter, "is_qat", lambda m: False)
+    monkeypatch.setitem(sys.modules, "tensorrt", None)
+    with pytest.raises(Exception) as exc_info:
+        model.export(format="engine", quantize=8, nms=True, device="cpu")
+    assert not issubclass(exc_info.type, ValueError) or "checkLinks::218" not in str(exc_info.value)

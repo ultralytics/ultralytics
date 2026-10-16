@@ -842,7 +842,11 @@ class Exporter:
                 raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")
             if model.task not in {"detect", "pose"}:
                 raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
-        if fmt == "engine" and self.args.nms and self.args.quantize == 8:
+        if (
+            fmt == "engine"
+            and self.args.nms
+            and (self.args.quantize == 8 or (self.args.quantize is None and is_qat(model)))
+        ):
             try:
                 import tensorrt as trt
 

@@ -134,6 +134,8 @@ class RTDETRValidator(DetectionValidator):
         shape = check_imgsz(self.args.imgsz, stride=1, min_dim=2)
         bboxes = ops.xywh2xyxy(bboxes) * bboxes.new_tensor(shape)[[1, 0, 1, 0]]
         scores, labels = scores.squeeze(-1), labels.squeeze(-1)
+        if self.args.classes is not None:
+            scores = scores.masked_fill(~(labels[..., None] == labels.new_tensor(self.args.classes)).any(-1), 0)
         masks = [(score > self.args.conf).nonzero().squeeze(1)[: self.args.max_det] for score in scores]
 
         return [

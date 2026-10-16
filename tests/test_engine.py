@@ -26,6 +26,27 @@ def test_func(*args, **kwargs):
     print("callback test passed")
 
 
+@pytest.mark.parametrize("classes,expected", [(None, [1]), ([0], [0]), ([0, 2], [0]), ([], [])])
+@pytest.mark.parametrize("dtype", [torch.float16, torch.float32])
+def test_rtdetr_validation_class_filter(classes, expected, dtype, tmp_path):
+    """Filter requested RT-DETR classes before max_det, including empty batches."""
+    from ultralytics.models.rtdetr.val import RTDETRValidator
+
+    validator = RTDETRValidator(save_dir=tmp_path, args={"classes": classes, "max_det": 1, "conf": 0.25, "imgsz": 320})
+    validator.args.imgsz = [160, 320]  # static exports restore their recorded input shape after initialization
+    preds = torch.tensor([[[0.5, 0.5, 0.25, 0.25, 0.9, 1], [0.5, 0.5, 0.25, 0.25, 0.8, 0]]], dtype=dtype)
+    preds = torch.cat((preds, torch.zeros_like(preds)))
+    for raw in (preds, (preds, None), [preds]):
+        outputs = validator.postprocess(raw)
+        assert outputs[0]["cls"].tolist() == expected
+        assert outputs[0]["bboxes"].shape == (len(expected), 4)
+        assert outputs[0]["bboxes"].dtype == dtype
+        if expected:
+            assert torch.equal(outputs[0]["bboxes"], torch.tensor([[120.0, 60.0, 200.0, 100.0]]))
+        assert outputs[1]["bboxes"].shape == (0, 4)
+        assert outputs[1]["conf"].numel() == outputs[1]["cls"].numel() == 0
+
+
 def test_export(monkeypatch, tmp_path):
     """Test model exporting functionality by adding a callback and verifying its execution."""
     monkeypatch.chdir(tmp_path)

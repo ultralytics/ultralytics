@@ -390,8 +390,8 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
     """Task-aligned assigner for pose whose overlap is the mean of box IoU and keypoint OKS.
 
     Positives, conflict resolution and the soft classification targets then all favor anchors with accurate keypoints,
-    so the score ranks detections by pose quality. Call it with ``pd_kpts`` (b, h*w, K, 2) and ``gt_kpts``
-    (b, max_num_obj, K, 3) in pixels; ground truths without visible keypoints keep the plain IoU.
+    so the score ranks detections by pose quality. Call it with ``pd_kpts`` (b, h*w, K, 2) and ``gt_kpts`` (b,
+    max_num_obj, K, 3) in pixels; ground truths without visible keypoints keep the plain IoU.
     """
 
     def __init__(self, sigmas: torch.Tensor, **kwargs):

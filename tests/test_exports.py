@@ -676,3 +676,18 @@ def test_every_format_env_is_registered():
     """Ensure every export format points at a registered export environment."""
     for fmt, env in zip(export_formats()["Argument"], export_formats()["Env"]):
         assert env in EXPORT_ENVS, f"format '{fmt}' references unknown env '{env}'"
+
+
+def test_export_engine_jetpack6_trt103_int8_nms(monkeypatch):
+    """Test TensorRT 10.3 on JetPack 6 rejects INT8 export with nms=True with a clear diagnostic (#26655)."""
+    from ultralytics.engine import exporter
+
+    mock_trt = SimpleNamespace(__version__="10.3.0.30")
+    monkeypatch.setitem(sys.modules, "tensorrt", mock_trt)
+    monkeypatch.setattr(exporter, "is_jetson", lambda jetpack=None: jetpack == 6 or jetpack is None)
+
+    model = YOLO("yolo11n.yaml")
+
+    # nms=True with quantize=8 on TRT 10.3 / JetPack 6 must raise ValueError pointing to the upgrade guide
+    with pytest.raises(ValueError, match=r"TensorRT 10\.3\.0 on JetPack 6 with INT8 cannot build 'nms=True' exports"):
+        model.export(format="engine", quantize=8, nms=True, device="cpu")

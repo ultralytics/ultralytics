@@ -842,6 +842,20 @@ class Exporter:
                 raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")
             if model.task not in {"detect", "pose"}:
                 raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
+        if fmt == "engine" and self.args.nms and self.args.quantize == 8:
+            try:
+                import tensorrt as trt
+
+                # https://github.com/ultralytics/ultralytics/issues/26655
+                if check_version(trt.__version__, ">=10.3.0,<10.4.0") and is_jetson(jetpack=6):
+                    raise ValueError(
+                        "TensorRT 10.3.0 on JetPack 6 with INT8 cannot build 'nms=True' exports due to an upstream "
+                        "TensorRT optimizer error (checkLinks::218). Please upgrade to TensorRT >= 10.7.0 or export "
+                        "with nms=False or quantize=16. "
+                        "See https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
+                    )
+            except ImportError:
+                pass
         if fmt == "coreml":
             if self.args.nms and model.task != "detect" and self.args.quantize == 32:
                 # CoreML evaluates NMSModel's data-dependent shapes only on its FP16 path, silently dropping

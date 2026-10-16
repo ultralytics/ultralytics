@@ -149,6 +149,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
+            **extra (torch.Tensor): Batch-first tensors passed through to `get_box_metrics`.
 
         Returns:
             target_labels (torch.Tensor): Target labels with shape (bs, num_total_anchors).
@@ -189,6 +190,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             anc_points (torch.Tensor): Anchor points with shape (num_total_anchors, 2).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
+            **extra (torch.Tensor): Batch-first tensors passed through to `get_box_metrics`.
 
         Returns:
             mask_pos (torch.Tensor): Positive mask with shape (bs, max_num_obj, h*w).

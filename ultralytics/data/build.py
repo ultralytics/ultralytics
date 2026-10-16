@@ -451,7 +451,7 @@ def check_source(
         is_url = source_lower.startswith(("https://", "http://"))
         is_file = is_url and urlsplit(source_lower).path.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
         webcam = source.isnumeric() or source.endswith(".streams") or is_stream or (is_url and not is_file)
-        screenshot = source_lower == "screen"
+        screenshot = source_lower == "screen" or (source_lower.startswith("screen ") and not Path(source).exists())
         if is_file:
             source = check_file(source)  # download
         elif is_url:  # a URL without a media suffix is one image if it returns a sized image/* response

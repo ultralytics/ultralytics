@@ -866,9 +866,4 @@ class SolutionResults:
         Returns:
             (str): A string representation listing non-null attributes.
         """
-        attrs = {
-            k: v
-            for k, v in self.__dict__.items()
-            if k != "plot_im" and v not in [None, {}, 0, 0.0, False]  # Exclude `plot_im` explicitly
-        }
-        return ", ".join(f"{k}={v}" for k, v in attrs.items())
+        return ", ".join(f"{k}={v}" for k, v in self.__dict__.items() if k != "plot_im" and v)

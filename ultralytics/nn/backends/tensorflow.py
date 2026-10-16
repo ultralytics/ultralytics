@@ -115,7 +115,9 @@ class TensorFlowBackend(BaseBackend):
 
             if is_int:
                 scale, zero_point = details["quantization"]
-                im = (im / scale + zero_point).astype(details["dtype"])
+                limits = np.iinfo(details["dtype"])
+                im = im / scale + zero_point
+                im = im.clip(limits.min, limits.max, out=im).astype(details["dtype"])
 
             self.interpreter.set_tensor(details["index"], im)
             self.interpreter.invoke()

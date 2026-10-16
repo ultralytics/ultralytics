@@ -356,7 +356,7 @@ A paid provider model runs with the provider key saved in the dataset workspace'
 
 ### Batch Annotation
 
-Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–200 classes a class-prompted model — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Annotate all** action on the toast after an editor prediction that finds objects. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
+Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–200 classes a class-prompted model — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Annotate all** action on the toast after an editor prediction that finds objects or after [Find Similar Images](datasets.md#find-similar-images) adds images. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
 
 1. Select a model from the picker (`Models`, including the **Open-source models** and provider projects on detection datasets with 1–200 classes, or `My Models`); on a detection dataset the dialog opens with Moondream 3.1 selected
 2. For a YOLO model, adjust the confidence (default `0.25`) and IoU (default `0.7`) sliders — the sample images beside the settings show what the model finds as you move them. A class-prompted model detects the dataset classes (1–200) with model-specific thresholds instead of these settings and returns no scores

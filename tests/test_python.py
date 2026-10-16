@@ -1294,6 +1294,7 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     (dataset_dir / "data.yaml").write_text("path: .\ntrain: images/train\nval: images/val\nnames:\n  0: item\n")
 
     with zipfile.ZipFile(archive, "w") as zf:
+        zf.write(tmp_path, arcname=".")
         for path in dataset_dir.rglob("*"):
             zf.write(path, arcname=path.relative_to(tmp_path))
 

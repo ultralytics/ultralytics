@@ -377,8 +377,8 @@ class TaskAlignedAssigner(nn.Module):
             topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
             topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
             mask_pos *= topk_idx
-        # Each anchor now serves at most one gt, so the column max is both its foreground flag and its gt index
-        fg_mask, target_gt_idx = mask_pos.max(-2)  # (b, h*w)
+        # Column max gives fg flag + gt idx; NPU aclnnMaxDim lacks INT8 through CANN 9.1.1; cast 0/1 mask to int64
+        fg_mask, target_gt_idx = (mask_pos.to(torch.int64) if mask_pos.device.type == "npu" else mask_pos).max(-2)
         return target_gt_idx, fg_mask, mask_pos
 
 

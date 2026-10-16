@@ -338,7 +338,7 @@ class YOLODataset(BaseDataset):
             if self.format_class is SemanticFormat:  # masks rasterize from self.labels; only these read polygons
                 self.use_segments = bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
         else:
-            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
+            transforms = Compose([LetterBox(new_shape=self.imgsz, scaleup=False)])
         transforms.append(
             self.format_class(
                 bbox_format="xywh",
@@ -557,7 +557,7 @@ class DepthDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if not self.augment:
             # stretch the image instead of padding
-            transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
+            transforms[-2] = LetterBox(new_shape=self.imgsz, scale_fill=True)
         return transforms
 
 
@@ -669,8 +669,8 @@ class GroundingDataset(YOLODataset):
         return self.scan_files
 
     def get_cache_hash(self) -> str:
-        """Return a hash over the annotation file and images scanned against it."""
-        return get_hash([self.json_file, *self.scan_files])
+        """Return a hash over annotations, scanned images and the segmentation deduplication mode."""
+        return get_hash([self.json_file, *self.scan_files, f"segments:{self.use_segments}"])
 
     def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
         """Verify instance counts for known grounding datasets."""
@@ -714,6 +714,7 @@ class GroundingDataset(YOLODataset):
                 continue
             bboxes = []
             segments = []
+            seen = []
             segmented = False
             cat2id = {}
             texts = []
@@ -737,7 +738,9 @@ class GroundingDataset(YOLODataset):
                     texts.append([cat_name])
                 cls = cat2id[cat_name]  # class
                 box = [cls, *box.tolist()]
-                if box not in bboxes:
+                key = [box, ann.get("segmentation")] if self.use_segments else box
+                if key not in seen:
+                    seen.append(key)
                     bboxes.append(box)
                     raw_seg = ann.get("segmentation")
                     segmented |= raw_seg is not None

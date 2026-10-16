@@ -1,0 +1,12 @@
+segment runs/box_s0/weights/best.pt: pairs=68153 (box IoU>=0.5)
+  spearman(boxIoU, task)  = 0.669
+  spearman(score, boxIoU) = 0.592
+  spearman(score, task)   = 0.517
+  mean boxIoU=0.703 task=0.621 |boxIoU-task| mean=0.128
+  box>=0.75 but task<0.5: 2.0%   box<0.75 but task>=0.75: 6.0%
+segment runs/mask_s0/weights/best.pt: pairs=60559 (box IoU>=0.5)
+  spearman(boxIoU, task)  = 0.705
+  spearman(score, boxIoU) = 0.612
+  spearman(score, task)   = 0.569
+  mean boxIoU=0.714 task=0.628 |boxIoU-task| mean=0.125
+  box>=0.75 but task<0.5: 2.0%   box<0.75 but task>=0.75: 4.9%

@@ -1,0 +1,27 @@
+segment yolo26n-seg.pt: pairs=67530 (box IoU>=0.5)
+  spearman(boxIoU, task)  = 0.670
+  spearman(score, boxIoU) = 0.601
+  spearman(score, task)   = 0.520
+  mean boxIoU=0.704 task=0.625 |boxIoU-task| mean=0.127
+  box>=0.75 but task<0.5: 1.9%   box<0.75 but task>=0.75: 6.2%
+--
+pose yolo26n-pose.pt: pairs=14505 (box IoU>=0.5)
+  spearman(boxIoU, task)  = 0.562
+  spearman(score, boxIoU) = 0.725
+  spearman(score, task)   = 0.604
+  mean boxIoU=0.716 task=0.601 |boxIoU-task| mean=0.198
+  box>=0.75 but task<0.5: 4.8%   box<0.75 but task>=0.75: 11.9%
+--
+pose /data/rick/poseassign/runs/full_box_s0/weights/best.pt: pairs=14100 (box IoU>=0.5)
+  spearman(boxIoU, task)  = 0.568
+  spearman(score, boxIoU) = 0.736
+  spearman(score, task)   = 0.623
+  mean boxIoU=0.719 task=0.604 |boxIoU-task| mean=0.197
+  box>=0.75 but task<0.5: 4.8%   box<0.75 but task>=0.75: 11.7%
+--
+pose /data/rick/poseassign/runs/full_oks_s0/weights/best.pt: pairs=10693 (box IoU>=0.5)
+  spearman(boxIoU, task)  = 0.662
+  spearman(score, boxIoU) = 0.769
+  spearman(score, task)   = 0.774
+  mean boxIoU=0.752 task=0.615 |boxIoU-task| mean=0.199
+  box>=0.75 but task<0.5: 5.6%   box<0.75 but task>=0.75: 8.4%

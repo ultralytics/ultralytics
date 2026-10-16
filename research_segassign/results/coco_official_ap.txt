@@ -1,0 +1,11 @@
+FULL box_s0   segm AP 33.21
+FULL box_s1   segm AP 33.22
+FULL mask_s0  segm AP 33.75
+FULL mask_s1  segm AP 33.67
+FULL box_s0   bbox AP 39.82
+FULL box_s1   bbox AP 39.84
+FULL mask_s0  bbox AP 39.80
+FULL mask_s1  bbox AP 39.79
+PAIR mask_s0 - box_s0: full-set segm delta +0.54 | half-subsets n=200: mean +0.56 95% [+0.29, +0.81] positive 99.5%
+PAIR mask_s1 - box_s1: full-set segm delta +0.45 | half-subsets n=200: mean +0.43 95% [+0.09, +0.75] positive 99.0%
+PAIR box_s1 - box_s0: full-set segm delta +0.02 | half-subsets n=200: mean +0.05 95% [-0.20, +0.38] positive 60.0%

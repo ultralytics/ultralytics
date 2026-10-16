@@ -1224,12 +1224,11 @@ def attempt_compile(
     elif device.type == "cuda":
         try:  # inductor CUDA codegen needs Triton and a GPU it supports (compute capability >= 7.0)
             from torch.utils._triton import has_triton
-        except ImportError:
-            pass  # older torch without the probe, defer to torch.compile
-        else:
-            if not has_triton():
-                LOGGER.warning(f"{prefix} no working Triton found for the inductor backend, continuing uncompiled")
-                return model
+        except ImportError:  # torch<2.2 keeps the same probe in inductor
+            from torch._inductor.utils import has_triton
+        if not has_triton():
+            LOGGER.warning(f"{prefix} no working Triton found for the inductor backend, continuing uncompiled")
+            return model
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:

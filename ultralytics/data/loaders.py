@@ -115,7 +115,8 @@ class LoadStreams:
         if os.path.isfile(sources):
             with open(sources, "rb") as f:
                 encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
-                sources = TextIOWrapper(f, encoding=encoding).read().rsplit()
+                with TextIOWrapper(f, encoding=encoding) as reader:
+                    sources = reader.read().rsplit()
         else:
             sources = [sources]
         n = len(sources)
@@ -381,7 +382,8 @@ class LoadImagesAndVideos:
             parent = Path(path).parent
             with open(path, "rb") as f:
                 encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
-                content = TextIOWrapper(f, encoding=encoding).read()
+                with TextIOWrapper(f, encoding=encoding) as reader:
+                    content = reader.read()
             if Path(path).suffix == ".txt":
                 path = content.splitlines()
             else:

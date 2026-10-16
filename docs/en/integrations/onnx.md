@@ -195,6 +195,23 @@ When exporting your YOLO26 model to ONNX format, you can customize the process u
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
+### INT8 Quantization
+
+For checkpoints not trained with [quantization-aware training](../modes/export.md#quantization-aware-training), `quantize=8` inserts Q/DQ nodes with ONNX Runtime static quantization. Only `Conv`, `Gemm`, and `MatMul` nodes are quantized; every other node stays in floating point, including the ops that assemble `output0`. Box coordinates (in pixels) and class scores (0 to 1) share that output tensor, so a single INT8 scale for it would round every score to zero.
+
+If you run `onnxruntime.quantization.quantize_static` on an exported FP32 model yourself, exclude the same nodes; without `nodes_to_exclude` the INT8 model detects nothing:
+
+```python
+import onnx
+from onnxruntime.quantization import quantize_static
+
+model = "yolo26n.onnx"
+exclude = [n.name for n in onnx.load(model).graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
+quantize_static(model, "yolo26n_int8.onnx", calibration_reader, nodes_to_exclude=exclude)
+```
+
+Here `calibration_reader` is an `onnxruntime.quantization.CalibrationDataReader` that yields `{"images": array}` for each calibration image, preprocessed as for inference: letterboxed to the export size, RGB, NCHW, `float32` in 0-1.
+
 ## Deploying Exported YOLO26 ONNX Models
 
 Once you've successfully exported your Ultralytics YOLO26 models to ONNX format, the next step is deploying these models in various environments. For detailed instructions on deploying your ONNX models, take a look at the following resources:

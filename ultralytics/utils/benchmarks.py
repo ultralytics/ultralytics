@@ -129,9 +129,10 @@ def benchmark(
     if isinstance(model, (YOLOE, YOLOWorld)) and not hasattr(model.model.model[-1], "lrpc"):
         data = convert_ndjson_to_yolo_if_needed(data, split="val")
         names = [name.split("/", 1)[0] for name in check_det_dataset(data)["names"].values()]
-        if list(model.names.values()) != names:  # exports bake the current vocabulary, the PyTorch row is re-prompted
+        # exports bake the current vocabulary, while validation re-prompts YOLOE always and YOLO-World on new names
+        if isinstance(model, YOLOE) or list(model.names.values()) != names:
             model = deepcopy(model, {id(model.predictor): None, id(model.trainer): None})
-            model.set_classes(names)
+            model.set_classes(names, model.get_text_pe(names)) if isinstance(model, YOLOE) else model.set_classes(names)
 
     y = []
     t0 = time.time()

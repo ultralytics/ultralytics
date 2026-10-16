@@ -1686,6 +1686,23 @@ def test_rtdetr_remap_cls_by_names():
     assert "decoder.denoising_class_embed.weight" not in csd  # popped so intersect_dicts skips it
 
 
+@pytest.mark.parametrize("dtype", [torch.float16, torch.float32])
+@pytest.mark.parametrize("size", [80, 320])
+def test_segmentation_dice_large_masks(dtype, size):
+    """Auxiliary Dice loss and gradients must match float32 when mask sums exceed the FP16 range."""
+    from ultralytics.utils.loss import MultiChannelDiceLoss
+
+    pred = torch.ones(1, 1, size, size, dtype=dtype, requires_grad=True)
+    reference = pred.detach().float().requires_grad_()
+    target = torch.ones_like(reference)
+    criterion = MultiChannelDiceLoss(smooth=1)
+    loss, expected = criterion(pred, target), criterion(reference, target)
+    loss.backward()
+    expected.backward()
+    assert loss.item() == pytest.approx(expected.item(), abs=3e-4)
+    assert pred.grad.float().sum().item() == pytest.approx(reference.grad.sum().item(), rel=0.03)
+
+
 @pytest.mark.parametrize("nc", [1, 3])
 def test_semantic_loss_all_ignore(nc):
     """SemanticSegmentationLoss must stay finite when the whole batch is ignore (255), e.g. unlabeled/void frames."""

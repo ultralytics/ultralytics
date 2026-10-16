@@ -288,7 +288,7 @@ class MultiChannelDiceLoss(nn.Module):
 
         pred = pred.sigmoid()
         intersection = (pred * target).sum(dim=(2, 3))
-        union = pred.sum(dim=(2, 3)) + target.sum(dim=(2, 3))
+        union = pred.sum(dim=(2, 3), dtype=torch.float32) + target.sum(dim=(2, 3))
         dice = (2.0 * intersection + self.smooth) / (union + self.smooth)
         dice_loss = 1.0 - dice
         dice_loss = dice_loss.mean(dim=1)

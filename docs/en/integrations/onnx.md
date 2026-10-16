@@ -197,9 +197,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### INT8 Quantization
 
-For checkpoints not trained with [quantization-aware training](../modes/export.md#quantization-aware-training), `quantize=8` inserts Q/DQ nodes with ONNX Runtime static quantization. Only `Conv`, `Gemm`, and `MatMul` nodes are quantized; all other nodes are excluded from quantization, including the ops that assemble `output0`. Box coordinates (in pixels) and class scores (0 to 1) share that output tensor, so a single INT8 scale for it can collapse class scores to zero.
-
-If you run `onnxruntime.quantization.quantize_static` on an exported FP32 model yourself, exclude the same nodes; quantizing the assembled detection output can collapse class scores to zero:
+For checkpoints not trained with [quantization-aware training](../modes/export.md#quantization-aware-training), `quantize=8` applies ONNX Runtime static quantization to `Conv`, `Gemm`, and `MatMul` nodes only. All other nodes stay in float, including the ops that assemble `output0`: box coordinates (pixels) and class scores (0 to 1) share that tensor, so a single INT8 scale for it would round every class score to zero. Exclude the same nodes if you run `quantize_static` on an exported FP32 model yourself:
 
 ```python
 import onnx

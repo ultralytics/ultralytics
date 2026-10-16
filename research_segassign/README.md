@@ -13,8 +13,9 @@ quality, not mask quality. `seg_assign=mask` switches to
 
 where each predicted mask is decoded from prototypes, cropped to its predicted box and binarized (as validation does), at
 prototype resolution (160x160 for 640 input). Mask IoU is computed only for each gt's top `3 * topk` candidates by the box
-alignment metric (only these can become positives); on a real batch the positives and gt indices are identical to
-computing it for all candidates, soft targets differ by <= 0.01 (fp16 boundary pixels).
+alignment metric (only these can become positives); on one coco8-seg batch with the pretrained model the positives and
+gt indices are identical to computing it for all candidates, soft targets differ by <= 0.01 (fp16 boundary pixels).
+Equivalence early in training (weak masks) was not checked.
 
 Code: branch `seg-assign-maskiou`, `SegTaskAlignedAssigner` in `ultralytics/utils/tal.py`, wiring in
 `v8SegmentationLoss` (`ultralytics/utils/loss.py`), knobs `seg_assign` / `seg_assign_w` in `cfg/default.yaml`.
@@ -98,12 +99,13 @@ uv venv ~/venv-segassign --python 3.12
 VIRTUAL_ENV=~/venv-segassign uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 VIRTUAL_ENV=~/venv-segassign uv pip install -e ult-segassign faster-coco-eval
 # data: coco-seg.yaml points at /data/shared-datasets/coco (Ultralytics COCO with polygon labels); yolo26n.pt from assets v8.4.0
-python train.py box_s0 box 0 0   # <name> <seg_assign> <seed> <device>
-python train.py box_s1 box 1 1
-python train.py mask_s0 mask 0 2
-python train.py mask_s1 mask 1 3
-python coco_pair_seg.py /data/rick/segassign/runs          # official segm/bbox AP + paired CI
-python align_diag.py segment runs/mask_s0/weights/best.pt coco-seg.yaml out.npz 0   # score~maskIoU diagnostic
+~/venv-segassign/bin/python train.py box_s0 box 0 0   # <name> <seg_assign> <seed> <device>
+~/venv-segassign/bin/python train.py box_s1 box 1 1
+~/venv-segassign/bin/python train.py mask_s0 mask 0 2
+~/venv-segassign/bin/python train.py mask_s1 mask 1 3
+~/venv-segassign/bin/python coco_pair_seg.py /data/rick/segassign/runs          # official segm/bbox AP + paired CI
+~/venv-segassign/bin/python align_diag.py segment runs/mask_s0/weights/best.pt coco-seg.yaml out.npz 0   # score~maskIoU diagnostic
+# val.py <name> <device>: only needed if a run lacks predictions.json (training's final COCO val already writes it)
 ```
 
 Runs and weights: ultra5 `/data/rick/segassign/runs/{box_s0,mask_s0,mask_s1,box_s1(predictions only)}`, box_s1 full
@@ -116,5 +118,6 @@ run on ultra4 `/data/rick/segassign/runs/box_s1`.
 - +28% train time is mostly the per-image Python loop over prototype decoding; needs vectorizing before a PR.
 - `seg_assign_w` was not swept (0.5 copied from pose); w=0.75/1.0 might give more.
 - Not tested: YOLOE-seg (`TVPSegmentLoss`), `overlap_mask=False` training (path implemented and spot-checked only), DDP.
+- Any PR must come from a fresh branch off main (this branch carries the experiment knobs and this record).
 - For a PR, pose and seg `get_box_metrics` overrides should merge into one per-pair quality hook on
   `TaskAlignedAssigner` instead of two near-identical subclasses.

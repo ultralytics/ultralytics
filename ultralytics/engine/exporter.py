@@ -837,7 +837,9 @@ class Exporter:
                     # https://github.com/ultralytics/ultralytics/issues/23841 and /issues/26655
                     docs = "https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
                     if self.args.nms:
-                        raise ValueError(f"TensorRT 10.3.0 on JetPack 6 cannot build INT8 'nms=True' exports. For a fix, see {docs}")
+                        raise ValueError(
+                            f"TensorRT 10.3.0 on JetPack 6 cannot build INT8 'nms=True' exports. For a fix, see {docs}"
+                        )
                     model.end2end = False
                     LOGGER.warning(
                         f"TensorRT 10.3.0 on JetPack 6 with INT8 cannot build NMS-free exports; selecting one-to-many outputs. For a fix, see {docs}"

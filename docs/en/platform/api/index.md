@@ -1788,7 +1788,7 @@ Each format honors only the options in its **Arguments** column of the export ta
 YOLO11 sizes other than nano return `400`.
 
 **Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `region`, and `gpuType` for TensorRT exports.
-An equivalent export that is already in flight returns `409`.
+While an export of the same format is in flight for the model, a new request returns `409` whatever its `args`.
 
 **Supported Formats:**
 

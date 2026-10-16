@@ -228,6 +228,34 @@ def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     assert calls["batch"] == 8
 
 
+@pytest.mark.parametrize(
+    ("model_name", "nms", "end2end"),
+    [
+        ("yolo26n.pt", None, True),
+        ("yolo26n.pt", False, True),
+        ("yolo26n.pt", True, False),
+        ("yolo26n-seg.pt", None, True),
+        ("yolo26n-pose.pt", None, True),
+        ("yolo26n-obb.pt", None, True),
+        ("yolo11n.yaml", None, False),
+    ],
+)
+def test_export_axelera_keeps_nms_free_head(model_name, nms, end2end, monkeypatch, tmp_path):
+    """Check Axelera export keeps a one-to-one head unless nms=True, and leaves one-to-many-only models alone."""
+    seen = {}
+
+    def fake_export_axelera(self, prefix=""):
+        seen["end2end"] = self.model.end2end
+        seen["requested"] = getattr(self.model.model[-1], "_end2end", False)
+        return str(tmp_path)
+
+    monkeypatch.setattr(Exporter, "export_axelera", fake_export_axelera)
+    model = isolated_model_path(tmp_path, WEIGHTS_DIR / model_name) if model_name.endswith(".pt") else model_name
+    YOLO(model).export(format="axelera", imgsz=64, data="coco8.yaml", nms=nms)
+    assert seen["end2end"] is end2end
+    assert seen["requested"] is end2end  # a one-to-many-only head is never asked for a one-to-one branch
+
+
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     """Ensure ONNX exports do not overlap across worker threads."""
     active = 0

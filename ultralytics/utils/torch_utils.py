@@ -1211,28 +1211,21 @@ def attempt_compile(
     if mode is True:
         mode = "default"
     prefix = colorstr("compile:")
-    if device.type == "cpu":
-        try:  # compilation is lazy, so verify the inductor CPU requirement of a host C++ compiler before compiling
+    try:  # compilation is lazy, so verify the inductor prerequisites before compiling
+        if device.type == "cpu":
             from torch._inductor.cpp_builder import get_cpp_compiler
 
-            get_cpp_compiler()
-        except ImportError:
-            pass  # older torch without cpp_builder, defer to torch.compile
-        except Exception as e:
-            LOGGER.warning(f"{prefix} no C++ compiler found for the inductor backend, continuing uncompiled: {e}")
-            return model
-    elif device.type == "cuda":
-        try:  # inductor CUDA codegen needs Triton and a GPU it supports (compute capability >= 7.0)
-            try:
-                from torch.utils._triton import has_triton
-            except ImportError:  # torch<2.2 keeps the same probe in inductor
-                from torch._inductor.utils import has_triton
-            if not has_triton():
-                LOGGER.warning(f"{prefix} no working Triton found for the inductor backend, continuing uncompiled")
-                return model
-        except Exception as e:
-            LOGGER.warning(f"{prefix} Triton check failed for the inductor backend, continuing uncompiled: {e}")
-            return model
+            get_cpp_compiler()  # host C++ compiler
+        elif device.type == "cuda":
+            from torch.utils._triton import has_triton
+
+            if not has_triton():  # e.g. Windows wheels or GPUs below compute capability 7.0
+                raise RuntimeError("no working Triton found")
+    except ImportError:
+        pass  # older torch without these probes, defer to torch.compile
+    except Exception as e:
+        LOGGER.warning(f"{prefix} inductor backend unavailable, continuing uncompiled: {e}")
+        return model
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:

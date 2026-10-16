@@ -192,7 +192,7 @@ def unzip_file(
     # Unzip the file contents
     with ZipFile(file) as zipObj:
         files = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
-        top_level_dirs = {Path(f).parts[0] for f in files}
+        top_level_dirs = {part for f in files for part in Path(f).parts[:1]}
 
         # Decide to unzip directly or unzip into a directory
         unzip_as_dir = len(top_level_dirs) == 1  # (len(files) > 1 and not files[0].endswith("/"))

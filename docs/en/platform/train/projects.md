@@ -157,7 +157,7 @@ Compare model performance using the charts dashboard:
 1. Select models in the sidebar using checkboxes
 2. View overlaid metric curves grouped by type (metrics, loss, learning rate)
 3. Drag charts to rearrange, resize by dragging edges
-4. Hover to see exact values, click legend items to hide/show models, click a model line to navigate to that model
+4. Hover to see exact values, click legend items to hide/show models, drag to zoom, and click to reset the zoom
 
 Available chart groups:
 
@@ -173,8 +173,7 @@ Comparing models trained for different tasks works, but each model only draws on
 
     - Hover to see exact values
     - Click legend items to hide/show models
-    - Drag to zoom into specific regions
-    - Click a model line to navigate to that model's page
+    - Drag to zoom into specific regions, and click to reset the zoom
     - Collapse a group, or use its menu to hide individual charts and the train or validation loss series
     - Rearrange and resize charts; layout persists across sessions
 

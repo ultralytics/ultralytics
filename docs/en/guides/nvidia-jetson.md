@@ -1007,12 +1007,9 @@ Use `procrank` to profile per-process RAM usage and `sudo cat /sys/kernel/debug/
 
 ### Why does my TensorRT INT8 export disable NMS-free inference on JetPack 6?
 
-TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents building INT8 engines with NMS-free (`nms=False`) or embedded NMS (`nms=True`) graphs. When Ultralytics detects this combination:
+TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents building INT8 engines with NMS-free (`nms=False`) or embedded NMS (`nms=True`) outputs. When Ultralytics detects this combination, it selects the one-to-many head for NMS-free exports and stops `nms=True` exports with an error.
 
-- For NMS-free (`nms=False`), it automatically selects the one-to-many head to ensure the export succeeds.
-- For embedded NMS (`nms=True`), it halts with an explicit error to prevent silent modification of the expected model output shape.
-
-To build NMS-free or `nms=True` INT8 exports, upgrade TensorRT to a newer version (e.g., 10.7.0+):
+To restore these INT8 exports, upgrade TensorRT to a newer version (e.g., 10.7.0+):
 
 ```bash
 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb

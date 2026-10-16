@@ -732,31 +732,6 @@ class Exporter:
                 # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
                 model.end2end = False
                 LOGGER.warning("LiteRT INT8 export does not support end2end models, disabling end2end branch.")
-            if fmt == "engine":
-                try:
-                    import tensorrt as trt
-
-                    if check_version(trt.__version__, "<8.5.0"):
-                        # https://github.com/ultralytics/ultralytics/issues/24607
-                        model.end2end = False
-                        LOGGER.warning(
-                            "TensorRT versions earlier than 8.5.0 do not support the Mod operator in end-to-end models, disabling the end2end branch. "
-                            "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
-                        )
-
-                    if (
-                        self.args.quantize == 8
-                        and check_version(trt.__version__, ">=10.3.0,<10.4.0")  # JetPack 6 builds report 10.3.0.x
-                        and is_jetson(jetpack=6)
-                    ):
-                        # https://github.com/ultralytics/ultralytics/issues/23841
-                        model.end2end = False
-                        LOGGER.warning(
-                            "TensorRT 10.3.0 on JetPack 6 with INT8 cannot build NMS-free exports; selecting one-to-many outputs. "
-                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
-                        )
-                except ImportError:
-                    pass
         if self.args.quantize == 16 and fmt == "torchscript" and self.device.type == "cpu":
             raise ValueError("FP16 TorchScript export is only supported on GPU, i.e. use device=0.")
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
@@ -842,21 +817,30 @@ class Exporter:
                 raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")
             if model.task not in {"detect", "pose"}:
                 raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
-        if (
-            fmt == "engine"
-            and self.args.nms
-            and (self.args.quantize == 8 or (self.args.quantize is None and is_qat(model)))
-        ):
+        if fmt == "engine" and (getattr(model, "end2end", False) or self.args.nms):
             try:
                 import tensorrt as trt
 
-                # https://github.com/ultralytics/ultralytics/issues/26655
-                if check_version(trt.__version__, ">=10.3.0,<10.4.0") and is_jetson(jetpack=6):
-                    raise ValueError(
-                        "TensorRT 10.3.0 on JetPack 6 with INT8 cannot build 'nms=True' exports due to an upstream "
-                        "TensorRT optimizer error (checkLinks::218). Please upgrade to TensorRT >= 10.7.0 or export "
-                        "with nms=False or quantize=16. "
-                        "See https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
+                if getattr(model, "end2end", False) and check_version(trt.__version__, "<8.5.0"):
+                    # https://github.com/ultralytics/ultralytics/issues/24607
+                    model.end2end = False
+                    LOGGER.warning(
+                        "TensorRT versions earlier than 8.5.0 do not support the Mod operator in end-to-end models, disabling the end2end branch. "
+                        "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
+                    )
+
+                if (
+                    self.args.quantize == 8
+                    and check_version(trt.__version__, ">=10.3.0,<10.4.0")  # JetPack 6 builds report 10.3.0.x
+                    and is_jetson(jetpack=6)
+                ):
+                    # https://github.com/ultralytics/ultralytics/issues/23841 and /issues/26655
+                    docs = "https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
+                    if self.args.nms:
+                        raise ValueError(f"TensorRT 10.3.0 on JetPack 6 cannot build INT8 'nms=True' exports. For a fix, see {docs}")
+                    model.end2end = False
+                    LOGGER.warning(
+                        f"TensorRT 10.3.0 on JetPack 6 with INT8 cannot build NMS-free exports; selecting one-to-many outputs. For a fix, see {docs}"
                     )
             except ImportError:
                 pass

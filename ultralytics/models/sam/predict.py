@@ -384,6 +384,9 @@ class Predictor(BasePredictor):
 
         self.segment_all = True
         ih, iw = im.shape[2:]
+        h0, w0 = self.src_shape
+        gain = min(ih / h0, iw / w0)  # letterbox gain; the image fills the top-left of the padded input
+        content = np.array([round(w0 * gain), round(h0 * gain)])
         crop_regions, layer_idxs = generate_crop_boxes((ih, iw), crop_n_layers, crop_overlap_ratio)
         if point_grids is None:
             point_grids = build_all_layer_point_grids(points_stride, crop_n_layers, crop_downscale_factor)
@@ -391,12 +394,16 @@ class Predictor(BasePredictor):
         for crop_region, layer_idx in zip(crop_regions, layer_idxs):
             x1, y1, x2, y2 = crop_region
             w, h = x2 - x1, y2 - y1
+            grid = point_grids[layer_idx]
+            grid = grid[(grid * [w, h] + [x1, y1] <= content).all(1)]  # prompt the image, not the letterbox padding
+            if not len(grid):
+                continue
             area = torch.tensor(w * h, device=im.device)
             points_scale = np.array([[iw, ih]])  # the crop is resized to the model input, so prompts live in that space
             # Crop image and interpolate to input size
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode="bilinear", align_corners=False)
             crop_features = self.get_im_features(crop_im)
-            points_for_image = point_grids[layer_idx] * points_scale
+            points_for_image = grid * points_scale
             crop_masks, crop_scores, crop_bboxes = [], [], []
             for (points,) in batch_iterator(points_batch_size, points_for_image):
                 prompts = self._prepare_prompts(crop_im.shape[2:], self.src_shape, points=points)
@@ -437,6 +444,8 @@ class Predictor(BasePredictor):
             pred_scores.append(crop_scores)
             region_areas.append(area.expand(crop_masks.shape[0]))
 
+        if not pred_masks:  # no grid point lies on the image
+            return im.new_zeros((0, ih, iw), dtype=torch.bool), im.new_zeros(0), im.new_zeros((0, 4))
         pred_masks = torch.cat(pred_masks)
         pred_bboxes = torch.cat(pred_bboxes)
         pred_scores = torch.cat(pred_scores)
@@ -451,9 +460,7 @@ class Predictor(BasePredictor):
         idx = pred_scores > self.args.conf  # postprocess applies conf too, so it must not decide the cleanup NMS
         pred_masks, pred_scores, pred_bboxes = pred_masks[idx], pred_scores[idx], pred_bboxes[idx]
 
-        if min_mask_region_area > 0:
-            h0, w0 = self.src_shape
-            gain = min(ih / h0, iw / w0)  # masks are in letterboxed model space, the threshold is in original pixels
+        if min_mask_region_area > 0:  # masks are in letterboxed model space, the threshold is in original pixels
             min_area = min_mask_region_area * gain * gain
             pred_masks, keep = self.remove_small_regions(pred_masks, min_area, max(self.args.iou, crop_nms_thresh))
             pred_scores, pred_bboxes = pred_scores[keep], batched_mask_to_box(pred_masks).float()

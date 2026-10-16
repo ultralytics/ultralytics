@@ -56,7 +56,7 @@ class OCR(BaseSolution):
                 verbose=False,
             )[0]
 
-        annotator = SolutionAnnotator(im0, self.line_width)
+        annotator = SolutionAnnotator(im0.copy(), self.line_width)
         texts, boxes, classes, confidences = [], [], [], []
         height, width = im0.shape[:2]
 

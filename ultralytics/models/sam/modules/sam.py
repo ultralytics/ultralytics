@@ -474,25 +474,18 @@ class SAM2Model(torch.nn.Module):
             sam_point_coords = torch.zeros(B, 1, 2, device=device, dtype=backbone_features.dtype)
             sam_point_labels = -torch.ones(B, 1, dtype=torch.int32, device=device)
 
-        # b) Handle mask prompts
-        if mask_inputs is not None:
-            # If mask_inputs is provided, downsize it into low-res mask input if needed
-            # and feed it as a dense mask prompt into the SAM mask encoder
-            assert len(mask_inputs.shape) == 4 and mask_inputs.shape[:2] == (B, 1)
-            if mask_inputs.shape[-2:] != self.sam_prompt_encoder.mask_input_size:
+        # b) Preserve video mask antialiasing before the shared prompt encoder handles sizing.
+        sam_mask_prompt = mask_inputs.to(backbone_features.dtype) if mask_inputs is not None else None
+        if sam_mask_prompt is not None:
+            assert len(sam_mask_prompt.shape) == 4 and sam_mask_prompt.shape[:2] == (B, 1)
+            if sam_mask_prompt.shape[-2:] != tuple(self.sam_prompt_encoder.mask_input_size):
                 sam_mask_prompt = F.interpolate(
-                    mask_inputs.to(backbone_features.dtype),
+                    sam_mask_prompt,
                     size=self.sam_prompt_encoder.mask_input_size,
                     align_corners=False,
                     mode="bilinear",
-                    antialias=True,  # use antialias for downsampling
+                    antialias=True,
                 )
-            else:
-                sam_mask_prompt = mask_inputs
-        else:
-            # Otherwise, simply feed None (and SAM's prompt encoder will add
-            # a learned `no_mask_embed` to indicate no mask input in this case).
-            sam_mask_prompt = None
 
         sparse_embeddings, dense_embeddings = self.sam_prompt_encoder(
             points=(sam_point_coords, sam_point_labels),

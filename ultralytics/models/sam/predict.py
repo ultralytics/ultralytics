@@ -329,7 +329,7 @@ class Predictor(BasePredictor):
             masks = masks[None] if masks.ndim == 2 else masks
             letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
             masks = np.stack([letterbox(image=x).squeeze() for x in masks], axis=0)
-            # (N, H, W) --> (N, 1, H, W), kept at full resolution: the SAM2 video path downsamples mask prompts itself
+            # Add the channel dimension expected by SAM prompt encoders.
             masks = torch.as_tensor(masks, dtype=self.torch_dtype, device=self.device)[:, None]
         return bboxes, points, labels, masks
 

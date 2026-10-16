@@ -8,9 +8,10 @@ import math
 import os
 import time
 import urllib
+from codecs import BOM_UTF8
 from dataclasses import dataclass
 from functools import partial
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from threading import Thread
@@ -111,7 +112,12 @@ class LoadStreams:
         self.vid_stride = vid_stride  # video frame-rate stride
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
-        sources = Path(sources).read_text().lstrip("\ufeff").rsplit() if os.path.isfile(sources) else [sources]
+        if os.path.isfile(sources):
+            with open(sources, "rb") as f:
+                encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
+                sources = TextIOWrapper(f, encoding=encoding).read().rsplit()
+        else:
+            sources = [sources]
         n = len(sources)
         self.bs = n
         self.fps = [0] * n  # frames per second
@@ -372,7 +378,10 @@ class LoadImagesAndVideos:
         source_path = path
         parent = None
         if isinstance(path, (str, Path)) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
-            parent, content = Path(path).parent, Path(path).read_text().lstrip("\ufeff")
+            parent = Path(path).parent
+            with open(path, "rb") as f:
+                encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
+                content = TextIOWrapper(f, encoding=encoding).read()
             if Path(path).suffix == ".txt":
                 path = content.splitlines()
             else:

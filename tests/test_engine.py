@@ -42,7 +42,7 @@ def test_rtdetr_validation_class_filter(classes, expected, dtype, tmp_path):
         assert outputs[0]["bboxes"].shape == (len(expected), 4)
         assert outputs[0]["bboxes"].dtype == dtype
         if expected:
-            assert torch.equal(outputs[0]["bboxes"], torch.tensor([[120.0, 60.0, 200.0, 100.0]]))
+            assert torch.equal(outputs[0]["bboxes"], torch.tensor([[120.0, 60.0, 200.0, 100.0]], dtype=dtype))
         assert outputs[1]["bboxes"].shape == (0, 4)
         assert outputs[1]["conf"].numel() == outputs[1]["cls"].numel() == 0
 

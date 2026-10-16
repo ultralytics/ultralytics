@@ -695,8 +695,6 @@ class Exporter:
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
                 raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
-        if fmt == "axelera" and model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
-            raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
         if fmt == "imx":
             if model.task == "depth":
                 raise ValueError("IMX export is not supported for depth models.")

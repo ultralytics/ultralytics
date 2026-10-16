@@ -59,14 +59,14 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 ## Supported Tasks
 
-Depth estimation is not supported: the depth head emits operators the Metis AIPU compiler cannot lower. YOLO26 instance segmentation is not supported by Ultralytics `export` either, but can still be deployed through the Voyager SDK as described below. YOLO26 semantic segmentation is supported.
+Every task below exports, predicts and validates through the `yolo` commands, YOLO26 instance segmentation, semantic segmentation and depth estimation included.
 
-{% set unsupported = ["depth", "yolo26-segment"] %}
+!!! tip "Calibrate depth models on images from your own scenes"
+
+    Quantization ranges come from the calibration images, and the default for depth, `depth8.yaml`, holds four indoor frames. On the 654-image [NYU Depth V2](../datasets/depth/nyu-depth-v2.md) val split, YOLO26n depth calibrated on that default scores delta1 0.742 on Metis against 0.783 for the PyTorch model, while 100 NYU training frames give 0.780. Pass `data=` with a dataset YAML whose `val` split holds at least 100 images from the scenes the model will see; calibration reads the `val` split.
+
+{% set unsupported = [] %}
 {% include "macros/supported-tasks.md" %}
-
-!!! note
-
-    YOLO26 instance segmentation is not yet supported through the Ultralytics `export` command. Users who need `yolo26-seg` can deploy via the [Voyager SDK](https://github.com/axelera-ai-hub/voyager-sdk) using `deploy.py`, which provides a user-space workaround. Native compiler support will be added in a future release.
 
 ## Installation
 

@@ -385,12 +385,11 @@ EXPORT_ENVS = {
     "isolated-axelera": {
         "python": "3.13",
         "extras": ["export-base"],
-        # Axelera export requires 2.8.0 <= torch < 2.13.0.
-        "torch": ">=2.8,<2.13",
+        # Axelera export requires 2.8.0 <= torch < 2.15.0.
+        "torch": ">=2.8,<2.15",
         "requirements": [
             f"axelera-devkit=={AXELERA_SDK}",
             f"axelera-rt=={AXELERA_SDK}",
-            "omnimalloc==0.5.0",
             "onnx>=1.12.0,<2.0.0",
             "onnxslim>=0.1.71",
         ],

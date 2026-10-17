@@ -653,7 +653,7 @@ class Annotator:
         """
         self._to_numpy()
         if self.pil:
-            w, h = self.font.getsize(text)
+            h = max(self.font.getsize(line)[1] for line in text.split("\n"))  # measure per line, raqm rejects newlines
             if anchor == "bottom":  # start y from font bottom
                 xy[1] += 1 - h
             for line in text.split("\n"):

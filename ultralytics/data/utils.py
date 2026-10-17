@@ -653,9 +653,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Returns:
         (Path): The path of the found YAML file.
     """
-    files = (
-        list(path.glob("*.yaml")) or list(path.rglob("*.yaml")) or list(path.glob("*.yml")) or list(path.rglob("*.yml"))
-    )  # *.yaml (root level first then recursive) before *.yml, so stray .yml files never shadow a dataset .yaml
+    files = next((f for e in ("*.yaml", "*.yml") if (f := list(path.glob(e)) or list(path.rglob(e)))), [])
     assert files, f"No YAML file found in '{path.resolve()}'"
     if len(files) > 1:
         files = [f for f in files if f.stem == path.stem]  # prefer YAML files that match

@@ -54,20 +54,13 @@ def auto_annotate(
         data, stream=True, device=device, conf=conf, iou=iou, imgsz=imgsz, max_det=max_det, classes=classes
     )
 
-    bases: set = set()  # claimed output stems, so same-stem sources don't overwrite each other's labels
     for result in det_results:
         if class_ids := result.boxes.cls.int().tolist():  # Extract class IDs from detection results
             boxes = result.boxes.xyxy  # Boxes object for bbox outputs
             sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)
             segments = sam_results[0].masks.xyn
 
-            stem = Path(result.path).stem
-            base, k = stem, 1
-            while base in bases:  # same-stem sources (a/img.jpg + b/img.jpg, img.jpg + img.png) get -2, -3...
-                k += 1
-                base = f"{stem}-{k}"
-            bases.add(base)
-            with open(Path(output_dir) / f"{base}.txt", "w", encoding="utf-8") as f:
+            with open(f"{Path(output_dir) / det_model.predictor.txt_path.name}.txt", "w", encoding="utf-8") as f:
                 for i, s in enumerate(segments):
                     if len(s) >= 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                         segment = map(str, s.reshape(-1).tolist())

@@ -51,6 +51,6 @@ class DepthPredictor(BasePredictor):
         results = []
         for depth, orig_img, img_path in zip(depth_maps, orig_imgs, self.batch[0]):
             depth = F.interpolate(depth[None], orig_img.shape[:2], mode="bilinear", align_corners=True)
-            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, depth=depth.squeeze()))
+            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, depth=depth[0, 0]))
 
         return results

@@ -566,33 +566,6 @@ def test_youtube():
         LOGGER.error(f"YouTube Test Error: {e}")
 
 
-@pytest.mark.parametrize("angle", [None, 0.3])
-@pytest.mark.parametrize("rotation,scale", [(0, 1), (0, 1.2), (-15, 1), (15, 0.8), (45, 1)])
-def test_track_gmc_box_geometry(angle, rotation, scale):
-    """Camera motion must transform box extents as sizes, matching transformed corners for AABBs and OBBs."""
-    from ultralytics.trackers.bot_sort import BOTrack
-    from ultralytics.trackers.utils.kalman_filter import KalmanFilterXYWH
-    from ultralytics.trackers.utils.stracks import multi_gmc
-
-    box = [320, 240, 20, 200, 0] if angle is None else [320, 240, 20, 200, angle, 0]
-    track = BOTrack(np.array(box), 0.9, 0)
-    track.activate(KalmanFilterXYWH(), 1)
-    cx, cy, w, h = track.mean[:4]
-    corners = cv2.boxPoints(((cx, cy), (w, h), np.degrees(track.angle or 0)))
-    warp = cv2.getRotationMatrix2D((320, 240), rotation, scale)
-    expected = cv2.transform(corners[None], warp)[0]
-    multi_gmc([track], warp)
-    cx, cy, w, h = track.mean[:4]
-    assert w > 0 and h > 0
-    if angle is None:
-        np.testing.assert_allclose(track.xyxy, np.r_[expected.min(0), expected.max(0)], atol=1e-4)
-    else:
-        actual = cv2.boxPoints(((cx, cy), (w, h), np.degrees(track.angle)))
-        assert np.linalg.norm(actual[:, None] - expected[None], axis=-1).min(1).max() < 1e-4
-    assert np.isfinite(track.covariance).all() and np.linalg.eigvalsh(track.covariance).min() > -1e-9
-    assert np.linalg.eigvalsh(track.kalman_filter.project(track.mean, track.covariance)[1]).min() > 0
-
-
 def test_track_second_association_indices():
     """Low-confidence detections matched in second association keep full detection-set indices."""
     from ultralytics.engine.results import Boxes

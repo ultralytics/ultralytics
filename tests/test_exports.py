@@ -574,7 +574,7 @@ def test_export_imx(tmp_path, conf, expected):
 @pytest.mark.parametrize("quantize,batch", [(8, 8), (16, 1)])
 def test_export_rknn(isolated_model, quantize, batch):
     """Test YOLO export to RKNN format."""
-    file = YOLO(isolated_model).export(format="rknn", imgsz=32, quantize=quantize, batch=batch, data="coco8.yaml")
+    file = YOLO(isolated_model).export(format="rknn", imgsz=64, quantize=quantize, batch=batch, data="coco8.yaml")
     assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
     shutil.rmtree(file, ignore_errors=True)
 

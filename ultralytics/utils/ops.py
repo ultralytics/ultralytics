@@ -545,14 +545,26 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
 
     if upsample:
         # Upsample then crop at image resolution; cropping first smears the bilinear edge outside the bbox (#24272)
-        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # NHW
+        chunk_size = max(1, 16_000_000 // (shape[0] * shape[1]))
+        if len(masks) <= chunk_size:
+            masks = F.interpolate(masks[None], shape, mode="bilinear")[0]
+            output = torch.empty_like(masks, dtype=torch.uint8)
+            torch.gt(masks, 0.0, out=output)
+        else:
+            output = torch.empty((len(masks), *shape), dtype=torch.uint8, device=masks.device)
+            for i in range(0, len(masks), chunk_size):
+                chunk = F.interpolate(masks[None, i : i + chunk_size], shape, mode="bilinear")[0]
+                torch.gt(chunk, 0.0, out=output[i : i + chunk_size])
+                del chunk  # release the float intermediate before allocating the next chunk
+        masks = output
     else:
         width_ratio = mw / shape[1]
         height_ratio = mh / shape[0]
         ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
         bboxes = bboxes * ratios  # scale boxes to prototype resolution
+        masks = masks.gt_(0.0).byte()
     # Binarize before cropping so crop_mask runs on uint8 instead of float32, as in process_mask_native
-    return crop_mask(masks.gt_(0.0).byte(), bboxes)
+    return crop_mask(masks, bboxes)
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):
@@ -578,11 +590,14 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     gain = min(4 * mh / h, 4 * mw / w)
     pad = (4 * mh - round(h * gain)) | (4 * mw - round(w * gain))  # letterbox padding at the input size (4x protos)
     f = 4 // math.gcd(4, pad | pad // 2)  # smallest upsample (1, 2 or 4) that crops the padding on whole pixels
-    masks = [
-        scale_masks(F.interpolate(chunk, scale_factor=f, mode="bilinear") if f > 1 else chunk, shape)[0].gt_(0.0).byte()
-        for chunk in coeffs.view(1, -1, mh, mw).split(max(1, 32_000_000 // (h * w + f * f * mh * mw)), 1)
-    ]
-    return crop_mask(torch.cat(masks), bboxes)
+    masks = torch.empty((len(coeffs), h, w), dtype=torch.uint8, device=coeffs.device)
+    chunk_size = max(1, 16_000_000 // (h * w + f * f * mh * mw))
+    for i in range(0, len(coeffs), chunk_size):
+        chunk = coeffs[i : i + chunk_size].view(1, -1, mh, mw)
+        chunk = scale_masks(F.interpolate(chunk, scale_factor=f, mode="bilinear") if f > 1 else chunk, shape)[0]
+        torch.gt(chunk, 0.0, out=masks[i : i + chunk_size])
+        del chunk
+    return crop_mask(masks, bboxes)
 
 
 def scale_masks(

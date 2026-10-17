@@ -37,6 +37,7 @@ Ultralytics YOLO supports the following tracking algorithms. Enable them by pass
 - **Deep OC-SORT:** Use [`deepocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/deepocsort.yaml) to enable this tracker. Based on the [Deep OC-SORT paper](https://arxiv.org/abs/2302.11813), adding adaptive ReID appearance fusion and camera motion compensation on top of OC-SORT.
 - **FastTracker:** Use [`fasttrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/fasttrack.yaml) to enable this tracker. Based on the [FastTracker paper](https://arxiv.org/abs/2508.14370): occlusion-aware ByteTrack variant with Kalman rollback and init-IoU suppression.
 - **TrackTrack:** Use [`tracktrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/tracktrack.yaml) to enable this tracker. Based on the [TrackTrack paper](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) (CVPR 2025) — multi-cue iterative association with Track-Aware Initialization.
+- **KPTTrack:** Use [`kpttrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/kpttrack.yaml) to enable this tracker with a Pose model. It matches people by their keypoints instead of their boxes, so people side by side or half hidden behind each other keep their IDs.
 
 The default tracker is **TrackTrack**.
 

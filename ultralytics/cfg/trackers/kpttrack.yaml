@@ -1,0 +1,16 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# KPTTracker defaults for mode="track": people matched by their keypoints instead of their boxes (pose models)
+# Docs: https://docs.ultralytics.com/modes/track
+# Frame counts below assume ~30 FPS; scale them with your video's frame rate
+
+tracker_type: kpttrack # (str) Tracker backend: kpttrack; needs a pose model
+track_high_thresh: 0.25 # (float) Confident detections: matched to any track, lost ones included, and may start one
+track_low_thresh: 0.1 # (float) Low-confidence detections (between the two thresholds) only continue a track seen last frame
+new_track_thresh: 0.25 # (float) Start a tentative track from an unmatched detection ≥ this; it gets an ID if matched next frame (or on frame 1)
+track_buffer: 30 # (int) Frames to keep lost tracks alive; their gate widens meanwhile
+kpt_conf: 0.5 # (float) A keypoint counts as seen above this confidence
+match_gate: 0.1 # (float) Min gate, as mean keypoint distance over the person's size (box's longer side), of a track seen last frame; widens to 3x its wobble
+lost_gate: 0.5 # (float) Gate of lost tracks: reached over lost_ramp frames, or at once for detections no other track took
+lost_ramp: 30 # (int) Frames over which a lost track's gate widens from match_gate to lost_gate and its velocity fades
+joint_memory: 60 # (int) Frames over which an unseen keypoint's weight in the match fades

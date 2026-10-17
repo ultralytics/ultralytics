@@ -889,18 +889,12 @@ class Results(SimpleClass, DataExportMixin):
                 )
             return results
 
-        if self.depth is not None:
-            # Depth is a dense per-pixel map, not a per-instance result; excluded from summary.
-            return results
-
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
-        if data is None:
-            # Masks or keypoints without a box row are not per-instance detections.
+        if not data:  # depth maps and results without boxes have no per-instance rows
             return results
-        if data:
-            data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
-            coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
+        data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
+        coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
         kpts = self.keypoints
         if kpts is not None:
             kpts = kpts.cpu()  # ditto for the per-row keypoints sync below

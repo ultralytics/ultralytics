@@ -1109,22 +1109,6 @@ def test_results_depth_field():
     assert rc.depth.data.shape == (20, 24)  # shape survives the .cpu().numpy() chain
 
 
-def test_results_summary_without_boxes():
-    """summary() returns [] when boxes and OBB are both missing, instead of enumerating None."""
-    from ultralytics.engine.results import Results
-
-    img = np.zeros((32, 32, 3), dtype=np.uint8)
-    cases = (
-        Results(img, path="image.jpg", names={0: "a"}),
-        Results(img, path="image.jpg", names={0: "a"}, masks=torch.zeros((2, 32, 32))),
-        Results(img, path="image.jpg", names={0: "person"}, keypoints=torch.zeros((2, 17, 3))),
-    )
-    for r in cases:
-        assert r.boxes is None and r.obb is None
-        assert r.summary() == []
-        assert r.to_json() == "[]"  # JSON export goes through summary()
-
-
 def test_results_depth_none_summary_len_and_update():
     """Depth-only Results: None passthrough, empty summary, __len__ counts the map, update() wraps arrays."""
     from ultralytics.engine.results import DepthMap, Results

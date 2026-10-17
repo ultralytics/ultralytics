@@ -678,16 +678,17 @@ def check_tensorrt(min_version: str = "7.0.0"):
 def check_torchvision():
     """Warn if the installed torchvision does not match the installed torch release.
 
-    Each torch release pairs with one torchvision release: torchvision 0.(minor + 1) for torch 1.x and 0.(minor + 15)
-    for torch 2.x, per https://github.com/pytorch/vision#installation.
+    Torch 1.x and 2.0-2.13 each pair with one torchvision release, 0.(minor + 1) and 0.(minor + 15) respectively.
+    Torchvision 0.29 is ABI stable with torch 2.14, so torch>=2.14 accepts torchvision>=0.29. See
+    https://github.com/pytorch/vision#installation.
     """
     major, minor = (int(x) for x in TORCH_VERSION.split(".")[:2])
-    offset = {1: 1, 2: 15}.get(major)
-    v_torchvision = ".".join(TORCHVISION_VERSION.split(".")[:2])
-    if offset and v_torchvision != f"0.{minor + offset}":
+    expected = {1: minor + 1, 2: min(minor + 15, 29)}.get(major)  # torchvision 0.x minor
+    v_torchvision = int(TORCHVISION_VERSION.split(".")[1])
+    if expected and v_torchvision != expected and (expected < 29 or v_torchvision < 29):
         LOGGER.warning(
-            f"torchvision=={v_torchvision} is incompatible with torch=={major}.{minor}.\n"
-            f"Run 'pip install torchvision==0.{minor + offset}' to fix torchvision or "
+            f"torchvision==0.{v_torchvision} is incompatible with torch=={major}.{minor}.\n"
+            f"Run 'pip install torchvision==0.{expected}' to fix torchvision or "
             "'pip install -U torch torchvision' to update both.\n"
             "For a full compatibility table see https://github.com/pytorch/vision#installation"
         )

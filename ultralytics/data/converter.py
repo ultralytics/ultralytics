@@ -458,6 +458,8 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
 
     The function processes *.png images in the 'train' and 'val' folders of the DOTA dataset. For each image, it reads
     the associated label from the original labels directory and writes new labels in YOLO OBB format to a new directory.
+    Images without an original label file (unlabeled background images) are skipped for label conversion only: no
+    output label file is written for them, and they are left in place as valid background images for training.
 
     Args:
         dota_root_path (str): The root directory path of the DOTA dataset.

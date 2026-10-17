@@ -900,7 +900,7 @@ async def convert_ndjson_to_yolo(
             result = await _convert_ndjson_to_yolo(
                 Path(check_file(source, download_dir=download_dir)), output_path, local, fraction, split
             )
-        cache_path.write_text(str(result.relative_to(output_path)))
+        cache_path.write_text(str(result.relative_to(output_path)), encoding="utf-8")
         return result
 
     loop = asyncio.get_running_loop()
@@ -921,7 +921,7 @@ async def convert_ndjson_to_yolo(
                 waited = True
                 await asyncio.sleep(0.05)
         if waited and cache_path.is_file():  # reuse the result the lock holder just produced
-            result = output_path / cache_path.read_text()
+            result = output_path / cache_path.read_text(encoding="utf-8")
             marker = result / ".ndjson.yaml" if result.is_dir() else result
             if marker.is_file():
                 return result

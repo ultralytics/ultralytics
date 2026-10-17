@@ -578,11 +578,11 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     gain = min(4 * mh / h, 4 * mw / w)
     pad = (4 * mh - round(h * gain)) | (4 * mw - round(w * gain))  # letterbox padding at the input size (4x protos)
     f = 4 // math.gcd(4, pad | pad // 2)  # smallest upsample (1, 2 or 4) that crops the padding on whole pixels
-    masks = [
-        scale_masks(F.interpolate(chunk, scale_factor=f, mode="bilinear") if f > 1 else chunk, shape)[0].gt_(0.0).byte()
-        for chunk in coeffs.view(1, -1, mh, mw).split(max(1, 32_000_000 // (h * w + f * f * mh * mw)), 1)
-    ]
-    return crop_mask(torch.cat(masks), bboxes)
+    n, masks = max(1, 16_000_000 // (h * w + f * f * mh * mw)), coeffs.new_empty((len(coeffs), h, w), dtype=torch.uint8)
+    for i, c in zip(range(0, len(masks), n), coeffs.view(1, -1, mh, mw).split(n, 1)):  # fill one preallocated stack
+        c = scale_masks(F.interpolate(c, scale_factor=f, mode="bilinear") if f > 1 else c, shape)[0]
+        torch.gt(c, 0, out=masks[i : i + n])  # threshold straight into uint8, no bool or float copy
+    return crop_mask(masks, bboxes)
 
 
 def scale_masks(

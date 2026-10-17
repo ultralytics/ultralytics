@@ -146,8 +146,9 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
     """Update multiple track positions and covariances using a 2x3 affine homography.
 
     The Kalman state is assumed to be laid out as `(*box, *box_velocity)` with the box center `(x, y)` in the first two
-    dims. `R8x8` rotates all four 2-d pairs block-diagonally; the translation `t` is applied only to the position.
-    This assumes the state layout is four spatial/velocity pairs (e.g. XYWH); XYAH trackers must override this.
+    dims. Centers and their velocities follow the signed rotation; axis-aligned extents follow its absolute value.
+    Rotated boxes retain their extents under rotation, scaling them and updating their angle instead. The translation
+    applies only to the center. XYAH trackers must override this XYWH state transform.
 
     Args:
         stracks (list[STrack]): Tracks to warp in place; each must expose `mean` (shape (8,)) and `covariance` (shape
@@ -166,6 +167,8 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
 
     R = H[:2, :2]
     R8x8 = np.kron(np.eye(4, dtype=np.float32), R)
+    is_obb = stracks[0].angle is not None
+    R8x8[2:4, 2:4] = R8x8[6:8, 6:8] = np.eye(2) * np.linalg.norm(R[:, 0]) if is_obb else np.abs(R)
     t = H[:2, 2]
 
     multi_mean = np.matmul(R8x8, multi_mean[..., None])[..., 0]
@@ -177,3 +180,5 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
     for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
         stracks[i].mean = mean
         stracks[i].covariance = cov
+        if is_obb:
+            stracks[i].angle += np.arctan2(R[1, 0], R[0, 0])

@@ -254,8 +254,8 @@ def onnx2engine(
         (str): Path to the exported engine file.
 
     Raises:
-        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11,
-            or without FP16/INT8 precision.
+        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11, or
+            without FP16/INT8 precision.
         RuntimeError: If the ONNX file cannot be parsed or the engine build fails.
 
     Notes:

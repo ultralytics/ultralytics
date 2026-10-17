@@ -454,11 +454,11 @@ def check_source(
         screenshot = source_lower == "screen" or (source_lower.startswith("screen ") and not Path(source).exists())
         if is_file:
             source = check_file(source)  # download
-        elif is_url:  # a URL without a media suffix is one image if it returns a sized image/* response
+        elif is_url:  # a URL without a media suffix is one image if it returns an image/* response
             import requests  # scoped as slow import
 
             with contextlib.suppress(requests.RequestException), requests.get(source, stream=True, timeout=3) as r:
-                webcam = not (r.headers.get("Content-Type", "").startswith("image/") and "Content-Length" in r.headers)
+                webcam = not r.headers.get("Content-Type", "").startswith("image/")
             if not webcam:
                 source, from_img = autocast_list([source]), True
     elif isinstance(source, LOADERS):

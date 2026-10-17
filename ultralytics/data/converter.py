@@ -458,6 +458,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
 
     The function processes *.png images in the 'train' and 'val' folders of the DOTA dataset. For each image, it reads
     the associated label from the original labels directory and writes new labels in YOLO OBB format to a new directory.
+    Background images without an original label file get no output label and stay valid unlabeled training images.
 
     Args:
         dota_root_path (str): The root directory path of the DOTA dataset.
@@ -537,12 +538,11 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
 
         image_paths = list(image_dir.iterdir())
         for image_path in TQDM(image_paths, desc=f"Processing {phase} images"):
-            if image_path.suffix != ".png":
-                continue
-            image_name_without_ext = image_path.stem
+            if image_path.suffix != ".png" or not (orig_label_dir / f"{image_path.stem}.txt").is_file():
+                continue  # skip non-PNG files and unlabeled background images
             img = cv2.imread(str(image_path))
             h, w = img.shape[:2]
-            convert_label(image_name_without_ext, w, h, orig_label_dir, save_dir)
+            convert_label(image_path.stem, w, h, orig_label_dir, save_dir)
 
 
 def min_index(arr1: np.ndarray, arr2: np.ndarray):
@@ -900,7 +900,7 @@ async def convert_ndjson_to_yolo(
             result = await _convert_ndjson_to_yolo(
                 Path(check_file(source, download_dir=download_dir)), output_path, local, fraction, split
             )
-        cache_path.write_text(str(result.relative_to(output_path)))
+        cache_path.write_text(str(result.relative_to(output_path)), encoding="utf-8")
         return result
 
     loop = asyncio.get_running_loop()
@@ -921,7 +921,7 @@ async def convert_ndjson_to_yolo(
                 waited = True
                 await asyncio.sleep(0.05)
         if waited and cache_path.is_file():  # reuse the result the lock holder just produced
-            result = output_path / cache_path.read_text()
+            result = output_path / cache_path.read_text(encoding="utf-8")
             marker = result / ".ndjson.yaml" if result.is_dir() else result
             if marker.is_file():
                 return result

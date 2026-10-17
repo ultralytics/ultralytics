@@ -262,13 +262,12 @@ def _get_training_gpus(trainer):
     """
     if trainer.device.type != "cuda":
         return []
-    indices = [int(x) for x in trainer.args.device.split(",") if x.isdigit()] or [trainer.device.index or 0]
+    indices = [int(x) for x in trainer.args.device.split(",") if x.isdigit()] or [trainer.device.index]
     visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
     if not visible:
         return indices
-    if not all(x.isdigit() for x in visible):
-        return None
-    return [int(visible[i]) for i in indices if i < len(visible)]
+    ids = [visible[i] for i in indices]
+    return [int(x) for x in ids] if all(x.isdigit() for x in ids) else None
 
 
 def _get_system_metrics(trainer):

@@ -280,11 +280,17 @@ class DetectionValidator(BaseValidator):
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
             if self.args.save_txt:
+                im_file = Path(pbatch["im_file"])
+                split_root = Path(self.data.get(self.args.split or "val") or "")
+                try:  # flatten the split-relative path so same-stem images in different folders stay unique
+                    name = "_".join(im_file.relative_to(split_root).with_suffix("").parts)
+                except ValueError:  # image outside the split root, e.g. a split defined as a txt list
+                    name = im_file.stem
                 self.save_one_txt(
                     predn_scaled,
                     self.args.save_conf,
                     pbatch["ori_shape"],
-                    self.save_dir / "labels" / f"{Path(pbatch['im_file']).stem}.txt",
+                    self.save_dir / "labels" / f"{name}.txt",
                 )
 
     def finalize_metrics(self) -> None:

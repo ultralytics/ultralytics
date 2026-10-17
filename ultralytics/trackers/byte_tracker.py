@@ -126,7 +126,8 @@ class STrack(BaseTrack):
             self.track_id = self.next_id()
         self.score = new_track.score
         self.cls = new_track.cls
-        self.angle = new_track.angle
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
         self.idx = new_track.idx
 
     def update(self, new_track: STrack, frame_id: int):
@@ -155,7 +156,8 @@ class STrack(BaseTrack):
 
         self.score = new_track.score
         self.cls = new_track.cls
-        self.angle = new_track.angle
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
         self.idx = new_track.idx
 
     def convert_coords(self, tlwh: np.ndarray) -> np.ndarray:

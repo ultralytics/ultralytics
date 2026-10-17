@@ -55,7 +55,6 @@ class DetectionValidator(BaseValidator):
         self.is_coco = False
         self.is_lvis = False
         self.class_map = None
-        self._label_names = set()
         self.args.task = "detect"
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
@@ -121,6 +120,7 @@ class DetectionValidator(BaseValidator):
                 if LOCAL_RANK in {-1, 0}:
                     for f in (self.save_dir / "labels").glob("*.txt"):
                         f.unlink(missing_ok=True)
+            self.label_root = os.path.commonpath([os.path.dirname(f) for f in self.dataloader.dataset.im_files])
         if not self.training:
             self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path
@@ -280,39 +280,11 @@ class DetectionValidator(BaseValidator):
                 predn_scaled = self.scale_preds(predn, pbatch)
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
-            if self.args.save_txt:
+            if self.args.save_txt:  # flatten the split-relative path so a/1.jpg and b/1.jpg write a_1.txt and b_1.txt
+                name = "_".join(Path(pbatch["im_file"]).relative_to(self.label_root).with_suffix("").parts)
                 self.save_one_txt(
-                    predn_scaled,
-                    self.args.save_conf,
-                    pbatch["ori_shape"],
-                    self._label_txt_path(Path(pbatch["im_file"])),
+                    predn_scaled, self.args.save_conf, pbatch["ori_shape"], self.save_dir / "labels" / f"{name}.txt"
                 )
-
-    def _label_txt_path(self, im_file: Path) -> Path:
-        """Build a unique label file path for an image, flattening its split-relative path with underscores.
-
-        Args:
-            im_file (Path): Path of the image being validated.
-
-        Returns:
-            (Path): Path under `save_dir/labels` unique across the validation run, so same-stem images in different
-                split folders (`a/img.jpg`, `b/img.jpg`) keep separate files while images directly in the split root
-                keep their bare stem.
-        """
-        split = self.data.get(self.args.split or "val") or ""
-        name = im_file.stem
-        for root in split if isinstance(split, list) else [split]:  # a split can be one path or a list of paths
-            try:  # flatten the split-relative path so same-stem images in different folders stay unique
-                name = "_".join(im_file.relative_to(root).with_suffix("").parts)
-                break
-            except ValueError:  # image outside this root, e.g. a split defined as a txt list
-                pass
-        base, k = name, 1
-        while base in self._label_names:  # residual same-name images (img.jpg + img.png) get -2, -3, as predictor
-            k += 1
-            base = f"{name}-{k}"
-        self._label_names.add(base)
-        return self.save_dir / "labels" / f"{base}.txt"
 
     def finalize_metrics(self) -> None:
         """Set final values for metrics speed and confusion matrix."""

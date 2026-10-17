@@ -475,13 +475,13 @@ With Segment and Pose models, TrackTrack skips loose-NMS detection recovery so m
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/leOPZhE0ckg"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/hPXsZ_fVz6M"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Build Interactive Object Tracking with Ultralytics YOLO | Click to Crop & Display ⚡
+  <strong>Watch:</strong> How to Build Interactive Object Tracking with Ultralytics YOLO26: Build it in Minutes | Python!
 </p>
 
 ### Persisting Tracks Loop

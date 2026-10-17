@@ -958,7 +958,7 @@ class PoseLoss26(v8PoseLoss):
         target_weights = self.target_weights.unsqueeze(0).repeat(kpt_mask.shape[0], 1)
         target_weights = target_weights[kpt_mask]
 
-        pred_sigma = pred_sigma.sigmoid()
+        pred_sigma = pred_sigma.float().sigmoid().clamp_min(torch.finfo(pred_sigma.dtype).tiny)
         error = (pred_coords - gt_coords) / (pred_sigma + 1e-9)
         if not error.numel():
             return self._rle_zero(pred_kpt)

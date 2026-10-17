@@ -1339,7 +1339,8 @@ Accepted fields: `name`, `description`, `visibility`, `metadata`, `tags`, `licen
 ```
 
 Send an empty `metadata` object (`{}`) to clear it. Project metadata uses the same 128-character key and
-500,000-character serialized-object limits as dataset metadata.
+500,000-character serialized-object limits as dataset metadata. A `name` change that changes the slug returns `409`
+while any model in the project is starting training.
 
 ### Delete Project
 
@@ -1446,7 +1447,8 @@ PATCH /api/models/{owner}/{project}/{model}
 Accepted fields include `name`, `description`, `color`, `metadata`, `status`, `license`, `datasetSlug`, `trainArgs`,
 `trainResults`, `epochs`, `bestEpoch`, `bestFitness`, `version`, `trainingError`, and `starred`. Passing `projectId` on its
 own moves the model into another project of the same owner; the response returns the model's `slug` in the destination,
-`renamed: true` when that slug was already taken there, and `409` while the model is still training.
+`renamed: true` when that slug was already taken there, and `409` while the model is still training. A `name` change
+that changes the slug returns `409` while training is starting.
 
 ```json
 {
@@ -1788,7 +1790,7 @@ Each format honors only the options in its **Arguments** column of the export ta
 YOLO11 sizes other than nano return `400`.
 
 **Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `region`, and `gpuType` for TensorRT exports.
-An equivalent export that is already in flight returns `409`.
+While an export of the same format is in flight for the model, a new request returns `409` whatever its `args`.
 
 **Supported Formats:**
 

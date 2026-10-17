@@ -965,7 +965,8 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
 def convert_optimizer_state_dict_to_fp16(state_dict):
     """Convert the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
 
-    FP32 tensors are converted in place, except 'step', 'exp_avg_sq', and 'square_avg', which are kept in FP32.
+    FP32 tensors are converted in place, except 'step', 'exp_avg', 'exp_avg_sq', and 'square_avg', which are kept in
+    FP32.
 
     Args:
         state_dict (dict): Optimizer state dictionary.
@@ -976,7 +977,7 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     for state in state_dict["state"].values():
         for k, v in state.items():
             if (
-                k not in {"step", "exp_avg_sq", "square_avg"}
+                k not in {"step", "exp_avg", "exp_avg_sq", "square_avg"}
                 and isinstance(v, torch.Tensor)
                 and v.dtype is torch.float32
             ):
@@ -1197,8 +1198,8 @@ def attempt_compile(
     Notes:
         - If the current PyTorch build does not provide torch.compile or `mode` is False, the function returns the input
           model immediately.
-        - Compilation is lazy and runs at the first forward pass, so the inductor CPU prerequisite of a host C++
-          compiler is verified up front and the original model is returned if none is available.
+        - Compilation is lazy and runs at the first forward pass, so the inductor prerequisites (a host C++ compiler on
+          CPU, a working Triton on CUDA) are verified up front and the original model is returned if one is missing.
         - Warmup runs under torch.inference_mode and may use torch.autocast for CUDA/MPS to align compute precision.
         - CUDA devices are synchronized after warmup to account for asynchronous kernel execution.
     """
@@ -1210,16 +1211,21 @@ def attempt_compile(
     if mode is True:
         mode = "default"
     prefix = colorstr("compile:")
-    if device.type == "cpu":
-        try:  # compilation is lazy, so verify the inductor CPU requirement of a host C++ compiler before compiling
+    try:  # compilation is lazy, so verify the inductor prerequisites before compiling
+        if device.type == "cpu":
             from torch._inductor.cpp_builder import get_cpp_compiler
 
-            get_cpp_compiler()
-        except ImportError:
-            pass  # older torch without cpp_builder, defer to torch.compile
-        except Exception as e:
-            LOGGER.warning(f"{prefix} no C++ compiler found for the inductor backend, continuing uncompiled: {e}")
-            return model
+            get_cpp_compiler()  # host C++ compiler
+        elif device.type == "cuda":
+            from torch.utils._triton import has_triton
+
+            if not has_triton():  # e.g. Windows wheels or GPUs below compute capability 7.0
+                raise RuntimeError("no working Triton found")
+    except ImportError:
+        pass  # older torch without these probes, defer to torch.compile
+    except Exception as e:
+        LOGGER.warning(f"{prefix} inductor backend unavailable, continuing uncompiled: {e}")
+        return model
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:

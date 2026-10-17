@@ -224,7 +224,9 @@ class ONNXBackend(BaseBackend):
                 if cuda and "CUDAExecutionProvider" in available:
                     providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
-                    providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
+                    # Dynamic-shape nodes run on CPU: the default NeuralNetwork format returns wrong outputs for them
+                    flags = {"flags": "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"}
+                    providers = [("CoreMLExecutionProvider", flags), "CPUExecutionProvider"]
                 elif "VitisAIExecutionProvider" in available and (config := w / "vitisai_config.json").exists():
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}

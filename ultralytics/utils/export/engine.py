@@ -316,8 +316,8 @@ def onnx2engine(
     if dla is not None:
         if not IS_JETSON:
             raise ValueError("DLA is only available on NVIDIA Jetson devices")
-        if trt_major >= 11:
-            # DLA is unsupported in TensorRT 11.0-11.2 and is planned to return in a later release
+        if is_trt11:
+            # DLA is unsupported in TensorRT 11 (through at least 11.4) and is planned to return in a later release
             # https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html
             raise ValueError("DLA is not supported in TensorRT 11; export with TensorRT 10.x to use DLA.")
         LOGGER.info(f"{prefix} enabling DLA on core {dla}...")

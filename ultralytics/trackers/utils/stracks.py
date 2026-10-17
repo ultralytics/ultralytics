@@ -168,6 +168,7 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
     R = H[:2, :2]
     R8x8 = np.kron(np.eye(4, dtype=np.float32), R)
     is_obb = stracks[0].angle is not None
+    rotation = np.arctan2(R[1, 0], R[0, 0]) if is_obb else None
     R8x8[2:4, 2:4] = R8x8[6:8, 6:8] = np.eye(2) * np.linalg.norm(R[:, 0]) if is_obb else np.abs(R)
     t = H[:2, 2]
 
@@ -181,4 +182,4 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
         stracks[i].mean = mean
         stracks[i].covariance = cov
         if is_obb:
-            stracks[i].angle += np.arctan2(R[1, 0], R[0, 0])
+            stracks[i].angle += rotation

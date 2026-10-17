@@ -678,8 +678,8 @@ def check_tensorrt(min_version: str = "7.0.0"):
 def check_torchvision():
     """Warn if the installed torchvision does not match the installed torch release.
 
-    Each torch release pairs with one torchvision release: torchvision 0.(minor + 1) for torch 1.x and 0.(minor + 15) for
-    torch 2.x, per https://github.com/pytorch/vision#installation.
+    Each torch release pairs with one torchvision release: torchvision 0.(minor + 1) for torch 1.x and 0.(minor + 15)
+    for torch 2.x, per https://github.com/pytorch/vision#installation.
     """
     major, minor = (int(x) for x in TORCH_VERSION.split(".")[:2])
     offset = {1: 1, 2: 15}.get(major)

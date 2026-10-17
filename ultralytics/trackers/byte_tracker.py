@@ -42,6 +42,7 @@ class STrack(BaseTrack):
         activate: Activate a new tracklet.
         re_activate: Reactivate a previously lost tracklet.
         update: Update the state of a matched track.
+        update_angle: Store a matched OBB angle in the equivalent form nearest the track's angle.
         convert_coords: Convert bounding box to x-y-aspect-height format.
         tlwh_to_xyah: Convert tlwh bounding box to xyah format.
 
@@ -77,6 +78,7 @@ class STrack(BaseTrack):
         self.cls = cls
         self.idx = xywh[-1]
         self.angle = xywh[4] if len(xywh) == 6 else None
+        self.swap_wh = False  # whether the OBB output swaps the Kalman w, h to match `angle`
 
     def predict(self):
         """Predict the next state (mean and covariance) of the object using the Kalman filter."""
@@ -126,7 +128,7 @@ class STrack(BaseTrack):
             self.track_id = self.next_id()
         self.score = new_track.score
         self.cls = new_track.cls
-        self.angle = new_track.angle
+        self.update_angle(new_track.angle)
         self.idx = new_track.idx
 
     def update(self, new_track: STrack, frame_id: int):
@@ -155,8 +157,19 @@ class STrack(BaseTrack):
 
         self.score = new_track.score
         self.cls = new_track.cls
-        self.angle = new_track.angle
+        self.update_angle(new_track.angle)
         self.idx = new_track.idx
+
+    def update_angle(self, angle: float | None) -> None:
+        """Store a matched OBB angle as the equivalent quarter-turn form nearest the current track angle.
+
+        OBB forms differ by half turns, or by quarter turns that swap `w` and `h`, so the reported angle stays
+        continuous while the Kalman `w`, `h` keep the detection's long-edge order and `xywha` swaps them when needed.
+        """
+        if angle is not None:
+            k = round((angle - self.angle) / (np.pi / 2))
+            angle, self.swap_wh = angle - k * np.pi / 2, k % 2 == 1
+        self.angle = angle
 
     def convert_coords(self, tlwh: np.ndarray) -> np.ndarray:
         """Convert a bounding box's top-left-width-height format to its x-y-aspect-height equivalent."""
@@ -200,7 +213,10 @@ class STrack(BaseTrack):
         if self.angle is None:
             LOGGER.warning("`angle` attr not found, returning `xywh` instead.")
             return self.xywh
-        return np.concatenate([self.xywh, self.angle[None]])
+        xywh = self.xywh
+        if self.swap_wh:
+            xywh[2:] = xywh[[3, 2]]
+        return np.concatenate([xywh, self.angle[None]])
 
     @property
     def result(self) -> list[float]:

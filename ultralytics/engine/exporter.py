@@ -940,13 +940,16 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-                # Clamp max_det to available queries/anchors (required for TensorRT compatibility)
+                # CoreML and older TensorRT versions require constant top-k counts.
+                dynamic_topk = self.args.dynamic and fmt not in {"coreml", "engine"}
+                if isinstance(m, Detect):
+                    m.get_topk_index = partial(m.get_topk_index, dynamic=dynamic_topk)
                 available = (
                     m.num_queries
                     if isinstance(m, RTDETRDecoder)
                     else sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
                 )
-                m.max_det = min(self.args.max_det, available)
+                m.max_det = self.args.max_det if dynamic_topk else min(self.args.max_det, available)
                 m.agnostic_nms = self.args.agnostic_nms
                 # CoreML detect keeps IOSDetectModel's own xywh handling; segment/pose route through
                 # NMSModel like every other format, which expects xyxy boxes.

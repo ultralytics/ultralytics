@@ -263,12 +263,15 @@ class Detect(nn.Module):
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
         return torch.cat([self._gather(boxes, idx), scores, conf, *(self._gather(e, idx) for e in extra)], dim=-1)
 
-    def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def get_topk_index(
+        self, scores: torch.Tensor, max_det: int, dynamic: bool = False
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Get top-k indices from scores.
 
         Args:
             scores (torch.Tensor): Scores tensor with shape (batch_size, num_anchors, num_classes).
             max_det (int): Maximum detections per image.
+            dynamic (bool): Derive the top-k count from runtime shapes for dynamic exports.
 
         Returns:
             scores (torch.Tensor): Top-k scores with shape (batch_size, k, 1).
@@ -276,7 +279,7 @@ class Detect(nn.Module):
             index (torch.Tensor): Anchor indices of the top-k detections with shape (batch_size, k).
         """
         anchors, nc = scores.shape[1:]  # i.e. shape(16,8400,80)
-        k = min(max_det, anchors)
+        k = torch._shape_as_tensor(scores)[1].clamp(max=max_det) if dynamic else min(max_det, anchors)
         if self.agnostic_nms:
             scores, labels = scores.max(dim=-1)
             scores, index = self._grouped_topk(scores, k, 1)

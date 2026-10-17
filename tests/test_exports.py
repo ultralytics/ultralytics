@@ -75,6 +75,29 @@ def test_export_onnx(nms, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.parametrize("suffix", ["", "-seg", "-pose", "-obb"])
+@pytest.mark.parametrize("agnostic_nms", [False, True])
+@pytest.mark.parametrize("imgsz", [64, 128])
+def test_export_onnx_dynamic_topk(suffix, agnostic_nms, imgsz, tmp_path):
+    """Keep NMS-free top-k bounded by the runtime anchor count when dynamic image sizes change."""
+    import numpy as np
+    import onnxruntime as ort
+
+    model = YOLO(f"yolo26n{suffix}.yaml")
+    model.save(tmp_path / "model.pt")
+    file = YOLO(tmp_path / "model.pt").export(
+        format="onnx", imgsz=imgsz, dynamic=True, simplify=False, nms=False, agnostic_nms=agnostic_nms
+    )
+    options = ort.SessionOptions()
+    options.intra_op_num_threads = 1
+    session = ort.InferenceSession(file, sess_options=options, providers=["CPUExecutionProvider"])
+    for batch, height, width in ((1, 32, 64), (2, 64, 64), (1, 128, 128)):
+        output = session.run(None, {"images": np.zeros((batch, 3, height, width), dtype=np.float32)})[0]
+        anchors = sum((height // stride) * (width // stride) for stride in (8, 16, 32))
+        assert output.shape[:2] == (batch, min(300, anchors))
+        assert np.isfinite(output).all()
+
+
 @pytest.mark.skipif(not TORCH_1_13, reason="ONNX export with NMS requires torch>=1.13")
 def test_export_onnx_nms_conf(isolated_model):
     """Bake explicit zero confidence into the NMS graph instead of the 0.25 default."""

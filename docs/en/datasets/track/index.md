@@ -23,6 +23,7 @@ Ultralytics YOLO supports the following tracking algorithms:
 - [Deep OC-SORT](https://arxiv.org/abs/2302.11813) - Use `deepocsort.yaml` to enable this tracker
 - [FastTracker](https://arxiv.org/abs/2508.14370) - Use `fasttrack.yaml` to enable this tracker
 - [TrackTrack](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) - Use `tracktrack.yaml` to enable this tracker (default)
+- KPTTrack - Use `kpttrack.yaml` to enable this tracker with Pose models, matching people by their keypoints
 
 ## Usage
 

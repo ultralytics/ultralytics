@@ -64,7 +64,7 @@ Export mode is used for converting a YOLO26 model to formats suitable for deploy
 
 ## [Track](track.md)
 
-Track mode extends YOLO26's object detection capabilities to track objects across video frames or live streams. This mode is particularly valuable for applications requiring persistent object identification, such as [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai) or [self-driving cars](https://www.ultralytics.com/solutions/computer-vision-in-automotive). It includes six trackers: TrackTrack (default), BoT-SORT, ByteTrack, OC-SORT, Deep OC-SORT, and FastTracker.
+Track mode extends YOLO26's object detection capabilities to track objects across video frames or live streams. This mode is particularly valuable for applications requiring persistent object identification, such as [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai) or [self-driving cars](https://www.ultralytics.com/solutions/computer-vision-in-automotive). It includes seven trackers: TrackTrack (default), BoT-SORT, ByteTrack, OC-SORT, Deep OC-SORT, FastTracker, and KPTTrack (Pose models).
 
 [Track Examples](track.md){ .md-button }
 

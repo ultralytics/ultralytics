@@ -120,6 +120,7 @@ class DetectionValidator(BaseValidator):
                 if LOCAL_RANK in {-1, 0}:
                     for f in (self.save_dir / "labels").glob("*.txt"):
                         f.unlink(missing_ok=True)
+            self.label_root = os.path.commonpath([os.path.dirname(f) for f in self.dataloader.dataset.im_files])
         if not self.training:
             self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path
@@ -279,12 +280,10 @@ class DetectionValidator(BaseValidator):
                 predn_scaled = self.scale_preds(predn, pbatch)
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
-            if self.args.save_txt:
+            if self.args.save_txt:  # flatten the split-relative path so a/1.jpg and b/1.jpg write a_1.txt and b_1.txt
+                name = "_".join(Path(pbatch["im_file"]).relative_to(self.label_root).with_suffix("").parts)
                 self.save_one_txt(
-                    predn_scaled,
-                    self.args.save_conf,
-                    pbatch["ori_shape"],
-                    self.save_dir / "labels" / f"{Path(pbatch['im_file']).stem}.txt",
+                    predn_scaled, self.args.save_conf, pbatch["ori_shape"], self.save_dir / "labels" / f"{name}.txt"
                 )
 
     def finalize_metrics(self) -> None:

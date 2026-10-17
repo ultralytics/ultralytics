@@ -254,7 +254,7 @@ def onnx2engine(
         (str): Path to the exported engine file.
 
     Raises:
-        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11.0,
+        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11,
             or without FP16/INT8 precision.
         RuntimeError: If the ONNX file cannot be parsed or the engine build fails.
 
@@ -269,10 +269,10 @@ def onnx2engine(
     """
     import onnx
 
-    # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
+    # Force re-install TensorRT on CUDA 13 ARM devices to >=10.15 for RT-DETR exports, <11 on JetPack (unsupported)
     # https://github.com/ultralytics/ultralytics/issues/22873
     if is_jetson(jetpack=7) or is_dgx():
-        check_tensorrt("10.15")
+        check_tensorrt("10.15,<11" if IS_JETSON else "10.15")
 
     try:
         import tensorrt as trt

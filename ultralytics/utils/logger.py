@@ -419,6 +419,7 @@ class SystemLogger:
         net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
         disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
         mounts (list[str]): Mounted drive paths monitored for disk usage.
+        gpus (list[int] | None): NVML indices of the GPUs reported, or None for every GPU.
 
     Examples:
         Basic usage (single drive):
@@ -434,6 +435,10 @@ class SystemLogger:
         >>> for disk in metrics["disk"]:
         ...     print(f"{disk['mount']}: {disk['used_gb']}/{disk['total_gb']} GB")
 
+        Report only the GPUs a training run uses (an empty list reports none, e.g. for CPU training):
+        >>> logger = SystemLogger(gpus=[0, 1])
+        >>> list(logger.get_metrics()["gpus"])  # ['0', '1'] on a host with at least two NVIDIA GPUs
+
         Training loop integration:
         >>> system_logger = SystemLogger()
         >>> for epoch in range(epochs):
@@ -442,11 +447,13 @@ class SystemLogger:
         ...     # Log to database/file
     """
 
-    def __init__(self, all_drives=False):
+    def __init__(self, all_drives=False, gpus=None):
         """Initialize the system logger.
 
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
+            gpus (list[int] | None): NVML indices of the GPUs to report, such as those a training run uses. None reports
+                every GPU and an empty list reports none.
         """
         import psutil  # scoped as slow import
 
@@ -463,6 +470,7 @@ class SystemLogger:
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
         self.mounts = _DriveInfo.mounts(psutil, all_drives)
+        self.gpus = gpus
 
         # For rate calculation
         self._prev_net = self.net_start
@@ -613,7 +621,7 @@ class SystemLogger:
             return gpus
         try:
             device_count = self.pynvml.nvmlDeviceGetCount()
-            for i in range(device_count):
+            for i in range(device_count) if self.gpus is None else [i for i in self.gpus if i < device_count]:
                 handle = self.pynvml.nvmlDeviceGetHandleByIndex(i)
                 util = self.pynvml.nvmlDeviceGetUtilizationRates(handle)
                 memory = self.pynvml.nvmlDeviceGetMemoryInfo(handle)

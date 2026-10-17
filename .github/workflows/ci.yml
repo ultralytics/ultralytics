@@ -281,35 +281,35 @@ jobs:
             torch: "2.5.0"
             torchvision: "0.20.0"
           - os: ubuntu-latest
-            python: "3.12"
+            python: "3.13"
             torch: "2.6.0"
             torchvision: "0.21.0"
           - os: ubuntu-latest
-            python: "3.12"
+            python: "3.13"
             torch: "2.7.0"
             torchvision: "0.22.0"
           - os: ubuntu-latest
-            python: "3.12"
+            python: "3.13"
             torch: "2.8.0"
             torchvision: "0.23.0"
           - os: ubuntu-latest
-            python: "3.12"
+            python: "3.14"
             torch: "2.9.0"
             torchvision: "0.24.0"
           - os: ubuntu-latest
-            python: "3.12"
+            python: "3.14"
             torch: "2.10.0"
             torchvision: "0.25.0"
           - os: ubuntu-latest
-            python: "3.13"
+            python: "3.14"
             torch: "2.11.0"
             torchvision: "0.26.0"
           - os: ubuntu-latest
-            python: "3.13"
+            python: "3.14"
             torch: "2.12.0"
             torchvision: "0.27.0"
           - os: ubuntu-latest
-            python: "3.13"
+            python: "3.14"
             torch: "2.13.0"
             torchvision: "0.28.0"
     steps:

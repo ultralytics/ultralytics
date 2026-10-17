@@ -254,13 +254,30 @@ def _get_project_name(trainer):
     return project, slugify(str(trainer.args.name or "train"))
 
 
-def _get_system_metrics(ctx):
+def _get_training_gpus(trainer):
+    """Return the NVML indices of the GPUs a run trains on, so a shared host reports no other runs' GPUs.
+
+    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES. Non-CUDA training
+    reports no GPUs, and a CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every GPU.
+    """
+    if trainer.device.type != "cuda":
+        return []
+    indices = [int(x) for x in trainer.args.device.split(",") if x.isdigit()] or [trainer.device.index]
+    visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
+    if not visible:
+        return indices
+    ids = [visible[i] for i in indices]
+    return [int(x) for x in ids] if all(x.isdigit() for x in ids) else None
+
+
+def _get_system_metrics(trainer):
     """Sample the run's system logger without making optional host monitoring a training dependency."""
+    ctx = trainer.platform
     try:
         if not ctx["system_logger"]:
             from ultralytics.utils.logger import SystemLogger
 
-            ctx["system_logger"] = SystemLogger(all_drives=True)
+            ctx["system_logger"] = SystemLogger(all_drives=True, gpus=_get_training_gpus(trainer))
         return ctx["system_logger"].get_metrics(rates=True)
     except Exception:
         return None
@@ -335,7 +352,7 @@ def on_pretrain_routine_start(trainer):
             "epochs": trainer.epochs,
             "device": str(trainer.device),
             "environment": environment,
-            "system": _get_system_metrics(ctx),
+            "system": _get_system_metrics(trainer),
         },
         project,
         name,
@@ -394,7 +411,7 @@ def on_fit_epoch_end(trainer):
     payload = {
         "epoch": trainer.epoch,
         "metrics": metrics,
-        "system": _get_system_metrics(ctx),
+        "system": _get_system_metrics(trainer),
         "fitness": trainer.fitness,
         "best_fitness": trainer.best_fitness,
     }

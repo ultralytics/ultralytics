@@ -271,12 +271,12 @@ From your project, click `New Model` to open the **Train New Model** dialog. You
 
 Once training starts, open the model's `Train` tab to monitor progress in real time through its subtabs:
 
-| Subtab         | Content                                                                                       |
-| -------------- | --------------------------------------------------------------------------------------------- |
-| **Metrics**    | Training/validation loss curves, mAP, precision, recall                                       |
-| **Validation** | Confusion matrix, PR and F1 curves, and per-image insights, when available                     |
-| **Console**    | Live training log output                                                                      |
-| **System**     | GPU utilization, memory usage, hardware metrics                                               |
+| Subtab         | Content                                                                    |
+| -------------- | -------------------------------------------------------------------------- |
+| **Metrics**    | Training/validation loss curves, mAP, precision, recall                    |
+| **Validation** | Confusion matrix, PR and F1 curves, and per-image insights, when available |
+| **Console**    | Live training log output                                                   |
+| **System**     | GPU utilization, memory usage, hardware metrics                            |
 
 ![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/533d461f043d83d7dad2b7483a56a3f5.avif)<!-- screenshot -->
 

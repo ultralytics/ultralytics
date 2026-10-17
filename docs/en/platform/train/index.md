@@ -112,12 +112,12 @@ flowchart TD
     console ~~~ system
 ```
 
-| Subtab         | Metrics                                                                                                       |
-| -------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Metrics**    | Task metrics (mAP50, mAP50-95, precision, recall for detection), train/val losses, learning rate              |
-| **Validation** | Confusion matrix, PR/F1/precision/recall curves and per-image insights, when available                        |
-| **Console**    | Live training logs with ANSI color and automatic error detection                                              |
-| **System**     | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                                   |
+| Subtab         | Metrics                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| **Metrics**    | Task metrics (mAP50, mAP50-95, precision, recall for detection), train/val losses, learning rate |
+| **Validation** | Confusion matrix, PR/F1/precision/recall curves and per-image insights, when available           |
+| **Console**    | Live training logs with ANSI color and automatic error detection                                 |
+| **System**     | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                      |
 
 !!! info "Automatic Checkpoints"
 

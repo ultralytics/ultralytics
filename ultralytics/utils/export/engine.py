@@ -254,8 +254,8 @@ def onnx2engine(
         (str): Path to the exported engine file.
 
     Raises:
-        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11.0,
-            or without FP16/INT8 precision.
+        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11, or
+            without FP16/INT8 precision.
         RuntimeError: If the ONNX file cannot be parsed or the engine build fails.
 
     Notes:
@@ -269,10 +269,10 @@ def onnx2engine(
     """
     import onnx
 
-    # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
+    # Force re-install TensorRT on CUDA 13 ARM devices to >=10.15 for RT-DETR exports, <11 on JetPack (unsupported)
     # https://github.com/ultralytics/ultralytics/issues/22873
     if is_jetson(jetpack=7) or is_dgx():
-        check_tensorrt("10.15")
+        check_tensorrt("10.15,<11" if IS_JETSON else "10.15")
 
     try:
         import tensorrt as trt
@@ -316,10 +316,10 @@ def onnx2engine(
     if dla is not None:
         if not IS_JETSON:
             raise ValueError("DLA is only available on NVIDIA Jetson devices")
-        if check_version(trt.__version__, ">=11.0.0,<11.1.0"):
-            # DLA is unsupported in TensorRT 11.0 and is planned to return in a later release
+        if is_trt11:
+            # DLA is unsupported in TensorRT 11 (through at least 11.4) and is planned to return in a later release
             # https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html
-            raise ValueError("DLA is not supported in TensorRT 11.0; export with TensorRT 10.x to use DLA.")
+            raise ValueError("DLA is not supported in TensorRT 11; export with TensorRT 10.x to use DLA.")
         LOGGER.info(f"{prefix} enabling DLA on core {dla}...")
         if not use_fp16 and not use_int8:
             raise ValueError(

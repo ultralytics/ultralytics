@@ -452,8 +452,8 @@ class SystemLogger:
 
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
-            gpus (list[int] | None): NVML indices of the GPUs to report, such as those a training run uses. None
-                reports every GPU and an empty list reports none.
+            gpus (list[int] | None): NVML indices of the GPUs to report, such as those a training run uses. None reports
+                every GPU and an empty list reports none.
         """
         import psutil  # scoped as slow import
 

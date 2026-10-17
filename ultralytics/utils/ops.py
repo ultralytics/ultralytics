@@ -545,19 +545,14 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
 
     if upsample:
         # Upsample then crop at image resolution; cropping first smears the bilinear edge outside the bbox (#24272)
-        n = max(1, 16_000_000 // (shape[0] * shape[1]))  # masks per chunk, bounding the float upsample memory
-        out = masks.new_empty((len(masks), *shape), dtype=torch.uint8)
-        for i in range(0, len(masks), n):
-            out[i : i + n] = F.interpolate(masks[None, i : i + n], shape, mode="bilinear")[0] > 0
-        masks = out
+        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # NHW
     else:
         width_ratio = mw / shape[1]
         height_ratio = mh / shape[0]
         ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
         bboxes = bboxes * ratios  # scale boxes to prototype resolution
-        masks = masks.gt_(0.0).byte()
     # Binarize before cropping so crop_mask runs on uint8 instead of float32, as in process_mask_native
-    return crop_mask(masks, bboxes)
+    return crop_mask(masks.gt_(0.0).byte(), bboxes)
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):
@@ -583,13 +578,10 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     gain = min(4 * mh / h, 4 * mw / w)
     pad = (4 * mh - round(h * gain)) | (4 * mw - round(w * gain))  # letterbox padding at the input size (4x protos)
     f = 4 // math.gcd(4, pad | pad // 2)  # smallest upsample (1, 2 or 4) that crops the padding on whole pixels
-    n = max(1, 16_000_000 // (h * w + f * f * mh * mw))  # masks per chunk
-    masks = coeffs.new_empty((len(coeffs), h, w), dtype=torch.uint8)
-    for i in range(0, len(coeffs), n):
-        chunk = coeffs[i : i + n].view(1, -1, mh, mw)
-        masks[i : i + n] = (
-            scale_masks(F.interpolate(chunk, scale_factor=f, mode="bilinear") if f > 1 else chunk, shape)[0] > 0
-        )
+    n, masks = max(1, 16_000_000 // (h * w + f * f * mh * mw)), coeffs.new_empty((len(coeffs), h, w), dtype=torch.uint8)
+    for i, c in zip(range(0, len(masks), n), coeffs.view(1, -1, mh, mw).split(n, 1)):  # fill one preallocated stack
+        c = scale_masks(F.interpolate(c, scale_factor=f, mode="bilinear") if f > 1 else c, shape)[0]
+        torch.gt(c, 0, out=masks[i : i + n])  # threshold straight into uint8, no bool or float copy
     return crop_mask(masks, bboxes)
 
 

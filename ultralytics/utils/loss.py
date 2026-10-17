@@ -892,18 +892,8 @@ class PoseLoss26(v8PoseLoss):
 
         # Keypoint loss
         if fg_mask.sum():
-            keypoints = batch["keypoints"].to(self.device).float().clone()
-            keypoints[..., 0] *= imgsz[1]
-            keypoints[..., 1] *= imgsz[0]
-
             keypoints_loss = self.calculate_keypoints_loss(
-                fg_mask,
-                target_gt_idx,
-                keypoints,
-                batch["batch_idx"].view(-1, 1),
-                stride_tensor,
-                target_bboxes,
-                pred_kpts,
+                fg_mask, target_gt_idx, gt_kpts, stride_tensor, target_bboxes, pred_kpts
             )
             loss[1] = keypoints_loss[0]
             loss[2] = keypoints_loss[1]
@@ -982,7 +972,6 @@ class PoseLoss26(v8PoseLoss):
         masks: torch.Tensor,
         target_gt_idx: torch.Tensor,
         keypoints: torch.Tensor,
-        batch_idx: torch.Tensor,
         stride_tensor: torch.Tensor,
         target_bboxes: torch.Tensor,
         pred_kpts: torch.Tensor,
@@ -996,8 +985,8 @@ class PoseLoss26(v8PoseLoss):
         Args:
             masks (torch.Tensor): Binary mask tensor indicating object presence, shape (BS, N_anchors).
             target_gt_idx (torch.Tensor): Index tensor mapping anchors to ground truth objects, shape (BS, N_anchors).
-            keypoints (torch.Tensor): Ground truth keypoints, shape (N_kpts_in_batch, N_kpts_per_object, kpts_dim).
-            batch_idx (torch.Tensor): Batch index tensor for keypoints, shape (N_kpts_in_batch, 1).
+            keypoints (torch.Tensor): Per-image ground truth pixel keypoints with visibility, shape (BS, max_num_obj,
+                N_kpts_per_object, 3).
             stride_tensor (torch.Tensor): Stride tensor for anchors, shape (N_anchors, 1).
             target_bboxes (torch.Tensor): Ground truth boxes in (x1, y1, x2, y2) format, shape (BS, N_anchors, 4).
             pred_kpts (torch.Tensor): Predicted keypoints, shape (BS, N_anchors, N_kpts_per_object, kpts_dim).
@@ -1007,22 +996,17 @@ class PoseLoss26(v8PoseLoss):
             kpts_obj_loss (torch.Tensor): The keypoints object loss.
             rle_loss (torch.Tensor): The RLE loss.
         """
-        # Select target keypoints using inherited helper method
-        selected_keypoints = self._select_target_keypoints(keypoints, batch_idx, target_gt_idx, masks)
-
         kpts_loss = 0
         kpts_obj_loss = 0
         rle_loss = 0
 
         if masks.any():
             target_bboxes /= stride_tensor
-            gt_kpt = selected_keypoints[masks]
+            gt_kpt = keypoints[masks.nonzero(as_tuple=True)[0], target_gt_idx[masks]]
             gt_kpt[..., :2] /= stride_tensor.view(1, -1).expand(masks.shape[0], -1)[masks][:, None, None]
             area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
             pred_kpt = pred_kpts[masks]
-            kpt_mask = (
-                gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.ones_like(gt_kpt[..., 0], dtype=torch.bool)
-            )
+            kpt_mask = gt_kpt[..., 2] != 0
             kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
 
             if self.rle_loss is not None and (pred_kpt.shape[-1] == 4 or pred_kpt.shape[-1] == 5):

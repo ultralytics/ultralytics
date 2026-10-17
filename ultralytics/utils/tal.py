@@ -71,7 +71,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
-            **extra (torch.Tensor): Batch-first tensors passed through to `get_box_metrics`.
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             target_labels (torch.Tensor): Target labels with shape (bs, num_total_anchors).
@@ -149,7 +149,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
-            **extra (torch.Tensor): Batch-first tensors passed through to `get_box_metrics`.
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             target_labels (torch.Tensor): Target labels with shape (bs, num_total_anchors).
@@ -190,7 +190,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             anc_points (torch.Tensor): Anchor points with shape (num_total_anchors, 2).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
-            **extra (torch.Tensor): Batch-first tensors passed through to `get_box_metrics`.
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             mask_pos (torch.Tensor): Positive mask with shape (bs, max_num_obj, h*w).
@@ -209,7 +209,7 @@ class TaskAlignedAssigner(nn.Module):
 
         return mask_pos, align_metric, overlaps
 
-    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra):
         """Compute alignment metric given predicted and ground truth bounding boxes.
 
         Args:
@@ -218,6 +218,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, h*w).
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             align_metric (torch.Tensor): Alignment metric combining classification and localization with shape (bs,
@@ -230,7 +231,7 @@ class TaskAlignedAssigner(nn.Module):
         shape = self.bs, self.n_max_boxes, na
         indices = mask_gt.nonzero(as_tuple=True)
         bbox_scores = pd_scores[indices[0], indices[2], gt_labels[indices[0], indices[1], 0].long()]
-        overlap_values = self.iou_calculation(gt_bboxes[indices[:2]], pd_bboxes[indices[0], indices[2]])
+        overlap_values = self.pair_overlaps(indices, gt_bboxes, pd_bboxes, **extra)
         align_values = bbox_scores.pow(self.alpha) * overlap_values.pow(self.beta)
 
         overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)
@@ -238,6 +239,10 @@ class TaskAlignedAssigner(nn.Module):
         overlaps[indices] = overlap_values
         align_metric[indices] = align_values
         return align_metric, overlaps
+
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes):
+        """Return the overlap of each candidate (batch, gt, anchor) pair in `indices`, shape (N,)."""
+        return self.iou_calculation(gt_bboxes[indices[:2]], pd_bboxes[indices[0], indices[2]])
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
         """Calculate CIoU for horizontal bounding boxes, clamped to be non-negative.
@@ -401,24 +406,16 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         super().__init__(**kwargs)
         self.sigmas = sigmas
 
-    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, pd_kpts, gt_kpts):
-        """Compute the alignment metric with overlap = (IoU + OKS) / 2 on candidate anchor-ground-truth pairs."""
-        b, g, a = indices = mask_gt.bool().nonzero(as_tuple=True)
-        iou = self.iou_calculation(gt_bboxes[b, g], pd_bboxes[b, a])
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, pd_kpts, gt_kpts):
+        """Return (IoU + OKS) / 2 for each candidate pair, or the IoU alone for ground truths without visible keypoints."""
+        b, g, a = indices
+        iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
         gt_kpts = gt_kpts[b, g]  # (P, K, 3)
         vis = gt_kpts[..., 2] > 0
         area = (gt_bboxes[b, g, 2:] - gt_bboxes[b, g, :2]).prod(-1, keepdim=True) * 0.53  # as in PoseValidator
         d = (pd_kpts[b, a].float() - gt_kpts[..., :2]).pow(2).sum(-1)
         oks = ((-d / ((2 * self.sigmas).pow(2) * (area + self.eps) * 2)).exp() * vis).sum(-1) / vis.sum(-1).clamp(min=1)
-        overlap_values = torch.where(vis.any(-1), (iou + oks.to(iou.dtype)) / 2, iou)
-
-        shape = self.bs, self.n_max_boxes, pd_bboxes.shape[-2]
-        overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)
-        align_metric = torch.zeros(shape, dtype=overlap_values.dtype, device=pd_scores.device)
-        scores = pd_scores[b, a, gt_labels[b, g, 0].long()]
-        overlaps[indices] = overlap_values
-        align_metric[indices] = scores.pow(self.alpha) * overlap_values.pow(self.beta)
-        return align_metric, overlaps
+        return torch.where(vis.any(-1), (iou + oks.to(iou.dtype)) / 2, iou)
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):

@@ -41,7 +41,7 @@ See the [Export documentation](https://docs.ultralytics.com/modes/export) for mo
 
 [YOLOE](https://docs.ultralytics.com/models/yoloe) models must have their vocabulary baked in with `set_classes()` before export — see [YOLOE Export Usage](https://docs.ultralytics.com/models/yoloe#export-usage).
 
-To run a half-precision model, export with `quantize=16` **on a GPU** (on CPU, `quantize=16` is ignored and the export stays FP32). The example detects the FP16 input type and runs it automatically:
+To run a half-precision model, export with `quantize=16` **on a GPU** (a CPU export stores FP16 weights but keeps FP32 inputs and outputs). The example detects the FP16 input type and runs it automatically:
 
 ```bash
 yolo export model=yolo26n.pt format=onnx quantize=16 device=0

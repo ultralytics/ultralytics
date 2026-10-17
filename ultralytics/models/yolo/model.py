@@ -206,7 +206,7 @@ class YOLOWorld(Model):
             classes (list[str]): A list of categories, e.g. ["person"].
         """
         self.model.set_classes(classes)
-        self.model.names = [c for c in classes if c != " "]  # drop the background class without mutating `classes`
+        self.model.names = list(classes)
 
         self.predictor = None
 
@@ -240,9 +240,8 @@ class YOLOE(Model):
         >>> model = YOLOE("yoloe-11s-seg.pt")
 
         Predict with visual prompts, whose 'cls' holds one class index per box
-        >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
         >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
-        >>> results = model.predict("image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
+        >>> results = model.predict("image.jpg", visual_prompts=prompts)
 
         Re-parameterize into a prompt-free model, which no longer accepts prompts
         >>> names = ["person", "car", "dog"]
@@ -472,7 +471,7 @@ class YOLOE(Model):
         stream: bool = False,
         visual_prompts: dict[str, np.ndarray | list[np.ndarray]] | None = None,
         refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        predictor: type | None = None,
         **kwargs,
     ):
         """Run prediction on images, videos, directories, streams, etc.
@@ -486,7 +485,8 @@ class YOLOE(Model):
                 for the model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one
                 array per image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (type): Predictor class for visual prompt predictions. Defaults to YOLOEVPDetectPredictor.
+            predictor (type, optional): Visual-prompt predictor class. Defaults to the predictor matching the model
+                task.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -496,9 +496,8 @@ class YOLOE(Model):
             >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> results = model.predict("path/to/image.jpg")
             >>> # With visual prompts, whose 'cls' holds one class index per box
-            >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
             >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
-            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
+            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
@@ -536,6 +535,9 @@ class YOLOE(Model):
             num_cls = max(per_image)
             overrides = {"verbose": refer_image is None, **self.overrides, **_handle_deprecation(kwargs)}
             overrides.update(task=self.model.task, mode="predict", save=False, batch=1)
+            predictor = predictor or (
+                yolo.yoloe.YOLOEVPSegPredictor if self.model.task == "segment" else yolo.yoloe.YOLOEVPDetectPredictor
+            )
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
             else:  # setup_model below applies this call's setup args, with unset quantize as FP32 like Model.predict

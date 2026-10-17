@@ -60,10 +60,10 @@ class FastSAMPredictor(SegmentationPredictor):
         Returns:
             (list[Results]): Processed results with prompts applied.
         """
-        bboxes = self.prompts.pop("bboxes", None)
-        points = self.prompts.pop("points", None)
-        labels = self.prompts.pop("labels", None)
-        texts = self.prompts.pop("texts", None)
+        bboxes = self.prompts.get("bboxes")
+        points = self.prompts.get("points")
+        labels = self.prompts.get("labels")
+        texts = self.prompts.get("texts")
         results = super().postprocess(preds, img, orig_imgs)
         for result in results:
             full_box = torch.tensor(

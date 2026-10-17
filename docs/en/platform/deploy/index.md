@@ -46,14 +46,10 @@ Ultralytics Platform offers multiple deployment paths:
 ## Workflow
 
 ```mermaid
-graph LR
-    A[✅ Test]:::start --> B[⚙️ Configure]:::proc
-    B --> C[🌐 Deploy]:::proc
-    C --> D[📊 Monitor]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Test]) --> B[Configure]
+    B --> C[Deploy]
+    C --> D([Monitor])
 ```
 
 | Stage         | Description                                                                       |
@@ -71,17 +67,12 @@ The shared inference service runs in 3 key regions. Requests to a model are rout
 [data region](../account/settings.md), so results stay inside the region where the model is stored:
 
 ```mermaid
-graph TB
-    User[User Request]:::start --> API[Platform API]:::proc
-    API --> Router{Model Data Region}:::decide
-    Router -->|US models| US["US Predict Service<br/>Iowa"]:::out
-    Router -->|EU models| EU["EU Predict Service<br/>Belgium"]:::out
-    Router -->|AP models| AP["AP Predict Service<br/>Taiwan"]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([User request]) --> B[Platform API]
+    B --> C{Model data region?}
+    C -->|US| D[Iowa]
+    C -->|EU| E[Belgium]
+    C -->|AP| F[Taiwan]
 ```
 
 {% include "macros/platform-data-regions.md" %}

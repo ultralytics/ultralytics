@@ -219,8 +219,8 @@ class AutoBackend(nn.Module):
         ):
             model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
-        # Check if format supports FP16
-        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine"}
+        # Check if format supports FP16; PyTorch CPU FP16 is slow and breaks some models (e.g. RT-DETR returns no boxes)
+        fp16 &= format in {"onnx", "openvino", "engine"} or (format in {"pt", "torchscript"} and str(device) != "cpu")
 
         # Set device
         if (
@@ -317,11 +317,20 @@ class AutoBackend(nn.Module):
         Returns:
             (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
         """
+        nms = self.metadata.get("args", {}).get("nms")
+        dynamic = self.metadata.get("dynamic")
+        fixed = not dynamic and (nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"})
+        if self.format not in {"coreml", "imx"} and im.shape[0] > self.batch and (nms or (fixed and dynamic is False)):
+            # Static and NMS graphs use the export batch; clone reused outputs and pad short tails below.
+            ys = []
+            for x in im.split(self.batch):
+                y = self.forward(x)
+                ys.append([t.clone() for t in y] if isinstance(y, list) else y.clone())
+            return [torch.cat(t) for t in zip(*ys)] if isinstance(ys[0], list) else torch.cat(ys)
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
         if self.backend.fp16 and im.dtype != torch.float16:
             im = im.half()
-        fixed = not self.metadata.get("dynamic") and self.format not in {"torchscript", "ncnn", "deepx", "axelera"}
         if (pad := self.batch - im.shape[0] if fixed else 0) > 0:  # static-batch exports reject short batches
             im = torch.cat((im, im.new_zeros(pad, *im.shape[1:])))
 
@@ -367,7 +376,7 @@ class AutoBackend(nn.Module):
         if not self.end2end:
             import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
         if self.format in {"pt", "torchscript", "onnx", "engine", "saved_model", "pb", "triton"} and (
-            self.device.type != "cpu" or self.format == "triton"
+            self.device.type != "cpu" or self.format in {"triton", "torchscript"}
         ):
             im = (
                 im
@@ -401,18 +410,18 @@ class AutoBackend(nn.Module):
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)
         name = Path(p).name
-        types = [s in name for s in sf]
-        types[5] |= name.endswith(".mlmodel")
-        format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
-        if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
-            format = "qnn"
-        elif name.endswith(".tflite") and not name.endswith("_edgetpu.tflite"):
-            format = "litert"  # bare .tflite files (incl. legacy TFLite exports) load via LiteRT
-        elif format == "-":
+        # The suffix ending last wins, then the longest, i.e. 'best.pt.onnx' -> onnx, 'best_qnn.onnx' -> qnn
+        matches = [
+            (name.rfind(s) + len(s), len(s), f)
+            for s, f in zip([*sf, ".mlmodel"], [*export_formats()["Argument"], "coreml"])
+            if s in name
+        ]
+        format = max(matches)[2] if matches else None
+        if format == "-":
             format = "pt"
         elif format == "onnx" and dnn:
             format = "dnn"
-        elif not any(types):
+        elif format is None:
             from urllib.parse import urlsplit
 
             url = urlsplit(p)

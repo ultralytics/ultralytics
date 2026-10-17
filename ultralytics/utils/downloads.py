@@ -143,7 +143,7 @@ def zip_directory(
 
     # Zip with progress bar
     files = [f for f in directory.rglob("*") if f.is_file() and all(x not in f.name for x in exclude)]  # files to zip
-    zip_file = directory.with_suffix(".zip")
+    zip_file = directory.with_name(f"{directory.name}.zip")
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, "w", compression) as f:
         for file in TQDM(files, desc=f"Zipping {directory} to {zip_file}...", unit="files", disable=not progress):
@@ -192,7 +192,7 @@ def unzip_file(
     # Unzip the file contents
     with ZipFile(file) as zipObj:
         files = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
-        top_level_dirs = {Path(f).parts[0] for f in files}
+        top_level_dirs = {part for f in files for part in Path(f).parts[:1]}
 
         # Decide to unzip directly or unzip into a directory
         unzip_as_dir = len(top_level_dirs) == 1  # (len(files) > 1 and not files[0].endswith("/"))
@@ -599,9 +599,7 @@ def attempt_download_asset(
     from ultralytics.utils import SETTINGS  # scoped for circular import
 
     # YOLOv3/5u updates
-    file = str(file)
-    file = checks.check_yolov5u_filename(file)
-    file = Path(file.strip().replace("'", ""))
+    file = Path(checks.check_yolov5u_filename(str(file).strip().replace("'", "")))
     if file.exists():
         return str(file)
     elif (SETTINGS["weights_dir"] / file).exists():

@@ -38,15 +38,11 @@ The predict panel supports multiple input methods:
 | **IP camera**      | RTSP or RTSPS stream on your own deployment          |
 
 ```mermaid
-graph LR
-    A[Upload Image]:::start --> D[Auto-Inference]:::proc
-    B[Example Image]:::start --> D
-    C[Webcam Capture]:::start --> D
-    D --> E[Results + Overlays]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload]) --> D[Automatic inference]
+    B([Example]) --> D
+    C([Webcam]) --> D
+    D --> E([Results with overlays])
 ```
 
 ### Upload Image

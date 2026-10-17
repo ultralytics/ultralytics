@@ -11,18 +11,13 @@ keywords: Ultralytics Platform, cloud training, GPU training, remote training, Y
 [Ultralytics Platform](https://platform.ultralytics.com) Cloud Training offers single-click training on cloud GPUs, making model training accessible without complex setup. Train YOLO models with real-time metrics streaming and automatic checkpoint saving.
 
 ```mermaid
-graph LR
-    A[Configure]:::start --> B[Start Training]:::proc
-    B --> C[Provision GPU]:::proc
-    C --> D[Download Dataset]:::proc
-    D --> E[Train]:::proc
-    E --> F[Stream Metrics]:::proc
-    F --> G[Save Checkpoints]:::proc
-    G --> H[Complete]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Configure]) --> B[Start training]
+    B --> C[Provision a GPU]
+    C --> D[Download the dataset]
+    D --> E[Train and stream metrics]
+    E --> F[Save checkpoints]
+    F --> G([Complete])
 ```
 
 ## Training Dialog
@@ -186,7 +181,7 @@ Training jobs progress through the following statuses:
 | **Failed**    | Training failed (see console logs for details)                 |
 | **Cancelled** | Training was cancelled by the user                             |
 
-A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View full console logs** and **Retry Training** actions. Runs that stop reporting activity for 4 hours are automatically marked failed, and their compute is released.
+A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with a **View full console logs** action, plus **Diagnose with AI** and **Retry Training** (Editor role or higher). Runs that stop reporting activity for 4 hours are automatically marked failed, and their compute is released.
 
 To receive the completed and failed results without keeping this page open, connect [Slack alerts](../integrations/slack.md).
 
@@ -236,15 +231,11 @@ what it has before exiting.
 ## Remote Training
 
 ```mermaid
-graph LR
-    A[Local GPU]:::start --> B[ultralytics Package]:::proc
-    B --> C[Train]:::proc
-    C --> D[Stream Metrics]:::proc
-    D --> E[Platform Dashboard]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Your own GPU]) --> B[ultralytics package]
+    B --> C[Train]
+    C --> D[Stream metrics]
+    D --> E([Platform dashboard])
 ```
 
 Train on your own hardware while streaming metrics to the platform.
@@ -360,15 +351,10 @@ Estimates are based on real cloud training runs, and the estimate always uses th
 ### Billing Flow
 
 ```mermaid
-graph LR
-    A[Estimate Cost]:::start --> B[Balance Check]:::decide
-    B --> C[Train and Meter GPU Time]:::proc
-    C --> D[Settle at Terminal State]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Estimate cost]) --> B[Check balance]
+    B --> C[Train and meter GPU time]
+    C --> D([Settle when the run ends])
 ```
 
 Cloud training billing flow:
@@ -621,9 +607,16 @@ The YAML editor also supports **importing configurations from previous training 
 
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
 
+### Why didn't my learning rate setting take effect?
+
+With the default `optimizer: auto`, training picks the optimizer and initial learning rate for you and ignores your
+`lr0`. To use your own `lr0`, choose a specific optimizer such as `SGD` or `AdamW` in **Advanced Settings**. The
+training console logs the optimizer and learning rate the run selected; the **Training Configuration** card shows the
+arguments you submitted, so with `auto` it can still list your `lr0`.
+
 ### Can I retry a failed run?
 
-Yes. A failed model shows an error banner with a **Retry Training** action that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
+Yes. A failed model shows an error banner with a **Retry Training** action (Editor role or higher) that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. **Diagnose with AI**, next to it, asks [Ask AI](autotrain.md) to find the error behind the failure and suggest the smallest fix before you retry. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
 
 ### Can I train from a dataset page?
 

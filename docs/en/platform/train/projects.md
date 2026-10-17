@@ -11,19 +11,13 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 [Ultralytics Platform](https://platform.ultralytics.com) projects provide an effective solution for organizing and managing your models. Group related models together to facilitate easier management, comparison, and development.
 
 ```mermaid
-graph TB
-    P[Project]:::start --> M1[Model 1]:::proc
-    P --> M2[Model 2]:::proc
-    P --> M3[Model 3]:::proc
-    M1 --> S[Check in Sidebar]:::proc
+flowchart TD
+    P([Project]) --> M1[Model 1]
+    P --> M2[Model 2]
+    M1 --> S[Check in the sidebar]
     M2 --> S
-    M3 --> S
-    S --> C[Charts]:::out
-    S --> T[Comparison Table]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+    S --> C[Charts]
+    S --> T[Comparison table]
 ```
 
 ## Create Project
@@ -57,7 +51,7 @@ The project page has two main areas:
 | **Models Sidebar** | Resizable list of all models in the project, with checkboxes for chart selection |
 | **Main Panel**     | Charts dashboard or comparison table (toggle between views)                      |
 
-A controls row above both areas holds the model search box, the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
+A controls row above both areas holds the model search box, **Compare with AI** (Editor role or higher, once the project has two or more completed models), the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
 
 ![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/4ebc844d81876e0499e28cf106859b4a.avif)<!-- screenshot -->
 
@@ -153,6 +147,9 @@ Clone a public project to your own account:
 
 ## Compare Models
 
+Click **Compare with AI** to have [Ask AI](autotrain.md) compare the project's trained models, recommend the best fit,
+and say whether another training run is worth it. It asks before starting any training.
+
 ### Charts Dashboard
 
 Compare model performance using the charts dashboard:
@@ -160,7 +157,7 @@ Compare model performance using the charts dashboard:
 1. Select models in the sidebar using checkboxes
 2. View overlaid metric curves grouped by type (metrics, loss, learning rate)
 3. Drag charts to rearrange, resize by dragging edges
-4. Hover to see exact values, click legend items to hide/show models, click a model line to navigate to that model
+4. Hover to see exact values, click legend items to hide/show models, drag to zoom, and click to reset the zoom
 
 Available chart groups:
 
@@ -176,8 +173,7 @@ Comparing models trained for different tasks works, but each model only draws on
 
     - Hover to see exact values
     - Click legend items to hide/show models
-    - Drag to zoom into specific regions
-    - Click a model line to navigate to that model's page
+    - Drag to zoom into specific regions, and click to reset the zoom
     - Collapse a group, or use its menu to hide individual charts and the train or validation loss series
     - Rearrange and resize charts; layout persists across sessions
 

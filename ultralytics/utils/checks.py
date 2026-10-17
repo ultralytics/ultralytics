@@ -374,7 +374,7 @@ def check_version(
         if (
             (op == "==" and cn != vn)
             or (op == "!=" and cn == vn)
-            or (op == ">=" and not (cn >= vn))
+            or (op in {">=", "~="} and not (cn >= vn))
             or (op == "<=" and not (cn <= vn))
             or (op == ">" and not (cn > vn))
             or (op == "<" and not (cn < vn))
@@ -576,7 +576,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
         for candidate in candidates:
             r_stripped = candidate.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
-            match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
+            match = re.match(r"([a-zA-Z0-9-_]+)(?:\[[^\]]*\])?([<>!=~]+.*)?", r_stripped)
             name, required = match[1], match[2].strip() if match[2] else ""
             try:
                 if check_version(metadata.version(name), required):
@@ -743,7 +743,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
     if "yolov3" in file or "yolov5" in file:
         if "u.yaml" in file:
             file = file.replace("u.yaml", ".yaml")  # i.e. yolov5nu.yaml -> yolov5n.yaml
-        elif ".pt" in file and "u" not in file:
+        elif file.endswith(".pt") and "u" not in file:
             original_file = file
             file = re.sub(r"(.*yolov5([nsmlx]))\.pt", "\\1u.pt", file)  # i.e. yolov5n.pt -> yolov5nu.pt
             file = re.sub(r"(.*yolov5([nsmlx])6)\.pt", "\\1u.pt", file)  # i.e. yolov5n6.pt -> yolov5n6u.pt

@@ -374,6 +374,7 @@ nav:
       - Datasets: datasets/index.md
       - Detection:
           - datasets/detect/index.md
+          - Ultralytics Benchmark: datasets/detect/ultralytics-benchmark.md
           - African-wildlife: datasets/detect/african-wildlife.md
           - Argoverse: datasets/detect/argoverse.md
           - Brain-tumor: datasets/detect/brain-tumor.md

@@ -17,27 +17,20 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 The **Deployments** tab on your profile serves as the monitoring dashboard for all your deployments. It combines the world map, overview metrics, and deployment management in one view. See [Dedicated Endpoints](endpoints.md) for creating and managing deployments.
 
 ```mermaid
-graph TB
-    subgraph "Deployments Tab"
-        Map[World Map]:::proc --- Cards[Overview Cards]:::proc
-        Cards --- List[Deployments List]:::decide
+flowchart TD
+    subgraph tab["Deployments tab"]
+        direction TB
+        A[Overview cards] ~~~ B[World map]
+        B ~~~ C[Deployments list]
     end
-    subgraph "Deployment Page"
-        Metrics[Metrics Cards]:::out
-        Overview[Overview Tab: Endpoint and Health Check]:::out
-        Monitoring[Monitoring Tab]:::out
-        Predict[Predict Tab]:::out
-        Logs[Logs Tab]:::out
+    subgraph page["Deployment page"]
+        direction TB
+        D[Metrics cards] ~~~ E[Overview]
+        D ~~~ F[Monitoring]
+        E ~~~ G[Predict]
+        F ~~~ H[Logs]
     end
-    List --> Metrics
-    List --> Overview
-    List --> Monitoring
-    List --> Predict
-    List --> Logs
-
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+    tab -->|open| page
 ```
 
 ### Overview Cards

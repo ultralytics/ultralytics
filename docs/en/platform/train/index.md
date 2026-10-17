@@ -36,15 +36,11 @@ The Training section helps you:
 ## Workflow
 
 ```mermaid
-graph LR
-    A[📁 Project]:::start --> B[⚙️ Configure]:::proc
-    B --> C[🚀 Train]:::proc
-    C --> D[📈 Monitor]:::proc
-    D --> E[📦 Export]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Project]) --> B[Configure]
+    B --> C[Train]
+    C --> D[Monitor]
+    D --> E([Export])
 ```
 
 | Stage         | Description                                                                |
@@ -90,16 +86,24 @@ Available GPUs for cloud training on Ultralytics Cloud:
 During training, view live metrics across three subtabs:
 
 ```mermaid
-graph LR
-    A[Charts]:::start --> B[Loss Curves]:::out
-    A --> C[Task Metrics]:::out
-    D[Console]:::start --> E[Live Logs]:::out
-    D --> F[Error Detection]:::out
-    G[System]:::start --> H[GPU, CPU & Memory]:::out
-    G --> I[Network & Disk I/O]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    subgraph charts["Charts"]
+        direction TB
+        A[Losses]
+        B[Task metrics]
+    end
+    subgraph console["Console"]
+        direction TB
+        C[Live logs]
+        D[Error detection]
+    end
+    subgraph system["System"]
+        direction TB
+        E[GPU stats]
+        F["CPU, RAM, I/O"]
+    end
+    charts ~~~ console
+    console ~~~ system
 ```
 
 | Subtab      | Metrics                                                                                          |
@@ -178,8 +182,9 @@ Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro al
 If training fails:
 
 1. The model is marked failed and the compute instance is terminated
-2. The model page shows an error banner with the captured error, a link to the console output, and a **Retry
-   Training** action that reopens the training dialog with the same configuration
+2. The model page shows an error banner with the captured error, a link to the console output, and **Diagnose with
+   AI** and a **Retry Training** action (Editor role or higher) that reopens the training dialog with the same
+   configuration
 3. A run that stops reporting activity for 4 hours is automatically marked failed and its compute released
 4. If cloud compute had started, elapsed GPU time is charged; failures before compute starts have no GPU usage charge
 

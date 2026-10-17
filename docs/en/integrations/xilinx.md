@@ -80,14 +80,10 @@ The Kria K26 module packages a Zynq UltraScale+ MPSoC, memory and power on a pro
 Most AMD Xilinx AI deployments follow the same pattern. The accelerator runs the layers it supports, the Arm CPU runs preprocessing, post-processing and any layers the accelerator cannot execute, and a runtime on the board coordinates the two.
 
 ```mermaid
-graph LR
-    A[Camera / video input]:::start --> B[Arm CPU<br>Linux, preprocessing,<br>post-processing]:::proc
-    B <--> C[AI accelerator<br>DPU in programmable logic<br>or NPU on AI Engines + PL]:::out
-    B --> D[Application<br>alerts, control, display]:::start
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Camera or video input]) --> B["Arm CPU: pre/post-processing"]
+    B <-->|supported layers| C[DPU or NPU]
+    B --> D(["Alerts, control, display"])
 ```
 
 AMD has shipped two generations of accelerator, each with its own toolchain and compiled model file. This guide follows Vitis AI 3.5 for the DPU and Vitis AI 6.3 for the NPU; check AMD's current documentation for later releases.
@@ -111,19 +107,11 @@ AMD has shipped two generations of accelerator, each with its own toolchain and 
 Pick your flow from the device on your board:
 
 ```mermaid
-graph TD
-    A[Start: which AMD device<br>is on your board?]:::start --> B{Device family?}:::decide
-    B -->|Zynq UltraScale+ MPSoC<br>or Kria K26| C[DPU flow<br>Vitis AI 3.5]:::proc
-    B -->|Versal AI Edge<br>VEK280| D[NPU snapshot flow<br>Vitis AI 6.3]:::proc
-    B -->|Versal AI Edge Gen 2<br>VEK385| E[Ultralytics export<br>format=xilinx]:::proc
-    C --> F[Train YOLO with Hard-Swish<br>then compile to .xmodel]:::out
-    D --> G[Run your model on calibration<br>images to capture a snapshot]:::out
-    E --> H[Compile to .rai<br>with Vitis AI 6.3]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A{Device family?}
+    A -->|Zynq or Kria| B([DPU flow])
+    A -->|VEK280 class| C([NPU snapshot])
+    A -->|VEK385, Gen 2| D([Xilinx export])
 ```
 
 ## Export to AMD Xilinx: Converting Your YOLO Model
@@ -267,17 +255,13 @@ Compiling the model, as described below, adds a `yolo26n/` compiler cache to the
 The export follows AMD's documented Vitis AI flow for Versal AI Edge Series Gen 2:
 
 ```mermaid
-graph LR
-    A[YOLO model<br>yolo26n.pt]:::start --> B[ONNX export<br>opset 17]:::proc
-    B --> C[AMD Quark VINT8<br>head kept in float]:::proc
-    C --> D[yolo26n_xilinx_model/<br>ONNX + vitisai_config.json]:::out
-    D --> E[Vitis AI 6.3 compiler<br>yolo26n.rai]:::proc
-    E --> F[VEK385 NPU<br>INT8 + BF16]:::out
-    D -.->|host CPU| G[INT8 accuracy check<br>yolo val]:::start
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([yolo26n.pt]) --> B["ONNX export, opset 17"]
+    B --> C["AMD Quark VINT8, float head"]
+    C --> D[("yolo26n_xilinx_model/")]
+    D --> E[Compile to .rai]
+    E --> F([Run on VEK385 NPU])
+    D -.->|host CPU| G[Check with yolo val]
 ```
 
 1. **ONNX export** at opset 17 with a static batch size of 1.
@@ -336,17 +320,21 @@ Compilation needs only AMD's ONNX Runtime, so export on any Linux machine and co
 An accelerator only speeds up the operators it implements in hardware. When a model contains an unsupported operator, the compiler usually sends that part of the network to the Arm CPU, and each round trip between the accelerator and the CPU adds latency. Some operators cannot be partitioned: on the Versal AI Edge Gen 2 NPU, AMD lists operators such as NonZero and NonMaxSuppression that can force the entire model onto the CPU. Operator support is the most important factor in how well a YOLO model performs on AMD Xilinx hardware.
 
 ```mermaid
-graph LR
-    subgraph S1 [Stock YOLO26 on the DPU]
-        A1[Conv]:::out --> A2[SiLU<br>CPU]:::error --> A3[Conv]:::out --> A4[SiLU<br>CPU]:::error --> A5[...]:::proc
+flowchart TD
+    subgraph stock["Stock YOLO26 on the DPU"]
+        direction TB
+        A1[Conv on DPU] --> A2[SiLU on CPU]:::error
+        A2 -.->|repeats| A1
     end
-    subgraph S2 [Hard-Swish YOLO26 on the DPU]
-        B1[Backbone<br>Conv + Hard-Swish<br>DPU]:::out --> B2[C2PSA attention<br>CPU]:::error --> B3[Neck<br>DPU]:::out --> B4[C3k2 attention<br>CPU]:::error --> B5[Detect head<br>DPU]:::out --> B6[Sigmoid and<br>post-processing<br>CPU]:::error
+    subgraph hswish["Hard-Swish YOLO26 on the DPU"]
+        direction TB
+        B1[Backbone on DPU] --> B2[C2PSA attention on CPU]:::error
+        B2 --> B3[Neck on DPU]
+        B3 --> B4[C3k2 attention on CPU]:::error
+        B4 --> B5[Detect head on DPU]
+        B5 --> B6[Sigmoid on CPU]:::error
     end
-
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
+    stock ~~~ hswish
 ```
 
 The table shows where each operator in a YOLO26 model runs. A stock YOLO26n ONNX export contains 87 [SiLU](https://www.ultralytics.com/glossary/silu-sigmoid-linear-unit) activations, each exported as a Sigmoid and a Mul, plus 4 MatMul and 2 [Softmax](https://www.ultralytics.com/glossary/softmax) operators from its two attention blocks: the [C2PSA](../guides/yolo-architecture.md#spatial-attention-c2psa-yolo11) block at the end of the backbone (layer 10) and the attention-enabled `C3k2` block that produces the P5 output (layer 22).

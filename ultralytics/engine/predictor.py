@@ -118,6 +118,7 @@ class BasePredictor:
         callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
+        scale_fill (bool): Whether pre_transform stretches images to imgsz instead of letterboxing them.
 
     Methods:
         preprocess: Prepare input image before inference.
@@ -133,6 +134,8 @@ class BasePredictor:
         run_callbacks: Execute registered callbacks for an event.
         add_callback: Register a new callback function.
     """
+
+    scale_fill = False
 
     def __init__(
         self,
@@ -233,7 +236,9 @@ class BasePredictor:
             self.imgsz,
             auto=same_shapes
             and self.args.rect
+            and not self.scale_fill
             and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
+            scale_fill=self.scale_fill,
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -548,7 +553,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
-            fps = max(1, round(fps / self.args.vid_stride))  # skipped frames must not shorten the saved video
+            fps = max(1, fps / self.args.vid_stride)  # skipped frames must not shorten the saved video
             frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
@@ -557,7 +562,7 @@ class BasePredictor:
                 self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
-                    fps=fps,  # integer required, floats produce error in MP4 codec
+                    fps=fps,  # float keeps fractional rates, e.g. 29.97 or 30 / vid_stride
                     frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 

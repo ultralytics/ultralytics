@@ -475,7 +475,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
     Notes:
         - On Windows, this function attempts to reconfigure stdout to use UTF-8 encoding if possible.
-        - If reconfiguration is not possible, it falls back to a custom formatter that handles non-UTF-8 environments.
+        - On Windows, emojis are removed from log messages.
         - The function sets up a StreamHandler with the appropriate formatter and level.
         - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
@@ -532,8 +532,8 @@ logging.getLogger("sentry_sdk").setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=""):
-    """Return platform-dependent emoji-safe version of string."""
-    return string.encode().decode("ascii", "ignore") if WINDOWS else string
+    """Return platform-dependent emoji-safe version of string, removing only the package's emojis on Windows."""
+    return string.translate(str.maketrans("", "", "🚀✅❌⚠💡⚡⏱❎❔😃\ufe0f")) if WINDOWS else string
 
 
 class ThreadingLocked:
@@ -982,9 +982,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     else:
         raise ValueError(f"Unsupported operating system: {platform.system()}")
 
-    if p.exists():  # already created → trust it
-        return p
-    if is_dir_writeable(p.parent):  # create if possible
+    with contextlib.suppress(OSError):  # create if possible
         p.mkdir(parents=True, exist_ok=True)
         return p
 

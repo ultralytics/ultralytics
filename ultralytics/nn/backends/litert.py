@@ -65,7 +65,9 @@ class LiteRTBackend(BaseBackend):
         # third-party) whose graph input is int8/int16.
         if details["dtype"] in {np.int8, np.int16}:
             scale, zero_point = details["quantization"]
-            im = (im / scale + zero_point).astype(details["dtype"])
+            limits = np.iinfo(details["dtype"])
+            im = im / scale + zero_point
+            im = im.clip(limits.min, limits.max, out=im).astype(details["dtype"])
         self.interpreter.set_tensor(details["index"], im)
         self.interpreter.invoke()
 

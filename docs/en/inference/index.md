@@ -33,7 +33,7 @@ The project ships as a single crate, `ultralytics-inference`, that you can use t
 
 ## Installation
 
-Rust 1.89 or newer is required. The [video](#cargo-features) feature additionally needs FFmpeg 6 to 9 installed on the system.
+Rust 1.92 or newer is required. The [video](#cargo-features) feature additionally needs FFmpeg 6 to 9 installed on the system.
 
 === "CLI"
 
@@ -57,7 +57,7 @@ Rust 1.89 or newer is required. The [video](#cargo-features) feature additionall
     ```toml
     # Or add it manually to Cargo.toml
     [dependencies]
-    ultralytics-inference = "0.0.50"
+    ultralytics-inference = "0.0.51"
     ```
 
 ## CLI quickstart
@@ -451,7 +451,7 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 ```toml
 [dependencies]
-ultralytics-inference = { version = "0.0.50", features = ["video"] }
+ultralytics-inference = { version = "0.0.51", features = ["video"] }
 ```
 
 ## Output and saving

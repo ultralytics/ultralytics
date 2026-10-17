@@ -40,14 +40,10 @@ The Data section of Ultralytics Platform helps you:
 ## Workflow
 
 ```mermaid
-graph LR
-    A[Upload]:::start --> B[Annotate]:::proc
-    B --> D[Train]:::out
-    B --> C[Analyze]:::proc
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload]) --> B[Annotate]
+    B --> C[Analyze]
+    B --> D([Train])
 ```
 
 | Stage        | Description                                                                                                                                                                                                                 |

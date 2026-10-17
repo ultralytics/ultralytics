@@ -32,6 +32,13 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
     Examples:
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
+
+    Notes:
+        - Multi-page grayscale TIFFs with same-size pages stack them as channels. Color TIFFs keep every band, such as
+          alpha or near-infrared, only with cv2.IMREAD_UNCHANGED. Other multi-page TIFFs, such as Cloud Optimized
+          GeoTIFFs with overview and thumbnail pages, return their first page.
+        - 16-bit images keep their high byte as 8-bit, unless flags explicitly include cv2.IMREAD_ANYDEPTH.
+          cv2.IMREAD_UNCHANGED preserves channels but still converts 16-bit images to 8-bit.
     """
     filename = str(filename)
     try:
@@ -40,15 +47,18 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         return None
     if not file_bytes.size:  # empty file, cv2 decoders assert on an empty buffer
         return None
+    im = None
     if flags != cv2.IMREAD_GRAYSCALE and filename.lower().endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
-        if not success:
-            return None
-        if len(frames) > 1 or frames[0].ndim == 3:
-            return frames[0] if len(frames) == 1 else np.stack(frames, axis=2)
-    im = _imread_pil(filename, flags) if filename.lower().endswith(PIL_FALLBACK_SUFFIXES) else None  # EXIF-aware
+        if success and (frames[0].ndim == 3 or (len(frames) > 1 and all(f.shape == frames[0].shape for f in frames))):
+            im = frames[0] if frames[0].ndim == 3 else np.stack(frames, axis=2)  # color pages keep the first page
+            im = im if frames[0].ndim == 2 or flags == cv2.IMREAD_UNCHANGED else im[..., :3]  # BGR, alpha dropped
+    if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
+        im = _imread_pil(filename, flags)  # EXIF-aware
     if im is None:
         im = cv2.imdecode(file_bytes, flags)
+    if im is not None and im.dtype == np.uint16 and (flags == cv2.IMREAD_UNCHANGED or not flags & cv2.IMREAD_ANYDEPTH):
+        im = (im >> 8).astype(np.uint8)
     return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
@@ -113,8 +123,9 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
 def imread_unicode(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
     """Read an image with multilanguage filename support, preserving native cv2.imread behavior.
 
-    This is intended as a Windows monkey-patch for cv2.imread. Unlike `imread`, it does not expand grayscale dimensions
-    or handle TIFF/AVIF/HEIC fallback.
+    This is intended as a Windows monkey-patch for cv2.imread. Decoding from bytes also reads EXIF-rotated TIFFs, which
+    file-based cv2.imread returns as None on OpenCV >= 4.12. Unlike `imread`, it does not expand grayscale dimensions or
+    handle TIFF/AVIF/HEIC fallback.
 
     Args:
         filename (str | Path): Path to the file to read.

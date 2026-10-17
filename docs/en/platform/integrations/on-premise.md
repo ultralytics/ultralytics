@@ -18,12 +18,12 @@ Setup takes one command. Platform detects your operating system, fills in sensib
 ## How It Works
 
 ```mermaid
-flowchart LR
-    A[Your browser] <-->|Interface, labels, and progress| B[Ultralytics Platform]
-    A <-->|Dataset previews| C[Your On Premise computer]
-    B <-->|Jobs, metrics, and model weights| C
-    C --- D[(Dataset folder)]
-    C --- E[(Models folder)]
+flowchart TD
+    A[Your browser] <-->|UI, labels, progress| B[Ultralytics Platform]
+    A <-->|dataset previews| C[Your On Premise computer]
+    B <-->|jobs, metrics, weights| C
+    C -->|read-only| D[(Dataset folder)]
+    C -->|writes runs| E[(Models folder)]
 ```
 
 ### Data Boundaries

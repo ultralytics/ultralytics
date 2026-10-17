@@ -575,10 +575,12 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     # Upsampling all N masks at once allocates an N*H*W float intermediate (~9 GB on a large image with many
     # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget, thresholding each chunk to
     # uint8 immediately so the float intermediate stays small, then crop the assembled uint8 stack.
-    step = max(1, 32_000_000 // (h * w))
+    gain = min(4 * mh / h, 4 * mw / w)
+    pad = (4 * mh - round(h * gain)) | (4 * mw - round(w * gain))  # letterbox padding at the input size (4x protos)
+    f = 4 // math.gcd(4, pad | pad // 2)  # smallest upsample (1, 2 or 4) that crops the padding on whole pixels
     masks = [
-        scale_masks(coeffs[i : i + step].view(-1, mh, mw)[None], shape)[0].gt_(0.0).byte()
-        for i in range(0, coeffs.shape[0], step)
+        scale_masks(F.interpolate(chunk, scale_factor=f, mode="bilinear") if f > 1 else chunk, shape)[0].gt_(0.0).byte()
+        for chunk in coeffs.view(1, -1, mh, mw).split(max(1, 32_000_000 // (h * w + f * f * mh * mw)), 1)
     ]
     return crop_mask(torch.cat(masks), bboxes)
 
@@ -618,6 +620,12 @@ def scale_masks(
         (gain_h, gain_w), (pad_w, pad_h) = ratio_pad
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
     bottom, right = top + round(im0_h * gain_h), left + round(im0_w * gain_w)  # content end, odd pads extra at end
+    if ratio_pad and not padding and abs(im0_h * gain_h - bottom) + abs(im0_w * gain_w - right) > 1e-3:  # mid-pixel
+        sh, sw = im0_h * gain_h / im1_h, im0_w * gain_w / im1_w  # sample the exact content span instead of cropping
+        masks = masks.float()
+        theta = masks.new_tensor([[[sw, 0, sw - 1], [0, sh, sh - 1]]])
+        grid = F.affine_grid(theta, (1, 1, im0_h, im0_w), align_corners=False).expand(len(masks), -1, -1, -1)
+        return F.grid_sample(masks, grid, mode=mode, padding_mode="border", align_corners=False)
     return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
 
 

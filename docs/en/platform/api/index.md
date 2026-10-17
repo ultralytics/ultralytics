@@ -52,17 +52,14 @@ integrations_path: ../../integrations
 The API is organized around the core Platform resources:
 
 ```mermaid
-graph LR
-    A[API Key]:::start --> B[Datasets]:::proc
-    A --> C[Projects]:::proc
-    B -->|images| G[Images]:::proc
-    C -->|contains| D[Models]:::proc
-    B -->|train on| D
-    D -->|deploy| E[Deployments]:::proc
-    D -->|export| F[Exports]:::proc
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
+flowchart TD
+    A([API key]) --> B[(Datasets)]
+    A --> C[Projects]
+    B -->|contains| G[Images]
+    C -->|contains| D[Models]
+    B -->|trains| D
+    D -->|deploy| E[Deployments]
+    D -->|export| F[Exports]
 ```
 
 | Resource                                   | Description                     | Key Operations                                                |
@@ -984,17 +981,14 @@ to 1,024 characters, top-level metadata keys to 128 characters, and each metadat
 ```
 
 ```mermaid
-graph LR
-    A[POST /api/datasets]:::start --> B[POST /api/upload/signed-url]:::proc
-    B --> C[PUT archive to signed URL]:::proc
-    C --> D["POST /api/upload/complete (optional)"]:::proc
-    D --> E["POST /api/datasets/{owner}/{dataset}/ingest"]:::proc
-    E --> F[Process archive]:::proc
-    F --> G[Dataset ready]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A(["POST /api/datasets"]) --> B["POST /api/upload/signed-url"]
+    B --> C[PUT archive to signed URL]
+    C -.->|optional| D["POST /api/upload/complete"]
+    C --> E["POST .../{dataset}/ingest"]
+    D -.-> E
+    E --> F[Process archive]
+    F --> G([Dataset ready])
 ```
 
 ??? example "Upload one image with metadata using Python"
@@ -1141,7 +1135,7 @@ Runs the model on the image and returns predicted annotations. It does not save 
 | `iou`          | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7); ignored by class-prompted models                                                                                                                                                                                                                                                                 |
 | `classMapping` | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models                                                                                                                                                          |
 
-**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models), `modelUsed`, `inferenceTime`, for class-prompted models `partial` (`true` when a generative model's truncated output returned only the complete boxes), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `403`, or `404` (a rejected key, model, or request), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`, and datasets on connected storage or with more than 3 image channels return `409`.
+**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models), `modelUsed`, `inferenceTime`, for class-prompted models `partial` (`true` when a generative model's truncated output returned only the complete boxes), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `402`, `403`, or `404` (a rejected key, model, or request, or an unpaid provider balance; `code`: `provider_refused` for all but `400`), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`, and datasets on connected storage or with more than 3 image channels return `409`.
 
 ### Find Similar Images
 
@@ -1345,7 +1339,8 @@ Accepted fields: `name`, `description`, `visibility`, `metadata`, `tags`, `licen
 ```
 
 Send an empty `metadata` object (`{}`) to clear it. Project metadata uses the same 128-character key and
-500,000-character serialized-object limits as dataset metadata.
+500,000-character serialized-object limits as dataset metadata. A `name` change that changes the slug returns `409`
+while any model in the project is starting training.
 
 ### Delete Project
 
@@ -1384,6 +1379,8 @@ GET /api/models/{owner}/{project}
 ```
 
 **Python SDK:** `client.models.list(owner, project)`
+
+Listed models omit their validation `plots` and `trainResults`; [Get Model](#get-model) returns them.
 
 **Query Parameters:**
 
@@ -1450,7 +1447,8 @@ PATCH /api/models/{owner}/{project}/{model}
 Accepted fields include `name`, `description`, `color`, `metadata`, `status`, `license`, `datasetSlug`, `trainArgs`,
 `trainResults`, `epochs`, `bestEpoch`, `bestFitness`, `version`, `trainingError`, and `starred`. Passing `projectId` on its
 own moves the model into another project of the same owner; the response returns the model's `slug` in the destination,
-`renamed: true` when that slug was already taken there, and `409` while the model is still training.
+`renamed: true` when that slug was already taken there, and `409` while the model is still training. A `name` change
+that changes the slug returns `409` while training is starting.
 
 ```json
 {
@@ -1636,19 +1634,12 @@ Launch YOLO training on cloud GPUs and monitor progress in real time. See
 [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
-graph LR
-    A[POST /api/training/start]:::start --> B[Job Created]:::proc
-    B --> C{Training}:::decide
-    C -->|progress| D[GET .../training]:::proc
-    C -->|cancel| E[DELETE .../training]:::error
-    C -->|complete| F[Model Ready]:::out
-    F --> G[Deploy or Export]:::proc
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
+stateDiagram-v2
+    [*] --> Training: POST start
+    Training --> Training: GET progress
+    Training --> Cancelled: DELETE
+    Training --> Ready: complete
+    Ready --> [*]: deploy or export
 ```
 
 ### Get GPU Availability
@@ -1799,7 +1790,7 @@ Each format honors only the options in its **Arguments** column of the export ta
 YOLO11 sizes other than nano return `400`.
 
 **Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `region`, and `gpuType` for TensorRT exports.
-An equivalent export that is already in flight returns `409`.
+While an export of the same format is in flight for the model, a new request returns `409` whatever its `args`.
 
 **Supported Formats:**
 
@@ -1844,21 +1835,15 @@ Deploy models to dedicated inference endpoints with health checks and monitoring
 [Endpoints documentation](../deploy/endpoints.md).
 
 ```mermaid
-graph LR
-    A[Create]:::start --> B[Deploying]:::proc
-    B --> C[Ready]:::out
-    C -->|action stop| D[Stopped]:::extern
-    C -->|action replace| B
-    D -->|action start| C
-    C -->|delete| E[Deleted]:::error
-    D -->|delete| E
-    C -->|predict| F[Inference Results]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
-    classDef extern fill:#607D8B,color:#fff
+stateDiagram-v2
+    [*] --> Deploying: create
+    Deploying --> Ready
+    Ready --> Stopped: stop
+    Stopped --> Deploying: start
+    Ready --> Deploying: replace
+    Ready --> Ready: predict
+    Ready --> [*]: delete
+    Stopped --> [*]: delete
 ```
 
 ### List Deployments
@@ -2660,16 +2645,19 @@ GET /api/explore/search
 
 **Query Parameters:**
 
-| Parameter | Type    | Description                                                                                       |
-| --------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `q`       | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match   |
-| `type`    | string  | `all` (default), `projects`, `datasets`, or `images` (ignores `sort`)                             |
-| `sort`    | string  | `newest` (default), `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`         |
-| `offset`  | int     | Results to skip (default: 0)                                                                      |
-| `limit`   | int     | Maximum results per resource type (default: 20, max: 100)                                         |
-| `task`    | string  | Comma-separated task filters: `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb` |
-| `author`  | string  | Owner username filter                                                                             |
-| `starred` | boolean | Return only content starred by the authenticated caller; requires an API key                      |
+| Parameter   | Type    | Description                                                                                                                                                                               |
+| ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q`         | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match                                                                                           |
+| `type`      | string  | `all` (default), `projects`, `datasets`, or `images` (ignores `sort`)                                                                                                                     |
+| `sort`      | string  | `relevance` (default), `newest`, `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`; `relevance` ranks dataset matches for `q` by search score, otherwise newest first |
+| `offset`    | int     | Results to skip (default: 0)                                                                                                                                                              |
+| `limit`     | int     | Maximum results per resource type (default: 20, max: 100)                                                                                                                                 |
+| `task`      | string  | Comma-separated task filters: `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`                                                                                         |
+| `license`   | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license                                                                                         |
+| `author`    | string  | Owner username filter                                                                                                                                                                     |
+| `starred`   | boolean | Return only content starred by the authenticated caller; requires an API key                                                                                                              |
+| `minImages` | int     | Return only datasets with at least this many images; ignored by `type=images`                                                                                                             |
+| `maxImages` | int     | Return only datasets with at most this many images; ignored by `type=images`                                                                                                              |
 
 **Response:** `projects`, `datasets`, and `hasMore`. `type=images` returns its matches in `images` instead, best match
 first, each with its source `dataset` and a 0–1 similarity `score`; it needs `q` and searches public datasets, plus your

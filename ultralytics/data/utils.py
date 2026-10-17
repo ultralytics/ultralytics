@@ -32,6 +32,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_file, check_font, is_ascii, normalize_platform_uri
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.ops import segments2boxes
+from ultralytics.utils.patches import imread
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {
@@ -241,14 +242,12 @@ def get_hash(paths: list[str]) -> str:
 def exif_size(img: Image.Image) -> tuple[int, int]:
     """Return exif-corrected PIL size."""
     s = img.size  # (width, height)
-    if img.format == "JPEG":  # only support JPEG images
-        try:
-            if exif := img.getexif():
-                rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
-                if rotation in {6, 8}:  # rotation 270 or 90
-                    s = s[1], s[0]
-        except Exception:
-            pass
+    try:
+        exif = img.tag_v2 if img.format == "TIFF" else img.getexif()  # TIFF tags stay readable after verify()
+        if exif.get(274) in {5, 6, 7, 8}:  # swap w and h; WebP/TIFF vary by cv2/Pillow version, so decode those
+            s = s[::-1] if img.format in {"JPEG", "MPO", "PNG", "AVIF"} else imread(img.filename).shape[1::-1]
+    except Exception:
+        pass
     return s
 
 
@@ -367,6 +366,29 @@ def verify_image_depth(args: tuple) -> tuple:
     return None, None, nf, nm, nc, msg
 
 
+def read_mask(mask_file: str, mode: str) -> np.ndarray:
+    """Read a semantic mask file as an array of class ids.
+
+    Args:
+        mask_file (str): Path to the mask image.
+        mode (str): PIL image mode of the mask, which selects how class ids are decoded.
+
+    Returns:
+        (np.ndarray): (H, W) array of mask class ids.
+
+    Raises:
+        FileNotFoundError: If the mask file is missing or unreadable.
+    """
+    if mode == "P":  # colored (VOC-style) palettes hold class ids as indices, gray palettes as gray levels
+        with Image.open(mask_file) as im:
+            p = np.array(im.getpalette()).reshape(-1, 3)
+            return np.array(im.convert("L") if (p == p[:, :1]).all() else im)
+    mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # keeps 16-bit ids
+    if mask is None:
+        raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
+    return mask // 255 if mode == "1" else mask  # cv2 expands 1-bit PNG foreground to 255
+
+
 def verify_image_mask(args: tuple) -> tuple:
     """Verify that an image and its semantic mask exist, are readable, match in shape, and hold valid class ids.
 
@@ -394,13 +416,8 @@ def verify_image_mask(args: tuple) -> tuple:
                     break
         if os.path.isfile(mask_file):
             with Image.open(mask_file) as im:
-                mode = im.mode  # recorded so load_mask reads each mask once and a yaml 'nc' edit never needs a rescan
-                if mode == "P":  # colored (VOC-style) palettes hold class ids as indices, gray palettes as gray levels
-                    p = np.array(im.getpalette()).reshape(-1, 3)
-                    mask = np.asarray(im.convert("L") if (p == p[:, :1]).all() else im)
-                else:
-                    mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # keeps 16-bit ids
-            assert mask is not None, f"mask file {mask_file} is unreadable"
+                mode = im.mode  # recorded so load_mask reads each mask once
+            mask = read_mask(mask_file, mode)
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
             assert not invalid[mask].any(), (  # ids above 255 raise IndexError
                 f"mask ids {np.unique(mask[invalid[mask] > 0]).tolist()} are not dataset class ids or 255 ignore"
@@ -903,7 +920,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         else:
             files = [path for path in v.rglob("*.*") if path.suffix[1:].lower() in IMG_FORMATS]
             nf = len(files)  # number of files
-            nd = len({file.parent for file in files})  # number of directories
+            nd = len({file.relative_to(v).parts[0] for file in files})  # number of classes
             if nf == 0:
                 if k == "train":
                     raise FileNotFoundError(f"{dataset} '{k}:' no training images found")

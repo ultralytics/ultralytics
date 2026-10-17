@@ -25,6 +25,8 @@ class DepthPredictor(BasePredictor):
         >>> results = predictor("image.jpg")
     """
 
+    scale_fill = True
+
     def __init__(
         self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None
     ) -> None:
@@ -39,7 +41,7 @@ class DepthPredictor(BasePredictor):
         depth_maps = preds[0] if isinstance(preds, (tuple, list)) else preds  # (B, 1, H, W)
         if depth_maps.ndim == 3:
             depth_maps = depth_maps.unsqueeze(1)  # (B, H, W) → (B, 1, H, W)
-        # Restore model-input resolution so all backends crop letterbox padding before scaling to the original image.
+        # Restore model-input resolution so all backends upsample the same way before scaling to the original image.
         # align_corners=True matches the depth loss, validator and exported head upsample.
         depth_maps = F.interpolate(depth_maps.float(), size=img.shape[2:], mode="bilinear", align_corners=True)
 
@@ -47,9 +49,8 @@ class DepthPredictor(BasePredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         results = []
-        for i, orig_img in enumerate(orig_imgs):
-            img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
-            depth = ops.scale_masks(depth_maps[i : i + 1].float(), orig_img.shape[:2])
+        for depth, orig_img, img_path in zip(depth_maps, orig_imgs, self.batch[0]):
+            depth = F.interpolate(depth[None], orig_img.shape[:2], mode="bilinear", align_corners=True)
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, depth=depth.squeeze()))
 
         return results

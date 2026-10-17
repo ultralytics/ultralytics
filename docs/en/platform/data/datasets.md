@@ -263,7 +263,7 @@ To create a dataset:
 2. Click `New Dataset`
 3. Pick a data source tab (see [Data Sources](#data-sources) below)
 4. Add a name — the URL slug is derived automatically and can be edited — plus an optional description
-5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private)
+5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private). A new public dataset starts with **CC BY 4.0** selected; pick another license or **None** to change it
 6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/16dcaac210f7f70540f6061c6b98fba9.avif)<!-- screenshot -->
@@ -310,16 +310,12 @@ Two dialogs may then appear:
 After upload, the platform processes your data automatically:
 
 ```mermaid
-graph LR
-    A[Upload]:::start --> B[Validate]:::proc
-    B --> C[Normalize]:::proc
-    C --> D[Thumbnail]:::proc
-    D --> E[Parse Labels]:::proc
-    E --> F[Statistics]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload]) --> B[Validate]
+    B --> C[Normalize]
+    C --> D[Generate thumbnails]
+    D --> E[Parse labels]
+    E --> F([Compute statistics])
 ```
 
 1. **Validation**: Format and size checks
@@ -417,7 +413,7 @@ Click any image to open the fullscreen viewer with:
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
-- **Blur faces**: Right-click an annotation to [preview and apply face blurring](#blur-faces) to the image when available
+- **Blur faces**: Right-click the image or an annotation to [preview and apply face blurring](#blur-faces) to the image when available
 - **Download**: Download the original image file
 - **Delete**: Delete the image from the dataset
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
@@ -673,8 +669,9 @@ from the previous version; pick another one in the **From** menu. Chips grouped 
 **Classes**, and **Settings** count the images added, removed, modified, and moved to another split and the annotations
 added and removed, and name the classes added, removed, or renamed and any dataset settings that changed. Each changed
 image is listed with its badge. Select an image to see it **Before** and **After**, each side with the labels that
-version stored. When the images and annotations are identical, the dialog reports **No changes**, or **No image
-changes** when only class definitions or dataset settings differ.
+version stored. When the image's metadata changed, **Metadata changes** lists each added, removed, or modified key with
+its value in both versions. When the images, their metadata, and annotations are identical, the dialog reports **No
+changes**, or **No image changes** when only class definitions or dataset settings differ.
 
 !!! warning "Restoring a Version"
 
@@ -827,17 +824,27 @@ Create new training images from one you already have. In a dataset you can edit,
 | **Image Size**       | Target longest edge from `256` to `2048` px in steps of `64` (default `1024`)                                      |
 | **Instructions**     | Optional description of what to vary or keep, such as lighting, viewpoint, background, or objects                  |
 
-![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/d806fad25bce35fe7fc9f61df5223000.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/734f0110f1ac27a9ac6579c1ffc0ab67.avif)<!-- screenshot -->
 
 **Ultralytics Image 9B** and **Krea 2 Turbo** are also listed, but you can select them only after you turn on [Early access](../account/settings.md#early-access). Krea 2 Turbo is the slowest option. Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
 
 Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear as they finish, all selected, and **Stop** ends a running batch while keeping the images that already arrived. To try other instructions or settings, change them and click **Generate more**: each new batch appears above the earlier ones, which keep their selection. Click an image to view it full size, clear the checkbox of any you don't want, and click **Add N to dataset**. The kept images are uploaded as JPEGs named after the source image, without labels, counted against your storage, and ready for [annotation](annotation.md). They use the active split filter: choose **Train** before generating to add them to `train`. With **All** selected, normal upload split assignment applies, including automatic validation splitting when needed. **Cancel** discards the previews without adding them. Generated images follow the dataset's [upload face-blurring setting](#blur-faces). The action is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets).
 
+#### Paid Image Generation Models
+
+![Ultralytics Platform Datasets Generate Similar Images Model Picker](https://cdn.ul.run/i/795e7421c7e44b3905f851598276c6c9.avif)<!-- screenshot -->
+
+The model picker also lists paid models from each provider, by API name. OpenAI models generate at low quality.
+
+<platform-image-models></platform-image-models>
+
+A paid model generates with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation), and the provider bills that key for each image, as with [paid annotation models](annotation.md#class-prompted-smart-annotation). Without a saved key, the batch fails before any image is generated, with an **Add API key** link; if the provider rejects the key, the error links to **Check API key**. In a team workspace, ask the workspace owner to add the key. Each batch lists its model, size, and cost: **Free** for a hosted model; for a paid model, what the provider charged, otherwise **Billed by** and the provider name. Above the results, **Total** shows the running cost of the paid batches as images arrive.
+
 ### Blur Faces
 
 In a dataset you can edit, blur the faces in its images, for example to protect the privacy of people in your data. Blur Faces is not available for [connected datasets](#what-is-not-available-for-connected-datasets) or for datasets with more than three image channels.
 
-- **One image:** right-click the image in **Grid** or **Compact** view (or a single selected row in **Table** view), or right-click an annotation in the fullscreen viewer, and choose **Blur faces**.
+- **One image:** right-click the image in **Grid** or **Compact** view (or a single selected row in **Table** view), or, while annotating in the fullscreen viewer (not on classification datasets), right-click the image or an annotation, and choose **Blur faces**.
 - **Whole dataset:** open **More actions** (`⋯`) on the dataset page and choose **Blur faces**.
 
 The dialog first previews the detected faces on up to six images (or on the one image) without changing them. Adjust **Confidence** (default `0.25`) and **Box scale** (`0.5`–`1.5`, default `1`, which scales each face box around its center) to re-run the preview, then click **Apply** to replace the original pixels of every image in which faces are found. Images without detected faces are left unchanged, labels and splits are kept, and some faces may be missed, so review the result. Blurring does not automatically create a [version snapshot](#versions-tab). Blurring a whole dataset costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run (billed as **Auto-Annotation**), and the dialog shows the estimate before you apply; previews and single-image blurring are free.
@@ -993,15 +1000,11 @@ Start training directly from your dataset:
 4. Start training
 
 ```mermaid
-graph LR
-    A[Dataset]:::start --> B[New Model]:::proc
-    B --> C[Select Project]:::proc
-    C --> D[Configure]:::proc
-    D --> E[Start Training]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Dataset page]) --> B[Open the New Model dialog]
+    B --> C[Select a project]
+    C --> D[Configure training]
+    D --> E([Start training])
 ```
 
 See [Cloud Training](../train/cloud-training.md) for details.
@@ -1035,13 +1038,32 @@ Yes. Drag files onto the dataset gallery or click the upload icon in the page he
 
 Yes. Copy or cut images in one dataset and paste them into another dataset you can edit; they keep their labels and splits, and **Cut** removes them from the source. Classes are matched by name, and the **Map classes** dialog handles any the destination does not have. See [Copy and Move Images](#copy-and-move-images).
 
-### How do I move images between splits?
+### Can I download my dataset in YOLO format?
 
-Use the bulk move-to-split feature:
+Platform exports datasets as [NDJSON](#export-dataset), not as YOLO folders. You usually don't need to convert it: pass the NDJSON file, or the dataset's [`ul://` URI](#dataset-uri), straight to `model.train(data=...)` and Ultralytics downloads the images and builds the YOLO folders for you. To get the folders without training, convert the file locally:
 
-1. Select images in the table view
-2. Right-click and choose `Move to split`
-3. Select the target split (Train, Validation, or Test)
+```python
+import asyncio
+
+from ultralytics.data.converter import convert_ndjson_to_yolo
+
+yaml_path = asyncio.run(convert_ndjson_to_yolo("my-dataset.ndjson", output_path="datasets"))
+```
+
+The image links in an export expire 7 days after the export is generated, and a cached export may have only a day left, so convert it promptly. [On Premise](../integrations/on-premise.md) datasets cannot be exported.
+
+### How does Platform split my images into train, val and test?
+
+Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification datasets use their folder structure instead, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
+
+To change the split afterwards:
+
+- **Change the ratio**: click the split bar in the dataset toolbar and set the percentages, or click **Auto** for 80/20 train/val. See [Split Redistribution](#split-redistribution).
+- **Move specific images**: select them in **Table** view, right-click, and choose `Move to split`. See [Bulk Move to Split](#bulk-move-to-split).
+
+### Are my datasets private?
+
+Check the visibility toggle before you create a dataset: new datasets default to **Public** on Free and Pro plans and to **Private** on Enterprise. A public dataset can be viewed by anyone, including people who are not signed in, and appears on [Explore](../explore.md). A private dataset is visible only to you and permitted workspace members. Members with edit access can change visibility from the badge next to the dataset name, and [On Premise](../integrations/on-premise.md) datasets are always private. Making a dataset private does not remove copies other users have already cloned. See [Visibility Settings](#visibility-settings).
 
 ### What label formats are supported?
 

@@ -31,7 +31,6 @@ from ultralytics.utils import (
     YAML,
     IterableSimpleNamespace,
     checks,
-    colorstr,
     deprecation_warn,
     vscode_msg,
 )
@@ -681,7 +680,7 @@ def check_dict_alignment(
             matches = get_close_matches(x, base_keys)  # key list
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
-            string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
+            string += f"'{x}' is not a valid YOLO argument. {match_str}\n"
         LOGGER.info(CLI_HELP_MSG)
         raise SyntaxError(string) from e
 
@@ -702,13 +701,16 @@ def merge_equals_args(args: list[str]) -> list[str]:
         (list[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets
             are joined.
 
+    Raises:
+        SyntaxError: If an argument has an unmatched '[' or ']' bracket, which would fuse every later argument into it.
+
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz", "=", "[3,", "640,", "640]"]
         >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []
-    current = ""
+    current = []
     depth = 0
 
     i = 0
@@ -727,16 +729,15 @@ def merge_equals_args(args: list[str]) -> list[str]:
 
         # Handle bracket joining
         depth += arg.count("[") - arg.count("]")
-        current += arg
+        current.append(arg)
         if depth == 0:
-            new_args.append(current)
-            current = ""
+            new_args.append("".join(current))
+            current = []
 
         i += 1
 
-    # Append any remaining current string
     if current:
-        new_args.append(current)
+        raise SyntaxError(f"'{current[0]}' has an unmatched '[' or ']' bracket.")
 
     return new_args
 
@@ -1055,7 +1056,7 @@ def entrypoint(debug: str = "") -> None:
         "solutions": lambda: handle_yolo_solutions(args[1:]),
         "help": lambda: LOGGER.info(CLI_HELP_MSG),
     }
-    full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
+    full_args_dict = {**DEFAULT_CFG_DICT, **dict.fromkeys((*TASKS, *MODES, *special))}
 
     # Define common misuses of special commands, i.e. -h, -help, --help
     special.update({k[0]: v for k, v in special.items()})  # singular
@@ -1097,7 +1098,7 @@ def entrypoint(debug: str = "") -> None:
             overrides[a] = True  # bare boolean flags whose defaults are missing or None
         elif a in DEFAULT_CFG_DICT:
             raise SyntaxError(
-                f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
+                f"'{a}' is a valid YOLO argument but is missing an '=' sign "
                 f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}"
             )
         else:

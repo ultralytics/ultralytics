@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from typing import Any
 
 import numpy as np
@@ -64,6 +65,8 @@ class STrack(BaseTrack):
         super().__init__()
         # xywh+idx or xywha+idx
         assert len(xywh) in {5, 6}, f"expected 5 or 6 values but got {len(xywh)}"
+        if len(xywh) == 6 and xywh[2] < xywh[3]:  # long-edge form keeps equivalent OBB measurements consistent
+            xywh = xywh[[0, 1, 3, 2, 4, 5]] + np.array([0, 0, 0, 0, np.pi / 2, 0])
         self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
@@ -233,7 +236,7 @@ class BYTETracker:
         init_track: Initialize object tracking with detections.
         get_dists: Calculate the distance between tracks and detections.
         multi_predict: Predict the location of tracks.
-        reset_id: Reset the ID counter of STrack.
+        reset_id: Restart this tracker's track IDs at 1.
         reset: Reset the tracker by clearing all tracks.
 
     Examples:
@@ -292,6 +295,7 @@ class BYTETracker:
         for tracks, mask in ((detections, mask_high), (detections_second, mask_low)):
             for track, i in zip(tracks, np.flatnonzero(mask)):
                 track.idx = i  # idx must be in full detection-set space; parse_bboxes only sees the subset
+                track.next_id = self._ids.__next__  # IDs are per tracker, so other trackers cannot reissue them
 
         unconfirmed, tracked_stracks = self._split_tracked()
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
@@ -529,10 +533,9 @@ class BYTETracker:
         """Predict the next states for multiple tracks using Kalman filter."""
         STrack.multi_predict(tracks)
 
-    @staticmethod
-    def reset_id():
-        """Reset the ID counter for STrack instances to ensure unique track IDs across tracking sessions."""
-        STrack.reset_id()
+    def reset_id(self):
+        """Restart this tracker's track IDs at 1."""
+        self._ids = iter(range(1, sys.maxsize))
 
     def reset(self):
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""

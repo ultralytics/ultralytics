@@ -30,7 +30,7 @@ The [Ultralytics](https://www.ultralytics.com) Hand Keypoints dataset contains 2
 
 ## Keypoints
 
-![Hand keypoints landmark diagram with 21 points](https://cdn.ul.run/i/eb8293b734579790e4f0fea35465d3bf.avif)
+![Hand keypoints landmark diagram with 21 points](https://cdn.ul.run/i/86ccee17e7e502e62bcb04f3c62ac682.avif)
 
 Each hand is annotated with 21 keypoints as follows:
 

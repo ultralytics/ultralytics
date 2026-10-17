@@ -1,11 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr, torch_utils
+from ultralytics.utils import LOGGER, TESTS_RUNNING, colorstr, torch_utils
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["tensorboard"] is True  # verify integration is enabled
     WRITER = None  # TensorBoard SummaryWriter instance
     PREFIX = colorstr("TensorBoard: ")
 
@@ -114,12 +113,21 @@ def on_fit_epoch_end(trainer) -> None:
     _log_scalars(trainer.metrics, trainer.epoch + 1)
 
 
+def teardown(trainer) -> None:
+    """Flush and close the TensorBoard writer after training, including failed runs."""
+    global WRITER
+    if WRITER:
+        WRITER.close()
+        WRITER = None
+
+
 callbacks = (
     {
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_train_start": on_train_start,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_epoch_end": on_train_epoch_end,
+        "teardown": teardown,
     }
     if SummaryWriter
     else {}

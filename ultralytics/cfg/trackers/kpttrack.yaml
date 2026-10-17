@@ -10,7 +10,7 @@ track_low_thresh: 0.1 # (float) Low-confidence detections (between the two thres
 new_track_thresh: 0.25 # (float) Start a tentative track from an unmatched detection ≥ this; it gets an ID if matched next frame (or on frame 1)
 track_buffer: 30 # (int) Frames to keep lost tracks alive; their gate widens meanwhile
 kpt_conf: 0.5 # (float) A keypoint counts as seen above this confidence
-match_gate: 0.1 # (float) Max mean keypoint distance, over the person's size (box's longer side), to a track seen last frame
-lost_gate: 0.5 # (float) Max distance to a track lost for lost_ramp frames or more
+match_gate: 0.1 # (float) Min gate, as mean keypoint distance over the person's size (box's longer side), of a track seen last frame; widens to 3x its wobble
+lost_gate: 0.5 # (float) Gate of lost tracks: reached over lost_ramp frames, or at once for detections no other track took
 lost_ramp: 30 # (int) Frames over which a lost track's gate widens from match_gate to lost_gate and its velocity fades
 joint_memory: 60 # (int) Frames over which an unseen keypoint's weight in the match fades

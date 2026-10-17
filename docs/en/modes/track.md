@@ -483,21 +483,21 @@ KPTTrack follows people with a [Pose model](../tasks/pose.md) by their keypoints
 
 - **Keypoint distance:** a detection matches a track by the mean distance between the keypoints both see, each capped and divided by the person's size (their box's longer side). With COCO keypoints, left and right swapped are tried too, as Pose models flip people who turn.
 - **Adaptive gate:** each track learns its wobble, how far its matches usually land from the prediction, and searches within 3 times that (at least `match_gate`): steady walkers keep a tight gate, dancers get a wider one.
-- **Lost tracks:** a track's keypoints move at the person's velocity. Once lost, the velocity decays and the gate widens from `match_gate` to `lost_gate`, so someone hidden for a moment comes back close to where they vanished. With COCO keypoints, a lost track also weighs the skeleton's scale between the detections it could take.
+- **Lost tracks:** a track's keypoints move at the person's velocity. Once lost, the velocity decays and the gate widens from `match_gate` to `lost_gate` over `lost_ramp` frames, so someone hidden for a moment comes back close to where they vanished; detections no other track took can match a lost track anywhere within `lost_gate`. With COCO keypoints, a lost track also weighs the skeleton's scale between the detections it could take.
 - **Keypoint NMS:** a detection whose keypoints lie on a more confident detection's keypoints is dropped as a duplicate, which box NMS keeps when the boxes differ (e.g. a box around part of a person).
 - **ByteTrack's stages:** confident detections first, to every confirmed track, lost ones included; low-confidence ones only to tracks seen last frame; then the confident detections and tracks left, in a wider gate for tracks seen last frame and the full `lost_gate` for lost ones (someone back sooner than their gate had widened); then tentative tracks, which are confirmed if matched the frame after they start (at once on the first frame).
 
-**Best for:** people tracked with a Pose model in crowded scenes (dance, audiences, sports) with a still camera.
+**Best for:** people tracked with a Pose model in crowded scenes (dance, audiences, sports) with a still camera. Its cost grows with the square of the detection count, so scenes with hundreds of people run slower than with box trackers.
 
 **KPTTrack-specific arguments:**
 
-| Parameter      | Valid Values or Ranges | Description                                                                         |
-| -------------- | ---------------------- | ----------------------------------------------------------------------------------- |
-| `kpt_conf`     | `0.0-1.0`              | Confidence above which a keypoint counts as seen.                                   |
-| `match_gate`   | `>=0`                  | Max mean keypoint distance, over the person's size, to a track seen last frame.     |
-| `lost_gate`    | `>=0`                  | Max distance to a track lost for `lost_ramp` frames or more.                        |
-| `lost_ramp`    | `>=1`                  | Frames over which a lost track's gate widens to `lost_gate` and its velocity fades. |
-| `joint_memory` | `>=1`                  | Frames over which an unseen keypoint's weight in the match fades.                   |
+| Parameter      | Valid Values or Ranges | Description                                                                                                       |
+| -------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `kpt_conf`     | `0.0-1.0`              | Confidence above which a keypoint counts as seen.                                                                 |
+| `match_gate`   | `>=0`                  | Min gate, as mean keypoint distance over the person's size, of a track seen last frame (widens to 3x its wobble). |
+| `lost_gate`    | `>=0`                  | Gate of lost tracks: reached over `lost_ramp` frames, or at once for detections no other track took.              |
+| `lost_ramp`    | `>=1`                  | Frames over which a lost track's gate widens to `lost_gate` and its velocity fades.                               |
+| `joint_memory` | `>=1`                  | Frames over which an unseen keypoint's weight in the match fades.                                                 |
 
 **Tuning tips:**
 

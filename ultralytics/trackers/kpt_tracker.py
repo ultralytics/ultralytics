@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from typing import Any
 
 import numpy as np
@@ -11,6 +12,12 @@ from .basetrack import BaseTrack
 
 COCO_FLIP = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]  # COCO keypoints, left <-> right
 COCO_BONES = np.array([(5, 6), (11, 12), (5, 11), (6, 12), (11, 13), (12, 14), (13, 15), (14, 16)])  # torso and legs
+KPT_NMS = 0.1  # drop a detection within this mean keypoint distance, over the size, of a more confident one's
+WOBBLE_GATE = 3.0  # a track seen last frame also takes detections within this many times its wobble
+RECOVER_GATE = 0.15  # min gate of the tracks seen last frame when matching the confident detections left
+FLIP_COST = 0.02  # cost added to a left-right flipped match (COCO keypoints)
+SCALE_WEIGHT = 0.5  # cost weight of a lost track's skeleton scale mismatch (COCO keypoints)
+VELOCITY_SMOOTHING, SIZE_SMOOTHING = 0.2, 0.1  # smoothing factors of velocity and wobble, and of size and bones
 
 
 def _bones(kpts: np.ndarray, seen: np.ndarray) -> np.ndarray:
@@ -63,7 +70,6 @@ class KPTTracker:
         removed_stracks_frame (list[KeypointTrack]): Confirmed tracks removed in the most recent frame.
         frame_id (int): The current frame number.
         args (Namespace): Tracker configuration parsed from the tracker YAML (kpttrack.yaml).
-        next_id (int): The ID the next confirmed track gets.
 
     Methods:
         update: Update the tracker with new detections and their keypoints.
@@ -122,7 +128,7 @@ class KPTTracker:
         matches, left, high_left = self._match([t for t in tracks if t.is_activated], high, kpts)
         found, tracked_left, _ = self._match([t for t in left if t.frame_id == self.frame_id - 1], low, kpts)
         left = [t for t in left if t.frame_id < self.frame_id - 1 or t in tracked_left]
-        floor = [a.recover_gate if t.frame_id == self.frame_id - 1 else a.lost_gate for t in left]
+        floor = [RECOVER_GATE if t.frame_id == self.frame_id - 1 else a.lost_gate for t in left]
         found_left, _, high_left = self._match(left, high_left, kpts, floor)
         found_new, _, high_left = self._match([t for t in tracks if not t.is_activated], high_left, kpts)
         matches += found + found_left + found_new
@@ -133,12 +139,15 @@ class KPTTracker:
         self.removed_stracks_frame = [t for t in tracks if t.is_activated and t.frame_id < cutoff]  # read by Solutions
         self.tracked_stracks = [t for t in tracks if t.frame_id >= (cutoff if t.is_activated else self.frame_id)]
         for d in high_left[score[high_left] >= a.new_track_thresh]:
-            self.tracked_stracks.append(KeypointTrack(kpts[d], float(size[d]), self.frame_id, a.kpt_conf))
+            self.tracked_stracks.append(t := KeypointTrack(kpts[d], float(size[d]), self.frame_id, a.kpt_conf))
+            if self.frame_id == 1:  # confirmed at once on the first frame, as in BYTETracker
+                t.track_id, t.is_activated = next(self._ids), True
+                matches.append((t, d))
         out = [[*xyxy[d], t.track_id, score[d], results.cls[d], d] for t, d, *_ in matches]  # all confirmed by now
         return np.asarray(out, dtype=np.float32).reshape(-1, 8)
 
     def _duplicates(self, score: np.ndarray, size: np.ndarray, kpts: np.ndarray) -> np.ndarray:
-        """Return a mask of detections whose seen keypoints lie within `kpt_nms` of a more confident detection's.
+        """Return a mask of detections whose seen keypoints lie within `KPT_NMS` of a more confident detection's.
 
         Keypoint NMS: box NMS keeps such duplicates when their boxes differ, e.g. a box around part of a person.
         """
@@ -147,7 +156,7 @@ class KPTTracker:
         d = np.minimum(np.linalg.norm(kpts[:, None, :, :2] - kpts[None, :, :, :2], axis=-1) / size[None, :, None], 1)
         n = both.sum(axis=2)
         with np.errstate(invalid="ignore", divide="ignore"):
-            on = (n >= 2) & ((d * both).sum(axis=2) / n < self.args.kpt_nms)  # [i, j]: i's keypoints on j's
+            on = (n >= 2) & ((d * both).sum(axis=2) / n < KPT_NMS)  # [i, j]: i's keypoints on j's
         dup = np.zeros(len(score), dtype=bool)
         for j in np.argsort(-score):  # greedy, as box NMS: a duplicate suppresses no one
             if not dup[j]:
@@ -159,7 +168,7 @@ class KPTTracker:
     ) -> tuple[list[tuple], list[KeypointTrack], np.ndarray]:
         """Hungarian-match tracks to detections (indices into `kpts`) within each track's gate, at least `floor`.
 
-        A track seen last frame takes a detection within `wobble_gate` times its wobble and at least `match_gate`; the
+        A track seen last frame takes a detection within `WOBBLE_GATE` times its wobble and at least `match_gate`; the
         gate widens to `lost_gate` over `lost_ramp` frames once lost. Returns (track, detection, flipped, distance)
         matches, the unmatched tracks, and the unmatched detections.
         """
@@ -167,7 +176,7 @@ class KPTTracker:
             return [], tracks, dets
         a = self.args
         distance, cost, flip = self._costs(tracks, kpts[dets])
-        base = np.fmax(a.match_gate, a.wobble_gate * np.array([t.wobble for t in tracks]))
+        base = np.fmax(a.match_gate, WOBBLE_GATE * np.array([t.wobble for t in tracks]))
         lost = np.minimum((self.frame_id - np.array([t.frame_id for t in tracks]) - 1) / a.lost_ramp, 1)
         inside = distance < np.maximum(base + (np.maximum(a.lost_gate, base) - base) * lost, floor)[:, None]
         i, j = linear_sum_assignment(np.where(inside, cost, 1e6))
@@ -180,7 +189,7 @@ class KPTTracker:
 
         The distance is the mean of the capped keypoint distances over the person's size, over the keypoints the
         detection sees, weighted by the track's keypoint confidences fading over `joint_memory` frames unseen, plus
-        `flip_cost` when flipped. The cost adds, for lost tracks, the skeleton scale's mismatch.
+        `FLIP_COST` when flipped. The cost adds, for lost tracks, the skeleton scale's mismatch.
         """
         a = self.args
         P = np.array([self._predict(t) for t in tracks])  # (T, K, 2)
@@ -194,7 +203,7 @@ class KPTTracker:
         total = w.sum(axis=-1)  # 0: no keypoint to compare, so no match (the flipped order may have one)
         with np.errstate(invalid="ignore", divide="ignore"):
             distance = np.where(total > 0, (w * np.minimum(d, 1)).sum(-1) / total, np.inf)
-        distance[1:] += a.flip_cost
+        distance[1:] += FLIP_COST
         cost = distance.copy()
         lost = np.flatnonzero([self.frame_id - t.frame_id > 1 for t in tracks])
         if coco and len(lost):  # skeleton scale mismatch: median absolute log ratio of the bones both have, 0 under two
@@ -204,7 +213,7 @@ class KPTTracker:
                 ratio = np.sort(np.abs(np.log(det_bones / track_bones)), axis=-1)  # (O, L, D, B), NaN and inf last
             m = np.isfinite(ratio).sum(axis=-1)
             median = np.take_along_axis(ratio, (m - 1)[..., None] // 2, axis=-1)[..., 0]
-            cost[:, lost] += a.scale_weight * np.where(m >= 2, median, 0)
+            cost[:, lost] += SCALE_WEIGHT * np.where(m >= 2, median, 0)
         flip = cost[-1] < cost[0]  # all False without COCO keypoints
         return np.where(flip, distance[-1], distance[0]), np.where(flip, cost[-1], cost[0]), flip
 
@@ -217,26 +226,26 @@ class KPTTracker:
         """Update a track with its matched detection's size, keypoints (K, 3), flip, and distance; confirm it if new."""
         a = self.args
         if self.frame_id - t.frame_id == 1:
-            t.wobble = distance if np.isnan(t.wobble) else t.wobble + a.velocity_smoothing * (distance - t.wobble)
+            t.wobble = distance if np.isnan(t.wobble) else t.wobble + VELOCITY_SMOOTHING * (distance - t.wobble)
         k = kpts[COCO_FLIP] if flip else kpts
         seen = k[:, 2] > a.kpt_conf
         pred = self._predict(t)
         both = seen & (t.seen == t.frame_id)
         if both.any():
             moved = np.median(k[both, :2] - t.kpts[both], axis=0)
-            t.v += a.velocity_smoothing * (moved / (self.frame_id - t.frame_id) - t.v)
+            t.v += VELOCITY_SMOOTHING * (moved / (self.frame_id - t.frame_id) - t.v)
         b = _bones(k[:, :2], seen)
-        t.bones = np.where(np.isnan(t.bones), b, t.bones + a.size_smoothing * np.nan_to_num(b - t.bones))
+        t.bones = np.where(np.isnan(t.bones), b, t.bones + SIZE_SMOOTHING * np.nan_to_num(b - t.bones))
         t.kpts = np.where(seen[:, None], k[:, :2], pred)
         t.conf = np.where(seen, k[:, 2], t.conf)
         t.seen = np.where(seen, self.frame_id, t.seen)
-        t.size += a.size_smoothing * (size - t.size)
+        t.size += SIZE_SMOOTHING * (size - t.size)
         t.frame_id = self.frame_id
-        if not t.is_activated:  # per-tracker IDs: BaseTrack's shared counter is reset by every new tracker
-            t.track_id, t.is_activated, self.next_id = self.next_id, True, self.next_id + 1
+        if not t.is_activated:
+            t.track_id, t.is_activated = next(self._ids), True
 
     def reset(self) -> None:
         """Reset the tracker by clearing all tracks and restarting the frame and ID counters."""
         self.tracked_stracks: list[KeypointTrack] = []
         self.frame_id = 0
-        self.next_id = 1
+        self._ids = iter(range(1, sys.maxsize))  # IDs are per tracker, as in BYTETracker

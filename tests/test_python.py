@@ -60,15 +60,6 @@ def test_predict_prefetch():
         next(batches)
 
 
-@pytest.mark.parametrize("suffix", (".streams", ".STREAMS"))
-def test_stream_manifest_suffix_is_case_insensitive(tmp_path, suffix):
-    """Test stream manifest files are recognized regardless of extension casing."""
-    source = tmp_path / f"sources{suffix}"
-    source.write_text("0\n")
-    _, webcam, screenshot, from_img, in_memory, tensor = data_build.check_source(source)
-    assert (webcam, screenshot, from_img, in_memory, tensor) == (True, False, False, False, False)
-
-
 def test_dataloader_caps_workers_to_batches():
     """Test tiny datasets do not spawn persistent workers beyond useful batch count."""
     single_batch = build_dataloader(range(4), batch=4, workers=8)

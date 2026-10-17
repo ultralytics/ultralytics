@@ -378,14 +378,13 @@ class LoadImagesAndVideos:
         """
         source_path = path
         parent = None
-        suffix = Path(path).suffix.lower() if isinstance(path, (str, Path)) else ""
-        if suffix in {".txt", ".csv"}:  # txt/csv file with source paths (case-insensitive suffix)
+        if isinstance(path, (str, Path)) and Path(path).suffix.lower() in {".txt", ".csv"}:  # txt/csv file with sources
             parent = Path(path).parent
             with open(path, "rb") as f:
                 encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
                 with TextIOWrapper(f, encoding=encoding) as reader:
                     content = reader.read()
-            if suffix == ".txt":
+            if Path(path).suffix.lower() == ".txt":
                 path = content.splitlines()
             else:
                 rows = list(csv.reader(content.splitlines()))

@@ -644,8 +644,8 @@ def find_dataset_yaml(path: Path) -> Path:
     """Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
-    performs a recursive search. It prefers `.yaml` files over `.yml` files, and within the same level prefers files
-    that have the same stem as the provided path.
+    performs a recursive search, considering `.yml` files only when no `.yaml` file exists. It prefers YAML files that
+    have the same stem as the provided path.
 
     Args:
         path (Path): The directory path to search for the YAML file.
@@ -654,8 +654,8 @@ def find_dataset_yaml(path: Path) -> Path:
         (Path): The path of the found YAML file.
     """
     files = (
-        list(path.glob("*.yaml")) or list(path.glob("*.yml")) or list(path.rglob("*.yaml")) or list(path.rglob("*.yml"))
-    )  # root level first then recursive, *.yaml before *.yml so stray .yml files don't shadow dataset resolution
+        list(path.glob("*.yaml")) or list(path.rglob("*.yaml")) or list(path.glob("*.yml")) or list(path.rglob("*.yml"))
+    )  # *.yaml (root level first then recursive) before *.yml, so stray .yml files never shadow a dataset .yaml
     assert files, f"No YAML file found in '{path.resolve()}'"
     if len(files) > 1:
         files = [f for f in files if f.stem == path.stem]  # prefer YAML files that match

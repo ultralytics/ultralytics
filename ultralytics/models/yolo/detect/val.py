@@ -295,9 +295,9 @@ class DetectionValidator(BaseValidator):
             im_file (Path): Path of the image being validated.
 
         Returns:
-            (Path): Path under `save_dir/labels` unique across the validation run, so same-stem images in
-                different split folders (`a/img.jpg`, `b/img.jpg`) keep separate files while images directly in
-                the split root keep their bare stem.
+            (Path): Path under `save_dir/labels` unique across the validation run, so same-stem images in different
+                split folders (`a/img.jpg`, `b/img.jpg`) keep separate files while images directly in the split root
+                keep their bare stem.
         """
         split = self.data.get(self.args.split or "val") or ""
         name = im_file.stem

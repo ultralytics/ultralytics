@@ -676,39 +676,21 @@ def check_tensorrt(min_version: str = "7.0.0"):
 
 
 def check_torchvision():
-    """Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
+    """Warn if the installed torchvision does not match the installed torch release.
 
-    This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
-    to the compatibility table based on: https://github.com/pytorch/vision#installation.
+    Each torch release pairs with one torchvision release: torchvision 0.(minor + 1) for torch 1.x and 0.(minor + 15) for
+    torch 2.x, per https://github.com/pytorch/vision#installation.
     """
-    compatibility_table = {
-        "2.10": ["0.25"],
-        "2.9": ["0.24"],
-        "2.8": ["0.23"],
-        "2.7": ["0.22"],
-        "2.6": ["0.21"],
-        "2.5": ["0.20"],
-        "2.4": ["0.19"],
-        "2.3": ["0.18"],
-        "2.2": ["0.17"],
-        "2.1": ["0.16"],
-        "2.0": ["0.15"],
-        "1.13": ["0.14"],
-        "1.12": ["0.13"],
-    }
-
-    # Check major and minor versions
-    v_torch = ".".join(TORCH_VERSION.split("+", 1)[0].split(".")[:2])
-    if v_torch in compatibility_table:
-        compatible_versions = compatibility_table[v_torch]
-        v_torchvision = ".".join(TORCHVISION_VERSION.split("+", 1)[0].split(".")[:2])
-        if all(v_torchvision != v for v in compatible_versions):
-            LOGGER.warning(
-                f"torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
-                f"Run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
-                "'pip install -U torch torchvision' to update both.\n"
-                "For a full compatibility table see https://github.com/pytorch/vision#installation"
-            )
+    major, minor = (int(x) for x in TORCH_VERSION.split(".")[:2])
+    offset = {1: 1, 2: 15}.get(major)
+    v_torchvision = ".".join(TORCHVISION_VERSION.split(".")[:2])
+    if offset and v_torchvision != f"0.{minor + offset}":
+        LOGGER.warning(
+            f"torchvision=={v_torchvision} is incompatible with torch=={major}.{minor}.\n"
+            f"Run 'pip install torchvision==0.{minor + offset}' to fix torchvision or "
+            "'pip install -U torch torchvision' to update both.\n"
+            "For a full compatibility table see https://github.com/pytorch/vision#installation"
+        )
 
 
 def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
@@ -1232,13 +1214,9 @@ check_torchvision()  # check torch-torchvision compatibility
 
 # Define constants
 IS_PYTHON_3_8 = PYTHON_VERSION.startswith("3.8")
-IS_PYTHON_3_9 = PYTHON_VERSION.startswith("3.9")
-IS_PYTHON_3_10 = PYTHON_VERSION.startswith("3.10")
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
-IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 
 IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
-IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)

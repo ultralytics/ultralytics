@@ -845,9 +845,9 @@ def is_jetson(jetpack=None) -> bool:
     jetson = "tegra" in DEVICE_MODEL
     if jetson and jetpack:
         try:
-            content = Path("/etc/nv_tegra_release").read_text()
-            version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
-            return jetpack in version_map and version_map[jetpack] in content
+            l4t = int(re.search(r"R(\d+)", Path("/etc/nv_tegra_release").read_text())[1])  # L4T major, i.e. 36
+            first = {4: 32, 5: 34, 6: 36, 7: 38}  # first L4T major of each JetPack major, the newest is open-ended
+            return jetpack in first and first[jetpack] <= l4t < first.get(jetpack + 1, l4t + 1)
         except Exception:
             return False
     return jetson

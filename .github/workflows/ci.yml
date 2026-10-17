@@ -304,6 +304,14 @@ jobs:
             python: "3.13"
             torch: "2.11.0"
             torchvision: "0.26.0"
+          - os: ubuntu-latest
+            python: "3.13"
+            torch: "2.12.0"
+            torchvision: "0.27.0"
+          - os: ubuntu-latest
+            python: "3.13"
+            torch: "2.13.0"
+            torchvision: "0.28.0"
     steps:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main

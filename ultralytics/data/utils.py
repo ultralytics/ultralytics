@@ -227,7 +227,7 @@ def get_hash(paths: list[str]) -> str:
     """Return a hash of paths and their file sizes and modification times."""
     h = __import__("hashlib").sha256()
     for p in paths:
-        h.update(p.encode())
+        h.update(os.fsencode(p))  # fsencode handles surrogate-escaped non-UTF-8 filenames, byte-identical otherwise
         h.update(b"\0")
         try:
             stat = os.stat(p)

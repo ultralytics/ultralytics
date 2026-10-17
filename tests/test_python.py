@@ -522,7 +522,13 @@ def test_single_check_channel_order_and_contiguity():
     rgb = Image.fromarray(np.full((2, 2, 3), (10, 20, 30), dtype=np.uint8))  # PIL is R, G, B
     bgra = np.full((2, 2, 4), (10, 20, 30, 255), dtype=np.uint8)  # ndarray is already B, G, R, A
     gray = np.full((2, 2, 1), 42, dtype=np.uint8)
-    for im, expected in ((check(rgb, 3), (30, 20, 10)), (check(bgra, 3), (10, 20, 30)), (check(gray, 3), (42, 42, 42))):
+    bgr16 = np.full((2, 2, 3), (2570, 5140, 7710), dtype=np.uint16)  # 16-bit arrays scale to 8 bits like imread
+    for im, expected in (
+        (check(rgb, 3), (30, 20, 10)),
+        (check(bgra, 3), (10, 20, 30)),
+        (check(gray, 3), (42, 42, 42)),
+        (check(bgr16, 3), (10, 20, 30)),
+    ):
         assert tuple(im[0, 0].tolist()) == expected
         assert im.flags["C_CONTIGUOUS"]
 

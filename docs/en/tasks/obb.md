@@ -187,7 +187,7 @@ which contains rotated boxes, class IDs, and confidence scores for each detected
 | `result.obb.xyxyxyxy` | `torch.float32` | `(N,4,2)` | Four corner points.                      |
 | `result.obb.conf`     | `torch.float32` | `(N,)`    | Confidence scores.                       |
 
-Labels are canonicalized to the long-edge convention but predictions are not, so `result.obb.xywhr` may report `w` smaller than `h` with the rotation measured from the short edge. Both forms describe the same rectangle, so `result.obb.xyxyxyxy` is correct either way. When tracking, each track keeps the form nearest its previous angle, so track angles stay continuous between frames and may leave `[-π/4, 3π/4)`. Convert the corners back when downstream code needs the long-edge form, keeping in mind that rewriting the box parameters may cyclically shift the corner order:
+Labels are canonicalized to the long-edge convention but predictions are not, so `result.obb.xywhr` may report `w` smaller than `h` with the rotation measured from the short edge. Both forms describe the same rectangle, so `result.obb.xyxyxyxy` is correct either way. When tracking, each track keeps the half-turn form (θ or θ ± π) nearest its previous angle, so track angles do not flip by π between frames and may leave `[-π/4, 3π/4)`. Convert the corners back when downstream code needs the long-edge form, keeping in mind that rewriting the box parameters may cyclically shift the corner order:
 
 ```python
 from ultralytics.utils.ops import xyxyxyxy2xywhr

@@ -300,7 +300,8 @@ class TTSTrack(BOTrack):
         if new_id:
             self.track_id = self.next_id()
         self.cls, self.idx = new_track.cls, new_track.idx
-        self.update_angle(new_track.angle)
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
 
     def update(self, new_track, frame_id: int) -> None:
         """Update a matched track with a new detection; promote to Tracked after min_track_len."""
@@ -329,7 +330,8 @@ class TTSTrack(BOTrack):
             self.state = TrackState.Tracked
             self.is_activated = True
         self.cls, self.idx = new_track.cls, new_track.idx
-        self.update_angle(new_track.angle)
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
 
     def __repr__(self) -> str:
         """Short string representation of the track."""

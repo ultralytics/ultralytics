@@ -672,7 +672,7 @@ class GroundingDataset(YOLODataset):
 
     def get_cache_hash(self) -> str:
         """Return a hash over annotations, scanned images and the segmentation deduplication mode."""
-        return get_hash([self.json_file, *self.scan_files, f"segments:{self.use_segments}"])
+        return get_hash([self.json_file, *self.scan_files, f"segments:{self.use_segments};encoding:utf-8"])
 
     def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
         """Verify instance counts for known grounding datasets."""
@@ -701,7 +701,7 @@ class GroundingDataset(YOLODataset):
         """
         x = {"labels": []}
         LOGGER.info("Loading annotation file...")
-        with open(self.json_file) as f:
+        with open(self.json_file, encoding="utf-8") as f:
             annotations = json.load(f)
         images = {f"{x['id']:d}": x for x in annotations["images"]}
         img_to_anns = defaultdict(list)

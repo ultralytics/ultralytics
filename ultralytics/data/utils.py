@@ -70,8 +70,8 @@ def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG
 
     Args:
         path (str | Path): Output PNG file path.
-        depth (np.ndarray): Metric depth map in meters, 2D after removing extra singleton dimensions.
-            Non-finite and non-positive values are saved as 0 (invalid).
+        depth (np.ndarray): Metric depth map in meters, 2D after removing extra singleton dimensions. Non-finite and
+            non-positive values are saved as 0 (invalid).
         scale (float, optional): Multiplier applied to depth in meters before rounding to uint16, e.g. 1000 for
             millimeters.
 

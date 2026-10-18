@@ -282,6 +282,28 @@ def test_restricted_load_threaded():
     assert pathlib.WindowsPath is windows_path
 
 
+def test_temporary_modules_restores_preexisting_alias():
+    """Temporary checkpoint aliases restore a module that was already registered."""
+    import sys
+    import types
+
+    from ultralytics.nn.tasks import temporary_modules
+
+    alias = "ultralytics_probe_legacy_alias"
+    fresh_alias = "ultralytics_probe_fresh_alias"
+    sentinel = types.ModuleType(alias)
+    sys.modules[alias] = sentinel
+    try:
+        with temporary_modules({alias: "math", fresh_alias: "json"}):
+            assert sys.modules[alias].__name__ == "math"
+            assert sys.modules[fresh_alias].__name__ == "json"
+        assert sys.modules[alias] is sentinel
+        assert fresh_alias not in sys.modules
+    finally:
+        sys.modules.pop(alias, None)
+        sys.modules.pop(fresh_alias, None)
+
+
 @pytest.mark.parametrize("fused", [False, True])
 def test_restricted_load_criterion(tmp_path, fused):
     """Legacy criterion metadata and fused forward bindings survive restricted checkpoint round trips."""

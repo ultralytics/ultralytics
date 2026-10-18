@@ -435,7 +435,7 @@ def verify_image_mask(args: tuple) -> tuple:
 
 
 def verify_image_label(args: tuple) -> tuple | list:
-    """Verify one image-label pair.
+    """Verify one image-label pair, accepting UTF-8 labels with or without a byte-order mark.
 
     Args:
         args (tuple): Tuple of (im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls).
@@ -457,7 +457,7 @@ def verify_image_label(args: tuple) -> tuple | list:
         # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
-            with open(lb_file, encoding="utf-8") as f:
+            with open(lb_file, encoding="utf-8-sig") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if x.strip()]
                 if nkpt and not keypoint:  # pose labels for a box task: keep the box, drop the keypoints
                     lb = [x[:5] if len(x) == 5 + nkpt * ndim else x for x in lb]

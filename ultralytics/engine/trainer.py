@@ -596,6 +596,7 @@ class BaseTrainer:
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)
                     last_opt_step = -1
+                    acc0 = self.accumulate  # the rebuild recomputed the nominal for the reduced batch size
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
                 if ni - last_opt_step >= self.accumulate:

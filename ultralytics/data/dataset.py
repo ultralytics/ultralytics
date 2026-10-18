@@ -54,10 +54,9 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models.
-# 1.0.12: Decode grounding annotations as UTF-8.
 # 1.0.11: Reject negative box dimensions.
 # 1.0.10: EXIF-rotated image shapes match the decoded image.
-DATASET_CACHE_VERSION = "1.0.12"
+DATASET_CACHE_VERSION = "1.0.11"
 
 
 class YOLODataset(BaseDataset):
@@ -672,7 +671,7 @@ class GroundingDataset(YOLODataset):
 
     def get_cache_hash(self) -> str:
         """Return a hash over annotations, scanned images and the segmentation deduplication mode."""
-        return get_hash([self.json_file, *self.scan_files, f"segments:{self.use_segments}"])
+        return get_hash([self.json_file, *self.scan_files, f"segments:{self.use_segments};encoding:utf-8"])
 
     def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
         """Verify instance counts for known grounding datasets."""

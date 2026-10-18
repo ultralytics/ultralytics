@@ -151,8 +151,8 @@ class SemanticSegmentationValidator(DetectionValidator):
             pred = pred[0, 0].byte().cpu().numpy()
             if isinstance(self.dataset, SemanticDataset) and self.dataset.label_mapping:
                 pred = self.dataset.convert_label(pred, inverse=True)
-            name = "_".join(Path(im_file).relative_to(self.mask_root).with_suffix("").parts)
-            save_path = self.results_dir / f"{name}.png"  # flatten so a/1.jpg and b/1.jpg write a_1.png and b_1.png
+            save_path = self.results_dir / Path(im_file).relative_to(self.mask_root).with_suffix(".png")
+            save_path.parent.mkdir(parents=True, exist_ok=True)  # preserve split-relative subdirs (same-stem safe)
             Image.fromarray(pred).save(save_path)
 
     def get_stats(self):

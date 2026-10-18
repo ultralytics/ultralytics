@@ -1372,6 +1372,7 @@ def test_convert_coco_duplicates_and_zero_size(tmp_path, caplog):
     """Test convert_coco warns and counts duplicate rows and zero-size bounding boxes per file."""
     import json
     import logging
+
     from ultralytics.data.converter import convert_coco
 
     ann_dir = tmp_path / "annotations"

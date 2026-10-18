@@ -384,7 +384,7 @@ class _DriveInfo:
                     values = [values]
                 values = [m for m in values if isinstance(m, str) and m.startswith("/") and Path(m).is_dir()]
                 if values:  # one mount per device, bind mounts report the same usage
-                    mounts.append(min(values, key=lambda m: (m != "/", len(m), m)))
+                    mounts.append(min(values, key=lambda m: (len(m), m)))
             for child in block.get("children", []):
                 visit(child, physical)
 

@@ -1368,12 +1368,14 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
-def test_convert_coco_duplicates_and_zero_size(tmp_path, caplog):
+def test_convert_coco_duplicates_and_zero_size(tmp_path):
     """Test convert_coco warns and counts duplicate rows and zero-size bounding boxes per file."""
+    import io
     import json
     import logging
 
     from ultralytics.data.converter import convert_coco
+    from ultralytics.utils import LOGGER
 
     ann_dir = tmp_path / "annotations"
     ann_dir.mkdir()
@@ -1391,14 +1393,19 @@ def test_convert_coco_duplicates_and_zero_size(tmp_path, caplog):
     }
     (ann_dir / "instances_val.json").write_text(json.dumps(coco_data), encoding="utf-8")
 
-    with caplog.at_level(logging.WARNING):
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    LOGGER.addHandler(handler)
+    try:
         convert_coco(labels_dir=str(ann_dir), save_dir=str(save_dir), use_segments=False, cls91to80=False)
+    finally:
+        LOGGER.removeHandler(handler)
 
     out_files = list(save_dir.rglob("sample.txt"))
     assert len(out_files) == 1
     assert len(out_files[0].read_text().strip().splitlines()) == 1
-    assert "2 zero-size bounding box(es) skipped" in caplog.text
-    assert "1 duplicate output row(s) removed" in caplog.text
+    assert "2 zero-size bounding box(es) skipped" in stream.getvalue()
+    assert "1 duplicate output row(s) removed" in stream.getvalue()
 
 
 def test_data_annotator(tmp_path):

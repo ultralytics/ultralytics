@@ -474,6 +474,7 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = self._get_warmup_iterations(nb)
         last_opt_step = -1
+        acc0 = self.accumulate  # nominal (already capped) accumulate; warmup below ramps up to it, never past it
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
@@ -520,7 +521,7 @@ class BaseTrainer:
                 ni = i + nb * epoch
                 if ni < nw:
                     xi = [0, nw]  # x interp
-                    self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
+                    self.accumulate = max(1, int(np.interp(ni, xi, [1, acc0]).round()))
                     for x in self.optimizer.param_groups:
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x["lr"] = float(
@@ -595,6 +596,7 @@ class BaseTrainer:
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)
                     last_opt_step = -1
+                    acc0 = self.accumulate  # the rebuild recomputed the nominal for the reduced batch size
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
                 if ni - last_opt_step >= self.accumulate:

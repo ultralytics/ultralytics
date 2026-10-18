@@ -121,13 +121,13 @@ class FastSAMPredictor(SegmentationPredictor):
                     labels = torch.ones(coords.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
                 assert len(labels) == len(coords), "Labels and points must contain the same number of items."
+                point_masks = masks[:, coords[:, 1], coords[:, 0]].bool()
                 point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)
                     if labels.sum() == 0  # all negative points
-                    else torch.zeros(len(result), dtype=torch.bool, device=self.device)
+                    else point_masks[:, labels == 1].any(1)
                 )
-                for point, label in zip(coords, labels):
-                    point_idx[torch.nonzero(masks[:, point[1], point[0]], as_tuple=True)[0]] = bool(label)
+                point_idx &= ~point_masks[:, labels == 0].any(1)
                 idx |= point_idx
             if texts is not None:
                 if isinstance(texts, str):

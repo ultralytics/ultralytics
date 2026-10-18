@@ -292,7 +292,7 @@ def convert_coco(
         for ann in data["annotations"]:
             annotations[ann["image_id"]].append(ann)
 
-        dropped = False
+        box_fallback_count = 0
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
@@ -337,7 +337,7 @@ def convert_coco(
                         else []
                     )
                     if not polygons:
-                        dropped = True
+                        box_fallback_count += 1
                         cx, cy, bw, bh = box[1:]
                         x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
                         segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
@@ -357,10 +357,12 @@ def convert_coco(
                 rows = keypoints if use_keypoints else segments if use_segments else bboxes
                 file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in dict.fromkeys(map(tuple, rows)))
 
-        if dropped and not use_keypoints:  # segments are unused when keypoints own the output
+        if box_fallback_count and not use_keypoints:  # segments are unused when keypoints own the output
+            annotations = "annotation" if box_fallback_count == 1 else "annotations"
             LOGGER.warning(
-                f"{json_file}: annotations without a usable polygon, because the segmentation is missing, "
-                "empty, or not a point list such as an RLE mask, use a segment shaped like their bounding box."
+                f"{json_file}: {box_fallback_count} {annotations} without a usable polygon. Each is replaced by a segment "
+                "shaped like its bounding box because the segmentation is missing, empty, or not a point list such "
+                "as an RLE mask."
             )
 
         if lvis:

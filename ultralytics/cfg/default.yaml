@@ -107,6 +107,8 @@ dfl: 1.5 # (float) box distance loss gain (DFL when reg_max > 1, L1 on DFL-free 
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)
+seg_assign: box # (str) segment label assignment: 'box' CIoU overlap, 'mask' (1-w)*CIoU + w*mask IoU (experiment)
+seg_assign_w: 0.5 # (float) mask IoU weight w in the assignment overlap (seg_assign=mask)
 angle: 1.0 # (float) oriented angle loss gain (obb tasks)
 dlog: 1.0 # (float) depth log (SILog) loss gain (depth tasks)
 dgrad: 0.5 # (float) depth gradient loss gain (depth tasks)

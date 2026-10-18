@@ -1368,11 +1368,11 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
-def test_convert_coco_reports_box_fallback_count(tmp_path, caplog):
+def test_convert_coco_reports_box_fallback_count(tmp_path, monkeypatch):
     """Test COCO segmentation conversion reports annotations replaced by box-shaped segments."""
     import json
 
-    from ultralytics.data.converter import convert_coco
+    from ultralytics.data.converter import LOGGER, convert_coco
 
     coco = {
         "images": [
@@ -1413,10 +1413,11 @@ def test_convert_coco_reports_box_fallback_count(tmp_path, caplog):
     annotation_file = tmp_path / "instances_val.json"
     annotation_file.write_text(json.dumps(coco), encoding="utf-8")
 
-    caplog.set_level("WARNING", logger="ultralytics")
+    warning_messages = []
+    monkeypatch.setattr(LOGGER, "warning", warning_messages.append)
     convert_coco(labels_dir=str(tmp_path), save_dir=tmp_path / "yolo_labels", use_segments=True, cls91to80=False)
 
-    assert "2 annotations without a usable polygon" in caplog.text
+    assert any("2 annotations without a usable polygon" in message for message in warning_messages)
     label_dir = tmp_path / "yolo_labels" / "labels" / "val"
     assert len((label_dir / "a.txt").read_text(encoding="utf-8").splitlines()) == 2
     assert len((label_dir / "b.txt").read_text(encoding="utf-8").splitlines()) == 1

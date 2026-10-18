@@ -53,9 +53,8 @@ from .utils import (
     verify_image_mask,
 )
 
-# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models. Shared by every dataset type: a bump
-# rescans all users' caches, so scope task-specific scan changes to that dataset's get_cache_hash() instead
-DATASET_CACHE_VERSION = "1.0.10"  # EXIF-rotated image shapes now match the decoded image
+# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models.
+DATASET_CACHE_VERSION = "1.0.11"  # Reject negative box dimensions
 
 
 class YOLODataset(BaseDataset):
@@ -182,7 +181,7 @@ class YOLODataset(BaseDataset):
         # add_polygon_background() class is not a label class, so segment and semantic share one cache
         nc = self.data.get("bg_class_idx") or len(self.data["names"])
         scan_args = (self.use_keypoints, nc, self.data.get("kpt_shape"), self.single_cls)
-        return get_hash(self.label_files + self.im_files + [f"{scan_args}:nonnegative-box-dimensions"])
+        return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of scan counters for progress bars and cache logs.

@@ -114,7 +114,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 union = bbox_areas[:, None] + full_mask_areas - mask_areas
                 idx[torch.argmax(mask_areas / union, dim=1)] = True
             if points is not None:
-                coords = torch.as_tensor(points, dtype=torch.int32, device=self.device).clone()
+                coords = torch.as_tensor(points, dtype=torch.int64, device=self.device).clone()
                 coords = coords[None] if coords.ndim == 1 else coords
                 coords = clip_coords(coords, tuple(x - 1 for x in result.orig_shape))
                 if labels is None:

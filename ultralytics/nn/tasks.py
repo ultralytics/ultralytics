@@ -2349,7 +2349,8 @@ def guess_model_task(model):
     # Guess from model cfg
     if isinstance(model, dict):
         with contextlib.suppress(Exception):
-            return cfg2task(model)
+            if task := cfg2task(model):  # None (unrecognized head) falls through to the warn-and-assume-detect tail
+                return task
     # Guess from PyTorch model
     if isinstance(model, torch.nn.Module):  # PyTorch model
         for x in "model.args", "model.model.args", "model.model.model.args":

@@ -398,7 +398,10 @@ class v8DetectionLoss:
             batch_idx = targets[:, 0].long()  # image index
             _, counts = batch_idx.unique(return_counts=True)
             counts = counts.to(dtype=torch.int32)
-            out = torch.zeros(batch_size, counts.max(), ne - 1, device=self.device)
+            n = counts.max()
+            if self.device.type == "mps":  # power-of-2 buckets bound MPS per-shape driver memory (#26742)
+                n = 1 << (int(n) - 1).bit_length()
+            out = torch.zeros(batch_size, n, ne - 1, device=self.device)
             offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=self.device)
             offsets.scatter_add_(0, batch_idx + 1, torch.ones_like(batch_idx))
             offsets = offsets.cumsum(0)
@@ -1014,7 +1017,10 @@ class v8OBBLoss(v8DetectionLoss):
             batch_idx = targets[:, 0].long()  # image index
             _, counts = batch_idx.unique(return_counts=True)
             counts = counts.to(dtype=torch.int32)
-            out = torch.zeros(batch_size, counts.max(), 6, device=self.device)
+            n = counts.max()
+            if self.device.type == "mps":  # power-of-2 buckets bound MPS per-shape driver memory (#26742)
+                n = 1 << (int(n) - 1).bit_length()
+            out = torch.zeros(batch_size, n, 6, device=self.device)
             packed_targets = targets[:, 1:].clone()
             packed_targets[:, 1:5].mul_(scale_tensor)
             offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=self.device)

@@ -53,9 +53,10 @@ from .utils import (
     verify_image_mask,
 )
 
-# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models. Shared by every dataset type: a bump
-# rescans all users' caches, so scope task-specific scan changes to that dataset's get_cache_hash() instead
-DATASET_CACHE_VERSION = "1.0.10"  # EXIF-rotated image shapes now match the decoded image
+# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models.
+# 1.0.11: Reject negative box dimensions.
+# 1.0.10: EXIF-rotated image shapes match the decoded image.
+DATASET_CACHE_VERSION = "1.0.11"
 
 
 class YOLODataset(BaseDataset):

@@ -395,7 +395,7 @@ def xyxyxyxy2xywhr(x):
             pi/2 modulo pi.
     """
     is_torch = isinstance(x, torch.Tensor)
-    points = x.cpu().numpy() if is_torch else x
+    points = np.asarray(x.cpu() if is_torch else x, dtype=np.float32)  # cv2.minAreaRect accepts float32, not float64
     rboxes = []
     for pts in points:
         # NOTE: Use cv2.minAreaRect to get accurate xywhr,

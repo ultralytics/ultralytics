@@ -70,7 +70,7 @@ def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG
 
     Args:
         path (str | Path): Output PNG file path.
-        depth (np.ndarray): Metric depth map in meters, 2D (an optional leading singleton dimension is stripped).
+        depth (np.ndarray): Metric depth map in meters, 2D after removing extra singleton dimensions.
             Non-finite and non-positive values are saved as 0 (invalid).
         scale (float, optional): Multiplier applied to depth in meters before rounding to uint16, e.g. 1000 for
             millimeters.
@@ -82,8 +82,8 @@ def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG
     if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
         raise ValueError("Depth scale must be a positive finite number")
     depth = np.asarray(depth, dtype=np.float32)
-    if depth.ndim == 3 and depth.shape[0] == 1:  # strip a leading singleton dim, keeping (1, W)/(H, 1) maps 2D
-        depth = depth[0]
+    while depth.ndim > 2 and 1 in depth.shape:  # preserve both spatial dimensions, including one-pixel axes
+        depth = depth.squeeze(axis=depth.shape.index(1))
     if depth.ndim != 2:
         raise ValueError(f"Depth map must be 2D, got shape {depth.shape}")
     valid = np.isfinite(depth) & (depth > 0)

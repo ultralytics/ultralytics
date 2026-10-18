@@ -293,6 +293,8 @@ def convert_coco(
             annotations[ann["image_id"]].append(ann)
 
         dropped = False
+        num_zero_boxes = 0
+        num_duplicates = 0
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
@@ -311,6 +313,7 @@ def convert_coco(
                 box[[0, 2]] /= w  # normalize x
                 box[[1, 3]] /= h  # normalize y
                 if box[2] <= 0 or box[3] <= 0:  # if w <= 0 or h <= 0
+                    num_zero_boxes += 1
                     continue
 
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
@@ -355,7 +358,14 @@ def convert_coco(
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
             with open(label_file, "a", encoding="utf-8") as file:
                 rows = keypoints if use_keypoints else segments if use_segments else bboxes
-                file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in dict.fromkeys(map(tuple, rows)))
+                unique_rows = dict.fromkeys(map(tuple, rows))
+                num_duplicates += len(rows) - len(unique_rows)
+                file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in unique_rows)
+
+        if num_zero_boxes:
+            LOGGER.warning(f"{json_file}: {num_zero_boxes} zero-size bounding box(es) skipped.")
+        if num_duplicates:
+            LOGGER.warning(f"{json_file}: {num_duplicates} duplicate output row(s) removed.")
 
         if dropped and not use_keypoints:  # segments are unused when keypoints own the output
             LOGGER.warning(

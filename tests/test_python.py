@@ -1368,6 +1368,38 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
+def test_convert_coco_duplicates_and_zero_size(tmp_path, caplog):
+    """Test convert_coco warns and counts duplicate rows and zero-size bounding boxes per file."""
+    import json
+    import logging
+    from ultralytics.data.converter import convert_coco
+
+    ann_dir = tmp_path / "annotations"
+    ann_dir.mkdir()
+    save_dir = tmp_path / "converted"
+
+    coco_data = {
+        "images": [{"id": 1, "file_name": "sample.jpg", "width": 100, "height": 100}],
+        "categories": [{"id": 1, "name": "item"}],
+        "annotations": [
+            {"id": 1, "image_id": 1, "category_id": 1, "bbox": [10, 10, 20, 20], "iscrowd": 0},
+            {"id": 2, "image_id": 1, "category_id": 1, "bbox": [10, 10, 20, 20], "iscrowd": 0},
+            {"id": 3, "image_id": 1, "category_id": 1, "bbox": [10, 10, 0, 20], "iscrowd": 0},
+            {"id": 4, "image_id": 1, "category_id": 1, "bbox": [10, 10, 20, 0], "iscrowd": 0},
+        ],
+    }
+    (ann_dir / "instances_val.json").write_text(json.dumps(coco_data), encoding="utf-8")
+
+    with caplog.at_level(logging.WARNING):
+        convert_coco(labels_dir=str(ann_dir), save_dir=str(save_dir), use_segments=False, cls91to80=False)
+
+    out_files = list(save_dir.rglob("sample.txt"))
+    assert len(out_files) == 1
+    assert len(out_files[0].read_text().strip().splitlines()) == 1
+    assert "2 zero-size bounding box(es) skipped" in caplog.text
+    assert "1 duplicate output row(s) removed" in caplog.text
+
+
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

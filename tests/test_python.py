@@ -2010,18 +2010,26 @@ def test_classification_fraction_samples_across_classes(tmp_path):
         assert len(train) == int(4 * ratio) * 3 and len(train | val) == 12 and train.isdisjoint(val)
 
 
-def test_classification_split_class_alignment(tmp_path):
+@pytest.mark.parametrize(
+    "folders,names",
+    [
+        (("b", "c", "d"), {0: "a", 1: "b", 2: "c"}),
+        (("n02102040", "n02979186", "n03000684"), {0: "tench", 1: "English_springer", 2: "cassette_player"}),
+        (("n02102040", "n02979186", "n03000684"), {0: "n01440764", 1: "n02102040", 2: "n02979186"}),
+    ],
+)
+def test_classification_split_class_alignment(tmp_path, folders, names):
     """Align a split's class folders to the model's class order by name and drop classes the model lacks."""
     from ultralytics.data.dataset import ClassificationDataset
 
-    for name in ("b", "c", "d"):  # the split lacks the model's first class and adds one it does not have
+    for name in folders:  # the split lacks the model's first class and adds one it does not have
         for folder in (tmp_path / name, tmp_path / name / "nested"):
             folder.mkdir()
             cv2.imwrite(str(folder / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
     data = check_cls_dataset(tmp_path)
     copied = [p.relative_to(data[k]) for k in ("train", "val") for p in data[k].rglob("*.jpg")]
     assert len(copied) == len(set(copied)) == 6
-    samples = ClassificationDataset(data["train"], DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
+    samples = ClassificationDataset(data["train"], DEFAULT_CFG, names=names).samples
     assert sorted(sample[1] for sample in samples) == [1, 2]
 
 

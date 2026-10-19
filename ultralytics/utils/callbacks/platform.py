@@ -120,7 +120,7 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         if event != "console_output" or not _api_key:
             detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
             LOGGER.warning(f"{PREFIX}Failed to send {event}: {detail}")
-        return {} if isinstance(error, APIError) and error.status_code == 404 else None  # {} marks a missing model
+        return None
 
 
 def _handle_control_response(trainer, ctx, response):
@@ -349,16 +349,12 @@ def on_pretrain_routine_start(trainer):
         "environment": environment,
         "system": _get_system_metrics(trainer),
     }
-
-    # Resume continues the Platform model recorded in the run directory, a new run must not inherit it
-    record = Path(trainer.save_dir) / "platform_model_id.txt"
+    record = Path(trainer.save_dir) / "platform_model_id.txt"  # resume continues the Platform model recorded here
     model_id = record.read_text() if trainer.args.resume and record.exists() else None
-    if not trainer.args.resume:
-        record.unlink(missing_ok=True)
 
     # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
     response = _send("training_started", data, project, name, model_id=model_id, retry=4)
-    if model_id and (response == {} or (response and response.get("cancelled"))):  # model gone or ended, track as new
+    if model_id and (not response or response.get("cancelled")):  # recorded model is gone or ended, track a new one
         response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
         record.write_text(response["modelId"])
@@ -368,7 +364,6 @@ def on_pretrain_routine_start(trainer):
         ctx["model_url"] = response.get("modelUrl")
         if ctx["model_url"]:
             LOGGER.info(f"{PREFIX}View model at {ctx['model_url']}")
-        ctx["console_logger"].chunk_id = int(time() * 1000)  # chunk ids stay unique across resumed processes
         ctx["console_logger"].start_capture()  # only now: the run is tracked and model_id is known
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
         _handle_control_response(trainer, ctx, response)

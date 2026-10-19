@@ -285,6 +285,8 @@ Use the `project` and `name` parameters to stream metrics:
 
 The **Local Training** tab in the training dialog shows a pre-configured command with your API key, selected parameters, and advanced arguments included.
 
+Resuming an interrupted run with `resume=True` continues streaming to the same Platform model. If that model was deleted or has already completed, failed, or been cancelled, the resumed run is tracked as a new model.
+
 ### Using Platform Datasets
 
 Train with datasets stored on the platform using the [`ul://` URI format](../data/datasets.md#dataset-uri):

@@ -83,7 +83,7 @@ yolo export model=your-model.pt format=axelera
 To reproduce these examples, export the pretrained Ultralytics models:
 
 ```bash
-yolo export model=yolo26n-pose.pt format=axelera nms=False
+yolo export model=yolo26n-pose.pt format=axelera
 yolo export model=yolo11n-seg.pt format=axelera
 ```
 

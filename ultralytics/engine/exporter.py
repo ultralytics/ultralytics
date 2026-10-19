@@ -666,10 +666,6 @@ class Exporter:
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
         if fmt in {"axelera", "hailo", "xilinx"} and not self.args.data:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
-        if fmt == "axelera" and self.args.nms is None:
-            head = getattr(getattr(model, "student_model", model), "model", [model])[-1]
-            if getattr(head, "one2one_cv2", None) is not None:
-                self.args.nms = False  # the Axelera runtime decodes the NMS-free head, so keep end2end on
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
             blocks = {str(x[2]) for x in model.yaml.get("backbone", []) + model.yaml.get("head", [])}
@@ -722,8 +718,10 @@ class Exporter:
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)
         model.names = check_class_names(model.names)
-        if hasattr(model, "end2end"):
-            model.end2end = self.args.nms is False
+        if hasattr(model, "end2end"):  # the Axelera runtime decodes the NMS-free head, so nms=None keeps it there
+            model.end2end = self.args.nms is False or (
+                fmt == "axelera" and self.args.nms is None and getattr(head, "one2one_cv2", None) is not None
+            )
         if getattr(model, "end2end", False):
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable the end2end branch for formats without top-k support

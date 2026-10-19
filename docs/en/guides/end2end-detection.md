@@ -91,6 +91,7 @@ ONNX, TensorRT, CoreML, OpenVINO and several other formats support NMS-free expo
 - **CoreML:** Embedded NMS supports detect, segment and pose with static shapes. Use `nms=True` for detection models that need Xcode Preview's NMS pipeline.
 - **MNN:** Embedded NMS supports detect and pose with `dynamic=False`.
 - **IMX:** Detection, instance segmentation and pose require embedded NMS, selected automatically.
+- **Axelera:** YOLO26 exports its NMS-free one-to-one head by default, which the Axelera runtime decodes.
 - **Hailo:** YOLO26 uses raw tensors with host NMS by default; `nms=False` selects its one-to-one path. YOLOv8/YOLO11 detection uses HailoRT NMS.
 - **Quantization:** TensorRT versions before 8.5.0, TensorRT 10.3.0 INT8 on JetPack 6, and LiteRT INT8 or `w8a16` fall back to one-to-many outputs.
 

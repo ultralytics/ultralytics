@@ -59,14 +59,13 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 ## Supported Tasks
 
-Every task below exports, predicts and validates through the `yolo` commands, YOLO26 instance segmentation, semantic segmentation and depth estimation included.
+Axelera export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
 
 !!! tip "Calibrate depth models on images from your own scenes"
 
     Quantization ranges come from the calibration images, and the default for depth, `depth8.yaml`, holds four indoor frames. On the 654-image [NYU Depth V2](../datasets/depth/nyu-depth-v2.md) val split, YOLO26n depth calibrated on that default scores delta1 0.742 on Metis against 0.783 for the PyTorch model, while 100 NYU training frames give 0.780. Pass `data=` with a dataset YAML whose `val` split holds at least 100 images from the scenes the model will see; calibration reads the `val` split.
-
-{% set unsupported = [] %}
-{% include "macros/supported-tasks.md" %}
 
 ## Installation
 
@@ -239,7 +238,7 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 | `fraction` | `float`, `int`, or `list` | `1.0`       | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it (100-400 images recommended).                                                |
 | `device`   | `str`                     | `None`      | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                               |
 
-\* Models are compiled for a single image, so `batch` does not change the exported model. It sets how many images `predict` hands the Axelera scheduler at once, which is what lets it use every AIPU core: see [Maximum Performance](#maximum-performance). `batch>1` requires Voyager SDK 1.8.0 or newer.
+\* Models are compiled for a single image, so the export `batch` only sets the calibration batch size. Pass `batch` to `predict` instead to hand the Axelera scheduler several images at once (Voyager SDK 1.8.0 or newer): see [Maximum Performance](#maximum-performance).
 
 For all export options, see the [Export Mode documentation](../modes/export.md).
 

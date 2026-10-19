@@ -61,6 +61,8 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 Axelera export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
+YOLO26 detection, instance segmentation, pose and OBB models export their [NMS-free](../guides/end2end-detection.md) one-to-one head by default, and the Axelera runtime decodes it on the host. Passing `nms=True` exports the one-to-many head instead, which scores lower on Metis: YOLO26n detection reaches mAP50-95 0.212 on [COCO128](../datasets/detect/coco128.md) that way, against 0.453 with the NMS-free head.
+
 {% include "macros/supported-tasks.md" %}
 
 !!! tip "Calibrate depth models on images from your own scenes"
@@ -232,7 +234,7 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 | :--------- | :------------------------ | :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`   | `str`                     | `'axelera'` | Target format for Axelera Metis AIPU hardware.                                                                                                                                                                       |
 | `imgsz`    | `int` or `tuple`          | `640`       | Image size for model input.                                                                                                                                                                                          |
-| `batch`\*  | `int`                     | `1`         | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                              |
+| `batch`\*  | `int`                     | `1`         | Calibration batch size. The compiled model takes one image at a time.                                                                                                                                                |
 | `quantize` | `int` or `str`            | `8`/auto    | Quantization precision. `8` (INT8) is required and auto-enabled for the Axelera AIPU. Replaces the deprecated `half`/`int8` flags. See [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization). |
 | `data`     | `str`                     | `None`      | Calibration dataset YAML; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects a task-specific calibration dataset.                                          |
 | `fraction` | `float`, `int`, or `list` | `1.0`       | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it (100-400 images recommended).                                                |

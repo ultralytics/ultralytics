@@ -7,7 +7,7 @@ from torch import nn
 
 from . import LOGGER
 from .metrics import bbox_iou, probiou
-from .ops import xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
+from .ops import crop_mask, xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
 from .torch_utils import TORCH_1_11
 
 
@@ -416,6 +416,47 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         d = (pd_kpts[b, a].float() - gt_kpts[..., :2]).pow(2).sum(-1)
         oks = ((-d / ((2 * self.sigmas).pow(2) * (area + self.eps) * 2)).exp() * vis).sum(-1) / vis.sum(-1).clamp(min=1)
         return torch.where(vis.any(-1), (iou + oks.to(iou.dtype)) / 2, iou)
+
+
+class SegTaskAlignedAssigner(TaskAlignedAssigner):
+    """Task-aligned assigner for segmentation whose overlap is the mean of box IoU and predicted-mask IoU.
+
+    Positives, conflict resolution and the soft classification targets then all favor anchors with accurate masks, so
+    the score ranks detections by mask quality. Call it with mask coefficients ``pd_coef`` (b, h*w, nm), predicted boxes
+    in prototype pixels ``pd_mboxes`` (b, h*w, 4), prototypes ``proto`` (b, nm, mh, mw) and binary ground-truth masks
+    ``gt_masks`` (b, max_num_obj, mh, mw). Predicted masks are binarized and cropped to their box as in validation.
+    """
+
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, pd_coef, pd_mboxes, proto, gt_masks):
+        """Return (IoU + mask IoU) / 2 per candidate pair; mask IoU only for each gt's 3 * topk best IoUs, else 0."""
+        b, g, a = indices
+        iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
+        dense = iou.new_zeros(self.bs, self.n_max_boxes, pd_bboxes.shape[1])
+        dense[indices] = iou + self.eps  # zero-IoU candidates stay selectable
+        top = dense.topk(min(3 * self.topk, dense.shape[-1]), dim=-1).indices
+        sel = torch.zeros_like(dense, dtype=torch.bool).scatter_(-1, top, True)[indices].nonzero().squeeze(1)
+        miou = torch.zeros_like(iou)
+        if len(sel):  # decode each selected anchor's mask once, packed into per-image slots
+            na, (mh, mw) = dense.shape[-1], proto.shape[-2:]
+            key, inv = (b[sel] * na + a[sel]).unique(return_inverse=True)
+            ub, ua = key // na, key % na
+            n = torch.bincount(ub, minlength=self.bs)
+            slot = torch.arange(len(key), device=key.device) - (n.cumsum(0) - n)[ub]
+            m = int(n.max())
+            coef, boxes = pd_coef.new_zeros(self.bs, m, pd_coef.shape[-1]), pd_mboxes.new_zeros(self.bs, m, 4)
+            coef[ub, slot], boxes[ub, slot] = pd_coef[ub, ua], pd_mboxes[ub, ua]
+            gm = gt_masks.flatten(2).half()
+            ious = iou.new_empty(self.bs, self.n_max_boxes, m, dtype=torch.float)
+            step = max(1, (1 << 28) // (m * mh * mw))  # images per chunk, ~512 MB of fp16 masks
+            for i in range(0, self.bs, step):
+                s = slice(i, i + step)
+                pm = (coef[s].half() @ proto[s].half().flatten(2)).gt_(0).half()  # (c, n, mh*mw) binary masks
+                pm = crop_mask(pm.view(-1, mh, mw), boxes[s].reshape(-1, 4).float()).view(pm.shape)
+                inter = (gm[s] @ pm.transpose(1, 2)).float()  # 0/1 products, fp16 exact to <0.1% at these counts
+                union = gm[s].sum(-1, dtype=torch.float)[..., None] + pm.sum(-1, dtype=torch.float)[:, None] - inter
+                ious[s] = inter / union.clamp(min=1)
+            miou[sel] = ious[b[sel], g[sel], slot[inv]].to(iou.dtype)
+        return (iou + miou) / 2
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):

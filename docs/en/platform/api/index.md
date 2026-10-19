@@ -1147,9 +1147,10 @@ GET /api/images/{imageId}/similar
 **Python SDK:** `client.images.find_similar_images(image_id)`
 
 Returns up to 24 visually similar `images` from public datasets and from your own and team datasets, each with
-`score` (0-1), a signed `thumbnailUrl`, and the source `dataset` (`owner`, `dataset`, `license`). Images already in
-the source dataset and copies of the query image are excluded. Requires an API key with view access to the image; an
-image that has not been embedded yet is embedded first, and `503` means that preparation failed, so retry.
+`score` (0-1), a signed `thumbnailUrl`, and the source `dataset` (`owner`, `dataset`, `license`). The source dataset
+and datasets holding a copy of the query image are excluded; `includeSourceDataset=true` keeps them and drops only the
+copies. Requires an API key with view access to the image; an image that has not been embedded yet is embedded first,
+and `503` means that preparation failed, so retry.
 
 ### Auto-Annotate a Dataset
 

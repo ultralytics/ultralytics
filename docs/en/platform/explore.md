@@ -65,7 +65,9 @@ easy to bookmark or share.
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
 search, and their cards show the matching images. On the Images tab, describe a scene such as `cats on a sofa`, then
-click an image to view it full size with its source dataset and license.
+click an image to open a side panel with its annotations, source dataset, class counts, and license, followed by up to
+24 similar images when you are signed in; click one to open it in the panel. On narrow screens such as phones, the image
+opens full size instead.
 
 ### Sort and Filter
 

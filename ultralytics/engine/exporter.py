@@ -1046,10 +1046,21 @@ class Exporter:
         return f  # path to final export artifact
 
     def get_int8_calibration_dataloader(self, prefix=""):
-        """Build and return a dataloader for calibration of INT8 models."""
+        """Build and return a dataloader for calibration of INT8 models.
+
+        Images are emitted as uint8 [0, 255] at the export input shape. Classification images are resized and
+        center-cropped to the exact export (height, width) like classify inference, so rectangular `imgsz` exports
+        calibrate on rectangular inputs; other tasks reuse their validation dataset transforms.
+
+        Args:
+            prefix (str): Prefix for log messages.
+
+        Returns:
+            (InfiniteDataLoader): Calibration dataloader that drops the last incomplete batch.
+        """
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
-        cfg.imgsz = max(self.imgsz)
+        cfg.imgsz = self.imgsz if self.model.task == "classify" else max(self.imgsz)  # classify keeps exact (h, w)
         cfg.rect = False
         split = self.args.split or "val"
         if self.model.task == "classify":
@@ -1059,8 +1070,8 @@ class Exporter:
             if not isinstance(cfg.fraction, list):
                 cfg.fraction = [cfg.fraction] * 3
             dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
-            # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
-            dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
+            # INT8 backends divide images by 255, so keep the classify_transforms resize and center crop but emit uint8
+            dataset.torch_transforms = T.Compose([*dataset.torch_transforms.transforms[:2], T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=split)
             cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction

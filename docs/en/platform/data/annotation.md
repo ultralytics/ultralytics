@@ -404,7 +404,7 @@ Right-click an annotation to open a context menu with:
 | Hide Annotation(s)   |                        |
 | Delete Annotation(s) | `Delete` / `Backspace` |
 
-Right-clicking a polygon vertex or edge adds **Remove Point** or **Add Point**, and right-clicking a pose keypoint adds **Hide Point** and **Reset Visibility**. The menu also offers [**Blur faces**](datasets.md#blur-faces) when available.
+Right-clicking a polygon vertex or edge adds **Remove Point** or **Add Point**, and right-clicking a pose keypoint adds **Hide Point** and **Reset Visibility**. The menu also offers [**Blur faces**](datasets.md#blur-faces) when available, and on detect, segment, and OBB datasets with smart annotation available, **Annotate similar**: YOLOE-26x takes every label of the selected classes on the image (at most 200) as visual prompts and previews the matches with confidence and IoU sliders, and **Apply** adds them to this image at no cost, skipping duplicates of existing labels.
 
 ## Visibility Controls
 

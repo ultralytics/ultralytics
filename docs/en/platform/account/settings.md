@@ -66,11 +66,12 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 
 1. Go to **Settings > Profile**
 2. Update fields (display name, company, use case, bio, and social links)
-3. Click **Save profile** below the Social profiles card. The button is enabled once you have unsaved changes.
+3. Click **Save changes** on the bar that appears at the bottom of the page once you have unsaved changes, or **Discard**
+   to revert them.
 
 ### Early Access
 
-Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile** and enable **Early access** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
+Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile**, enable **Early access**, and click **Save changes** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
 
 ### Social Links
 

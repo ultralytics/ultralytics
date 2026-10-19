@@ -793,6 +793,8 @@ def linear_sum_assignment(cost_matrix):
             _assignment_solver = solver
         except ImportError:
             _assignment_solver = _linear_sum_assignment_numpy
+    if isinstance(cost_matrix, torch.Tensor):
+        cost_matrix = cost_matrix.detach().cpu().numpy()
     return _assignment_solver(np.asarray(cost_matrix, dtype=np.float64))
 
 

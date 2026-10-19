@@ -2436,3 +2436,19 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
+
+
+def test_linear_sum_assignment_tensor_inputs():
+    """Test linear_sum_assignment accepts requires_grad and float32/float64 PyTorch tensors alongside arrays/lists."""
+    from ultralytics.utils.ops import linear_sum_assignment
+
+    matrix = [[4.0, 1.0, 3.0], [2.0, 0.0, 5.0], [3.0, 2.0, 2.0]]
+    expected_row, expected_col = linear_sum_assignment(np.array(matrix, dtype=np.float64))
+    for cost in (
+        matrix,
+        torch.tensor(matrix, dtype=torch.float32),
+        torch.tensor(matrix, dtype=torch.float64),
+        torch.tensor(matrix, dtype=torch.float32, requires_grad=True),
+    ):
+        row_ind, col_ind = linear_sum_assignment(cost)
+        assert np.array_equal(row_ind, expected_row) and np.array_equal(col_ind, expected_col)

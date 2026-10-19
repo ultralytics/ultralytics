@@ -1049,18 +1049,17 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
-        cfg.imgsz = max(self.imgsz)
+        cfg.imgsz = self.imgsz if self.model.task == "classify" else max(self.imgsz)  # classify keeps exact (h, w)
         cfg.rect = False
         split = self.args.split or "val"
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-            cfg.imgsz = self.imgsz
             data = check_cls_dataset(self.args.data, split=split)
             if not isinstance(cfg.fraction, list):
                 cfg.fraction = [cfg.fraction] * 3
             dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
-            # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
+            # INT8 backends divide images by 255, so keep the classify_transforms resize and center crop but emit uint8
             dataset.torch_transforms = T.Compose([*dataset.torch_transforms.transforms[:2], T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=split)

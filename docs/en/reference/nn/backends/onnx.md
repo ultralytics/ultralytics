@@ -34,4 +34,8 @@ keywords: Ultralytics, ONNXBackend, ONNXIMXBackend, Microsoft ONNX Runtime, Sony
 
 ## ::: ultralytics.nn.backends.onnx._load_migraphx_session
 
+<br><br><hr><br>
+
+## ::: ultralytics.nn.backends.onnx._winml_bootstrap
+
 <br><br>

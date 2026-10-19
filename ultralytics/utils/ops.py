@@ -386,12 +386,12 @@ def xyxyxyxy2xywhr(x):
     Args:
         x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) or (N, 4, 2) in [xy1, xy2, xy3, xy4] format.
             Polygons with more than four points are accepted in the same two layouts, (N, 2P) or (N, P, 2), and are
-            reduced to their minimum-area rectangle. Any real dtype is accepted, e.g. float64 corners from
-            `np.loadtxt`; corners are cast to float32 for `cv2.minAreaRect`.
+            reduced to their minimum-area rectangle. Any real dtype is accepted, e.g. float64 corners from `np.loadtxt`;
+            corners are cast to float32 for `cv2.minAreaRect`.
 
     Returns:
-        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5), as float64
-            for NumPy input and with the input dtype and device for tensor input. The parameterization is canonical
+        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5), as float64 for
+            NumPy input and with the input dtype and device for tensor input. The parameterization is canonical
             rather than the caller's: w is the longer side and rotation is in radians from [-pi/4, 3pi/4), so a box
             given with w < h comes back with w and h swapped and its angle shifted by pi/2 modulo pi.
     """

@@ -2,6 +2,7 @@
 
 import contextlib
 import csv
+import json
 import os
 import platform
 import shutil
@@ -1416,6 +1417,81 @@ def test_data_converter(tmp_path):
         labels_dir=tmp_path, save_dir=tmp_path / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True
     )
     coco80_to_coco91_class()
+
+
+@pytest.mark.parametrize("counts", [[9, 3, 5, 3, 24, 3, 5, 3, 9], "9350c00]O04"])
+def test_convert_coco_decodes_rle_segments(tmp_path, counts):
+    """Test compressed and uncompressed COCO RLE masks keep disconnected components separate."""
+    from ultralytics.data.converter import convert_coco
+
+    labels_dir = tmp_path / "annotations"
+    labels_dir.mkdir()
+    (labels_dir / "instances_train.json").write_text(
+        json.dumps(
+            {
+                "images": [{"id": 1, "file_name": "sample.jpg", "height": 8, "width": 8}],
+                "annotations": [
+                    {
+                        "image_id": 1,
+                        "category_id": 1,
+                        "bbox": [1, 1, 6, 6],
+                        "segmentation": {"size": [8, 8], "counts": counts},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    convert_coco(labels_dir, tmp_path / "converted", use_segments=True, cls91to80=False)
+    rows = [
+        list(map(float, line.split()))
+        for line in (tmp_path / "converted" / "labels" / "train" / "sample.txt").read_text().splitlines()
+    ]
+
+    assert len(rows) == 2
+    assert all(len(row) >= 7 and row[0] == 0 for row in rows)
+    mask = np.zeros((8, 8), dtype=np.uint8)
+    for row in rows:
+        points = (np.array(row[1:]).reshape(-1, 2) * 8).round().astype(np.int32)
+        cv2.fillPoly(mask, [points], 1)
+    expected = np.zeros((8, 8), dtype=np.uint8)
+    expected[1:4, 1:3] = 1
+    expected[4:7, 5:7] = 1
+    assert np.array_equal(mask, expected)
+
+
+@pytest.mark.parametrize("segmentation", [True, 1, {"size": [8, 8], "counts": [64]}])
+def test_convert_coco_invalid_segmentation_falls_back_to_bbox(tmp_path, segmentation):
+    """Test malformed COCO segmentations keep the existing bounding-box fallback."""
+    from ultralytics.data.converter import convert_coco
+
+    labels_dir = tmp_path / "annotations"
+    labels_dir.mkdir()
+    (labels_dir / "instances_train.json").write_text(
+        json.dumps(
+            {
+                "images": [{"id": 1, "file_name": "sample.jpg", "height": 8, "width": 8}],
+                "annotations": [
+                    {
+                        "image_id": 1,
+                        "category_id": 1,
+                        "bbox": [1, 1, 6, 6],
+                        "segmentation": segmentation,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    convert_coco(labels_dir, tmp_path / "converted", use_segments=True, cls91to80=False)
+    rows = [
+        list(map(float, line.split()))
+        for line in (tmp_path / "converted" / "labels" / "train" / "sample.txt").read_text().splitlines()
+    ]
+
+    assert rows == [[0, 0.125, 0.125, 0.875, 0.125, 0.875, 0.875, 0.125, 0.875]]
 
 
 def test_data_annotator(tmp_path):

@@ -220,8 +220,8 @@ def fit_calibration_selective(
     """Select and apply calibration via "calibrate only if it helps" (see :func:`select_calibration_cv`).
 
     Collects per-image ``(log_pred, log_gt)`` over the loader, splits images into independent fit/score folds (no
-    leakage), chooses identity / current / scale-only by cross-validated raw-scale δ1, and writes the winner into the head's
-    ``cal_a``/``cal_b``.
+    leakage), chooses identity / current / scale-only by cross-validated raw-scale δ1, and writes the winner into the
+    head's ``cal_a``/``cal_b``.
 
     Args:
         model (torch.nn.Module): Depth model whose head carries ``cal_a``/``cal_b`` buffers.

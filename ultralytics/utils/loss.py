@@ -1221,25 +1221,27 @@ class DepthLoss26:
             pred_depth = F.interpolate(pred_depth, size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
 
         valid = gt_depth > 0.001
-        if valid.sum() < 10:
+        n = valid.sum(dim=(1, 2, 3), keepdim=True)
+        scored = n.flatten() >= 10
+        if not scored.any():
             # Keep the result attached so BaseTrainer's unconditional backward() works.
             return pred_depth.sum() * 0.0, dict(zip(self.loss_names, loss.detach()))
 
-        pred_valid = pred_depth[valid]
-        gt_valid = gt_depth[valid]
-
-        pred_valid = pred_valid.clamp(min=0.001)
-
-        log_diff = torch.log(pred_valid) - torch.log(gt_valid)
-        # Centered variance form: non-negative by construction and fp16-stable near convergence.
-        m = log_diff.mean()
-        silog = torch.sqrt(((log_diff - m) ** 2).mean() + (1.0 - self.silog_lambda) * m**2 + 1e-6)
-        loss[0] = silog * self.silog_weight
-
-        # Multi-scale gradient-matching loss.
         pred_log = torch.log(pred_depth.clamp(min=0.001))
         gt_log = torch.log(gt_depth.clamp(min=0.001))
         valid_f = valid.float()
+
+        # Per-image SILog, like the per-image median alignment in DepthMetrics: each image gets its own scale offset
+        # and equal weight, so sparse-GT (LiDAR) images are not outweighed by dense ones. Centered variance form:
+        # non-negative by construction and fp16-stable near convergence.
+        n = n.clamp(min=1)
+        log_diff = (pred_log - gt_log) * valid_f
+        m = log_diff.sum(dim=(1, 2, 3), keepdim=True) / n
+        var = ((log_diff - m) * valid_f).pow(2).sum(dim=(1, 2, 3), keepdim=True) / n
+        silog = torch.sqrt(var + (1.0 - self.silog_lambda) * m**2 + 1e-6).flatten()
+        loss[0] = silog[scored].mean() * self.silog_weight
+
+        # Multi-scale gradient-matching loss.
         grad_loss = self._grad_l1(pred_log, gt_log, valid_f)
         for _ in range(1, max(self.grad_scales, 1)):
             if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:

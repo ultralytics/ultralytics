@@ -144,12 +144,36 @@ _ORT_DTYPES = {
 }
 
 
+@lru_cache(maxsize=1)
+def _winml_bootstrap() -> object | None:
+    """Register Windows ML catalog execution providers with ONNX Runtime once per process.
+
+    Returns:
+        (object | None): The Windows App SDK bootstrap handle, kept alive by the cache, or None if Windows ML is not
+            installed.
+    """
+    try:
+        import winui3.microsoft.windows.ai.machinelearning as winml
+        from winui3.microsoft.windows.applicationmodel.dynamicdependency.bootstrap import InitializeOptions, initialize
+    except ImportError:
+        return None
+    import onnxruntime
+
+    handle = initialize(options=InitializeOptions.ON_NO_MATCH_SHOW_UI)
+    handle.__enter__()
+    for provider in winml.ExecutionProviderCatalog.get_default().find_all_providers():
+        provider.ensure_ready_async().get()  # downloads the EP on first use
+        if provider.library_path:
+            onnxruntime.register_execution_provider_library(provider.name, provider.library_path)
+    return handle
+
+
 class ONNXBackend(BaseBackend):
     """Microsoft ONNX Runtime inference backend with optional OpenCV DNN support.
 
     Loads and runs inference with ONNX models (.onnx files) using either Microsoft ONNX Runtime with CUDA,
-    ROCm/MIGraphX, or CoreML execution providers, or OpenCV DNN for lightweight CPU inference. Supports IO binding for
-    optimized GPU inference with static input shapes.
+    ROCm/MIGraphX, CoreML, or Windows ML execution providers, or OpenCV DNN for lightweight CPU inference. Supports IO
+    binding for optimized GPU inference with static input shapes.
     """
 
     def __init__(
@@ -206,9 +230,9 @@ class ONNXBackend(BaseBackend):
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
                 if rocm
-                else "onnxruntime-gpu"
+                else [("onnxruntime-gpu", "onnxruntime-windowsml")]
                 if cuda
-                else [("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai")]  # keep GPU or AMD Vitis AI builds
+                else [("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")]  # keep builds
             )
             import onnxruntime
 
@@ -231,13 +255,15 @@ class ONNXBackend(BaseBackend):
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
                     providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
+                elif _winml_bootstrap():  # Windows ML selects the execution provider by device policy
+                    providers = None
+                    self.session_options = self.session_options or onnxruntime.SessionOptions()
+                    self.session_options.set_provider_selection_policy(
+                        getattr(onnxruntime.OrtExecutionProviderDevicePolicy, "PREFER_GPU" if cuda else "PREFER_NPU")
+                    )
+                    cuda = False  # outputs are host arrays, no CUDA IO binding
                 else:
                     providers = ["CPUExecutionProvider"]
-
-                LOGGER.info(
-                    f"Using ONNX Runtime {onnxruntime.__version__} with "
-                    f"{providers[0] if isinstance(providers[0], str) else providers[0][0]}"
-                )
 
                 try:
                     self.session = onnxruntime.InferenceSession(weight, self.session_options, providers=providers)
@@ -250,6 +276,7 @@ class ONNXBackend(BaseBackend):
                         f"({type(e).__name__}: {e}).\nRecommended fixes are to re-export it with "
                         f"'yolo export model=yolo26n.pt format=onnx', or to re-download the file."
                     ) from e
+                LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
                 if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
                     LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
                     self.device = torch.device("cpu")

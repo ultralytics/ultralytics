@@ -21,13 +21,13 @@ The COCO JSON format stores all annotations in a single file, while [YOLO](../da
 - **COCO JSON uses pixel coordinates** in `[x_min, y_min, width, height]` format with a single JSON file for all images.
 - **Class IDs differ** — COCO uses arbitrary `category_id` values, while YOLO requires zero-indexed class IDs.
 
-| Feature          | COCO JSON                                 | YOLO TXT                                                |
-| ---------------- | ----------------------------------------- | ------------------------------------------------------- |
-| **Structure**    | Single JSON file for all images           | One `.txt` file per image                               |
-| **Bbox format**  | `[x_min, y_min, width, height]` in pixels | `class x_center y_center width height` normalized (0-1) |
-| **Class IDs**    | `category_id` (can start from any number) | Zero-indexed (starts from 0)                            |
-| **Segmentation** | Polygon arrays in `segmentation` field    | Polygon coordinates after class ID                      |
-| **Keypoints**    | `[x, y, visibility, ...]` in pixels       | `[x, y, visibility, ...]` normalized                    |
+| Feature          | COCO JSON                                           | YOLO TXT                                                |
+| ---------------- | --------------------------------------------------- | ------------------------------------------------------- |
+| **Structure**    | Single JSON file for all images                     | One `.txt` file per image                               |
+| **Bbox format**  | `[x_min, y_min, width, height]` in pixels           | `class x_center y_center width height` normalized (0-1) |
+| **Class IDs**    | `category_id` (can start from any number)           | Zero-indexed (starts from 0)                            |
+| **Segmentation** | Polygon arrays or RLE masks in `segmentation` field | Polygon coordinates after class ID                      |
+| **Keypoints**    | `[x, y, visibility, ...]` in pixels                 | `[x, y, visibility, ...]` normalized                    |
 
 ## Quick Start
 
@@ -308,11 +308,11 @@ If conversion completes but `.txt` files are empty or missing, all annotations m
 
 **Solution**: Inspect your JSON annotations for `iscrowd` values. If using SAM masks, preprocess the JSON to set `iscrowd: 0`. If you passed `use_keypoints=True`, confirm your annotations actually carry `keypoints`.
 
-### RLE Masks in Segmentation Annotations
+### Box-Shaped Polygons From Mask Annotations
 
-When `use_segments=True`, valid COCO run-length encoded masks (`{"counts": ..., "size": ...}`) are decoded to polygons. Disconnected mask components are written as separate YOLO segmentation rows because a YOLO row cannot represent multiple polygons without connecting them. YOLO polygon rows cannot represent holes, so hole boundaries are not preserved. Missing, empty, invalid, or polygon-incompatible segmentation values use a bounding-box-shaped segment and emit a warning with the affected annotation count. Crowd annotations (`iscrowd: 1`) remain skipped.
+If `use_segments=True` logs `annotations without a usable polygon`, some annotations carry no `segmentation` value, an empty mask, or one that is neither a list of at least three coordinate pairs nor a COCO run-length encoding (`{"counts": ..., "size": ...}`). The usual cause is a detection-only export, which leaves the field missing or empty; a flat coordinate list with no enclosing polygon list, one- and two-point outlines, and other malformed values are handled the same way. An annotation keeps whichever polygons remain, and falls back to a segment row shaped like its bounding box when none do, so the labels stay valid but those rows carry no mask detail.
 
-**Solution**: Correct any malformed `segmentation` values reported by the warning and rerun the conversion.
+**Solution**: Re-export the annotations with polygon or RLE segmentations, or correct any malformed `segmentation` values.
 
 ### Class ID Gaps in Converted Labels
 
@@ -350,7 +350,7 @@ Not without custom code. The default training pipeline expects YOLO `.txt` label
 
 ### Can I convert COCO segmentation annotations to YOLO format?
 
-Yes, use `use_segments=True` when calling `convert_coco()` to include polygon segmentation masks in the converted YOLO labels. This produces label files compatible with [YOLO segmentation models](../tasks/segment.md):
+Yes, use `use_segments=True` when calling `convert_coco()` to include segmentation masks in the converted YOLO labels. Polygon segmentations are copied as-is, and run-length encoded (RLE) masks are decoded to the outlines of their regions; YOLO polygons cannot hold holes, so mask holes are filled. This produces label files compatible with [YOLO segmentation models](../tasks/segment.md):
 
 ```python
 from ultralytics.data.converter import convert_coco

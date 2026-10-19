@@ -31,7 +31,7 @@ from ultralytics.utils import (
     YAML,
     clean_url,
 )
-from ultralytics.utils.checks import check_file
+from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -242,80 +242,6 @@ def coco80_to_coco91_class() -> list[int]:
     ]
 
 
-def _decode_coco_rle_counts(counts: str | bytes) -> list[int]:
-    """Decode the compressed run lengths used by COCO masks."""
-    if isinstance(counts, str):
-        counts = counts.encode("ascii")
-    if not isinstance(counts, bytes):
-        raise TypeError("COCO RLE counts must be a string or bytes")
-
-    decoded = []
-    index = 0
-    while index < len(counts):
-        value = 0
-        shift = 0
-        while True:
-            if index >= len(counts):
-                raise ValueError("unterminated COCO RLE counts")
-            char = counts[index] - 48
-            if not 0 <= char <= 63:
-                raise ValueError("invalid COCO RLE count")
-            index += 1
-            value |= (char & 0x1F) << shift
-            shift += 5
-            if not char & 0x20:
-                if char & 0x10:
-                    value |= -1 << shift
-                break
-        if len(decoded) > 2:
-            value += decoded[-2]
-        decoded.append(value)
-    return decoded
-
-
-def _decode_coco_rle(segmentation: dict) -> np.ndarray:
-    """Decode a COCO RLE segmentation into a Fortran-ordered binary mask."""
-    size = segmentation.get("size")
-    if not isinstance(size, (list, tuple)) or len(size) != 2:
-        raise ValueError("COCO RLE must contain a two-element size")
-    if any(not isinstance(x, int) or isinstance(x, bool) for x in size):
-        raise ValueError("COCO RLE size must contain integers")
-    height, width = size
-    if height <= 0 or width <= 0:
-        raise ValueError("COCO RLE size must be positive")
-
-    counts = segmentation.get("counts")
-    if isinstance(counts, list):
-        if any(not isinstance(x, int) or isinstance(x, bool) for x in counts):
-            raise ValueError("COCO RLE counts must contain integers")
-    elif isinstance(counts, (str, bytes)):
-        counts = _decode_coco_rle_counts(counts)
-    else:
-        raise TypeError("COCO RLE must contain compressed or uncompressed counts")
-    if any(count < 0 for count in counts) or sum(counts) != height * width:
-        raise ValueError("COCO RLE counts do not match the mask size")
-
-    mask = np.zeros(height * width, dtype=np.uint8)
-    index = 0
-    for value, count in enumerate(counts):
-        if value % 2:
-            mask[index : index + count] = 1
-        index += count
-    return mask.reshape((height, width), order="F")
-
-
-def _rle_to_polygons(segmentation: dict, height: int, width: int) -> list[np.ndarray]:
-    """Convert a COCO RLE segmentation into external polygons for connected components."""
-    size = segmentation.get("size")
-    if not isinstance(size, (list, tuple)) or tuple(size) != (height, width):
-        raise ValueError("COCO RLE size does not match the image size")
-    mask = _decode_coco_rle(segmentation)
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    return [
-        contour.reshape(-1, 2) for contour in sorted(contours, key=cv2.contourArea, reverse=True) if len(contour) >= 3
-    ]
-
-
 def convert_coco(
     labels_dir: str = "../coco/annotations/",
     save_dir: str = "coco_converted/",
@@ -329,7 +255,8 @@ def convert_coco(
     Args:
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
         save_dir (str, optional): Path to directory to save results to.
-        use_segments (bool, optional): Whether to include segmentation masks in the output.
+        use_segments (bool, optional): Whether to include segmentation masks in the output. COCO RLE masks are decoded
+            to the polygons of their outer contours.
         use_keypoints (bool, optional): Whether to include keypoint annotations in the output. Annotations without any
             labeled keypoint are skipped, as COCO keypoint evaluation ignores them.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
@@ -365,8 +292,13 @@ def convert_coco(
         annotations = defaultdict(list)
         for ann in data["annotations"]:
             annotations[ann["image_id"]].append(ann)
+        if use_segments and any(
+            isinstance(a.get("segmentation"), dict) and not a.get("iscrowd") for a in data["annotations"]
+        ):
+            check_requirements("faster-coco-eval>=1.6.7")  # decodes RLE masks
+            from faster_coco_eval.core.mask import decode, segmToRle
 
-        dropped = 0
+        dropped = False
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
@@ -398,13 +330,12 @@ def convert_coco(
                 bboxes.append(box)
                 if use_segments:
                     seg = ann.get("segmentation")
-                    if isinstance(seg, dict):
-                        try:
-                            polygons = _rle_to_polygons(seg, h, w)
-                        except (TypeError, ValueError, cv2.error):
-                            polygons = []
-                    elif isinstance(seg, list):
-                        polygons = [
+                    if isinstance(seg, dict):  # RLE mask, decode to the polygons of its outer contours
+                        mask = decode(segmToRle(seg, w, h))
+                        contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+                        seg = [c.ravel().tolist() for c in contours]
+                    polygons = (
+                        [
                             p
                             for p in seg or []
                             if isinstance(p, list)
@@ -412,17 +343,14 @@ def convert_coco(
                             and not len(p) % 2
                             and all(isinstance(c, (int, float)) for c in p)
                         ]
-                    else:
-                        polygons = []
+                        if isinstance(seg, list)
+                        else []
+                    )
                     if not polygons:
-                        dropped += 1
+                        dropped = True
                         cx, cy, bw, bh = box[1:]
                         x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
                         segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
-                    elif isinstance(seg, dict):
-                        for polygon in polygons:
-                            s = (polygon / np.array([w, h])).reshape(-1).tolist()
-                            segments.append([cls, *s])
                     elif len(polygons) > 1:
                         s = merge_multi_segment(polygons)
                         s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
@@ -441,8 +369,8 @@ def convert_coco(
 
         if dropped and not use_keypoints:  # segments are unused when keypoints own the output
             LOGGER.warning(
-                f"{json_file}: {dropped} annotations without a usable polygon because the segmentation is missing, "
-                "empty, or invalid; using a segment shaped like their bounding box."
+                f"{json_file}: annotations without a usable polygon, because the segmentation is missing, "
+                "empty, or not a point list or RLE mask, use a segment shaped like their bounding box."
             )
 
         if lvis:
@@ -1018,8 +946,6 @@ async def _convert_ndjson_to_yolo(
     split: str | None = None,
 ) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
-    from ultralytics.utils.checks import check_requirements
-
     check_requirements("aiohttp")
     import aiohttp
 

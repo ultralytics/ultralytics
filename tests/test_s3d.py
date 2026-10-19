@@ -107,8 +107,31 @@ def test_proj_center_loss_present():
     gt = torch.ones(B, 3, 2)  # [B, max_n, 2]
     idx = torch.zeros(B, HW, dtype=torch.long)
     fg = torch.ones(B, HW, dtype=torch.bool)
-    losses = crit._compute_aux_losses(preds, {"aux_targets": {"proj_offset": gt}}, idx, fg)
+    batch = {"aux_targets": {"proj_offset": gt}, "img": torch.zeros(B, 6, 32, 64)}
+    losses = crit._compute_aux_losses(preds, batch, idx, fg)
     assert "proj_center" in losses and losses["proj_center"] > 0
+
+
+def test_proj_center_loss_is_pixel_scaled():
+    """A 2-pixel projected-center error must cost ~1.5 (SmoothL1 past its 1 px knee), not ~1e-3.
+
+    The offset is letterbox-normalized, so scoring it raw put every few-pixel error deep in SmoothL1's quadratic
+    regime and the head stalled at ~5 px on data it should memorize.
+    """
+    import torch
+
+    from ultralytics import YOLO
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+
+    model = YOLO("yolo26n-s3d.yaml").model
+    crit = Stereo3DDetLoss(model, loss_weights={"proj_center": 1.0})
+    H, W = 64, 200
+    preds = {"proj_offset": torch.zeros(1, 2, 4)}
+    gt = torch.tensor([[[2.0 / W, 2.0 / H]]])  # 2 px in both axes
+    idx = torch.zeros(1, 4, dtype=torch.long)
+    fg = torch.ones(1, 4, dtype=torch.bool)
+    loss = crit._compute_aux_losses(preds, {"aux_targets": {"proj_offset": gt}, "img": torch.zeros(1, 6, H, W)}, idx, fg)
+    assert abs(float(loss["proj_center"]) - 1.5) < 1e-4
 
 
 def test_lr_nll_attenuates_with_uncertainty():

@@ -245,8 +245,16 @@ class Stereo3DDetLoss(v8DetectionLoss):
                 aux_losses[k] = self._aux_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask)
 
         if "proj_offset" in aux_targets and "proj_offset" in aux_preds:
+            # The offset is letterbox-normalized (du/W, dv/H), so a few-pixel error is ~1e-3 and SmoothL1 (beta=1)
+            # sits deep in its quadratic regime with a vanishing gradient: the head stalls at ~5 px on data it
+            # should memorize. Scoring it in input pixels puts the beta=1 knee at 1 px, i.e. L1 above a pixel.
+            h, w = batch["img"].shape[-2:]
+            px = torch.tensor([w, h], device=self.device, dtype=aux_preds["proj_offset"].dtype)
             aux_losses["proj_center"] = self._aux_loss(
-                aux_preds["proj_offset"], aux_targets["proj_offset"].to(self.device), target_gt_idx, fg_mask
+                aux_preds["proj_offset"] * px.view(1, 2, 1),
+                aux_targets["proj_offset"].to(self.device) * px.view(1, 1, 2),
+                target_gt_idx,
+                fg_mask,
             )
 
         return aux_losses

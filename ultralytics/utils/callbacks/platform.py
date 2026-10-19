@@ -284,7 +284,7 @@ def _get_system_metrics(trainer):
 
 
 def on_pretrain_routine_start(trainer):
-    """Initialize Platform logging at training start."""
+    """Initialize Platform logging at training start, continuing the recorded Platform model when resuming."""
     global _api_key
     if TESTS_RUNNING or not trainer.args.project:
         return

@@ -285,7 +285,15 @@ Use the `project` and `name` parameters to stream metrics:
 
 The **Local Training** tab in the training dialog shows a pre-configured command with your API key, selected parameters, and advanced arguments included.
 
-Resuming an interrupted run with `resume=True` continues streaming to the same Platform model. If that model was deleted or has already completed, failed, or been cancelled, the resumed run is tracked as a new model.
+### Resume Remote Training
+
+Resume an interrupted remote run from its last checkpoint as usual (see [Resuming Interrupted Trainings](../../modes/train.md#resuming-interrupted-trainings)):
+
+```bash
+yolo train resume model=path/to/last.pt
+```
+
+The resumed run continues the same Platform model, so its epochs, console output, and final weights land on the original model instead of a new one. The model ID is stored in `platform_model_id.txt` in the run directory. If that model was deleted, or has already completed, failed, or been cancelled, the resumed run is tracked as a new model. Platform marks a remote run failed after 4 hours without activity, so resume within that window to continue the original model.
 
 ### Using Platform Datasets
 

@@ -126,13 +126,13 @@ def on_pretrain_routine_end(trainer):
         from pathlib import Path
 
         name = str(trainer.args.name)
-        latest_run = Path(trainer.save_dir) / "wandb" / "latest-run"
-        resuming = trainer.args.resume and latest_run.exists()
+        runs = (Path(trainer.save_dir) / "wandb").glob("*run-*/run-*.wandb")  # no latest-run symlink on Windows
+        resuming = trainer.args.resume and max(runs, key=lambda f: f.stat().st_mtime, default=None)
         wb.init(
             project=re.sub(r"[/\\#?%:]", "-", str(trainer.args.project or "Ultralytics"))[-128:],
             name=name,
             config=vars(trainer.args),
-            id=next(latest_run.glob("run-*.wandb")).stem[4:]
+            id=resuming.stem[4:]
             if resuming
             else f"{re.sub('[^A-Za-z0-9_.-]', '_', name)[:64]}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
             resume="allow" if resuming else None,

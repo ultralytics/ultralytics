@@ -127,7 +127,7 @@ Before diving into the usage instructions for YOLO26 model training with Weights
 
 !!! tip "Offline Mode and Resume"
 
-    Set `WANDB_MODE=offline` to log without a network connection, then upload the run with `wandb sync <save_dir>/wandb/offline-run-*`. Resuming training with `resume=True` continues the same W&B run, online or offline, as long as the original save directory still holds `wandb/latest-run`.
+    Set `WANDB_MODE=offline` to log without a network connection, then upload the run with `wandb sync <save_dir>/wandb/offline-run-*`. Resuming training with `resume=True` continues the same W&B run, online or offline, as long as the original save directory still holds its `wandb/` run folders.
 
 ### Understanding the Output
 

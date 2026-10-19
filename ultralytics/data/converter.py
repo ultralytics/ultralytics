@@ -306,9 +306,10 @@ def _decode_coco_rle(segmentation: dict) -> np.ndarray:
 
 def _rle_to_polygons(segmentation: dict, height: int, width: int) -> list[np.ndarray]:
     """Convert a COCO RLE segmentation into external polygons for connected components."""
-    mask = _decode_coco_rle(segmentation)
-    if mask.shape != (height, width):
+    size = segmentation.get("size")
+    if not isinstance(size, (list, tuple)) or tuple(size) != (height, width):
         raise ValueError("COCO RLE size does not match the image size")
+    mask = _decode_coco_rle(segmentation)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return [
         contour.reshape(-1, 2) for contour in sorted(contours, key=cv2.contourArea, reverse=True) if len(contour) >= 3

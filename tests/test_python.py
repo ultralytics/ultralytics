@@ -1461,6 +1461,18 @@ def test_convert_coco_decodes_rle_segments(tmp_path, counts):
     assert np.array_equal(mask, expected)
 
 
+def test_rle_to_polygons_rejects_mismatched_size_before_decoding(monkeypatch):
+    """Test malformed RLE dimensions are rejected before the decoder can allocate a mask."""
+    from ultralytics.data import converter
+
+    def fail_decode(_segmentation):
+        raise AssertionError("mismatched RLE dimensions must be rejected before decoding")
+
+    monkeypatch.setattr(converter, "_decode_coco_rle", fail_decode)
+    with pytest.raises(ValueError, match="size does not match"):
+        converter._rle_to_polygons({"size": [10_000_000, 10_000_000], "counts": [1]}, 8, 8)
+
+
 @pytest.mark.parametrize("segmentation", [True, 1, {"size": [8, 8], "counts": [64]}])
 def test_convert_coco_invalid_segmentation_falls_back_to_bbox(tmp_path, segmentation):
     """Test malformed COCO segmentations keep the existing bounding-box fallback."""

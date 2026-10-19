@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import torch
 import torch.nn.functional as F
 
@@ -10,6 +12,9 @@ from ultralytics.utils.loss import DFLoss, v8DetectionLoss
 # Order of the loss vector Stereo3DDetLoss returns. The trainer derives its own loss_names from the
 # criterion's dict on the first batch, but Stereo3DDetTrainer needs them before that to print the progress
 # header, so both read this one tuple rather than repeating the literal.
+# Radians -> degrees; scales angle-like residuals so SmoothL1's beta=1 knee sits at ~1 degree.
+_DEG = 180.0 / math.pi
+
 LOSS_NAMES = ("box", "cls", "lr_dist", "depth", "dims", "orient", "proj_center", "photo")
 
 
@@ -300,9 +305,11 @@ class Stereo3DDetLoss(v8DetectionLoss):
         # Bin classification (cross-entropy over confidence logits).
         ce = F.cross_entropy(pred_pos[:, :nb], bin_tgt, reduction="none")  # [npos]
 
-        # Residual (sin,cos) regression for the GT bin only.
-        pred_res = pred_pos[:, nb:].view(npos, nb, 2)[ar, bin_tgt]  # [npos, 2]
-        tgt_res = tgt_pos[:, nb:].view(npos, nb, 2)[ar, bin_tgt]  # [npos, 2]
+        # Residual (sin,cos) regression for the GT bin only, scored in degrees: near the target a unit of sin/cos is
+        # a radian, so a few-degree error is ~0.05 and SmoothL1 (beta=1) sat in its quadratic regime with a vanishing
+        # gradient — the head stalled at ~3 deg on data it should memorize. Scaling by 180/pi puts the knee at ~1 deg.
+        pred_res = pred_pos[:, nb:].view(npos, nb, 2)[ar, bin_tgt] * _DEG  # [npos, 2]
+        tgt_res = tgt_pos[:, nb:].view(npos, nb, 2)[ar, bin_tgt] * _DEG  # [npos, 2]
         res = F.smooth_l1_loss(pred_res, tgt_res, reduction="none").mean(-1)  # [npos]
 
         return (ce + res).mean()

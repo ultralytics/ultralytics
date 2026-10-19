@@ -134,6 +134,31 @@ def test_proj_center_loss_is_pixel_scaled():
     assert abs(float(loss["proj_center"]) - 1.5) < 1e-4
 
 
+def test_orientation_residual_is_degree_scaled():
+    """A 2-degree residual error must cost ~1.5 (SmoothL1 past its ~1 deg knee), not ~6e-4.
+
+    The MultiBin residual is a (sin, cos) pair, so a few-degree error is ~0.03 and scoring it raw left the head stalled
+    at ~3 deg on its own training set.
+    """
+    import math
+
+    import torch
+
+    from ultralytics import YOLO
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+    from ultralytics.models.yolo.s3d.orientation import encode_orientation
+
+    crit = Stereo3DDetLoss(YOLO("yolo26n-s3d.yaml").model)
+    tgt = torch.tensor([encode_orientation(0.0)])  # bin 0, residual (0, 1)
+    pred = tgt.clone()
+    pred[0, :2] = torch.tensor([50.0, -50.0])  # confident, correct bin -> CE ~0
+    pred[0, 2] = math.radians(2.0)  # sin off by 2 deg, cos exact
+    loss = crit._orientation_multibin_loss(
+        pred.view(1, -1, 1), tgt.view(1, 1, -1), torch.zeros(1, 1, dtype=torch.long), torch.ones(1, 1, dtype=torch.bool)
+    )
+    assert abs(float(loss) - 1.5 / 2) < 1e-3  # SmoothL1 averaged over (sin, cos): (1.5 + 0) / 2
+
+
 def test_lr_nll_attenuates_with_uncertainty():
     """Laplacian NLL: for a fixed residual, a larger predicted log-variance lowers the loss (attenuation), but the
     log-variance penalty prevents collapse — loss is convex in logvar.

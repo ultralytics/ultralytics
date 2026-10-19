@@ -1480,13 +1480,13 @@ GET /api/models/{owner}/{project}/{model}/files
 
 **Python SDK:** `client.models.files(owner, project, model)`
 
-Returns short-lived signed URLs for the model's weights.
+Returns short-lived signed URLs for the model's weights, named after the model (`{model}.pt`).
 
 ```json
 {
     "files": [
         {
-            "name": "best.pt",
+            "name": "my-model.pt",
             "size": 6534127,
             "downloadUrl": "https://storage.googleapis.com/...&signature=..."
         }

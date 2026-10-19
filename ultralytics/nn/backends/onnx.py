@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import hashlib
 import os
 import platform
@@ -188,6 +189,7 @@ def _winml_bootstrap() -> object | None:
         )
         subprocess.run([str(exe), "--quiet"], check=True)
         handle = initialize()
+    atexit.register(handle)  # shut the Windows App SDK down cleanly at exit
     for provider in winml.ExecutionProviderCatalog.get_default().find_all_providers():
         provider.ensure_ready_async().get()  # downloads the EP on first use
         if provider.library_path:

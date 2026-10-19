@@ -119,14 +119,19 @@ def _log_plots(plots, step):
 
 
 def on_pretrain_routine_end(trainer):
-    """Initialize and start wandb project if module is present."""
+    """Initialize and start wandb project if module is present.
+
+    When resuming, the run continues under the ID of the newest `wandb/*run-*/run-<id>.wandb` file in the save
+    directory. wandb writes this file on every platform, unlike the `wandb/latest-run` symlink, which it skips on
+    Windows.
+    """
     if not wb.run:
         import re
         from datetime import datetime
         from pathlib import Path
 
         name = str(trainer.args.name)
-        runs = (Path(trainer.save_dir) / "wandb").glob("*run-*/run-*.wandb")  # no latest-run symlink on Windows
+        runs = (Path(trainer.save_dir) / "wandb").glob("*run-*/run-*.wandb")
         resuming = trainer.args.resume and max(runs, key=lambda f: f.stat().st_mtime, default=None)
         wb.init(
             project=re.sub(r"[/\\#?%:]", "-", str(trainer.args.project or "Ultralytics"))[-128:],

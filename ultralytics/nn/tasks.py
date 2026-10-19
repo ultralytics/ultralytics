@@ -1779,11 +1779,11 @@ class _SafeLoad:
                 entries.append(type(np.dtype(np.float64)))  # Built dynamically, absent from the checkpoint global scan.
             if entries:
                 torch.serialization.add_safe_globals(entries)
-        active, cls._local.active = getattr(cls._local, "active", False), True
+        cls._local.active = True
         try:
             yield
         finally:
-            cls._local.active = active
+            cls._local.active = False
 
     @staticmethod
     def activation(act):
@@ -1878,7 +1878,7 @@ def torch_safe_load(weight, safe_only=None):
         weight (str | Path): The file path of the PyTorch model.
         safe_only (bool, optional): Load with `torch.load(weights_only=True)`, reconstructing only the known
             Ultralytics/torch model classes on the allow-list. Defaults to the `ULTRALYTICS_SAFE_LOAD` environment
-            variable (off), or True inside a restricted load on this thread; set the env to opt in.
+            variable (off), so standard usage is unchanged; set the env to opt in.
 
     Returns:
         ckpt (dict): The loaded model checkpoint.
@@ -1891,7 +1891,7 @@ def torch_safe_load(weight, safe_only=None):
     from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES, attempt_download_asset
 
     if safe_only is None:
-        safe_only = _SafeLoad.restricted()
+        safe_only = SAFE_LOAD
     if safe_only and not _SafeLoad.SUPPORTED:
         safe_only = False
     check_suffix(file=weight, suffix=".pt")

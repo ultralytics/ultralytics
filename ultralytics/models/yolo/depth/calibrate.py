@@ -8,8 +8,10 @@ over a small set of images — no gradient training, decoder weights untouched. 
 the trainer's automatic post-training calibration and the ``Model.calibrate()`` API.
 
 Auto-calibration uses a "calibrate only if it helps" policy (:func:`select_calibration_cv`):
-candidates are scored on held-out images and applied only when they beat the un-calibrated
-output, so the absolute scale is fixed for cross-domain models without harming in-domain ones.
+the raw output, the model's existing calibration and a scale-only refit are scored on held-out
+images, and a calibration is applied only when it beats the un-calibrated output, so the
+absolute scale is fixed for cross-domain models without harming in-domain ones or discarding an
+existing calibration that already scores best.
 """
 
 from __future__ import annotations
@@ -69,18 +71,17 @@ def select_calibration(
 ) -> dict[str, Any]:
     """Pick the calibration that best improves *held-out* raw-scale δ1 — "calibrate only if it helps".
 
-    Three candidates are fit on the ``*_fit`` log-pixel arrays and scored on the independent ``*_score`` arrays under
-    :func:`_delta1_none`:
+    Three candidates are scored on the independent ``*_score`` log-pixel arrays under :func:`_delta1_none`:
     - ``identity`` (a=1, b=0): no calibration,
     - ``current`` (a, b = ``current``): the calibration the model already carries,
-    - ``scale-only`` (a=1, b=mean(log_gt - log_pred)): a global scale.
-    The winner is the highest held-out δ1, with ties favoring identity — so a calibration that does not generalize is
-    rejected and auto-cal does no harm. (An affine log-slope candidate was evaluated and removed: the extra parameter
-    overfits within-dataset cross-validation and harms cross-distribution generalization.)
+    - ``scale-only`` (a=1, b=mean(log_gt - log_pred)): a global scale fit on the ``*_fit`` arrays.
+    The winner is the highest held-out δ1, with ties favoring identity, then current — so a calibration that does not
+    generalize is rejected and auto-cal does no harm. (An affine log-slope candidate was evaluated and removed: the
+    extra parameter overfits within-dataset cross-validation and harms cross-distribution generalization.)
 
     Args:
-        lp_fit (np.ndarray): Log predicted depths used to fit the candidates.
-        lg_fit (np.ndarray): Log ground-truth depths used to fit the candidates.
+        lp_fit (np.ndarray): Log predicted depths used to fit the scale-only candidate.
+        lg_fit (np.ndarray): Log ground-truth depths used to fit the scale-only candidate.
         lp_score (np.ndarray): Held-out log predicted depths used to score the candidates.
         lg_score (np.ndarray): Held-out log ground-truth depths used to score the candidates.
         current (tuple[float, float]): The model's existing ``(a, b)`` calibration.
@@ -110,16 +111,18 @@ def select_calibration_cv(
     """Cross-validated "calibrate only if it helps": choose a candidate by K-fold held-out δ1.
 
     ``pairs`` is a list of per-image ``(log_pred, log_gt)`` arrays. Each candidate type is scored on every fold while
-    held out (fit on the rest) via :func:`select_calibration`, and the per-type held-out δ1 is averaged across folds —
-    so every image contributes to scoring exactly once and a candidate that only wins on one noisy split cannot be
-    selected. The winning *type* must beat identity's mean held-out δ1 by ``margin`` (ties favor the simpler type); the
-    final ``(a, b)`` is then refit on all pairs.
+    held out (scale-only fit on the rest) via :func:`select_calibration`, and the per-type held-out δ1 is averaged
+    across folds — so every image contributes to scoring exactly once and a candidate that only wins on one noisy split
+    cannot be selected. ``current`` and ``scale-only`` are eligible only when their mean held-out δ1 beats identity's
+    by more than ``margin``; the highest-scoring eligible type wins (identity when neither is eligible, current on a
+    tie). A selected scale-only is then refit on all pairs, while identity and current keep their fixed ``(a, b)``.
 
     Args:
         pairs (list[tuple[np.ndarray, np.ndarray]]): Per-image ``(log_pred, log_gt)`` arrays.
         margin (float): Minimum mean held-out δ1 improvement over identity required to select a calibration.
         folds (int): Number of cross-validation folds, clamped to ``[2, len(pairs)]``.
-        current (tuple[float, float]): The model's existing ``(a, b)`` calibration, kept if it scores best.
+        current (tuple[float, float]): The model's existing ``(a, b)`` calibration, scored as the ``current``
+            candidate.
 
     Returns:
         (dict[str, Any]): Dictionary with ``a``, ``b`` (floats), ``name``, and ``cv_scores`` (mean held-out δ1 per

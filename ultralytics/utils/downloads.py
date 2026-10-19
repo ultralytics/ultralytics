@@ -334,8 +334,8 @@ def safe_download(
         dir (str | Path, optional): The directory to save the downloaded file. If not provided, the file will be saved
             in the current working directory.
         unzip (bool, optional): Whether to extract the file if it is a zip or tar archive. Only files with no suffix or
-            an archive suffix (`.zip`, `.tar`, `.gz`, `.tgz`, `.xz`, `.bz2`, `.txz`, `.tbz2`, in any letter case) are
-            checked.
+            an archive suffix (`.zip`, `.tar`, `.gz`, `.tgz`, `.xz`, `.bz2`, `.txz`, `.tbz2`, in any letter case)
+            are checked.
         delete (bool, optional): Whether to delete the downloaded file after unzipping.
         curl (bool, optional): Whether to use curl command line tool for downloading.
         retry (int, optional): The number of times to retry the download in case of failure.
@@ -587,8 +587,8 @@ def attempt_download_asset(
     """Attempt to download a file from GitHub release assets if it is not found locally.
 
     Args:
-        file (str | Path): The filename or file path to be downloaded, or an HTTP(S) URL (scheme in any letter case)
-            to download directly.
+        file (str | Path): The filename or file path to be downloaded, or an HTTP(S) URL (scheme in any letter case) to
+            download directly.
         repo (str, optional): The GitHub repository in the format 'owner/repo'.
         release (str, optional): The specific release version to be downloaded.
         **kwargs (Any): Additional keyword arguments passed to `safe_download`.

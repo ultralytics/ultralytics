@@ -1055,12 +1055,13 @@ class Exporter:
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
+            cfg.imgsz = self.imgsz
             data = check_cls_dataset(self.args.data, split=split)
             if not isinstance(cfg.fraction, list):
                 cfg.fraction = [cfg.fraction] * 3
             dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
-            dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
+            dataset.torch_transforms = T.Compose([*dataset.torch_transforms.transforms[:2], T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=split)
             cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction

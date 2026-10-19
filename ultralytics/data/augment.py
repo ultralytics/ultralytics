@@ -1793,8 +1793,8 @@ class LetterBox(BaseTransform):
             r = min(r, 1.0)
 
         # Compute padding
-        ratio = tuple(r if round(x * r) else 1 / x for x in shape[::-1])  # width, height ratios
-        new_unpad = tuple(max(round(x * r), 1) for x in shape[::-1])
+        ratio = r, r  # width, height ratios
+        new_unpad = max(round(shape[1] * r), 1), max(round(shape[0] * r), 1)  # keep thin images at least 1 pixel
         dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
         if self.auto:  # minimum rectangle
             dw, dh = np.mod(dw, self.stride), np.mod(dh, self.stride)  # wh padding
@@ -3171,7 +3171,7 @@ class ClassifyLetterBox:
         """
         imh, imw = im.shape[:2]
         r = min(self.h / imh, self.w / imw)  # ratio of new/old dimensions
-        h, w = max(round(imh * r), 1), max(round(imw * r), 1)  # resized image dimensions
+        h, w = round(imh * r), round(imw * r)  # resized image dimensions
 
         # Calculate padding dimensions
         hs, ws = (math.ceil(x / self.stride) * self.stride for x in (h, w)) if self.auto else (self.h, self.w)

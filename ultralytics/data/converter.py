@@ -331,7 +331,7 @@ def convert_coco(
                 bboxes.append(box)
                 if use_segments:
                     seg = ann.get("segmentation")
-                    if isinstance(seg, dict):  # RLE mask, decode to the polygons of its outer contours
+                    if isinstance(seg, dict) and seg.get("size") == [h, w]:  # RLE mask, decode its outer contours
                         mask = decode(segmToRle(seg, w, h))
                         contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
                         seg = [c.ravel().tolist() for c in contours]

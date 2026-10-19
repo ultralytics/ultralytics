@@ -310,7 +310,9 @@ If conversion completes but `.txt` files are empty or missing, all annotations m
 
 ### Box-Shaped Polygons From Mask Annotations
 
-If `use_segments=True` logs `annotations without a usable polygon`, some annotations carry no `segmentation` value, a COCO run-length encoding (`{"counts": ..., "size": ...}`) whose mask is empty or only holds regions too small or thin to outline with three points, or a value that is neither RLE nor a list of at least three coordinate pairs. The usual cause is a detection-only export, which leaves the field missing or empty; a flat coordinate list with no enclosing polygon list, one- and two-point outlines, and other malformed values are handled the same way. An annotation keeps whichever polygons remain, and falls back to a segment row shaped like its bounding box when none do, so the labels stay valid but those rows carry no mask detail.
+If `use_segments=True` logs `annotations without a usable polygon`, some annotations carry no `segmentation` value, a COCO run-length encoding (`{"counts": ..., "size": ...}`) whose `size` is not the image's `[height, width]` or whose mask is empty or only holds regions too small or thin to outline with three points, or a value that is neither RLE nor a list of at least three coordinate pairs. The usual cause is a detection-only export, which leaves the field missing or empty; a flat coordinate list with no enclosing polygon list, one- and two-point outlines, and other malformed values are handled the same way. An annotation keeps whichever polygons remain, and falls back to a segment row shaped like its bounding box when none do, so the labels stay valid but those rows carry no mask detail.
+
+RLE values whose `counts` are missing or cannot be decoded, such as a truncated string or runs that do not add up to `size`, stop the conversion with an error rather than falling back.
 
 **Solution**: Re-export the annotations with polygon or RLE segmentations, or correct any malformed `segmentation` values.
 

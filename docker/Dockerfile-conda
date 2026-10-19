@@ -7,9 +7,11 @@
 FROM continuumio/miniconda3:latest
 
 # Set environment variables
+# GLIBC_TUNABLES lets Trixie's glibc 2.41 load MNN's x86-64 wheels, which request an executable stack the loader rejects
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_BREAK_SYSTEM_PACKAGES=1
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    GLIBC_TUNABLES=glibc.rtld.execstack=2
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \

@@ -7,11 +7,13 @@ ARG PYTHON_VERSION=3.14
 FROM python:${PYTHON_VERSION}-slim-trixie
 
 # Set environment variables (suppress PyTorch NNPACK warnings)
+# GLIBC_TUNABLES lets Trixie's glibc 2.41 load MNN's x86-64 wheels, which request an executable stack the loader rejects
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
     UV_BREAK_SYSTEM_PACKAGES=1 \
-    TORCH_CPP_LOG_LEVEL=ERROR
+    TORCH_CPP_LOG_LEVEL=ERROR \
+    GLIBC_TUNABLES=glibc.rtld.execstack=2
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \

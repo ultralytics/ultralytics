@@ -51,7 +51,7 @@ The project page has two main areas:
 | **Models Sidebar** | Resizable list of all models in the project, with checkboxes for chart selection |
 | **Main Panel**     | Charts dashboard or comparison table (toggle between views)                      |
 
-A controls row above both areas holds the model search box, the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
+A controls row above both areas holds the model search box, **Compare with AI** (Editor role or higher, once the project has two or more completed models), the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
 
 ![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/4ebc844d81876e0499e28cf106859b4a.avif)<!-- screenshot -->
 
@@ -147,6 +147,9 @@ Clone a public project to your own account:
 
 ## Compare Models
 
+Click **Compare with AI** to have [Ask AI](autotrain.md) compare the project's trained models, recommend the best fit,
+and say whether another training run is worth it. It asks before starting any training.
+
 ### Charts Dashboard
 
 Compare model performance using the charts dashboard:
@@ -154,7 +157,7 @@ Compare model performance using the charts dashboard:
 1. Select models in the sidebar using checkboxes
 2. View overlaid metric curves grouped by type (metrics, loss, learning rate)
 3. Drag charts to rearrange, resize by dragging edges
-4. Hover to see exact values, click legend items to hide/show models, click a model line to navigate to that model
+4. Hover to see exact values, click legend items to hide/show models, drag to zoom, and click to reset the zoom
 
 Available chart groups:
 
@@ -170,8 +173,7 @@ Comparing models trained for different tasks works, but each model only draws on
 
     - Hover to see exact values
     - Click legend items to hide/show models
-    - Drag to zoom into specific regions
-    - Click a model line to navigate to that model's page
+    - Drag to zoom into specific regions, and click to reset the zoom
     - Collapse a group, or use its menu to hide individual charts and the train or validation loss series
     - Rearrange and resize charts; layout persists across sessions
 

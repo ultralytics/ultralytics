@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.data.utils import get_split_fraction
+from ultralytics.data.utils import get_split_fraction, read_mask
 from ultralytics.utils import (
     ASSETS_URL,
     DATASETS_DIR,
@@ -256,7 +256,8 @@ def convert_coco(
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
         save_dir (str, optional): Path to directory to save results to.
         use_segments (bool, optional): Whether to include segmentation masks in the output.
-        use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
+        use_keypoints (bool, optional): Whether to include keypoint annotations in the output. Annotations without any
+            labeled keypoint are skipped, as COCO keypoint evaluation ignores them.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
         lvis (bool, optional): Whether to convert data in lvis dataset way.
 
@@ -315,7 +316,7 @@ def convert_coco(
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
                 box = [cls, *box.tolist()]
                 if use_keypoints:
-                    if ann.get("keypoints") is None:
+                    if not any((ann.get("keypoints") or [])[2::3]):  # no labeled keypoints, ignored by COCO eval
                         continue
                     keypoints.append(
                         box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
@@ -413,8 +414,8 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     output_dir.mkdir(parents=True, exist_ok=True)
     for mask_path in sorted(Path(masks_dir).iterdir()):
         if mask_path.suffix.lower() in {".png", ".jpg", ".jpeg"}:
-            with Image.open(mask_path) as im:  # palette PNGs store class ids as indices, not colors
-                mask = np.asarray(im) if im.mode == "P" else cv2.imread(str(mask_path), cv2.IMREAD_ANYDEPTH)
+            with Image.open(mask_path) as im:
+                mask = read_mask(str(mask_path), im.mode)
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
@@ -457,6 +458,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
 
     The function processes *.png images in the 'train' and 'val' folders of the DOTA dataset. For each image, it reads
     the associated label from the original labels directory and writes new labels in YOLO OBB format to a new directory.
+    Background images without an original label file get no output label and stay valid unlabeled training images.
 
     Args:
         dota_root_path (str): The root directory path of the DOTA dataset.
@@ -536,12 +538,11 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
 
         image_paths = list(image_dir.iterdir())
         for image_path in TQDM(image_paths, desc=f"Processing {phase} images"):
-            if image_path.suffix != ".png":
-                continue
-            image_name_without_ext = image_path.stem
+            if image_path.suffix != ".png" or not (orig_label_dir / f"{image_path.stem}.txt").is_file():
+                continue  # skip non-PNG files and unlabeled background images
             img = cv2.imread(str(image_path))
             h, w = img.shape[:2]
-            convert_label(image_name_without_ext, w, h, orig_label_dir, save_dir)
+            convert_label(image_path.stem, w, h, orig_label_dir, save_dir)
 
 
 def min_index(arr1: np.ndarray, arr2: np.ndarray):
@@ -899,7 +900,7 @@ async def convert_ndjson_to_yolo(
             result = await _convert_ndjson_to_yolo(
                 Path(check_file(source, download_dir=download_dir)), output_path, local, fraction, split
             )
-        cache_path.write_text(str(result.relative_to(output_path)))
+        cache_path.write_text(str(result.relative_to(output_path)), encoding="utf-8")
         return result
 
     loop = asyncio.get_running_loop()
@@ -920,7 +921,7 @@ async def convert_ndjson_to_yolo(
                 waited = True
                 await asyncio.sleep(0.05)
         if waited and cache_path.is_file():  # reuse the result the lock holder just produced
-            result = output_path / cache_path.read_text()
+            result = output_path / cache_path.read_text(encoding="utf-8")
             marker = result / ".ndjson.yaml" if result.is_dir() else result
             if marker.is_file():
                 return result
@@ -941,7 +942,7 @@ async def _convert_ndjson_to_yolo(
     import aiohttp
 
     def read_records():
-        with ndjson_path.open() as file:
+        with ndjson_path.open(encoding="utf-8") as file:
             return [json.loads(line) for line in file if line.strip()]
 
     lines = await asyncio.get_running_loop().run_in_executor(None, read_records)

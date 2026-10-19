@@ -1309,7 +1309,7 @@ class YOLOEDetect(Detect):
             return {}
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        self.nc = x[-1].shape[1]
+        self.nc = int(x[-1].shape[1])
         scores = torch.cat(
             [contrastive_head[i](cls_head[i](x[i]), x[-1]).reshape(bs, self.nc, -1) for i in range(self.nl)], dim=-1
         )
@@ -1318,6 +1318,8 @@ class YOLOEDetect(Detect):
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
+        if self.is_fused:  # text embeddings are fused into cls_head, which then initializes like Detect
+            return super().bias_init()
         for i, (a, b, c) in enumerate(
             zip(self.one2many["box_head"], self.one2many["cls_head"], self.one2many["contrastive_head"])
         ):

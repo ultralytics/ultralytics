@@ -32,7 +32,7 @@ The [Heatmap solution](../reference/solutions/heatmap.md) in [Ultralytics YOLO26
 
 |                                                         Transportation                                                          |                                                              Retail                                                              |
 | :-----------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO heatmap overlay showing vehicle traffic density](https://cdn.ul.run/i/704450c331ec65eddec9abe69f1d12fc.avif) | ![Ultralytics YOLO heatmap overlay showing retail customer movement](https://cdn.ul.run/i/17a2a0f51ed28061f9991f3d85c106ae.avif) |
+| ![Ultralytics YOLO heatmap overlay showing vehicle traffic density](https://cdn.ul.run/i/3cd03197081f4d99e3017c7537e01f7a.avif) | ![Ultralytics YOLO heatmap overlay showing retail customer movement](https://cdn.ul.run/i/17a2a0f51ed28061f9991f3d85c106ae.avif) |
 |                                             Ultralytics YOLO Transportation Heatmap                                             |                                                 Ultralytics YOLO Retail Heatmap                                                  |
 
 ## How to Generate Heatmaps with Ultralytics YOLO

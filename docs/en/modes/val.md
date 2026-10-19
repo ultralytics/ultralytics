@@ -90,6 +90,15 @@ When validating YOLO models, several arguments can be fine-tuned to optimize the
 
 Each of these settings plays a vital role in the validation process, allowing for a customizable and efficient evaluation of YOLO models. Adjusting these parameters according to your specific needs and resources can help achieve the best balance between accuracy and performance.
 
+### Rectangular validation geometry (`rect`)
+
+Static exports use their recorded `(height, width)` input shape, including non-square exports, for validation. For example,
+`YOLO("yolo26n.onnx").val(data="coco8.yaml")` uses a `384×640` input if the model was exported with `imgsz=(384, 640)`.
+
+For detection, instance segmentation, pose, and OBB, rectangular validation (`rect=True`) rounds each batch dimension up using `ceil(shape * imgsz / stride + 0.5) * stride`, where `shape` is the batch's normalized height or width. The resulting padding is split between opposite sides. For example, a square 640×640 image validated at `imgsz=640` with stride 32 uses a 672×672 input with 16 px of padding on each side, while `predict()` uses 640×640 without padding.
+
+This difference can affect validation metrics. For square, stride-aligned inputs, `model.val(rect=False)` matches the geometry of `predict()` and square fixed-shape exports. During training, these YOLO tasks use rectangular validation batches regardless of the training `rect` setting, so `model.train(rect=False)` still selects `best.pt` using rectangular validation. Other tasks differ: semantic segmentation adds no extra validation padding, depth disables rectangular validation, classification ignores `rect`, and RT-DETR uses its own dataset builder with `rect=False`.
+
 ### Example Validation with Arguments
 
 <p align="center">

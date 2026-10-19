@@ -32,7 +32,7 @@ Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) model
 ONNX models can be used to transition between different frameworks seamlessly. For instance, a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model trained in PyTorch can be exported to ONNX format and then easily imported into TensorFlow.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/d82cf8e015f11e3e1f7ea679b043ef00.avif" alt="ONNX model portability across deep learning frameworks">
+  <img width="100%" src="https://cdn.ul.run/i/3d77aaacb115081597b87f6d3a6af615.avif" alt="ONNX model portability across deep learning frameworks">
 </p>
 
 Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https://onnxruntime.ai/) is a versatile cross-platform accelerator for machine learning models that is compatible with frameworks like PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), scikit-learn, etc.
@@ -194,6 +194,21 @@ When exporting your YOLO26 model to ONNX format, you can customize the process u
 | `device`   | `str`                     | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                                                                                                                            |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+
+### INT8 Quantization
+
+For checkpoints not trained with [quantization-aware training](../modes/export.md#quantization-aware-training), `quantize=8` applies ONNX Runtime static quantization to `Conv`, `Gemm`, and `MatMul` nodes only. All other nodes stay in float, including the ops that assemble `output0`: box coordinates (pixels) and class scores (0 to 1) share that tensor, so a single INT8 scale for it would round every class score to zero. Exclude the same nodes if you run `quantize_static` on an exported FP32 model yourself:
+
+```python
+import onnx
+from onnxruntime.quantization import quantize_static
+
+model = "yolo26n.onnx"
+exclude = [n.name for n in onnx.load(model).graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
+quantize_static(model, "yolo26n_int8.onnx", calibration_reader, nodes_to_exclude=exclude)
+```
+
+Here `calibration_reader` is an `onnxruntime.quantization.CalibrationDataReader` that yields `{"images": array}` for each calibration image, preprocessed as for inference: letterboxed to the export size, RGB, NCHW, `float32` in 0-1.
 
 ## Deploying Exported YOLO26 ONNX Models
 

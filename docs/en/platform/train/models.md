@@ -95,7 +95,7 @@ Directly below, one card per task metric shows the final value over a sparkline 
 
 The **Run Information** card records how the run executed: status, start time, runtime, compute cost with the GPU and hourly rate, the `ultralytics` version, host details (hostname, environment, OS, Python, CPU, GPU), the parent model, the pinned dataset version, Git repository, branch and commit when the run reported them, and a reproducible `yolo train` command you can copy.
 
-While a run is active the card shows live progress — epoch counter, progress bar, elapsed time, ETA, accruing cost — and a **Cancel** button. If a run fails, an error banner replaces it with the captured error and **View full console logs** and **Retry Training** actions.
+While a run is active the card shows live progress — epoch counter, progress bar, elapsed time, ETA, accruing cost — and a **Cancel** button. If a run fails, an error banner replaces it with the captured error and a **View full console logs** action, plus **Diagnose with AI** and **Retry Training** (Editor role or higher).
 
 Below it, **Training Configuration** lists every hyperparameter used and **Performance Metrics** lists the final evaluation results. Both tables are searchable and have an **Export data** menu (Copy JSON, Download CSV, Download JSON).
 
@@ -192,7 +192,7 @@ When the training run provides them, the **Validation** view also displays perfo
 
 ### Per-Image Diagnostics
 
-Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis, which points at the data behind a disappointing score:
+Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis under **Validation insights** in the **Validation** view, which points at the data behind a disappointing score:
 
 - **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
 - **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
@@ -222,7 +222,7 @@ Export your model to 22 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
-3. Configure export arguments (image size, precision, dynamic, etc.)
+3. Configure export arguments: image size and precision for every format, plus batch, dynamic, and NMS (**Post-processing**) where the format supports them, and format-specific options such as **Simplify** and **Opset** for ONNX (opset 9–23; leave it on auto unless your runtime needs a specific version) and **Workspace (GB)** for TensorRT
 4. For GPU-required formats (TensorRT), select a GPU type
 5. Click **Start Export**
 6. Download when complete
@@ -455,7 +455,10 @@ Model comparison works within a project. To compare across projects:
 
 Uploaded `.pt` model files are limited to 1 GB, and models near that limit may take longer to upload and process.
 
-### Can I fine-tune pretrained models?
+### How do I keep training a model with new images or classes?
 
-Yes. Choose a compatible model from the official YOLO26, YOLO11, YOLOv8, or YOLOv5 projects, or select one of
-your own completed or uploaded checkpoints from **My Models** in the training dialog.
+Add the new images to your dataset (and any new classes), then click **New Model** and pick your existing model from
+**My Models** in the training dialog as the starting point. This fine-tunes a new model from your checkpoint; it does
+not continue the old run, which stays unchanged. The class list can change: the new model reuses the features your
+model has already learned and learns the new classes during training. You can also start from any official YOLO26,
+YOLO11, YOLOv8 or YOLOv5 model, or from a `.pt` file you [uploaded](#upload-model).

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -15,6 +16,7 @@ import torch
 from PIL import Image
 from torch.utils.data import ConcatDataset
 
+from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
@@ -44,6 +46,7 @@ from .utils import (
     load_dataset_cache_file,
     load_depth,
     polygons2masks_overlap,
+    read_mask,
     save_dataset_cache_file,
     verify_image,
     verify_image_depth,
@@ -51,9 +54,11 @@ from .utils import (
     verify_image_mask,
 )
 
-# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models. Shared by every dataset type: a bump
-# rescans all users' caches, so scope task-specific scan changes to that dataset's get_cache_hash() instead
-DATASET_CACHE_VERSION = "1.0.10"  # EXIF-rotated image shapes now match the decoded image
+# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models.
+# 1.0.12: Accept UTF-8 byte-order marks in labels.
+# 1.0.11: Reject negative box dimensions.
+# 1.0.10: EXIF-rotated image shapes match the decoded image.
+DATASET_CACHE_VERSION = "1.0.12"
 
 
 class YOLODataset(BaseDataset):
@@ -250,8 +255,8 @@ class YOLODataset(BaseDataset):
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
-        if (self.use_segments or self.use_obb) and len_boxes != len_segments:
-            task = "OBB" if self.use_obb else "Segment"
+        if (self.use_segments or self.use_obb or self.format_class is SemanticFormat) and len_boxes != len_segments:
+            task = "OBB" if self.use_obb else "Semantic" if self.format_class is SemanticFormat else "Segment"
             raise ValueError(
                 f"{task} dataset requires equal numbers of boxes and segments, but got len(segments) = "
                 f"{len_segments}, len(boxes) = {len_boxes}. Please supply {'an OBB' if self.use_obb else 'a segment'} "
@@ -336,7 +341,7 @@ class YOLODataset(BaseDataset):
             if self.format_class is SemanticFormat:  # masks rasterize from self.labels; only these read polygons
                 self.use_segments = bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
         else:
-            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
+            transforms = Compose([LetterBox(new_shape=self.imgsz, scaleup=False)])
         transforms.append(
             self.format_class(
                 bbox_format="xywh",
@@ -555,7 +560,7 @@ class DepthDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if not self.augment:
             # stretch the image instead of padding
-            transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
+            transforms[-2] = LetterBox(new_shape=self.imgsz, scale_fill=True)
         return transforms
 
 
@@ -667,8 +672,8 @@ class GroundingDataset(YOLODataset):
         return self.scan_files
 
     def get_cache_hash(self) -> str:
-        """Return a hash over the annotation file and images scanned against it."""
-        return get_hash([self.json_file, *self.scan_files])
+        """Return a hash over annotations, scanned images and the segmentation deduplication mode."""
+        return get_hash([self.json_file, *self.scan_files, f"segments:{self.use_segments};encoding:utf-8"])
 
     def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
         """Verify instance counts for known grounding datasets."""
@@ -697,7 +702,7 @@ class GroundingDataset(YOLODataset):
         """
         x = {"labels": []}
         LOGGER.info("Loading annotation file...")
-        with open(self.json_file) as f:
+        with open(self.json_file, encoding="utf-8") as f:
             annotations = json.load(f)
         images = {f"{x['id']:d}": x for x in annotations["images"]}
         img_to_anns = defaultdict(list)
@@ -712,6 +717,7 @@ class GroundingDataset(YOLODataset):
                 continue
             bboxes = []
             segments = []
+            seen = []
             segmented = False
             cat2id = {}
             texts = []
@@ -735,7 +741,9 @@ class GroundingDataset(YOLODataset):
                     texts.append([cat_name])
                 cls = cat2id[cat_name]  # class
                 box = [cls, *box.tolist()]
-                if box not in bboxes:
+                key = [box, ann.get("segmentation")] if self.use_segments else box
+                if key not in seen:
+                    seen.append(key)
                     bboxes.append(box)
                     raw_seg = ann.get("segmentation")
                     segmented |= raw_seg is not None
@@ -985,13 +993,13 @@ class SemanticDataset(YOLODataset):
         return self.mask_files
 
     def get_cache_hash(self) -> str:
-        """Return a hash for semantic cache validation that also includes label_mapping changes.
+        """Return a hash for semantic cache validation that also includes label_mapping and class count changes.
 
         Returns:
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", f"nc:{len(self.data['names'])}"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""
@@ -1054,18 +1062,7 @@ class SemanticDataset(YOLODataset):
         Raises:
             FileNotFoundError: If the mask file is missing or unreadable.
         """
-        mask_file = self.labels[index]["mask_file"]
-        mode = self.labels[index]["mode"]
-        if mode == "P":  # palette PNGs store class ids as indices, not grayscale colors
-            with Image.open(mask_file) as im:
-                p = np.array(im.getpalette()).reshape(-1, 3)  # gray palettes (e.g. pngquant) hold gray-level class ids
-                mask = np.array(im.convert("L") if (p == p[:, :1]).all() else im)
-        else:
-            mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # grayscale that keeps 16-bit ids
-        if mask is None:
-            raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if int(self.data.get("nc", 0)) == 1 and mode == "1":
-            mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
+        mask = read_mask(self.labels[index]["mask_file"], self.labels[index]["mode"])
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)
@@ -1237,14 +1234,15 @@ class ClassificationDataset:
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
-        classes = self.base.classes  # this split's class folders, sorted, indexed by the ImageFolder target
+        classes = list(check_class_names(self.base.classes).values())  # resolve ImageNet folder codes like model names
+        names = check_class_names(names) if names else names
         if args.single_cls:
             index = dict.fromkeys(classes, 0)
         elif is_ndjson:  # folders are the class ids
             index = {c: int(c) for c in classes}
         elif names and not set(classes).isdisjoint(names.values()):  # align to the model's class order by name
             index = {n: i for i, n in names.items()}
-        else:  # folder names carry no class meaning, e.g. ImageNet wnids under humanized names
+        else:  # unrecognized folder names keep ImageFolder's ordering
             index = {c: i for i, c in enumerate(classes)}
         extra = {c for c in classes if index.get(c, len(names)) >= len(names)} if names else set()  # not in the model
         n = len(self.samples)
@@ -1255,6 +1253,9 @@ class ClassificationDataset:
             )
         # Same persistent image.npy naming as BaseDataset.npy_files, never rename or relocate existing caches
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        if self.cache_disk and not all(os.access(d, os.W_OK) for d in {os.path.dirname(s[0]) for s in self.samples}):
+            self.cache_disk = False
+            LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
         if self.cache_ram:
             self.cache_images()
         scale = (1.0 - args.scale, 1.0)  # RandomResizedCrop area range, e.g. (0.5, 1.0) for scale=0.5

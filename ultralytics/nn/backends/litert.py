@@ -29,7 +29,7 @@ class LiteRTBackend(BaseBackend):
             weight (str | Path): Path to the .tflite model file (metadata embedded as a metadata.json entry).
         """
         tflite_file = Path(weight)
-        self.intel = isinstance(self.device, str) and self.device.startswith("intel")  # intel:cpu|npu
+        self.intel = str(self.device).startswith("intel")  # intel:cpu|npu
 
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
         if self.intel:  # Intel OpenVINO plugin through CompiledModel
@@ -62,9 +62,10 @@ class LiteRTBackend(BaseBackend):
             self.output_details = self.interpreter.get_output_details()
         # Legacy onnx2tf TFLite exports are NHWC; litert-torch exports are NCHW. Detect from the input tensor so both
         # load through this backend (the detection/proto outputs share the same layout for either export path).
-        self.nhwc = self.input_details[0]["shape"][-1] == 3
+        metadata = self.read_metadata(tflite_file)
+        self.nhwc = self.input_details[0]["shape"][-1] == int(metadata.get("channels", self.channels))
 
-        self.apply_metadata(self.read_metadata(tflite_file))
+        self.apply_metadata(metadata)
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run inference using the LiteRT interpreter.
@@ -87,7 +88,9 @@ class LiteRTBackend(BaseBackend):
         # third-party) whose graph input is int8/int16.
         if details["dtype"] in {np.int8, np.int16}:
             scale, zero_point = details["quantization"]
-            im = (im / scale + zero_point).astype(details["dtype"])
+            limits = np.iinfo(details["dtype"])
+            im = im / scale + zero_point
+            im = im.clip(limits.min, limits.max, out=im).astype(details["dtype"])
         if self.intel:
             self.input_buffers[0].write(np.ascontiguousarray(im))
             self.model.run_by_index(0, self.input_buffers, self.output_buffers)

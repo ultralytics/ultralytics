@@ -150,6 +150,9 @@ def test_fastsam(
     for s in (source, Image.open(source)):
         everything_results = sam_model(s, device="cpu", retina_masks=True, imgsz=160, conf=0.4, iou=0.9)
 
+        prompted = sam_model.predictor.prompt(everything_results, points=[[400, 500], [400, 400]], labels=[0, 1])[0]
+        assert not prompted.masks.data[:, 500, 400].any()  # negative points must exclude masks regardless of order
+
         # Remove small regions
         _new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
 
@@ -175,6 +178,9 @@ def test_mobilesam() -> None:
 
     # Predict a segment based on a box prompt
     model.predict(source, bboxes=[439, 437, 524, 709], save=True)
+
+    # A box prompt applies to every image of a directory source, not only the first
+    assert [len(r.masks) for r in model(ASSETS, bboxes=[439, 437, 524, 709])] == [1, 1]
 
     # Predict all
     # model(source)

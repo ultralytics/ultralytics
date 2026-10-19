@@ -377,10 +377,10 @@ EXPORT_ENVS = {
         "python": "3.11",
         "extras": ["export-base"],
         "torch": "==2.4",
-        "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
+        "requirements": ["rknn-toolkit2>=2.3.2,<2.5", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 quantize=16"],
+        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=64 quantize=16"],
     },
     "isolated-axelera": {
         "python": "3.13",
@@ -615,8 +615,8 @@ class Exporter:
         fmt = self.args.format = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
             fmt = self.args.format = "engine"
-        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
-            fmt = "coreml"
+        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios"}:  # 'coreml' aliases, legacy 'mlmodel' kept
+            fmt, self.args.format = "coreml", "mlmodel" if fmt == "mlmodel" else "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
             fmt = self.args.format = "ascend"
         if fmt in {"vitis", "vitisai", "versal"}:  # 'xilinx' aliases
@@ -715,8 +715,9 @@ class Exporter:
             # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
             memo[id(getattr(model, "clip_model", None))] = None
         model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
+        # Distillation checkpoints export their student; foreign modules such as YOLO-NAS have no layer list
+        head = getattr(getattr(model, "student_model", model), "model", [model])[-1]
         if not getattr(model, "names", None):  # missing, None or empty on legacy and foreign checkpoints
-            head = model.model[-1]  # name the head's own classes so the metadata matches the output layer
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)
         model.names = check_class_names(model.names)
@@ -731,31 +732,6 @@ class Exporter:
                 # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
                 model.end2end = False
                 LOGGER.warning("LiteRT INT8 export does not support end2end models, disabling end2end branch.")
-            if fmt == "engine":
-                try:
-                    import tensorrt as trt
-
-                    if check_version(trt.__version__, "<8.5.0"):
-                        # https://github.com/ultralytics/ultralytics/issues/24607
-                        model.end2end = False
-                        LOGGER.warning(
-                            "TensorRT versions earlier than 8.5.0 do not support the Mod operator in end-to-end models, disabling the end2end branch. "
-                            "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
-                        )
-
-                    if (
-                        self.args.quantize == 8
-                        and check_version(trt.__version__, ">=10.3.0,<10.4.0")  # JetPack 6 builds report 10.3.0.x
-                        and is_jetson(jetpack=6)
-                    ):
-                        # https://github.com/ultralytics/ultralytics/issues/23841
-                        model.end2end = False
-                        LOGGER.warning(
-                            "TensorRT 10.3.0 on JetPack 6 with INT8 cannot build NMS-free exports; selecting one-to-many outputs. "
-                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
-                        )
-                except ImportError:
-                    pass
         if self.args.quantize == 16 and fmt == "torchscript" and self.device.type == "cpu":
             raise ValueError("FP16 TorchScript export is only supported on GPU, i.e. use device=0.")
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
@@ -832,8 +808,8 @@ class Exporter:
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert fmt != "onnx" or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
             # A previously fused checkpoint may only have its one-to-one branch remaining.
-            if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
-                LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=None'.")
+            if getattr(model, "end2end", False) or not isinstance(head, Detect):
+                LOGGER.warning("'nms=True' is not available for end2end models or non-YOLO heads. Forcing 'nms=None'.")
                 self.args.nms = None
             self.args.conf = 0.25 if self.args.conf is None else self.args.conf  # set conf default for nms export
         if fmt == "mnn" and self.args.nms:
@@ -841,6 +817,35 @@ class Exporter:
                 raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")
             if model.task not in {"detect", "pose"}:
                 raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
+        if fmt == "engine" and (getattr(model, "end2end", False) or self.args.nms):
+            try:
+                import tensorrt as trt
+
+                if getattr(model, "end2end", False) and check_version(trt.__version__, "<8.5.0"):
+                    # https://github.com/ultralytics/ultralytics/issues/24607
+                    model.end2end = False
+                    LOGGER.warning(
+                        "TensorRT versions earlier than 8.5.0 do not support the Mod operator in end-to-end models, disabling the end2end branch. "
+                        "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
+                    )
+
+                if (
+                    self.args.quantize == 8
+                    and check_version(trt.__version__, ">=10.3.0,<10.4.0")  # JetPack 6 builds report 10.3.0.x
+                    and is_jetson(jetpack=6)
+                ):
+                    # https://github.com/ultralytics/ultralytics/issues/23841 and /issues/26655
+                    docs = "https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
+                    if self.args.nms:
+                        raise ValueError(
+                            f"TensorRT 10.3.0 on JetPack 6 cannot build INT8 'nms=True' exports. For a fix, see {docs}"
+                        )
+                    model.end2end = False
+                    LOGGER.warning(
+                        f"TensorRT 10.3.0 on JetPack 6 with INT8 cannot build NMS-free exports; selecting one-to-many outputs. For a fix, see {docs}"
+                    )
+            except ImportError:
+                pass
         if fmt == "coreml":
             if self.args.nms and model.task != "detect" and self.args.quantize == 32:
                 # CoreML evaluates NMSModel's data-dependent shapes only on its FP16 path, silently dropping
@@ -855,7 +860,7 @@ class Exporter:
                 assert not self.args.nms, (
                     "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
                 )
-                assert model.task != "classify" and not isinstance(model.model[-1], RTDETRDecoder), (
+                assert model.task != "classify" and not isinstance(head, RTDETRDecoder), (
                     "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
                 )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
@@ -864,6 +869,8 @@ class Exporter:
             raise SystemError(
                 "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
             )
+        # INT8 zeroes the pixel-space boxes decoded inside YOLO-NAS; tf_wrapper only normalizes Ultralytics heads
+        assert fmt != "edgetpu" or head is not model, "Edge TPU export is not supported for YOLO-NAS models."
         self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
         if self.qat:
             assert fmt in {"onnx", "engine"}, (
@@ -984,7 +991,7 @@ class Exporter:
             "docs": "https://docs.ultralytics.com",
             "stride": int(max(model.stride)),
             "task": model.task,
-            "head": type(model.model[-1]).__name__,
+            "head": type(head).__name__,
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
@@ -1018,19 +1025,13 @@ class Exporter:
         # Finish
         if f:
             square = self.imgsz[0] == self.imgsz[1]
-            s = (
-                ""
-                if square
-                else f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not "
-                f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
-            )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
             d = f"data={data}" if check_data_portable(data) else ""  # omit host paths that would not run here
             inference_commands = (
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
                 f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} "
-                f"{d} {q} {s}"
+                f"{d} {q}"
                 if fmt in AutoBackend._BACKEND_MAP
                 else ""
             )
@@ -1049,6 +1050,7 @@ class Exporter:
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
+        cfg.rect = False
         split = self.args.split or "val"
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
@@ -1129,7 +1131,7 @@ class Exporter:
         opset = self.args.opset or best_onnx_opset(onnx)
         # nearest Upsample needs 9, NMS and depth align_corners Resize need 11, RT-DETR GridSample needs 16
         min_opset = {"classify": 7, "depth": 11}.get(self.model.task, 11 if self.args.nms else 9)
-        if isinstance(self.model.model[-1], RTDETRDecoder):
+        if self.metadata["head"] == "RTDETRDecoder":
             min_opset = 16
         assert opset >= min_opset, f"ONNX export requires opset>={min_opset} for this model, but got opset={opset}"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
@@ -1222,13 +1224,10 @@ class Exporter:
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
         if self.args.quantize == 16 and self.args.format == "onnx" and self.device.type == "cpu":
-            try:
-                from onnxruntime.transformers import float16
+            from onnxruntime.transformers import float16
 
-                LOGGER.info(f"{prefix} converting to FP16...")
-                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
-            except Exception as e:
-                LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
+            LOGGER.info(f"{prefix} converting to FP16...")
+            model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
 
         onnx.save(model_onnx, f)
         del model_onnx
@@ -1286,7 +1285,7 @@ class Exporter:
             dynamic=self.args.dynamic,
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
-            int8_detect=isinstance(self.model.model[-1], (Detect, RTDETRDecoder)),
+            int8_detect=isinstance(getattr(self.model, "model", [None])[-1], (Detect, RTDETRDecoder)),
             prefix=prefix,
         )
 
@@ -1402,7 +1401,8 @@ class Exporter:
             )
             inputs = [ct.TensorType("image", shape=input_shape)]
         else:
-            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, bias=[0.0, 0.0, 0.0])]
+            layout = ct.colorlayout.GRAYSCALE if self.im.shape[1] == 1 else ct.colorlayout.RGB
+            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, color_layout=layout)]
 
         quantize = 16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize
         self.metadata["args"]["quantize"] = quantize
@@ -1475,7 +1475,7 @@ class Exporter:
             shutil.rmtree(f)  # delete output folder
 
         # Export to ONNX
-        if isinstance(self.model.model[-1], RTDETRDecoder):
+        if self.metadata["head"] == "RTDETRDecoder":
             self.args.opset = self.args.opset or 19
             assert self.args.opset <= 19, "RTDETR TensorFlow export requires opset<=19"
         self.args.simplify = True
@@ -1990,6 +1990,8 @@ class NMSModel(torch.nn.Module):
                 score *= mask
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
+            elif self.args.format in {"coreml", "mlmodel"}:  # CoreML aborts on an empty gather: keep the top anchor
+                mask, score = torch.logical_or(mask, score == score.max()), score * mask
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb

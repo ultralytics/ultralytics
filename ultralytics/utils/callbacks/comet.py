@@ -9,12 +9,11 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, env_bool, ops
+from ultralytics.utils import LOGGER, RANK, TESTS_RUNNING, env_bool, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["comet"] is True  # verify integration is enabled
     import comet_ml
 
     assert hasattr(comet_ml, "__version__")  # verify package is not directory
@@ -342,10 +341,11 @@ def _create_prediction_metadata_map(model_predictions) -> dict:
 
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
     """Log the confusion matrix to Comet experiment."""
-    conf_mat = trainer.validator.confusion_matrix.matrix
-    names = [*list(trainer.data["names"].values()), "background"]
+    if (cm := trainer.validator.confusion_matrix) is None:  # e.g. depth has no confusion matrix
+        return
+    names = [*cm.names.values(), "background"][: len(cm.matrix)]
     experiment.log_confusion_matrix(
-        matrix=conf_mat, labels=names, max_categories=len(names), epoch=curr_epoch, step=curr_step
+        matrix=cm.matrix.T, labels=names, max_categories=len(names), epoch=curr_epoch, step=curr_step
     )
 
 

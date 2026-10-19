@@ -76,7 +76,9 @@ jobs:
           group = gitlab("groups/ultralytics")["id"]
           avatar = None
           failures = []
-          for repo in (repo for page in repositories for repo in page):
+          retried = set()
+          repos = [repo for page in repositories for repo in page]
+          for repo in repos:  # Failed repositories are appended once to retry after the rest
               name = repo["name"]
               slug = "github" if name == ".github" else name
               print(f"::group::{name}", flush=True)
@@ -148,10 +150,15 @@ jobs:
                       git("push", "--atomic", "--prune", "gitlab", "+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*")
                   print(f"Mirrored {name}", flush=True)
               except Exception as error:
-                  failures.append(name)
                   if isinstance(error, urllib.error.HTTPError):
                       print(error.read().decode("utf-8", errors="replace"), flush=True)
-                  print(f"::error::Failed to mirror {name}: {error}", flush=True)
+                  if name in retried:
+                      failures.append(name)
+                      print(f"::error::Failed to mirror {name}: {error}", flush=True)
+                  else:
+                      retried.add(name)
+                      repos.append(repo)
+                      print(f"::warning::Failed to mirror {name}, retrying after the rest: {error}", flush=True)
               finally:
                   print("::endgroup::", flush=True)
           Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(

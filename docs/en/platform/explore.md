@@ -69,23 +69,25 @@ click an image to view it full size with its source dataset and license.
 
 ### Sort and Filter
 
-The dropdown in the toolbar holds sort options on the Datasets and Projects tabs and filters on the Datasets and Images
-tabs:
+The dropdown in the toolbar holds sort options on the Datasets and Projects tabs and filters on all three tabs:
 
-| Sort Option             | Description                                                            |
-| ----------------------- | ---------------------------------------------------------------------- |
-| **Stars**               | Community star count (descending)                                      |
-| **Created**             | Creation date, newest (default) or oldest first                        |
-| **Name**                | Alphabetical, ascending or descending                                  |
-| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first |
+| Sort Option             | Description                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------ |
+| **Relevance**           | Datasets tab default: best search matches first, newest first without a search |
+| **Stars**               | Community star count (descending)                                              |
+| **Created**             | Creation date, newest or oldest first; newest is the Projects tab default      |
+| **Name**                | Alphabetical, ascending or descending                                          |
+| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first         |
 
-| Filter         | Availability   | Description                                                                                      |
-| -------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| **Task type**  | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
-| **My starred** | Signed in only | Show only datasets you have starred, or images from them                                         |
+| Filter          | Tabs                       | Availability   | Description                                                                                      |
+| --------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| **Task**        | Datasets, Images           | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
+| **My starred**  | Datasets, Images, Projects | Signed in only | Show only datasets or projects you have starred, or images from those datasets                   |
+| **Image count** | Datasets                   | Everyone       | Show only datasets with **Under 1K**, **1K – 10K**, **10K – 100K**, or **100K+** images          |
+| **License**     | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
 
-Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, and `starred`), so the browser back button
-restores the previous result list.
+Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `starred`, `imageCount`,
+`license`, and `plicense`), so the browser back button restores the previous result list.
 
 !!! note "Sorting by Stars"
 
@@ -101,8 +103,8 @@ On the Datasets and Projects tabs, toggle between three view modes for browsing:
 | **Compact** | Smaller cards in a responsive grid (2-3 columns) |
 | **Table**   | Paginated table with sortable columns            |
 
-Cards and compact views load more results by infinite scroll. Table view replaces the sort dropdown with sortable
-column headers and its own pagination controls.
+Cards and compact views load more results by infinite scroll. Table view moves sorting from the dropdown to sortable
+column headers, keeps the filters in the dropdown, and adds its own pagination controls.
 
 ## Content Cards
 
@@ -253,7 +255,7 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 | **Datasets**  | Public datasets (default tab)                     |
 | **Projects**  | Public projects with models                       |
 
-The Datasets and Projects tabs use the same search, sort, and view controls as the Explore page.
+The Datasets and Projects tabs use the same search, sort, and view controls as the Explore page, without the **Relevance** sort.
 
 ### Follow Users
 

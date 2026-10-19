@@ -986,12 +986,12 @@ def get_user_config_dir(sub_dir="Ultralytics"):
         p.mkdir(parents=True, exist_ok=True)
         return p
 
-    # Fallbacks for Docker, GCP/AWS functions where only /tmp is writable
-    for alt in [Path("/tmp") / sub_dir, Path.cwd() / sub_dir]:
+    # Fallbacks for Docker, GCP/AWS functions where only /tmp is writable, private to the current user
+    for alt in [Path("/tmp") / (sub_dir if WINDOWS else f"{sub_dir}-{os.getuid()}"), Path.cwd() / sub_dir]:
         if alt.exists():
             return alt
         if is_dir_writeable(alt.parent):
-            alt.mkdir(parents=True, exist_ok=True)
+            alt.mkdir(mode=0o700, parents=True, exist_ok=True)
             LOGGER.warning(
                 f"user config directory '{p}' is not writable, using '{alt}'. Set YOLO_CONFIG_DIR to override."
             )
@@ -1491,9 +1491,7 @@ class SettingsManager(JSONDict):
             KeyError: If a key is not a valid Ultralytics setting.
             TypeError: If a value does not match the type of the setting's default.
         """
-        for arg in args:
-            if isinstance(arg, dict):
-                kwargs.update(arg)
+        kwargs = dict(*args, **kwargs)  # every form dict.update() accepts
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
@@ -1502,7 +1500,7 @@ class SettingsManager(JSONDict):
                 raise TypeError(
                     f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
                 )
-        super().update(*args, **kwargs)
+        super().update(kwargs)
 
     def reset(self):
         """Reset the settings to default and save them."""

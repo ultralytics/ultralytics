@@ -219,22 +219,14 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
-      - name: Install requirements
-        shell: bash
-        run: |
-          uv pip install -e ".[export-base]" pytest --torch-backend cpu
-          uv pip uninstall onnxruntime # onnxruntime-windowsml installs the same module
-          uv pip install "wasdk-Microsoft.Windows.AI.MachineLearning[all]==2.3.0" \
-            "wasdk-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap==2.3.0"
-      - name: Install Windows App SDK runtime
-        run: |
-          Invoke-WebRequest https://aka.ms/windowsappsdk/2.3/latest/windowsappruntimeinstall-x64.exe -OutFile wasdk.exe
-          Start-Process ./wasdk.exe -ArgumentList "--quiet" -Wait
-      - name: Check environment
-        run: |
-          uv pip list
-          python -c "from ultralytics.nn.backends.onnx import _winml_bootstrap; assert _winml_bootstrap()"
+      - name: Install requirements # no ONNX Runtime, so the first ONNX load installs Windows ML
+        run: uv pip install -e . onnx onnxslim pytest --torch-backend cpu
       - uses: ./.github/actions/ci-assets
+      - name: Install Windows ML on first ONNX load
+        run: |
+          python -c "from ultralytics import YOLO; YOLO(YOLO('yolo26n.pt').export(format='onnx', imgsz=32))(imgsz=32)"
+          python -c "from ultralytics.nn.backends.onnx import _winml_bootstrap; assert _winml_bootstrap()"
+          uv pip list
       - name: Pytest tests
         run: pytest -v tests/test_exports.py::test_export_onnx
         env:

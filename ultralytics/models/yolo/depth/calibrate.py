@@ -143,17 +143,13 @@ def select_calibration_cv(
         for n in names:
             per_fold[n].append(s[n])
     cv = {n: float(np.mean(per_fold[n])) for n in names}
-    # highest score among identity and the candidates beating it by margin; max keeps the first on ties
     best = max((n for n in names if n == "identity" or cv[n] > cv["identity"] + margin), key=cv.get)
-    # refit the chosen type on all pairs (CV selects the type; all data sets the parameters)
-    if best == "identity":
-        a, b = 1.0, 0.0
-    elif best == "current":
-        a, b = current
-    else:  # scale-only
+    if best == "scale-only":  # refit on all pairs (CV selects the type; all data sets the parameters)
         lp = np.concatenate([p[0] for p in pairs])
         lg = np.concatenate([p[1] for p in pairs])
         a, b = 1.0, float(np.mean(lg - lp))
+    else:
+        a, b = current if best == "current" else (1.0, 0.0)
     return {"a": a, "b": b, "name": best, "cv_scores": cv}
 
 

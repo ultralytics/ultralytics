@@ -1046,7 +1046,18 @@ class Exporter:
         return f  # path to final export artifact
 
     def get_int8_calibration_dataloader(self, prefix=""):
-        """Build and return a dataloader for calibration of INT8 models."""
+        """Build and return a dataloader for calibration of INT8 models.
+
+        Images are emitted as uint8 [0, 255] at the export input shape. Classification images are resized and
+        center-cropped to the exact export (height, width) like classify inference, so rectangular `imgsz` exports
+        calibrate on rectangular inputs; other tasks reuse their validation dataset transforms.
+
+        Args:
+            prefix (str): Prefix for log messages.
+
+        Returns:
+            (InfiniteDataLoader): Calibration dataloader that drops the last incomplete batch.
+        """
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
         cfg.imgsz = self.imgsz if self.model.task == "classify" else max(self.imgsz)  # classify keeps exact (h, w)

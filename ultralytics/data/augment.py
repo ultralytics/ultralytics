@@ -1676,7 +1676,8 @@ class LetterBox(BaseTransform):
     """Resize image and padding for detection, instance segmentation, pose.
 
     This class resizes and pads images to a specified shape while preserving aspect ratio. Each resized side is kept at
-    least 1 pixel, so very thin images (e.g. 1x3000) stay valid. It also updates corresponding labels and bounding boxes.
+    least 1 pixel, so very thin images (e.g. 1x3000) stay valid. It also updates corresponding labels and bounding
+    boxes.
 
     Attributes:
         new_shape (int | tuple[int, int]): Target shape (height, width) for resizing, or an int for a square target.

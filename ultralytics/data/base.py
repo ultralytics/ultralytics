@@ -206,7 +206,7 @@ class BaseDataset(Dataset):
                     f += glob.glob(str(Path(glob.escape(p)) / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
-                    with open(p, encoding="utf-8") as t:
+                    with open(p, encoding="utf-8-sig") as t:  # strip UTF-8 BOM so the first image is not dropped
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
                         f += [x.replace("./", parent, 1) if x.startswith("./") else x for x in t]  # local to global

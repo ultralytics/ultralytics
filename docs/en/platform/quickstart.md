@@ -436,4 +436,4 @@ Yes. Use the **Local Training** tab in the training dialog to copy a ready-made 
 
 ### How do I use a trained model outside Platform?
 
-Download the `best.pt` weights from the model page, [export](train/models.md#export-model) to formats such as ONNX, TensorRT, or CoreML, or call the model through a [dedicated endpoint](deploy/endpoints.md). You can also load it directly with `YOLO("ul://username/project/model")` in the `ultralytics` package.
+Download the PyTorch weights (`{model}.pt`, the best checkpoint) from the model page, [export](train/models.md#export-model) to formats such as ONNX, TensorRT, or CoreML, or call the model through a [dedicated endpoint](deploy/endpoints.md). You can also load it directly with `YOLO("ul://username/project/model")` in the `ultralytics` package.

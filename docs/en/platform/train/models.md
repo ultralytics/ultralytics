@@ -362,7 +362,7 @@ Download your model weights:
 
 1. Open the model page
 2. Click the **download icon** in the model header (available from any tab)
-3. The model's primary `.pt` checkpoint downloads automatically
+3. The model's primary `.pt` checkpoint downloads automatically, named after the model (`{model}.pt`)
 
 Exported formats can be downloaded from the **Export** tab after export completes.
 

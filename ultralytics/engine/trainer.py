@@ -519,7 +519,7 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_start")
                 # Warmup
                 ni = i + nb * epoch
-                if ni < nw:
+                if nw and ni <= nw:  # ni == nw lands accumulate, lr and momentum exactly on their targets
                     xi = [0, nw]  # x interp
                     self.accumulate = max(1, int(np.interp(ni, xi, [1, acc0]).round()))
                     for x in self.optimizer.param_groups:

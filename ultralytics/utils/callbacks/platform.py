@@ -284,7 +284,7 @@ def _get_system_metrics(trainer):
 
 
 def on_pretrain_routine_start(trainer):
-    """Initialize Platform logging at training start."""
+    """Initialize Platform logging at training start, continuing the recorded Platform model when resuming."""
     global _api_key
     if TESTS_RUNNING or not trainer.args.project:
         return
@@ -342,23 +342,22 @@ def on_pretrain_routine_start(trainer):
 
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
-    train_args = {k: str(v) for k, v in vars(trainer.args).items()}
+    data = {
+        "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+        "epochs": trainer.epochs,
+        "device": str(trainer.device),
+        "environment": environment,
+        "system": _get_system_metrics(trainer),
+    }
+    record = Path(trainer.save_dir) / "platform_model_id.txt"  # resume continues the Platform model recorded here
+    model_id = record.read_text() if trainer.args.resume and record.exists() else None
 
     # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
-    response = _send(
-        "training_started",
-        {
-            "trainArgs": train_args,
-            "epochs": trainer.epochs,
-            "device": str(trainer.device),
-            "environment": environment,
-            "system": _get_system_metrics(trainer),
-        },
-        project,
-        name,
-        retry=4,
-    )
+    response = _send("training_started", data, project, name, model_id=model_id, retry=4)
+    if model_id and (not response or response.get("cancelled")):  # recorded model is gone or ended, track a new one
+        response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
+        record.write_text(response["modelId"])
         ctx["model_id"] = response["modelId"]
         ctx["run_id"] = response.get("runId")
         # Server resolves the owner, project and final slug (e.g. "train" → "train-2") into the model link

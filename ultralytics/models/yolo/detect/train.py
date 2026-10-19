@@ -116,7 +116,7 @@ class DetectionTrainer(BaseTrainer):
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
-        batch["img"] = batch["img"].float() / 255
+        batch["img"] = batch["img"].float() / (65535 if batch["img"].dtype == torch.int32 else 255)
         if self.args.multi_scale > 0.0:
             imgs = batch["img"]
             sz = (

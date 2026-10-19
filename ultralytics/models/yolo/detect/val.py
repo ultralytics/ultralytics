@@ -106,7 +106,8 @@ class DetectionValidator(BaseValidator):
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
-        batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
+        scale = 65535 if batch["img"].dtype == torch.int32 else 255
+        batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / scale
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:

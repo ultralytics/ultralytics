@@ -608,7 +608,7 @@ class Mosaic(BaseMixTransform):
         """
         layout = params["layout"]
         if self.n == 4:
-            img4 = np.full((self.imgsz * 2, self.imgsz * 2, labels["img"].shape[2]), 114, dtype=np.uint8)
+            img4 = np.full((self.imgsz * 2, self.imgsz * 2, labels["img"].shape[2]), 114, dtype=labels["img"].dtype)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 img = labels_patch["img"]
@@ -617,7 +617,7 @@ class Mosaic(BaseMixTransform):
                 img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]
             labels["img"] = img4
         elif self.n == 9:
-            img9 = np.full((self.imgsz * 3, self.imgsz * 3, labels["img"].shape[2]), 114, dtype=np.uint8)
+            img9 = np.full((self.imgsz * 3, self.imgsz * 3, labels["img"].shape[2]), 114, dtype=labels["img"].dtype)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 img = labels_patch["img"]
@@ -843,7 +843,7 @@ class MixUp(BaseMixTransform):
         """
         r = params["r"]
         labels2 = labels["mix_labels"][0]
-        labels["img"] = (labels["img"] * r + labels2["img"] * (1 - r)).astype(np.uint8)
+        labels["img"] = (labels["img"] * r + labels2["img"] * (1 - r)).astype(labels["img"].dtype)
         return labels
 
     def apply_instances(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -2518,7 +2518,7 @@ class Format(BaseTransform):
             img = img[..., None]
         img = img.transpose(2, 0, 1)
         img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr and img.shape[0] == 3 else img)
-        img = torch.from_numpy(img)
+        img = torch.from_numpy(img.astype(np.int32) if img.dtype == np.uint16 else img)  # no torch uint16 before 2.3
         return img
 
     def _format_segments(
@@ -3302,8 +3302,9 @@ class ToTensor:
             >>> print(tensor_img.shape, tensor_img.dtype)
             torch.Size([3, 640, 640]) torch.float16
         """
+        im_dtype = im.dtype
         im = np.ascontiguousarray(im.transpose((2, 0, 1)))  # HWC to CHW -> contiguous
-        im = torch.from_numpy(im)  # to torch
+        im = torch.from_numpy(im.astype(np.int32) if im_dtype == np.uint16 else im)  # to torch
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
-        im /= 255.0  # 0-255 to 0.0-1.0
+        im /= 65535.0 if im_dtype == np.uint16 else 255.0  # to 0.0-1.0
         return im

@@ -37,8 +37,9 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         - Multi-page grayscale TIFFs with same-size pages stack them as channels. Color TIFFs keep every band, such as
           alpha or near-infrared, only with cv2.IMREAD_UNCHANGED. Other multi-page TIFFs, such as Cloud Optimized
           GeoTIFFs with overview and thumbnail pages, return their first page.
-        - 16-bit images keep their high byte as 8-bit, unless flags explicitly include cv2.IMREAD_ANYDEPTH.
-          cv2.IMREAD_UNCHANGED preserves channels but still converts 16-bit images to 8-bit.
+        - 16-bit grayscale images stay uint16 with cv2.IMREAD_GRAYSCALE. Other 16-bit images keep their high byte as
+          8-bit, unless flags explicitly include cv2.IMREAD_ANYDEPTH. cv2.IMREAD_UNCHANGED preserves channels but still
+          converts them to 8-bit.
     """
     filename = str(filename)
     try:
@@ -55,9 +56,12 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
             im = im if frames[0].ndim == 2 or flags == cv2.IMREAD_UNCHANGED else im[..., :3]  # BGR, alpha dropped
     if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
         im = _imread_pil(filename, flags)  # EXIF-aware
+    gray = flags == cv2.IMREAD_GRAYSCALE
     if im is None:
-        im = cv2.imdecode(file_bytes, flags)
-    if im is not None and im.dtype == np.uint16 and (flags == cv2.IMREAD_UNCHANGED or not flags & cv2.IMREAD_ANYDEPTH):
+        im = cv2.imdecode(file_bytes, flags | cv2.IMREAD_ANYDEPTH if gray else flags)  # grayscale keeps 16-bit
+        if gray and im is not None and im.dtype not in (np.uint8, np.uint16):
+            im = cv2.imdecode(file_bytes, flags)
+    if im is not None and im.dtype == np.uint16 and not gray and (flags == cv2.IMREAD_UNCHANGED or not flags & 2):
         im = (im >> 8).astype(np.uint8)
     return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 

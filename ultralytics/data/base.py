@@ -274,7 +274,7 @@ class BaseDataset(Dataset):
                 try:
                     im = np.load(fn)
                     npy_channels = im.shape[-1] if im.ndim >= 3 else 1
-                    if npy_channels != self.channels or im.dtype == np.uint16:
+                    if npy_channels != self.channels:
                         LOGGER.warning(
                             f"{self.prefix}Refreshing stale *.npy image file {fn} with {npy_channels} channels and "
                             f"{im.dtype} dtype"

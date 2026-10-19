@@ -590,7 +590,7 @@ class LoadPilAndNumpy:
                 im = Image.fromarray((np.asarray(im) >> 8).astype(np.uint8))
             flag = "L" if channels == 1 else "RGB"
             im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
-        elif im.dtype == np.uint16:  # e.g. cv2.IMREAD_UNCHANGED frames, scaled to 8 bits like imread and PIL I;16
+        elif im.dtype == np.uint16 and channels != 1:  # e.g. cv2.IMREAD_UNCHANGED frames, scaled to 8 bits like imread
             im = (im >> 8).astype(np.uint8)
         im = np.atleast_3d(im)
         # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads

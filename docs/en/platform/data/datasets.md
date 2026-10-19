@@ -936,7 +936,7 @@ Control who can see your dataset:
 | **Private** | You and permitted workspace members can access   |
 | **Public**  | Anyone can view, including from the Explore page |
 
-Visibility is set when creating a dataset in the `New Dataset` dialog using a toggle switch. To change it later, click the **Public** or **Private** badge next to the dataset name in the page breadcrumb; making a dataset public asks for confirmation. [On Premise](../integrations/on-premise.md) datasets are always private. Public datasets are visible on the [Explore](../explore.md) page.
+Visibility is set when creating a dataset in the `New Dataset` dialog using a toggle switch, which starts at the workspace's [default visibility](../account/settings.md#default-visibility). To change it later, click the **Public** or **Private** badge next to the dataset name in the page breadcrumb; making a dataset public asks for confirmation. [On Premise](../integrations/on-premise.md) datasets are always private. Public datasets are visible on the [Explore](../explore.md) page.
 
 ## Edit Dataset
 
@@ -963,7 +963,7 @@ Workspace viewers can inspect metadata, while members with edit access can repla
 
 ## Clone Dataset
 
-When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions. Public source datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
+When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions. Public source datasets stay public by default unless the workspace's [default dataset visibility](../account/settings.md#default-visibility) is Private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
 
 The clone dialog keeps **Clone Dataset** disabled while the URL is already used in the target workspace, and cloning requires enough remaining storage quota to hold the copy.
 
@@ -1063,7 +1063,7 @@ To change the split afterwards:
 
 ### Are my datasets private?
 
-Check the visibility toggle before you create a dataset: new datasets default to **Public** on Free and Pro plans and to **Private** on Enterprise. A public dataset can be viewed by anyone, including people who are not signed in, and appears on [Explore](../explore.md). A private dataset is visible only to you and permitted workspace members. Members with edit access can change visibility from the badge next to the dataset name, and [On Premise](../integrations/on-premise.md) datasets are always private. Making a dataset private does not remove copies other users have already cloned. See [Visibility Settings](#visibility-settings).
+Check the visibility toggle before you create a dataset: new datasets start with the workspace's [default visibility](../account/settings.md#default-visibility), which is **Public** on Free and Pro plans and **Private** on Enterprise until an owner or admin changes it. A public dataset can be viewed by anyone, including people who are not signed in, and appears on [Explore](../explore.md). A private dataset is visible only to you and permitted workspace members. Members with edit access can change visibility from the badge next to the dataset name, and [On Premise](../integrations/on-premise.md) datasets are always private. Making a dataset private does not remove copies other users have already cloned. See [Visibility Settings](#visibility-settings).
 
 ### What label formats are supported?
 

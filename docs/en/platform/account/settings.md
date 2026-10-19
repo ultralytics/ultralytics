@@ -18,8 +18,8 @@ extra-wide screens a sidebar next to the tabs lists your five most recent traini
 
 ## Profile Tab
 
-The `Profile` tab contains your profile information, email, social links, data region, connected accounts, and
-account management options.
+The `Profile` tab contains your profile information, email, social links, default visibility, data region, connected
+accounts, and account management options.
 
 ### Profile Information
 
@@ -72,6 +72,16 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 ### Early Access
 
 Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile**, enable **Early access**, and click **Save changes** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
+
+### Default Visibility
+
+The **Default Visibility** switches set whether new projects and new datasets in the current workspace start as Public or
+Private. Each workspace has its own defaults, and in a team workspace only owners and admins can change them. Until they
+are changed, new projects and datasets start Private in Enterprise workspaces and Public otherwise. You can still choose
+the visibility of each new project or dataset when you create it, except [On Premise](../integrations/on-premise.md)
+datasets, which are always private. Clones start private when the default is Private and otherwise keep the source's
+visibility, which you can change in the clone dialog. [Roboflow imports](../integrations/roboflow.md) and the projects
+that remote training creates use the default directly.
 
 ### Social Links
 

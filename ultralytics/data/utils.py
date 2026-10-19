@@ -843,7 +843,9 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
-        dataset (str | Path): The dataset name, local directory path, archive file, or archive URL.
+        dataset (str | Path): The dataset name, local directory path, archive file, or archive URL. Archive suffixes
+            match in any letter case, and an existing directory is used as a directory even when its name ends in an
+            archive suffix.
         split (str, optional): The split of the dataset. Either 'train', 'val', 'test', or ''.
 
     Returns:

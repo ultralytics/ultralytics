@@ -125,7 +125,7 @@ class Conv2(Conv):
         self.cv2 = nn.Conv2d(c1, c2, 1, s, autopad(1, p, d), groups=g, dilation=d, bias=False)  # add 1x1 conv
 
     def forward(self, x):
-        """Apply convolution, batch normalization and activation to input tensor.
+        """Apply the parallel main and 1x1 convolutions, then batch normalization and activation.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -135,25 +135,18 @@ class Conv2(Conv):
         """
         return self.act(self.bn(self.conv(x) + self.cv2(x)))
 
-    def forward_fuse(self, x):
-        """Apply fused convolution, batch normalization and activation to input tensor.
-
-        Args:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            (torch.Tensor): Output tensor.
-        """
-        return self.act(self.bn(self.conv(x)))
-
     def fuse_convs(self):
-        """Fuse parallel convolutions."""
+        """Fold the 1x1 branch into the main convolution, leaving an exact plain `Conv` with batch normalization.
+
+        `BaseModel.fuse()` then folds batch normalization into the convolution and switches to the inherited
+        `Conv.forward_fuse`.
+        """
         w = torch.zeros_like(self.conv.weight.data)
         i = [x // 2 for x in w.shape[2:]]
         w[:, :, i[0] : i[0] + 1, i[1] : i[1] + 1] = self.cv2.weight.data.clone()
         self.conv.weight.data += w
         self.__delattr__("cv2")
-        self.forward = self.forward_fuse
+        self.forward = super().forward
 
 
 class LightConv(nn.Module):

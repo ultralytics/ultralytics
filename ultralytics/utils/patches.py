@@ -87,7 +87,7 @@ def image_open(filename, *args, **kwargs):
         return _image_open(filename, *args, **kwargs)
     try:
         return _image_open(filename, *args, **kwargs)
-    except Exception:
+    except Image.UnidentifiedImageError:  # only the format-id failure can be fixed by a HEIF plugin
         from ultralytics.utils.checks import check_requirements
 
         check_requirements("pi-heif")

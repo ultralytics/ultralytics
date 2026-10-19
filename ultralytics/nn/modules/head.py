@@ -865,7 +865,7 @@ class Depth(nn.Module):
         depth = torch.exp(self.cal_a * out + self.cal_b)
         if self.export:  # same align_corners=True resize as the depth loss, calibration and validator
             depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=True)
-            depth = depth.clamp_min(0)  # no-op, stops the Intel NPU compiler corrupting the final reshape
+            depth = depth.relu()  # no-op for positive depth, stops the Intel NPU compiler corrupting the final reshape
         return depth
 
 

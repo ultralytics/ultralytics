@@ -350,7 +350,7 @@ Not without custom code. The default training pipeline expects YOLO `.txt` label
 
 ### Can I convert COCO segmentation annotations to YOLO format?
 
-Yes, use `use_segments=True` when calling `convert_coco()` to include segmentation masks in the converted YOLO labels. Polygon segmentations are copied as-is, and run-length encoded (RLE) masks are decoded to the outlines of their regions; YOLO polygons cannot hold holes, so mask holes are filled. This produces label files compatible with [YOLO segmentation models](../tasks/segment.md):
+Yes, use `use_segments=True` when calling `convert_coco()` to include segmentation masks in the converted YOLO labels. Polygon segmentations are converted directly, and run-length encoded (RLE) masks are decoded to the outlines of their regions; YOLO polygons cannot hold holes, so mask holes are filled. This produces label files compatible with [YOLO segmentation models](../tasks/segment.md):
 
 ```python
 from ultralytics.data.converter import convert_coco

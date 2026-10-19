@@ -142,8 +142,8 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l) | 640                 | 55.0                 | 54.4                      | 286.2 ± 2.0                     | 6.2 ± 0.2                            | 24.8                | 86.8                 |
 | [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x) | 640                 | 57.5                 | 56.9                      | 525.8 ± 4.0                     | 11.8 ± 0.2                           | 55.7                | 194.4                |
 
-- **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val detect data=coco.yaml device=0` 复现结果。
-- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val detect data=coco.yaml batch=1 device=0|cpu` 复现结果。
+- **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val detect data=coco.yaml device=0` 复现结果，添加 `nms=False` 可复现 e2e 列。
+- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val detect data=coco.yaml batch=1 device=0|cpu nms=False` 复现结果。
 
 </details>
 
@@ -159,8 +159,8 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-seg) | 640                 | 54.4                      | 45.5                       | 387.0 ± 3.7                     | 8.0 ± 0.1                            | 28.0                | 140.1                |
 | [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg) | 640                 | 56.5                      | 47.0                       | 787.0 ± 6.8                     | 16.4 ± 0.1                           | 62.8                | 314.0                |
 
-- **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val segment data=coco.yaml device=0` 复现结果。
-- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val segment data=coco.yaml batch=1 device=0|cpu` 复现结果。
+- **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val segment data=coco.yaml device=0 nms=False` 复现结果。
+- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val segment data=coco.yaml batch=1 device=0|cpu nms=False` 复现结果。
 
 </details>
 
@@ -231,8 +231,8 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26l-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-pose) | 640                 | 70.4                       | 90.5                    | 275.4 ± 2.4                     | 6.5 ± 0.1                            | 25.9                | 91.7                 |
 | [YOLO26x-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-pose) | 640                 | 71.6                       | 91.6                    | 565.4 ± 3.0                     | 12.2 ± 0.2                           | 57.6                | 202.3                |
 
-- **mAP<sup>val</sup>** 值指的是在 [COCO Keypoints val2017](https://docs.ultralytics.com/datasets/pose/coco) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val pose data=coco-pose.yaml device=0` 复现结果。
-- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu` 复现结果。
+- **mAP<sup>val</sup>** 值指的是在 [COCO Keypoints val2017](https://docs.ultralytics.com/datasets/pose/coco) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val pose data=coco-pose.yaml device=0 nms=False` 复现结果。
+- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu nms=False` 复现结果。
 
 </details>
 

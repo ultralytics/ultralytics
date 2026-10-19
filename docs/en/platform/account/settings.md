@@ -66,8 +66,8 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 
 1. Go to **Settings > Profile**
 2. Update fields (display name, company, use case, bio, and social links)
-3. Click **Save changes** on the bar that appears at the bottom of the page once you have unsaved changes, or **Discard**
-   to revert them.
+3. Click **Save changes** on the bar that appears at the bottom of the screen once you have unsaved changes, or
+   **Discard** to revert them.
 
 ### Early Access
 
@@ -75,13 +75,13 @@ Switch to your personal workspace using the sidebar workspace selector, then ope
 
 ### Default Visibility
 
-The **Default Visibility** switches set whether new projects and new datasets in the current workspace start as Public or
-Private. Each workspace has its own defaults, and in a team workspace only owners and admins can change them. Until they
-are changed, new projects and datasets start Private in Enterprise workspaces and Public otherwise. You can still choose
-the visibility of each new project or dataset when you create it, except [On Premise](../integrations/on-premise.md)
-datasets, which are always private. Clones start private when the default is Private and otherwise keep the source's
-visibility, which you can change in the clone dialog. [Roboflow imports](../integrations/roboflow.md) and the projects
-that remote training creates use the default directly.
+The **Default Visibility** switches set whether new projects and new datasets in the current workspace start as Public
+or Private; click **Save changes** to apply them. Each workspace has its own defaults, and in a team workspace only
+owners and admins can change them. Until they are changed, new projects and datasets start Private in Enterprise
+workspaces and Public otherwise. You can still choose the visibility of each new project or dataset when you create it,
+except [On Premise](../integrations/on-premise.md) datasets, which are always private. Clones start private when the
+default is Private and otherwise keep the source's visibility, which you can change in the clone dialog. [Roboflow
+imports](../integrations/roboflow.md) and the projects that remote training creates use the default directly.
 
 ### Social Links
 

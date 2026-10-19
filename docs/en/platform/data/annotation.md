@@ -369,7 +369,7 @@ Batch Annotation runs one model — a YOLO model, or on detection datasets with 
 
 By default only unlabeled images are annotated, and existing labels are never changed. A run needs dataset classes. For a YOLO model, if the model's classes differ from the dataset's, a **Map classes** step maps each model class to a dataset class or skips it, and on a dataset without classes it creates them — the run starts only after the classes exist. Starting a run saves a [dataset version](datasets.md#versions-tab) first, so you can restore the dataset if you don't like the result.
 
-The dataset page shows the run's progress, and **Stop** keeps and bills the images processed so far. When the run finishes, a summary shows the images processed and the annotations and classes added. If a paid provider returns `403` or `429` for your key on three images in a row, the run stops early and reports how many images were not attempted.
+The dataset page shows the run's progress, and **Stop** keeps and bills the images processed so far. When the run finishes, a summary shows the images processed and the annotations and classes added. If a paid provider refuses or rate-limits your key on three images in a row, the run stops early and reports how many images were not attempted.
 
 !!! note "Batch Annotation Cost"
 

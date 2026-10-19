@@ -317,7 +317,7 @@ Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVI
         yolo predict model=yolo26n.tflite source='https://ultralytics.com/images/bus.jpg' device=intel:npu
         ```
 
-**Hardware:** Dell laptop with an Intel Core Ultra X7 358H (Panther Lake) and Intel AI Boost NPU 5010, Fedora Linux, NPU driver 1.38.0, `ai-edge-litert` 2.3.0.
+**Hardware:** Intel Core Ultra X7 358H (Panther Lake) and Intel AI Boost NPU 5010, Fedora Linux, NPU driver 1.38.0, `ai-edge-litert` 2.3.0.
 
 | Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | CPU<br><sup>w8a32 Intel<br>(ms)</sup> | NPU<br><sup>w8a32 Intel<br>(ms)</sup>   |
 | ------------- | -------- | --------------------------- | -------------------------------------- | ------------------------------------- | --------------------------------------- |

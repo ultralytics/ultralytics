@@ -92,7 +92,7 @@ ONNX, TensorRT, CoreML, OpenVINO and several other formats support NMS-free expo
 - **MNN:** Embedded NMS supports detect and pose with `dynamic=False`.
 - **IMX:** Detection, instance segmentation and pose require embedded NMS, selected automatically.
 - **Hailo:** YOLO26 uses raw tensors with host NMS by default; `nms=False` selects its one-to-one path. YOLOv8/YOLO11 detection uses HailoRT NMS.
-- **Quantization:** TensorRT versions before 8.5.0 and LiteRT INT8 or `w8a16` fall back to one-to-many outputs; TensorRT 10.3.0 INT8 on JetPack 6 does too and rejects `nms=True` ([fix](nvidia-jetson.md#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6)).
+- **Quantization:** TensorRT versions before 8.5.0 and LiteRT INT8 or `w8a16` fall back to one-to-many outputs; TensorRT 10.3.0 INT8 on JetPack 6 selects the one-to-many head for `nms=False` and rejects `nms=True` ([fix](nvidia-jetson.md#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6)).
 
 See the individual [integration guides](../integrations/index.md) for hardware requirements. For full FP16 output tensors, use `nms=None`; end-to-end class indices can keep output tensors in FP32 even when the model is quantized.
 

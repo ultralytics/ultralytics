@@ -113,16 +113,15 @@ def select_calibration_cv(
     ``pairs`` is a list of per-image ``(log_pred, log_gt)`` arrays. Each candidate type is scored on every fold while
     held out (scale-only fit on the rest) via :func:`select_calibration`, and the per-type held-out δ1 is averaged
     across folds — so every image contributes to scoring exactly once and a candidate that only wins on one noisy split
-    cannot be selected. ``current`` and ``scale-only`` are eligible only when their mean held-out δ1 beats identity's
-    by more than ``margin``; the highest-scoring eligible type wins (identity when neither is eligible, current on a
-    tie). A selected scale-only is then refit on all pairs, while identity and current keep their fixed ``(a, b)``.
+    cannot be selected. ``current`` and ``scale-only`` are eligible only when their mean held-out δ1 beats identity's by
+    more than ``margin``; the highest-scoring eligible type wins (identity when neither is eligible, current on a tie).
+    A selected scale-only is then refit on all pairs, while identity and current keep their fixed ``(a, b)``.
 
     Args:
         pairs (list[tuple[np.ndarray, np.ndarray]]): Per-image ``(log_pred, log_gt)`` arrays.
         margin (float): Minimum mean held-out δ1 improvement over identity required to select a calibration.
         folds (int): Number of cross-validation folds, clamped to ``[2, len(pairs)]``.
-        current (tuple[float, float]): The model's existing ``(a, b)`` calibration, scored as the ``current``
-            candidate.
+        current (tuple[float, float]): The model's existing ``(a, b)`` calibration, scored as the ``current`` candidate.
 
     Returns:
         (dict[str, Any]): Dictionary with ``a``, ``b`` (floats), ``name``, and ``cv_scores`` (mean held-out δ1 per

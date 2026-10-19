@@ -599,7 +599,7 @@ class BaseTrainer:
                     acc0 = self.accumulate  # the rebuild recomputed the nominal for the reduced batch size
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
-                if ni - last_opt_step >= self.accumulate:
+                if self._should_optimizer_step(ni, i, nb, last_opt_step, self.accumulate):
                     self.optimizer_step()
                     last_opt_step = ni
 
@@ -918,6 +918,13 @@ class BaseTrainer:
         self.optimizer.zero_grad()
         if self.ema:
             self.ema.update(self.model)
+
+    @staticmethod
+    def _should_optimizer_step(
+        ni: int, batch_i: int, batches_per_epoch: int, last_opt_step: int, accumulate: int
+    ) -> bool:
+        """Return whether accumulated gradients should be applied, flushing any partial epoch tail."""
+        return ni - last_opt_step >= accumulate or batch_i == batches_per_epoch - 1
 
     def preprocess_batch(self, batch):
         """Allow custom preprocessing of model inputs and ground truths depending on task type."""

@@ -274,6 +274,20 @@ def test_nan_recovery():
     assert nan_injected[0], "NaN injection failed"
 
 
+def test_gradient_accumulation_flushes_epoch_tail():
+    """Test gradient accumulation applies the final partial window instead of carrying it into the next epoch."""
+    batches_per_epoch, accumulate, last_opt_step = 5, 4, -1
+    steps = []
+    for epoch in range(2):
+        for batch_i in range(batches_per_epoch):
+            ni = batch_i + batches_per_epoch * epoch
+            if BaseTrainer._should_optimizer_step(ni, batch_i, batches_per_epoch, last_opt_step, accumulate):
+                steps.append(ni)
+                last_opt_step = ni
+
+    assert steps == [3, 4, 8, 9], "partial accumulation windows must be flushed at each epoch boundary"
+
+
 def test_checkpoint_fp16_overflow():
     """Test a finite model whose weights overflow fp16 is still checkpointed (clamped) instead of skipped."""
 

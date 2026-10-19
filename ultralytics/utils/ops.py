@@ -150,7 +150,7 @@ def scale_boxes(
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        new_h, new_w = round(img0_shape[0] * gain), round(img0_shape[1] * gain)  # LetterBox rounds each side
+        new_h, new_w = (max(round(x * gain), 1) for x in img0_shape[:2])  # LetterBox rounds each side
         gain_y, gain_x = new_h / img0_shape[0], new_w / img0_shape[1]
         pad_x, pad_y = round((img1_shape[1] - new_w) / 2 - 0.1), round((img1_shape[0] - new_h) / 2 - 0.1)
     else:
@@ -576,7 +576,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget, thresholding each chunk to
     # uint8 immediately so the float intermediate stays small, then crop the assembled uint8 stack.
     gain = min(4 * mh / h, 4 * mw / w)
-    pad = (4 * mh - round(h * gain)) | (4 * mw - round(w * gain))  # letterbox padding at the input size (4x protos)
+    pad = (4 * mh - max(round(h * gain), 1)) | (4 * mw - max(round(w * gain), 1))  # input-size letterbox padding
     f = 4 // math.gcd(4, pad | pad // 2)  # smallest upsample (1, 2 or 4) that crops the padding on whole pixels
     n, masks = max(1, 16_000_000 // (h * w + f * f * mh * mw)), coeffs.new_empty((len(coeffs), h, w), dtype=torch.uint8)
     for i, c in zip(range(0, len(masks), n), coeffs.view(1, -1, mh, mw).split(n, 1)):  # fill one preallocated stack
@@ -615,11 +615,11 @@ def scale_masks(
 
     if ratio_pad is None:  # calculate from im0_shape
         gain_h = gain_w = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
-        pad_w, pad_h = (im1_w - round(im0_w * gain_w)) / 2, (im1_h - round(im0_h * gain_h)) / 2  # wh padding
+        pad_w, pad_h = (im1_w - max(round(im0_w * gain_w), 1)) / 2, (im1_h - max(round(im0_h * gain_h), 1)) / 2
     else:
         (gain_h, gain_w), (pad_w, pad_h) = ratio_pad
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
-    bottom, right = top + round(im0_h * gain_h), left + round(im0_w * gain_w)  # content end, odd pads extra at end
+    bottom, right = top + max(round(im0_h * gain_h), 1), left + max(round(im0_w * gain_w), 1)  # content end
     if ratio_pad and not padding and abs(im0_h * gain_h - bottom) + abs(im0_w * gain_w - right) > 1e-3:  # mid-pixel
         sh, sw = im0_h * gain_h / im1_h, im0_w * gain_w / im1_w  # sample the exact content span instead of cropping
         masks = masks.float()
@@ -648,7 +648,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        new_h, new_w = round(img0_h * gain), round(img0_w * gain)  # LetterBox rounds each side
+        new_h, new_w = (max(round(x * gain), 1) for x in (img0_h, img0_w))  # LetterBox rounds each side
         gain_y, gain_x = new_h / img0_h, new_w / img0_w
         pad = round((img1_w - new_w) / 2 - 0.1), round((img1_h - new_h) / 2 - 0.1)
     else:

@@ -64,8 +64,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         self.results_dir = None
         if self.args.save_json:
             self.results_dir = self.save_dir / "results"
-            self.results_dir.mkdir(parents=True, exist_ok=True)
-            self.mask_root = os.path.commonpath([os.path.dirname(f) for f in self.dataloader.dataset.im_files])
+            self.mask_root = os.path.commonpath([os.path.dirname(f) for f in self.dataset.im_files])
         cm_nc = self.metrics.cm_nc
         if cm_nc == 2 and len(self.names) == 1:  # binary segmentation, expand to include background
             cm_names = {0: "background", 1: next(iter(self.names.values()))}

@@ -54,10 +54,10 @@ class ConsoleLogger:
             flush_interval (float): Max seconds between flushes when batching.
             on_flush (callable | None): Callback(content: str, line_count: int, chunk_id: int) for custom handling.
         """
-        if isinstance(destination, str) and destination.lower().startswith("http://"):
+        if isinstance(destination, str) and destination.startswith("http://"):
             LOGGER.warning("ConsoleLogger destination uses plaintext HTTP; captured logs are sent unencrypted.")
         self.destination = destination
-        self.is_api = isinstance(destination, str) and destination.lower().startswith(("http://", "https://"))
+        self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))
         if destination is not None and not self.is_api:
             self.destination = Path(destination)
 

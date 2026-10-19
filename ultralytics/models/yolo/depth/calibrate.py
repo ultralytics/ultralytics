@@ -65,12 +65,14 @@ def select_calibration(
     lg_fit: np.ndarray,
     lp_score: np.ndarray,
     lg_score: np.ndarray,
+    current: tuple[float, float] = (1.0, 0.0),
 ) -> dict[str, Any]:
     """Pick the calibration that best improves *held-out* raw-scale δ1 — "calibrate only if it helps".
 
-    Two candidates are fit on the ``*_fit`` log-pixel arrays and scored on the independent ``*_score`` arrays under
+    Three candidates are fit on the ``*_fit`` log-pixel arrays and scored on the independent ``*_score`` arrays under
     :func:`_delta1_none`:
     - ``identity`` (a=1, b=0): no calibration,
+    - ``current`` (a, b = ``current``): the calibration the model already carries,
     - ``scale-only`` (a=1, b=mean(log_gt - log_pred)): a global scale.
     The winner is the highest held-out δ1, with ties favoring identity — so a calibration that does not generalize is
     rejected and auto-cal does no harm. (An affine log-slope candidate was evaluated and removed: the extra parameter
@@ -81,6 +83,7 @@ def select_calibration(
         lg_fit (np.ndarray): Log ground-truth depths used to fit the candidates.
         lp_score (np.ndarray): Held-out log predicted depths used to score the candidates.
         lg_score (np.ndarray): Held-out log ground-truth depths used to score the candidates.
+        current (tuple[float, float]): The model's existing ``(a, b)`` calibration.
 
     Returns:
         (dict[str, Any]): Dictionary with ``a``, ``b`` (floats of the winner), ``name``, and ``scores`` (per-candidate
@@ -90,6 +93,7 @@ def select_calibration(
     lg_fit = np.asarray(lg_fit, dtype=np.float64)
     candidates = [
         ("identity", 1.0, 0.0),
+        ("current", *current),
         ("scale-only", 1.0, float(np.mean(lg_fit - lp_fit))),
     ]
     scored = [(name, a, b, _delta1_none(lp_score, lg_score, a, b)) for name, a, b in candidates]
@@ -101,6 +105,7 @@ def select_calibration_cv(
     pairs: list[tuple[np.ndarray, np.ndarray]],
     margin: float = 0.0,
     folds: int = 2,
+    current: tuple[float, float] = (1.0, 0.0),
 ) -> dict[str, Any]:
     """Cross-validated "calibrate only if it helps": choose a candidate by K-fold held-out δ1.
 
@@ -114,12 +119,13 @@ def select_calibration_cv(
         pairs (list[tuple[np.ndarray, np.ndarray]]): Per-image ``(log_pred, log_gt)`` arrays.
         margin (float): Minimum mean held-out δ1 improvement over identity required to select a calibration.
         folds (int): Number of cross-validation folds, clamped to ``[2, len(pairs)]``.
+        current (tuple[float, float]): The model's existing ``(a, b)`` calibration, kept if it scores best.
 
     Returns:
         (dict[str, Any]): Dictionary with ``a``, ``b`` (floats), ``name``, and ``cv_scores`` (mean held-out δ1 per
             type).
     """
-    names = ["identity", "scale-only"]
+    names = ["identity", "current", "scale-only"]
     k = max(2, min(folds, len(pairs)))
     per_fold = {n: [] for n in names}
     for f in range(k):
@@ -132,6 +138,7 @@ def select_calibration_cv(
             np.concatenate([p[1] for p in fit]),
             np.concatenate([p[0] for p in score]),
             np.concatenate([p[1] for p in score]),
+            current,
         )["scores"]
         for n in names:
             per_fold[n].append(s[n])
@@ -143,6 +150,8 @@ def select_calibration_cv(
     # refit the chosen type on all pairs (CV selects the type; all data sets the parameters)
     if best == "identity":
         a, b = 1.0, 0.0
+    elif best == "current":
+        a, b = current
     else:  # scale-only
         lp = np.concatenate([p[0] for p in pairs])
         lg = np.concatenate([p[1] for p in pairs])
@@ -211,7 +220,7 @@ def fit_calibration_selective(
     """Select and apply calibration via "calibrate only if it helps" (see :func:`select_calibration_cv`).
 
     Collects per-image ``(log_pred, log_gt)`` over the loader, splits images into independent fit/score folds (no
-    leakage), chooses identity / scale-only by cross-validated raw-scale δ1, and writes the winner into the head's
+    leakage), chooses identity / current / scale-only by cross-validated raw-scale δ1, and writes the winner into the head's
     ``cal_a``/``cal_b``.
 
     Args:
@@ -234,7 +243,7 @@ def fit_calibration_selective(
     if len(pairs) < 2:
         LOGGER.warning("calibrate: fewer than 2 valid images for fit/score split; calibration skipped.")
         return None
-    res = select_calibration_cv(pairs, margin=margin)
+    res = select_calibration_cv(pairs, margin=margin, current=(float(head.cal_a), float(head.cal_b)))
     res["images"] = len(pairs)
     head.cal_a.fill_(res["a"])
     head.cal_b.fill_(res["b"])

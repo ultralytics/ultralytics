@@ -651,7 +651,7 @@ class Model(torch.nn.Module):
 
         Runs a validation pass, then fits the global log-affine ``d' = exp(a·log d + b)`` against
         ground-truth depth via :func:`fit_calibration_selective` — the same "calibrate only if it
-        helps" policy as trainer auto-calibration (identity / scale-only chosen by held-out δ1) —
+        helps" policy as trainer auto-calibration (identity / current / scale-only chosen by held-out δ1) —
         which writes ``(a, b)`` into the head's ``cal_a``/``cal_b`` buffers. No gradient training
         and the decoder weights are untouched, so it cannot degrade the relative depth structure.
         Call ``model.save(...)`` afterwards to persist the calibration.

@@ -381,20 +381,20 @@ POST /api/datasets
 }
 ```
 
-| Field         | Type    | Required | Description                                                                                     |
-| ------------- | ------- | -------- | ----------------------------------------------------------------------------------------------- |
-| `dataset`     | string  | Yes      | Dataset name used in Platform URLs (lowercase, hyphenated, max 128 chars)                       |
-| `name`        | string  | Yes      | Display name (max 100 chars)                                                                    |
-| `description` | string  | No       | Description (max 1000 chars)                                                                    |
-| `task`        | string  | No       | Task type (default: `detect`)                                                                   |
-| `classNames`  | array   | No       | Class names in index order (max 25,000); no duplicates, ignoring case beyond 2 characters       |
-| `format`      | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                    |
-| `visibility`  | string  | No       | `public` or `private`                                                                           |
-| `blurFaces`   | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces)) |
-| `tags`        | array   | No       | Up to 50 tags of 50 characters each                                                             |
-| `license`     | string  | No       | Dataset license identifier                                                                      |
-| `metadata`    | object  | No       | Custom JSON metadata                                                                            |
-| `owner`       | string  | No       | Team workspace handle; defaults to your personal workspace                                      |
+| Field         | Type    | Required | Description                                                                                                      |
+| ------------- | ------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `dataset`     | string  | Yes      | Dataset name used in Platform URLs (lowercase, hyphenated, max 128 chars)                                        |
+| `name`        | string  | Yes      | Display name (max 100 chars)                                                                                     |
+| `description` | string  | No       | Description (max 1000 chars)                                                                                     |
+| `task`        | string  | No       | Task type (default: `detect`)                                                                                    |
+| `classNames`  | array   | No       | Class names in index order (max 25,000); no duplicates, ignoring case beyond 2 characters                        |
+| `format`      | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                                     |
+| `visibility`  | string  | No       | `public` or `private` (default: the workspace's [default visibility](../account/settings.md#default-visibility)) |
+| `blurFaces`   | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces))                  |
+| `tags`        | array   | No       | Up to 50 tags of 50 characters each                                                                              |
+| `license`     | string  | No       | Dataset license identifier                                                                                       |
+| `metadata`    | object  | No       | Custom JSON metadata                                                                                             |
+| `owner`       | string  | No       | Team workspace handle; defaults to your personal workspace                                                       |
 
 A `dataset` slug that already exists in the workspace, including one in Trash, returns `409`.
 
@@ -484,7 +484,9 @@ Copies an accessible dataset, with its images and labels, into your personal wor
 ```
 
 **Response (`201`):** `id`, `owner`, `dataset`, `name`, `imageCount`, `classCount`, and `region`. Datasets backed by a
-connected storage source return `409` because their files are not copied.
+connected storage source return `409` because their files are not copied. Without `visibility`, the clone is private
+when the destination workspace's [default visibility](../account/settings.md#default-visibility) is Private and
+otherwise keeps the source's visibility.
 
 ### Download a Dataset Export
 
@@ -1281,16 +1283,16 @@ POST /api/projects
 
 **Python SDK:** `client.projects.create(project=..., name=...)`
 
-| Field         | Type   | Required | Description                                                |
-| ------------- | ------ | -------- | ---------------------------------------------------------- |
-| `project`     | string | Yes      | Project name used in Platform URLs                         |
-| `name`        | string | Yes      | Display name (max 100 chars)                               |
-| `description` | string | No       | Description (max 1000 chars)                               |
-| `visibility`  | string | No       | `public` or `private`                                      |
-| `tags`        | array  | No       | Up to 50 tags                                              |
-| `license`     | string | No       | Project license identifier                                 |
-| `metadata`    | object | No       | Custom JSON metadata                                       |
-| `owner`       | string | No       | Team workspace handle; defaults to your personal workspace |
+| Field         | Type   | Required | Description                                                                                                      |
+| ------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `project`     | string | Yes      | Project name used in Platform URLs                                                                               |
+| `name`        | string | Yes      | Display name (max 100 chars)                                                                                     |
+| `description` | string | No       | Description (max 1000 chars)                                                                                     |
+| `visibility`  | string | No       | `public` or `private` (default: the workspace's [default visibility](../account/settings.md#default-visibility)) |
+| `tags`        | array  | No       | Up to 50 tags                                                                                                    |
+| `license`     | string | No       | Project license identifier                                                                                       |
+| `metadata`    | object | No       | Custom JSON metadata                                                                                             |
+| `owner`       | string | No       | Team workspace handle; defaults to your personal workspace                                                       |
 
 === "cURL"
 
@@ -1365,7 +1367,9 @@ POST /api/projects/{owner}/{project}/clone
 **Python SDK:** `client.projects.clone(owner, project)`
 
 Clones an accessible project and its completed models. The optional body accepts `project`, `name`, `description`,
-`visibility`, `license`, and a destination `owner`.
+`visibility`, `license`, and a destination `owner`. Without `visibility`, the clone is private when the destination
+workspace's [default visibility](../account/settings.md#default-visibility) is Private and otherwise keeps the source's
+visibility.
 
 ---
 

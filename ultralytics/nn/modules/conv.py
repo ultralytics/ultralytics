@@ -142,7 +142,7 @@ class Conv2(Conv):
         w[:, :, i[0] : i[0] + 1, i[1] : i[1] + 1] = self.cv2.weight.data.clone()
         self.conv.weight.data += w
         self.__delattr__("cv2")
-        self.forward = self.forward_fuse
+        self.forward = super().forward  # plain Conv forward (act(bn(conv(x)))) stays exact until BN is folded
 
 
 class LightConv(nn.Module):

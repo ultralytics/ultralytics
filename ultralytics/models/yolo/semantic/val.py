@@ -139,7 +139,12 @@ class SemanticSegmentationValidator(DetectionValidator):
             dist.gather_object(self.metrics.nt_per_image, None, dst=0)
 
     def save_pred_masks(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:
-        """Save semantic predictions as single-channel PNG masks at the original image size."""
+        """Save semantic predictions as single-channel PNG masks at the original image size.
+
+        Each mask keeps its image's path relative to the common parent directory of all validation images, so
+        `images/val/a/1.jpg` and `images/val/b/1.jpg` are saved as `results/a/1.png` and `results/b/1.png`. Masks use
+        the original dataset label IDs when the dataset defines `label_mapping`.
+        """
         if self.results_dir is None:
             return
         im_files = batch.get("im_file", [])
@@ -151,7 +156,7 @@ class SemanticSegmentationValidator(DetectionValidator):
             if isinstance(self.dataset, SemanticDataset) and self.dataset.label_mapping:
                 pred = self.dataset.convert_label(pred, inverse=True)
             save_path = self.results_dir / Path(im_file).relative_to(self.mask_root).with_suffix(".png")
-            save_path.parent.mkdir(parents=True, exist_ok=True)  # preserve split-relative subdirs (same-stem safe)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
             Image.fromarray(pred).save(save_path)
 
     def get_stats(self):

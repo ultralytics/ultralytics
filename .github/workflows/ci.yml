@@ -209,6 +209,37 @@ jobs:
       - name: Prune uv Cache
         run: uv cache prune --ci
 
+  WindowsML:
+    needs: Assets
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    timeout-minutes: 30
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ultralytics/actions/setup-uv@main
+        with:
+          python-version: "3.13"
+      - name: Install requirements
+        shell: bash
+        run: |
+          uv pip install -e ".[export-base]" pytest --torch-backend cpu
+          uv pip uninstall onnxruntime # onnxruntime-windowsml installs the same module
+          uv pip install "wasdk-Microsoft.Windows.AI.MachineLearning[all]==2.3.0" \
+            "wasdk-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap==2.3.0"
+      - name: Install Windows App SDK runtime
+        run: |
+          Invoke-WebRequest https://aka.ms/windowsappsdk/2.3/latest/windowsappruntimeinstall-x64.exe -OutFile wasdk.exe
+          Start-Process ./wasdk.exe -ArgumentList "--quiet" -Wait
+      - name: Check environment
+        run: |
+          uv pip list
+          python -c "from ultralytics.nn.backends.onnx import _winml_bootstrap; assert _winml_bootstrap()"
+      - uses: ./.github/actions/ci-assets
+      - name: Pytest tests
+        run: pytest -v tests/test_exports.py::test_export_onnx
+        env:
+          YOLO_AUTOINSTALL: "false"
+
   # Shared runner CI keeps current stacks on the main path; legacy torch shards are isolated only where needed.
   SlowTests:
     needs: Assets

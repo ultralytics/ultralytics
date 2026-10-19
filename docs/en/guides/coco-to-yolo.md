@@ -304,13 +304,13 @@ If you get `KeyError: 'bbox'` or similar errors when running `convert_coco()`, y
 
 ### Empty Label Files After Conversion
 
-If conversion completes but `.txt` files are empty or missing, all annotations may have `iscrowd: 1` (common with [SAM](../models/sam.md)-generated masks), or [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) have zero width or height. Running with `use_keypoints=True` over a detection-only export produces the same result, because annotations without a `keypoints` field are skipped entirely.
+If conversion completes but `.txt` files are empty or missing, all annotations may have `iscrowd: 1`, which `convert_coco()` skips (CVAT, for example, exports mask annotations as crowd regions), or [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) have zero width or height. Running with `use_keypoints=True` over a detection-only export produces the same result, because annotations without a `keypoints` field are skipped entirely.
 
-**Solution**: Inspect your JSON annotations for `iscrowd` values. If using SAM masks, preprocess the JSON to set `iscrowd: 0`. If you passed `use_keypoints=True`, confirm your annotations actually carry `keypoints`.
+**Solution**: Inspect your JSON annotations for `iscrowd` values. When each crowd-flagged mask outlines a single object, as in CVAT mask exports, set `iscrowd: 0` so `use_segments=True` converts its RLE mask; leave genuine crowd regions that cover several objects flagged. If you passed `use_keypoints=True`, confirm your annotations actually carry `keypoints`.
 
 ### Box-Shaped Polygons From Mask Annotations
 
-If `use_segments=True` logs `annotations without a usable polygon`, some annotations carry no `segmentation` value, an empty mask, or one that is neither a list of at least three coordinate pairs nor a COCO run-length encoding (`{"counts": ..., "size": ...}`). The usual cause is a detection-only export, which leaves the field missing or empty; a flat coordinate list with no enclosing polygon list, one- and two-point outlines, and other malformed values are handled the same way. An annotation keeps whichever polygons remain, and falls back to a segment row shaped like its bounding box when none do, so the labels stay valid but those rows carry no mask detail.
+If `use_segments=True` logs `annotations without a usable polygon`, some annotations carry no `segmentation` value, a COCO run-length encoding (`{"counts": ..., "size": ...}`) whose mask is empty or only holds regions too small or thin to outline with three points, or a value that is neither RLE nor a list of at least three coordinate pairs. The usual cause is a detection-only export, which leaves the field missing or empty; a flat coordinate list with no enclosing polygon list, one- and two-point outlines, and other malformed values are handled the same way. An annotation keeps whichever polygons remain, and falls back to a segment row shaped like its bounding box when none do, so the labels stay valid but those rows carry no mask detail.
 
 **Solution**: Re-export the annotations with polygon or RLE segmentations, or correct any malformed `segmentation` values.
 
@@ -350,7 +350,7 @@ Not without custom code. The default training pipeline expects YOLO `.txt` label
 
 ### Can I convert COCO segmentation annotations to YOLO format?
 
-Yes, use `use_segments=True` when calling `convert_coco()` to include segmentation masks in the converted YOLO labels. Polygon segmentations are converted directly, and run-length encoded (RLE) masks are decoded to the outlines of their regions; YOLO polygons cannot hold holes, so mask holes are filled. This produces label files compatible with [YOLO segmentation models](../tasks/segment.md):
+Yes, use `use_segments=True` when calling `convert_coco()` to include segmentation masks in the converted YOLO labels. Polygon segmentations are converted directly, and run-length encoded (RLE) masks, compressed or uncompressed, are decoded with `faster-coco-eval` (installed automatically when a JSON file contains them) to the outer outlines of their regions. An object split into several polygons or mask regions is joined into one polygon row, and because YOLO polygons cannot hold holes, mask holes are filled. Crowd annotations (`iscrowd: 1`) are skipped. This produces label files compatible with [YOLO segmentation models](../tasks/segment.md):
 
 ```python
 from ultralytics.data.converter import convert_coco

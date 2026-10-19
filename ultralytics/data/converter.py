@@ -255,8 +255,9 @@ def convert_coco(
     Args:
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
         save_dir (str, optional): Path to directory to save results to.
-        use_segments (bool, optional): Whether to include segmentation masks in the output. COCO RLE masks are decoded
-            to the polygons of their outer contours.
+        use_segments (bool, optional): Whether to include segmentation masks in the output. Polygon lists and COCO RLE
+            masks (decoded with faster-coco-eval to their outer contours) are written as one polygon per instance,
+            joining multi-part objects; annotations without a usable outline get a box-shaped polygon.
         use_keypoints (bool, optional): Whether to include keypoint annotations in the output. Annotations without any
             labeled keypoint are skipped, as COCO keypoint evaluation ignores them.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.

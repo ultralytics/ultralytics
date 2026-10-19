@@ -223,6 +223,7 @@ jobs:
         run: uv pip install -e . onnx onnxslim pytest --torch-backend cpu
       - uses: ./.github/actions/ci-assets
       - name: Install Windows ML on first ONNX load
+        shell: bash # fail on the first failing command
         run: |
           python -c "from ultralytics import YOLO; YOLO(YOLO('yolo26n.pt').export(format='onnx', imgsz=32))(imgsz=32)"
           python -c "from ultralytics.nn.backends.onnx import _winml_bootstrap; assert _winml_bootstrap()"

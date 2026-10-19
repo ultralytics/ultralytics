@@ -254,15 +254,15 @@ class ONNXBackend(BaseBackend):
             if rocm and IS_PYTHON_MINIMUM_3_11 and not ARM64:  # MIGraphX EP wheels are Python>=3.11 x86_64 only
                 check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
             # Stock onnxruntime underlies the MIGraphX plugin and is the CPU fallback if the plugin is unavailable
-            builds = [("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")]  # keep builds
+            stock = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai")  # keep installed builds
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
                 if rocm
                 else [("onnxruntime-gpu", "onnxruntime-windowsml")]
                 if cuda
-                else WINML_PACKAGES  # Windows ML by default where no ONNX Runtime build is installed yet
-                if WINML_SUPPORTED and not check_requirements(builds, install=False)
-                else builds
+                else WINML_PACKAGES  # Windows ML by default where no stock build is installed
+                if WINML_SUPPORTED and not check_requirements([stock], install=False)
+                else [(*stock, "onnxruntime-windowsml")]
             )
             import onnxruntime
 

@@ -68,7 +68,7 @@ Note the below example spotlights YOLO26 [Detect](../tasks/detect.md) models for
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()`, `SAM()`, `NAS()` and `RTDETR()` classes to create a model instance in Python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models can be passed to the `YOLO()`, `SAM()`, `NAS()` and `RTDETR()` classes to create a model instance in Python:
 
         ```python
         from ultralytics import YOLO

@@ -324,7 +324,7 @@ Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVI
 | YOLO26n       | Detect   | 640                         | 17.5<br><sup>0.8 / 16.1 / 0.6</sup>    | 22.6<br><sup>1.2 / 20.6 / 0.8</sup>   | **4.8**<br><sup>1.0 / 3.3 / 0.4</sup>   |
 | YOLO26n-seg   | Segment  | 640                         | 24.2<br><sup>0.9 / 22.1 / 1.3</sup>    | 32.6<br><sup>1.0 / 30.1 / 1.5</sup>   | **6.2**<br><sup>0.8 / 4.2 / 1.2</sup>   |
 | YOLO26n-sem   | Semantic | 640                         | 25.2<br><sup>1.0 / 14.2 / 10.0</sup>   | 33.1<br><sup>1.1 / 21.9 / 10.2</sup>  | **16.5**<br><sup>1.0 / 5.5 / 10.0</sup> |
-| YOLO26n-depth | Depth    | 640                         | 31.7<br><sup>0.9 / 30.3 / 0.5</sup>    | 77.2<br><sup>1.2 / 75.4 / 0.6</sup>   | **9.9**<br><sup>0.9 / 7.4 / 1.6</sup>   |
+| YOLO26n-depth | Depth    | 640                         | 31.7<br><sup>0.9 / 30.2 / 0.5</sup>    | 76.6<br><sup>0.9 / 75.2 / 0.5</sup>   | **9.1**<br><sup>1.0 / 7.5 / 0.5</sup>   |
 | YOLO26n-cls   | Classify | 224                         | 4.6<br><sup>2.8 / 1.7 / 0.0</sup>      | 7.3<br><sup>3.3 / 3.9 / 0.0</sup>     | **4.1**<br><sup>3.2 / 0.9 / 0.0</sup>   |
 | YOLO26n-pose  | Pose     | 640                         | 20.3<br><sup>0.8 / 19.0 / 0.5</sup>    | 28.6<br><sup>1.1 / 26.8 / 0.8</sup>   | **6.3**<br><sup>0.8 / 4.9 / 0.5</sup>   |
 | YOLO26n-obb   | OBB      | 640                         | 17.2<br><sup>0.8 / 16.1 / 0.3</sup>    | 22.1<br><sup>1.2 / 20.5 / 0.4</sup>   | **4.6**<br><sup>0.9 / 3.4 / 0.3</sup>   |

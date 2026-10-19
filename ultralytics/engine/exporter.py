@@ -377,10 +377,10 @@ EXPORT_ENVS = {
         "python": "3.11",
         "extras": ["export-base"],
         "torch": "==2.4",
-        "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
+        "requirements": ["rknn-toolkit2>=2.3.2,<2.5", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 quantize=16"],
+        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=64 quantize=16"],
     },
     "isolated-axelera": {
         "python": "3.13",
@@ -1050,6 +1050,7 @@ class Exporter:
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
+        cfg.rect = False
         split = self.args.split or "val"
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'

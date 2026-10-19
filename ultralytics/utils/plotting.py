@@ -653,7 +653,7 @@ class Annotator:
         """
         self._to_numpy()
         if self.pil:
-            w, h = self.font.getsize(text)
+            h = max(self.font.getsize(line)[1] for line in text.split("\n"))  # measure per line, raqm rejects newlines
             if anchor == "bottom":  # start y from font bottom
                 xy[1] += 1 - h
             for line in text.split("\n"):
@@ -1037,9 +1037,12 @@ def plot_images(
             if mh != h or mw != w:
                 mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
             im = np.asarray(annotator.im).copy()
-            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
+            # The mosaic deviates from the Annotator BGR-buffer convention (it holds RGB), so convert the patch
+            # to BGR for the overlay, then back to RGB for the mosaic.
+            sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
+            sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
             sub_annotator.semantic_mask(mask, alpha=0.4)
-            im[y : y + h, x : x + w] = sub_annotator.im
+            im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
             annotator.fromarray(im)
 
         # Plot depth maps

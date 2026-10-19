@@ -40,9 +40,10 @@ class LiteRTBackend(BaseBackend):
         self.output_details = self.interpreter.get_output_details()
         # Legacy onnx2tf TFLite exports are NHWC; litert-torch exports are NCHW. Detect from the input tensor so both
         # load through this backend (the detection/proto outputs share the same layout for either export path).
-        self.nhwc = self.input_details[0]["shape"][-1] == 3
+        metadata = self.read_metadata(tflite_file)
+        self.nhwc = self.input_details[0]["shape"][-1] == int(metadata.get("channels", self.channels))
 
-        self.apply_metadata(self.read_metadata(tflite_file))
+        self.apply_metadata(metadata)
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run inference using the LiteRT interpreter.

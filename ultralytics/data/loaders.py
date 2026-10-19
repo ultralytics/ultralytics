@@ -378,13 +378,13 @@ class LoadImagesAndVideos:
         """
         source_path = path
         parent = None
-        if isinstance(path, (str, Path)) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
+        if isinstance(path, (str, Path)) and Path(path).suffix.lower() in {".txt", ".csv"}:  # txt/csv file with sources
             parent = Path(path).parent
             with open(path, "rb") as f:
                 encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
                 with TextIOWrapper(f, encoding=encoding) as reader:
                     content = reader.read()
-            if Path(path).suffix == ".txt":
+            if Path(path).suffix.lower() == ".txt":
                 path = content.splitlines()
             else:
                 rows = list(csv.reader(content.splitlines()))
@@ -590,6 +590,8 @@ class LoadPilAndNumpy:
                 im = Image.fromarray((np.asarray(im) >> 8).astype(np.uint8))
             flag = "L" if channels == 1 else "RGB"
             im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
+        elif im.dtype == np.uint16:  # e.g. cv2.IMREAD_UNCHANGED frames, scaled to 8 bits like imread and PIL I;16
+            im = (im >> 8).astype(np.uint8)
         im = np.atleast_3d(im)
         # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
         # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check, and

@@ -137,6 +137,28 @@ def test_build_yolo_dataset_hyp_isolated():
     assert cfg.mosaic == DEFAULT_CFG.mosaic
 
 
+@pytest.mark.parametrize("task", ["detect", "segment"])
+def test_yolo_dataset_label_encoding(tmp_path, task):
+    """Test that UTF-8 label signatures do not discard images from detection or segmentation datasets."""
+    from ultralytics.data.dataset import YOLODataset
+
+    for directory in ("images", "labels"):
+        (tmp_path / directory).mkdir()
+    label = "0 0.5 0.5 0.5 0.5\n" if task == "detect" else "0 0.25 0.25 0.75 0.25 0.75 0.75 0.25 0.75\n"
+    for name, codec in (("plain", "utf-8"), ("bom", "utf-8-sig")):
+        Image.new("RGB", (32, 32)).save(tmp_path / "images" / f"{name}.png")
+        (tmp_path / "labels" / f"{name}.txt").write_text(label, encoding=codec)
+    dataset = YOLODataset(
+        img_path=str(tmp_path / "images"), data={"names": {0: "object"}}, task=task, imgsz=32, augment=False
+    )
+    assert len(dataset) == 2
+    for sample in dataset:
+        assert sample["cls"].tolist() == [[0.0]]
+        assert sample["bboxes"].tolist() == [[0.5, 0.5, 0.5, 0.5]]
+        if task == "segment":
+            assert sample["masks"].any()
+
+
 def test_cfg_rejects_fuzzed_values():
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
@@ -280,6 +302,28 @@ def test_restricted_load_threaded():
     with ThreadPoolExecutor(8) as pool:
         list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
     assert pathlib.WindowsPath is windows_path
+
+
+def test_temporary_modules_restores_preexisting_alias():
+    """Temporary checkpoint aliases restore a module that was already registered."""
+    import sys
+    import types
+
+    from ultralytics.nn.tasks import temporary_modules
+
+    alias = "ultralytics_probe_legacy_alias"
+    fresh_alias = "ultralytics_probe_fresh_alias"
+    sentinel = types.ModuleType(alias)
+    sys.modules[alias] = sentinel
+    try:
+        with temporary_modules({alias: "math", fresh_alias: "json"}):
+            assert sys.modules[alias].__name__ == "math"
+            assert sys.modules[fresh_alias].__name__ == "json"
+        assert sys.modules[alias] is sentinel
+        assert fresh_alias not in sys.modules
+    finally:
+        sys.modules.pop(alias, None)
+        sys.modules.pop(fresh_alias, None)
 
 
 @pytest.mark.parametrize("fused", [False, True])
@@ -522,7 +566,13 @@ def test_single_check_channel_order_and_contiguity():
     rgb = Image.fromarray(np.full((2, 2, 3), (10, 20, 30), dtype=np.uint8))  # PIL is R, G, B
     bgra = np.full((2, 2, 4), (10, 20, 30, 255), dtype=np.uint8)  # ndarray is already B, G, R, A
     gray = np.full((2, 2, 1), 42, dtype=np.uint8)
-    for im, expected in ((check(rgb, 3), (30, 20, 10)), (check(bgra, 3), (10, 20, 30)), (check(gray, 3), (42, 42, 42))):
+    bgr16 = np.full((2, 2, 3), (2570, 5140, 7710), dtype=np.uint16)  # 16-bit arrays scale to 8 bits like imread
+    for im, expected in (
+        (check(rgb, 3), (30, 20, 10)),
+        (check(bgra, 3), (10, 20, 30)),
+        (check(gray, 3), (42, 42, 42)),
+        (check(bgr16, 3), (10, 20, 30)),
+    ):
         assert tuple(im[0, 0].tolist()) == expected
         assert im.flags["C_CONTIGUOUS"]
 
@@ -2010,18 +2060,26 @@ def test_classification_fraction_samples_across_classes(tmp_path):
         assert len(train) == int(4 * ratio) * 3 and len(train | val) == 12 and train.isdisjoint(val)
 
 
-def test_classification_split_class_alignment(tmp_path):
+@pytest.mark.parametrize(
+    "folders,names",
+    [
+        (("b", "c", "d"), {0: "a", 1: "b", 2: "c"}),
+        (("n02102040", "n02979186", "n03000684"), {0: "tench", 1: "English_springer", 2: "cassette_player"}),
+        (("n02102040", "n02979186", "n03000684"), {0: "n01440764", 1: "n02102040", 2: "n02979186"}),
+    ],
+)
+def test_classification_split_class_alignment(tmp_path, folders, names):
     """Align a split's class folders to the model's class order by name and drop classes the model lacks."""
     from ultralytics.data.dataset import ClassificationDataset
 
-    for name in ("b", "c", "d"):  # the split lacks the model's first class and adds one it does not have
+    for name in folders:  # the split lacks the model's first class and adds one it does not have
         for folder in (tmp_path / name, tmp_path / name / "nested"):
             folder.mkdir()
             cv2.imwrite(str(folder / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
     data = check_cls_dataset(tmp_path)
     copied = [p.relative_to(data[k]) for k in ("train", "val") for p in data[k].rglob("*.jpg")]
     assert len(copied) == len(set(copied)) == 6
-    samples = ClassificationDataset(data["train"], DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
+    samples = ClassificationDataset(data["train"], DEFAULT_CFG, names=names).samples
     assert sorted(sample[1] for sample in samples) == [1, 2]
 
 

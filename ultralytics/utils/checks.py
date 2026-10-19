@@ -1099,7 +1099,7 @@ def print_args(args: dict | None = None, show_file=True, show_func=False):
 
     def strip_auth(v):
         """Clean longer URLs by stripping potential authentication information."""
-        return clean_url(v) if (isinstance(v, str) and v.startswith("http") and len(v) > 100) else v
+        return clean_url(v) if (isinstance(v, str) and v.lower().startswith("http") and len(v) > 100) else v
 
     x = inspect.currentframe().f_back  # previous frame
     file, _, func, _, _ = inspect.getframeinfo(x)

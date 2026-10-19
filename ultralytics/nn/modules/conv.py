@@ -135,17 +135,6 @@ class Conv2(Conv):
         """
         return self.act(self.bn(self.conv(x) + self.cv2(x)))
 
-    def forward_fuse(self, x):
-        """Apply fused convolution, batch normalization and activation to input tensor.
-
-        Args:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            (torch.Tensor): Output tensor.
-        """
-        return self.act(self.bn(self.conv(x)))
-
     def fuse_convs(self):
         """Fuse parallel convolutions."""
         w = torch.zeros_like(self.conv.weight.data)

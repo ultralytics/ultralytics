@@ -68,6 +68,9 @@ def stack_temporal(frames: list[np.ndarray | None], mode: str) -> np.ndarray:
 class TemporalStream:
     """Stateful per-video frame buffer that produces the same temporal images as TemporalYOLODataset.
 
+    Output is BGR-first like the dataset; note that training flips 3-channel ('rgb' mode) images to RGB in Format, so
+    reverse the channels before inference for that mode only.
+
     Examples:
         >>> stream = TemporalStream(frames=3, mode="diff", size=(1280, 720))
         >>> for bgr in video_frames:

@@ -103,7 +103,10 @@ def main():
         r = args.imgsz / max(h0, w0)
         size = (math.ceil(w0 * r), math.ceil(h0 * r))
         frames = [cv2.resize(x, size, interpolation=cv2.INTER_LINEAR) if x is not None else None for x in frames]
-        im = letterbox(stack_temporal(frames, mode))
+        im = stack_temporal(frames, mode)
+        if im.shape[2] == 3:  # Format flips 3-channel training images BGR->RGB; 5/9-channel images stay BGR
+            im = im[..., ::-1]
+        im = letterbox(im)
         x = torch.from_numpy(im).to(args.device).permute(2, 0, 1)[None].half() / 255
         y = model(x)
         y = y[0] if isinstance(y, (list, tuple)) else y  # (1, N, 6) xyxy, conf, cls for end2end heads

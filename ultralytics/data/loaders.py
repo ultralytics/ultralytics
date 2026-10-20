@@ -113,10 +113,13 @@ class LoadStreams:
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         if os.path.isfile(sources):
+            path = sources
             with open(sources, "rb") as f:
                 encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
                 with TextIOWrapper(f, encoding=encoding) as reader:
                     sources = reader.read().rsplit()
+            if not sources:
+                raise FileNotFoundError(f"No streams found in {path}. {FORMATS_HELP_MSG}")
         else:
             sources = [sources]
         n = len(sources)

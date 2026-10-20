@@ -287,10 +287,10 @@ class ONNXBackend(BaseBackend):
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
                     providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
-                elif winml:  # Windows ML selects the execution provider by device policy
+                elif winml:  # Windows ML selects the fastest execution provider, GPU first with CPU fallback
                     providers = None
                     self.session_options = self.session_options or onnxruntime.SessionOptions()
-                    policy = onnxruntime.OrtExecutionProviderDevicePolicy.PREFER_NPU
+                    policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
                     self.session_options.set_provider_selection_policy(policy)
                 else:
                     providers = ["CPUExecutionProvider"]

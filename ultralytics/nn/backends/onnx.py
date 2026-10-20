@@ -254,10 +254,14 @@ class ONNXBackend(BaseBackend):
             if rocm and IS_PYTHON_MINIMUM_3_11 and not ARM64:  # MIGraphX EP wheels are Python>=3.11 x86_64 only
                 check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
             # Stock onnxruntime underlies the MIGraphX plugin and is the CPU fallback if the plugin is unavailable
-            # Windows ML by default on supported Windows where no other ONNX Runtime build is installed
+            # Windows ML by default on supported Windows where no other ONNX Runtime build is installed, and on CUDA
+            # devices only once Windows ML is the installed build (it has no CUDA EP)
             builds = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai")
             winml = (
-                WINML_SUPPORTED and not cuda and not check_requirements([builds], install=False) and _winml_bootstrap()
+                WINML_SUPPORTED
+                and not check_requirements([builds], install=False)
+                and (not cuda or check_requirements("onnxruntime-windowsml", install=False))
+                and _winml_bootstrap()
             )
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
@@ -293,6 +297,7 @@ class ONNXBackend(BaseBackend):
                     policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
                     self.session_options.set_provider_selection_policy(policy)
                     torch.set_num_threads(1)  # spinning torch threads stall DirectML, 2x slower predict
+                    cuda = False  # outputs are host arrays, no CUDA IO binding
                 else:
                     providers = ["CPUExecutionProvider"]
 

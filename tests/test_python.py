@@ -60,6 +60,24 @@ def test_predict_prefetch():
         next(batches)
 
 
+def test_video_loader_len_matches_batches(tmp_path):
+    """Test video loader length counts frame batches rather than source files."""
+    from ultralytics.data.loaders import LoadImagesAndVideos
+
+    video_path = tmp_path / "five_frames.avi"
+    writer = cv2.VideoWriter(str(video_path), cv2.VideoWriter_fourcc(*"MJPG"), 10, (16, 16))
+    assert writer.isOpened()
+    for _ in range(5):
+        writer.write(np.zeros((16, 16, 3), dtype=np.uint8))
+    writer.release()
+
+    loader = LoadImagesAndVideos(video_path, batch=2)
+    try:
+        assert len(loader) == len(list(loader)) == 3
+    finally:
+        loader.close()
+
+
 def test_dataloader_caps_workers_to_batches():
     """Test tiny datasets do not spawn persistent workers beyond useful batch count."""
     single_batch = build_dataloader(range(4), batch=4, workers=8)

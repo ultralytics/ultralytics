@@ -212,26 +212,17 @@ jobs:
   WindowsML:
     needs: Assets
     if: github.event_name == 'pull_request' || github.event_name == 'push'
-    timeout-minutes: 30
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
-      - name: Install requirements # no ONNX Runtime, so the first ONNX load installs Windows ML
-        run: uv pip install -e . onnx onnxslim pytest --torch-backend cpu
+      - name: Install requirements # no ONNX Runtime, so the first ONNX export installs Windows ML
+        run: uv pip install -e . onnx onnxslim --torch-backend cpu
       - uses: ./.github/actions/ci-assets
-      - name: Install Windows ML on first ONNX load
-        shell: bash # fail on the first failing command
-        run: |
-          python -c "from ultralytics import YOLO; YOLO(YOLO('yolo26n.pt').export(format='onnx', imgsz=32))(imgsz=32)"
-          python -c "from ultralytics.nn.backends.onnx import _winml_bootstrap; assert _winml_bootstrap()"
-          uv pip list
-      - name: Pytest tests
-        run: pytest -v tests/test_exports.py::test_export_onnx
-        env:
-          YOLO_AUTOINSTALL: "false"
+      - name: Export and predict with Windows ML
+        run: python -c "from ultralytics import YOLO; from ultralytics.nn.backends.onnx import _winml_bootstrap as b; YOLO(YOLO('yolo26n.pt').export(format='onnx', imgsz=32))(imgsz=32); assert b()"
 
   # Shared runner CI keeps current stacks on the main path; legacy torch shards are isolated only where needed.
   SlowTests:

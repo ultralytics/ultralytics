@@ -991,7 +991,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     # Fallback for Docker, GCP/AWS functions where only /tmp is writable, private to the current user on Linux and macOS
     alt = Path(tempfile.gettempdir()) / (sub_dir if WINDOWS else f"{sub_dir}-{os.getuid()}")
     try:
-        alt.mkdir(mode=0o700, parents=True)
+        alt.mkdir(mode=0o700)
     except OSError:
         with contextlib.suppress(OSError):  # reuse only a private dir this user owns, never a symlink
             info = alt.lstat()

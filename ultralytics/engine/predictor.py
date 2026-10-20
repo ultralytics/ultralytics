@@ -196,9 +196,10 @@ class BasePredictor:
             # For a single image, add a batch dimension without the copy required by np.stack().
             im = torch.from_numpy(im[0]).unsqueeze(0) if len(im) == 1 else torch.from_numpy(np.stack(im))
             im = im.to(self.device)  # transfer as uint8, then reorder on device
-            im = im.permute(0, 3, 1, 2).contiguous()  # BHWC to BCHW, (n, 3, h, w), dense first for a faster flip
+            im = im.permute(0, 3, 1, 2)  # BHWC to BCHW, (n, 3, h, w)
             if im.shape[1] == 3:
                 im = im.flip(1)  # BGR to RGB
+            im = im.contiguous()
             im = (im.half() if self.model.fp16 else im.float()).div_(255)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
         else:
             im = im.to(self.device)

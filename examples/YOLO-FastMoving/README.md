@@ -63,7 +63,8 @@ the cv2 path within 0.0002 F1 (YOLO26n-p2 diff).
   With a val-tuned threshold YOLO reaches F1@10 0.962–0.966.
 - Motion input barely matters for this metric: rgb/diff/stack are 0.914/0.915/0.916 F1@4 at the fixed threshold, inside
   single-seed noise; at the tuned threshold diff/stack gain +0.01–0.02 F1@10 over rgb. Raw frame stacking is as good as
-  explicit differences.
+  explicit differences. This is because val clips come from the training matches; on unseen games motion input is
+  worth +0.20 F1 (see the TrackNet dataset section below).
 - Resolution matters most: at 640 the ball is ~2.7 px and F1@4 drops by 0.13 (fixed) / 0.07 (tuned).
 
 ## Speed (RTX PRO 6000 Blackwell, idle GPU, batch 1, FP16, median)
@@ -119,9 +120,10 @@ TrackNet was retrained here on the same split (100 epochs, seq 3, σ 10) and sco
 
 | model (games 8–10, τ = 4 px @ 512×288)       | F1        | P     | R     | Acc   | AP        | recall easy / hard |
 | -------------------------------------------- | --------- | ----- | ----- | ----- | --------- | ------------------ |
-| TrackNetV2 (WASB paper)                      | 0.894     |       |       | 0.814 | 0.806     |                    |
-| MonoTrack (WASB paper)                       | 0.921     |       |       | 0.859 | 0.873     |                    |
-| WASB step 1 (WASB paper)                     | **0.956** |       |       | 0.918 | 0.942     |                    |
+| TrackNetV2 (WASB paper)                      | 0.894     |       |       |       | 0.806     |                    |
+| MonoTrack (WASB paper)                       | 0.921     |       |       |       | 0.873     |                    |
+| WASB step 3 (WASB paper)                     | 0.940     |       |       |       | 0.910     |                    |
+| WASB step 1 (WASB paper)                     | **0.956** |       |       |       | 0.942     |                    |
 | TrackNet, retrained here                     | 0.897     | 0.931 | 0.865 | 0.863 | 0.837     | 0.889 / 0.644      |
 | YOLO26n rgb (current frame only)             | 0.731     | 0.868 | 0.631 | 0.641 | 0.670     | 0.662 / 0.335      |
 | YOLO26n stack (3×RGB)                        | 0.920     | 0.990 | 0.859 | 0.862 | 0.944     | 0.887 / 0.607      |
@@ -129,18 +131,27 @@ TrackNet was retrained here on the same split (100 epochs, seq 3, σ 10) and sco
 
 - The retrained TrackNet lands on the published TrackNetV2 numbers (F1 0.897 vs 0.894, AP 0.837 vs 0.806), so this
   protocol matches WASB's.
-- YOLO26n-diff beats TrackNet by +0.04 F1 / +0.11 AP and MonoTrack on both; it trails WASB's F1 by 0.02 but edges its AP.
-  Its errors are mostly misses at conf 0.25 (P 0.98, R 0.89), concentrated on hard-visibility frames.
+- YOLO26n-diff beats the retrained TrackNet by +0.11 AP (threshold-free). The F1 lead is not an operating-point
+  artefact: across the whole conf sweep YOLO's precision never drops to TrackNet's 0.931 (it is 0.961 at conf 0.05, with
+  recall 0.943), so YOLO is ahead on precision and recall at once. It beats MonoTrack on F1 and AP; at conf 0.25 it trails
+  WASB step 1's F1 by 0.02 and edges its AP. At conf 0.25 the errors are mostly misses (P 0.98, R 0.89), concentrated on
+  hard-visibility frames; conf 0.05–0.2 gives F1 0.949–0.952 on this test set (not used as a headline, it is chosen on
+  test). Published Acc is omitted because its definition may differ from ours ((TP+TN)/frames).
 - **Motion input matters across games**: rgb → diff is +0.20 F1 / +0.28 AP on unseen courts, whereas on flyingball
-  (val clips from the training matches) it was within noise. Explicit differences ≥ raw frame stacking.
-- Thresholds are fragile on unseen games: the stack run's mAP-selected `best.pt` scores F1 0.43 at conf 0.25
-  with AP 0.949 — its confidences sit below 0.25. Prefer AP, or calibrate the threshold on held-out games. YOLO's
+  (val clips from the training matches) it was within noise. Differences are slightly ahead of raw frame stacking (+0.016
+  F1, +0.003 AP), within single-seed noise.
+- Thresholds are fragile on unseen games: the stack run's mAP-selected `best.pt` scores F1 0.43 at conf 0.25 with AP
+  0.949, and 0.945 at conf 0.05 — its confidences sit below 0.25. The diff model drops from F1 0.936 at conf 0.25 to 0.884
+  at 0.30. Prefer AP, or calibrate the threshold on held-out games. YOLO's
   in-training mAP (box IoU against fixed 10 px boxes) also declines after ~epoch 35 while F1/AP keep improving, so it is
   a poor checkpoint selector here.
 
 **Paper-style random 70/30 frame split** (`tennis-paper-diff.yaml`, 5,980 test frames): YOLO26n-diff F1 0.969, P 0.995,
 R 0.943, AP 0.984 (identical at 640×360/5 px and 512×288/4 px, the same tolerance geometrically). The same model scores
-0.936 on unseen games, so ~0.03 F1 comes from adjacent frames leaking between train and test; the paper's 98.2 is from
-that kind of split on a different, single-match dataset.
+0.936 on unseen games; the ~0.03 F1 gap comes from adjacent frames leaking between train and test and from testing on
+courts seen in training. The paper's 98.2 is from that kind of split on a different, single-match dataset.
+
+Caveats: single seed per config; a fixed 10 px box makes box-IoU mAP meaningless here, so select checkpoints by
+center distance or use `last.pt`; only 6 occluded test frames, so that class is not reported.
 
 Speed is the same as above (same YOLO26n, 1280×736): 0.79 ms/frame end-to-end with TensorRT FP16 and GPU preprocessing.

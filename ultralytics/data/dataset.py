@@ -1128,6 +1128,8 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
         nc = data.get("nc") or len(data.get("names", {}))
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         super().__init__(*args, data=data, **kwargs)
+        if self.include_class is not None:  # the synthetic background stays supervised under 'classes' filtering
+            self.include_class = np.append(self.include_class, self.bg_class_idx)
 
     # Rebind label scanning to YOLODataset's polygon .txt implementations; the MRO (SemanticDataset, YOLODataset)
     # would otherwise resolve SemanticDataset's PNG-mask hooks and its get_labels, which syncs mask_files from

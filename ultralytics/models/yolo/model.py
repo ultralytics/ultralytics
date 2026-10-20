@@ -248,11 +248,13 @@ class YOLOE(Model):
         >>> model.set_vocab(model.get_vocab(names), names)
     """
 
-    def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False) -> None:
+    def __init__(
+        self, model: str | Path | Model = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False
+    ) -> None:
         """Initialize YOLOE model with a pre-trained model file.
 
         Args:
-            model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.
+            model (str | Path | Model): Path to a pre-trained model file (*.pt or *.yaml), or an initialized Model.
             task (str, optional): Task type for the model. Auto-detected if None.
             verbose (bool): If True, prints additional information during initialization.
         """

@@ -133,7 +133,7 @@ TrackNet was retrained here on the same split (100 epochs, seq 3, σ 10) and sco
   Its errors are mostly misses at conf 0.25 (P 0.98, R 0.89), concentrated on hard-visibility frames.
 - **Motion input matters across games**: rgb → diff is +0.20 F1 / +0.28 AP on unseen courts, whereas on flyingball
   (val clips from the training matches) it was within noise. Explicit differences ≥ raw frame stacking.
-- Thresholds are fragile on unseen games: the stack run's mAP-selected `best.pt` (epoch ~60) scores F1 0.43 at conf 0.25
+- Thresholds are fragile on unseen games: the stack run's mAP-selected `best.pt` scores F1 0.43 at conf 0.25
   with AP 0.949 — its confidences sit below 0.25. Prefer AP, or calibrate the threshold on held-out games. YOLO's
   in-training mAP (box IoU against fixed 10 px boxes) also declines after ~epoch 35 while F1/AP keep improving, so it is
   a poor checkpoint selector here.

@@ -33,9 +33,9 @@ class YOLO(Model):
     """YOLO (You Only Look Once) object detection model.
 
     This class provides a unified interface for YOLO models, automatically switching to specialized model types
-    (YOLOWorld or YOLOE) based on the model filename. It supports various computer vision tasks including object
-    detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and
-    oriented bounding box detection.
+    (YOLOWorld or YOLOE) based on the loaded model, or on the filename for YAML builds. It supports various computer
+    vision tasks including object detection, instance segmentation, semantic segmentation, depth estimation,
+    classification, pose estimation, and oriented bounding box detection.
 
     Attributes:
         model: The loaded YOLO model instance.
@@ -61,7 +61,7 @@ class YOLO(Model):
         """Initialize a YOLO model.
 
         This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
-        YOLOE) based on the model filename.
+        YOLOE) based on the loaded model, or on the filename for YAML builds.
 
         Args:
             model (str | Path | Model): Model name or path to model file, e.g. 'yolo26n.pt', 'yolo26n.yaml', or an
@@ -71,11 +71,11 @@ class YOLO(Model):
             verbose (bool): Display model info on load.
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
-        if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+        if "-world" in path.stem and path.suffix in {".yaml", ".yml"}:  # if YOLOWorld YAML
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
-        elif "yoloe" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOE PyTorch model
+        elif "yoloe" in path.stem and path.suffix in {".yaml", ".yml"}:  # if YOLOE YAML
             new_instance = YOLOE(path, task=task, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
@@ -91,8 +91,8 @@ class YOLO(Model):
                 new_instance = RTDETR(self)
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
-            elif isinstance(self.model, WorldModel):  # e.g. `ul://…/yolov8l-worldv2`, no suffix for the filename test
-                new_instance = YOLOWorld(self)
+            elif isinstance(self.model, (WorldModel, YOLOEModel)):  # route checkpoints by model, not filename
+                new_instance = (YOLOWorld if isinstance(self.model, WorldModel) else YOLOE)(self)
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
 

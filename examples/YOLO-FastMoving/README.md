@@ -93,3 +93,54 @@ The CPU (cv2) preprocessing of a 1080p frame (~6–8 ms) dominates the PyTorch c
   frames with two balls keep one.
 - HSV augmentation was disabled for every run (it only applies to 3-channel images), so no model saw colour
   augmentation; expect a gap on new courts/lighting. Only two sources, val clips come from the same matches as train.
+
+## TrackNet paper dataset (10 games, 19,835 frames)
+
+The tennis dataset released with TrackNet (`Dataset.zip`, Google Drive id `1DQ3ZbvokTsgOq6x-ay6O8U2W4a8e3LFw`, also on
+`tennis_dataset:dataset/tracknet/`): 10 broadcast games, 95 clips, 1280×720, per-frame ball center + visibility (0 none,
+1 easy, 2 hard, 3 occluded). Frames are contiguous within each clip, 729 frames have no ball (negatives). Labels have no
+ball extent, so YOLO boxes are a fixed 10 px square (`prepare_tracknet_paper.py --box`).
+
+This is **not** the data behind the TrackNet paper's headline table (P 99.8 / R 96.6 / F1 98.2): that was a single
+20,844-frame match with a random 70/30 frame split. The comparable published numbers on this dataset are WASB (BMVC
+2023): games 1–7 train, 8–10 test (5,675 frames), 288×512 grid, τ = 4 px.
+
+```bash
+python prepare_tracknet_paper.py --src Dataset --out tennis_tracknet
+yolo detect train model=yolo26n.yaml pretrained=yolo26n.pt data=tennis_tracknet/tennis-wasb-diff.yaml imgsz=1280 epochs=100 batch=32 hsv_h=0 hsv_s=0 hsv_v=0
+python eval_fastmoving.py --weights last.pt --data tennis_tracknet/tennis-wasb-diff.yaml
+python eval_fastmoving.py --tracknet <tracknet-repo>:TrackNet_cur.pt --conf 0.3 --data tennis_tracknet/tennis-wasb-diff.yaml
+```
+
+WASB has no validation split (games 8–10 are the test set), so the primary numbers are `last.pt` / last epoch with a
+fixed threshold (YOLO conf 0.25, TrackNet heatmap 0.3) and threshold-free AP; nothing is selected on the test set.
+TrackNet was retrained here on the same split (100 epochs, seq 3, σ 10) and scored by the same script (causal window
+[t−2, t−1, t], heatmap of t). All YOLO runs: YOLO26n, imgsz 1280, 100 epochs.
+
+| model (games 8–10, τ = 4 px @ 512×288)       | F1        | P     | R     | Acc   | AP        | recall easy / hard |
+| -------------------------------------------- | --------- | ----- | ----- | ----- | --------- | ------------------ |
+| TrackNetV2 (WASB paper)                      | 0.894     |       |       | 0.814 | 0.806     |                    |
+| MonoTrack (WASB paper)                       | 0.921     |       |       | 0.859 | 0.873     |                    |
+| WASB step 1 (WASB paper)                     | **0.956** |       |       | 0.918 | 0.942     |                    |
+| TrackNet, retrained here                     | 0.897     | 0.931 | 0.865 | 0.863 | 0.837     | 0.889 / 0.644      |
+| YOLO26n rgb (current frame only)             | 0.731     | 0.868 | 0.631 | 0.641 | 0.670     | 0.662 / 0.335      |
+| YOLO26n stack (3×RGB)                        | 0.920     | 0.990 | 0.859 | 0.862 | 0.944     | 0.887 / 0.607      |
+| **YOLO26n diff (RGB + 2 frame differences)** | 0.936     | 0.984 | 0.892 | 0.890 | **0.947** | 0.927 / 0.573      |
+
+- The retrained TrackNet lands on the published TrackNetV2 numbers (F1 0.897 vs 0.894, AP 0.837 vs 0.806), so this
+  protocol matches WASB's.
+- YOLO26n-diff beats TrackNet by +0.04 F1 / +0.11 AP and MonoTrack on both; it trails WASB's F1 by 0.02 but edges its AP.
+  Its errors are mostly misses at conf 0.25 (P 0.98, R 0.89), concentrated on hard-visibility frames.
+- **Motion input matters across games**: rgb → diff is +0.20 F1 / +0.28 AP on unseen courts, whereas on flyingball
+  (val clips from the training matches) it was within noise. Explicit differences ≥ raw frame stacking.
+- Thresholds are fragile on unseen games: the stack run's mAP-selected `best.pt` (epoch ~60) scores F1 0.43 at conf 0.25
+  with AP 0.949 — its confidences sit below 0.25. Prefer AP, or calibrate the threshold on held-out games. YOLO's
+  in-training mAP (box IoU against fixed 10 px boxes) also declines after ~epoch 35 while F1/AP keep improving, so it is
+  a poor checkpoint selector here.
+
+**Paper-style random 70/30 frame split** (`tennis-paper-diff.yaml`, 5,980 test frames): YOLO26n-diff F1 0.969, P 0.995,
+R 0.943, AP 0.984 (identical at 640×360/5 px and 512×288/4 px, the same tolerance geometrically). The same model scores
+0.936 on unseen games, so ~0.03 F1 comes from adjacent frames leaking between train and test; the paper's 98.2 is from
+that kind of split on a different, single-match dataset.
+
+Speed is the same as above (same YOLO26n, 1280×736): 0.79 ms/frame end-to-end with TensorRT FP16 and GPU preprocessing.

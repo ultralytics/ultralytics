@@ -532,8 +532,12 @@ class LoadImagesAndVideos:
         while len(self._video_frames) < self.nf - self.ni:
             path = self.files[self.ni + len(self._video_frames)]
             cap = cv2.VideoCapture(path)
-            self._video_frames.append(int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride))
-            cap.release()
+            try:
+                if not cap.isOpened():
+                    raise FileNotFoundError(f"Failed to open video {path}")
+                self._video_frames.append(int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride))
+            finally:
+                cap.release()
         return math.ceil(self.ni / self.bs) + sum(math.ceil(frames / self.bs) for frames in self._video_frames)
 
 

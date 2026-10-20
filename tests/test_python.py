@@ -78,6 +78,27 @@ def test_video_loader_len_matches_batches(tmp_path):
         loader.close()
 
 
+def test_video_loader_len_raises_for_unopened_video(tmp_path):
+    """Test video length calculation keeps the same open failure as iteration."""
+    from ultralytics.data.loaders import LoadImagesAndVideos
+
+    first_path = tmp_path / "a_first.avi"
+    second_path = tmp_path / "b_second.avi"
+    for video_path in (first_path, second_path):
+        writer = cv2.VideoWriter(str(video_path), cv2.VideoWriter_fourcc(*"MJPG"), 10, (16, 16))
+        assert writer.isOpened()
+        writer.write(np.zeros((16, 16, 3), dtype=np.uint8))
+        writer.release()
+
+    loader = LoadImagesAndVideos([first_path, second_path], batch=2)
+    second_path.unlink()
+    try:
+        with pytest.raises(FileNotFoundError, match="Failed to open video"):
+            len(loader)
+    finally:
+        loader.close()
+
+
 def test_dataloader_caps_workers_to_batches():
     """Test tiny datasets do not spawn persistent workers beyond useful batch count."""
     single_batch = build_dataloader(range(4), batch=4, workers=8)

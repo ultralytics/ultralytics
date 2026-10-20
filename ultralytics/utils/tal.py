@@ -452,7 +452,7 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
             coef, boxes = pd_coef.new_zeros(self.bs, m, pd_coef.shape[-1]), pd_mboxes.new_zeros(self.bs, m, 4)
             coef[ub, slot], boxes[ub, slot] = pd_coef[ub, ua], pd_mboxes[ub, ua]
             gm = gt_masks.flatten(2).half()
-            ious = iou.new_empty(self.bs, self.n_max_boxes, m, dtype=torch.float)
+            ious = iou.new_empty(self.bs, gm.shape[1], m, dtype=torch.float)  # gt_masks may differ from n_max_boxes
             step = max(1, (1 << 28) // (m * mh * mw))  # images per chunk, ~512 MB of fp16 masks
             for i in range(0, self.bs, step):
                 s = slice(i, i + step)

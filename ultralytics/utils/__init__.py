@@ -995,7 +995,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
             )
             return alt
         with contextlib.suppress(OSError):  # reuse only a dir this user owns
-            if alt.is_dir() and (WINDOWS or alt.stat().st_uid == os.getuid()):
+            if not alt.is_symlink() and alt.is_dir() and (WINDOWS or alt.stat().st_uid == os.getuid()):
                 return alt
 
     # Last fallback → CWD

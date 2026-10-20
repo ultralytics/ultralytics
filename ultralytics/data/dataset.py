@@ -931,7 +931,7 @@ class SemanticDataset(YOLODataset):
         super().__init__(*args, data=data, **kwargs)
 
     def update_labels(self, include_class: list[int] | None) -> None:
-        """Store the classes to keep per pixel; pixels of other classes are set to the ignore label (255) on load.
+        """Keep selected pixel classes and synthetic polygon background; ignore other classes (255) on load.
 
         Args:
             include_class (list[int], optional): List of classes to include. If None, all classes are included.
@@ -952,6 +952,8 @@ class SemanticDataset(YOLODataset):
                 "the sole class would discard all background supervision."
             )
             self.include_class = None
+        elif self.include_class is not None and self.data.get("bg_class_idx"):
+            self.include_class = np.append(self.include_class, self.data["bg_class_idx"])
 
     def _parse_label_mapping(self, mapping):
         """Normalize label_mapping entries from dataset YAML into integer-to-integer ids."""
@@ -1128,8 +1130,6 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
         nc = data.get("nc") or len(data.get("names", {}))
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         super().__init__(*args, data=data, **kwargs)
-        if self.include_class is not None:  # the synthetic background stays supervised under 'classes' filtering
-            self.include_class = np.append(self.include_class, self.bg_class_idx)
 
     # Rebind label scanning to YOLODataset's polygon .txt implementations; the MRO (SemanticDataset, YOLODataset)
     # would otherwise resolve SemanticDataset's PNG-mask hooks and its get_labels, which syncs mask_files from

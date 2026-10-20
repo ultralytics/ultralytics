@@ -254,6 +254,7 @@ def main():
         "ap": {t: round(average_precision(rows, t), 4) for t in tols},
         "best_conf_by_primary_f1": best_t,
         "best": sweep[best_t],
+        "sweep_primary_tol": {c: sweep[c][tols[0]] for c in sweep},
         "recall_by_visibility": recall_by_visibility(rows, files, root, args.conf, tols[0]),
         "top1_dist_grid_px": {
             "mean": float(d.mean()),

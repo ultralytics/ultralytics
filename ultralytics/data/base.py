@@ -30,7 +30,7 @@ class BaseDataset(Dataset):
 
     Attributes:
         img_path (str | list[str]): Path to the folder containing images.
-        imgsz (int): Target image size for resizing.
+        imgsz (int | tuple[int, int]): Target image size for resizing, or fixed (height, width) for evaluation.
         augment (bool): Whether to apply data augmentation.
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
@@ -109,7 +109,7 @@ class BaseDataset(Dataset):
     def __init__(
         self,
         img_path: str | list[str],
-        imgsz: int = 640,
+        imgsz: int | tuple[int, int] = 640,
         cache: bool | str | None = False,
         augment: bool = True,
         hyp: IterableSimpleNamespace = DEFAULT_CFG,
@@ -127,7 +127,7 @@ class BaseDataset(Dataset):
 
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
-            imgsz (int): Image size for resizing.
+            imgsz (int | tuple[int, int]): Image size for resizing, or fixed (height, width) for evaluation.
             cache (bool | str | None): Cache images to RAM (True or 'ram') or disk ('disk'); False or None disables.
             augment (bool): If True, data augmentation is applied.
             hyp (IterableSimpleNamespace): Hyperparameters to apply data augmentation.
@@ -150,7 +150,7 @@ class BaseDataset(Dataset):
         self.prefix = prefix
         self.fraction = get_split_fraction(fraction, "train")
         self.channels = channels
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
+        self.cv2_flag = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
@@ -169,6 +169,8 @@ class BaseDataset(Dataset):
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
+        # image.npy caches persist across runs and versions: renaming, moving, or invalidating them orphans every
+        # existing user cache and forces a full recache, so keep this exact naming
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         if self.cache == "ram" and self.check_cache_ram():
@@ -187,8 +189,11 @@ class BaseDataset(Dataset):
     def get_img_files(self, img_path: str | list[str]) -> list[str]:
         """Read image files from the specified path.
 
+        A text file lists one image path per line, UTF-8 with or without a byte-order mark, and paths starting with `./`
+        resolve relative to the text file.
+
         Args:
-            img_path (str | list[str]): Path or list of paths to image directories or files.
+            img_path (str | list[str]): Path or list of paths to image directories, image files, or text files.
 
         Returns:
             (list[str]): List of image file paths.
@@ -204,7 +209,7 @@ class BaseDataset(Dataset):
                     f += glob.glob(str(Path(glob.escape(p)) / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
-                    with open(p, encoding="utf-8") as t:
+                    with open(p, encoding="utf-8-sig") as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
                         f += [x.replace("./", parent, 1) if x.startswith("./") else x for x in t]  # local to global
@@ -249,6 +254,9 @@ class BaseDataset(Dataset):
     ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
         """Load an image from dataset index 'i'.
 
+        An existing *.npy cache is the fastest image read, so it is loaded in any cache mode unless it is older than its
+        image. With cache='disk', `cache_images_to_disk` has already refreshed stale files, so that check is skipped.
+
         Args:
             i (int): Index of the image to load.
             rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
@@ -265,16 +273,17 @@ class BaseDataset(Dataset):
         """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
-            if fn.exists():  # load npy
+            if fn.exists() and (self.cache == "disk" or fn.stat().st_mtime >= Path(f).stat().st_mtime):
                 try:
                     im = np.load(fn)
                     npy_channels = im.shape[-1] if im.ndim >= 3 else 1
-                    if npy_channels != self.channels:
+                    if npy_channels != self.channels or im.dtype == np.uint16:
                         LOGGER.warning(
-                            f"{self.prefix}Removing stale *.npy image file {fn} with {npy_channels} channels, expected {self.channels}"
+                            f"{self.prefix}Refreshing stale *.npy image file {fn} with {npy_channels} channels and "
+                            f"{im.dtype} dtype"
                         )
-                        Path(fn).unlink(missing_ok=True)
                         im = imread(f, flags=self.cv2_flag)
+                        np.save(fn.as_posix(), im, allow_pickle=False)  # keep disk-cache benefits for this image
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
@@ -285,19 +294,21 @@ class BaseDataset(Dataset):
                 raise FileNotFoundError(f"Image Not Found {f}")
 
             h0, w0 = im.shape[:2]  # orig hw
+            shape = tuple(self.imgsz) if isinstance(self.imgsz, (tuple, list)) else (self.imgsz, self.imgsz)
+            imgsz = max(shape)
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 if resize_short:  # resize short side to imgsz while maintaining aspect ratio
-                    r = self.imgsz / min(h0, w0)  # ratio
+                    r = imgsz / min(h0, w0)  # ratio
                     if r != 1:  # if sizes are not equal
-                        w, h = (math.ceil(w0 * r), self.imgsz) if h0 < w0 else (self.imgsz, math.ceil(h0 * r))
+                        w, h = (math.ceil(w0 * r), imgsz) if h0 < w0 else (imgsz, math.ceil(h0 * r))
                         im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
                 else:
-                    r = self.imgsz / max(h0, w0)  # ratio
+                    r = imgsz / max(h0, w0)  # ratio
                     if r != 1:  # if sizes are not equal
-                        w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
+                        w, h = (min(math.ceil(w0 * r), imgsz), min(math.ceil(h0 * r), imgsz))
                         im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
-            elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
-                im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
+            elif (h0, w0) != shape:  # resize by stretching to the requested shape
+                im = cv2.resize(im, shape[::-1], interpolation=cv2.INTER_LINEAR)
             if im.ndim == 2:
                 im = im[..., None]
 
@@ -335,7 +346,7 @@ class BaseDataset(Dataset):
     def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
-        if not f.exists():
+        if not f.exists() or f.stat().st_mtime < Path(self.im_files[i]).stat().st_mtime:  # missing or stale
             try:
                 np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
             except Exception as e:
@@ -355,7 +366,7 @@ class BaseDataset(Dataset):
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
             im_file = random.choice(self.im_files)
-            im = imread(im_file)
+            im = imread(im_file, flags=self.cv2_flag)
             if im is None:
                 continue
             b += im.nbytes

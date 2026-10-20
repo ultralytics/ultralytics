@@ -8,9 +8,9 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.cfg import get_cfg
+from ultralytics.cfg import _handle_deprecation, get_cfg
 from ultralytics.data.build import load_inference_source
-from ultralytics.engine.model import Model
+from ultralytics.engine.model import PREDICTOR_SETUP_KEYS, Model
 from ultralytics.models import yolo
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.backends.base import BaseBackend
@@ -206,7 +206,7 @@ class YOLOWorld(Model):
             classes (list[str]): A list of categories, e.g. ["person"].
         """
         self.model.set_classes(classes)
-        self.model.names = [c for c in classes if c != " "]  # drop the background class without mutating `classes`
+        self.model.names = list(classes)
 
         self.predictor = None
 
@@ -240,9 +240,8 @@ class YOLOE(Model):
         >>> model = YOLOE("yoloe-11s-seg.pt")
 
         Predict with visual prompts, whose 'cls' holds one class index per box
-        >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
         >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
-        >>> results = model.predict("image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
+        >>> results = model.predict("image.jpg", visual_prompts=prompts)
 
         Re-parameterize into a prompt-free model, which no longer accepts prompts
         >>> names = ["person", "car", "dog"]
@@ -362,7 +361,7 @@ class YOLOE(Model):
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
         names = list(self.model.names.values()) if isinstance(self.model.names, dict) else list(self.model.names)
-        if embeddings is not None or names != classes:
+        if embeddings is not None or names != list(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
@@ -472,7 +471,7 @@ class YOLOE(Model):
         stream: bool = False,
         visual_prompts: dict[str, np.ndarray | list[np.ndarray]] | None = None,
         refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        predictor: type | None = None,
         **kwargs,
     ):
         """Run prediction on images, videos, directories, streams, etc.
@@ -486,7 +485,8 @@ class YOLOE(Model):
                 for the model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one
                 array per image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (type): Predictor class for visual prompt predictions. Defaults to YOLOEVPDetectPredictor.
+            predictor (type, optional): Visual-prompt predictor class. Defaults to the predictor matching the model
+                task.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -496,9 +496,8 @@ class YOLOE(Model):
             >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> results = model.predict("path/to/image.jpg")
             >>> # With visual prompts, whose 'cls' holds one class index per box
-            >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
             >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
-            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
+            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
@@ -534,26 +533,20 @@ class YOLOE(Model):
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)
+            overrides = {"verbose": refer_image is None, **self.overrides, **_handle_deprecation(kwargs)}
+            overrides.update(task=self.model.task, mode="predict", save=False, batch=1)
+            predictor = predictor or (
+                yolo.yoloe.YOLOEVPSegPredictor if self.model.task == "segment" else yolo.yoloe.YOLOEVPDetectPredictor
+            )
             if type(self.predictor) is not predictor:
-                args = get_cfg(overrides={**self.overrides, **kwargs})
-                self.predictor = predictor(
-                    overrides={
-                        "task": self.model.task,
-                        "mode": "predict",
-                        "save": False,
-                        "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
-                        "batch": 1,
-                        "device": args.device,
-                        "quantize": args.quantize,
-                        "imgsz": args.imgsz,
-                    },
-                    _callbacks=self.callbacks,
-                )
+                self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
+            else:  # setup_model below applies this call's setup args, with unset quantize as FP32 like Model.predict
+                setup = {"quantize": None, **{k: overrides[k] for k in PREDICTOR_SETUP_KEYS if k in overrides}}
+                self.predictor.args = get_cfg(self.predictor.args, setup)
 
-            self.model.model[-1].nc = num_cls
-            self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
             self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
+            self.predictor.model.names = {i: f"object{i}" for i in range(num_cls)}  # predictor-scoped prompt classes
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)
@@ -562,11 +555,11 @@ class YOLOE(Model):
                     refer_image = next(iter(dataset))[1][0]
             if refer_image is not None:
                 vpe = self.predictor.get_vpe(refer_image)
-                self.model.set_classes(self.model.names, vpe)
+                self.model.set_classes(self.predictor.model.names, vpe)
                 self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
                 self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             self.predictor = None  # reset predictor if no visual prompts
-        self.overrides["agnostic_nms"] = True  # use agnostic nms for YOLOE default
+        kwargs.setdefault("agnostic_nms", True)  # use agnostic nms for YOLOE predict default
 
         return super().predict(source, stream, **kwargs)

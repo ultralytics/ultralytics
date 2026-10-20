@@ -1,9 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import SETTINGS
-
 try:
-    assert SETTINGS["raytune"] is True  # verify integration is enabled
     from ray import tune
 
     assert hasattr(tune, "get_context")  # verify Ray>=2.41 Tune API, also required by tuner.run_ray_tune

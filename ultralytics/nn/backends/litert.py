@@ -28,21 +28,44 @@ class LiteRTBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .tflite model file (metadata embedded as a metadata.json entry).
         """
-        check_requirements("ai-edge-litert>=2.1.4")
-        from ai_edge_litert.interpreter import Interpreter
-
         tflite_file = Path(weight)
+        self.intel = str(self.device).startswith("intel")  # intel:cpu|npu
 
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
-        self.interpreter = Interpreter(str(tflite_file), num_threads=NUM_THREADS)  # Enable multi-core inference
-        self.interpreter.allocate_tensors()
-        self.input_details = self.interpreter.get_input_details()
-        self.output_details = self.interpreter.get_output_details()
+        if self.intel:  # Intel OpenVINO plugin through CompiledModel
+            check_requirements(["ai-edge-litert>=2.3.0", "ai-edge-litert-sdk-intel>=2.3.0"])
+            from ai_edge_litert.compiled_model import CompiledModel, HardwareAccelerator, IntelOpenVinoOptions, Options
+
+            backend = getattr(IntelOpenVinoOptions.GRAPH_BACKEND, self.device.split(":")[1].upper())
+            self.device = torch.device("cpu")
+            self.model = CompiledModel.from_file(
+                str(tflite_file),
+                options=Options(
+                    hardware_accelerators=HardwareAccelerator.NPU | HardwareAccelerator.CPU,
+                    intel_openvino_options=IntelOpenVinoOptions(graph_backend=backend),
+                ),
+            )
+            sig = next(iter(self.model.get_signature_list()))
+            self.input_buffers = self.model.create_input_buffers(0)
+            self.output_buffers = self.model.create_output_buffers(0)
+            self.input_details = list(self.model.get_input_tensor_details(sig).values())
+            self.output_details = list(self.model.get_output_tensor_details(sig).values())
+            for d in self.input_details + self.output_details:
+                d["dtype"] = np.dtype(d["dtype"])
+        else:
+            check_requirements("ai-edge-litert>=2.1.4")
+            from ai_edge_litert.interpreter import Interpreter
+
+            self.interpreter = Interpreter(str(tflite_file), num_threads=NUM_THREADS)  # Enable multi-core inference
+            self.interpreter.allocate_tensors()
+            self.input_details = self.interpreter.get_input_details()
+            self.output_details = self.interpreter.get_output_details()
         # Legacy onnx2tf TFLite exports are NHWC; litert-torch exports are NCHW. Detect from the input tensor so both
         # load through this backend (the detection/proto outputs share the same layout for either export path).
-        self.nhwc = self.input_details[0]["shape"][-1] == 3
+        metadata = self.read_metadata(tflite_file)
+        self.nhwc = self.input_details[0]["shape"][-1] == int(metadata.get("channels", self.channels))
 
-        self.apply_metadata(self.read_metadata(tflite_file))
+        self.apply_metadata(metadata)
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run inference using the LiteRT interpreter.
@@ -65,14 +88,23 @@ class LiteRTBackend(BaseBackend):
         # third-party) whose graph input is int8/int16.
         if details["dtype"] in {np.int8, np.int16}:
             scale, zero_point = details["quantization"]
-            im = (im / scale + zero_point).astype(details["dtype"])
-        self.interpreter.set_tensor(details["index"], im)
-        self.interpreter.invoke()
+            limits = np.iinfo(details["dtype"])
+            im = im / scale + zero_point
+            im = im.clip(limits.min, limits.max, out=im).astype(details["dtype"])
+        if self.intel:
+            self.input_buffers[0].write(np.ascontiguousarray(im))
+            self.model.run_by_index(0, self.input_buffers, self.output_buffers)
+        else:
+            self.interpreter.set_tensor(details["index"], im)
+            self.interpreter.invoke()
 
         kpt_start = 4 + len(self.names)  # pose keypoints follow the box (4) and class-score (nc) channels
         y = []
-        for output in self.output_details:
-            x = self.interpreter.get_tensor(output["index"])
+        for i, output in enumerate(self.output_details):
+            if self.intel:
+                x = self.output_buffers[i].read(int(np.prod(output["shape"])), output["dtype"]).reshape(output["shape"])
+            else:
+                x = self.interpreter.get_tensor(output["index"])
             if self.task == "semantic" and x.ndim == 3:
                 # Legacy onnx2tf baked argmax class map [B, H, W] of integer IDs: skip xywh denorm, which would
                 # corrupt and overflow the indices.
@@ -88,14 +120,16 @@ class LiteRTBackend(BaseBackend):
                 x[:, [0, 2]] *= w
                 x[:, [1, 3]] *= h
                 if self.task == "pose":
-                    x[:, kpt_start::3] *= w
-                    x[:, kpt_start + 1 :: 3] *= h
+                    nd = self.kpt_shape[1]  # 2 (x, y) or 3 (x, y, visibility) values per keypoint
+                    x[:, kpt_start::nd] *= w
+                    x[:, kpt_start + 1 :: nd] *= h
             elif x.ndim == 3 and self.end2end and self.nhwc:
                 x[:, :, [0, 2]] *= w
                 x[:, :, [1, 3]] *= h
                 if self.task == "pose":  # post-NMS [B, N, box(4)+conf+cls+kpts], keypoints start at 6
-                    x[:, :, 6::3] *= w
-                    x[:, :, 7::3] *= h
+                    nd = self.kpt_shape[1]
+                    x[:, :, 6::nd] *= w
+                    x[:, :, 7::nd] *= h
             y.append(x)
 
         if self.task == "segment" and y[0].ndim == 4:  # order as (detections, protos)

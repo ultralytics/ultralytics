@@ -20,6 +20,7 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from torch import nn
 from torch.nn.utils.fusion import fuse_conv_bn_weights
+from torch.utils._pytree import tree_flatten
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -54,8 +55,6 @@ TORCH_2_5 = check_version(TORCH_VERSION, "2.5.0")
 TORCH_2_7 = check_version(TORCH_VERSION, "2.7.0")
 TORCH_2_8 = check_version(TORCH_VERSION, "2.8.0")
 TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
-TORCH_2_10 = check_version(TORCH_VERSION, "2.10.0")
-TORCH_2_12 = check_version(TORCH_VERSION, "2.12.0")
 TORCH_2_13 = check_version(TORCH_VERSION, "2.13.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
@@ -947,7 +946,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
 
     # Update other keys
     args = {**DEFAULT_CFG_DICT, **x.get("train_args", {})}  # combine args
-    for k in "optimizer", "best_fitness", "ema", "updates", "scaler":  # keys
+    for k in "optimizer", "best_fitness", "stopper", "ema", "updates", "scaler":  # keys
         x[k] = None
     x["epoch"] = -1
     x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
@@ -964,7 +963,8 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
 def convert_optimizer_state_dict_to_fp16(state_dict):
     """Convert the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
 
-    FP32 tensors are converted in place, except 'step' and 'exp_avg_sq', which are kept in FP32.
+    FP32 tensors are converted in place, except 'step', 'exp_avg', 'exp_avg_sq', and 'square_avg', which are kept in
+    FP32.
 
     Args:
         state_dict (dict): Optimizer state dictionary.
@@ -974,7 +974,11 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     """
     for state in state_dict["state"].values():
         for k, v in state.items():
-            if k not in {"step", "exp_avg_sq"} and isinstance(v, torch.Tensor) and v.dtype is torch.float32:
+            if (
+                k not in {"step", "exp_avg", "exp_avg_sq", "square_avg"}
+                and isinstance(v, torch.Tensor)
+                and v.dtype is torch.float32
+            ):
                 state[k] = v.half()
 
     return state_dict
@@ -1066,7 +1070,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         y = m(x)
                         t[1] = time_sync(device)
                         try:
-                            (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
+                            sum(yi.sum() for yi in tree_flatten(y)[0] if isinstance(yi, torch.Tensor)).backward()
                             t[2] = time_sync(device)
                         except Exception:  # no backward method
                             # print(e)  # for debug
@@ -1192,8 +1196,8 @@ def attempt_compile(
     Notes:
         - If the current PyTorch build does not provide torch.compile or `mode` is False, the function returns the input
           model immediately.
-        - Compilation is lazy and runs at the first forward pass, so the inductor CPU prerequisite of a host C++
-          compiler is verified up front and the original model is returned if none is available.
+        - Compilation is lazy and runs at the first forward pass, so the inductor prerequisites (a host C++ compiler on
+          CPU, a working Triton on CUDA) are verified up front and the original model is returned if one is missing.
         - Warmup runs under torch.inference_mode and may use torch.autocast for CUDA/MPS to align compute precision.
         - CUDA devices are synchronized after warmup to account for asynchronous kernel execution.
     """
@@ -1205,16 +1209,21 @@ def attempt_compile(
     if mode is True:
         mode = "default"
     prefix = colorstr("compile:")
-    if device.type == "cpu":
-        try:  # compilation is lazy, so verify the inductor CPU requirement of a host C++ compiler before compiling
+    try:  # compilation is lazy, so verify the inductor prerequisites before compiling
+        if device.type == "cpu":
             from torch._inductor.cpp_builder import get_cpp_compiler
 
-            get_cpp_compiler()
-        except ImportError:
-            pass  # older torch without cpp_builder, defer to torch.compile
-        except Exception as e:
-            LOGGER.warning(f"{prefix} no C++ compiler found for the inductor backend, continuing uncompiled: {e}")
-            return model
+            get_cpp_compiler()  # host C++ compiler
+        elif device.type == "cuda":
+            from torch.utils._triton import has_triton
+
+            if not has_triton():  # e.g. Windows wheels or GPUs below compute capability 7.0
+                raise RuntimeError("no working Triton found")
+    except ImportError:
+        pass  # older torch without these probes, defer to torch.compile
+    except Exception as e:
+        LOGGER.warning(f"{prefix} inductor backend unavailable, continuing uncompiled: {e}")
+        return model
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:

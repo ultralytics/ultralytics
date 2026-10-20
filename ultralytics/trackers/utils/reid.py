@@ -31,13 +31,14 @@ class ReID:
         Args:
             model (str): Path to a ReID model. `.pt` runs through the YOLO predictor (embed-layer extraction); other
                 extensions go through `AutoBackend`.
-            imgsz (int): Square input size used for crop preprocessing on the AutoBackend path. Overridden by the
-                model's own static input size when one is detected.
+            imgsz (int): Square crop size on the AutoBackend path when the input shape is dynamic or unavailable. Static
+                ONNX height and width override it, including rectangular inputs. A static height also sets the fallback
+                width when width is dynamic; a static width overrides only the width.
             device (str | torch.device | None): Inference device; defaults to CUDA if available.
             fp16 (bool): Request half precision on the AutoBackend path when the backend supports it. Ignored for `.pt`
                 models; models exported with FP16 inputs run in half precision regardless.
         """
-        self.imgsz = imgsz
+        self.imgsz = (imgsz, imgsz)
         self.batch_size = None
         self.device = (
             torch.device(device) if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,8 +49,8 @@ class ReID:
             from ultralytics import YOLO
 
             self.model = YOLO(model)
-            # Initialize predictor with embed=[idx] so subsequent calls return embeddings.
-            self.model(embed=[len(self.model.model.model) - 2], device=self.device, verbose=False, save=False)
+            # Set up the embedding predictor that __call__ reuses for crops.
+            self.model.embed(np.zeros((32, 32, 3), dtype=np.uint8), device=self.device, verbose=False, save=False)
             self.fp16 = False
         else:
             from pathlib import Path
@@ -68,7 +69,9 @@ class ReID:
                 if isinstance(shape[0], int) and shape[0] > 0:
                     self.batch_size = shape[0]
                 if isinstance(shape[2], int) and shape[2] > 0:
-                    self.imgsz = shape[2]
+                    self.imgsz = (shape[2], shape[2])
+                if isinstance(shape[3], int) and shape[3] > 0:
+                    self.imgsz = (self.imgsz[0], shape[3])
 
     @staticmethod
     def _crop_detections(img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
@@ -79,18 +82,16 @@ class ReID:
             dets (np.ndarray): Detections in xywh format (first 4 columns used).
 
         Returns:
-            (list[np.ndarray]): Cropped image patches.
+            (list[np.ndarray]): Cropped BGR image patches, converted to RGB by both inference paths.
         """
-        return [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
+        return [save_one_box(det, img, save=False, BGR=True) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
 
     def _crops_to_tensor(self, crops: list[np.ndarray]) -> torch.Tensor:
         """Stack a list of valid image crops into a normalized BCHW float tensor at self.imgsz."""
-        batch = torch.empty(len(crops), 3, self.imgsz, self.imgsz, dtype=torch.float32)
+        batch = torch.empty(len(crops), 3, *self.imgsz, dtype=torch.float32)
         for i, c in enumerate(crops):
             t = torch.from_numpy(np.ascontiguousarray(c[..., ::-1])).permute(2, 0, 1).unsqueeze(0).float() / 255.0
-            batch[i] = torch.nn.functional.interpolate(
-                t, size=(self.imgsz, self.imgsz), mode="bilinear", align_corners=False
-            )[0]
+            batch[i] = torch.nn.functional.interpolate(t, size=self.imgsz, mode="bilinear", align_corners=False)[0]
         batch = batch.to(self.device)
         return batch.half() if self.fp16 else batch
 
@@ -127,7 +128,7 @@ class ReID:
                     chunk = batch[s : s + bs]
                     if chunk.shape[0] < bs:
                         chunk = torch.cat([chunk, chunk[-1:].expand(bs - chunk.shape[0], *chunk.shape[1:])], 0)
-                    outs.append(self.model(chunk))
+                    outs.append(self.model(chunk).clone())  # IO binding reuses output buffers
                 feats = torch.cat(outs, 0)[:n]
             valid_feats = [f.cpu().numpy() for f in feats]
 

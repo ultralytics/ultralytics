@@ -292,6 +292,7 @@ class ONNXBackend(BaseBackend):
                     self.session_options = self.session_options or onnxruntime.SessionOptions()
                     policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
                     self.session_options.set_provider_selection_policy(policy)
+                    torch.set_num_threads(1)  # spinning torch threads stall DirectML, 2x slower predict
                 else:
                     providers = ["CPUExecutionProvider"]
 

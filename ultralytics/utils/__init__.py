@@ -988,14 +988,13 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
     # Fallbacks for Docker, GCP/AWS functions where only /tmp is writable, private to the current user
     for alt in [Path("/tmp") / (sub_dir if WINDOWS else f"{sub_dir}-{os.getuid()}"), Path.cwd() / sub_dir]:
-        if alt.exists():
-            if WINDOWS or alt.stat().st_uid == os.getuid():  # skip a dir another user created
-                return alt
-        elif is_dir_writeable(alt.parent):
-            alt.mkdir(mode=0o700, parents=True, exist_ok=True)
+        with contextlib.suppress(OSError):  # create a new private dir, warning once
+            alt.mkdir(mode=0o700, parents=True)
             LOGGER.warning(
                 f"user config directory '{p}' is not writable, using '{alt}'. Set YOLO_CONFIG_DIR to override."
             )
+            return alt
+        if alt.is_dir() and (WINDOWS or alt.stat().st_uid == os.getuid()):  # reuse only a dir this user owns
             return alt
 
     # Last fallback → CWD

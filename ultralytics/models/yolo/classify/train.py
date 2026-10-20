@@ -100,9 +100,15 @@ class ClassificationTrainer(BaseTrainer):
         import torchvision  # scope for faster 'import ultralytics'
 
         if str(self.model) in torchvision.models.__dict__:
-            self.model = torchvision.models.__dict__[self.model](
-                weights="IMAGENET1K_V1" if self.args.pretrained else None
+            weights = "IMAGENET1K_V1" if self.args.pretrained else None
+            self.model = self.get_model(
+                cfg={
+                    "nc": self.data["nc"],
+                    "backbone": [],
+                    "head": [[-1, 1, "TorchVisionClassify", [self.model, "nc", weights]]],
+                }
             )
+            self.model.yaml["head"][0][3][-1] = None  # checkpoints rebuild from their own weights, without downloading
             ckpt = None
         else:
             ckpt = super().setup_model()

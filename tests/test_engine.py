@@ -63,6 +63,14 @@ def test_export(monkeypatch, tmp_path):
             "yolo26n-cls.yaml",
             None,
         ),
+        (
+            classify.ClassificationTrainer,
+            classify.ClassificationValidator,
+            classify.ClassificationPredictor,
+            "imagenet10",
+            "resnet18",
+            None,
+        ),
         (obb.OBBTrainer, obb.OBBValidator, obb.OBBPredictor, "dota8.yaml", "yolo26n-obb.yaml", None),
         (pose.PoseTrainer, pose.PoseValidator, pose.PosePredictor, "coco8-pose.yaml", "yolo26n-pose.yaml", None),
         (

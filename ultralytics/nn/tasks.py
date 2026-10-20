@@ -73,6 +73,7 @@ from ultralytics.nn.modules import (
     Segment26,
     SemanticSegment,
     TorchVision,
+    TorchVisionClassify,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -930,7 +931,9 @@ class ClassificationModel(BaseModel):
             nc (int): New number of classes.
         """
         name, m = list((model.model if hasattr(model, "model") else model).named_children())[-1]  # last module
-        if isinstance(m, Classify):  # YOLO Classify() head
+        if isinstance(m, TorchVisionClassify):
+            ClassificationModel.reshape_outputs(m.model, nc)
+        elif isinstance(m, Classify):  # YOLO Classify() head
             if m.linear.out_features != nc:
                 m.linear = torch.nn.Linear(m.linear.in_features, nc)
         elif isinstance(m, torch.nn.Linear):  # ResNet, EfficientNet

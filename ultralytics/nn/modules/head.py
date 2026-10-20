@@ -29,6 +29,7 @@ __all__ = (
     "RTDETRDecoder",
     "Segment",
     "SemanticSegment",
+    "TorchVisionClassify",
     "YOLOEDetect",
     "YOLOESegment",
     "v10Detect",
@@ -928,6 +929,39 @@ class Classify(nn.Module):
         if self.training:
             return x
         y = x.softmax(1)  # get final output
+        return y if self.export else (y, x)
+
+
+class TorchVisionClassify(Classify):
+    """Adapt a torchvision classifier to the classification training and export output contract."""
+
+    def __init__(self, model: str, nc: int, weights=None):
+        """Initialize a torchvision classifier with the requested class count.
+
+        Args:
+            model (str): Torchvision classification architecture name.
+            nc (int): Number of output classes.
+            weights (str, optional): Pretrained torchvision weights to load before reshaping the classifier.
+        """
+        nn.Module.__init__(self)
+        import torchvision
+
+        from ultralytics.nn.tasks import ClassificationModel
+
+        self.model = (
+            torchvision.models.get_model(model, weights=weights)
+            if hasattr(torchvision.models, "get_model")
+            else torchvision.models.__dict__[model](pretrained=bool(weights))
+        )
+        ClassificationModel.reshape_outputs(self.model, nc)
+
+    def forward(self, x):
+        """Return training logits, inference probabilities and logits, or export probabilities."""
+        x = self.model(x)
+        x = getattr(x, "logits", x)
+        if self.training:
+            return x
+        y = x.softmax(1)
         return y if self.export else (y, x)
 
 

@@ -1153,10 +1153,10 @@ def entrypoint(debug: str = "") -> None:
 
         model = NAS(model)
     else:
-        from ultralytics import YOLO
+        from ultralytics import YOLO, YOLOE, YOLOWorld
 
         model = YOLO(model, task=task)
-        if "yoloe" in stem or "world" in stem:
+        if isinstance(model, (YOLOE, YOLOWorld)):
             cls_list = overrides.get("classes", DEFAULT_CFG.classes)
             if isinstance(cls_list, str):  # text prompts, i.e. "person, bus" -> ['person', 'bus']
                 model.set_classes([c.strip() for c in overrides.pop("classes", cls_list).split(",")])

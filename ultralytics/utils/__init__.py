@@ -988,7 +988,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
         p.mkdir(parents=True, exist_ok=True)
         return p
 
-    # Fallback for Docker, GCP/AWS functions where only /tmp is writable, private to the current user (%TEMP% on Windows)
+    # Fallback for Docker, GCP/AWS functions where only /tmp is writable, private to the current user on Linux and macOS
     alt = Path(tempfile.gettempdir()) / (sub_dir if WINDOWS else f"{sub_dir}-{os.getuid()}")
     try:
         alt.mkdir(mode=0o700, parents=True)

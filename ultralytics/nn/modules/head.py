@@ -935,27 +935,29 @@ class Classify(nn.Module):
 class TorchVisionClassify(Classify):
     """Adapt a torchvision classifier to the classification training and export output contract."""
 
-    def __init__(self, model: str, nc: int, weights=None):
+    def __init__(self, model: str, nc: int, weights=None, kwargs: dict | None = None):
         """Initialize a torchvision classifier with the requested class count.
 
         Args:
             model (str): Torchvision classification architecture name.
             nc (int): Number of output classes.
             weights (str, optional): Pretrained torchvision weights to load before reshaping the classifier.
+            kwargs (dict, optional): Constructor settings preserved when rebuilding a checkpoint.
         """
         nn.Module.__init__(self)
         import torchvision
 
         from ultralytics.nn.tasks import ClassificationModel
 
+        kwargs = kwargs or {}
         self.model = (
-            torchvision.models.get_model(model, weights=weights)
+            torchvision.models.get_model(model, weights=weights, **kwargs)
             if hasattr(torchvision.models, "get_model")
-            else torchvision.models.__dict__[model](pretrained=bool(weights))
+            else torchvision.models.__dict__[model](pretrained=bool(weights), **kwargs)
         )
         ClassificationModel.reshape_outputs(self.model, nc)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor | tuple:
         """Return training logits, inference probabilities and logits, or export probabilities."""
         x = self.model(x)
         x = getattr(x, "logits", x)

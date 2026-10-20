@@ -108,7 +108,10 @@ class ClassificationTrainer(BaseTrainer):
                     "head": [[-1, 1, "TorchVisionClassify", [self.model, "nc", weights]]],
                 }
             )
-            self.model.yaml["head"][0][3][-1] = None  # checkpoints rebuild from their own weights, without downloading
+            native = self.model.model[-1].model
+            args = self.model.yaml["head"][0][3]
+            args[2] = None  # checkpoints rebuild from their own weights, without downloading
+            args.append({k: getattr(native, k) for k in ("transform_input", "aux_logits") if hasattr(native, k)})
             ckpt = None
         else:
             ckpt = super().setup_model()

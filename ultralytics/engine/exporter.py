@@ -1124,13 +1124,7 @@ class Exporter:
 
             ort = "onnxruntime-gpu" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
             ort = WINML_PACKAGES[0] if WINML_SUPPORTED and ort == "onnxruntime" else ort
-            builds = (
-                "onnxruntime",
-                "onnxruntime-gpu",
-                "onnxruntime-qnn",
-                "onnxruntime-vitisai",
-                "onnxruntime-windowsml",
-            )
+            builds = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
             requirements += [(ort, *builds)]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]

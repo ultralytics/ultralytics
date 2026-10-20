@@ -156,39 +156,34 @@ _ORT_DTYPES = {
 
 @lru_cache(maxsize=1)
 def _winml_bootstrap() -> object | None:
-    """Register Windows ML catalog execution providers with ONNX Runtime once per process.
-
-    Installs the Windows App SDK runtime matching the wasdk packages when it is missing and AutoUpdate is enabled.
+    """Install Windows ML and register its catalog execution providers with ONNX Runtime once per process.
 
     Returns:
-        (object | None): The Windows App SDK bootstrap handle, kept alive by the cache, or None if Windows ML is not
-            available.
+        (object | None): The Windows App SDK bootstrap handle, or None if Windows ML could not be installed or started.
     """
-    try:
-        import winui3.microsoft.windows.ai.machinelearning as winml
-        from winui3.microsoft.windows.applicationmodel.dynamicdependency.bootstrap import initialize
-    except ImportError:
+    if not check_requirements(WINML_PACKAGES):
         return None
     import onnxruntime
+    import winui3.microsoft.windows.ai.machinelearning as winml
+    from winui3.microsoft.windows.applicationmodel.dynamicdependency.bootstrap import initialize
 
     try:
         handle = initialize()
-    except OSError as e:  # no Windows App SDK runtime matching the installed wasdk packages
-        if not (AUTOINSTALL and ONLINE):
-            LOGGER.warning(f"Windows App SDK runtime not found ({e}), Windows ML disabled.")
-            return None
+    except OSError:  # no Windows App SDK runtime matching the wasdk packages
         from importlib.metadata import version
 
         from ultralytics.utils.downloads import safe_download
 
         v = ".".join(version(WINML_BOOTSTRAP).split(".")[:2])
         arch = "arm64" if platform.machine() == "ARM64" else "x64"
-        LOGGER.info(f"Installing Windows App SDK {v} runtime for Windows ML...")
-        exe = safe_download(
-            f"https://aka.ms/windowsappsdk/{v}/latest/windowsappruntimeinstall-{arch}.exe", dir=USER_CONFIG_DIR
-        )
-        subprocess.run([str(exe), "--quiet"], check=True)
-        handle = initialize()
+        try:
+            assert AUTOINSTALL and ONLINE, "AutoUpdate disabled or offline"
+            url = f"https://aka.ms/windowsappsdk/{v}/latest/windowsappruntimeinstall-{arch}.exe"
+            subprocess.run([str(safe_download(url, dir=USER_CONFIG_DIR)), "--quiet"], check=True)
+            handle = initialize()
+        except Exception as e:
+            LOGGER.warning(f"Windows ML disabled, Windows App SDK {v} runtime unavailable: {e}")
+            return None
     atexit.register(handle)  # shut the Windows App SDK down cleanly at exit
     for provider in winml.ExecutionProviderCatalog.get_default().find_all_providers():
         provider.ensure_ready_async().get()  # downloads the EP on first use
@@ -259,15 +254,17 @@ class ONNXBackend(BaseBackend):
             if rocm and IS_PYTHON_MINIMUM_3_11 and not ARM64:  # MIGraphX EP wheels are Python>=3.11 x86_64 only
                 check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
             # Stock onnxruntime underlies the MIGraphX plugin and is the CPU fallback if the plugin is unavailable
-            stock = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai")  # keep installed builds
+            # Windows ML by default on supported Windows where no other ONNX Runtime build is installed
+            builds = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai")
+            winml = (
+                WINML_SUPPORTED and not cuda and not check_requirements([builds], install=False) and _winml_bootstrap()
+            )
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
                 if rocm
                 else [("onnxruntime-gpu", "onnxruntime-windowsml")]
                 if cuda
-                else WINML_PACKAGES  # Windows ML by default where no stock build is installed
-                if WINML_SUPPORTED and not check_requirements([stock], install=False)
-                else [(*stock, "onnxruntime-windowsml")]
+                else [(*builds, "onnxruntime-windowsml")]  # keep GPU, AMD Vitis AI or Windows ML builds
             )
             import onnxruntime
 
@@ -290,13 +287,11 @@ class ONNXBackend(BaseBackend):
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
                     providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
-                elif _winml_bootstrap():  # Windows ML selects the execution provider by device policy
+                elif winml:  # Windows ML selects the execution provider by device policy
                     providers = None
                     self.session_options = self.session_options or onnxruntime.SessionOptions()
-                    self.session_options.set_provider_selection_policy(
-                        getattr(onnxruntime.OrtExecutionProviderDevicePolicy, "PREFER_GPU" if cuda else "PREFER_NPU")
-                    )
-                    cuda = False  # outputs are host arrays, no CUDA IO binding
+                    policy = onnxruntime.OrtExecutionProviderDevicePolicy.PREFER_NPU
+                    self.session_options.set_provider_selection_policy(policy)
                 else:
                     providers = ["CPUExecutionProvider"]
 

@@ -817,9 +817,9 @@ def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str
                 raise FileNotFoundError(m)
             t = time.time()
             r = None  # success
-            if s.lower().startswith("http") and s.lower().endswith(
+            if s.lower().startswith("http") and s.partition("?")[0].lower().endswith(
                 (".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")
-            ):  # URL
+            ):  # URL (extension on the path, query string stripped like url2file)
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
             elif s.startswith("bash "):  # bash script
                 LOGGER.info(f"Running {s} ...")

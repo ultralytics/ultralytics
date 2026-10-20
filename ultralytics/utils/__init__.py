@@ -11,6 +11,7 @@ import os
 import platform
 import re
 import socket
+import stat
 import sys
 import threading
 import time
@@ -994,8 +995,9 @@ def get_user_config_dir(sub_dir="Ultralytics"):
                 f"user config directory '{p}' is not writable, using '{alt}'. Set YOLO_CONFIG_DIR to override."
             )
             return alt
-        with contextlib.suppress(OSError):  # reuse only a dir this user owns
-            if not alt.is_symlink() and alt.is_dir() and (WINDOWS or alt.stat().st_uid == os.getuid()):
+        with contextlib.suppress(OSError):  # reuse only a private dir this user owns, never a symlink
+            info = alt.lstat()
+            if stat.S_ISDIR(info.st_mode) and (WINDOWS or (info.st_uid == os.getuid() and not info.st_mode & 0o077)):
                 return alt
 
     # Last fallback → CWD

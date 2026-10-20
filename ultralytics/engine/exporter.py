@@ -385,12 +385,11 @@ EXPORT_ENVS = {
     "isolated-axelera": {
         "python": "3.13",
         "extras": ["export-base"],
-        # Axelera export requires 2.8.0 <= torch < 2.13.0.
-        "torch": ">=2.8,<2.13",
+        # Axelera export requires 2.8.0 <= torch < 2.15.0.
+        "torch": ">=2.8,<2.15",
         "requirements": [
             f"axelera-devkit=={AXELERA_SDK}",
             f"axelera-rt=={AXELERA_SDK}",
-            "omnimalloc==0.5.0",
             "onnx>=1.12.0,<2.0.0",
             "onnxslim>=0.1.71",
         ],
@@ -692,8 +691,6 @@ class Exporter:
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
                 raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
-        if fmt == "axelera" and model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
-            raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
         if fmt == "imx":
             if model.task == "depth":
                 raise ValueError("IMX export is not supported for depth models.")
@@ -721,8 +718,10 @@ class Exporter:
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)
         model.names = check_class_names(model.names)
-        if hasattr(model, "end2end"):
-            model.end2end = self.args.nms is False
+        if hasattr(model, "end2end"):  # the Axelera runtime decodes the NMS-free head, so nms=None keeps it there
+            model.end2end = self.args.nms is False or (
+                fmt == "axelera" and self.args.nms is None and getattr(head, "one2one_cv2", None) is not None
+            )
         if getattr(model, "end2end", False):
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable the end2end branch for formats without top-k support

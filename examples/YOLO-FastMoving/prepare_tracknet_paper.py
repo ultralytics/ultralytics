@@ -8,7 +8,7 @@ dataset has no ball extent (mean diameter ~10 px at 1280x720 per the paper).
 Layout under --out:
     images/gameG/ClipC/gameG_ClipC_frame_NNNN.jpg   symlinks to the originals, renamed so diff history can find t-1
     labels/...                                      YOLO txt, class 0 = ball
-    {wasb,paper}_{train,val}.txt, tennis-{wasb,paper}-{rgb,diff,stack}.yaml
+    {wasb,paper}_{train,val}.txt, tennis-{wasb,paper}-{rgb,diff,stack}.yaml, visibility.json
     tracknet/annotations.json + splits.json          for the TrackNet repo's FlyingBallDataset (wasb split only)
 
 Splits:
@@ -44,13 +44,13 @@ def main():
                 continue
             vis = int(row["visibility"] or 0)
             xy = (float(row["x-coordinate"]), float(row["y-coordinate"])) if vis > 0 and row["x-coordinate"] else None
-            frames.append((game, clip, f, xy, Path(name).stem))
+            frames.append((game, clip, f, xy, Path(name).stem, vis))
     w, h = 1280, 720
     rng = random.Random(args.seed)
     is_paper_train = [rng.random() < 0.7 for _ in frames]
     lists = {"wasb_train": [], "wasb_val": [], "paper_train": [], "paper_val": []}
-    tn_images = []
-    for (game, clip, f, xy, stem), ptrain in zip(frames, is_paper_train):
+    tn_images, visibility = [], {}
+    for (game, clip, f, xy, stem, vis), ptrain in zip(frames, is_paper_train):
         img = out / "images" / game / clip / f"{game}_{clip}_frame_{stem}{f.suffix}"
         img.parent.mkdir(parents=True, exist_ok=True)
         if not img.is_symlink():
@@ -58,6 +58,7 @@ def main():
         lab = out / "labels" / game / clip / f"{img.stem}.txt"
         lab.parent.mkdir(parents=True, exist_ok=True)
         lab.write_text(f"0 {xy[0] / w:.6f} {xy[1] / h:.6f} {args.box / w:.6f} {args.box / h:.6f}\n" if xy else "")
+        visibility[str(img)] = vis
         lists[f"wasb_{'train' if int(game[4:]) <= 7 else 'val'}"].append(str(img))
         lists[f"paper_{'train' if ptrain else 'val'}"].append(str(img))
         ann = [{"label": "ball", "bbox_pixel": {"x": xy[0], "y": xy[1], "width": 0.0, "height": 0.0}}] if xy else []
@@ -83,6 +84,7 @@ def main():
                 f"path: {out}\ntrain: {split}_train.txt\nval: {split}_val.txt\nchannels: {ch}\n"
                 f"temporal:\n  frames: 3\n  mode: {mode}\nnames:\n  0: ball\n"
             )
+    json.dump(visibility, open(out / "visibility.json", "w"))  # read by eval_fastmoving.py for recall per class
     tn = out / "tracknet"
     tn.mkdir(exist_ok=True)
     json.dump({"images": tn_images}, open(tn / "annotations.json", "w"))

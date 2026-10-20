@@ -113,6 +113,22 @@ def average_precision(rows, tol):
     return float(np.sum(np.diff(np.concatenate([[0.0], rec])) * prec))
 
 
+def recall_by_visibility(rows, files, root, conf_thr, tol):
+    """Recall at the fixed conf per visibility class, if the dataset ships visibility.json (TrackNet paper dataset)."""
+    vf = Path(root) / "visibility.json"
+    if not vf.exists():
+        return None
+    vis = json.load(open(vf))
+    hits, counts = {}, {}
+    for f, (gt, pr, c) in zip(files, rows):
+        if gt is None:
+            continue
+        v = str(vis.get(f, "?"))
+        counts[v] = counts.get(v, 0) + 1
+        hits[v] = hits.get(v, 0) + (pr is not None and c >= conf_thr and np.hypot(pr[0] - gt[0], pr[1] - gt[1]) <= tol)
+    return {v: {"n": counts[v], "recall": round(hits[v] / counts[v], 4)} for v in sorted(counts)}
+
+
 class TrackNetPredictor:
     """Causal TrackNet inference: window [t-2, t-1, t] (missing history repeats the oldest frame), heatmap of frame t."""
 
@@ -238,6 +254,7 @@ def main():
         "ap": {t: round(average_precision(rows, t), 4) for t in tols},
         "best_conf_by_primary_f1": best_t,
         "best": sweep[best_t],
+        "recall_by_visibility": recall_by_visibility(rows, files, root, args.conf, tols[0]),
         "top1_dist_grid_px": {
             "mean": float(d.mean()),
             "median": float(np.median(d)),

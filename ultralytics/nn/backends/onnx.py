@@ -209,7 +209,7 @@ class ONNXBackend(BaseBackend):
             # Stock onnxruntime underlies the MIGraphX plugin and is the CPU fallback if the plugin is unavailable
             # Windows ML by default on supported Windows where no other ONNX Runtime build is installed, and on CUDA
             # devices only once Windows ML is the installed build (it has no CUDA EP)
-            builds = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai")
+            builds = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai")
             winml = (
                 WINML_SUPPORTED
                 and not check_requirements([builds], install=False)
@@ -220,7 +220,7 @@ class ONNXBackend(BaseBackend):
                 if rocm
                 else [("onnxruntime-gpu", "onnxruntime-windowsml")]
                 if cuda
-                else [(*builds, "onnxruntime-windowsml")]  # keep GPU, AMD Vitis AI or Windows ML builds
+                else [(*builds, "onnxruntime-windowsml")]  # keep GPU, QNN, AMD Vitis AI or Windows ML builds
             )
             import onnxruntime
 

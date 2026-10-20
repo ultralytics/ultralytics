@@ -44,6 +44,30 @@ def letterbox(im: np.ndarray, stride: int = 32):
     return out
 
 
+def gpu_temporal(frames, size, device, stride=32):
+    """'diff' temporal input built on the GPU from raw BGR frames (newest first), padded like letterbox()."""
+    gw = torch.tensor([0.114, 0.587, 0.299], device=device, dtype=torch.half).view(1, 3, 1, 1)
+    w, h = size
+    bgr, grays = None, []
+    for f in frames:
+        if f is None:
+            grays.append(None)
+            continue
+        t = torch.from_numpy(f).to(device).permute(2, 0, 1)[None].half()
+        t = torch.nn.functional.interpolate(t, size=(h, w), mode="bilinear", align_corners=False)
+        bgr = t if bgr is None else bgr
+        grays.append((t * gw).sum(1, keepdim=True).round())
+    diffs = [
+        (a - b).abs() if a is not None and b is not None else torch.zeros_like(grays[0])
+        for a, b in zip(grays[:-1], grays[1:])
+    ]
+    x = torch.full(
+        (1, 3 + len(diffs), -(-h // stride) * stride, -(-w // stride) * stride), 114, device=device, dtype=torch.half
+    )
+    x[:, :, :h, :w] = torch.cat([bgr, *diffs], 1)
+    return x / 255
+
+
 def metrics(rows, conf_thr):
     """rows: (gt_xy or None, pred_xy or None, conf). Returns {tol: dict}."""
     res = {}
@@ -76,6 +100,7 @@ def main():
     ap.add_argument("--conf", type=float, default=0.25, help="fixed reporting threshold")
     ap.add_argument("--device", default="cuda:0")
     ap.add_argument("--out", default="")
+    ap.add_argument("--gpu-prep", action="store_true", help="build the 'diff' input on the GPU like bench_speed.py")
     args = ap.parse_args()
 
     import yaml
@@ -102,12 +127,15 @@ def main():
         h0, w0 = frames[0].shape[:2]
         r = args.imgsz / max(h0, w0)
         size = (math.ceil(w0 * r), math.ceil(h0 * r))
-        frames = [cv2.resize(x, size, interpolation=cv2.INTER_LINEAR) if x is not None else None for x in frames]
-        im = stack_temporal(frames, mode)
-        if im.shape[2] == 3:  # Format flips 3-channel training images BGR->RGB; 5/9-channel images stay BGR
-            im = im[..., ::-1]
-        im = letterbox(im)
-        x = torch.from_numpy(im).to(args.device).permute(2, 0, 1)[None].half() / 255
+        if args.gpu_prep:  # the bench_speed.py deployment path: torch bilinear resize, gray and absdiff on the GPU
+            x = gpu_temporal(frames, size, args.device)
+        else:
+            frames = [cv2.resize(x, size, interpolation=cv2.INTER_LINEAR) if x is not None else None for x in frames]
+            im = stack_temporal(frames, mode)
+            if im.shape[2] == 3:  # Format flips 3-channel training images BGR->RGB; 5/9-channel images stay BGR
+                im = im[..., ::-1]
+            im = letterbox(im)
+            x = torch.from_numpy(im).to(args.device).permute(2, 0, 1)[None].half() / 255
         y = model(x)
         y = y[0] if isinstance(y, (list, tuple)) else y  # (1, N, 6) xyxy, conf, cls for end2end heads
         det = y[0]

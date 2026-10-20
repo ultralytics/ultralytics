@@ -202,7 +202,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           uv pip uninstall onnxruntime
-          python -c "from ultralytics import YOLO; from ultralytics.nn.backends.onnx import _winml_bootstrap as b; YOLO(YOLO('yolo26n.pt').export(format='onnx', imgsz=32))(imgsz=32); assert b()"
+          python -c "from importlib.metadata import version; from ultralytics import YOLO; YOLO(YOLO('yolo26n.pt').export(format='onnx', imgsz=32))(imgsz=32); print(version('onnxruntime-windowsml'))"
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
         continue-on-error: true

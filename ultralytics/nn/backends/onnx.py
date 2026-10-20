@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import atexit
 import hashlib
 import os
 import platform
 import shutil
-import subprocess
 import sys
 from functools import lru_cache
 from pathlib import Path
@@ -15,7 +13,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, AUTOINSTALL, LOGGER, ONLINE, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
+from ultralytics.utils import ARM64, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, check_requirements, rocm_is_available
 
 from .base import BaseBackend
@@ -29,12 +27,8 @@ ROCM_EXTRA_INDEX = (
 # whl-next indexes on the validated stack and can only resolve from AMD's index (PyPI rejects local versions).
 ROCM_EP_PACKAGES = ["onnxruntime-ep-migraphx==1.0.0+rocm10.0.0", "migraphx-libs==2.17.0+rocm10.0.0"]
 MIGRAPHX_CACHE_MODELS = 8  # compiled programs kept in the MIGraphX cache, least recently used evicted first
-WINML_BOOTSTRAP = "wasdk-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap"
-WINML_PACKAGES = ["wasdk-Microsoft.Windows.AI.MachineLearning[all]", WINML_BOOTSTRAP]
-# Windows ML catalog EPs need Windows 11 24H2 (build 26100) or newer, and its wheels cover Python 3.10-3.13
-WINML_SUPPORTED = (
-    WINDOWS and int(platform.version().rsplit(".", 1)[-1]) >= 26100 and (3, 10) <= sys.version_info[:2] <= (3, 13)
-)
+# Windows ML (onnxruntime-windowsml) on Windows 11 24H2 (build 26100) or newer, with wheels from Python 3.10
+WINML_SUPPORTED = WINDOWS and int(platform.version().rsplit(".", 1)[-1]) >= 26100 and sys.version_info >= (3, 10)
 
 
 def _register_migraphx_ep(onnxruntime) -> str:
@@ -154,47 +148,6 @@ _ORT_DTYPES = {
 }
 
 
-@lru_cache(maxsize=1)
-def _winml_bootstrap() -> object | None:
-    """Install Windows ML and register its catalog execution providers with ONNX Runtime once per process.
-
-    Returns:
-        (object | None): The Windows App SDK bootstrap handle, or None if Windows ML could not be installed or started.
-    """
-    if not check_requirements(WINML_PACKAGES):
-        return None
-    import onnxruntime
-    import winui3.microsoft.windows.ai.machinelearning as winml
-    from winui3.microsoft.windows.applicationmodel.dynamicdependency.bootstrap import initialize
-
-    try:
-        handle = initialize()
-    except OSError:  # no Windows App SDK runtime matching the wasdk packages
-        from importlib.metadata import version
-
-        from ultralytics.utils.downloads import safe_download
-
-        v = ".".join(version(WINML_BOOTSTRAP).split(".")[:2])
-        arch = "arm64" if platform.machine() == "ARM64" else "x64"
-        try:
-            assert AUTOINSTALL and ONLINE, "AutoUpdate disabled or offline"
-            url = f"https://aka.ms/windowsappsdk/{v}/latest/windowsappruntimeinstall-{arch}.exe"
-            subprocess.run([str(safe_download(url, dir=USER_CONFIG_DIR)), "--quiet"], check=True)
-            handle = initialize()
-        except Exception as e:
-            LOGGER.warning(f"Windows ML disabled, Windows App SDK {v} runtime unavailable: {e}")
-            return None
-    atexit.register(handle)  # shut the Windows App SDK down cleanly at exit
-    for provider in winml.ExecutionProviderCatalog.get_default().find_all_providers():
-        provider.ensure_ready_async().get()  # downloads the EP on first use
-        if provider.library_path:
-            try:
-                onnxruntime.register_execution_provider_library(provider.name, provider.library_path)
-            except Exception as e:  # one unloadable EP library must not block the others
-                LOGGER.warning(f"Windows ML {provider.name} unavailable: {e}")
-    return handle
-
-
 class ONNXBackend(BaseBackend):
     """Microsoft ONNX Runtime inference backend with optional OpenCV DNN support.
 
@@ -260,8 +213,7 @@ class ONNXBackend(BaseBackend):
             winml = (
                 WINML_SUPPORTED
                 and not check_requirements([builds], install=False)
-                and (not cuda or check_requirements("onnxruntime-windowsml", install=False))
-                and _winml_bootstrap()
+                and check_requirements("onnxruntime-windowsml", install=not cuda)
             )
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]

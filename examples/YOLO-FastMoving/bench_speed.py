@@ -149,7 +149,7 @@ def main():
         for name, cls in (("TrackNet", TrackNet), ("TrackNetDeep", TrackNetDeep)):
             net = cls(seq_len=3).to(dev).eval()
             if args.tracknet_ckpt and name == "TrackNet":
-                sd = torch.load(args.tracknet_ckpt, map_location=dev)
+                sd = torch.load(args.tracknet_ckpt, map_location=dev, weights_only=False)  # own checkpoint
                 net.load_state_dict(sd.get("model", sd.get("model_state_dict", sd)))
             net = net.half()
             x = torch.rand(1, 9, 288, 512, device=dev).half()

@@ -647,11 +647,11 @@ class Model(torch.nn.Module):
         return validator.metrics
 
     def calibrate(self, data: str | Path, **kwargs: Any):
-        """Fit scale-only depth calibration on a small labeled set (depth task only).
+        """Select the depth scale calibration on a small labeled set (depth task only).
 
         Runs a validation pass, then fits the global log-affine ``d' = exp(a·log d + b)`` against
         ground-truth depth via :func:`fit_calibration_selective` — the same "calibrate only if it
-        helps" policy as trainer auto-calibration (identity / scale-only chosen by held-out δ1) —
+        helps" policy as trainer auto-calibration (identity / current / scale-only chosen by held-out δ1) —
         which writes ``(a, b)`` into the head's ``cal_a``/``cal_b`` buffers. No gradient training
         and the decoder weights are untouched, so it cannot degrade the relative depth structure.
         Call ``model.save(...)`` afterwards to persist the calibration.
@@ -661,7 +661,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Extra validation arguments (e.g. ``imgsz``, ``batch``, ``device``, ``split``).
 
         Returns:
-            (tuple | None): The fitted ``(a, b)``, or ``None`` if fewer than 2 images had valid depth pixels.
+            (tuple | None): The selected ``(a, b)``, or ``None`` if fewer than 2 images had valid depth pixels.
 
         Raises:
             TypeError: If the model is not a PyTorch model.

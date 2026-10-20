@@ -1738,18 +1738,17 @@ class _SafeLoad:
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
+            class_modules = {"ultralytics.nn.distill_model", "ultralytics.utils.loss", "ultralytics.utils.tal"}
             for name in needed:
                 module, _, attr = name.rpartition(".")
                 if name not in cls._registry and (
                     module in {"torch.nn.modules", "ultralytics.nn.modules", "ultralytics.nn.tasks"}
                     or module.rpartition(".")[0] in {"torch.nn.modules", "ultralytics.nn.modules"}
-                    or module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
+                    or module in class_modules
                 ):
                     obj = getattr(importlib.import_module(module), attr, None)
                     if isinstance(obj, type) and (
-                        obj.__module__ == module
-                        if module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
-                        else issubclass(obj, nn.Module)
+                        obj.__module__ == module if module in class_modules else issubclass(obj, nn.Module)
                     ):
                         cls._registry[name] = obj
             if any(name.startswith("torchvision.transforms.") for name in needed):

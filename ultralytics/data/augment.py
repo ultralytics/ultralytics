@@ -1675,8 +1675,9 @@ class RandomFlip(BaseTransform):
 class LetterBox(BaseTransform):
     """Resize image and padding for detection, instance segmentation, pose.
 
-    This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates corresponding
-    labels and bounding boxes.
+    This class resizes and pads images to a specified shape while preserving aspect ratio. Each resized side is kept at
+    least 1 pixel, so very thin images (e.g. 1x3000) stay valid. It also updates corresponding labels and bounding
+    boxes.
 
     Attributes:
         new_shape (int | tuple[int, int]): Target shape (height, width) for resizing, or an int for a square target.
@@ -1794,7 +1795,7 @@ class LetterBox(BaseTransform):
 
         # Compute padding
         ratio = r, r  # width, height ratios
-        new_unpad = round(shape[1] * r), round(shape[0] * r)
+        new_unpad = max(round(shape[1] * r), 1), max(round(shape[0] * r), 1)  # keep thin images at least 1 pixel
         dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
         if self.auto:  # minimum rectangle
             dw, dh = np.mod(dw, self.stride), np.mod(dh, self.stride)  # wh padding

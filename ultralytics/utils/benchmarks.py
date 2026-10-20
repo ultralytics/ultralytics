@@ -51,7 +51,6 @@ from ultralytics import RTDETR, YOLO, YOLOE, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.data.utils import check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.engine.exporter import export_formats
-from ultralytics.nn.modules import Segment26
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -197,9 +196,6 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Axelera exports not supported"
                 assert LINUX and not (ARM64 and IS_DOCKER), (
                     "export is only supported on Linux and is not supported on ARM64 Docker."
-                )
-                assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
-                    "Axelera export does not currently support YOLO26 segmentation models"
                 )
             if export_format == "xilinx":
                 assert LINUX, "AMD Xilinx export only supported on Linux"

@@ -22,7 +22,7 @@ The Roboflow integration imports the supported datasets you select from your Rob
 
 ![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/820fce23e76ce128342fc6863f2188f0.avif)<!-- screenshot -->
 
-Imported datasets appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
+Imported datasets take the workspace's [default dataset visibility](../account/settings.md#default-visibility) and appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
 
 Any workspace editor can run the import. The preview is the slow step: Roboflow generates each new dataset's export archive before it can report a size, so a workspace with many fresh versions can take a minute or more to preview. If a very large workspace times out, run it again — Roboflow keeps generating the exports it already started, so the next preview has less to wait for.
 

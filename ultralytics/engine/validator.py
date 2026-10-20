@@ -161,6 +161,11 @@ class BaseValidator:
             (dict | None): Dictionary containing validation statistics, or None on non-zero DDP ranks during training.
         """
         self.training = trainer is not None
+        if not self.training:
+            with torch_distributed_zero_first(LOCAL_RANK):
+                self.args.data = convert_ndjson_to_yolo_if_needed(
+                    self.args.data, self.args.fraction, split=self.args.split
+                )
         model = self.get_model(model, trainer, **kwargs)
         augment = self.args.augment and (not self.training)
         if self.training:
@@ -178,10 +183,6 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
-            with torch_distributed_zero_first(LOCAL_RANK):
-                self.args.data = convert_ndjson_to_yolo_if_needed(
-                    self.args.data, self.args.fraction, split=self.args.split
-                )
             device_type = str(self.args.device).split(":", 1)[0]
             device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             model = AutoBackend(

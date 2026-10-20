@@ -317,7 +317,7 @@ Some export formats have architecture or task restrictions:
 | Format       | Restriction                                                                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IMX500**   | Available only for `YOLOv8n` and `YOLO11n` detect, segment, classify, and pose models; INT8 only                                                                                       |
-| **Axelera**  | YOLO26 segmentation models are not supported; INT8 only                                                                                                                                |
+| **Axelera**  | INT8 only                                                                                                                                                                              |
 | **DeepX**    | INT8 only                                                                                                                                                                              |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
@@ -362,7 +362,7 @@ Download your model weights:
 
 1. Open the model page
 2. Click the **download icon** in the model header (available from any tab)
-3. The model's primary `.pt` checkpoint downloads automatically
+3. The model's primary `.pt` checkpoint downloads automatically, named after the model (`{model}.pt`)
 
 Exported formats can be downloaded from the **Export** tab after export completes.
 

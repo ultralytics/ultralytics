@@ -702,7 +702,7 @@ class SegmentLoss26(v8SegmentationLoss):
         if gt_masks.shape[-2:] != (mh, mw):
             gt_masks = F.interpolate(gt_masks.float(), (mh, mw), mode="nearest") > 0.5
         anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
-        pd_bboxes = self.bbox_decode(anchor_points, preds["boxes"].detach().permute(0, 2, 1))
+        pd_bboxes = self.bbox_decode(anchor_points, preds["boxes"].detach().permute(0, 2, 1)).float()  # fp16 overflows
         pd_mboxes = pd_bboxes * stride_tensor * mh / (preds["feats"][0].shape[2] * self.stride[0])
         pd_coef = preds["mask_coefficient"].detach().permute(0, 2, 1)
         return super().get_assigned_targets_and_loss(

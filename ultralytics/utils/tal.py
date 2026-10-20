@@ -427,12 +427,18 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
     ``gt_masks`` (b, max_num_obj, mh, mw). Predicted masks are binarized and cropped to their box as in validation.
     """
 
-    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, pd_coef, pd_mboxes, proto, gt_masks):
-        """Return (IoU + mask IoU) / 2 per candidate pair; mask IoU only for each gt's 3 * topk best IoUs, else 0."""
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra):
+        """Compute the alignment metric, also passing the class scores and labels on to `pair_overlaps`."""
+        extra.update(scores=pd_scores, labels=gt_labels)
+        return super().get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra)
+
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, scores, labels, pd_coef, pd_mboxes, proto, gt_masks):
+        """Return (IoU + mask IoU) / 2 per pair; mask IoU only for each gt's 3 * topk best box-metric pairs, else 0."""
         b, g, a = indices
         iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
         dense = iou.new_zeros(self.bs, self.n_max_boxes, pd_bboxes.shape[1])
-        dense[indices] = iou + self.eps  # zero-IoU candidates stay selectable
+        # Box alignment metric of each pair; eps keeps zero-metric pairs selectable
+        dense[indices] = scores[b, a, labels[b, g, 0].long()].pow(self.alpha) * iou.pow(self.beta) + self.eps
         top = dense.topk(min(3 * self.topk, dense.shape[-1]), dim=-1).indices
         sel = torch.zeros_like(dense, dtype=torch.bool).scatter_(-1, top, True)[indices].nonzero().squeeze(1)
         miou = torch.zeros_like(iou)

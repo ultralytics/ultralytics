@@ -1836,7 +1836,22 @@ class LetterBox(BaseTransform):
         shape = img.shape[:2]
         new_unpad = params["new_unpad"]
 
-        if shape[::-1] != new_unpad:  # resize
+        if shape[::-1] != new_unpad and isinstance(img, torch.Tensor):  # uint8 cv2.INTER_LINEAR, bit-exact
+            coef = []
+            for src, dst in zip(shape, new_unpad[::-1]):  # OpenCV's fixed-point source indices and weights
+                f = ((torch.arange(dst, dtype=torch.float64) + 0.5) * (1 / (dst / src)) - 0.5).float()
+                i = f.floor()
+                f -= i
+                if len(coef):  # columns drop the weight at the borders, rows keep it
+                    f[(i < 0) | (i >= src - 1)] = 0
+                w0, w1 = ((1 - f) * 2048).round(), (f * 2048).round()
+                coef.append(torch.stack((i.clamp(0, src - 1), (i + 1).clamp(0, src - 1), w0, w1)).int().to(img.device))
+            (y0, y1, b0, b1), (x0, x1, a0, a1) = coef
+            x = img.int()
+            x = x[:, x0] * a0[:, None] + x[:, x1] * a1[:, None]
+            b0, b1 = b0[:, None, None], b1[:, None, None]
+            img = ((((x[y0] >> 4) * b0 >> 16) + ((x[y1] >> 4) * b1 >> 16) + 2) >> 2).byte()  # OpenCV SIMD rounding
+        elif shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=self.interpolation)
             if img.ndim == 2:
                 img = img[..., None]
@@ -1844,10 +1859,14 @@ class LetterBox(BaseTransform):
         h, w, c = img.shape
         top, bottom = params["top"], params["bottom"]
         left, right = params["left"], params["right"]
-        if c == 3:
+        if c == 3 and isinstance(img, np.ndarray):
             img = cv2.copyMakeBorder(
                 img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(self.padding_value,) * 3
             )
+        elif isinstance(img, torch.Tensor):
+            pad_img = img.new_full((h + top + bottom, w + left + right, c), self.padding_value)
+            pad_img[top : top + h, left : left + w] = img
+            img = pad_img
         else:  # multispectral
             pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=self.padding_value, dtype=img.dtype)
             pad_img[top : top + h, left : left + w] = img

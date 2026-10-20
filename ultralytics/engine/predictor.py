@@ -192,9 +192,11 @@ class BasePredictor:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
         """
         if not isinstance(im, torch.Tensor):
-            im = self.pre_transform(im)
-            # For a single image, add a batch dimension without the copy required by np.stack().
-            im = torch.from_numpy(im[0]).unsqueeze(0) if len(im) == 1 else torch.from_numpy(np.stack(im))
+            if self.device.type == "cuda" and all(x.dtype == np.uint8 for x in im):  # letterbox on device
+                im = [torch.from_numpy(np.ascontiguousarray(x)).to(self.device) for x in im]
+            im = [torch.as_tensor(x) for x in self.pre_transform(im)]
+            # For a single image, add a batch dimension without the copy required by stacking.
+            im = im[0].unsqueeze(0) if len(im) == 1 else torch.stack(im)
             im = im.to(self.device)  # transfer as uint8, then reorder on device
             im = im.permute(0, 3, 1, 2)  # BHWC to BCHW, (n, 3, h, w)
             if im.shape[1] == 3:

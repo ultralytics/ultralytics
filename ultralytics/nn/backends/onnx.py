@@ -193,7 +193,10 @@ def _winml_bootstrap() -> object | None:
     for provider in winml.ExecutionProviderCatalog.get_default().find_all_providers():
         provider.ensure_ready_async().get()  # downloads the EP on first use
         if provider.library_path:
-            onnxruntime.register_execution_provider_library(provider.name, provider.library_path)
+            try:
+                onnxruntime.register_execution_provider_library(provider.name, provider.library_path)
+            except Exception as e:  # one unloadable EP library must not block the others
+                LOGGER.warning(f"Windows ML {provider.name} unavailable: {e}")
     return handle
 
 

@@ -994,8 +994,9 @@ def get_user_config_dir(sub_dir="Ultralytics"):
                 f"user config directory '{p}' is not writable, using '{alt}'. Set YOLO_CONFIG_DIR to override."
             )
             return alt
-        if alt.is_dir() and (WINDOWS or alt.stat().st_uid == os.getuid()):  # reuse only a dir this user owns
-            return alt
+        with contextlib.suppress(OSError):  # reuse only a dir this user owns
+            if alt.is_dir() and (WINDOWS or alt.stat().st_uid == os.getuid()):
+                return alt
 
     # Last fallback → CWD
     p = Path.cwd() / sub_dir

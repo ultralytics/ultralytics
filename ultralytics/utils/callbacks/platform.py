@@ -120,7 +120,9 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         if event != "console_output" or not _api_key:
             detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
             LOGGER.warning(f"{PREFIX}Failed to send {event}: {detail}")
-        return {} if isinstance(error, APIError) and error.status_code == 404 else None  # {} marks a missing model
+        if event == "training_started" and model_id and isinstance(error, APIError) and error.status_code == 404:
+            return {}  # {} marks a missing model, seen only by the resume lookup in on_pretrain_routine_start
+        return None
 
 
 def _handle_control_response(trainer, ctx, response):

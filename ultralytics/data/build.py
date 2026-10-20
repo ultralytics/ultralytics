@@ -276,6 +276,10 @@ def build_yolo_dataset(
         pad = 0.0  # no pad for semantic
     elif multi_modal:
         dataset = YOLOMultiModalDataset
+    elif data.get("temporal"):
+        from ultralytics.data.temporal import TemporalYOLODataset
+
+        dataset = TemporalYOLODataset
     else:
         dataset = YOLODataset
 

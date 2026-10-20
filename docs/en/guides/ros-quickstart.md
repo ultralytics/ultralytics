@@ -47,7 +47,7 @@ In ROS, communication between nodes is facilitated through [messages](https://wi
 
 ## Setting Up Ultralytics YOLO with ROS
 
-The ROS1 examples were tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros/tree/noetic), a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). The same YOLO and NumPy processing applies in ROS2; only the node lifecycle and message conversion differ.
+The ROS1 examples were tested using [this ROS environment](https://github.com/francesco-mttl/rosbot_ros/tree/noetic), a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). The same YOLO and NumPy processing applies in ROS2; only the node lifecycle and message conversion differ.
 
 <p align="center">
   <img width="50%" src="https://cdn.ul.run/i/d64082c887f43fb28afc113e3e9a8494.avif" alt="Husarion ROSbot 2 PRO autonomous robot platform">

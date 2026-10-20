@@ -356,6 +356,8 @@ def convert_coco(
                         s = merge_multi_segment(polygons)
                         s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
                         segments.append([cls, *s])
+                        LOGGER.warning("WARNING ⚠️ Duplicate annotations detected.")
+                                 
                     else:
                         s = [j for i in polygons for j in i]  # all segments concatenated
                         s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()

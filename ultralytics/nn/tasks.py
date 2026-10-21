@@ -1744,14 +1744,19 @@ class _SafeLoad:
             class_modules = {"ultralytics.nn.distill_model", "ultralytics.utils.loss", "ultralytics.utils.tal"}
             for name in needed:
                 module, _, attr = name.rpartition(".")
+                # Torchvision classifier layers (TorchVisionClassify); imported only for checkpoints that serialize them.
+                torchvision_layer = module.startswith(("torchvision.models.", "torchvision.ops."))
                 if name not in cls._registry and (
                     module in {"torch.nn.modules", "ultralytics.nn.modules", "ultralytics.nn.tasks"}
                     or module.rpartition(".")[0] in {"torch.nn.modules", "ultralytics.nn.modules"}
                     or module in class_modules
+                    or torchvision_layer
                 ):
                     obj = getattr(importlib.import_module(module), attr, None)
                     if isinstance(obj, type) and (
-                        obj.__module__ == module if module in class_modules else issubclass(obj, nn.Module)
+                        obj.__module__ == module
+                        if module in class_modules
+                        else issubclass(obj, nn.Module) and (not torchvision_layer or obj.__module__ == module)
                     ):
                         cls._registry[name] = obj
             if any(name.startswith("torchvision.transforms.") for name in needed):

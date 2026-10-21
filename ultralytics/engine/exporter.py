@@ -2003,7 +2003,7 @@ class NMSModel(torch.nn.Module):
             elif self.args.format in {"coreml", "mlmodel"}:  # CoreML aborts on an empty gather: keep the top anchor
                 mask, score = torch.logical_or(mask, score == score.max()), score * mask
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
-            nmsbox = box.clone()
+            nmsbox = box.float() if self.obb else box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization

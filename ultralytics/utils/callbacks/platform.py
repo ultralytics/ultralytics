@@ -312,10 +312,8 @@ def on_pretrain_routine_start(trainer):
         "last_upload": time(),
         "checkpoint_upload": None,
         "cancelled": False,
-        "console_logger": None,
         "system_logger": None,
     }
-    trainer.platform = ctx
 
     # Create callback to send console output to Platform
     def send_console_output(content, line_count, chunk_id):
@@ -339,6 +337,7 @@ def on_pretrain_routine_start(trainer):
     # integration whenever training_started failed, and its final flush would post a console chunk
     # carrying no model_id.
     ctx["console_logger"] = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
+    trainer.platform = ctx
 
     # Collect environment info (W&B-style metadata)
     environment = _get_environment_info()
@@ -462,8 +461,7 @@ def on_train_end(trainer):
         LOGGER.info(f"{PREFIX}Uploading partial results for cancelled training")
 
     # Stop console capture
-    if ctx["console_logger"]:
-        ctx["console_logger"].stop_capture()
+    ctx["console_logger"].stop_capture()
 
     # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None

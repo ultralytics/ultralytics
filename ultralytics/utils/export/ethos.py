@@ -11,6 +11,94 @@ import torch
 from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_executorch_requirements, check_requirements
 
+# Fixed INT8 ranges of the class logits and scores: calibration fits the logits to where nearly all of them are, far
+# below 0, and every score then quantizes to sigmoid(0) = 0.5 at most.
+LOGIT_RANGE = (-8.0, 8.0)  # sigmoid 0.0003 .. 0.9997
+SCORE_RANGE = (0.0, 1.0)
+
+
+def ethos_wrapper(model: torch.nn.Module) -> torch.nn.Module:
+    """Cut the one-to-one YOLO26 Detect head before its top-k for Arm Ethos-U export.
+
+    TOSA has no top-k, so the end-to-end postprocess would run on the CPU. The head instead returns the box distances
+    (B, N, 4) in anchor strides and the class scores (B, N, nc), anchor-major: the NPU's own NHWC layout, so neither
+    output needs a transpose. The device runtime keeps the anchors above its threshold, no NMS.
+    """
+    import types
+
+    from ultralytics.nn.modules import Detect
+
+    for m in model.modules():
+        if type(m) is Detect and m.end2end:
+            m.forward = types.MethodType(_ethos_detect_forward, m)
+    return model
+
+
+def _ethos_detect_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return the raw one-to-one box distances and class scores, anchor-major."""
+    head = self.one2one
+    box = torch.cat([head["box_head"][i](x[i]).permute(0, 2, 3, 1).flatten(1, 2) for i in range(self.nl)], 1)
+    cls = torch.cat([head["cls_head"][i](x[i]).permute(0, 2, 3, 1).flatten(1, 2) for i in range(self.nl)], 1)
+    return box, cls.sigmoid()
+
+
+class _NHWCInput(torch.nn.Module):
+    """Take the image channels-last (B, H, W, C), as a camera delivers it, and hand the model BCHW."""
+
+    def __init__(self, model: torch.nn.Module):
+        super().__init__()
+        self.model = model
+
+    def forward(self, x: torch.Tensor):
+        """Run the wrapped model on the BCHW view of the NHWC input."""
+        return self.model(x.permute(0, 3, 1, 2))
+
+
+def _nhwc_batches(dataset: Iterable[Any]):
+    """Yield the calibration batches channels-last."""
+    for batch in dataset:
+        yield (batch["img"] if isinstance(batch, dict) else batch).permute(0, 2, 3, 1)
+
+
+def _fixed_qspec(low: float, high: float):
+    """INT8 quantization spec with a fixed range instead of a calibrated one."""
+    from torchao.quantization.pt2e.quantizer import FixedQParamsQuantizationSpec
+
+    scale = (high - low) / 256
+    return FixedQParamsQuantizationSpec(
+        dtype=torch.int8,
+        scale=scale,
+        zero_point=-128 - round(low / scale),
+        quant_min=-128,
+        quant_max=127,
+        qscheme=torch.per_tensor_affine,
+    )
+
+
+def _fix_score_ranges(model: torch.fx.GraphModule) -> None:
+    """Give the class logits LOGIT_RANGE and the score output SCORE_RANGE, from the sigmoid back to the class convs."""
+    from torchao.quantization.pt2e.quantizer import SharedQuantizationSpec
+
+    logits, scores = _fixed_qspec(*LOGIT_RANGE), _fixed_qspec(*SCORE_RANGE)
+    output = model.graph.output_node()
+    sigmoid = output.args[0][-1]
+    annotation = lambda node: node.meta["quantization_annotation"]  # noqa: E731
+    annotation(sigmoid).output_qspec = scores
+    annotation(output).input_qspec_map[sigmoid] = scores
+    todo = [sigmoid]
+    while todo:
+        node = todo.pop()
+        qspecs = annotation(node).input_qspec_map
+        for arg in node.all_input_nodes:
+            if arg not in qspecs:
+                continue
+            if not isinstance(qspecs[arg], SharedQuantizationSpec):
+                qspecs[arg] = logits
+            if arg.target == torch.ops.aten.conv2d.default:
+                annotation(arg).output_qspec = logits  # a class conv: the start of the logits
+            else:
+                todo.append(arg)
+
 
 def torch2ethos(
     torch_model: torch.nn.Module,
@@ -58,6 +146,16 @@ def torch2ethos(
     output_dir.mkdir(parents=True, exist_ok=True)
     pte_file = output_dir / file.with_suffix(".pte").name
 
+    raw_head = any(getattr(m.forward, "__func__", None) is _ethos_detect_forward for m in torch_model.modules())
+    if raw_head:
+        # NHWC input: the NPU's own layout, so the BCHW permute cancels in TOSA. An NCHW input is a transpose of the
+        # full-resolution image as the first NPU operation, which takes 2.7x the NPU scratch (YOLO26n at 320).
+        torch_model = _NHWCInput(torch_model).eval()
+        sample_input = sample_input.permute(0, 2, 3, 1).contiguous()
+        dataset = _nhwc_batches(dataset)
+        if metadata is not None:
+            metadata["input_layout"] = "NHWC"
+
     exported_program = torch.export.export(torch_model, (sample_input,))
     graph_module = exported_program.module(check_guards=False)
 
@@ -65,16 +163,28 @@ def torch2ethos(
     # on-chip SRAM and fails for YOLO. config_ini is left at ExecuTorch's built-in Arm/vela.ini default.
     compile_spec = EthosUCompileSpec(target=target, memory_mode="Shared_Sram")
 
-    # Keep the score sigmoid, final cat, and model IO in FP32: the near-zero sigmoid scores lose too much
-    # resolution under INT8 and hurt recall. Match nodes by aten op, not fragile FX node names.
     quantizer = EthosUQuantizer(compile_spec, use_composable_quantizer=True)
     quantizer.set_global(get_symmetric_quantization_config(is_per_channel=True))
-    for label, op in (("score sigmoid", "aten.sigmoid"), ("final cat", "aten.cat")):
-        nodes = [n for n in graph_module.graph.nodes if n.op == "call_function" and op in str(n.target)]
-        if nodes:
-            LOGGER.info(f"{prefix} keeping {label} node '{nodes[-1].name}' in FP32")
-            quantizer.set_node_name(nodes[-1].name, None)
-    quantizer.set_io(None)
+    if raw_head:
+        # The whole graph in INT8 on the NPU, model IO included: fixed logit and score ranges keep the scores.
+        LOGGER.info(f"{prefix} fixed INT8 ranges: class logits {LOGIT_RANGE}, scores {SCORE_RANGE}")
+        annotate = quantizer.annotate
+
+        def annotate_with_score_ranges(model):
+            model = annotate(model)
+            _fix_score_ranges(model)
+            return model
+
+        quantizer.annotate = annotate_with_score_ranges
+    else:
+        # Keep the score sigmoid, final cat, and model IO in FP32: the near-zero sigmoid scores lose too much
+        # resolution under INT8 and hurt recall. Match nodes by aten op, not fragile FX node names.
+        for label, op in (("score sigmoid", "aten.sigmoid"), ("final cat", "aten.cat")):
+            nodes = [n for n in graph_module.graph.nodes if n.op == "call_function" and op in str(n.target)]
+            if nodes:
+                LOGGER.info(f"{prefix} keeping {label} node '{nodes[-1].name}' in FP32")
+                quantizer.set_node_name(nodes[-1].name, None)
+        quantizer.set_io(None)
 
     # Post training quantization
     quantized_graph_module = prepare_pt2e(graph_module, quantizer)
@@ -104,6 +214,25 @@ def torch2ethos(
         ),
     )
 
+    config = ExecutorchBackendConfig(extract_delegate_segments=False)
+    if raw_head:
+        # INT8 IO: the q/dq at the delegate boundary leave the program, the runtime feeds and reads the INT8 tensors
+        # with the scales recorded in metadata.yaml. The input is not memory-planned: the delegate copies it from the
+        # caller's buffer into the NPU scratch.
+        from executorch.exir.passes import MemoryPlanningPass
+        from executorch.exir.passes.quantize_io_pass import quantize_input, quantize_output
+
+        program = edge_program_manager.exported_program()
+        io = {"inputs": [quantize_input(program, 0)]}
+        io["outputs"] = [quantize_output(program, i) for i in range(len(program.graph_signature.user_outputs))]
+        if metadata is not None:
+            metadata["quantization"] = {
+                k: [{"scale": float(q[0]), "zero_point": int(q[1])} for q in v] for k, v in io.items()
+            }
+        config = ExecutorchBackendConfig(
+            extract_delegate_segments=False, memory_planning_pass=MemoryPlanningPass(alloc_graph_input=False)
+        )
+
     # Report how much of the model runs on the Ethos-U NPU vs falls back to the CPU. The CPU-fallback ops
     # are exactly the ones whose kernels the runtime must register, so listing them here points users at
     # the runtime kernel requirements before they hit a missing-operator failure on device.
@@ -125,14 +254,12 @@ def torch2ethos(
     except Exception as e:
         LOGGER.debug(f"{prefix} delegation info unavailable: {e}")
 
-    # Convert edge program to executorch. The .pte keeps the standard quantized_decomposed q/dq ops at
-    # the delegate boundaries and an FP32 cat on the CPU, so the runtime must link the ExecuTorch
+    # Convert edge program to executorch. Without the raw head, the .pte keeps the standard quantized_decomposed q/dq
+    # ops at the delegate boundaries and an FP32 cat on the CPU, so the runtime must link the ExecuTorch
     # quantized_ops_lib (and portable ops for aten::cat.out), as Arm's reference executor_runner does.
     # We deliberately do not apply ReplaceQuantNodesPass here: rewriting to cortex_m::* ops would pin the
     # .pte to runtimes linking cortex_m_ops_lib without removing the quantized_ops_lib requirement.
-    executorch_program_manager = edge_program_manager.to_executorch(
-        config=ExecutorchBackendConfig(extract_delegate_segments=False)
-    )
+    executorch_program_manager = edge_program_manager.to_executorch(config=config)
 
     # Save pte file
     save_pte_program(executorch_program_manager, str(pte_file))

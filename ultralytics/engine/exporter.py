@@ -740,12 +740,19 @@ class Exporter:
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)
         model.names = check_class_names(model.names)
-        if hasattr(model, "end2end"):  # the Axelera runtime decodes the NMS-free head, so nms=None keeps it there
+        # The Axelera and Arm Ethos-U runtimes decode the NMS-free head, so nms=None keeps it there. Ethos-U exports
+        # the raw one-to-one outputs of a YOLO26 Detect head (ethos_wrapper), no top-k: TOSA has none.
+        ethos_raw_head = fmt == "ethos" and type(head) is Detect and getattr(head, "reg_max", 0) == 1
+        if hasattr(model, "end2end"):
             model.end2end = self.args.nms is False or (
-                fmt == "axelera" and self.args.nms is None and getattr(head, "one2one_cv2", None) is not None
+                (fmt == "axelera" or ethos_raw_head)
+                and self.args.nms is None
+                and getattr(head, "one2one_cv2", None) is not None
             )
         if getattr(model, "end2end", False):
-            if fmt in {"rknn", "ncnn", "executorch", "ethos", "paddle", "imx", "edgetpu", "qnn"}:
+            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"} or (
+                fmt == "ethos" and not ethos_raw_head
+            ):
                 # Disable the end2end branch for formats without top-k support
                 model.end2end = False
                 LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
@@ -944,6 +951,10 @@ class Exporter:
             from ultralytics.utils.export.executorch import executorch_wrapper
 
             model = executorch_wrapper(model)
+        if fmt == "ethos":
+            from ultralytics.utils.export.ethos import ethos_wrapper
+
+            model = ethos_wrapper(model)
         for m in model.modules():
             if isinstance(m, Attention) and fmt == "coreml" and self.args.format != "mlmodel":
                 m.format = fmt

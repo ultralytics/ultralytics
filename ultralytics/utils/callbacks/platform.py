@@ -5,6 +5,7 @@ import platform
 import re
 import socket
 import sys
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from math import isfinite
 from pathlib import Path
@@ -541,7 +542,7 @@ def teardown(trainer):
     if ctx["console_logger"]:
         ctx["console_logger"].stop_capture()
     error = sys.exc_info()[1]
-    data = {"error": f"{type(error).__name__}: {error}".rstrip(": ")} if error else {}
+    data = {"error": traceback.format_exception_only(error)[-1].strip()} if error else {}
     _send("training_failed", data, *_get_project_name(trainer), ctx["model_id"])
 
 

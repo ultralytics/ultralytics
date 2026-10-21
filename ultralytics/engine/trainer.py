@@ -197,9 +197,14 @@ class BaseTrainer:
             self.run_callbacks("on_pretrain_routine_start")
 
         # Model and Dataset
-        self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo26n -> yolo26n.pt
-        with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
-            self.data = self.get_dataset()
+        try:
+            self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo26n -> yolo26n.pt
+            with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
+                self.data = self.get_dataset()
+        except BaseException:
+            if not self.ddp:
+                self.run_callbacks("teardown")  # end the runs on_pretrain_routine_start opened, as train() would
+            raise
 
         self.ema = None
 

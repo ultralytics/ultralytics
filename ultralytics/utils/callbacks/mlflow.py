@@ -22,7 +22,7 @@ Commands:
 
 import os
 
-from ultralytics.utils import LOGGER, TESTS_RUNNING, colorstr, env_bool
+from ultralytics.utils import LOGGER, TESTS_RUNNING, TryExcept, colorstr, env_bool
 
 PREFIX = colorstr("MLflow: ")
 
@@ -124,18 +124,12 @@ def on_train_end(trainer):
             )
         except Exception as e:
             LOGGER.warning(f"{PREFIX}failed to log artifacts: {e}")
-    teardown(trainer, status="FINISHED")
-
-
-def teardown(trainer, status="FAILED"):
-    """Close the run this callback opened, as FAILED unless on_train_end already closed it as FINISHED."""
-    if getattr(trainer, "_mlflow_started_run", False):  # only close a run we created
-        trainer._mlflow_started_run = False
+    if vars(trainer).pop("_mlflow_started_run", False):  # only close a run we created, and only once
         if env_bool("MLFLOW_KEEP_RUN_ACTIVE"):
             LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
         else:
             try:
-                mlflow.end_run(status=status)
+                mlflow.end_run()
                 LOGGER.debug(f"{PREFIX}mlflow run ended")
             except Exception:
                 pass
@@ -147,7 +141,14 @@ callbacks = (
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
-        "teardown": teardown,
+        # a run still owned here means training failed before on_train_end closed it
+        "teardown": TryExcept(verbose=False)(
+            lambda trainer: (
+                vars(trainer).pop("_mlflow_started_run", False)
+                and not env_bool("MLFLOW_KEEP_RUN_ACTIVE")
+                and mlflow.end_run(status="FAILED")
+            )
+        ),
     }
     if mlflow
     else {}

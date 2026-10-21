@@ -542,7 +542,7 @@ def teardown(trainer):
     if ctx["console_logger"]:
         ctx["console_logger"].stop_capture()
     error = sys.exc_info()[1]
-    data = {"error": traceback.format_exception_only(error)[-1].strip()} if error else {}
+    data = {"error": "".join(traceback.format_exception_only(error)).strip()} if error else {}
     _send("training_failed", data, *_get_project_name(trainer), ctx["model_id"])
 
 

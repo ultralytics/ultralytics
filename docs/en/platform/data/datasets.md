@@ -341,7 +341,7 @@ flowchart TD
 
 !!! warning "Image Size Requirements"
 
-    Images must be at least 28px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved, except TIFF originals that are stored as uploaded.
+    Images must be at least 28px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved, except TIFF originals kept byte-for-byte (see Stored Image Encoding above).
 
 ## Browse Images
 

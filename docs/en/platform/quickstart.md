@@ -46,7 +46,7 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 region and recommends the closest one. This choice determines where your datasets, models, and managed training data are
 stored. Dedicated endpoint regions are selected separately when you deploy a model.
 
-![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.ul.run/i/d6b29d932b4dde9df4aab770f18fe1ae.avif)<!-- screenshot -->
+![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.ul.run/i/2c511d640b7de911f7a421724af49780.avif)<!-- screenshot -->
 
 {% include "macros/platform-data-regions.md" %}
 
@@ -75,7 +75,7 @@ The onboarding flow guides you through three steps:
 2. **Data Region** - Select US, EU, or AP with a visual world map showing latency
 3. **Complete** - Review your selections, optionally apply a promo code, and finish signup to claim your welcome credits
 
-![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/1bd588a6adfb2c7c1b335dd3b21c684d.avif)<!-- screenshot -->
+![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/99ffff96be666b6e19eb4ba525d6b554.avif)<!-- screenshot -->
 
 ??? tip "Update Later"
 
@@ -85,7 +85,7 @@ The onboarding flow guides you through three steps:
 
 After signing in, you will be directed to the Home page of [Ultralytics Platform](https://platform.ultralytics.com), which provides a welcome card with workspace stats, an overview video, quick access to datasets, projects, and storage, and a recent activity feed.
 
-![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.ul.run/i/493d7d7962fba5fc226e802bf7d9469d.avif)<!-- screenshot -->
+![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.ul.run/i/319bf74b155700ff1366bf7a5dbd727d.avif)<!-- screenshot -->
 
 ### Sidebar Navigation
 
@@ -277,7 +277,7 @@ Once training starts, open the model's `Train` tab to monitor progress in real t
 | **Console** | Live training log output                                |
 | **System**  | GPU utilization, memory usage, hardware metrics         |
 
-![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/533d461f043d83d7dad2b7483a56a3f5.avif)<!-- screenshot -->
+![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/13e91f2728627c825f8efcd8fe7916b4.avif)<!-- screenshot -->
 
 Metrics are streamed in real-time via SSE (Server-Sent Events). Once validation artifacts exist, the Charts subtab splits into **Training** and **Validation** views, with the confusion matrix, PR curves, and F1 curves under Validation.
 
@@ -295,7 +295,7 @@ After training completes, test your model directly in the browser:
 2. Upload an image, drag and drop, capture one from your webcam, or click an example image (auto-inference on drop)
 3. View task-appropriate prediction overlays, per-stage timings (preprocess, inference, postprocess, network), and the raw JSON response
 
-![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/0cdeafceca5ccaea1e11bfbebe0e4a21.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/7f20a14a7e6f05a1c43c42229d0e3745.avif)<!-- screenshot -->
 
 Adjust inference parameters:
 

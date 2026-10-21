@@ -328,7 +328,7 @@ flowchart TD
 
     TIFF originals are always stored byte-for-byte, and AVIF and WebP originals are when no resize or color change is needed. Everything else is re-encoded — WebP sources stay WebP, and all other sources (JPEG, PNG, BMP, HEIC, JP2, DNG, MPO, and resized or color-changed AVIF) become JPEG at quality 92. Your original filename and source extension are retained as metadata.
 
-![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.ul.run/i/5ed3a283c82984bbc109ac647d26f73f.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.ul.run/i/17de3eb93ee619a53dbaad3c3a73f6f4.avif)<!-- screenshot -->
 
 ??? tip "Validate Before Upload"
 

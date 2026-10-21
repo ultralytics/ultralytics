@@ -1848,6 +1848,39 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
+def test_confusion_matrix_confidence_ordered_matching():
+    """The confusion matrix must use the validator's confidence-ordered one-to-one matching."""
+    from types import SimpleNamespace
+
+    from ultralytics.engine.validator import BaseValidator
+    from ultralytics.utils.metrics import ConfusionMatrix, box_iou
+
+    # Two overlapping objects and three detections in descending confidence order. Ranking candidate pairs by IoU lets
+    # det2 claim gt0 (0.667) before gt1, so gt1 stays a false negative although det2 overlaps it at 0.6, above the 0.5
+    # threshold. Matching each detection in confidence order instead pairs det0->gt0 and det2->gt1: the two true
+    # positives validation reports for this image.
+    gt_bboxes = torch.tensor([[20.0, 0.0, 100.0, 100.0], [40.0, 0.0, 100.0, 80.0]])
+    det_bboxes = torch.tensor([[20.0, 0.0, 100.0, 100.0], [20.0, 0.0, 60.0, 100.0], [0.0, 0.0, 100.0, 80.0]])
+    conf = torch.tensor([0.9, 0.8, 0.7])
+
+    correct = BaseValidator.match_predictions(
+        SimpleNamespace(iouv=torch.linspace(0.5, 0.95, 10)),
+        torch.zeros(3),
+        torch.zeros(2),
+        box_iou(gt_bboxes, det_bboxes),
+    )
+    assert correct[:, 0].sum() == 2  # both objects are detected at IoU 0.5
+
+    confusion_matrix = ConfusionMatrix(names={0: "a"})
+    confusion_matrix.process_batch(
+        {"bboxes": det_bboxes, "cls": torch.zeros(3), "conf": conf},
+        {"bboxes": gt_bboxes, "cls": torch.zeros(2)},
+        conf=0.25,
+        iou_thres=0.5,
+    )
+    assert confusion_matrix.matrix.tolist() == [[2.0, 1.0], [0.0, 0.0]]  # 2 TP, 1 unmatched detection, no FN
+
+
 def test_scale_coords_nonuniform_letterbox():
     """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
     from ultralytics.data.augment import LetterBox

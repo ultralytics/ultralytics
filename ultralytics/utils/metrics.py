@@ -451,19 +451,24 @@ class ConfusionMatrix(DataExportMixin):
         bboxes = detections["bboxes"]
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 
-        x = torch.where(iou > iou_thres)
-        if x[0].shape[0]:
-            matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()
-            if x[0].shape[0] > 1:
-                matches = matches[matches[:, 2].argsort()[::-1]]
-                matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                matches = matches[matches[:, 2].argsort()[::-1]]
-                matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-        else:
-            matches = np.zeros((0, 3))
+        # Greedy one-to-one matching in descending confidence order, the same policy as
+        # `Validator.match_predictions` but class-agnostic so cross-class confusions are still attributed: each detection
+        # claims its best unclaimed gt above the threshold. Ranking candidate pairs by IoU instead would let one
+        # detection consume the gt another detection needs, reporting a detected object as both a false positive and a
+        # false negative.
+        iou = iou.cpu().numpy()
+        matches = []
+        claimed = np.zeros(iou.shape[0], dtype=bool)
+        for det_idx in np.argsort(-detections["conf"].cpu().numpy(), kind="stable"):
+            available = np.where(claimed, 0.0, iou[:, det_idx])
+            gt_idx = int(available.argmax())
+            if available[gt_idx] > iou_thres:
+                claimed[gt_idx] = True
+                matches.append((gt_idx, int(det_idx), available[gt_idx]))
+        matches = np.array(matches, dtype=np.float64).reshape(-1, 3)
 
         m0, m1, _ = matches.transpose().astype(int)
-        # matches is deduplicated on both columns, so each gt and each detection appears at most once
+        # Each gt and each detection appears at most once, so the matrix stays one-to-one
         gt_match = np.full(len(gt_classes), -1)
         gt_match[m0] = m1
         matched_det = set(m1.tolist())

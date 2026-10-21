@@ -422,6 +422,11 @@ class ConfusionMatrix(DataExportMixin):
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth. This is a matching
                 threshold, not the NMS `iou` argument, and the detection validator uses this 0.45 default.
+
+        Notes:
+            Matching is greedy and one-to-one: each detection claims its best unclaimed ground truth above
+            `iou_thres` in descending confidence order, the same policy the detection validator applies, but
+            class-agnostic so cross-class confusions are still counted.
         """
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         if self.matches is not None:  # only if visualization is enabled

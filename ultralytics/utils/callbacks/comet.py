@@ -601,12 +601,6 @@ def on_train_end(trainer) -> None:
     if args_path.exists():
         _log_asset(experiment, args_path)
 
-
-def teardown(trainer) -> None:
-    """End the Comet experiment after training, including failed runs."""
-    if experiment := comet_ml.get_running_experiment():
-        experiment.end()
-
     global _comet_image_prediction_count
     _comet_image_prediction_count = 0
 
@@ -617,7 +611,7 @@ callbacks = (
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
-        "teardown": teardown,
+        "teardown": lambda trainer: (experiment := comet_ml.get_running_experiment()) and experiment.end(),
     }
     if comet_ml
     else {}

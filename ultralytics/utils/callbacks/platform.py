@@ -464,7 +464,6 @@ def on_train_end(trainer):
     # Stop console capture
     if ctx["console_logger"]:
         ctx["console_logger"].stop_capture()
-        ctx["console_logger"] = None
 
     # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None
@@ -539,11 +538,9 @@ def teardown(trainer):
     if not ctx:
         return
     trainer.platform = None
-    if ctx["console_logger"]:
-        ctx["console_logger"].stop_capture()
-    error = sys.exc_info()[1]
-    data = {"error": "".join(traceback.format_exception_only(error)).strip()} if error else {}
-    _send("training_failed", data, *_get_project_name(trainer), ctx["model_id"])
+    ctx["console_logger"].stop_capture()
+    error = "".join(traceback.format_exception_only(sys.exc_info()[1])).strip()
+    _send("training_failed", {"error": error}, *_get_project_name(trainer), ctx["model_id"])
 
 
 callbacks = {

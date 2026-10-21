@@ -46,8 +46,4 @@ keywords: Ultralytics, DVC, DVCLive, machine learning, logging, training, callba
 
 ## ::: ultralytics.utils.callbacks.dvc.on_train_end
 
-<br><br><hr><br>
-
-## ::: ultralytics.utils.callbacks.dvc.teardown
-
 <br><br>

@@ -161,9 +161,8 @@ def on_train_end(trainer) -> None:
 
     Examples:
         >>> # Inside a custom training loop
-        >>> from ultralytics.utils.callbacks.dvc import on_train_end, teardown
+        >>> from ultralytics.utils.callbacks.dvc import on_train_end
         >>> on_train_end(trainer)  # Log final metrics and artifacts
-        >>> teardown(trainer)  # End the DVCLive run, also after a failed loop
     """
     if live:
         # At the end log the best metrics. It runs validator on the best model internally.
@@ -179,14 +178,6 @@ def on_train_end(trainer) -> None:
             live.log_artifact(trainer.best, copy=True, type="model")
 
 
-def teardown(trainer) -> None:
-    """End the DVCLive run after training, including failed runs."""
-    global live
-    if live:
-        live.end()
-        live = None
-
-
 callbacks = (
     {
         "on_pretrain_routine_start": on_pretrain_routine_start,
@@ -195,7 +186,7 @@ callbacks = (
         "on_train_epoch_start": on_train_epoch_start,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
-        "teardown": teardown,
+        "teardown": lambda trainer: live and live.end(),
     }
     if dvclive
     else {}

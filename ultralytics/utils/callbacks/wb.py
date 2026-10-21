@@ -183,6 +183,7 @@ def on_train_end(trainer):
                 x_title=x_title,
                 y_title=y_title,
             )
+    wb.run.log({"epoch": trainer.epoch + 1}, commit=True)
 
 
 callbacks = (

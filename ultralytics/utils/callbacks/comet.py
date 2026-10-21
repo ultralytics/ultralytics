@@ -513,6 +513,8 @@ def _log_table(experiment, table_path) -> None:
 
 def on_pretrain_routine_start(trainer) -> None:
     """Create or resume a CometML experiment at the start of a YOLO pre-training routine."""
+    global _comet_image_prediction_count
+    _comet_image_prediction_count = 0
     _resume_or_create_experiment(trainer.args)
 
 
@@ -600,9 +602,6 @@ def on_train_end(trainer) -> None:
     args_path = trainer.save_dir / ARGS_YAML_NAME
     if args_path.exists():
         _log_asset(experiment, args_path)
-
-    global _comet_image_prediction_count
-    _comet_image_prediction_count = 0
 
 
 callbacks = (

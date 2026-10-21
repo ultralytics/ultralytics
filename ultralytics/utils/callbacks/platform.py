@@ -529,6 +529,20 @@ def on_train_end(trainer):
     )
     if ctx.get("model_url"):
         LOGGER.info(f"{PREFIX}View results at {ctx['model_url']}")
+    trainer.platform = None
+
+
+def teardown(trainer):
+    """Stop console capture and report a training that failed before on_train_end completed it."""
+    ctx = getattr(trainer, "platform", None)
+    if not ctx:
+        return
+    trainer.platform = None
+    if ctx["console_logger"]:
+        ctx["console_logger"].stop_capture()
+    error = sys.exc_info()[1]
+    data = {"error": f"{type(error).__name__}: {error}".rstrip(": ")} if error else {}
+    _send("training_failed", data, *_get_project_name(trainer), ctx["model_id"])
 
 
 callbacks = {
@@ -537,4 +551,5 @@ callbacks = {
     "on_fit_epoch_end": on_fit_epoch_end,
     "on_model_save": on_model_save,
     "on_train_end": on_train_end,
+    "teardown": teardown,
 }

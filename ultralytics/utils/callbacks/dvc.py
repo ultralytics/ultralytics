@@ -178,6 +178,15 @@ def on_train_end(trainer) -> None:
             live.log_artifact(trainer.best, copy=True, type="model")
 
 
+def teardown(trainer) -> None:
+    """End the DVCLive run after training, including failed runs, without masking the training error."""
+    if live:
+        try:
+            live.end()
+        except Exception as e:  # dvclive cache() raises outside a git repo (treeverse/dvclive#908)
+            LOGGER.warning(f"DVCLive failed to end the run: {e}")
+
+
 callbacks = (
     {
         "on_pretrain_routine_start": on_pretrain_routine_start,
@@ -186,7 +195,7 @@ callbacks = (
         "on_train_epoch_start": on_train_epoch_start,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
-        "teardown": lambda trainer: live and live.end(),
+        "teardown": teardown,
     }
     if dvclive
     else {}

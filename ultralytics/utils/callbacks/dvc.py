@@ -186,7 +186,7 @@ callbacks = (
         "on_train_epoch_start": on_train_epoch_start,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
-        # end() also after a failed train; TryExcept keeps a dvclive error (outside git) from masking the training error
+        # TryExcept: live.end() raises outside a git repo and must not mask a training error
         "teardown": TryExcept("DVCLive failed to end the run")(lambda trainer: live and live.end()),
     }
     if dvclive

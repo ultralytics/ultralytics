@@ -1425,7 +1425,7 @@ class YOLOEModel(DetectionModel):
         )
         assert embeddings.ndim == 3
         names = check_class_names(names)  # validate before any state is written
-        if self.model[-1].is_fused:  # classes are fixed; compare primary names as validators drop "/" synonyms
+        if self.model[-1].is_fused:  # validators drop "/" synonyms
             assert {i: n.split("/", 1)[0] for i, n in names.items()} == {
                 i: n.split("/", 1)[0] for i, n in self.names.items()
             }, "Class embeddings are fused; use an unfused YOLOE model to change classes."

@@ -177,7 +177,13 @@ def on_train_end(trainer) -> None:
         if trainer.best.exists():
             live.log_artifact(trainer.best, copy=True, type="model")
 
+
+def teardown(trainer) -> None:
+    """End the DVCLive run after training, including failed runs."""
+    global live
+    if live:
         live.end()
+        live = None
 
 
 callbacks = (
@@ -188,6 +194,7 @@ callbacks = (
         "on_train_epoch_start": on_train_epoch_start,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
+        "teardown": teardown,
     }
     if dvclive
     else {}

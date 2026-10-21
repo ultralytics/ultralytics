@@ -359,8 +359,8 @@ def on_pretrain_routine_start(trainer):
     if model_id and (response == {} or (response and response.get("cancelled"))):  # model gone or ended, track as new
         response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
-        record.write_text(response["modelId"])
         ctx["model_id"] = response["modelId"]
+        record.write_text(response["modelId"])
         ctx["run_id"] = response.get("runId")
         # Server resolves the owner, project and final slug (e.g. "train" → "train-2") into the model link
         ctx["model_url"] = response.get("modelUrl")
@@ -533,7 +533,7 @@ def on_train_end(trainer):
 def teardown(trainer):
     """Stop console capture and report a training that failed before on_train_end completed it."""
     ctx = getattr(trainer, "platform", None)
-    if not ctx:
+    if not ctx or not ctx["model_id"]:  # capture starts only once Platform registered the run
         return
     trainer.platform = None
     ctx["console_logger"].stop_capture()

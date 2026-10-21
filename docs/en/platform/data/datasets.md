@@ -319,14 +319,14 @@ flowchart TD
 ```
 
 1. **Validation**: Format and size checks
-2. **Normalization**: Large images resized (max 4096px, min dimension 28px), grayscale expanded to RGB, transparency flattened onto white, and EXIF orientation applied; TIFF originals are stored as uploaded
+2. **Normalization**: Large images resized (max 4096px, min dimension 28px), grayscale expanded to RGB, transparency flattened onto white, and EXIF orientation applied; TIFF originals are stored as uploaded unless training needs them converted (see Stored Image Encoding below)
 3. **Thumbnails**: 256px WebP previews generated
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, [LabelMe](../integrations/labelme.md), and [Ultralytics](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
 !!! info "Stored Image Encoding"
 
-    TIFF originals are always stored byte-for-byte, and AVIF and WebP originals are when no resize or color change is needed. Everything else is re-encoded — WebP sources stay WebP, and all other sources (JPEG, PNG, BMP, HEIC, JP2, DNG, MPO, and resized or color-changed AVIF) become JPEG at quality 92. Your original filename and source extension are retained as metadata.
+    TIFF originals are stored byte-for-byte, except multi-band floating-point TIFFs in datasets of up to 3 channels, which training cannot read: they keep their first three bands, are scaled to 8-bit, and are re-encoded. AVIF and WebP originals are stored byte-for-byte when no resize or color change is needed. Everything else is re-encoded — WebP sources stay WebP, and all other sources (JPEG, PNG, BMP, HEIC, JP2, DNG, MPO, converted TIFF, and resized or color-changed AVIF) become JPEG at quality 92. Your original filename and source extension are retained as metadata.
 
 ![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.ul.run/i/5ed3a283c82984bbc109ac647d26f73f.avif)<!-- screenshot -->
 
@@ -342,7 +342,7 @@ flowchart TD
 
 !!! warning "Image Size Requirements"
 
-    Images must be at least 28px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved, except TIFF originals, which are stored as uploaded.
+    Images must be at least 28px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved, except TIFF originals that are stored as uploaded.
 
 ## Browse Images
 
@@ -1027,7 +1027,7 @@ Your data is processed and stored in your selected region (US, EU, or AP). Image
 
 1. Validated for format and size
 2. Rejected if minimum dimension is below 28px
-3. Normalized if larger than 4096px (preserving aspect ratio; encoded for optimized storage; TIFF stored as uploaded)
+3. Normalized if larger than 4096px (preserving aspect ratio; encoded for optimized storage; most TIFF originals stored as uploaded)
 4. Stored with deduplication, so identical images are kept only once
 5. Thumbnails generated at 256px WebP for fast browsing
 

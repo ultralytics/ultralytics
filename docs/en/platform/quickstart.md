@@ -206,7 +206,7 @@ flowchart TD
 
 After upload, the platform automatically processes your data:
 
-1. Images larger than 4096px are resized (preserving aspect ratio; TIFF originals are stored as uploaded)
+1. Images larger than 4096px are resized (preserving aspect ratio; most TIFF originals are stored as uploaded)
 2. 256px thumbnails are generated for fast browsing
 3. YOLO, COCO, LabelMe, and Ultralytics or Labelbox NDJSON labels are parsed and validated
 4. Statistics are computed (class distribution, heatmaps, dimensions)

@@ -80,6 +80,12 @@ def on_pretrain_routine_end(trainer):
     except Exception as e:
         LOGGER.warning(f"{PREFIX}Failed to initialize: {e}")
         LOGGER.warning(f"{PREFIX}Not tracking this run")
+        if trainer._mlflow_started_run:
+            trainer._mlflow_started_run = False
+            try:
+                mlflow.end_run()
+            except Exception:
+                pass
 
 
 def _log_metrics(trainer, metrics):

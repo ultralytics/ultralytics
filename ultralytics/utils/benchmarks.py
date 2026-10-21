@@ -47,10 +47,10 @@ from pathlib import Path
 import numpy as np
 import torch.cuda
 
-from ultralytics import RTDETR, YOLO, YOLOWorld
+from ultralytics import RTDETR, YOLO, YOLOE, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
+from ultralytics.data.utils import check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.engine.exporter import export_formats
-from ultralytics.nn.modules import Segment26
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -125,6 +125,13 @@ def benchmark(
         model = YOLO(model)
     data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
     key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
+    if isinstance(model, (YOLOE, YOLOWorld)) and not hasattr(model.model.model[-1], "lrpc"):
+        data = convert_ndjson_to_yolo_if_needed(data, split="val")
+        names = [name.split("/", 1)[0] for name in check_det_dataset(data)["names"].values()]
+        # exports bake the current vocabulary, while validation re-prompts YOLOE always and YOLO-World on new names
+        if isinstance(model, YOLOE) or list(model.names.values()) != names:
+            model = deepcopy(model, {id(model.predictor): None, id(model.trainer): None})
+            model.set_classes(names, model.get_text_pe(names)) if isinstance(model, YOLOE) else model.set_classes(names)
 
     y = []
     t0 = time.time()
@@ -189,9 +196,6 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Axelera exports not supported"
                 assert LINUX and not (ARM64 and IS_DOCKER), (
                     "export is only supported on Linux and is not supported on ARM64 Docker."
-                )
-                assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
-                    "Axelera export does not currently support YOLO26 segmentation models"
                 )
             if export_format == "xilinx":
                 assert LINUX, "AMD Xilinx export only supported on Linux"

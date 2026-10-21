@@ -251,14 +251,14 @@ Below are code examples for using each source type:
 
     === "CSV"
 
-        Run inference on a collection of images, URLs, videos, and directories listed in a CSV file.
+        Run inference on a collection of images, videos, and directories listed in a CSV file.
         ```python
         from ultralytics import YOLO
 
         # Load a pretrained YOLO26n model
         model = YOLO("yolo26n.pt")
 
-        # Define a path to a CSV file with images, URLs, videos and directories
+        # Define a path to a CSV file with images, videos and directories
         source = "path/to/file.csv"
 
         # Run inference on the source

@@ -125,7 +125,7 @@ Early stopping is a valuable technique for optimizing model training. By monitor
 The process involves setting a patience parameter that determines how many epochs to wait for an improvement in validation metrics before stopping training. If the model's performance does not improve within these epochs, training is stopped to avoid wasting time and resources.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/a4a45c9d1d0409cc45ba1416184559dc.avif" alt="Early stopping to prevent model overfitting">
+  <img width="100%" src="https://cdn.ul.run/i/2aa9d437292e93473dba7042813f242b.avif" alt="Early stopping to prevent model overfitting">
 </p>
 
 For YOLO26, you can enable early stopping by setting the patience parameter in your training configuration. For example, `patience=5` means training will stop if there's no improvement in validation metrics for 5 consecutive epochs. Using this method ensures the training process remains efficient and achieves optimal performance without excessive computation.

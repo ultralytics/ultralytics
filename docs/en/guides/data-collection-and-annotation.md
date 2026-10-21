@@ -73,7 +73,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 - **Oriented Bounding Boxes**: Rectangles that carry a rotation angle, used in [OBB](../tasks/obb.md) tasks where objects appear at arbitrary orientations, such as aerial imagery.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/8315a6d4fd7fa40b602fb0d05b56bba5.avif" alt="Data annotation types including bounding boxes, polygons, and masks">
+  <img width="100%" src="https://cdn.ul.run/i/47c0f7d8d7c867c6e6ff55384de2f8f6.avif" alt="Annotation examples for classification, bounding boxes, instance and semantic segmentation masks, pose keypoints, oriented bounding boxes, and depth">
 </p>
 
 ### Common Annotation Formats

@@ -181,7 +181,7 @@ Training jobs progress through the following statuses:
 | **Failed**    | Training failed (see console logs for details)                 |
 | **Cancelled** | Training was cancelled by the user                             |
 
-A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View full console logs** and **Retry Training** actions. Runs that stop reporting activity for 4 hours are automatically marked failed, and their compute is released.
+A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with a **View full console logs** action, plus **Diagnose with AI** and **Retry Training** (Editor role or higher). Runs that stop reporting activity for 4 hours are automatically marked failed, and their compute is released.
 
 To receive the completed and failed results without keeping this page open, connect [Slack alerts](../integrations/slack.md).
 
@@ -284,6 +284,16 @@ Use the `project` and `name` parameters to stream metrics:
     ```
 
 The **Local Training** tab in the training dialog shows a pre-configured command with your API key, selected parameters, and advanced arguments included.
+
+### Resume Remote Training
+
+Resume an interrupted remote run from its last checkpoint as usual (see [Resuming Interrupted Trainings](../../modes/train.md#resuming-interrupted-trainings)):
+
+```bash
+yolo train resume model=path/to/last.pt
+```
+
+The resumed run continues the same Platform model, so its epochs, console output, and final weights land on the original model instead of a new one. The model ID is stored in `platform_model_id.txt` in the run directory. If that model was deleted, or has already completed, failed, or been cancelled, the resumed run is tracked as a new model. Platform marks a remote run failed after 4 hours without activity, so resume within that window to continue the original model.
 
 ### Using Platform Datasets
 
@@ -616,7 +626,7 @@ arguments you submitted, so with `auto` it can still list your `lr0`.
 
 ### Can I retry a failed run?
 
-Yes. A failed model shows an error banner with a **Retry Training** action that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
+Yes. A failed model shows an error banner with a **Retry Training** action (Editor role or higher) that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. **Diagnose with AI**, next to it, asks [Ask AI](autotrain.md) to find the error behind the failure and suggest the smallest fix before you retry. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
 
 ### Can I train from a dataset page?
 

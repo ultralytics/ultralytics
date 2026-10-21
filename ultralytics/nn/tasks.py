@@ -1663,6 +1663,7 @@ def temporary_modules(modules=None, attributes=None):
 
     missing = object()
     previous = []  # (module, attribute, prior value) so exiting restores e.g. pathlib.WindowsPath
+    previous_modules = []  # (module path, prior value) so existing aliases survive the context
     with _temporary_modules_lock:
         try:
             # Set attributes in sys.modules under their old name
@@ -1675,14 +1676,17 @@ def temporary_modules(modules=None, attributes=None):
 
             # Set modules in sys.modules under their old name
             for old, new in modules.items():
+                previous_modules.append((old, sys.modules.get(old, missing)))
                 sys.modules[old] = import_module(new)
 
             yield
         finally:
-            # Remove the temporary module paths and attributes
-            for old in modules:
-                if old in sys.modules:
-                    del sys.modules[old]
+            # Restore the temporary module paths and attributes
+            for old, value in reversed(previous_modules):
+                if value is missing:
+                    sys.modules.pop(old, None)
+                else:
+                    sys.modules[old] = value
             for module, attr, value in previous:
                 if value is missing:
                     delattr(module, attr)
@@ -1738,18 +1742,17 @@ class _SafeLoad:
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
+            class_modules = {"ultralytics.nn.distill_model", "ultralytics.utils.loss", "ultralytics.utils.tal"}
             for name in needed:
                 module, _, attr = name.rpartition(".")
                 if name not in cls._registry and (
                     module in {"torch.nn.modules", "ultralytics.nn.modules", "ultralytics.nn.tasks"}
                     or module.rpartition(".")[0] in {"torch.nn.modules", "ultralytics.nn.modules"}
-                    or module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
+                    or module in class_modules
                 ):
                     obj = getattr(importlib.import_module(module), attr, None)
                     if isinstance(obj, type) and (
-                        obj.__module__ == module
-                        if module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
-                        else issubclass(obj, nn.Module)
+                        obj.__module__ == module if module in class_modules else issubclass(obj, nn.Module)
                     ):
                         cls._registry[name] = obj
             if any(name.startswith("torchvision.transforms.") for name in needed):

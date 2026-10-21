@@ -199,7 +199,7 @@ Additional tips:
 
 ### Calibrating the depth scale
 
-The depth head separates **shape** (relative scene structure) from **scale** (absolute meters). If a model already produces good relative depth on your scenes but the absolute values are off for your camera, you can correct the scale in seconds with `model.calibrate()` — a closed-form, scale-only fit of the head's log-affine transform against a small labeled set, kept only when it improves cross-validated held-out δ1, with **no gradient training and no change to the network weights**, so it cannot degrade the relative structure.
+The depth head separates **shape** (relative scene structure) from **scale** (absolute meters). If a model already produces good relative depth on your scenes but the absolute values are off for your camera, you can correct the scale in seconds with `model.calibrate()` — a closed-form, scale-only fit of the head's log-affine transform against a small labeled set, applied only when it scores best on cross-validated held-out δ1, with **no gradient training and no change to the network weights**, so it cannot degrade the relative structure.
 
 !!! example "Scale calibration"
 
@@ -217,9 +217,17 @@ The depth head separates **shape** (relative scene structure) from **scale** (ab
 
 Calibration needs ground-truth depth to fit against, so it runs on a labeled split — it is not something that can happen at blind inference. It fits and scores on the same pixels the val metrics evaluate: GT at or beyond the dataset YAML's `max_depth` (default 100 m) is excluded. Use it when relative depth is already good and only the scale/range is wrong; if the relative structure itself needs to change for your domain, [fine-tune](#fine-tuning-on-your-own-data) instead.
 
-Training does this for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box.
+`model.calibrate()` scores three candidates by raw-scale δ1 on held-out images, using two-fold cross-validation over up to about 200 images from the labeled split, and writes the winner into the model:
 
-The released `yolo26*-depth.pt` checkpoints ship with this calibration already baked in, fit on the pretraining validation mix. It is a single global scale across all domains, so for the most accurate absolute depth on a specific camera or scene type, run `model.calibrate()` on a small labeled split from your own data — it replaces the baked-in fit.
+- **identity**: the raw head output, with no calibration.
+- **current**: the calibration the model already carries, such as the one baked into the released checkpoints.
+- **scale-only**: a new global scale, refit on all of those images when selected.
+
+Identity is kept unless current or scale-only beats it by more than 0.002 δ1; otherwise the higher-scoring of the two wins, and a tie keeps current. A model therefore keeps its existing calibration unless the new scale scores higher, or unless neither calibration beats the raw output by that margin.
+
+Training runs the same selection for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box. A model trained from a YAML starts without calibration, so current equals identity. A model fine-tuned from a released checkpoint inherits that checkpoint's calibration, which competes as current.
+
+The released `yolo26*-depth.pt` checkpoints ship with this calibration already baked in, fit on the pretraining validation mix. It is a single global scale across all domains, so for the most accurate absolute depth on a specific camera or scene type, run `model.calibrate()` on a small labeled split from your own data.
 
 #### Getting ground-truth depth without a depth camera
 

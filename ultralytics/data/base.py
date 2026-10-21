@@ -30,7 +30,7 @@ class BaseDataset(Dataset):
 
     Attributes:
         img_path (str | list[str]): Path to the folder containing images.
-        imgsz (int): Target image size for resizing.
+        imgsz (int | tuple[int, int]): Target image size for resizing, or fixed (height, width) for evaluation.
         augment (bool): Whether to apply data augmentation.
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
@@ -109,7 +109,7 @@ class BaseDataset(Dataset):
     def __init__(
         self,
         img_path: str | list[str],
-        imgsz: int = 640,
+        imgsz: int | tuple[int, int] = 640,
         cache: bool | str | None = False,
         augment: bool = True,
         hyp: IterableSimpleNamespace = DEFAULT_CFG,
@@ -127,7 +127,7 @@ class BaseDataset(Dataset):
 
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
-            imgsz (int): Image size for resizing.
+            imgsz (int | tuple[int, int]): Image size for resizing, or fixed (height, width) for evaluation.
             cache (bool | str | None): Cache images to RAM (True or 'ram') or disk ('disk'); False or None disables.
             augment (bool): If True, data augmentation is applied.
             hyp (IterableSimpleNamespace): Hyperparameters to apply data augmentation.
@@ -189,8 +189,11 @@ class BaseDataset(Dataset):
     def get_img_files(self, img_path: str | list[str]) -> list[str]:
         """Read image files from the specified path.
 
+        A text file lists one image path per line, UTF-8 with or without a byte-order mark, and paths starting with `./`
+        resolve relative to the text file.
+
         Args:
-            img_path (str | list[str]): Path or list of paths to image directories or files.
+            img_path (str | list[str]): Path or list of paths to image directories, image files, or text files.
 
         Returns:
             (list[str]): List of image file paths.
@@ -206,7 +209,7 @@ class BaseDataset(Dataset):
                     f += glob.glob(str(Path(glob.escape(p)) / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
-                    with open(p, encoding="utf-8") as t:
+                    with open(p, encoding="utf-8-sig") as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
                         f += [x.replace("./", parent, 1) if x.startswith("./") else x for x in t]  # local to global
@@ -291,19 +294,21 @@ class BaseDataset(Dataset):
                 raise FileNotFoundError(f"Image Not Found {f}")
 
             h0, w0 = im.shape[:2]  # orig hw
+            shape = tuple(self.imgsz) if isinstance(self.imgsz, (tuple, list)) else (self.imgsz, self.imgsz)
+            imgsz = max(shape)
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 if resize_short:  # resize short side to imgsz while maintaining aspect ratio
-                    r = self.imgsz / min(h0, w0)  # ratio
+                    r = imgsz / min(h0, w0)  # ratio
                     if r != 1:  # if sizes are not equal
-                        w, h = (math.ceil(w0 * r), self.imgsz) if h0 < w0 else (self.imgsz, math.ceil(h0 * r))
+                        w, h = (math.ceil(w0 * r), imgsz) if h0 < w0 else (imgsz, math.ceil(h0 * r))
                         im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
                 else:
-                    r = self.imgsz / max(h0, w0)  # ratio
+                    r = imgsz / max(h0, w0)  # ratio
                     if r != 1:  # if sizes are not equal
-                        w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
+                        w, h = (min(math.ceil(w0 * r), imgsz), min(math.ceil(h0 * r), imgsz))
                         im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
-            elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
-                im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
+            elif (h0, w0) != shape:  # resize by stretching to the requested shape
+                im = cv2.resize(im, shape[::-1], interpolation=cv2.INTER_LINEAR)
             if im.ndim == 2:
                 im = im[..., None]
 

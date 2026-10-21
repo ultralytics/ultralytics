@@ -143,7 +143,7 @@ def zip_directory(
 
     # Zip with progress bar
     files = [f for f in directory.rglob("*") if f.is_file() and all(x not in f.name for x in exclude)]  # files to zip
-    zip_file = directory.with_suffix(".zip")
+    zip_file = directory.with_name(f"{directory.name}.zip")
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, "w", compression) as f:
         for file in TQDM(files, desc=f"Zipping {directory} to {zip_file}...", unit="files", disable=not progress):
@@ -192,7 +192,7 @@ def unzip_file(
     # Unzip the file contents
     with ZipFile(file) as zipObj:
         files = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
-        top_level_dirs = {Path(f).parts[0] for f in files}
+        top_level_dirs = {part for f in files for part in Path(f).parts[:1]}
 
         # Decide to unzip directly or unzip into a directory
         unzip_as_dir = len(top_level_dirs) == 1  # (len(files) > 1 and not files[0].endswith("/"))
@@ -333,7 +333,9 @@ def safe_download(
             the same name as the URL.
         dir (str | Path, optional): The directory to save the downloaded file. If not provided, the file will be saved
             in the current working directory.
-        unzip (bool, optional): Whether to unzip the downloaded file.
+        unzip (bool, optional): Whether to extract the file if it is a zip or tar archive. Only files with no suffix or
+            an archive suffix (`.zip`, `.tar`, `.gz`, `.tgz`, `.xz`, `.bz2`, `.txz`, `.tbz2`, in any letter case)
+            are checked.
         delete (bool, optional): Whether to delete the downloaded file after unzipping.
         curl (bool, optional): Whether to use curl command line tool for downloading.
         retry (int, optional): The number of times to retry the download in case of failure.
@@ -491,7 +493,7 @@ def safe_download(
             else:  # no attempt reached `break`, so every one failed size validation and unlinked its download
                 raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached."))
 
-    if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2"}:
+    if unzip and f.exists() and f.suffix.lower() in {"", ".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2"}:
         from zipfile import is_zipfile
 
         unzip_dir = Path(dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
@@ -585,7 +587,8 @@ def attempt_download_asset(
     """Attempt to download a file from GitHub release assets if it is not found locally.
 
     Args:
-        file (str | Path): The filename or file path to be downloaded.
+        file (str | Path): The filename or file path to be downloaded, or an HTTP(S) URL (scheme in any letter case) to
+            download directly.
         repo (str, optional): The GitHub repository in the format 'owner/repo'.
         release (str, optional): The specific release version to be downloaded.
         **kwargs (Any): Additional keyword arguments passed to `safe_download`.
@@ -608,7 +611,7 @@ def attempt_download_asset(
         # URL specified
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         download_url = f"https://github.com/{repo}/releases/download"
-        if str(file).startswith(("http:/", "https:/")):  # download
+        if str(file).lower().startswith(("http:/", "https:/")):  # download
             url = str(file).replace(":/", "://")  # Pathlib turns :// -> :/
             file = url2file(name)  # parse authentication query strings
             if Path(file).is_file():

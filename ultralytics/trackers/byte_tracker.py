@@ -65,6 +65,8 @@ class STrack(BaseTrack):
         super().__init__()
         # xywh+idx or xywha+idx
         assert len(xywh) in {5, 6}, f"expected 5 or 6 values but got {len(xywh)}"
+        if len(xywh) == 6 and xywh[2] < xywh[3]:  # long-edge form keeps equivalent OBB measurements consistent
+            xywh = xywh[[0, 1, 3, 2, 4, 5]] + np.array([0, 0, 0, 0, np.pi / 2, 0])
         self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
@@ -124,7 +126,8 @@ class STrack(BaseTrack):
             self.track_id = self.next_id()
         self.score = new_track.score
         self.cls = new_track.cls
-        self.angle = new_track.angle
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
         self.idx = new_track.idx
 
     def update(self, new_track: STrack, frame_id: int):
@@ -153,7 +156,8 @@ class STrack(BaseTrack):
 
         self.score = new_track.score
         self.cls = new_track.cls
-        self.angle = new_track.angle
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
         self.idx = new_track.idx
 
     def convert_coords(self, tlwh: np.ndarray) -> np.ndarray:

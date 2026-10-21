@@ -184,7 +184,7 @@ class LLM:
     @staticmethod
     def _image_url(source: Any) -> str:
         """Convert an image URL, path, or array to an OpenAI image URL."""
-        if isinstance(source, str) and source.startswith(("http://", "https://", "data:image/")):
+        if isinstance(source, str) and source.lower().startswith(("http://", "https://", "data:image/")):
             return source
         if isinstance(source, (str, Path)):
             image = cv2.imread(str(source))

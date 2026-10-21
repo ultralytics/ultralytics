@@ -144,7 +144,7 @@ Enable automatic credit purchases when your balance drops below a threshold:
 2. Toggle **Auto Top-Up** on
 3. Set **Threshold** (balance level that triggers a top-up)
 4. Set **Amount** (credits to purchase when triggered, $5 – $5,000)
-5. Click **Save**
+5. Click **Save changes**
 
 Default settings: threshold $20, amount $100.
 

@@ -65,7 +65,9 @@ easy to bookmark or share.
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
 search, and their cards show the matching images. On the Images tab, describe a scene such as `cats on a sofa`, then
-click an image to view it full size with its source dataset and license.
+click an image to open a side panel with its annotations, source dataset, class counts, and license, followed by up to
+24 similar images, including ones from the same dataset, when you are signed in; click one to open it in the panel. On
+narrow screens such as phones, the image opens full size instead.
 
 ### Sort and Filter
 
@@ -79,14 +81,15 @@ The dropdown in the toolbar holds sort options on the Datasets and Projects tabs
 | **Name**                | Alphabetical, ascending or descending                                          |
 | **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first         |
 
-| Filter         | Tabs                       | Availability   | Description                                                                                      |
-| -------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| **Task type**  | Datasets, Images           | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
-| **My starred** | Datasets, Images           | Signed in only | Show only datasets you have starred, or images from them                                         |
-| **License**    | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
+| Filter          | Tabs                       | Availability   | Description                                                                                      |
+| --------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| **Task**        | Datasets, Images           | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
+| **My starred**  | Datasets, Images, Projects | Signed in only | Show only datasets or projects you have starred, or images from those datasets                   |
+| **Image count** | Datasets                   | Everyone       | Show only datasets with **Under 1K**, **1K – 10K**, **10K – 100K**, or **100K+** images          |
+| **License**     | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
 
-Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `starred`, `license`, and `plicense`), so
-the browser back button restores the previous result list.
+Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `starred`, `imageCount`,
+`license`, and `plicense`), so the browser back button restores the previous result list.
 
 !!! note "Sorting by Stars"
 
@@ -168,7 +171,7 @@ Use a public dataset for your training:
 !!! note "Cloned Dataset Properties"
 
     - The clone dialog lets you review the destination, name, visibility, and license
-    - Public datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private
+    - Public datasets stay public by default unless the workspace's [default dataset visibility](account/settings.md#default-visibility) is Private
     - A copyleft source license is carried over and locked, so the clone keeps the terms it was published under
     - The clone dialog blocks a URL already used in the target workspace until you choose another
     - You can modify classes, annotations, and splits

@@ -372,6 +372,8 @@ Validation runs like any other model on a segmentation dataset:
     metrics = model.val(data="coco128-seg.yaml")
     ```
 
+`data` can also be an [NDJSON file](../datasets/detect/index.md#ultralytics-ndjson-format) or a Platform [`ul://` dataset URI](../platform/data/datasets.md#dataset-uri); it is converted to YOLO format before the text or visual prompts are built.
+
 Two variants of the same call cover the other prompting modes:
 
 - **Visual prompts** — `model.val(data="coco128-seg.yaml", load_vp=True)` extracts a visual embedding per category from the dataset itself. Add `refer_data="coco.yaml"` to take the embeddings from a different dataset, which must carry exactly the same categories.

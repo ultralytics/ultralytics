@@ -846,8 +846,8 @@ def is_jetson(jetpack=None) -> bool:
     if jetson and jetpack:
         try:
             content = Path("/etc/nv_tegra_release").read_text()
-            version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
-            return jetpack in version_map and version_map[jetpack] in content
+            version_map = {4: ("R32",), 5: ("R35",), 6: ("R36",), 7: ("R38", "R39")}  # JetPack to L4T major versions
+            return any(r in content for r in version_map.get(jetpack, ()))
         except Exception:
             return False
     return jetson
@@ -982,9 +982,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     else:
         raise ValueError(f"Unsupported operating system: {platform.system()}")
 
-    if p.exists():  # already created → trust it
-        return p
-    if is_dir_writeable(p.parent):  # create if possible
+    with contextlib.suppress(OSError):  # create if possible
         p.mkdir(parents=True, exist_ok=True)
         return p
 

@@ -35,7 +35,7 @@ Enter your project details:
 - **Name**: A descriptive name for your project (a random name is auto-generated)
 - **URL**: The project slug, generated from the name and editable before creation
 - **Description**: Optional notes about the project purpose
-- **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects default to Public; Enterprise workspaces default new projects to Private with the Ultralytics-Enterprise license.
+- **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects start with the workspace's [default visibility](../account/settings.md#default-visibility).
 - **License**: Optional license for your project (None, Apache-2.0, MIT, BSD-3-Clause, AGPL-3.0, GPL-3.0, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, CC0-1.0, Ultralytics-Enterprise, or Other). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license). Enterprise workspaces preselect it for new projects.
 
 ![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/6a29c20aabd7a9ff39c6bca031d655a1.avif)<!-- screenshot -->
@@ -143,7 +143,7 @@ Clone a public project to your own account:
 
 !!! info "Clone Behavior"
 
-    Cloned projects inherit the source project's visibility by default (so cloning a public project creates a public clone), and you can choose Public or Private in the clone dialog before confirming. Enterprise workspaces default new clones to private. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
+    Cloned projects inherit the source project's visibility by default, or start private when the workspace's [default project visibility](../account/settings.md#default-visibility) is Private, and you can choose Public or Private in the clone dialog before confirming. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
 
 ## Compare Models
 
@@ -157,7 +157,7 @@ Compare model performance using the charts dashboard:
 1. Select models in the sidebar using checkboxes
 2. View overlaid metric curves grouped by type (metrics, loss, learning rate)
 3. Drag charts to rearrange, resize by dragging edges
-4. Hover to see exact values, click legend items to hide/show models, click a model line to navigate to that model
+4. Hover to see exact values, click legend items to hide/show models, drag to zoom, and click to reset the zoom
 
 Available chart groups:
 
@@ -173,8 +173,7 @@ Comparing models trained for different tasks works, but each model only draws on
 
     - Hover to see exact values
     - Click legend items to hide/show models
-    - Drag to zoom into specific regions
-    - Click a model line to navigate to that model's page
+    - Drag to zoom into specific regions, and click to reset the zoom
     - Collapse a group, or use its menu to hide individual charts and the train or validation loss series
     - Rearrange and resize charts; layout persists across sessions
 

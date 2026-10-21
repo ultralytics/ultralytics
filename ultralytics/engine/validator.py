@@ -166,6 +166,11 @@ class BaseValidator:
             (dict | None): Dictionary containing validation statistics, or None on non-zero DDP ranks during training.
         """
         self.training = trainer is not None
+        if not self.training:
+            with torch_distributed_zero_first(LOCAL_RANK):
+                self.args.data = convert_ndjson_to_yolo_if_needed(
+                    self.args.data, self.args.fraction, split=self.args.split
+                )
         model = self.get_model(model, trainer, **kwargs)
         augment = self.args.augment and (not self.training)
         if self.training:
@@ -183,10 +188,6 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
-            with torch_distributed_zero_first(LOCAL_RANK):
-                self.args.data = convert_ndjson_to_yolo_if_needed(
-                    self.args.data, self.args.fraction, split=self.args.split
-                )
             device_type = str(self.args.device).split(":", 1)[0]
             device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             model = AutoBackend(
@@ -208,12 +209,14 @@ class BaseValidator:
             if augment and not model.base_model:
                 LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
                 augment = False
-            imgsz = check_imgsz(self.args.imgsz, stride=stride)
+            imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2)
             if fmt != "pt" and hasattr(model, "imgsz") and not getattr(model, "dynamic", False):
-                self.args.imgsz = imgsz = max(model.imgsz)  # reuse square imgsz from export metadata
+                self.args.imgsz = imgsz = model.imgsz  # reuse the full input shape from export metadata
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
-                LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
+                LOGGER.info(
+                    f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz[0]}, {imgsz[1]})"
+                )
 
             if self.args.task == "classify" and getattr(self.args, "multi_label", False):
                 self.data = check_multilabel_cls_dataset(self.args.data)
@@ -242,7 +245,9 @@ class BaseValidator:
             model.eval()
             if self.args.compile:
                 model = attempt_compile(model, device=self.device, mode=self.args.compile)
-            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
+            model.warmup(
+                imgsz=(1 if pt else self.dataloader.batch_size or self.args.batch, self.data["channels"], *imgsz)
+            )  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (

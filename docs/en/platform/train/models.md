@@ -95,7 +95,7 @@ Directly below, one card per task metric shows the final value over a sparkline 
 
 The **Run Information** card records how the run executed: status, start time, runtime, compute cost with the GPU and hourly rate, the `ultralytics` version, host details (hostname, environment, OS, Python, CPU, GPU), the parent model, the pinned dataset version, Git repository, branch and commit when the run reported them, and a reproducible `yolo train` command you can copy.
 
-While a run is active the card shows live progress — epoch counter, progress bar, elapsed time, ETA, accruing cost — and a **Cancel** button. If a run fails, an error banner replaces it with the captured error and **View full console logs** and **Retry Training** actions.
+While a run is active the card shows live progress — epoch counter, progress bar, elapsed time, ETA, accruing cost — and a **Cancel** button. If a run fails, an error banner replaces it with the captured error and a **View full console logs** action, plus **Diagnose with AI** and **Retry Training** (Editor role or higher).
 
 Below it, **Training Configuration** lists every hyperparameter used and **Performance Metrics** lists the final evaluation results. Both tables are searchable and have an **Export data** menu (Copy JSON, Download CSV, Download JSON).
 
@@ -192,7 +192,7 @@ When the training run provides them, the **Validation** view also displays perfo
 
 ### Per-Image Diagnostics
 
-Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis, which points at the data behind a disappointing score:
+Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis under **Validation insights** in the **Validation** view, which points at the data behind a disappointing score:
 
 - **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
 - **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
@@ -222,7 +222,7 @@ Export your model to 22 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
-3. Configure export arguments (image size, precision, dynamic, etc.)
+3. Configure export arguments: image size and precision for every format, plus batch, dynamic, and NMS (**Post-processing**) where the format supports them, and format-specific options such as **Simplify** and **Opset** for ONNX (opset 9–23; leave it on auto unless your runtime needs a specific version) and **Workspace (GB)** for TensorRT
 4. For GPU-required formats (TensorRT), select a GPU type
 5. Click **Start Export**
 6. Download when complete
@@ -317,7 +317,7 @@ Some export formats have architecture or task restrictions:
 | Format       | Restriction                                                                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IMX500**   | Available only for `YOLOv8n` and `YOLO11n` detect, segment, classify, and pose models; INT8 only                                                                                       |
-| **Axelera**  | YOLO26 segmentation models are not supported; INT8 only                                                                                                                                |
+| **Axelera**  | INT8 only                                                                                                                                                                              |
 | **DeepX**    | INT8 only                                                                                                                                                                              |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
@@ -362,7 +362,7 @@ Download your model weights:
 
 1. Open the model page
 2. Click the **download icon** in the model header (available from any tab)
-3. The model's primary `.pt` checkpoint downloads automatically
+3. The model's primary `.pt` checkpoint downloads automatically, named after the model (`{model}.pt`)
 
 Exported formats can be downloaded from the **Export** tab after export completes.
 

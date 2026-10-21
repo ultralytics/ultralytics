@@ -82,7 +82,7 @@ def _fix_score_ranges(model: torch.fx.GraphModule) -> None:
     logits, scores = _fixed_qspec(*LOGIT_RANGE), _fixed_qspec(*SCORE_RANGE)
     output = model.graph.output_node()
     sigmoid = output.args[0][-1]
-    annotation = lambda node: node.meta["quantization_annotation"]  # noqa: E731
+    annotation = lambda node: node.meta["quantization_annotation"]
     annotation(sigmoid).output_qspec = scores
     annotation(output).input_qspec_map[sigmoid] = scores
     todo = [sigmoid]

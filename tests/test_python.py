@@ -381,6 +381,25 @@ def test_model_methods():
     _ = model.task_map
 
 
+@pytest.mark.parametrize(
+    ("source", "suffix"),
+    [(MODEL, ".PT"), (ROOT / "cfg" / "models" / "26" / "yolo26.yaml", ".YAML")],
+)
+def test_model_load_accepts_case_insensitive_file_suffix(tmp_path, source, suffix):
+    """Test model loading accepts valid checkpoints and configs with uppercase file extensions."""
+    path = tmp_path / f"model{suffix}"
+    shutil.copy(source, path)
+    model = YOLO(path, verbose=False)
+    assert isinstance(model.model, torch.nn.Module)
+
+
+def test_autobackend_accepts_case_insensitive_file_suffix():
+    """Test exported model format detection ignores filename extension case."""
+    from ultralytics.nn.autobackend import AutoBackend
+
+    assert AutoBackend._model_type("model.ONNX") == "onnx"
+
+
 def test_model_load_remaps_cls_head_by_names():
     """Test class-name remap is limited to closed-set class-logit heads."""
     from ultralytics.nn.tasks import DetectionModel, SegmentationModel, SemanticSegmentationModel, YOLOEModel

@@ -457,26 +457,18 @@ class ConfusionMatrix(DataExportMixin):
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 
         # Greedy one-to-one matching in descending confidence order, the same policy as
-        # `Validator.match_predictions` but class-agnostic so cross-class confusions are still attributed: each detection
-        # claims its best unclaimed gt above the threshold. Ranking candidate pairs by IoU instead would let one
-        # detection consume the gt another detection needs, reporting a detected object as both a false positive and a
-        # false negative.
+        # `BaseValidator.match_predictions` but class-agnostic so cross-class confusions are still
+        # attributed. Ranking candidate pairs by IoU instead lets one detection consume the gt
+        # another needs, reporting a detected object as both a false positive and a false negative.
         iou = iou.cpu().numpy()
-        matches = []
-        claimed = np.zeros(iou.shape[0], dtype=bool)
+        gt_match = np.full(len(gt_classes), -1)
         for det_idx in np.argsort(-detections["conf"].cpu().numpy(), kind="stable"):
-            available = np.where(claimed, 0.0, iou[:, det_idx])
+            available = np.where(gt_match >= 0, 0.0, iou[:, det_idx])
             gt_idx = int(available.argmax())
             if available[gt_idx] > iou_thres:
-                claimed[gt_idx] = True
-                matches.append((gt_idx, int(det_idx), available[gt_idx]))
-        matches = np.array(matches, dtype=np.float64).reshape(-1, 3)
-
-        m0, m1, _ = matches.transpose().astype(int)
-        # Each gt and each detection appears at most once, so the matrix stays one-to-one
-        gt_match = np.full(len(gt_classes), -1)
-        gt_match[m0] = m1
-        matched_det = set(m1.tolist())
+                gt_match[gt_idx] = det_idx
+        # Each gt is claimed once and each detection claims at most one gt, so the matrix stays one-to-one
+        matched_det = set(gt_match[gt_match >= 0].tolist())
         for i, gc in enumerate(gt_classes):
             if (di := gt_match[i].item()) >= 0:
                 dc = detection_classes[di]

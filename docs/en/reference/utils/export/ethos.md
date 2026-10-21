@@ -12,6 +12,30 @@ keywords: Ultralytics, Ethos-U, Arm NPU, YOLO, model export, PyTorch, edge AI, e
 
 <br>
 
+## ::: ultralytics.utils.export.ethos._NHWCInput
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.ethos.ethos_wrapper
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.ethos._ethos_detect_forward
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.ethos._nhwc_batches
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.ethos._fixed_qspec
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.ethos._fix_score_ranges
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.export.ethos.torch2ethos
 
 <br><br>

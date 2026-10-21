@@ -312,8 +312,10 @@ def on_pretrain_routine_start(trainer):
         "last_upload": time(),
         "checkpoint_upload": None,
         "cancelled": False,
+        "console_logger": None,
         "system_logger": None,
     }
+    trainer.platform = ctx
 
     # Create callback to send console output to Platform
     def send_console_output(content, line_count, chunk_id):
@@ -337,7 +339,6 @@ def on_pretrain_routine_start(trainer):
     # integration whenever training_started failed, and its final flush would post a console chunk
     # carrying no model_id.
     ctx["console_logger"] = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
-    trainer.platform = ctx
 
     # Collect environment info (W&B-style metadata)
     environment = _get_environment_info()
@@ -359,8 +360,8 @@ def on_pretrain_routine_start(trainer):
     if model_id and (response == {} or (response and response.get("cancelled"))):  # model gone or ended, track as new
         response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
-        ctx["model_id"] = response["modelId"]
         record.write_text(response["modelId"])
+        ctx["model_id"] = response["modelId"]
         ctx["run_id"] = response.get("runId")
         # Server resolves the owner, project and final slug (e.g. "train" → "train-2") into the model link
         ctx["model_url"] = response.get("modelUrl")
@@ -533,7 +534,7 @@ def on_train_end(trainer):
 def teardown(trainer):
     """Stop console capture and report a training that failed before on_train_end completed it."""
     ctx = getattr(trainer, "platform", None)
-    if not ctx or not ctx["model_id"]:  # capture starts only once Platform registered the run
+    if not ctx:
         return
     trainer.platform = None
     ctx["console_logger"].stop_capture()

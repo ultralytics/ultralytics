@@ -886,19 +886,14 @@ class Model(torch.nn.Module):
                 args["resume"] = False
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
-        try:
-            if not args.get("resume") and self.ckpt:
-                # Reuse the loaded checkpoint model to avoid re-resolving remote weight sources during trainer setup
-                weights = None if pretrained is False else self.model
-                if isinstance(pretrained, (str, Path)):
-                    weights, _ = load_checkpoint(pretrained)
-                self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)
-                self.model = self.trainer.model
-                self.predictor = None  # this module replaced the one the cached predictor wrapped
-        except BaseException:
-            if not self.trainer.ddp:
-                self.trainer.run_callbacks("teardown")  # end the runs the trainer's integrations opened
-            raise
+        if not args.get("resume") and self.ckpt:
+            # Reuse the already-loaded checkpoint model to avoid re-resolving remote weight sources during trainer setup.
+            weights = None if pretrained is False else self.model
+            if isinstance(pretrained, (str, Path)):
+                weights, _ = load_checkpoint(pretrained)
+            self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)
+            self.model = self.trainer.model
+            self.predictor = None  # this module replaced the one the cached predictor wrapped
 
         self.trainer.train()
         # Update model and cfg after training

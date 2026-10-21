@@ -191,20 +191,15 @@ class BaseTrainer:
 
         self.ddp = world_size > 1 and LOCAL_RANK == -1  # spawn DDP workers unless already one
         self.world_size = world_size
-        try:
-            # Run on_pretrain_routine_start before get_dataset() to capture original args.data (e.g., ul:// URIs)
-            if RANK in {-1, 0} and not self.ddp:
-                callbacks.add_integration_callbacks(self)
-                self.run_callbacks("on_pretrain_routine_start")
+        # Run on_pretrain_routine_start before get_dataset() to capture original args.data (e.g., ul:// URIs)
+        if RANK in {-1, 0} and not self.ddp:
+            callbacks.add_integration_callbacks(self)
+            self.run_callbacks("on_pretrain_routine_start")
 
-            # Model and Dataset
-            self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo26n -> yolo26n.pt
-            with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
-                self.data = self.get_dataset()
-        except BaseException:
-            if not self.ddp:
-                self.run_callbacks("teardown")  # end the runs on_pretrain_routine_start opened, as train() would
-            raise
+        # Model and Dataset
+        self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo26n -> yolo26n.pt
+        with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
+            self.data = self.get_dataset()
 
         self.ema = None
 

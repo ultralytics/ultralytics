@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, TESTS_RUNNING, TryExcept, checks
+from ultralytics.utils import LOGGER, TESTS_RUNNING, checks
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -177,6 +177,8 @@ def on_train_end(trainer) -> None:
         if trainer.best.exists():
             live.log_artifact(trainer.best, copy=True, type="model")
 
+        live.end()
+
 
 callbacks = (
     {
@@ -186,8 +188,6 @@ callbacks = (
         "on_train_epoch_start": on_train_epoch_start,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
-        # TryExcept: live.end() raises outside a git repo and must not mask a training error
-        "teardown": TryExcept("DVCLive failed to end the run")(lambda trainer: live and live.end()),
     }
     if dvclive
     else {}

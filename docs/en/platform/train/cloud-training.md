@@ -64,7 +64,7 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 !!! warning "Task Mismatch"
 
-    A task mismatch warning appears when the selected model cannot train the dataset task, and **Start Training** remains disabled until you choose a compatible model. A segment dataset accepts segment, semantic, detect, or OBB models; other dataset tasks require the matching model task. Ultralytics derives boxes for detect models and minimum-area rotated boxes for OBB models from the polygon labels. See the [task guides](../../tasks/index.md).
+    A task mismatch warning appears when the selected model cannot train the dataset task, and **Start Training** remains disabled until you choose a compatible model. A segment dataset accepts detect, segment, semantic, or OBB models; other dataset tasks require the matching model task. Ultralytics derives boxes for detect models and minimum-area rotated boxes for OBB models from the polygon labels. See the [task guides](../../tasks/index.md).
 
 ### Step 3: Configure Parameters
 

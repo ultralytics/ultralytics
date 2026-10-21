@@ -11,7 +11,7 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 [Ultralytics Platform](https://platform.ultralytics.com) provides browser-based inference for testing trained models
 and dedicated endpoints for programmatic access.
 
-![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/26f355aa5ed21d09b66d86fcf7fd1642.avif)<!-- screenshot -->
+![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/7f24f23d72050535fb1184ab78b99f0a.avif)<!-- screenshot -->
 
 ## Predict Tab
 
@@ -24,7 +24,7 @@ Every model with weights includes a `Predict` tab for browser-based inference:
 
 Models without weights show an empty state instead — train the model or upload weights first.
 
-![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.ul.run/i/2b0e88766b66799a0e0f11f6cf83e1ec.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.ul.run/i/d6707bfab821116f76af77008cc0cbea.avif)<!-- screenshot -->
 
 ### Input Methods
 
@@ -95,7 +95,7 @@ Inference results display the output appropriate to the model task: boxes, masks
 classification scores, semantic coverage, or a depth map. Object results use the dataset class colors when available.
 The panel also shows preprocess, inference, postprocess, and network timing.
 
-![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/d404d43d1aec0a3b4e4536283b2312cc.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/200e9ac95d798975658c5c24baa10d33.avif)<!-- screenshot -->
 
 The results panel shows:
 
@@ -113,7 +113,7 @@ download button to save an annotated JPEG of the current result.
 
 Adjust inference behavior with the three sliders below the image (depth models show only **Image Size**):
 
-![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/03d15a005d5010026a35c8011406d520.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/a5c367ba079dc5d19ab3f02bd37f10bf.avif)<!-- screenshot -->
 
 | Parameter      | Range                     | Default | Description                  |
 | -------------- | ------------------------- | ------- | ---------------------------- |
@@ -304,7 +304,7 @@ with open("image.jpg", "rb") as f:
     console.log(result);
     ```
 
-![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/80c9a77ce7d40e67c8ccfc7871addb85.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/c2abdd3d156fc453381fccb5e90e1569.avif)<!-- screenshot -->
 
 ### Request Parameters
 
@@ -354,7 +354,7 @@ with open("image.jpg", "rb") as f:
 }
 ```
 
-![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/23001d947c672836bf74347a0fadc8c1.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/f89c84fd648ba3aaad454ea9911b28a7.avif)<!-- screenshot -->
 
 ### Response Fields
 

@@ -117,7 +117,6 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     ```yaml
     # data.yaml
-    path: .
     train: images/train
     val: images/val
 

@@ -60,7 +60,7 @@ After installing the required packages, you'll need to sign up, get a [Comet API
         export COMET_API_KEY=YOUR_API_KEY
         ```
 
-Then, authenticate with Comet. The Ultralytics callback creates the experiment and uses the YOLO `project` training argument as the Comet project name.
+Then, authenticate with Comet. The Ultralytics callback creates the experiment and uses the YOLO `project` training argument as the Comet project name. It ends the experiment when training finishes or fails, so each `train()` call logs to its own experiment.
 
 !!! example "Initialize Comet project"
 

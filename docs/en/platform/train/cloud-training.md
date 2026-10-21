@@ -293,7 +293,7 @@ Resume an interrupted remote run from its last checkpoint as usual (see [Resumin
 yolo train resume model=path/to/last.pt
 ```
 
-The resumed run continues the same Platform model, so its epochs, console output, and final weights land on the original model instead of a new one. The model ID is stored in `platform_model_id.txt` in the run directory. If that model was deleted, or has already completed, failed, or been cancelled, the resumed run is tracked as a new model. Platform marks a remote run failed after 4 hours without activity, so resume within that window to continue the original model.
+The resumed run continues the same Platform model, so its epochs, console output, and final weights land on the original model instead of a new one. The model ID is stored in `platform_model_id.txt` in the run directory. If that model was deleted, or has already completed, failed, or been cancelled, the resumed run is tracked as a new model. A remote run that stops on a Python error or interrupt is marked failed when it stops, so resuming it registers a new model. A run whose process is killed is marked failed after 4 hours without activity, so resume within that window to continue the original model.
 
 ### Using Platform Datasets
 

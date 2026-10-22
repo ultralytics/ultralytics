@@ -398,8 +398,8 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
 
     Positives, conflict resolution and the soft classification targets then all favor anchors with accurate keypoints,
     so the score ranks detections by pose quality. OKS carries no scale prior, so each ground truth is only a candidate
-    for anchors whose stride s satisfies ``lo * s <= sqrt(box area) <= hi * s`` (the finest and coarsest levels stay open
-    below and above). Call it with ``pd_kpts`` (b, h*w, K, 2) and ``gt_kpts`` (b, max_num_obj, K, 3) in pixels and
+    for anchors whose stride s satisfies ``lo * s <= sqrt(box area) <= hi * s`` (the finest and coarsest levels stay
+    open below and above). Call it with ``pd_kpts`` (b, h*w, K, 2) and ``gt_kpts`` (b, max_num_obj, K, 3) in pixels and
     ``anc_strides`` (h*w,); ground truths without visible keypoints keep the box IoU.
     """
 

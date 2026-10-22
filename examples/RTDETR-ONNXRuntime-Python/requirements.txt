@@ -1,4 +1,4 @@
-certifi==2025.4.26
+certifi==2026.10.19
 charset-normalizer==3.4.2
 coloredlogs==15.0.1
 flatbuffers==25.2.10

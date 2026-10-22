@@ -86,7 +86,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def __iter__(self) -> Iterator:
         """Yield one epoch of batches from the persistent iterator."""
         if self.iterator is None:
-            self.dataset.img_slots = self.img_slots  # new workers copy the dataset, so they fill this loader's slots
+            if self.img_slots is not None or hasattr(self.dataset, "img_slots"):  # new workers copy the dataset,
+                self.dataset.img_slots = self.img_slots  # so they fill this loader's slots
             self.iterator = self._get_iterator()
         for _ in range(len(self)):
             if self.img_slots is None:
@@ -149,6 +150,9 @@ class InfiniteDataLoader(dataloader.DataLoader):
         slots = torch.empty(shape, dtype=torch.uint8).share_memory_()
         if int(torch.cuda.cudart().cudaHostRegister(slots.data_ptr(), nbytes, 0)) == 0:
             self.img_slots, self.slot_device = slots, torch.device(device)
+        else:  # the next kernel launch check reads the failure from CUDA's last error, so let it happen here
+            with contextlib.suppress(RuntimeError):
+                torch.zeros(1, device=device)
 
     def wait_slot_copies(self):
         """Wait until every yielded batch, including the one still held, has been copied out of its slot."""

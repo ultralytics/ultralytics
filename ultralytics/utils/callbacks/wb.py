@@ -145,6 +145,7 @@ def on_pretrain_routine_end(trainer):
         )
         for prefix in ("train", "lr", "metrics", "val"):
             wb.run.define_metric(f"{prefix}/*", step_metric="epoch")
+    wb.run.config.setdefaults(vars(trainer.args))  # keep values the user or a sweep already set
 
 
 def on_fit_epoch_end(trainer):

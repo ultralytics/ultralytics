@@ -409,7 +409,7 @@ class AutoBackend(nn.Module):
         sf = export_formats()["Suffix"]
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)
-        name = Path(p).name
+        name = Path(p).name.lower()
         # The suffix ending last wins, then the longest, i.e. 'best.pt.onnx' -> onnx, 'best_qnn.onnx' -> qnn
         matches = [
             (name.rfind(s) + len(s), len(s), f)

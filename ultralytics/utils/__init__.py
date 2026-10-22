@@ -665,7 +665,7 @@ class YAML:
             ValueError: If the file contains a YAML syntax error or is not a YAML mapping.
         """
         instance = cls._get_instance()
-        assert str(file).endswith((".yaml", ".yml")), f"Not a YAML file: {file}"
+        assert str(file).lower().endswith((".yaml", ".yml")), f"Not a YAML file: {file}"
 
         # Read file content
         with open(file, errors="ignore", encoding="utf-8") as f:

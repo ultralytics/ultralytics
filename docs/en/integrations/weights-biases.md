@@ -103,6 +103,8 @@ Before diving into the usage instructions for YOLO26 model training with Weights
         yolo train data=coco8.yaml epochs=5 project=ultralytics name=yolo26n
         ```
 
+Runs that Ultralytics creates chart training metrics against `epoch`. If you start a run with `wandb.init()` before training, Ultralytics logs into that run, with an `epoch` value in every row, and leaves it open so you can keep logging to it and call `wandb.finish()` yourself. Training arguments are added to that run's config, and any key you or a W&B sweep already set keeps its value.
+
 ### W&B Arguments
 
 | Argument | Default | Description                                                                                                                                               |

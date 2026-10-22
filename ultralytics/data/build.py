@@ -131,14 +131,14 @@ class InfiniteDataLoader(dataloader.DataLoader):
         waits for the copy of that batch before receiving. Images then reach the GPU straight from the slot, without a
         new shared-memory segment and a pin-memory copy per batch in the training process.
 
+        Args:
+            device (torch.device | str): CUDA device the batches are copied to.
+
         Notes:
             - A yielded `img` is a view of its slot and is rewritten `num_workers` batches later, so copy it before
               keeping it across iterations.
             - The wait covers copies queued on the current CUDA stream of `device` before the next batch is requested,
               as in `preprocess_batch`, and assumes ordered loading (`in_order=True`, the default).
-
-        Args:
-            device (torch.device | str): CUDA device the batches are copied to.
         """
         ds = self.dataset
         shape = (self.num_workers, self.prefetch_factor + 1, self.batch_size, ds.channels, ds.imgsz, ds.imgsz)

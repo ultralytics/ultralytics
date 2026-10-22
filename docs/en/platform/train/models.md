@@ -103,11 +103,11 @@ Below it, **Training Configuration** lists every hyperparameter used and **Perfo
 
 ### Train Tab
 
-The Train tab has three subtabs:
+The Train tab has four subtabs: **Metrics**, **Validation**, **Console**, and **System**. Validation appears when validation plots are available, or for signed-in viewers of completed detection training runs linked to a saved dataset version.
 
-#### Charts Subtab
+#### Metrics Subtab
 
-Interactive metric charts over epochs, split into **Training** and **Validation** views when the run produced validation artifacts. The chart groups follow the metrics the run reported:
+Interactive metric charts over epochs. The chart groups follow the metrics the run reported:
 
 | Chart Group       | Charts                                                                           |
 | ----------------- | -------------------------------------------------------------------------------- |
@@ -118,6 +118,10 @@ Interactive metric charts over epochs, split into **Training** and **Validation*
 Each group collapses, its menu hides or shows individual charts (and, for losses, the train or validation series), and charts can be dragged and resized into a layout that persists across sessions.
 
 ![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/c2fa4095937cf79df4aac265fe3260af.avif)<!-- screenshot -->
+
+#### Validation Subtab
+
+The validation results recorded when the run finished: the confusion matrix, the precision-recall and confidence curves, and, for detection runs trained with a saved dataset version, per-image validation insights. See [Validation Plots](#validation-plots).
 
 #### Console Subtab
 
@@ -169,17 +173,17 @@ Create and manage dedicated inference endpoints. See [Deployments](../deploy/ind
 
 ## Validation Plots
 
-After training completes, the **Validation** view inside the Charts subtab shows a detailed analysis of the final epoch.
+After training completes, the **Validation** subtab of the Train tab shows the validation results recorded when the run finished. Per-image **Validation insights** come first when the run has them, followed by the plots.
 
 ### Confusion Matrix
 
-Interactive heatmap showing prediction accuracy per class:
+Interactive heatmap showing prediction accuracy per class. True classes run along the bottom axis and predicted classes down the side; the **Normalize** switch shows each cell as a share of its true class or as a raw count:
 
 ![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/780955dffa9f05b51aff04e167dc4627.avif)<!-- screenshot -->
 
 ### PR/F1 Curves
 
-When the training run provides them, the **Validation** view also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
+When the training run provides them, the **Validation** subtab also displays performance curves at different confidence thresholds, each with a legend and one line per class when up to 20 plotted classes can be matched to their names. Available validation plots depend on the artifacts produced by the run.
 
 ![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/b312aab61b8bdfc868ebbe7400c888a8.avif)<!-- screenshot -->
 
@@ -192,12 +196,14 @@ When the training run provides them, the **Validation** view also displays perfo
 
 ### Per-Image Diagnostics
 
-Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis under **Validation insights** in the **Validation** view, which points at the data behind a disappointing score:
+Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis under **Validation insights** at the top of the **Validation** subtab, which points at the data behind a disappointing score:
 
-- **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
+- **Signals to investigate**: the strongest relationship between an image trait and per-image F1, the class whose presence differs most between the worst and best images, and the largest error count in the worst images, with the totals behind them under **Analysis details**
+- **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes; **Show all** opens the full group of up to 100 images, and the fullscreen viewer works inside it
+- **Classes associated with failures**, comparing each class's presence in the worst and best images, ranked by the largest difference
 - **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
-- **Classes associated with failures**, ranking which classes appear most often in the weakest images
-- **Find similar**, on the worst-performing gallery, on a single image in its fullscreen view, and on a class row, which searches public datasets and your own and team datasets for images like the captured failures and adds the ones you select to the training dataset as unlabeled `train` images (see [Find Similar Images](../data/datasets.md#find-similar-images)); shown when you can edit the project and the training dataset is a non-connected dataset of the same workspace
+- **Find similar**, on the worst-performing gallery, on a single image in its fullscreen view, and on a class row, which searches public datasets and your own and team datasets for images like the captured failures and adds the ones you select to the training dataset as unlabeled `train` images (see [Find Similar Images](../data/datasets.md#find-similar-images)); shown when you can edit the project and the training dataset is a non-connected dataset of the same workspace. When the training dataset supports Batch Annotation (a task with classes and at most three image channels), the confirmation after adding images offers **Annotate all**, which opens it for that dataset
+- **Improve with AI**, which opens Ask AI and asks it to explain how good the model is, what works, what does not, and which steps to take next from this page; the request also asks it to confirm before adding images, annotating, or training
 
 !!! note "Requirements"
 

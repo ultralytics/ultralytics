@@ -195,7 +195,7 @@ To receive the completed and failed results without keeping this page open, conn
 
 View real-time training progress on the model page's **Train** tab:
 
-### Charts Subtab
+### Metrics Subtab
 
 ![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/b0ee2230c2e011ca4910789562abba8a.avif)<!-- screenshot -->
 
@@ -208,6 +208,10 @@ Charts are grouped by metric family, and the groups that appear depend on what t
 | **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                                                    |
 
 Each group can be collapsed, individual charts can be hidden or shown from the group menu, and charts can be dragged and resized — the layout is remembered for next time.
+
+### Validation Subtab
+
+Displays available validation results: the confusion matrix, the precision-recall and confidence curves, and per-image validation insights for detection runs trained with a saved dataset version. See [Validation Plots](models.md#validation-plots).
 
 ### Console Subtab
 

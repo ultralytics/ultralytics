@@ -881,7 +881,7 @@ class BaseTrainer:
 
         cfg, weights = self.model, None
         ckpt = None
-        if str(self.model).endswith(".pt"):
+        if str(self.model).lower().endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
         if isinstance(self.args.pretrained, (str, Path)) and not self.resume:

@@ -764,6 +764,10 @@ def plot_mc_curve(
         on_plot(save_dir, {"type": f"{ylabel.lower()}_curve", "x": px.tolist(), "y": py.tolist()})
 
 
+_AP_X = np.linspace(0, 1, 101)  # 101-point interp (COCO), constant across compute_ap calls
+_TRAPZ = np.trapezoid if checks.check_version(np.__version__, ">=2.0") else np.trapz  # np.trapz deprecated
+
+
 def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.ndarray, np.ndarray]:
     """Compute the average precision (AP) given the recall and precision curves.
 
@@ -783,15 +787,7 @@ def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.n
     # Compute the precision envelope
     mpre = np.flip(np.maximum.accumulate(np.flip(mpre)))
 
-    # Integrate area under curve
-    method = "interp"  # methods: 'continuous', 'interp'
-    if method == "interp":
-        x = np.linspace(0, 1, 101)  # 101-point interp (COCO)
-        func = np.trapezoid if checks.check_version(np.__version__, ">=2.0") else np.trapz  # np.trapz deprecated
-        ap = func(np.interp(x, mrec, mpre), x)  # integrate
-    else:  # 'continuous'
-        i = np.where(mrec[1:] != mrec[:-1])[0]  # points where x-axis (recall) changes
-        ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])  # area under curve
+    ap = _TRAPZ(np.interp(_AP_X, mrec, mpre), _AP_X)  # 101-point interpolation (COCO)
 
     return ap, mpre, mrec
 
@@ -881,13 +877,13 @@ def ap_per_class(
     # Compute F1 (harmonic mean of precision and recall)
     f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + eps)
     names = {i: names[k] for i, k in enumerate(unique_classes) if k in names}  # dict: only classes that have data
-    if plot:
+    if plot and nc:
         plot_pr_curve(x, prec_values, ap, save_dir / f"{prefix}PR_curve.png", names, on_plot=on_plot)
         plot_mc_curve(x, f1_curve, save_dir / f"{prefix}F1_curve.png", names, ylabel="F1", on_plot=on_plot)
         plot_mc_curve(x, p_curve, save_dir / f"{prefix}P_curve.png", names, ylabel="Precision", on_plot=on_plot)
         plot_mc_curve(x, r_curve, save_dir / f"{prefix}R_curve.png", names, ylabel="Recall", on_plot=on_plot)
 
-    i = smooth(f1_curve.mean(0), 0.1).argmax()  # max F1 index
+    i = smooth(f1_curve.mean(0), 0.1).argmax() if nc else 0  # max F1 index
     p, r, f1 = p_curve[:, i], r_curve[:, i], f1_curve[:, i]  # max-F1 precision, recall, F1 values
     tp = (r * nt).round()  # true positives
     fp = (tp / (p + eps) - tp).round()  # false positives

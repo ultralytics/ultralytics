@@ -162,6 +162,8 @@ def test_fastsam(
 
 def test_mobilesam() -> None:
     """Test MobileSAM segmentation with point and box prompts using Ultralytics."""
+    import numpy as np
+
     from ultralytics import SAM
 
     # Load the model
@@ -181,6 +183,11 @@ def test_mobilesam() -> None:
 
     # A box prompt applies to every image of a directory source, not only the first
     assert [len(r.masks) for r in model(ASSETS, bboxes=[439, 437, 524, 709])] == [1, 1]
+
+    # Mask-refinement logits must retain negative background and fractional foreground values.
+    mask = np.array([[-2.5, 0.25], [1.5, -0.75]], dtype=np.float32)
+    prepared = model.predictor._prepare_prompts((1024, 1024), (2, 2), masks=mask)[-1]
+    assert prepared[0, 0, ::512, ::512].cpu().tolist() == mask.tolist()
 
     # Predict all
     # model(source)

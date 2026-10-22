@@ -460,10 +460,10 @@ class ConfusionMatrix(DataExportMixin):
         gt_match = np.full(len(gt_classes), -1)
         candidates = np.flatnonzero((iou > iou_thres).any(0))
         for det_idx in candidates[np.argsort(-detections["conf"].cpu().numpy()[candidates], kind="stable")]:
-            available = np.where(gt_match >= 0, 0.0, iou[:, det_idx])
-            gt_idx = int(available.argmax())
-            if available[gt_idx] > iou_thres:
+            gt_idx = iou[:, det_idx].argmax()
+            if iou[gt_idx, det_idx] > iou_thres:
                 gt_match[gt_idx] = det_idx
+                iou[gt_idx] = 0
         matched_det = set(gt_match[gt_match >= 0].tolist())
         for i, gc in enumerate(gt_classes):
             if (di := gt_match[i].item()) >= 0:

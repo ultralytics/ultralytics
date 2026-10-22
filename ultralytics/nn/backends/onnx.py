@@ -249,6 +249,7 @@ class ONNXBackend(BaseBackend):
                         policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
                         self.session_options.set_provider_selection_policy(policy)
                     self.device, cuda = torch.device("cpu"), False  # outputs are host arrays, no CUDA IO binding
+                    self.torch_threads = 1  # spinning torch threads in predict pre and postprocess stall DirectML
                 else:
                     providers = ["CPUExecutionProvider"]
 

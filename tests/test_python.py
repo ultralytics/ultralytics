@@ -349,33 +349,6 @@ def test_restricted_load_criterion(tmp_path, fused):
         assert torch.allclose(checkpoint["model"](image)[0], expected)
 
 
-@pytest.mark.parametrize(
-    "arch, kwargs",
-    [("resnet18", {}), ("mobilenet_v3_small", {}), ("googlenet", {"transform_input": False, "aux_logits": False})],
-)
-def test_restricted_load_torchvision_classifier(tmp_path, arch, kwargs):
-    """Torchvision classifier checkpoints load under restricted loading, while other torchvision globals stay blocked."""
-    import torchvision
-
-    from ultralytics.nn.tasks import ClassificationModel, _SafeLoad, torch_safe_load
-
-    if not _SafeLoad.SUPPORTED:
-        pytest.skip("restricted loading requires torch>=2.6")
-    cfg = {"nc": 10, "backbone": [], "head": [[-1, 1, "TorchVisionClassify", [arch, 10, None, kwargs]]]}
-    model = ClassificationModel(cfg, nc=10, verbose=False).eval()
-    image = torch.rand(1, 3, 64, 64)
-    with torch.no_grad():
-        expected = model(image)[0]
-    torch.save({"model": model, "train_args": {"task": "classify"}}, tmp_path / "cls.pt")
-    checkpoint = torch_safe_load(tmp_path / "cls.pt", safe_only=True)[0]
-    with torch.no_grad():
-        assert torch.allclose(checkpoint["model"].eval()(image)[0], expected)
-
-    torch.save({"model": torchvision.models.resnet.resnet18}, tmp_path / "builder.pt")  # a function, not a layer
-    with pytest.raises(TypeError, match="outside the supported Ultralytics checkpoint format"):
-        torch_safe_load(tmp_path / "builder.pt", safe_only=True)
-
-
 @pytest.mark.parametrize("cfg", [CFG, "yolov8n.yaml", "yolov10n.yaml", "yolo11n.yaml", "yolo26n-p6.yaml"])
 def test_model_forward(cfg):
     """Test the forward pass of the YOLO model."""

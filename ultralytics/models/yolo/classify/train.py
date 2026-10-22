@@ -59,7 +59,7 @@ class ClassificationTrainer(BaseTrainer):
             overrides = {}
         overrides["task"] = "classify"
         overrides["multi_scale"] = 0.0  # classification batches are never rescaled
-        if overrides.get("imgsz") is None:
+        if overrides.get("imgsz") is None and not overrides.get("resume"):
             overrides["imgsz"] = 224
         super().__init__(cfg, overrides, _callbacks)
 

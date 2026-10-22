@@ -923,19 +923,23 @@ class Classify(nn.Module):
             (torch.Tensor | tuple): Logits of shape (B, c2) in training; softmax probabilities in export mode; otherwise
                 a (probabilities, logits) tuple.
         """
-        if isinstance(x, list):
-            x = torch.cat(x, 1)
-        x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
+        x = self._get_logits(x)
         if self.training:
             return x
         y = x.softmax(1)  # get final output
         return y if self.export else (y, x)
 
+    def _get_logits(self, x: list[torch.Tensor] | torch.Tensor) -> torch.Tensor:
+        """Compute class logits before applying the shared training, inference and export output contract."""
+        if isinstance(x, list):
+            x = torch.cat(x, 1)
+        return self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
+
 
 class TorchVisionClassify(Classify):
     """Adapt a torchvision classifier to the classification training and export output contract."""
 
-    def __init__(self, model: str, nc: int, weights=None, kwargs: dict | None = None):
+    def __init__(self, model: str, nc: int, weights: str | None = None, kwargs: dict | None = None):
         """Initialize a torchvision classifier with the requested class count.
 
         Args:
@@ -957,14 +961,10 @@ class TorchVisionClassify(Classify):
         )
         ClassificationModel.reshape_outputs(self.model, nc)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor | tuple:
-        """Return training logits, inference probabilities and logits, or export probabilities."""
+    def _get_logits(self, x: torch.Tensor) -> torch.Tensor:
+        """Compute the native classifier's final logits, discarding auxiliary training outputs."""
         x = self.model(x)
-        x = getattr(x, "logits", x)
-        if self.training:
-            return x
-        y = x.softmax(1)
-        return y if self.export else (y, x)
+        return getattr(x, "logits", x)
 
 
 class WorldDetect(Detect):

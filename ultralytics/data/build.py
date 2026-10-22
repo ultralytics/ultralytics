@@ -148,9 +148,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
         if hasattr(self.iterator, "_workers"):
             self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
         if self.img_slots is not None:  # wait for the copies of all yielded batches, including the one still held
-            self.slot_events.append(torch.cuda.current_stream(self.slot_device).record_event())
-        while self.slot_events:
-            self.slot_events.pop().synchronize()
+            torch.cuda.synchronize(self.slot_device)
+        self.slot_events.clear()
         self.iterator = None
 
 
@@ -462,8 +461,8 @@ def build_dataloader(
         drop_last=drop_last,
         **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
-    square = not getattr(dataset, "rect", True) and isinstance(getattr(dataset, "imgsz", None), int)
-    if LINUX and nw and pin_memory and device_type == "cuda" and shuffle and square:
+    slots = isinstance(dataset, YOLODataset) and not dataset.rect  # only YOLODataset.collate_fn fills the slots
+    if LINUX and nw and pin_memory and device_type == "cuda" and shuffle and slots:
         loader.pin_image_slots(device)
     return loader
 

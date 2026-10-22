@@ -526,7 +526,7 @@ Before starting a cloud job, the training dialog shows your current credit balan
     | `rle`     | float | 1.0     | >=0    | RLE keypoint loss weight (pose)                |
     | `angle`   | float | 1.0     | >=0    | Rotation angle loss weight (OBB)               |
     | `dlog`    | float | 1.0     | >=0    | SILog depth loss weight (depth)                |
-    | `dgrad`   | float | 0.5     | >=0    | Depth gradient loss weight (depth)             |
+    | `dgrad`   | float | 10.0    | >=0    | Depth gradient loss weight (depth)             |
     | `dlam`    | float | 0.85    | 0-1    | SILog variance focus (depth)                   |
 
 !!! tip "Task-Specific Parameters"

@@ -245,7 +245,7 @@ See the **[YOLOE documentation](yoloe.md)** for per-scale performance tables, pr
 
 For a complete technical description of the YOLO26 architecture, training recipe, task heads, and YOLOE-26 open-vocabulary extension, read [Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models](https://arxiv.org/abs/2606.03748). If you use YOLO26 in your research, please cite:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

@@ -181,7 +181,7 @@ results = YOLO("yolo27n.pt").train(
 If you use Ultralytics Benchmark in your work, please cite the
 [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748):
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

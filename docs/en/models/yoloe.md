@@ -587,7 +587,7 @@ model.set_vocab(vocab, names, one2one_vocab=one2one_model.get_vocab(names))
 
 If YOLOE has contributed to your research or project, please cite the original paper by **Ao Wang, Lihao Liu, Hui Chen, Zijia Lin, Jungong Han, and Guiguang Ding** from **Tsinghua University**:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

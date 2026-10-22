@@ -93,7 +93,7 @@ This technique is especially useful for small datasets like COCO8, as it maximiz
 
 If you use the COCO dataset in your research or development, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

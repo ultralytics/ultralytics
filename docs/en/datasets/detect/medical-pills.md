@@ -123,7 +123,7 @@ The dataset is available under the [AGPL-3.0 License](https://github.com/ultraly
 
 If you use the Medical Pills dataset in your research or development work, please cite it using the mentioned details:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

@@ -86,7 +86,7 @@ The ImageNet dataset spans the 1,000 ILSVRC-2012 classes, providing a diverse an
 
 If you use the ImageNet dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

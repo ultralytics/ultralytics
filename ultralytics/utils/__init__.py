@@ -991,7 +991,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     # Fallback for Docker, GCP/AWS functions where only /tmp is writable, private to the current user
     alt = Path(tempfile.gettempdir()) / (sub_dir if WINDOWS else f"{sub_dir}-{os.getuid()}")
     try:
-        alt.mkdir(mode=0o700)
+        alt.mkdir(mode=0o777 if WINDOWS else 0o700)  # a Windows 0o700 DACL locks out non-elevated runs
     except OSError:
         with contextlib.suppress(OSError):  # own private dir only, never a symlink; Windows %TEMP% is per-user
             info = alt.lstat()

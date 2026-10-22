@@ -1427,7 +1427,12 @@ class YOLOEModel(DetectionModel):
             "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
         )
         assert embeddings.ndim == 3
-        self.names = check_class_names(names)  # validate before any state is written
+        names = check_class_names(names)  # validate before any state is written
+        if self.model[-1].is_fused:  # validators drop "/" synonyms
+            assert {i: n.split("/", 1)[0] for i, n in names.items()} == {
+                i: n.split("/", 1)[0] for i, n in self.names.items()
+            }, "Class embeddings are fused; use an unfused YOLOE model to change classes."
+        self.names = names
         self.pe = embeddings
         self.model[-1].nc = len(names)
 

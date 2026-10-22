@@ -53,3 +53,23 @@ joints with depth (face joints are vis 0). COCO val (teacher labels): 6,286 pair
 - **R-oracle ≥ 10 mm but R-mean < 3 mm** → value exists only with per-person shape estimation, i.e. real
   MHR/SMPL regression (H4); escalate as a cost question.
 - **Both small** → no body model for accuracy; the error is in 2D keypoints and depth regression.
+
+## Addendum (2026-10-22) — real-GT training, the standard 3DPW protocol
+
+Confound in the first round: every COCO training label was read off SAM 3D Body's MHR rig, so the labels already
+carry a body model's skeleton, and a bone/symmetry prior on top of them is partly redundant. Real-GT 3D training
+removes that. Only 3DPW is on the cluster (H36M / MPI-INF-3DHP / EMDB are licence-gated and Shenzhen egress is
+blocked), so: **train on 3DPW train (24 seq, 8,828 frames), select on 3DPW validation (12 seq), report on 3DPW
+test** — all SMPL-derived GT, `focal = 1.2·max(w,h)`, 12 body joints with depth.
+
+| arm | init | epochs | POSE3D_BONE_GAIN |
+| --- | --- | ---: | ---: |
+| P_pw_ctrl | yolo26n-pose (no teacher labels anywhere) | 60 | 0 |
+| Q_pw_bone1 | yolo26n-pose | 60 | 1 |
+| R_pw_bone4 | yolo26n-pose | 60 | 4 |
+| S_pwft_ctrl | F_clip (pretrain on teacher, fine-tune on real GT) | 30 | 0 |
+| T_pwft_bone1 | F_clip | 30 | 1 |
+
+Locked predictions: (A1) on real GT the prior is no longer harmful — Q within ±3 mm of P on 3DPW test MPJPE;
+(A2) R (gain 4) still worse than P; (A3) S beats F_clip's 109.8 by > 10 mm (in-domain fine-tune); T within ±3 mm
+of S. Decision rule unchanged: the prior earns a place only if it beats its control by ≥ 3 mm.

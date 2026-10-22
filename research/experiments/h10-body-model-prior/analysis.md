@@ -138,3 +138,53 @@ run anyway because a post-hoc refit is not a training signal, agrees.
    (Objects365 pseudo-labels already on disk, T5), and a relative-depth loss that weights by limb rather than joint.
 3. If 3DPW numbers matter for publication, add a fixed COCO->SMPL joint-regressor offset at evaluation — part of
    the measured "error" is joint definition, and the teacher pays it too.
+
+## 7. Real-GT training — the standard 3DPW protocol (addendum)
+
+The first round had a confound: every COCO label was read off SAM 3D Body's MHR rig, so the training data already
+carried a body model's skeleton. Here no teacher label is used: train on **3DPW train** (24 sequences, 8,828
+frames, SMPL-derived GT), select `best.pt` on **3DPW validation**, report on **3DPW test**. H36M / MPI-INF-3DHP /
+EMDB are not on the cluster (licence-gated, Shenzhen egress blocked), so 3DPW is the only real-GT set available.
+
+| arm | init | ep | gain | **test MPJPE** | test PA | test AbsRel | val MPJPE | val PA | test pose mAP |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| F_clip (no 3DPW training) | — | — | — | **109.85** | **82.96** | **0.0456** | — | — | **0.758** |
+| P_pw_ctrl | yolo26n-pose | 60 | 0 | 145.21 | 102.99 | 0.0823 | 103.57 | 80.06 | 0.540 |
+| Q_pw_bone1 | yolo26n-pose | 60 | 1 | 151.34 | 112.45 | 0.0797 | 108.64 | 88.08 | 0.532 |
+| R_pw_bone4 | yolo26n-pose | 60 | 4 | 192.05 | 141.52 | 0.0809 | 147.91 | 117.66 | 0.496 |
+| S_pwft_ctrl | F_clip | 30 | 0 | 135.03 | 96.07 | 0.0781 | 97.84 | 76.90 | 0.612 |
+| T_pwft_bone1 | F_clip | 30 | 1 | 128.90 | 93.98 | 0.0651 | 100.66 | 81.05 | 0.651 |
+
+**3DPW train alone is too small to train on.** Both pure-real-GT and fine-tuned models score far better on
+validation (98–104 mm) than on test (135–145 mm), and all are worse on test than F_clip, which never saw 3DPW.
+Prediction A3 (fine-tune beats F_clip by > 10 mm) is **refuted** — it loses 25 mm. Twenty-four sequences of a few
+actors are memorised; the teacher-labelled COCO volume generalises better than in-domain real GT at this scale.
+
+**From scratch on real GT, the prior is still harmful**, monotonically: +6.1 mm (gain 1), +46.8 mm (gain 4) on test,
+and +5.1 / +44.3 mm on validation. A1 (no longer harmful) **refuted**; A2 confirmed.
+
+**From F_clip, the splits disagree.** T beats S on test by 6.1 mm MPJPE (and on 2D pose mAP, 0.651 vs 0.612) but
+loses on validation by 2.8 mm. That pattern reads as regularisation against memorising 3DPW train, not as better
+3D — and T is still 19 mm worse than not fine-tuning at all. Seed replicates below.
+
+**The error structure is the same on real GT.** On P/S/T the GT-depth swap removes 49–54% of MPJPE (P: 145.2 ->
+74.4), the GT-2D swap 19–20%, root depth ~1.5%, and the best oracle bone-length refit recovers **0.1–0.9 mm**.
+The prior does what it says — T's forearm asymmetry falls 0.136 -> 0.058 — and that is not where the error is.
+
+**Seed replicates (S vs T, 3 seeds each).**
+
+| arm | test MPJPE s0 / s1 / s2 | mean | test PA mean | val MPJPE s0 / s1 / s2 | mean |
+| --- | --- | ---: | ---: | --- | ---: |
+| S_pwft_ctrl | 135.03 / 134.31 / 133.09 | 134.14 | **95.90** | 97.84 / 97.47 / 99.04 | **98.12** |
+| T_pwft_bone1 | 128.90 / 132.13 / 134.48 | **131.84** | 96.38 | 100.66 / 99.88 / 102.43 | 100.99 |
+
+Seed 0's 6.1 mm test win was mostly seed luck: over three seeds the prior is **−2.3 mm on test MPJPE** (under the
+protocol's 3 mm bar, inside T's own 5.6 mm seed spread), **+0.5 mm worse on test PA-MPJPE**, and **+2.9 mm worse on
+validation in every seed** — the split that chose the checkpoints. Not a win.
+
+**Real-GT verdict: unchanged.** Training on real 3D GT removes the teacher-rig confound and the conclusion holds:
+the body-structure prior hurts from scratch, is noise-level at best on top of F_clip, and the error is per-joint
+depth magnitude on real GT exactly as on pseudo-labels. Separately, and more useful: **3DPW train is too small to
+help** — every 3DPW-trained arm is 21–35 mm worse on test than F_clip, so real-GT fine-tuning at this scale is not a
+lever either. A larger real-GT set (BEDLAM with SMPL-X-derived relative depth, which needs the gated body model for
+*labels*, not in the student) is the one place a body model would enter this project.

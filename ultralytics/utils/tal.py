@@ -394,20 +394,36 @@ class TaskAlignedAssigner(nn.Module):
 
 
 class PoseTaskAlignedAssigner(TaskAlignedAssigner):
-    """Task-aligned assigner for pose whose overlap is the mean of box IoU and keypoint OKS.
+    """Task-aligned assigner for pose whose overlap is keypoint OKS, with an FCOS-style pyramid-level gate.
 
     Positives, conflict resolution and the soft classification targets then all favor anchors with accurate keypoints,
-    so the score ranks detections by pose quality. Call it with ``pd_kpts`` (b, h*w, K, 2) and ``gt_kpts`` (b,
-    max_num_obj, K, 3) in pixels; ground truths without visible keypoints keep the plain IoU.
+    so the score ranks detections by pose quality. OKS carries no scale prior, so each ground truth is only a candidate
+    for anchors whose stride s satisfies ``lo * s <= sqrt(box area) <= hi * s`` (the finest and coarsest levels stay open
+    below and above). Call it with ``pd_kpts`` (b, h*w, K, 2) and ``gt_kpts`` (b, max_num_obj, K, 3) in pixels and
+    ``anc_strides`` (h*w,); ground truths without visible keypoints keep the box IoU.
     """
+
+    level_range = (2.0, 12.0)  # (lo, hi) ground-truth size range per stride, in strides
 
     def __init__(self, sigmas: torch.Tensor, **kwargs):
         """Initialize with the per-keypoint OKS sigmas (K,) and the TaskAlignedAssigner arguments."""
         super().__init__(**kwargs)
         self.sigmas = sigmas
 
+    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, anc_strides, **extra):
+        """Assign like TaskAlignedAssigner, gating candidates by the per-anchor strides ``anc_strides`` (h*w,)."""
+        self.anc_strides = anc_strides
+        return super().forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra)
+
+    def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
+        """Select anchors inside each ground-truth box on the pyramid levels that fit its size."""
+        mask = super().select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt, eps)
+        side = (gt_bboxes[..., 2:] - gt_bboxes[..., :2]).prod(-1, keepdim=True).clamp(min=0).sqrt()  # (b, n, 1)
+        s, (lo, hi) = self.anc_strides, self.level_range
+        return mask & ((side >= lo * s) | (s == s.min())) & ((side <= hi * s) | (s == s.max()))
+
     def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, pd_kpts, gt_kpts):
-        """Return (IoU + OKS) / 2 for each candidate pair, or the IoU alone for ground truths without visible keypoints."""
+        """Return the OKS of each candidate pair, or the box IoU for ground truths without visible keypoints."""
         b, g, a = indices
         iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
         gt_kpts = gt_kpts[b, g]  # (P, K, 3)
@@ -415,7 +431,7 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         area = (gt_bboxes[b, g, 2:] - gt_bboxes[b, g, :2]).prod(-1, keepdim=True) * 0.53  # as in PoseValidator
         d = (pd_kpts[b, a].float() - gt_kpts[..., :2]).pow(2).sum(-1)
         oks = ((-d / ((2 * self.sigmas).pow(2) * (area + self.eps) * 2)).exp() * vis).sum(-1) / vis.sum(-1).clamp(min=1)
-        return torch.where(vis.any(-1), (iou + oks.to(iou.dtype)) / 2, iou)
+        return torch.where(vis.any(-1), oks.to(iou.dtype), iou)
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):

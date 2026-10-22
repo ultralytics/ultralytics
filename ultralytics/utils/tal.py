@@ -416,11 +416,16 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         return super().forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra)
 
     def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
-        """Select anchors inside each ground-truth box on the pyramid levels that fit its size."""
+        """Select anchors inside each ground-truth box on the pyramid levels that fit its size.
+
+        A ground truth that the gate would leave without candidates (e.g. a thin box narrower than the coarse strides)
+        keeps its ungated candidates.
+        """
         mask = super().select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt, eps)
         side = (gt_bboxes[..., 2:] - gt_bboxes[..., :2]).prod(-1, keepdim=True).clamp(min=0).sqrt()  # (b, n, 1)
         s, (lo, hi) = self.anc_strides, self.level_range
-        return mask & ((side >= lo * s) | (s == s.min())) & ((side <= hi * s) | (s == s.max()))
+        gated = mask & ((side >= lo * s) | (s == s.min())) & ((side <= hi * s) | (s == s.max()))
+        return torch.where(gated.any(-1, keepdim=True), gated, mask)
 
     def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, pd_kpts, gt_kpts):
         """Return the OKS of each candidate pair, or the box IoU for ground truths without visible keypoints."""

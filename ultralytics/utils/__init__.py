@@ -995,7 +995,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     except OSError:
         with contextlib.suppress(OSError):  # own private dir only, never a symlink; Windows %TEMP% is per-user
             info = alt.lstat()
-            if stat.S_ISDIR(info.st_mode) and (WINDOWS or (info.st_uid == os.getuid() and not info.st_mode & 0o077)):
+            if stat.S_ISDIR(info.st_mode) and (WINDOWS or (info.st_uid, info.st_mode & 0o777) == (os.getuid(), 0o700)):
                 return alt
         alt = Path(tempfile.mkdtemp(prefix=f"{sub_dir}-"))  # otherwise a new private dir for this process
     LOGGER.warning(f"user config directory '{p}' is not writable, using '{alt}'. Set YOLO_CONFIG_DIR to override.")

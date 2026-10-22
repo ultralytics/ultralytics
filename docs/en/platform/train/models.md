@@ -103,11 +103,11 @@ Below it, **Training Configuration** lists every hyperparameter used and **Perfo
 
 ### Train Tab
 
-The Train tab has three subtabs:
+The Train tab has **Metrics**, **Console**, and **System** subtabs, plus **Validation** when validation results are available:
 
-#### Charts Subtab
+#### Metrics Subtab
 
-Interactive metric charts over epochs, split into **Training** and **Validation** views when the run produced validation artifacts. The chart groups follow the metrics the run reported:
+Interactive metric charts over epochs. The chart groups follow the metrics the run reported:
 
 | Chart Group       | Charts                                                                           |
 | ----------------- | -------------------------------------------------------------------------------- |
@@ -117,7 +117,7 @@ Interactive metric charts over epochs, split into **Training** and **Validation*
 
 Each group collapses, its menu hides or shows individual charts (and, for losses, the train or validation series), and charts can be dragged and resized into a layout that persists across sessions.
 
-![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/83338b5e71c1c107b68ad69cb0873a2a.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Metrics Subtab](https://cdn.ul.run/i/83338b5e71c1c107b68ad69cb0873a2a.avif)<!-- screenshot -->
 
 #### Console Subtab
 
@@ -169,7 +169,7 @@ Create and manage dedicated inference endpoints. See [Deployments](../deploy/ind
 
 ## Validation Plots
 
-After training completes, the **Validation** view inside the Charts subtab shows a detailed analysis of the final epoch.
+The **Validation** subtab shows a detailed analysis when validation results are available.
 
 ### Confusion Matrix
 

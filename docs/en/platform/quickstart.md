@@ -269,17 +269,18 @@ From your project, click `New Model` to open the **Train New Model** dialog. You
 
 ### Monitor Training
 
-Once training starts, open the model's `Train` tab to monitor progress in real time through three subtabs:
+Once training starts, open the model's `Train` tab to monitor progress in real time:
 
-| Subtab      | Content                                                 |
-| ----------- | ------------------------------------------------------- |
-| **Charts**  | Training/validation loss curves, mAP, precision, recall |
-| **Console** | Live training log output                                |
-| **System**  | GPU utilization, memory usage, hardware metrics         |
+| Subtab         | Content                                                 |
+| -------------- | ------------------------------------------------------- |
+| **Metrics**    | Training/validation loss curves, mAP, precision, recall |
+| **Validation** | Recorded validation results, when available             |
+| **Console**    | Live training log output                                |
+| **System**     | GPU utilization, memory usage, hardware metrics         |
 
 ![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/13e91f2728627c825f8efcd8fe7916b4.avif)<!-- screenshot -->
 
-Metrics are streamed in real-time via SSE (Server-Sent Events). Once validation artifacts exist, the Charts subtab splits into **Training** and **Validation** views, with the confusion matrix, PR curves, and F1 curves under Validation.
+Metrics are streamed in real-time via SSE (Server-Sent Events). The **Validation** subtab appears when validation results are available, including the confusion matrix, PR curves, and F1 curves produced by the run.
 
 !!! tip "Cancel Training"
 

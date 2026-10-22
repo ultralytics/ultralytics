@@ -140,13 +140,16 @@ class FastSAMPredictor(SegmentationPredictor):
                         continue
                     crop = result.orig_img[y1:y2, x1:x2] * masks[i, y1:y2, x1:x2, None].cpu().numpy()
                     crop_ims.append(Image.fromarray(crop[:, :, ::-1]))
-                similarity = self._clip_inference(crop_ims, texts)
-                text_idx = torch.argmax(similarity, dim=-1)  # (M, )
-                if len(filter_idx):
-                    # Remap text_idx to its original index before filtering (supports multiple text prompts)
-                    ori_idxs = torch.tensor([i for i in range(len(result)) if i not in filter_idx], device=self.device)
-                    text_idx = ori_idxs[text_idx]
-                idx[text_idx] = True
+                if crop_ims:
+                    similarity = self._clip_inference(crop_ims, texts)
+                    text_idx = torch.argmax(similarity, dim=-1)  # (M, )
+                    if len(filter_idx):
+                        # Remap text_idx to its original index before filtering (supports multiple text prompts)
+                        ori_idxs = torch.tensor(
+                            [i for i in range(len(result)) if i not in filter_idx], device=self.device
+                        )
+                        text_idx = ori_idxs[text_idx]
+                    idx[text_idx] = True
 
             prompt_results.append(result[idx])
 

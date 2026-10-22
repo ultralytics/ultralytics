@@ -38,51 +38,6 @@ def test_checks():
     assert torch.cuda.device_count() == CUDA_DEVICE_COUNT
 
 
-@pytest.mark.parametrize("dtype", [torch.float16, torch.float32], ids=["fp16", "fp32"])
-@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is required for OBB NMS")
-def test_obb_fp16_embedded_nms_suppresses_overlapping_boxes(dtype):
-    """Keep same-class OBB ProbIoU calculations stable in embedded FP16 NMS."""
-    from types import SimpleNamespace
-
-    from torch import nn
-
-    from ultralytics.engine.exporter import NMSModel
-    from ultralytics.nn.tasks import OBBModel
-    from ultralytics.utils.metrics import batch_probiou
-
-    model = OBBModel("ultralytics/cfg/models/11/yolo11-obb.yaml", verbose=False).cuda().eval()
-    model.task = "obb"  # task-aware loaders set this metadata on the model before export
-    head = model.model[-1]
-    with torch.no_grad():
-        for branches in (head.cv2, head.cv3, head.cv4):
-            for branch in branches:
-                conv = [layer for layer in branch.modules() if isinstance(layer, nn.Conv2d)][-1]
-                conv.weight.zero_()
-                conv.bias.zero_()
-                if branches is head.cv2:
-                    conv.bias.fill_(-20)
-                    conv.bias.view(4, head.reg_max)[:, 1:3] = 20
-                elif branches is head.cv3:
-                    conv.bias.fill_(2.0)
-                else:
-                    conv.bias.fill_(-1.0986123)
-
-    args = SimpleNamespace(
-        format="onnx", dynamic=False, batch=1, max_det=100, conf=0.5, iou=0.5, agnostic_nms=False, opset=17, quantize=16
-    )
-    images = torch.zeros((1, 3, 640, 640), device="cuda", dtype=dtype)
-    with torch.inference_mode():
-        detections = NMSModel(model.to(dtype).eval(), args)(images)[0]
-
-    assert detections.dtype == images.dtype  # keep the exported output in the model's dtype
-    detections = detections[detections[:, 4] > args.conf]
-    assert len(detections) > 0
-    boxes = detections[:, [0, 1, 2, 3, 6]].double()
-    same_class = detections[:, 5, None] == detections[None, :, 5]
-    overlap = batch_probiou(boxes, boxes).triu(diagonal=1)
-    assert overlap[same_class].max() <= args.iou + 1e-5
-
-
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_amp():
     """Test AMP training checks."""

@@ -34,9 +34,9 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
 
     Notes:
-        - With cv2.IMREAD_UNCHANGED, multi-page grayscale TIFFs with same-size pages stack them as channels and color
-          TIFFs keep every band, such as alpha or near-infrared. Other flags and other multi-page TIFFs, such as scanned
-          documents or Cloud Optimized GeoTIFFs with overview and thumbnail pages, return their first page.
+        - Only cv2.IMREAD_UNCHANGED stacks the same-size pages of a multi-page grayscale TIFF as channels and keeps
+          every band of a color TIFF, such as alpha or near-infrared. Other flags, and TIFFs with mixed page sizes such
+          as Cloud Optimized GeoTIFFs, return the first page, so scanned documents read as one page.
         - 16-bit images keep their high byte as 8-bit, unless flags explicitly include cv2.IMREAD_ANYDEPTH.
           cv2.IMREAD_UNCHANGED preserves channels but still converts 16-bit images to 8-bit.
     """

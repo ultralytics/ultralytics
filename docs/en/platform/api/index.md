@@ -1727,8 +1727,8 @@ POST /api/training/start
 }
 ```
 
-Training returns `402` when your credit balance is too low and `503` when no capacity is available for the requested
-GPU.
+Training returns `400` when the model task cannot train the dataset task, `402` when your credit balance is too low,
+and `503` when no capacity is available for the requested GPU.
 
 !!! note "GPU Types"
 

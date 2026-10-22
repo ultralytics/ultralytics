@@ -7,6 +7,7 @@ import math
 import os
 import random
 import shutil
+from collections import deque
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -75,6 +76,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         super().__init__(*args, **kwargs)
         object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
         self.iterator = None  # fork workers on first iteration, not while another loader's pin-memory thread starts up
+        self.slot_events = deque(maxlen=self.num_workers)  # one CUDA event per consumed batch, see pin_image_slots()
 
     def __len__(self) -> int:
         """Return the length of the batch sampler's sampler."""
@@ -85,11 +87,20 @@ class InfiniteDataLoader(dataloader.DataLoader):
         if self.iterator is None:
             self.iterator = self._get_iterator()
         for _ in range(len(self)):
+            if getattr(self.dataset, "img_slots", None) is None:
+                yield next(self.iterator)
+                continue
+            if len(self.slot_events) == self.num_workers:  # next() rewrites the slot read num_workers batches ago
+                self.slot_events[0].synchronize()
             batch = next(self.iterator)
-            if "img_slot" in batch:  # images were collated into a pinned slot, see pin_image_slots()
+            if "img_slot" in batch:
                 w, s, n = batch.pop("img_slot").tolist()
                 batch["img"] = self.dataset.img_slots[w, s, :n]
-            yield batch
+            try:
+                yield batch
+            finally:  # the consumer has queued its copy of this batch on the current stream
+                self.slot_events.append(torch.cuda.Event())
+                self.slot_events[-1].record()
 
     def __del__(self):
         """Ensure that workers are properly terminated when the DataLoader is deleted."""
@@ -99,6 +110,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
                     w.terminate()
             self.close()
             if getattr(self.dataset, "img_slots", None) is not None:
+                self.wait_slot_copies()
                 torch.cuda.cudart().cudaHostUnregister(self.dataset.img_slots.data_ptr())
                 self.dataset.img_slots = None
         except Exception:
@@ -112,9 +124,10 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def pin_image_slots(self):
         """Give each worker `prefetch_factor + 1` pinned shared-memory slots to collate its image batches into.
 
-        Workers cycle through their slots, and the loader keeps at most `prefetch_factor` batches per worker in flight,
-        so a slot is rewritten only after its batch was consumed. Images then reach the GPU straight from the slot,
-        without a new shared-memory segment and a pin-memory copy per batch in the training process.
+        Workers cycle through their slots round-robin and the loader keeps `prefetch_factor` batches per worker in
+        flight, so receiving batch `i` dispatches the task that rewrites the slot of batch `i - num_workers`. `__iter__`
+        waits for the copy of that batch before receiving. Images then reach the GPU straight from the slot, without a
+        new shared-memory segment and a pin-memory copy per batch in the training process.
         """
         ds = self.dataset
         shape = (self.num_workers, self.prefetch_factor + 1, self.batch_size, ds.channels, ds.imgsz, ds.imgsz)
@@ -125,9 +138,15 @@ class InfiniteDataLoader(dataloader.DataLoader):
         if int(torch.cuda.cudart().cudaHostRegister(slots.data_ptr(), nbytes, 0)) == 0:
             ds.img_slots = slots
 
+    def wait_slot_copies(self):
+        """Wait until every consumed batch has been copied out of its slot."""
+        while self.slot_events:
+            self.slot_events.popleft().synchronize()
+
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
         self.close()  # free old worker pipes before creating new iterator
+        self.wait_slot_copies()  # new workers start writing their first slots right away
         self.iterator = None
 
 

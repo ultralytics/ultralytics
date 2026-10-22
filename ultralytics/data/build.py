@@ -138,7 +138,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         ds = self.dataset
         shape = (self.num_workers, self.prefetch_factor + 1, self.batch_size, ds.channels, ds.imgsz, ds.imgsz)
         nbytes = math.prod(shape)
-        ranks = int(os.getenv("LOCAL_WORLD_SIZE", "1"))  # DDP ranks on this node each allocate a pool
+        ranks = int(os.getenv("LOCAL_WORLD_SIZE", os.getenv("WORLD_SIZE", "1")))  # each local DDP rank allocates a pool
         if shutil.disk_usage("/dev/shm").free < 2 * nbytes * ranks:  # leave room for the per-batch label tensors
             return
         slots = torch.empty(shape, dtype=torch.uint8).share_memory_()
@@ -146,7 +146,10 @@ class InfiniteDataLoader(dataloader.DataLoader):
             ds.img_slots = slots
 
     def wait_slot_copies(self):
-        """Wait until every consumed batch has been copied out of its slot."""
+        """Wait until every yielded batch, including the one still held, has been copied out of its slot."""
+        if getattr(self.dataset, "img_slots", None) is not None:
+            self.slot_events.append(torch.cuda.Event())
+            self.slot_events[-1].record()
         while self.slot_events:
             self.slot_events.popleft().synchronize()
 

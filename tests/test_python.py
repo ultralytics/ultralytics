@@ -1418,6 +1418,16 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
+def test_merge_multi_segment_closest_points():
+    """Merged multi-part segments must bridge neighboring parts at their closest points, including reversed parts."""
+    from ultralytics.data.converter import merge_multi_segment
+
+    t = np.linspace(0, 2 * np.pi, 12, endpoint=False)
+    circles = [np.stack((np.cos(t) + x, np.sin(t)), 1) for x in (0, 5, 10)]  # the middle enters at 6, exits at 0
+    merged = np.concatenate(merge_multi_segment(circles))
+    assert np.linalg.norm(merged - np.roll(merged, 1, 0), axis=1).max() == pytest.approx(3)  # the 3-unit circle gaps
+
+
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

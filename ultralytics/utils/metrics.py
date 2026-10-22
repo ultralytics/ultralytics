@@ -456,18 +456,14 @@ class ConfusionMatrix(DataExportMixin):
         bboxes = detections["bboxes"]
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 
-        # Greedy one-to-one matching in descending confidence order, the same policy as
-        # `BaseValidator.match_predictions` but class-agnostic so cross-class confusions are still
-        # attributed. Ranking candidate pairs by IoU instead lets one detection consume the gt
-        # another needs, reporting a detected object as both a false positive and a false negative.
         iou = iou.cpu().numpy()
         gt_match = np.full(len(gt_classes), -1)
-        for det_idx in np.argsort(-detections["conf"].cpu().numpy(), kind="stable"):
+        candidates = np.flatnonzero((iou > iou_thres).any(0))
+        for det_idx in candidates[np.argsort(-detections["conf"].cpu().numpy()[candidates], kind="stable")]:
             available = np.where(gt_match >= 0, 0.0, iou[:, det_idx])
             gt_idx = int(available.argmax())
             if available[gt_idx] > iou_thres:
                 gt_match[gt_idx] = det_idx
-        # Each gt is claimed once and each detection claims at most one gt, so the matrix stays one-to-one
         matched_det = set(gt_match[gt_match >= 0].tolist())
         for i, gc in enumerate(gt_classes):
             if (di := gt_match[i].item()) >= 0:

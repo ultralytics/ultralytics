@@ -9,8 +9,9 @@ ap = argparse.ArgumentParser()
 ap.add_argument("arm"); ap.add_argument("init", choices=INIT); ap.add_argument("--device", default="0")
 ap.add_argument("--epochs", type=int, default=60)
 ap.add_argument("--seed", type=int, default=0)
+ap.add_argument("--data", default="3dpw-pose3d-trainval.yaml")
 a = ap.parse_args()
 model, pre = INIT[a.init]
-YOLO(model).train(data="3dpw-pose3d-trainval.yaml", epochs=a.epochs, batch=64, imgsz=640, device=a.device,
+YOLO(model).train(data=a.data, epochs=a.epochs, batch=64, imgsz=640, device=a.device,
                   workers=8, seed=a.seed, deterministic=False, project="/home/rick/runs/pose3d", name=a.arm,
                   exist_ok=True, plots=False, **({"pretrained": pre} if pre else {}))

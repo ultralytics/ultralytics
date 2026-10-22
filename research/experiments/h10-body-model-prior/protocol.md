@@ -73,3 +73,28 @@ test** — all SMPL-derived GT, `focal = 1.2·max(w,h)`, 12 body joints with dep
 Locked predictions: (A1) on real GT the prior is no longer harmful — Q within ±3 mm of P on 3DPW test MPJPE;
 (A2) R (gain 4) still worse than P; (A3) S beats F_clip's 109.8 by > 10 mm (in-domain fine-tune); T within ±3 mm
 of S. Decision rule unchanged: the prior earns a place only if it beats its control by ≥ 3 mm.
+
+## Addendum B (2026-10-22) — BEDLAM with SMPL-X-derived relative depth
+
+**Labels.** `convert_bedlam.py --smplx-dir` poses the neutral SMPL-X (11 betas, `pose_cam`, translation
+`trans_cam + cam_ext[:3,3]`); this reprojects onto BEDLAM's shipped `gtkps` at a median **0.0 px** on four
+sequences checked (incl. AGORA, stadium, a 30fps set), so the 3D joints are BEDLAM's GT exactly. All 17 joints
+get visibility 2 with real Δz; root depth is the true mid-hip. Joint definitions are SMPL-X internal joints —
+the same convention as 3DPW's SMPL GT, unlike COCO surface keypoints — so a BEDLAM-trained model does not pay the
+definition tax F_clip pays on 3DPW (and pays it instead on COCO-GT 2D). SMPL-X files come from a third-party HF
+mirror (camenduru/SMPLer-X), on Rick's decision; MPI licence not accepted — same provenance caveat as BEDLAM itself.
+
+**Interpretation frame, stated before the result.** BEDLAM's GT is *generated* by SMPL-X, so its labels are
+rig-consistent by construction, like the teacher's MHR labels on COCO and like 3DPW's SMPL fits. Every 3D-human GT
+in the field is body-model-derived. This round therefore does not remove that property; it asks whether the
+bone/symmetry prior helps **as a regulariser on the largest real-GT set available**, with 30x 3DPW's frames.
+
+**Split.** By scene: both `20221018_*_stadium_6fps` sequences (only place `stadium` appears) are BEDLAM-val;
+everything else trains. 3DPW test remains the real-image ruler.
+
+**Arms** (all from `yolo26n-pose`, no teacher labels; epochs set from the measured first-epoch speed):
+`U_bed_ctrl_s0`, `U_bed_ctrl_s1` (gain 0) · `V_bed_bone1_s0`, `V_bed_bone1_s1` (gain 1) · `W_bed_bone4_s0` (gain 4).
+
+**Locked predictions.** (B1) gain 1 within ±2 mm of ctrl (seed-mean) on BEDLAM-val and 3DPW test; (B2) gain 4
+worse than ctrl on both; (B3) BEDLAM-only ctrl on 3DPW test lands at 110–140 mm (synthetic->real gap, offset partly
+by matching joint definitions). Decision rule unchanged: the prior must beat its control by ≥ 3 mm.

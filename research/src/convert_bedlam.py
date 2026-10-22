@@ -32,6 +32,12 @@ format and joint layout but a different image layout, handled in `convert_npz`. 
 and the far end of its depth range crosses the 50 m encoding cap. Those rows are dropped and counted rather
 than silently clipped, which is why the per-sequence drop count is worth reading.
 
+**With `--smplx-dir`, real 3D joints.** Posing the neutral SMPL-X (11 betas, `pose_cam`) and translating by
+`trans_cam + cam_ext[:3, 3]` reprojects through `cam_int` onto `gtkps` at a median **0.0 px** — that is how
+BEDLAM generated its 2D, so the posed joints are its ground truth exactly, and the shipped `gender` is ignored
+because the neutral model is what reproduces it. The seventeen joints then carry real relative depth at
+visibility 2, and the root depth is the true mid-hip rather than the translation origin.
+
 Usage:
     python research/src/convert_bedlam.py --npz-dir <root>/labels/all_npz_12_training \
         --images <root>/images --out /home/rick/bedlam-pose3d --focal-ratio 1.2
@@ -55,7 +61,28 @@ MIN_VISIBLE = 6  # COCO joints that must be inside the frame for the person to b
 Z_NEAR = 0.3  # metres; closer than this the person is behind or through the camera
 
 
-def frame_rows(kps: np.ndarray, z_true: float, w: int, h: int, conv: float) -> str | None:
+def smplx_joints(d, model_dir: Path, batch: int = 2048) -> np.ndarray:
+    """Pose the neutral SMPL-X for every person in a sequence; returns (N, 127, 3) camera-space joints in metres."""
+    import smplx
+    import torch
+
+    pc, sh = torch.tensor(d["pose_cam"]).float(), torch.tensor(d["shape"]).float()
+    t = torch.tensor(d["trans_cam"] + d["cam_ext"][:, :3, 3]).float()
+    m = smplx.create(str(model_dir), model_type="smplx", gender="neutral", num_betas=sh.shape[1], use_pca=False,
+                     flat_hand_mean=True, ext="npz")
+    out = []
+    with torch.no_grad():
+        for i in range(0, len(pc), batch):
+            p, b = pc[i : i + batch], sh[i : i + batch]
+            m.batch_size = len(p)
+            j = m(global_orient=p[:, :3], body_pose=p[:, 3:66], jaw_pose=p[:, 66:69], leye_pose=p[:, 69:72],
+                  reye_pose=p[:, 72:75], left_hand_pose=p[:, 75:120], right_hand_pose=p[:, 120:165], betas=b,
+                  expression=torch.zeros(len(p), 10)).joints
+            out.append((j + t[i : i + batch, None]).numpy())
+    return np.concatenate(out).astype(np.float64)
+
+
+def frame_rows(kps: np.ndarray, z_true: float, w: int, h: int, conv: float, j3d: np.ndarray | None = None) -> str | None:
     """Build one pose3d label row from a person's 2D keypoints and true root depth, or None if unusable.
 
     Args:
@@ -64,10 +91,14 @@ def frame_rows(kps: np.ndarray, z_true: float, w: int, h: int, conv: float) -> s
         w (int): Image width in pixels.
         h (int): Image height in pixels.
         conv (float): Factor carrying the depth into the declared focal convention.
+        j3d (np.ndarray, optional): The person's (127, 3) camera-space SMPL-X joints; supplies relative depth and
+            the true mid-hip root depth, replacing `z_true`.
 
     Returns:
         (str | None): The label row, or None if the person is out of frame or out of encoding range.
     """
+    if j3d is not None:
+        z_true = float(j3d[list(SMPLX_HIPS), 2].mean())
     z_root = z_true * conv
     if not (Z_NEAR < z_true and z_root < Z_ROOT_MAX):  # gate the converted depth: the cap is what gets stored
         return None
@@ -81,7 +112,7 @@ def frame_rows(kps: np.ndarray, z_true: float, w: int, h: int, conv: float) -> s
     inside = (xy > 0).all(1) & (xy < 1).all(1)
     if inside.sum() < MIN_VISIBLE:
         return None
-    vis = np.where(inside, 1.0, 0.0)
+    vis = np.where(inside, 2.0 if j3d is not None else 1.0, 0.0)
 
     # Box from the hull of every joint that is actually in frame — hands and feet included, since they extend
     # the real extent — so a person half outside the image gets a box over the visible part rather than one
@@ -99,8 +130,10 @@ def frame_rows(kps: np.ndarray, z_true: float, w: int, h: int, conv: float) -> s
     # verify_image_label, which is how half of coco-pose3d went missing.
     xy, root_xy = xy.clip(0.0, 1.0), root_xy.clip(0.0, 1.0)
 
-    # Relative depth is unknown, so it is stored as the encoding of zero and masked off by visibility 1.
-    z_rel_enc, z_root_enc = encode_z(np.zeros(17, dtype=np.float64), np.float64(z_root))
+    # Without SMPL-X, relative depth is unknown: stored as the encoding of zero and masked off by visibility 1.
+    # Depth scales with focal, so the relative depths take the same conversion as the root.
+    z_rel = np.zeros(17) if j3d is None else (j3d[SMPLX_FROM_COCO, 2] - z_true) * conv
+    z_rel_enc, z_root_enc = encode_z(z_rel, np.float64(z_root))
     row = [0.0, cx, cy, bw, bh]
     for (x, y), v, z in zip(xy, vis, z_rel_enc):
         row += [x, y, v, z]
@@ -108,7 +141,9 @@ def frame_rows(kps: np.ndarray, z_true: float, w: int, h: int, conv: float) -> s
     return " ".join(f"{v:.6g}" for v in row)
 
 
-def convert_npz(npz: Path, images: Path, out: Path, focal_ratio: float, stride: int) -> tuple[int, int, int]:
+def convert_npz(
+    npz: Path, images: Path, out: Path, focal_ratio: float, stride: int, smplx_dir: Path | None = None
+) -> tuple[int, int, int]:
     """Convert one sequence. Returns (frames written, persons written, persons dropped)."""
     seq = npz.stem
     # Two layouts share this label set. A BEDLAM sequence unpacks to <seq>/png/<subseq>/<frame>.png and its
@@ -126,6 +161,7 @@ def convert_npz(npz: Path, images: Path, out: Path, focal_ratio: float, stride: 
     # and not trans_cam.
     hom = np.concatenate([tw, np.ones((len(tw), 1))], 1)
     z_true = np.einsum("nij,nj->ni", ext, hom)[:, 2]
+    j3d = smplx_joints(d, smplx_dir) if smplx_dir else None
 
     by_image = defaultdict(list)
     for i, name in enumerate(names):
@@ -143,7 +179,7 @@ def convert_npz(npz: Path, images: Path, out: Path, focal_ratio: float, stride: 
 
         rows = []
         for i in idx:
-            row = frame_rows(kps[i, :, :2].astype(np.float64), float(z_true[i]), w, h, conv)
+            row = frame_rows(kps[i, :, :2].astype(np.float64), float(z_true[i]), w, h, conv, None if j3d is None else j3d[i])
             if row:
                 rows.append(row)
             else:
@@ -162,7 +198,9 @@ def convert_npz(npz: Path, images: Path, out: Path, focal_ratio: float, stride: 
     return n_frames, n_rows, n_dropped
 
 
-def main(npz_dir: Path, images: Path, out: Path, focal_ratio: float, stride: int, include_agora: bool) -> None:
+def main(
+    npz_dir: Path, images: Path, out: Path, focal_ratio: float, stride: int, include_agora: bool, smplx_dir: Path | None
+) -> None:
     """Convert every sequence and write the image list."""
     (out / "labels").mkdir(parents=True, exist_ok=True)
     (out / "images").mkdir(parents=True, exist_ok=True)
@@ -172,7 +210,7 @@ def main(npz_dir: Path, images: Path, out: Path, focal_ratio: float, stride: int
 
     totals = [0, 0, 0]
     for npz in files:
-        for i, v in enumerate(convert_npz(npz, images, out, focal_ratio, stride)):
+        for i, v in enumerate(convert_npz(npz, images, out, focal_ratio, stride, smplx_dir)):
             totals[i] += v
 
     listing = sorted(p.stem for p in (out / "labels").glob("*.txt"))
@@ -190,4 +228,5 @@ if __name__ == "__main__":
     parser.add_argument("--focal-ratio", type=float, default=1.2, help="declared focal as a multiple of max(w, h)")
     parser.add_argument("--stride", type=int, default=1, help="keep every Nth frame; the 6fps sets are already thinned")
     parser.add_argument("--include-agora", action="store_true", help="also convert agora-body.npz and agora-bfh.npz")
+    parser.add_argument("--smplx-dir", type=Path, default=None, help="dir holding smplx/SMPLX_NEUTRAL.npz")
     main(**vars(parser.parse_args()))

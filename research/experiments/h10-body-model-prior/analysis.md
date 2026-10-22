@@ -188,3 +188,47 @@ depth magnitude on real GT exactly as on pseudo-labels. Separately, and more use
 help** — every 3DPW-trained arm is 21–35 mm worse on test than F_clip, so real-GT fine-tuning at this scale is not a
 lever either. A larger real-GT set (BEDLAM with SMPL-X-derived relative depth, which needs the gated body model for
 *labels*, not in the student) is the one place a body model would enter this project.
+
+## 8. BEDLAM with SMPL-X relative depth (addendum B)
+
+**Data.** `convert_bedlam.py --smplx-dir` posed the neutral SMPL-X for every BEDLAM + AGORA person: reprojection
+onto the shipped `gtkps` is a median **0.0 px** on four sequences (incl. AGORA, stadium, 30fps), so the 3D joints
+are BEDLAM's GT exactly. **296,582 frames / 1,020,290 persons**, 76 dropped; `verify_image_label` **0 corrupt** of
+282,566 train; joint visibility exactly {0, 2}; Δz p1/p99 −0.78/+0.63 m (4 of 1.15M on the ±2 m bound); root depth
+vs the old translation-origin labels ×0.998 median. Split by scene: stadium held out (3,504 frames, every 4th).
+SMPL-X v1.1 files came from the `camenduru/SMPLer-X` HF mirror on Rick's decision — MPI licence not accepted.
+
+**Arms**: yolo26n-pose init, no teacher labels, 15 epochs (~12 min/epoch, 5 arms concurrently on ultra15).
+
+| arm | gain | 3DPW test MPJPE | 3DPW PA | 3DPW AbsRel | BEDLAM-val MPJPE | BEDLAM-val PA | BEDLAM-val AbsRel |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| F_clip (COCO teacher, reference) | — | **109.85** | **82.96** | **0.0456** | 162.52 | 95.23 | **0.0555** |
+| U_bed_ctrl s0 / s1 | 0 | 138.95 / 140.55 | 100.34 / 100.63 | 0.081 / 0.089 | **143.56** / 144.51 | **81.63** / 82.12 | 0.075 / 0.078 |
+| V_bed_bone1 s0 / s1 | 1 | 148.79 / 146.38 | 112.73 / 109.38 | 0.098 / 0.103 | 152.39 / 152.58 | 93.16 / 94.00 | 0.073 / 0.077 |
+| W_bed_bone4 s0 | 4 | 199.51 | 144.27 | 0.116 | 181.91 | 122.17 | 0.075 |
+
+Seed means: **ctrl 139.8 / bone1 147.6 (+7.8 mm) on 3DPW, ctrl 144.0 / bone1 152.5 (+8.4 mm) on BEDLAM-val**;
+PA-MPJPE +10.6 / +11.7 mm. Seed spread within an arm is 1.0–2.4 mm, so the cost is ~4–8x the noise, in both seeds,
+on both rulers. Gain 4: +60 / +38 mm. **B1 refuted (worse, not neutral), B2 confirmed, B3 confirmed (139.8, at the
+top of 110–140).**
+
+**Same mechanism as on COCO and 3DPW.** On U (BEDLAM ctrl), GT depth swap 139.0 -> 71.9, GT 2D swap -> 117.4, best
+oracle bone refit −4.4 mm, mean-bone refit +1.1 mm. The prior does what it says — V's forearm asymmetry 0.093 ->
+0.027, below GT's own 0.037 — and pays for it in PA-MPJPE.
+
+**Side results.** (1) BEDLAM-only does not transfer to real images: 3DPW 139.8 vs F_clip's 109.8 even though its
+joint definitions match 3DPW's and F_clip's do not; box mAP on 3DPW collapses (0.26 vs 0.49 — BEDLAM boxes are
+joint hulls, and synthetic people), and COCO-GT 2D pose falls to 0.16. (2) Conversely F_clip is 18.5 mm worse than
+the BEDLAM ctrl on BEDLAM's held-out scene. The two sources are complementary, which makes COCO-teacher + BEDLAM
+mixed training the next real lever — a different question from this one, not run.
+
+## Verdict across the three datasets
+
+| training data | label source | prior vs same-compute control (MPJPE) |
+| --- | --- | --- |
+| COCO, SAM 3D Body pseudo-labels | MHR rig (teacher) | +5.3 / +9.8 mm (gain 1 / 4) |
+| 3DPW train, real GT | SMPL fits | from scratch +6.1 / +46.8; on F_clip −2.3 ± noise (3 seeds), val +2.9 |
+| BEDLAM + AGORA, SMPL-X GT, 1.02M persons | SMPL-X | +7.8 / +59.7 (2 seeds), BEDLAM-val +8.4 / +37.9 |
+
+On every dataset the error is per-joint depth magnitude and an oracle body-shape refit recovers ≤ 5.5 mm. **A
+parametric body model does not improve this student's accuracy, as output or as a training prior.**

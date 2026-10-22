@@ -76,7 +76,7 @@ class ConsoleLogger:
         self.buffer = []
         self.buffer_lock = threading.Lock()
         self.flush_thread = None
-        self.chunk_id = 0
+        self.chunk_id = int(time.time() * 1000)  # unique across processes, e.g. a resumed run
 
         # Deduplication state
         self.last_line = ""

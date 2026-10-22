@@ -422,6 +422,11 @@ class ConfusionMatrix(DataExportMixin):
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth. This is a matching
                 threshold, not the NMS `iou` argument, and the detection validator uses this 0.45 default.
+
+        Notes:
+            Matching is greedy and one-to-one: each detection claims its best unclaimed ground truth above
+            `iou_thres` in descending confidence order, the same policy the detection validator applies, but
+            class-agnostic so cross-class confusions are still counted.
         """
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         if self.matches is not None:  # only if visualization is enabled
@@ -451,22 +456,15 @@ class ConfusionMatrix(DataExportMixin):
         bboxes = detections["bboxes"]
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 
-        x = torch.where(iou > iou_thres)
-        if x[0].shape[0]:
-            matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()
-            if x[0].shape[0] > 1:
-                matches = matches[matches[:, 2].argsort()[::-1]]
-                matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                matches = matches[matches[:, 2].argsort()[::-1]]
-                matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-        else:
-            matches = np.zeros((0, 3))
-
-        m0, m1, _ = matches.transpose().astype(int)
-        # matches is deduplicated on both columns, so each gt and each detection appears at most once
+        iou = iou.cpu().numpy()
         gt_match = np.full(len(gt_classes), -1)
-        gt_match[m0] = m1
-        matched_det = set(m1.tolist())
+        candidates = np.flatnonzero((iou > iou_thres).any(0))
+        for det_idx in candidates[np.argsort(-detections["conf"].cpu().numpy()[candidates], kind="stable")]:
+            gt_idx = iou[:, det_idx].argmax()
+            if iou[gt_idx, det_idx] > iou_thres:
+                gt_match[gt_idx] = det_idx
+                iou[gt_idx] = 0
+        matched_det = set(gt_match[gt_match >= 0].tolist())
         for i, gc in enumerate(gt_classes):
             if (di := gt_match[i].item()) >= 0:
                 dc = detection_classes[di]

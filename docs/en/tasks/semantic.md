@@ -117,6 +117,8 @@ Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossa
         yolo semantic val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
 
+Set `save_json=True` to also save each prediction as a single-channel PNG class mask at the original image size in the `results/` folder of the validation run. Masks keep each image's path relative to the common parent directory of all validation images, so `images/val/a/1.png` and `images/val/b/1.png` are saved as `results/a/1.png` and `results/b/1.png`. When the dataset YAML defines `label_mapping`, masks use the original label IDs, for example Cityscapes `labelIds`.
+
 ## Predict
 
 Use a trained YOLO26n-sem model to run predictions on images.

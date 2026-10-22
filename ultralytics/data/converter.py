@@ -31,7 +31,7 @@ from ultralytics.utils import (
     YAML,
     clean_url,
 )
-from ultralytics.utils.checks import check_file
+from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -255,7 +255,9 @@ def convert_coco(
     Args:
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
         save_dir (str, optional): Path to directory to save results to.
-        use_segments (bool, optional): Whether to include segmentation masks in the output.
+        use_segments (bool, optional): Whether to include segmentation masks in the output. Polygon lists and COCO RLE
+            masks (decoded with faster-coco-eval to their outer contours) are written as one polygon per instance,
+            joining multi-part objects; annotations without a usable outline get a box-shaped polygon.
         use_keypoints (bool, optional): Whether to include keypoint annotations in the output. Annotations without any
             labeled keypoint are skipped, as COCO keypoint evaluation ignores them.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
@@ -291,6 +293,11 @@ def convert_coco(
         annotations = defaultdict(list)
         for ann in data["annotations"]:
             annotations[ann["image_id"]].append(ann)
+        if use_segments and any(
+            isinstance(a.get("segmentation"), dict) and not a.get("iscrowd") for a in data["annotations"]
+        ):
+            check_requirements("faster-coco-eval>=1.6.7")  # decodes RLE masks
+            from faster_coco_eval.core.mask import decode, segmToRle
 
         dropped = False
         # Write labels file
@@ -324,6 +331,10 @@ def convert_coco(
                 bboxes.append(box)
                 if use_segments:
                     seg = ann.get("segmentation")
+                    if isinstance(seg, dict) and seg.get("size") == [h, w]:  # RLE mask, decode its outer contours
+                        mask = decode(segmToRle(seg, w, h))
+                        contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+                        seg = [c.ravel().tolist() for c in contours]
                     polygons = (
                         [
                             p
@@ -360,7 +371,7 @@ def convert_coco(
         if dropped and not use_keypoints:  # segments are unused when keypoints own the output
             LOGGER.warning(
                 f"{json_file}: annotations without a usable polygon, because the segmentation is missing, "
-                "empty, or not a point list such as an RLE mask, use a segment shaped like their bounding box."
+                "empty, or not a point list or RLE mask, use a segment shaped like their bounding box."
             )
 
         if lvis:
@@ -588,9 +599,9 @@ def merge_multi_segment(segments: list[list]):
         # Forward connection
         if k == 0:
             for i, idx in enumerate(idx_list):
-                # Middle segments have two indexes, reverse the index of middle segments
+                # Middle segments have two indexes, reverse the segment and map its indexes into the reversed order
                 if len(idx) == 2 and idx[0] > idx[1]:
-                    idx = idx[::-1]
+                    idx = [len(segments[i]) - 1 - x for x in idx]
                     segments[i] = segments[i][::-1, :]
 
                 segments[i] = np.roll(segments[i], -idx[0], axis=0)
@@ -936,8 +947,6 @@ async def _convert_ndjson_to_yolo(
     split: str | None = None,
 ) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
-    from ultralytics.utils.checks import check_requirements
-
     check_requirements("aiohttp")
     import aiohttp
 

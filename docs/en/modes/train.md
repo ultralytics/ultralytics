@@ -276,7 +276,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         yolo train resume model=path/to/last.pt
         ```
 
-By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session.
+By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session. A run that streams to [Ultralytics Platform](../platform/train/cloud-training.md#resume-remote-training) continues the same Platform model when resumed.
 
 Remember that checkpoints are saved at the end of every epoch by default, or at fixed intervals using the `save_period` argument, so you must complete at least 1 epoch to resume a training run.
 

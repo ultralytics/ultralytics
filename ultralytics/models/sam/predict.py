@@ -325,7 +325,7 @@ class Predictor(BasePredictor):
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
             bboxes = bboxes * r
         if masks is not None:
-            masks = np.asarray(masks, dtype=np.uint8)
+            masks = np.asarray(masks, dtype=np.float32)
             masks = masks[None] if masks.ndim == 2 else masks
             letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
             masks = np.stack([letterbox(image=x).squeeze() for x in masks], axis=0)

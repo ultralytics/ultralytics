@@ -35,7 +35,7 @@ Enter your project details:
 - **Name**: A descriptive name for your project (a random name is auto-generated)
 - **URL**: The project slug, generated from the name and editable before creation
 - **Description**: Optional notes about the project purpose
-- **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects default to Public; Enterprise workspaces default new projects to Private with the Ultralytics-Enterprise license.
+- **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects start with the workspace's [default visibility](../account/settings.md#default-visibility).
 - **License**: Optional license for your project (None, Apache-2.0, MIT, BSD-3-Clause, AGPL-3.0, GPL-3.0, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, CC0-1.0, Ultralytics-Enterprise, or Other). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license). Enterprise workspaces preselect it for new projects.
 
 ![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/6a29c20aabd7a9ff39c6bca031d655a1.avif)<!-- screenshot -->
@@ -95,14 +95,14 @@ The controls row above the models list provides:
 
 - **Search** to filter models by name
 - **Status filter**: All, Completed, Untrained, Running, Starting, or Failed
-- **Group by**: None or Task — grouping applies in Compact and Table modes
+- **Group by**: None or Task (default), in every view mode
 - **Sort by**: Created, Name, or Size, each ascending or descending
 
 ### Models Sidebar
 
 The resizable sidebar lists all models in the project:
 
-- **Checkboxes** to select which models appear in charts and the comparison table
+- **Checkboxes** to select which models appear in charts and the comparison table; charts leave out models hidden by the search, the status filter, or a collapsed task group
 - **Drag and drop** `.pt` files directly onto the sidebar to upload models ([model upload details](models.md#upload-model))
 - **Training progress** shown for running models (epoch count and progress bar)
 - **Model color** picker, used consistently across every chart
@@ -143,7 +143,7 @@ Clone a public project to your own account:
 
 !!! info "Clone Behavior"
 
-    Cloned projects inherit the source project's visibility by default (so cloning a public project creates a public clone), and you can choose Public or Private in the clone dialog before confirming. Enterprise workspaces default new clones to private. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
+    Cloned projects inherit the source project's visibility by default, or start private when the workspace's [default project visibility](../account/settings.md#default-visibility) is Private, and you can choose Public or Private in the clone dialog before confirming. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
 
 ## Compare Models
 

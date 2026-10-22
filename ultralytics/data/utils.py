@@ -817,7 +817,7 @@ def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str
                 raise FileNotFoundError(m)
             t = time.time()
             r = None  # success
-            if s.startswith("http") and s.endswith(
+            if s.lower().startswith("http") and clean_url(s).lower().endswith(
                 (".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")
             ):  # URL
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
@@ -843,7 +843,9 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
-        dataset (str | Path): The dataset name, local directory path, archive file, or archive URL.
+        dataset (str | Path): The dataset name, local directory path, archive file, or archive URL. Archive suffixes
+            match in any letter case, and an existing directory is used as a directory even when its name ends in an
+            archive suffix.
         split (str, optional): The split of the dataset. Either 'train', 'val', 'test', or ''.
 
     Returns:
@@ -862,7 +864,9 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
-    elif str(dataset).endswith((".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")):
+    elif not Path(dataset).is_dir() and str(dataset).lower().endswith(
+        (".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")
+    ):
         file = check_file(dataset)
         dataset = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
 

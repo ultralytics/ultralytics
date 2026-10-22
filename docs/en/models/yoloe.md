@@ -165,7 +165,7 @@ Every YOLOE example below runs from the [Python API](../usage/python.md). Text-p
 
 ### Train Usage
 
-Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names. The resulting checkpoint predicts your dataset's classes directly: its head no longer reads prompts, so `set_classes()` cannot change what it detects. Prompt the original checkpoint for other classes.
+Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names. The resulting checkpoint predicts your dataset's classes directly: its head no longer reads prompts, so `set_classes()` raises an error if the classes change. Prompt the original checkpoint for other classes.
 
 <p align="center">
   <br>
@@ -371,6 +371,8 @@ Validation runs like any other model on a segmentation dataset:
 
     metrics = model.val(data="coco128-seg.yaml")
     ```
+
+`data` can also be an [NDJSON file](../datasets/detect/index.md#ultralytics-ndjson-format) or a Platform [`ul://` dataset URI](../platform/data/datasets.md#dataset-uri); it is converted to YOLO format before the text or visual prompts are built.
 
 Two variants of the same call cover the other prompting modes:
 

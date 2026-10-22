@@ -85,6 +85,13 @@ hypotheses:
     status: deferred
     motivation: "It is what the teacher outputs, but it drags a gated rig asset into an AGPL inference path."
     priority: low
+  - id: H10
+    statement: "Adding a parametric body model (output or train-time prior) improves the student's 3D accuracy."
+    status: refuted
+    evidence: >
+      2026-10-22. Error is 55% relative depth; oracle bone-length refit <= 5.5 mm, mean-bone refit negative;
+      bone+symmetry loss fine-tune +5.3/+9.8 mm MPJPE vs control. Teacher on 3DPW 66.7 mm MPJPE.
+    priority: done
   - id: H5
     statement: "Body-scale-normalized relative depth trains better than metres."
     status: pending

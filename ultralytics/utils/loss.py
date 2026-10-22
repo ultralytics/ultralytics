@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import os
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,7 @@ from torch import nn
 
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
+from ultralytics.utils.pose3d import decode_z
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
 
@@ -835,13 +837,18 @@ class Pose3DLoss(v8PoseLoss):
         """Initialize the 3D pose criterion and extend the loss names with the two depth terms."""
         super().__init__(model, tal_topk, tal_topk2)
         self.loss_names = ("box_loss", "pose_loss", "kobj_loss", "zrel_loss", "zroot_loss", *self.loss_names[3:])
+        # H10 research hook: a body-structure prior (bone lengths against the teacher's rig-consistent skeleton,
+        # plus left/right symmetry), the train-time-only part of a parametric body model. Off unless set.
+        self.bone_gain = float(os.environ.get("POSE3D_BONE_GAIN", 0.0))
+        if self.bone_gain > 0:
+            self.loss_names = (*self.loss_names, "bone_loss")
 
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
     ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the total loss, with the two depth terms appended to the 2D pose losses."""
         pred_kpts = preds["kpts"].permute(0, 2, 1).contiguous()
-        loss = torch.zeros(7, device=self.device)  # box, kpt_location, kpt_visibility, zrel, zroot, cls, dfl
+        loss = torch.zeros(len(self.loss_names), device=self.device)  # box, kpt, kobj, zrel, zroot, cls, dfl[, bone]
         (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
             self.get_assigned_targets_and_loss(preds, batch)
         )
@@ -850,12 +857,13 @@ class Pose3DLoss(v8PoseLoss):
         batch_size = pred_kpts.shape[0]
         imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_kpts.dtype) * self.stride[0]
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))
+        self._imgsz = imgsz
 
         if fg_mask.sum():
             keypoints = batch["keypoints"].to(self.device).float().clone()
             keypoints[..., 0] *= imgsz[1]
             keypoints[..., 1] *= imgsz[0]
-            loss[1], loss[2], loss[3], loss[4] = self.calculate_keypoints_loss(
+            loss[1], loss[2], loss[3], loss[4], bone = self.calculate_keypoints_loss(
                 fg_mask,
                 target_gt_idx,
                 keypoints,
@@ -864,6 +872,8 @@ class Pose3DLoss(v8PoseLoss):
                 target_bboxes,
                 pred_kpts,
             )
+            if self.bone_gain > 0:
+                loss[7] = bone * self.bone_gain
         else:
             # WARNING: prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
             loss[1] += pred_kpts[..., :0].sum()
@@ -891,7 +901,7 @@ class Pose3DLoss(v8PoseLoss):
         supervise invisible keypoints against zeroed targets, so it is recomputed from channel 2 directly.
         """
         selected_keypoints = self._select_target_keypoints(keypoints, batch_idx, target_gt_idx, masks)
-        kpts_loss = kpts_obj_loss = zrel_loss = zroot_loss = torch.zeros(1, device=self.device).squeeze()
+        kpts_loss = kpts_obj_loss = zrel_loss = zroot_loss = bone_loss = torch.zeros(1, device=self.device).squeeze()
 
         if masks.any():
             target_bboxes = target_bboxes / stride_tensor
@@ -915,8 +925,43 @@ class Pose3DLoss(v8PoseLoss):
             root_mask = kpt_mask[:, -1]
             if root_mask.any():
                 zroot_loss = ((pred_z[:, -1] - gt_z[:, -1]).abs() * root_mask).sum() / root_mask.sum()
+            if self.bone_gain > 0 and rel_mask.any():
+                stride = stride_tensor.view(1, -1).expand(masks.shape[0], -1)[masks][:, None, None]
+                bone_loss = self._bone_prior(pred_kpt[..., :2] * stride, pred_z, gt_kpt[..., :2] * stride, gt_z,
+                                             gt_kpt[..., 2] == 2)
 
-        return kpts_loss, kpts_obj_loss, zrel_loss, zroot_loss
+        return kpts_loss, kpts_obj_loss, zrel_loss, zroot_loss, bone_loss
+
+    # COCO-17 bones plus the two hip-root spokes (root = joint 17), and the left/right limb pairs among them.
+    BONES = ((5, 7), (7, 9), (6, 8), (8, 10), (11, 13), (13, 15), (12, 14), (14, 16), (5, 6), (11, 12), (5, 11),
+             (6, 12), (11, 17), (12, 17))
+    BONE_PAIRS = ((0, 2), (1, 3), (4, 6), (5, 7), (10, 11), (12, 13))
+
+    def _bone_prior(self, pred_xy, pred_z, gt_xy, gt_z, has_depth, focal_ratio: float = 1.2):
+        """Relative bone-length error against the target skeleton plus left/right symmetry, both lifted to metres.
+
+        Both skeletons are lifted the same way, with the training canvas centre as principal point and the
+        declared `focal_ratio * max(imgsz)` focal, so any convention error is shared and cancels in the comparison.
+        """
+        h, w = self._imgsz
+        f, c = focal_ratio * max(h, w), torch.stack([w, h]) / 2
+
+        def lift(xy, zenc):
+            z_rel, z_root = decode_z(zenc[:, :-1], zenc[:, -1:])
+            z = torch.cat([z_rel + z_root, z_root], 1)
+            return torch.cat([(xy - c) * z[..., None] / f, z[..., None]], -1)
+
+        P, G = lift(pred_xy, pred_z), lift(gt_xy, gt_z)
+        a, b = [i for i, _ in self.BONES], [j for _, j in self.BONES]
+        Lp, Lg = (P[:, a] - P[:, b]).norm(dim=-1), (G[:, a] - G[:, b]).norm(dim=-1)
+        ok = (has_depth[:, a] & has_depth[:, b]).float()
+        if not ok.any():
+            return Lp.sum() * 0
+        length = ((Lp - Lg).abs() / Lg.clamp_min(0.05) * ok).sum() / ok.sum()
+        l, r = [i for i, _ in self.BONE_PAIRS], [j for _, j in self.BONE_PAIRS]
+        okp = ok[:, l] * ok[:, r]
+        sym = ((Lp[:, l] - Lp[:, r]).abs() / (Lp[:, l] + Lp[:, r]).clamp_min(1e-3) * 2 * okp).sum() / okp.sum().clamp_min(1)
+        return length + sym
 
 
 class PoseLoss26(v8PoseLoss):

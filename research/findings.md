@@ -81,6 +81,13 @@ stand on the full benchmark; the loss is training-side and COCO-val-side. Every 
 H6) was trained on the surviving half, with all arms handicapped identically. The fix is a clip at write time; visibility is already 0 for those joints and
 `Pose3DLoss` recomputes the mask from it, so nothing the model learns from changes.
 
+**A body model is not what the student is missing (2026-10-22, H10).** Asked directly whether to add a
+SAM-3D-Body-style parametric body model: no. 55% of the student's 3DPW error is root-relative depth, and a body
+model fixes bone lengths, not which way a limb points — refitting the predictions to the person's *own* GT bone
+lengths recovers at most 5.5 of 110 mm, to the teacher's rig skeleton on COCO 0.8 mm, and as a training loss the
+same prior costs 5–10 mm. The teacher itself scores **66.7 mm MPJPE / 47.2 PA / 0.035 AbsRel** on 3DPW, so the gap
+is 43 mm and it lives in per-joint depth capacity.
+
 ## Patterns and Insights
 
 **A pretrained trunk is the cheapest large win, again.** R0 repeats the s3d result in a new task: warm-starting

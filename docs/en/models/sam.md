@@ -235,7 +235,7 @@ Auto-annotation with pretrained models can dramatically cut down the time and ef
 
 If you find SAM useful in your research or development work, please consider citing the paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

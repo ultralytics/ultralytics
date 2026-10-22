@@ -188,7 +188,7 @@ To automatically [annotate your dataset](https://www.ultralytics.com/annotate) w
 
 If MobileSAM is helpful in your research or development, please consider citing the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

@@ -109,17 +109,17 @@ class InfiniteDataLoader(dataloader.DataLoader):
                 if w.is_alive():
                     w.terminate()
             self.close()
-            if getattr(self.dataset, "img_slots", None) is not None:
-                self.wait_slot_copies()
-                torch.cuda.cudart().cudaHostUnregister(self.dataset.img_slots.data_ptr())
-                self.dataset.img_slots = None
         except Exception:
             pass
 
     def close(self):
-        """Shut down persistent workers, unregistering them from torch's SIGCHLD watchdog before interpreter exit."""
+        """Shut down persistent workers and unpin the image slots, so neither outlives the training run."""
         if hasattr(self.iterator, "_workers"):
             self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+        if getattr(self.dataset, "img_slots", None) is not None:
+            self.wait_slot_copies()
+            torch.cuda.cudart().cudaHostUnregister(self.dataset.img_slots.data_ptr())
+            self.dataset.img_slots = None
 
     def pin_image_slots(self):
         """Give each worker `prefetch_factor + 1` pinned shared-memory slots to collate its image batches into.
@@ -128,11 +128,18 @@ class InfiniteDataLoader(dataloader.DataLoader):
         flight, so receiving batch `i` dispatches the task that rewrites the slot of batch `i - num_workers`. `__iter__`
         waits for the copy of that batch before receiving. Images then reach the GPU straight from the slot, without a
         new shared-memory segment and a pin-memory copy per batch in the training process.
+
+        Notes:
+            - A yielded `img` is a view of its slot and is rewritten `num_workers` batches later, so copy it before
+              keeping it across iterations.
+            - The wait covers copies queued on the current CUDA stream before the next batch is requested, as in
+              `preprocess_batch`, and assumes ordered loading (`in_order=True`, the default).
         """
         ds = self.dataset
         shape = (self.num_workers, self.prefetch_factor + 1, self.batch_size, ds.channels, ds.imgsz, ds.imgsz)
         nbytes = math.prod(shape)
-        if shutil.disk_usage("/dev/shm").free < 2 * nbytes:  # leave room for the per-batch label tensors
+        ranks = int(os.getenv("LOCAL_WORLD_SIZE", "1"))  # DDP ranks on this node each allocate a pool
+        if shutil.disk_usage("/dev/shm").free < 2 * nbytes * ranks:  # leave room for the per-batch label tensors
             return
         slots = torch.empty(shape, dtype=torch.uint8).share_memory_()
         if int(torch.cuda.cudart().cudaHostRegister(slots.data_ptr(), nbytes, 0)) == 0:
@@ -145,7 +152,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
-        self.close()  # free old worker pipes before creating new iterator
+        if hasattr(self.iterator, "_workers"):
+            self.iterator._shutdown_workers()  # free old worker pipes before creating new iterator
         self.wait_slot_copies()  # new workers start writing their first slots right away
         self.iterator = None
 

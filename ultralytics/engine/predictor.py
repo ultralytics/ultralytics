@@ -363,7 +363,6 @@ class BasePredictor:
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
             )
-            threads, scoped = torch.get_num_threads(), getattr(self.model, "torch_threads", None)
             dataset = self.dataset
             batches = ((batch, dataset) for batch in dataset)
             if (  # overlap loading with GPU work; each batch carries a snapshot of the loader's mode, frame and fps
@@ -380,8 +379,6 @@ class BasePredictor:
 
                     # Preprocess
                     with profilers[0]:
-                        if scoped:  # backend-requested torch threads from preprocess through postprocess
-                            torch.set_num_threads(scoped)
                         im = self.preprocess(im0s)
 
                     if not self.done_warmup:
@@ -398,8 +395,6 @@ class BasePredictor:
                     # Postprocess
                     with profilers[2]:
                         self.results = self.postprocess(preds, im, im0s)
-                        if scoped:
-                            torch.set_num_threads(threads)
                     self.run_callbacks("on_predict_postprocess_end")
 
                     # Visualize, save, write results
@@ -431,8 +426,6 @@ class BasePredictor:
                     self.run_callbacks("on_predict_batch_end")
                     yield from self.results
             finally:  # also runs when a stream=True consumer abandons the generator or an error aborts the loop
-                if scoped:
-                    torch.set_num_threads(threads)
                 for v in self.vid_writer.values():
                     if isinstance(v, cv2.VideoWriter):
                         v.release()

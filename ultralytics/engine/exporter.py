@@ -148,7 +148,6 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_3,
     TORCH_2_8,
     TORCH_2_9,
-    TORCH_2_13,
     is_qat,
     select_device,
 )
@@ -434,8 +433,8 @@ EXPORT_ENVS = {
     "ethos": {
         "python": "3.13",
         "extras": ["export-base", "export-executorch"],
-        "torch": ">=2.12,<2.13",
-        "requirements": ["executorch<1.5", "tosa-tools", "ethos-u-vela"],  # executorch>=1.5 needs torch>=2.13
+        "torch": ">=2.13",
+        "requirements": ["tosa-tools", "ethos-u-vela"],
         "indexes": [],
         "env": {},
         "smoke": ["yolo export format=ethos model=yolo26n.pt imgsz=32 data=coco8.yaml"],
@@ -1585,7 +1584,7 @@ class Exporter:
     @try_export
     def export_ethos(self, prefix=colorstr("Ethos:")):  # noqa: B008
         """Export YOLO model to Arm Ethos-U NPU ExecuTorch *.pte format."""
-        assert not TORCH_2_13, f"Ethos export requires torch<2.13 but torch=={TORCH_VERSION} is installed"
+        assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
         from ultralytics.utils.export.ethos import torch2ethos
 
         return torch2ethos(

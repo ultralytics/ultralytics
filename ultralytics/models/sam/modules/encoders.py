@@ -258,6 +258,10 @@ class PromptEncoder(nn.Module):
 
     def _embed_masks(self, masks: torch.Tensor) -> torch.Tensor:
         """Embed mask inputs by downscaling and processing through convolutional layers."""
+        if masks.shape[-2:] != tuple(self.mask_input_size):
+            masks = F.interpolate(masks.float(), size=self.mask_input_size, mode="bilinear", align_corners=False).to(
+                self.mask_downscaling[0].weight.dtype
+            )
         return self.mask_downscaling(masks)
 
     @staticmethod

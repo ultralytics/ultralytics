@@ -161,11 +161,11 @@ Under text and visual prompts the YOLOE-26 models lead their YOLOE-11 and YOLOE-
 
 ## Usage Examples
 
-Every YOLOE example below runs from the [Python API](../usage/python.md). Text-prompt prediction, validation, export, tracking and plain training also work from the [CLI](../usage/cli.md); the fine-tuning recipes and visual prompting pass a trainer or predictor class as an argument, which only the Python API accepts.
+Every YOLOE example below runs from the [Python API](../usage/python.md). Text-prompt prediction, validation, export, tracking and plain training also work from the [CLI](../usage/cli.md); the fine-tuning recipes pass a trainer class and visual prompting passes NumPy prompt arrays, which only the Python API accepts.
 
 ### Train Usage
 
-Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names.
+Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names. The resulting checkpoint predicts your dataset's classes directly: its head no longer reads prompts, so `set_classes()` raises an error if the classes change. Prompt the original checkpoint for other classes.
 
 <p align="center">
   <br>
@@ -241,7 +241,7 @@ Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This most
 
 ### Predict Usage
 
-The text-prompt call is the one shown in [Quick Start](#quick-start). The remaining two modes each need an extra argument:
+The text-prompt call is the one shown in [Quick Start](#quick-start). Visual prompting adds a `visual_prompts` argument, and prompt-free prediction loads a `-pf` checkpoint instead:
 
 !!! example
 
@@ -255,7 +255,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26l-seg.pt")
 
@@ -268,7 +267,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         results = model.predict(
             "ultralytics/assets/bus.jpg",
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
         )
         results[0].show()
         ```
@@ -279,7 +277,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26l-seg.pt")
 
@@ -289,7 +286,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
             "ultralytics/assets/zidane.jpg",  # Target image
             refer_image="ultralytics/assets/bus.jpg",  # Where the example boxes live
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
         )
         results[0].show()
 
@@ -309,7 +305,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import torch
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-11l-seg.pt")
 
@@ -320,7 +315,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
             img_tensor,
             refer_image=img_tensor,
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
             imgsz=640,
         )
         ```
@@ -331,7 +325,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26l-seg.pt")
 
@@ -346,7 +339,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         results = model.predict(
             ["ultralytics/assets/bus.jpg", "ultralytics/assets/zidane.jpg"],
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
         )
         results[0].show()
         ```
@@ -379,6 +371,8 @@ Validation runs like any other model on a segmentation dataset:
 
     metrics = model.val(data="coco128-seg.yaml")
     ```
+
+`data` can also be an [NDJSON file](../datasets/detect/index.md#ultralytics-ndjson-format) or a Platform [`ul://` dataset URI](../platform/data/datasets.md#dataset-uri); it is converted to YOLO format before the text or visual prompts are built.
 
 Two variants of the same call cover the other prompting modes:
 
@@ -416,14 +410,12 @@ Prompt embeddings can be saved once and reused when producing static exports suc
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26n-seg.pt")
         model.predict(
             "path/to/image.jpg",
             refer_image="path/to/reference.jpg",
             visual_prompts={"bboxes": np.array([[50, 80, 180, 260]]), "cls": np.array([0])},
-            predictor=YOLOEVPSegPredictor,
         )
         model.save_prompt_embeddings("visual-object.npz")
 

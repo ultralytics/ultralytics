@@ -31,7 +31,6 @@ from ultralytics.utils import (
     YAML,
     IterableSimpleNamespace,
     checks,
-    colorstr,
     deprecation_warn,
     vscode_msg,
 )
@@ -492,7 +491,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
-                    if hard:
+                    if hard and not (isinstance(v, float) and v.is_integer()):  # integral floats, i.e. 'epochs=1e2'
                         raise TypeError(
                             f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')"
                         )
@@ -681,7 +680,7 @@ def check_dict_alignment(
             matches = get_close_matches(x, base_keys)  # key list
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
-            string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
+            string += f"'{x}' is not a valid YOLO argument. {match_str}\n"
         LOGGER.info(CLI_HELP_MSG)
         raise SyntaxError(string) from e
 
@@ -702,13 +701,16 @@ def merge_equals_args(args: list[str]) -> list[str]:
         (list[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets
             are joined.
 
+    Raises:
+        SyntaxError: If an argument has an unmatched '[' or ']' bracket, which would fuse every later argument into it.
+
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz", "=", "[3,", "640,", "640]"]
         >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []
-    current = ""
+    current = []
     depth = 0
 
     i = 0
@@ -727,16 +729,15 @@ def merge_equals_args(args: list[str]) -> list[str]:
 
         # Handle bracket joining
         depth += arg.count("[") - arg.count("]")
-        current += arg
+        current.append(arg)
         if depth == 0:
-            new_args.append(current)
-            current = ""
+            new_args.append("".join(current))
+            current = []
 
         i += 1
 
-    # Append any remaining current string
     if current:
-        new_args.append(current)
+        raise SyntaxError(f"'{current[0]}' has an unmatched '[' or ']' bracket.")
 
     return new_args
 
@@ -907,7 +908,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
         if solution_name != "crop":
             # extract width, height and fps of the video file, create save directory and initialize video writer
             w, h, fps = (
-                int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
+                round(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
             )
             if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1280, h=720
                 w, h = 1280, 720
@@ -938,7 +939,7 @@ def parse_key_value_pair(pair: str = "key=value") -> tuple:
 
     Returns:
         key (str): The parsed key.
-        value (Any): The parsed value, converted to its Python type with `smart_value`.
+        value (Any): The parsed value, converted with `smart_value` except run name and project paths, kept verbatim.
 
     Raises:
         AssertionError: If the value is missing or empty.
@@ -960,7 +961,7 @@ def parse_key_value_pair(pair: str = "key=value") -> tuple:
     k, v = pair.split("=", 1)  # split on first '=' sign
     k, v = k.strip(), v.strip()  # remove spaces
     assert v, f"missing '{k}' value"
-    return k, smart_value(v)
+    return k, v if k in {"name", "project"} and v.lower() != "none" else smart_value(v)
 
 
 def smart_value(v: str) -> Any:
@@ -1055,7 +1056,7 @@ def entrypoint(debug: str = "") -> None:
         "solutions": lambda: handle_yolo_solutions(args[1:]),
         "help": lambda: LOGGER.info(CLI_HELP_MSG),
     }
-    full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
+    full_args_dict = {**DEFAULT_CFG_DICT, **dict.fromkeys((*TASKS, *MODES, *special))}
 
     # Define common misuses of special commands, i.e. -h, -help, --help
     special.update({k[0]: v for k, v in special.items()})  # singular
@@ -1097,7 +1098,7 @@ def entrypoint(debug: str = "") -> None:
             overrides[a] = True  # bare boolean flags whose defaults are missing or None
         elif a in DEFAULT_CFG_DICT:
             raise SyntaxError(
-                f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
+                f"'{a}' is a valid YOLO argument but is missing an '=' sign "
                 f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}"
             )
         else:
@@ -1152,10 +1153,10 @@ def entrypoint(debug: str = "") -> None:
 
         model = NAS(model)
     else:
-        from ultralytics import YOLO
+        from ultralytics import YOLO, YOLOE, YOLOWorld
 
         model = YOLO(model, task=task)
-        if "yoloe" in stem or "world" in stem:
+        if isinstance(model, (YOLOE, YOLOWorld)):
             cls_list = overrides.get("classes", DEFAULT_CFG.classes)
             if isinstance(cls_list, str):  # text prompts, i.e. "person, bus" -> ['person', 'bus']
                 model.set_classes([c.strip() for c in overrides.pop("classes", cls_list).split(",")])

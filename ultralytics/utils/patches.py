@@ -12,7 +12,7 @@ from typing import Any
 import cv2
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageOps
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 _imshow = cv2.imshow  # copy to avoid recursion errors
@@ -32,6 +32,13 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
     Examples:
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
+
+    Notes:
+        - Multi-page grayscale TIFFs with same-size pages stack them as channels. Color TIFFs keep every band, such as
+          alpha or near-infrared, only with cv2.IMREAD_UNCHANGED. Other multi-page TIFFs, such as Cloud Optimized
+          GeoTIFFs with overview and thumbnail pages, return their first page.
+        - 16-bit images keep their high byte as 8-bit, unless flags explicitly include cv2.IMREAD_ANYDEPTH.
+          cv2.IMREAD_UNCHANGED preserves channels but still converts 16-bit images to 8-bit.
     """
     filename = str(filename)
     try:
@@ -40,16 +47,18 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         return None
     if not file_bytes.size:  # empty file, cv2 decoders assert on an empty buffer
         return None
+    im = None
     if flags != cv2.IMREAD_GRAYSCALE and filename.lower().endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
-        if not success:
-            return None
-        if len(frames) > 1 or frames[0].ndim == 3:
-            return frames[0] if len(frames) == 1 else np.stack(frames, axis=2)
-    im = cv2.imdecode(file_bytes, flags)
-    # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC, HEIF)
+        if success and (frames[0].ndim == 3 or (len(frames) > 1 and all(f.shape == frames[0].shape for f in frames))):
+            im = frames[0] if frames[0].ndim == 3 else np.stack(frames, axis=2)  # color pages keep the first page
+            im = im if frames[0].ndim == 2 or flags == cv2.IMREAD_UNCHANGED else im[..., :3]  # BGR, alpha dropped
     if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
-        im = _imread_pil(filename, flags)
+        im = _imread_pil(filename, flags)  # EXIF-aware
+    if im is None:
+        im = cv2.imdecode(file_bytes, flags)
+    if im is not None and im.dtype == np.uint16 and (flags == cv2.IMREAD_UNCHANGED or not flags & cv2.IMREAD_ANYDEPTH):
+        im = (im >> 8).astype(np.uint8)
     return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
@@ -59,11 +68,12 @@ _pil_plugins_registered = False
 
 
 def image_open(filename, *args, **kwargs):
-    """Open an image with PIL, lazily registering the HEIF plugin on first failure.
+    """Open an image with PIL, lazily registering the HEIF plugin the first time Pillow cannot identify a file.
 
     This monkey-patches PIL.Image.open to add HEIC/HEIF support via pi-heif (lightweight, decode-only), avoiding the
-    ~800ms startup cost of importing the package unless actually needed. AVIF is decoded natively by Pillow 11.3+ wheels
-    and does not require a plugin.
+    ~800ms startup cost of importing the package unless actually needed. Only `PIL.UnidentifiedImageError` triggers the
+    plugin install and retry; other errors, such as a missing or unreadable file, are raised unchanged. AVIF is decoded
+    natively by Pillow 11.3+ wheels and does not require a plugin.
 
     Args:
         filename (str | Path | IO[bytes]): Path to the image file or a binary file object.
@@ -78,7 +88,7 @@ def image_open(filename, *args, **kwargs):
         return _image_open(filename, *args, **kwargs)
     try:
         return _image_open(filename, *args, **kwargs)
-    except Exception:
+    except Image.UnidentifiedImageError:
         from ultralytics.utils.checks import check_requirements
 
         check_requirements("pi-heif")
@@ -103,7 +113,7 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
         (np.ndarray | None): The read image array in BGR format, or None if reading fails.
     """
     try:
-        with Image.open(filename) as img:
+        with ImageOps.exif_transpose(Image.open(filename)) as img:  # upright, like cv2 JPEG decodes
             if flags == cv2.IMREAD_GRAYSCALE:
                 return np.asarray(img.convert("L"))
             return cv2.cvtColor(np.asarray(img.convert("RGB")), cv2.COLOR_RGB2BGR)
@@ -114,8 +124,9 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
 def imread_unicode(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
     """Read an image with multilanguage filename support, preserving native cv2.imread behavior.
 
-    This is intended as a Windows monkey-patch for cv2.imread. Unlike `imread`, it does not expand grayscale dimensions
-    or handle TIFF/AVIF/HEIC fallback.
+    This is intended as a Windows monkey-patch for cv2.imread. Decoding from bytes also reads EXIF-rotated TIFFs, which
+    file-based cv2.imread returns as None on OpenCV >= 4.12. Unlike `imread`, it does not expand grayscale dimensions or
+    handle TIFF/AVIF/HEIC fallback.
 
     Args:
         filename (str | Path): Path to the file to read.

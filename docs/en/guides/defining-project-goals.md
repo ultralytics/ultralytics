@@ -65,7 +65,7 @@ By setting specific and quantifiable goals, you can effectively track progress, 
 Your problem statement helps you conceptualize which computer vision task can solve your issue. The most popular tasks include [image classification](https://www.ultralytics.com/glossary/image-classification), [object detection](https://www.ultralytics.com/glossary/object-detection), and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) — see the [Ultralytics tasks page](../tasks/index.md) for a detailed comparison.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/ee8d61458d72810155656d51266ef13e.avif" alt="Comparison of image classification, object detection, and image segmentation outputs">
+  <img width="100%" src="https://cdn.ul.run/i/2be177fe3b5936d5d4a0967a454d0b3b.avif" alt="Comparison of image classification, object detection, and image segmentation outputs">
 </p>
 
 For example, if your problem is monitoring vehicle speeds on a highway, the task is [object detection](../tasks/detect.md), run in [track mode](../modes/track.md). Tracking gives each detected vehicle a persistent ID across video frames, which is what speed calculation requires.

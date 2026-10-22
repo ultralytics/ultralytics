@@ -11,26 +11,20 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 [Ultralytics Platform](https://platform.ultralytics.com) projects provide an effective solution for organizing and managing your models. Group related models together to facilitate easier management, comparison, and development.
 
 ```mermaid
-graph TB
-    P[Project]:::start --> M1[Model 1]:::proc
-    P --> M2[Model 2]:::proc
-    P --> M3[Model 3]:::proc
-    M1 --> S[Check in Sidebar]:::proc
+flowchart TD
+    P([Project]) --> M1[Model 1]
+    P --> M2[Model 2]
+    M1 --> S[Check in the sidebar]
     M2 --> S
-    M3 --> S
-    S --> C[Charts]:::out
-    S --> T[Comparison Table]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+    S --> C[Charts]
+    S --> T[Comparison table]
 ```
 
 ## Create Project
 
 Open **Train** in the sidebar and click the `+` to open the **New Project** dialog.
 
-![Ultralytics Platform Projects List](https://cdn.ul.run/i/11ba0c7e59d846cbc7bde563701bc141.avif)<!-- screenshot -->
+![Ultralytics Platform Projects List](https://cdn.ul.run/i/f491b7c8354cc79945be1fd47aa1f4cf.avif)<!-- screenshot -->
 
 ??? tip "Quick Create"
 
@@ -41,10 +35,10 @@ Enter your project details:
 - **Name**: A descriptive name for your project (a random name is auto-generated)
 - **URL**: The project slug, generated from the name and editable before creation
 - **Description**: Optional notes about the project purpose
-- **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects default to Public; Enterprise workspaces default new projects to Private with the Ultralytics-Enterprise license.
+- **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects start with the workspace's [default visibility](../account/settings.md#default-visibility).
 - **License**: Optional license for your project (None, Apache-2.0, MIT, BSD-3-Clause, AGPL-3.0, GPL-3.0, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, CC0-1.0, Ultralytics-Enterprise, or Other). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license). Enterprise workspaces preselect it for new projects.
 
-![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/81a34dad08ad659335f49cd7d9f7bcd9.avif)<!-- screenshot -->
+![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/6a29c20aabd7a9ff39c6bca031d655a1.avif)<!-- screenshot -->
 
 Click **Create Project** to finalize. Your new project appears in the Projects list and sidebar.
 
@@ -57,9 +51,9 @@ The project page has two main areas:
 | **Models Sidebar** | Resizable list of all models in the project, with checkboxes for chart selection |
 | **Main Panel**     | Charts dashboard or comparison table (toggle between views)                      |
 
-A controls row above both areas holds the model search box, the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
+A controls row above both areas holds the model search box, **Compare with AI** (Editor role or higher, once the project has two or more completed models), the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
 
-![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/1ec7d084c2a0ce6b7bf0b582093566f8.avif)<!-- screenshot -->
+![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/4ebc844d81876e0499e28cf106859b4a.avif)<!-- screenshot -->
 
 ### Project Header
 
@@ -93,7 +87,7 @@ Toggle between three view modes using the view controls. The selected mode is re
 - **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
 - **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to show only the columns where values differ across models.
 
-![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/d2c9ac86bfb48c6afff55f5f2f53167b.avif)<!-- screenshot -->
+![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/37fcd9ad499485c91fdaab7089f2c7b9.avif)<!-- screenshot -->
 
 ### Filter and Sort
 
@@ -149,9 +143,12 @@ Clone a public project to your own account:
 
 !!! info "Clone Behavior"
 
-    Cloned projects inherit the source project's visibility by default (so cloning a public project creates a public clone), and you can choose Public or Private in the clone dialog before confirming. Enterprise workspaces default new clones to private. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
+    Cloned projects inherit the source project's visibility by default, or start private when the workspace's [default project visibility](../account/settings.md#default-visibility) is Private, and you can choose Public or Private in the clone dialog before confirming. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
 
 ## Compare Models
+
+Click **Compare with AI** to have [Ask AI](autotrain.md) compare the project's trained models, recommend the best fit,
+and say whether another training run is worth it. It asks before starting any training.
 
 ### Charts Dashboard
 
@@ -160,7 +157,7 @@ Compare model performance using the charts dashboard:
 1. Select models in the sidebar using checkboxes
 2. View overlaid metric curves grouped by type (metrics, loss, learning rate)
 3. Drag charts to rearrange, resize by dragging edges
-4. Hover to see exact values, click legend items to hide/show models, click a model line to navigate to that model
+4. Hover to see exact values, click legend items to hide/show models, drag to zoom, and click to reset the zoom
 
 Available chart groups:
 
@@ -176,8 +173,7 @@ Comparing models trained for different tasks works, but each model only draws on
 
     - Hover to see exact values
     - Click legend items to hide/show models
-    - Drag to zoom into specific regions
-    - Click a model line to navigate to that model's page
+    - Drag to zoom into specific regions, and click to reset the zoom
     - Collapse a group, or use its menu to hide individual charts and the train or validation loss series
     - Rearrange and resize charts; layout persists across sessions
 
@@ -211,7 +207,7 @@ Update project name, description, or settings:
 3. Click the icon to customize it
 4. Click the license badge to change the license
 
-![Ultralytics Platform Projects Settings](https://cdn.ul.run/i/efc68367a7a6f0b80f43e28e96b22167.avif)<!-- screenshot -->
+![Ultralytics Platform Projects Settings](https://cdn.ul.run/i/b708cf401cce8867a8f083416678bb5f.avif)<!-- screenshot -->
 
 ### Custom Metadata
 

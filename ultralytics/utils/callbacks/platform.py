@@ -120,6 +120,8 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         if event != "console_output" or not _api_key:
             detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
             LOGGER.warning(f"{PREFIX}Failed to send {event}: {detail}")
+        if event == "training_started" and model_id and isinstance(error, APIError) and error.status_code == 404:
+            return {}  # {} marks a missing model, seen only by the resume lookup in on_pretrain_routine_start
         return None
 
 
@@ -254,20 +256,37 @@ def _get_project_name(trainer):
     return project, slugify(str(trainer.args.name or "train"))
 
 
-def _get_system_metrics(ctx):
+def _get_training_gpus(trainer):
+    """Return the NVML indices of the GPUs a run trains on, so a shared host reports no other runs' GPUs.
+
+    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES. Non-CUDA training
+    reports no GPUs, and a CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every GPU.
+    """
+    if trainer.device.type != "cuda":
+        return []
+    indices = [int(x) for x in trainer.args.device.split(",") if x.isdigit()] or [trainer.device.index]
+    visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
+    if not visible:
+        return indices
+    ids = [visible[i] for i in indices]
+    return [int(x) for x in ids] if all(x.isdigit() for x in ids) else None
+
+
+def _get_system_metrics(trainer):
     """Sample the run's system logger without making optional host monitoring a training dependency."""
+    ctx = trainer.platform
     try:
         if not ctx["system_logger"]:
             from ultralytics.utils.logger import SystemLogger
 
-            ctx["system_logger"] = SystemLogger(all_drives=True)
+            ctx["system_logger"] = SystemLogger(all_drives=True, gpus=_get_training_gpus(trainer))
         return ctx["system_logger"].get_metrics(rates=True)
     except Exception:
         return None
 
 
 def on_pretrain_routine_start(trainer):
-    """Initialize Platform logging at training start."""
+    """Initialize Platform logging at training start, continuing the recorded Platform model when resuming."""
     global _api_key
     if TESTS_RUNNING or not trainer.args.project:
         return
@@ -325,30 +344,28 @@ def on_pretrain_routine_start(trainer):
 
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
-    train_args = {k: str(v) for k, v in vars(trainer.args).items()}
+    data = {
+        "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+        "epochs": trainer.epochs,
+        "device": str(trainer.device),
+        "environment": environment,
+        "system": _get_system_metrics(trainer),
+    }
+    record = Path(trainer.save_dir) / "platform_model_id.txt"  # resume continues the Platform model recorded here
+    model_id = record.read_text() if trainer.args.resume and record.exists() else None
 
     # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
-    response = _send(
-        "training_started",
-        {
-            "trainArgs": train_args,
-            "epochs": trainer.epochs,
-            "device": str(trainer.device),
-            "environment": environment,
-            "system": _get_system_metrics(ctx),
-        },
-        project,
-        name,
-        retry=4,
-    )
+    response = _send("training_started", data, project, name, model_id=model_id, retry=4)
+    if model_id and (response == {} or (response and response.get("cancelled"))):  # model gone or ended, track as new
+        response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
+        record.write_text(response["modelId"])
         ctx["model_id"] = response["modelId"]
         ctx["run_id"] = response.get("runId")
-        # Server returns actual slug (may differ from requested name due to auto-increment, e.g. "train" → "train-2")
-        if response.get("modelSlug"):
-            ctx["model_slug"] = response["modelSlug"]
-            url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
-            LOGGER.info(f"{PREFIX}View model at {url}")
+        # Server resolves the owner, project and final slug (e.g. "train" → "train-2") into the model link
+        ctx["model_url"] = response.get("modelUrl")
+        if ctx["model_url"]:
+            LOGGER.info(f"{PREFIX}View model at {ctx['model_url']}")
         ctx["console_logger"].start_capture()  # only now: the run is tracked and model_id is known
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
         _handle_control_response(trainer, ctx, response)
@@ -395,7 +412,7 @@ def on_fit_epoch_end(trainer):
     payload = {
         "epoch": trainer.epoch,
         "metrics": metrics,
-        "system": _get_system_metrics(ctx),
+        "system": _get_system_metrics(trainer),
         "fitness": trainer.fitness,
         "best_fitness": trainer.best_fitness,
     }
@@ -471,9 +488,14 @@ def on_train_end(trainer):
     for info in getattr(trainer, "plots", {}).values():
         if info.get("data") and info["data"].get("type"):
             plots_by_type[info["data"]["type"]] = info["data"]
-    for info in getattr(getattr(trainer, "validator", None), "plots", {}).values():
+    for info in reversed(getattr(getattr(trainer, "validator", None), "plots", {}).values()):
         if info.get("data") and info["data"].get("type"):
             plots_by_type.setdefault(info["data"]["type"], info["data"])  # Don't overwrite trainer plots
+    # Curve rows only cover classes with val labels: send their model class indices when any class is missing
+    if pr := plots_by_type.get("pr_curve"):
+        classes = [int(c) for c in trainer.validator.metrics.ap_class_index]
+        if len(classes) < len(trainer.validator.names):
+            plots_by_type["pr_curve"] = {**pr, "classes": classes}
     plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
 
     # Get class names
@@ -505,8 +527,8 @@ def on_train_end(trainer):
         ctx["model_id"],
         retry=4,  # Critical, more retries
     )
-    url = f"{PLATFORM_URL}/{project}/{ctx.get('model_slug', name)}"
-    LOGGER.info(f"{PREFIX}View results at {url}")
+    if ctx.get("model_url"):
+        LOGGER.info(f"{PREFIX}View results at {ctx['model_url']}")
 
 
 callbacks = {

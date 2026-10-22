@@ -105,6 +105,14 @@ QNN_HTP_TARGETS = {
     "iq-8275": ("soc_model", "82"),  # Dragonwing IQ-8275
     "qcs8275": ("soc_model", "82"),
 }  # Qualcomm Hexagon HTP targets and their ONNX Runtime QNN provider option
+XILINX_TARGETS = (
+    "ve2-xc2ve3858",
+    "ve2-xc2ve3504",
+    "ve2-xc2ve3558",
+    "ve2-xc2ve3804",
+    "ve2-xc2ve3304",
+    "ve2-xc2ve3358",
+)  # AMD Versal AI Edge Series Gen 2 Vitis AI compiler devices, the first is the VEK385 evaluation kit default
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -467,7 +475,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
     Notes:
         - On Windows, this function attempts to reconfigure stdout to use UTF-8 encoding if possible.
-        - If reconfiguration is not possible, it falls back to a custom formatter that handles non-UTF-8 environments.
+        - On Windows, emojis are removed from log messages.
         - The function sets up a StreamHandler with the appropriate formatter and level.
         - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
@@ -524,8 +532,8 @@ logging.getLogger("sentry_sdk").setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=""):
-    """Return platform-dependent emoji-safe version of string."""
-    return string.encode().decode("ascii", "ignore") if WINDOWS else string
+    """Return platform-dependent emoji-safe version of string, removing only the package's emojis on Windows."""
+    return string.translate(str.maketrans("", "", "🚀✅❌⚠💡⚡⏱❎❔😃\ufe0f")) if WINDOWS else string
 
 
 class ThreadingLocked:
@@ -838,8 +846,8 @@ def is_jetson(jetpack=None) -> bool:
     if jetson and jetpack:
         try:
             content = Path("/etc/nv_tegra_release").read_text()
-            version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
-            return jetpack in version_map and version_map[jetpack] in content
+            version_map = {4: ("R32",), 5: ("R35",), 6: ("R36",), 7: ("R38", "R39")}  # JetPack to L4T major versions
+            return any(r in content for r in version_map.get(jetpack, ()))
         except Exception:
             return False
     return jetson
@@ -974,9 +982,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     else:
         raise ValueError(f"Unsupported operating system: {platform.system()}")
 
-    if p.exists():  # already created → trust it
-        return p
-    if is_dir_writeable(p.parent):  # create if possible
+    with contextlib.suppress(OSError):  # create if possible
         p.mkdir(parents=True, exist_ok=True)
         return p
 

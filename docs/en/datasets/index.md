@@ -44,6 +44,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 - [Signature](detect/signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 - [SKU-110K](detect/sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million bounding boxes.
 - [TT100K](detect/tt100k.md): The Tsinghua-Tencent 100K traffic sign dataset with 16,817 street-view images across 221 sign categories.
+- [Ultralytics Benchmark](detect/ultralytics-benchmark.md): A first-party benchmark suite of 37 curated detection datasets across medical, aerial, industrial, retail, and other domains, with a fixed protocol for measuring real-world model generalization.
 - [VisDrone](detect/visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](detect/voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 21K images.
 - [xView](detect/xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.

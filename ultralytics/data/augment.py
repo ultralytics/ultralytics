@@ -976,7 +976,7 @@ class CutMix(BaseMixTransform):
         area = cut_areas[np.random.choice(idx)]  # randomly select one
         ioa2 = bbox_ioa(area[None], labels2["instances"].bboxes).squeeze(0)
         indexes2 = np.nonzero(ioa2 >= (0.01 if len(labels["instances"].segments) else 0.1))[0]
-        if len(indexes2) == 0:
+        if len(indexes2) == 0 and labels.get("semantic_mask") is None:  # semantic masks need no source instance
             params["skip"] = True
             return params
 
@@ -1675,8 +1675,9 @@ class RandomFlip(BaseTransform):
 class LetterBox(BaseTransform):
     """Resize image and padding for detection, instance segmentation, pose.
 
-    This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates corresponding
-    labels and bounding boxes.
+    This class resizes and pads images to a specified shape while preserving aspect ratio. Each resized side is kept at
+    least 1 pixel, so very thin images (e.g. 1x3000) stay valid. It also updates corresponding labels and bounding
+    boxes.
 
     Attributes:
         new_shape (int | tuple[int, int]): Target shape (height, width) for resizing, or an int for a square target.
@@ -1794,7 +1795,7 @@ class LetterBox(BaseTransform):
 
         # Compute padding
         ratio = r, r  # width, height ratios
-        new_unpad = round(shape[1] * r), round(shape[0] * r)
+        new_unpad = max(round(shape[1] * r), 1), max(round(shape[0] * r), 1)  # keep thin images at least 1 pixel
         dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
         if self.auto:  # minimum rectangle
             dw, dh = np.mod(dw, self.stride), np.mod(dh, self.stride)  # wh padding
@@ -2119,7 +2120,7 @@ class Albumentations(BaseTransform):
         >>> augmented_labels = transform(labels)
 
     Notes:
-        - Requires Albumentations version 1.0.3 or higher.
+        - Requires Albumentations version 1.0.3 or higher, and 1.4.4 or higher for the default transforms.
         - Spatial transforms are handled differently to ensure bbox compatibility.
         - Some transforms are applied with very low probability (0.01) by default.
     """
@@ -2191,9 +2192,6 @@ class Albumentations(BaseTransform):
                 if self.contains_spatial
                 else A.Compose(T)
             )
-            if hasattr(self.transform, "set_random_seed"):
-                # Required for deterministic transforms in albumentations>=1.4.21
-                self.transform.set_random_seed(torch.initial_seed())
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
@@ -2236,6 +2234,9 @@ class Albumentations(BaseTransform):
         """
         if self.transform is None or random.random() >= self.p:
             return labels
+        if hasattr(self.transform, "set_random_seed") and self.transform.seed != torch.initial_seed():
+            # albumentations>=1.4.21 has its own RNG; seed it from this process so each DataLoader worker differs
+            self.transform.set_random_seed(torch.initial_seed())
 
         im = labels["img"]
         if im.shape[2] not in {1, 3}:  # Albumentations supports grayscale and color images only
@@ -2276,7 +2277,7 @@ class Albumentations(BaseTransform):
                 lost = np.ones(len(points), bool)
                 lost[np.array(new["pidx"], dtype=int)] = False
                 moved = points.copy()
-                moved[~lost] = np.array(new["keypoints"], dtype=np.float32)
+                moved[~lost] = np.array(new["keypoints"], dtype=np.float32).reshape(-1, 2)
                 if n:
                     segment_lost = lost[:n].reshape(segments.shape[:2])
                     segment_points = moved[:n].reshape(segments.shape)
@@ -2588,9 +2589,10 @@ class SemanticFormat(Format):
             params (dict[str, Any] | None): Unused parameters for API compatibility.
 
         Returns:
-            (dict[str, Any]): Updated labels with unused keys removed.
+            (dict[str, Any]): Updated labels with unused keys removed, keeping 'ori_shape' and 'ratio_pad' for saving
+                val predictions at the original resolution.
         """
-        for k in ("cls", "instances", "resized_shape", "ori_shape", "ratio_pad"):
+        for k in ("cls", "instances", "resized_shape"):
             labels.pop(k, None)
         return labels
 

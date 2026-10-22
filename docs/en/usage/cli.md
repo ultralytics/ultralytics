@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore the YOLO command line interface (CLI) for easy execution of detection tasks without needing a Python environment.
+description: Explore the YOLO command line interface (CLI) for easy execution of detection tasks without writing Python code.
 keywords: YOLO CLI, command line interface, YOLO commands, detection tasks, Ultralytics, model training, model prediction
 ---
 
 # Command Line Interface
 
-The Ultralytics command line interface (CLI) provides a straightforward way to use Ultralytics YOLO models without needing a Python environment. The CLI supports running various tasks directly from the terminal using the `yolo` command, requiring no customization or Python code.
+The Ultralytics command line interface (CLI) provides a straightforward way to use Ultralytics YOLO models without writing Python code. The CLI supports running various tasks directly from the terminal using the `yolo` command.
 
 <p align="center">
   <br>
@@ -37,10 +37,10 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
 
     === "Train"
 
-        Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01:
+        Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch):
 
         ```bash
-        yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo26n.pt epochs=10
         ```
 
     === "Predict"
@@ -201,7 +201,7 @@ Override default arguments by passing them in the CLI as `arg=value` pairs.
         Train a detection model for 10 epochs with a learning rate of 0.01:
 
         ```bash
-        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 optimizer=SGD lr0=0.01
         ```
 
     === "Predict"
@@ -257,7 +257,7 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
         Crop detected objects and save them to disk:
 
         ```bash
-        yolo solutions crop show=True
+        yolo solutions crop
         yolo solutions crop source="path/to/video.mp4" # specify video file path
         yolo solutions crop classes="[0, 2]"           # crop only selected classes
         ```
@@ -409,10 +409,10 @@ For more information on Ultralytics solutions, visit the [Solutions](../solution
 
 ### How do I use the Ultralytics YOLO command line interface (CLI) for model training?
 
-To train a model using the CLI, execute a single-line command in the terminal. For example, to train a detection model for 10 epochs with a [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01, run:
+To train a model using the CLI, execute a single-line command in the terminal. For example, to train a detection model for 10 epochs, run:
 
 ```bash
-yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolo26n.pt epochs=10
 ```
 
 This command uses the `train` mode with specific arguments. For a full list of available arguments, refer to the [Configuration Guide](cfg.md).

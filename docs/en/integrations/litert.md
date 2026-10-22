@@ -296,6 +296,41 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
+## Intel CPU and NPU Inference
+
+Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVINO](https://developers.google.com/edge/litert/next/intel) plugin. Pass `device=intel:cpu` or `device=intel:npu`, and Ultralytics installs `ai-edge-litert>=2.3.0` and `ai-edge-litert-sdk-intel` on first use. The NPU needs an Intel Core Ultra processor with the [Intel NPU driver](https://github.com/intel/linux-npu-driver) installed.
+
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.tflite")
+        results = model("https://ultralytics.com/images/bus.jpg", device="intel:npu")  # or "intel:cpu"
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo predict model=yolo26n.tflite source='https://ultralytics.com/images/bus.jpg' device=intel:npu
+        ```
+
+**Hardware:** Intel Core Ultra X7 358H (Panther Lake) and Intel AI Boost NPU 5010, Fedora Linux, NPU driver 1.38.0, `ai-edge-litert` 2.3.0.
+
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | CPU<br><sup>w8a32 Intel<br>(ms)</sup> | NPU<br><sup>w8a32 Intel<br>(ms)</sup>   |
+| ------------- | -------- | --------------------------- | -------------------------------------- | ------------------------------------- | --------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 17.5<br><sup>0.8 / 16.1 / 0.6</sup>    | 22.6<br><sup>1.2 / 20.6 / 0.8</sup>   | **4.8**<br><sup>1.0 / 3.3 / 0.4</sup>   |
+| YOLO26n-seg   | Segment  | 640                         | 24.2<br><sup>0.9 / 22.1 / 1.3</sup>    | 32.6<br><sup>1.0 / 30.1 / 1.5</sup>   | **6.2**<br><sup>0.8 / 4.2 / 1.2</sup>   |
+| YOLO26n-sem   | Semantic | 640                         | 25.2<br><sup>1.0 / 14.2 / 10.0</sup>   | 33.1<br><sup>1.1 / 21.9 / 10.2</sup>  | **16.5**<br><sup>1.0 / 5.5 / 10.0</sup> |
+| YOLO26n-depth | Depth    | 640                         | 31.7<br><sup>0.9 / 30.2 / 0.5</sup>    | 76.6<br><sup>0.9 / 75.2 / 0.5</sup>   | **9.1**<br><sup>1.0 / 7.5 / 0.5</sup>   |
+| YOLO26n-cls   | Classify | 224                         | 4.6<br><sup>2.8 / 1.7 / 0.0</sup>      | 7.3<br><sup>3.3 / 3.9 / 0.0</sup>     | **4.1**<br><sup>3.2 / 0.9 / 0.0</sup>   |
+| YOLO26n-pose  | Pose     | 640                         | 20.3<br><sup>0.8 / 19.0 / 0.5</sup>    | 28.6<br><sup>1.1 / 26.8 / 0.8</sup>   | **6.3**<br><sup>0.8 / 4.9 / 0.5</sup>   |
+| YOLO26n-obb   | OBB      | 640                         | 17.2<br><sup>0.8 / 16.1 / 0.3</sup>    | 22.1<br><sup>1.2 / 20.5 / 0.4</sup>   | **4.6**<br><sup>0.9 / 3.4 / 0.3</sup>   |
+
+**Benchmark:** Mean of 15 `predict()` calls after 3 warmups on `bus.jpg`, using `ultralytics` 8.4.174 and `ai-edge-litert` 2.3.0 with `w8a32` exports. Each cell shows total time with the preprocess / inference / postprocess split beneath it.
+
 ## Deploying Exported YOLO LiteRT Models
 
 After exporting your Ultralytics YOLO model to LiteRT, you can deploy it across platforms. The quickest way to verify it locally is the `YOLO("yolo26n.tflite")` method shown above. For deployment in other environments, see the following resources:

@@ -102,7 +102,8 @@ class Predictor(BasePredictor):
         """
         if overrides is None:
             overrides = {}
-        overrides.update({"task": "segment", "mode": "predict", "batch": 1})
+        overrides.update({"task": "segment", "batch": 1})
+        overrides.setdefault("mode", "predict")  # keep track mode so tracker callbacks run
         super().__init__(cfg, overrides, _callbacks)
         self.args.retina_masks = True
         self.im = None
@@ -206,12 +207,6 @@ class Predictor(BasePredictor):
             >>> predictor.set_image("image.jpg")
             >>> results = predictor(bboxes=[[0, 0, 100, 100]])
         """
-        # Override prompts if any stored in self.prompts
-        bboxes = self.prompts.pop("bboxes", bboxes)
-        points = self.prompts.pop("points", points)
-        masks = self.prompts.pop("masks", masks)
-        labels = self.prompts.pop("labels", labels)
-
         if all(i is None for i in [bboxes, points, masks]):
             return self.generate(im, *args, **kwargs)
 
@@ -322,20 +317,21 @@ class Predictor(BasePredictor):
             assert points.shape[-2] == labels.shape[-1], (
                 f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
             )
-            points *= r
+            points = points * r
             if points.ndim == 2:
                 # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
                 points, labels = points[:, None, :], labels[:, None]
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=self.torch_dtype, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
-            bboxes *= r
+            bboxes = bboxes * r
         if masks is not None:
-            masks = np.asarray(masks, dtype=np.uint8)
+            masks = np.asarray(masks, dtype=np.float32)
             masks = masks[None] if masks.ndim == 2 else masks
             letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
             masks = np.stack([letterbox(image=x).squeeze() for x in masks], axis=0)
-            masks = torch.tensor(masks, dtype=self.torch_dtype, device=self.device)
+            # Add the channel dimension expected by SAM prompt encoders.
+            masks = torch.as_tensor(masks, dtype=self.torch_dtype, device=self.device)[:, None]
         return bboxes, points, labels, masks
 
     def generate(
@@ -389,6 +385,8 @@ class Predictor(BasePredictor):
 
         self.segment_all = True
         ih, iw = im.shape[2:]
+        h0, w0 = self.src_shape
+        gain = min(ih / h0, iw / w0)  # letterbox gain; the image fills the top-left of the padded input
         crop_regions, layer_idxs = generate_crop_boxes((ih, iw), crop_n_layers, crop_overlap_ratio)
         if point_grids is None:
             point_grids = build_all_layer_point_grids(points_stride, crop_n_layers, crop_downscale_factor)
@@ -396,12 +394,14 @@ class Predictor(BasePredictor):
         for crop_region, layer_idx in zip(crop_regions, layer_idxs):
             x1, y1, x2, y2 = crop_region
             w, h = x2 - x1, y2 - y1
+            fill = np.minimum(np.array([w0, h0]) * gain - [x1, y1], [w, h]) / [w, h]  # image share, not padding
+            if (fill <= 0).any():  # only deeper crop layers can lie wholly in the padding
+                continue
             area = torch.tensor(w * h, device=im.device)
-            points_scale = np.array([[iw, ih]])  # the crop is resized to the model input, so prompts live in that space
             # Crop image and interpolate to input size
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode="bilinear", align_corners=False)
             crop_features = self.get_im_features(crop_im)
-            points_for_image = point_grids[layer_idx] * points_scale
+            points_for_image = point_grids[layer_idx] * fill * [iw, ih]  # crop resized to the input; prompt the image
             crop_masks, crop_scores, crop_bboxes = [], [], []
             for (points,) in batch_iterator(points_batch_size, points_for_image):
                 prompts = self._prepare_prompts(crop_im.shape[2:], self.src_shape, points=points)
@@ -456,9 +456,7 @@ class Predictor(BasePredictor):
         idx = pred_scores > self.args.conf  # postprocess applies conf too, so it must not decide the cleanup NMS
         pred_masks, pred_scores, pred_bboxes = pred_masks[idx], pred_scores[idx], pred_bboxes[idx]
 
-        if min_mask_region_area > 0:
-            h0, w0 = self.src_shape
-            gain = min(ih / h0, iw / w0)  # masks are in letterboxed model space, the threshold is in original pixels
+        if min_mask_region_area > 0:  # masks are in letterboxed model space, the threshold is in original pixels
             min_area = min_mask_region_area * gain * gain
             pred_masks, keep = self.remove_small_regions(pred_masks, min_area, max(self.args.iou, crop_nms_thresh))
             pred_scores, pred_bboxes = pred_scores[keep], batched_mask_to_box(pred_masks).float()
@@ -488,7 +486,8 @@ class Predictor(BasePredictor):
             model = self.get_model()
         # Move model to device first, then cast dtype, then set eval so any eval-time caches are created on-device.
         model = model.to(device)
-        model = model.half() if self.args.quantize == 16 else model.float()
+        model.fp16 = self.args.quantize == 16 and device.type != "cpu"  # CPU FP16 is slow and returns empty masks
+        model = model.half() if model.fp16 else model.float()
         model.eval()
         self.model = model
         self.device = device
@@ -499,7 +498,6 @@ class Predictor(BasePredictor):
         self.model.format = "sam"
         self.model.base_model = False  # SAMModel is no Ultralytics BaseModel and honors neither `augment` nor `embed`
         self.model.stride = 32
-        self.model.fp16 = self.args.quantize == 16
         self.done_warmup = True
         self.torch_dtype = torch.float16 if self.model.fp16 else torch.float32
 
@@ -546,7 +544,11 @@ class Predictor(BasePredictor):
                 masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
                 idx = pred_scores > self.args.conf
-                masks = ops.scale_masks(masks[idx][None].float(), orig_img.shape[:2], padding=False)[0]
+                gain = min(i / o for i, o in zip(img.shape[2:], orig_img.shape[:2]))  # letterbox gain at the input
+                ratio = [
+                    round(o * gain) * m / i / o for o, m, i in zip(orig_img.shape[:2], masks.shape[1:], img.shape[2:])
+                ]
+                masks = ops.scale_masks(masks[idx][None].float(), orig_img.shape[:2], (ratio, (0, 0)), padding=False)[0]
                 if self.non_overlap_masks:
                     masks = self.model._apply_non_overlapping_constraints(masks[:, None])[:, 0]
                 masks = masks > self.model.mask_threshold  # to bool
@@ -597,10 +599,16 @@ class Predictor(BasePredictor):
             self.features = self.get_im_features(im)
             break
 
+    def stream_inference(self, source=None, model=None, *args, **kwargs):
+        """Run inference, passing prompts stored by `set_prompts` to every image of the source, not only the first."""
+        prompts, self.prompts = {k: v for k, v in self.prompts.items() if v is not None}, {}
+        return super().stream_inference(source, model, *args, **{**kwargs, **prompts})
+
     def setup_source(self, source):
         """Set up the data source for SAM inference."""
         if source is None:  # handle the situation when set_imgsz in advance
             return
+        self.reset_image()
         super().setup_source(source, self.stride)
         assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
             f"SAM models only support square image size, but got {self.imgsz}."
@@ -713,7 +721,9 @@ class Predictor(BasePredictor):
         if pred_masks.shape[0] == 0:
             pred_masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
         else:
-            pred_masks = ops.scale_masks(pred_masks[None].float(), src_shape, padding=False)[0]
+            gain = min(i / o for i, o in zip(dst_shape, src_shape))  # letterbox gain at the input
+            ratio = [round(o * gain) * m / i / o for o, m, i in zip(src_shape, pred_masks.shape[1:], dst_shape)]
+            pred_masks = ops.scale_masks(pred_masks[None].float(), src_shape, (ratio, (0, 0)), padding=False)[0]
             pred_masks = pred_masks > self.model.mask_threshold  # to bool
             pred_bboxes = batched_mask_to_box(pred_masks)
             # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
@@ -945,19 +955,12 @@ class SAM2VideoPredictor(SAM2Predictor):
             masks (np.ndarray, optional): Binary object masks with shape (N, H, W).
 
         Returns:
-            pred_masks (torch.Tensor): The non-empty output mask logits with shape (C, H, W), where C is the number of
-                masks.
-            pred_scores (torch.Tensor): A tensor of ones with length C, as the video predictor does not score masks.
+            pred_masks (torch.Tensor): The output mask logits with shape (C, H, W), one per tracked object.
+            pred_scores (torch.Tensor): Scores with length C, 1 for non-empty masks and 0 for blank ones.
 
         Raises:
             RuntimeError: If no prompts have been added before tracking.
         """
-        # Override prompts if any stored in self.prompts
-        bboxes = self.prompts.pop("bboxes", bboxes)
-        points = self.prompts.pop("points", points)
-        masks = self.prompts.pop("masks", masks)
-        labels = self.prompts.pop("labels", labels)
-
         frame = self.dataset.frame
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
@@ -1004,9 +1007,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self._add_output_per_object(frame, current_out, storage_key)
         self.inference_state["frames_already_tracked"].add(frame)
         pred_masks = current_out["pred_masks"].flatten(0, 1)
-        pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
-
-        return pred_masks, torch.ones(pred_masks.shape[0], dtype=pred_masks.dtype, device=pred_masks.device)
+        return pred_masks, (pred_masks > self.model.mask_threshold).flatten(1).any(1).to(pred_masks.dtype)
 
     @smart_inference_mode()
     def add_new_prompts(
@@ -1203,8 +1204,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         Args:
             predictor (SAM2VideoPredictor): The predictor object for which to initialize the state.
         """
-        if len(predictor.inference_state) > 0:  # means initialized
-            return
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
         predictor.inference_state = predictor._init_state(predictor.dataset.frames)
@@ -1970,8 +1969,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             update_memory (bool): Flag to indicate whether to update the memory with new objects.
 
         Returns:
-            pred_masks (torch.Tensor): The output mask logits with shape (C, H, W) for the C added objects.
-            pred_scores (torch.Tensor): Object presence scores for each mask with shape (C,), mapped to [0, 1].
+            pred_masks (torch.Tensor): The output mask logits with shape (C, H, W), one per object slot.
+            pred_scores (torch.Tensor): Object presence scores with shape (C,), mapped to [0, 1]; 0 for empty slots.
 
         Raises:
             RuntimeError: If no objects have been added to the memory yet.
@@ -2003,15 +2002,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         current_out = self.track_step()
         pred_masks, pred_scores = current_out["pred_masks"], current_out["object_score_logits"]
-        # filter the masks and logits based on the object indices
         if len(self.obj_idx_set) == 0:
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
-        idx = list(self.obj_idx_set)  # cls id
-        pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
+        idx = list(self.obj_idx_set)  # cls id; slots without an object keep score 0
         # The original scores are in [-32, 32]. An object score larger than 0 means the object is present.
         # Map scores to [0, 1] so that the object score logits are non-negative and can be used as a mask.
-        pred_scores = torch.clamp_(pred_scores / 32, min=0)
-        return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
+        scores = torch.zeros_like(pred_scores)
+        scores[idx] = torch.clamp(pred_scores[idx] / 32, min=0)
+        return pred_masks.flatten(0, 1), scores.flatten(0, 1)
 
     def get_im_features(self, img: torch.Tensor | np.ndarray) -> None:
         """Extract the image features for the current image and store them on the predictor.
@@ -2386,9 +2384,6 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def inference(self, im, bboxes=None, labels=None, text: str | list[str] | None = None, *args, **kwargs):
         """Perform inference on a single image with optional box and text prompts."""
-        bboxes = self.prompts.pop("bboxes", bboxes)
-        labels = self.prompts.pop("labels", labels)
-        text = self.prompts.pop("text", text)
         features = self.get_im_features(im) if self.features is None else self.features
         prompts = self._prepare_geometric_prompts(self.src_shape, bboxes, labels)
         return self._inference_features(features, *prompts, text=text)
@@ -2664,8 +2659,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         Args:
             predictor (SAM3VideoSemanticPredictor): The predictor object for which to initialize the state.
         """
-        if len(predictor.inference_state) > 0:  # means initialized
-            return
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
         num_frames = predictor.dataset.frames

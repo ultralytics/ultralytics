@@ -344,10 +344,6 @@ class FASTTracker(BYTETracker):
                 track.was_recently_occluded = False
 
             # Give occluded tracks a grace period before marking lost.
-            if (
-                track.state != TrackState.Lost
-                and track.not_matched > 2
-                and (not track.is_occluded or track.occluded_len > self.active_occ_to_lost_thresh)
-            ):
+            if track.not_matched > 2 and (not track.is_occluded or track.occluded_len > self.active_occ_to_lost_thresh):
                 track.mark_lost()
                 lost_stracks.append(track)

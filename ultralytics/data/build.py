@@ -7,7 +7,6 @@ import math
 import os
 import random
 import shutil
-from collections import deque
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -76,8 +75,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         super().__init__(*args, **kwargs)
         object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
         self.iterator = None  # fork workers on first iteration, not while another loader's pin-memory thread starts up
-        self.img_slots, self.slot_device = None, None  # see pin_image_slots()
-        self.slot_events = deque(maxlen=self.num_workers)  # one CUDA event per consumed batch
+        self.img_slots, self.slot_device, self.slot_events = None, None, []  # see pin_image_slots()
 
     def __len__(self) -> int:
         """Return the length of the batch sampler's sampler."""
@@ -94,7 +92,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
                 yield next(self.iterator)
                 continue
             if len(self.slot_events) == self.num_workers:  # next() rewrites the slot read num_workers batches ago
-                self.slot_events[0].synchronize()
+                self.slot_events.pop(0).synchronize()
             batch = next(self.iterator)
             if "img_slot" in batch:
                 w, s, n = batch.pop("img_slot").tolist()
@@ -102,8 +100,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
             try:
                 yield batch
             finally:  # the consumer has queued its copy of this batch on the current stream
-                self.slot_events.append(torch.cuda.Event())
-                self.slot_events[-1].record(torch.cuda.current_stream(self.slot_device))
+                self.slot_events.append(torch.cuda.current_stream(self.slot_device).record_event())
 
     def __del__(self):
         """Ensure that workers are properly terminated when the DataLoader is deleted."""
@@ -117,29 +114,21 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def close(self):
         """Shut down persistent workers and unpin the image slots, so neither outlives the training run."""
-        if hasattr(self.iterator, "_workers"):
-            self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+        self.reset()
         if self.img_slots is not None:
-            self.wait_slot_copies()
             torch.cuda.cudart().cudaHostUnregister(self.img_slots.data_ptr())
             self.img_slots = self.dataset.img_slots = None
 
     def pin_image_slots(self, device):
         """Give each worker `prefetch_factor + 1` pinned shared-memory slots to collate its image batches into.
 
-        Workers cycle through their slots round-robin and the loader keeps `prefetch_factor` batches per worker in
-        flight, so receiving batch `i` dispatches the task that rewrites the slot of batch `i - num_workers`. `__iter__`
-        waits for the copy of that batch before receiving. Images then reach the GPU straight from the slot, without a
-        new shared-memory segment and a pin-memory copy per batch in the training process.
+        Receiving batch `i` dispatches the task that rewrites the slot of batch `i - num_workers`, so `__iter__` first
+        waits for the copy of that batch. A yielded `img` is a view of its slot, so copy it to keep it longer. The wait
+        covers copies queued on the current stream of `device` before the next batch is requested, as in
+        `preprocess_batch`, with ordered loading (`in_order=True`, the default).
 
         Args:
             device (torch.device | str): CUDA device the batches are copied to.
-
-        Notes:
-            - A yielded `img` is a view of its slot and is rewritten `num_workers` batches later, so copy it before
-              keeping it across iterations.
-            - The wait covers copies queued on the current CUDA stream of `device` before the next batch is requested,
-              as in `preprocess_batch`, and assumes ordered loading (`in_order=True`, the default).
         """
         ds = self.dataset
         shape = (self.num_workers, self.prefetch_factor + 1, self.batch_size, ds.channels, ds.imgsz, ds.imgsz)
@@ -154,19 +143,14 @@ class InfiniteDataLoader(dataloader.DataLoader):
             with contextlib.suppress(RuntimeError):
                 torch.zeros(1, device=device)
 
-    def wait_slot_copies(self):
-        """Wait until every yielded batch, including the one still held, has been copied out of its slot."""
-        if self.img_slots is not None:
-            self.slot_events.append(torch.cuda.Event())
-            self.slot_events[-1].record(torch.cuda.current_stream(self.slot_device))
-        while self.slot_events:
-            self.slot_events.popleft().synchronize()
-
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
         if hasattr(self.iterator, "_workers"):
-            self.iterator._shutdown_workers()  # free old worker pipes before creating new iterator
-        self.wait_slot_copies()  # new workers start writing their first slots right away
+            self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+        if self.img_slots is not None:  # wait for the copies of all yielded batches, including the one still held
+            self.slot_events.append(torch.cuda.current_stream(self.slot_device).record_event())
+        while self.slot_events:
+            self.slot_events.pop().synchronize()
         self.iterator = None
 
 

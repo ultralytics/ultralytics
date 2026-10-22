@@ -27,6 +27,7 @@ class Profile(contextlib.ContextDecorator):
         t (float): Accumulated time in seconds.
         dt (float): Elapsed time in seconds of the most recent timed block.
         device (torch.device): Device used for model inference.
+        device_type (str | None): Device type parsed from `device`, e.g. "cuda" or "mps".
         accelerator (module | None): PyTorch device module used for timing synchronization, None if not needed.
 
     Examples:
@@ -51,8 +52,10 @@ class Profile(contextlib.ContextDecorator):
         """
         self.t = t
         self.device = device
-        device_type = getattr(device, "type", str(device).split(":")[0] if device else None)
-        self.accelerator = get_torch_device_backend(device_type) if device_type in {"cuda", "npu", "xpu"} else None
+        self.device_type = getattr(device, "type", str(device).split(":")[0] if device else None)
+        self.accelerator = (
+            get_torch_device_backend(self.device_type) if self.device_type in {"cuda", "mps", "npu", "xpu"} else None
+        )
 
     def __enter__(self):
         """Start timing."""
@@ -71,7 +74,10 @@ class Profile(contextlib.ContextDecorator):
     def time(self):
         """Return the current time with accelerator synchronization if applicable."""
         if self.accelerator is not None:
-            self.accelerator.synchronize(self.device)
+            if self.device_type == "mps":
+                self.accelerator.synchronize()  # torch.mps.synchronize() takes no device argument
+            else:
+                self.accelerator.synchronize(self.device)
         return time.perf_counter()
 
 

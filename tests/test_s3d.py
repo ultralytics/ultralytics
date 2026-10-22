@@ -130,7 +130,9 @@ def test_proj_center_loss_is_pixel_scaled():
     gt = torch.tensor([[[2.0 / W, 2.0 / H]]])  # 2 px in both axes
     idx = torch.zeros(1, 4, dtype=torch.long)
     fg = torch.ones(1, 4, dtype=torch.bool)
-    loss = crit._compute_aux_losses(preds, {"aux_targets": {"proj_offset": gt}, "img": torch.zeros(1, 6, H, W)}, idx, fg)
+    loss = crit._compute_aux_losses(
+        preds, {"aux_targets": {"proj_offset": gt}, "img": torch.zeros(1, 6, H, W)}, idx, fg
+    )
     assert abs(float(loss["proj_center"]) - 1.5) < 1e-4
 
 
@@ -1585,6 +1587,52 @@ def test_unreadable_label_cache_falls_back_to_parsing():
     finally:
         cache_path.unlink(missing_ok=True)
     assert len(labels) == expected, "an unreadable cache must be re-parsed, not fatal"
+
+
+def test_label_cache_invalidates_when_calib_changes(tmp_path):
+    """Editing a calib file must invalidate the label cache, which stores the parsed calibration.
+
+    The cache was accepted on version and label count alone, so a dataset shipped with corrected calib files but its
+    old `.cache` still trained on the old baseline without any warning.
+    """
+    import shutil
+
+    from ultralytics.data.utils import check_det_dataset
+    from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset
+    from ultralytics.utils import DEFAULT_CFG
+
+    data = check_det_dataset(DATA)
+    split = data.get("val_split", "val")
+    root = tmp_path / "ds"
+    for sub in ("images", "labels", "calib"):
+        shutil.copytree(Path(data["path"]) / sub, root / sub, ignore=shutil.ignore_patterns("*.cache"))
+    kwargs = {
+        "root": root,
+        "split": split,
+        "imgsz": [128, 416],
+        "names": data["names"],
+        "mean_dims": data.get("mean_dims"),
+        "std_dims": data.get("std_dims"),
+        "augment": False,
+        "hyp": DEFAULT_CFG,
+        "data": data,
+    }
+    before = Stereo3DDetDataset(**kwargs).labels
+    assert (root / "labels" / f"stereo3d_{split}.cache").exists(), "first load should write a cache"
+
+    for f in (root / "calib" / split).glob("*.txt"):  # halve the baseline, in either calib format
+        lines = []
+        for line in f.read_text().splitlines():
+            v = line.split()
+            if v and v[0] in {"baseline:", "P3:"}:  # simplified `baseline: B`, or KITTI P3[0, 3] = -fx * B
+                i = 1 if v[0] == "baseline:" else 4
+                v[i] = str(float(v[i]) / 2)
+                line = " ".join(v)
+            lines.append(line)
+        f.write_text("\n".join(lines) + "\n")
+    after = Stereo3DDetDataset(**kwargs).labels
+    for b, a in zip(before, after):
+        assert a["calibration"]["baseline"] == pytest.approx(b["calibration"]["baseline"] / 2), "stale cache was used"
 
 
 def test_metrics_summary_feeds_the_export_helpers():

@@ -13,7 +13,7 @@ import torch
 from ultralytics.data.augment import Compose, Format
 from ultralytics.data.base import BaseDataset
 from ultralytics.data.stereo.calib import load_kitti_calibration
-from ultralytics.data.utils import load_dataset_cache_file, save_dataset_cache_file
+from ultralytics.data.utils import get_hash, load_dataset_cache_file, save_dataset_cache_file
 from ultralytics.models.yolo.s3d.augment import (
     StereoCrop,
     StereoHFlip,
@@ -321,10 +321,20 @@ class Stereo3DDetDataset(BaseDataset):
             List of label dictionaries with stereo-specific format.
         """
         cache_path = Path(self.label_dir).parent / f"{self.prefix}stereo3d_{self.split}.cache"
+        # The cache stores the parsed calibration, so it must be keyed on the label AND calib files: matching on
+        # version and length alone let a stale cache shipped next to corrected calib files silently override them.
+        stems = [Path(f).stem for f in self.im_files]
+        label_files = [str(self.label_dir / f"{s}.txt") for s in stems]
+        calib_files = [str(self.calib_dir / f"{s}.txt") for s in stems]
+        files_hash = get_hash(self.im_files + label_files + calib_files)
         if cache_path.exists():
             try:
                 cache = load_dataset_cache_file(cache_path)
-                if cache.get("version") == "1.0.0" and len(cache.get("labels", [])) == len(self.im_files):
+                if (
+                    cache.get("version") == "1.0.0"
+                    and cache.get("hash") == files_hash
+                    and len(cache.get("labels", [])) == len(self.im_files)
+                ):
                     labels = cache["labels"]
                     LOGGER.info(f"{self.prefix}Loaded {len(labels)} labels from cache: {cache_path}")
                     return labels
@@ -370,7 +380,7 @@ class Stereo3DDetDataset(BaseDataset):
 
         # Save cache
         try:
-            save_dataset_cache_file(self.prefix, cache_path, {"labels": labels}, "1.0.0")
+            save_dataset_cache_file(self.prefix, cache_path, {"labels": labels, "hash": files_hash}, "1.0.0")
             LOGGER.info(f"{self.prefix}Saved {len(labels)} labels to cache: {cache_path}")
         except OSError as e:
             LOGGER.warning(f"{self.prefix}Cache saving failed: {e}")

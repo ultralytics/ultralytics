@@ -51,9 +51,26 @@ Only the oracle clears the protocol's bar, and only on 3DPW (−5.5 mm < 10 mm).
 model's skeleton — the labels were read off SAM 3D Body's MHR rig — and it buys 0.8 mm. On the teacher, the same
 oracle buys 8.6 mm (66.7 -> 58.1), almost all of it the SMPL-vs-COCO joint definition; mean bones cost it 10 mm.
 
-Why so little: given 2D and a bone length, a body model fixes |Δz| of the bone but not its sign, and near-fronto-
-parallel limbs make |Δz| ill-conditioned on 2D noise. The student's depth errors are mostly direction errors that
-satisfy the lengths anyway.
+Why so little: given 2D and a bone length, a bone-length constraint fixes |Δz| of the bone only when the 2D is
+exact, and near-fronto-parallel limbs make |Δz| ill-conditioned on 2D noise. The scope of this test is lengths and
+symmetry; the articulation half (joint limits, sign) is bounded separately below.
+
+**Sign vs magnitude — the half of a body model the refit cannot test.** Joint limits and pose priors (elbows do not
+bend backwards) resolve which way a limb points, and a bone-length refit started from the prediction never flips a
+sign. So the oracle for "an articulation prior that got every direction right" was scored directly: keep the
+predicted |Δz|, take each joint's Δz sign (in front of or behind the root) from GT.
+
+| Δz swap | 3DPW MPJPE | COCO MPJPE |
+| --- | ---: | ---: |
+| as predicted | 109.85 | 110.01 |
+| GT sign, predicted magnitude | 100.68 | 102.57 |
+| predicted sign, GT magnitude | 70.29 | 83.11 |
+| GT Δz | 49.72 | 68.28 |
+
+14.5% of 3DPW joints have the wrong depth sign (10.9% where |Δz| > 5 cm). A *perfect* sign prior is worth 9.2 of
+the 60 mm depth error; correct magnitudes are worth 39.6. **The error is depth magnitude, not direction**, and
+neither half of a body model — lengths or joint limits — constrains magnitude for a limb whose length is already
+about right. A real articulation prior would capture only part of the 9 mm sign headroom.
 
 ## 4. Root depth from body size
 

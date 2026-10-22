@@ -34,9 +34,9 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
 
     Notes:
-        - Multi-page grayscale TIFFs with same-size pages stack them as channels. Color TIFFs keep every band, such as
-          alpha or near-infrared, only with cv2.IMREAD_UNCHANGED. Other multi-page TIFFs, such as Cloud Optimized
-          GeoTIFFs with overview and thumbnail pages, return their first page.
+        - With cv2.IMREAD_UNCHANGED, multi-page grayscale TIFFs with same-size pages stack them as channels and color
+          TIFFs keep every band, such as alpha or near-infrared. Other flags and other multi-page TIFFs, such as scanned
+          documents or Cloud Optimized GeoTIFFs with overview and thumbnail pages, return their first page.
         - 16-bit images keep their high byte as 8-bit, unless flags explicitly include cv2.IMREAD_ANYDEPTH.
           cv2.IMREAD_UNCHANGED preserves channels but still converts 16-bit images to 8-bit.
     """
@@ -50,9 +50,10 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
     im = None
     if flags != cv2.IMREAD_GRAYSCALE and filename.lower().endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
-        if success and (frames[0].ndim == 3 or (len(frames) > 1 and all(f.shape == frames[0].shape for f in frames))):
+        stack = flags == cv2.IMREAD_UNCHANGED and len(frames) > 1 and all(f.shape == frames[0].shape for f in frames)
+        if success and (frames[0].ndim == 3 or stack):
             im = frames[0] if frames[0].ndim == 3 else np.stack(frames, axis=2)  # color pages keep the first page
-            im = im if frames[0].ndim == 2 or flags == cv2.IMREAD_UNCHANGED else im[..., :3]  # BGR, alpha dropped
+            im = im if flags == cv2.IMREAD_UNCHANGED else im[..., :3]  # BGR, alpha dropped
     if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
         im = _imread_pil(filename, flags)  # EXIF-aware
     if im is None:

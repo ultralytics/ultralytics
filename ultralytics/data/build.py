@@ -6,6 +6,7 @@ import contextlib
 import math
 import os
 import random
+import shutil
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -37,7 +38,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, add_polygon_background, get_split_fraction
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import LINUX, RANK, colorstr
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
 
@@ -84,7 +85,11 @@ class InfiniteDataLoader(dataloader.DataLoader):
         if self.iterator is None:
             self.iterator = self._get_iterator()
         for _ in range(len(self)):
-            yield next(self.iterator)
+            batch = next(self.iterator)
+            if "img_slot" in batch:  # images were collated into a pinned slot, see pin_image_slots()
+                w, s, n = batch.pop("img_slot").tolist()
+                batch["img"] = self.dataset.img_slots[w, s, :n]
+            yield batch
 
     def __del__(self):
         """Ensure that workers are properly terminated when the DataLoader is deleted."""
@@ -93,6 +98,9 @@ class InfiniteDataLoader(dataloader.DataLoader):
                 if w.is_alive():
                     w.terminate()
             self.close()
+            if getattr(self.dataset, "img_slots", None) is not None:
+                torch.cuda.cudart().cudaHostUnregister(self.dataset.img_slots.data_ptr())
+                self.dataset.img_slots = None
         except Exception:
             pass
 
@@ -100,6 +108,22 @@ class InfiniteDataLoader(dataloader.DataLoader):
         """Shut down persistent workers, unregistering them from torch's SIGCHLD watchdog before interpreter exit."""
         if hasattr(self.iterator, "_workers"):
             self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+
+    def pin_image_slots(self):
+        """Give each worker `prefetch_factor + 1` pinned shared-memory slots to collate its image batches into.
+
+        Workers cycle through their slots, and the loader keeps at most `prefetch_factor` batches per worker in flight,
+        so a slot is rewritten only after its batch was consumed. Images then reach the GPU straight from the slot,
+        without a new shared-memory segment and a pin-memory copy per batch in the training process.
+        """
+        ds = self.dataset
+        shape = (self.num_workers, self.prefetch_factor + 1, self.batch_size, ds.channels, ds.imgsz, ds.imgsz)
+        nbytes = math.prod(shape)
+        if shutil.disk_usage("/dev/shm").free < 2 * nbytes:  # leave room for the per-batch label tensors
+            return
+        slots = torch.empty(shape, dtype=torch.uint8).share_memory_()
+        if int(torch.cuda.cudart().cudaHostRegister(slots.data_ptr(), nbytes, 0)) == 0:
+            ds.img_slots = slots
 
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
@@ -401,7 +425,7 @@ def build_dataloader(
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
     )
-    return InfiniteDataLoader(
+    loader = InfiniteDataLoader(
         dataset=dataset,
         batch_size=batch,
         shuffle=shuffle and sampler is None,
@@ -415,6 +439,10 @@ def build_dataloader(
         drop_last=drop_last,
         **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
+    square = not getattr(dataset, "rect", True) and isinstance(getattr(dataset, "imgsz", None), int)
+    if LINUX and nw and pin_memory and device_type == "cuda" and shuffle and square:
+        loader.pin_image_slots()
+    return loader
 
 
 def check_source(

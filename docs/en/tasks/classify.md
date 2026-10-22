@@ -84,15 +84,30 @@ YOLO classification dataset format can be found in detail in the [Dataset Guide]
 ### Custom transforms
 
 Ultralytics YOLO classification uses [`torchvision.transforms.RandomResizedCrop`](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.RandomResizedCrop.html) for training and [`torchvision.transforms.CenterCrop`](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.CenterCrop.html) for validation and inference.
-These cropping-based transforms assume square inputs and can crop out important regions of images with extreme aspect ratios. To keep the whole image, replace the crops with [`torchvision.transforms.Resize`](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html), which scales to `imgsz` × `imgsz` instead of cropping, through a custom `ClassificationDataset`, `ClassificationTrainer`, and `ClassificationValidator`:
+These cropping-based transforms assume square inputs and can crop out important regions of images with extreme aspect ratios. To keep the whole image without stretching it, replace the crops with the existing [`ClassifyLetterBox`](../reference/data/augment.md#ultralytics.data.augment.ClassifyLetterBox) transform, which resizes each image to fit within `imgsz` × `imgsz` and pads the remaining area while preserving its aspect ratio. The example wraps it so it can be used in the PIL-based torchvision pipeline through a custom `ClassificationDataset`, `ClassificationTrainer`, and `ClassificationValidator`:
 
 ```python
+import numpy as np
 import torch
 import torchvision.transforms as T
+from PIL import Image
 
 from ultralytics import YOLO
+from ultralytics.data.augment import ClassifyLetterBox
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.models.yolo.classify import ClassificationTrainer, ClassificationValidator
+
+
+class LetterBoxTransform:
+    """Apply aspect-ratio-preserving letterboxing to a PIL image."""
+
+    def __init__(self, size: int):
+        """Initialize the letterbox transform."""
+        self.letterbox = ClassifyLetterBox(size=size)
+
+    def __call__(self, image: Image.Image) -> Image.Image:
+        """Return a letterboxed PIL image."""
+        return Image.fromarray(self.letterbox(np.asarray(image)))
 
 
 class CustomizedDataset(ClassificationDataset):
@@ -101,11 +116,12 @@ class CustomizedDataset(ClassificationDataset):
     def __init__(self, root: str, args, augment: bool = False, prefix: str = "", names=None):
         """Initialize a customized classification dataset with enhanced data augmentation transforms."""
         super().__init__(root, args, augment, prefix, names)
+        letterbox = LetterBoxTransform(args.imgsz)
 
         # Add your custom training transforms here
         train_transforms = T.Compose(
             [
-                T.Resize((args.imgsz, args.imgsz)),
+                letterbox,
                 T.RandomHorizontalFlip(p=args.fliplr),
                 T.RandomVerticalFlip(p=args.flipud),
                 T.RandAugment(interpolation=T.InterpolationMode.BILINEAR),
@@ -119,7 +135,7 @@ class CustomizedDataset(ClassificationDataset):
         # Add your custom validation transforms here
         val_transforms = T.Compose(
             [
-                T.Resize((args.imgsz, args.imgsz)),
+                letterbox,
                 T.ToTensor(),
                 T.Normalize(mean=torch.tensor(0), std=torch.tensor(1)),
             ]

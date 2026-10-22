@@ -120,6 +120,8 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         if event != "console_output" or not _api_key:
             detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
             LOGGER.warning(f"{PREFIX}Failed to send {event}: {detail}")
+        if event == "training_started" and model_id and isinstance(error, APIError) and error.status_code == 404:
+            return {}  # {} marks a missing model, seen only by the resume lookup in on_pretrain_routine_start
         return None
 
 
@@ -354,7 +356,7 @@ def on_pretrain_routine_start(trainer):
 
     # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
     response = _send("training_started", data, project, name, model_id=model_id, retry=4)
-    if model_id and (not response or response.get("cancelled")):  # recorded model is gone or ended, track a new one
+    if model_id and (response == {} or (response and response.get("cancelled"))):  # model gone or ended, track as new
         response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
         record.write_text(response["modelId"])

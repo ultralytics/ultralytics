@@ -721,6 +721,16 @@ Depth exports declare `"task": "depth"` and `"depth_scale": 1000` in the dataset
 `depth.url` for its paired plain uint16 PNG. Ultralytics downloads image and depth URLs concurrently and writes a
 training YAML with the same scale, so the NDJSON file can be passed directly to `model.train(data=...)`.
 
+The NDJSON file links to the images rather than containing them. To get the images and YOLO-format labels on your computer, pass the file, or the dataset's [`ul://` URI](#dataset-uri), straight to `model.train(data=...)` and Ultralytics downloads the images and builds the YOLO folders for you. To get the folders without training, convert the file locally:
+
+```python
+import asyncio
+
+from ultralytics.data.converter import convert_ndjson_to_yolo
+
+yaml_path = asyncio.run(convert_ndjson_to_yolo("my-dataset.ndjson", output_path="datasets"))
+```
+
 !!! note "Signed URLs"
 
     Image URLs in the exported NDJSON are signed and valid for 7 days. Platform reuses a cached export for up to 6 days when the dataset has not changed, so a fresh download always has at least a day of validity left. If you need new URLs sooner, change the dataset or create a new version.
@@ -1040,17 +1050,7 @@ Yes. Copy or cut images in one dataset and paste them into another dataset you c
 
 ### Can I download my dataset in YOLO format?
 
-Platform exports datasets as [NDJSON](#export-dataset), not as YOLO folders. You usually don't need to convert it: pass the NDJSON file, or the dataset's [`ul://` URI](#dataset-uri), straight to `model.train(data=...)` and Ultralytics downloads the images and builds the YOLO folders for you. To get the folders without training, convert the file locally:
-
-```python
-import asyncio
-
-from ultralytics.data.converter import convert_ndjson_to_yolo
-
-yaml_path = asyncio.run(convert_ndjson_to_yolo("my-dataset.ndjson", output_path="datasets"))
-```
-
-The image links in an export expire 7 days after the export is generated, and a cached export may have only a day left, so convert it promptly. [On Premise](../integrations/on-premise.md) datasets cannot be exported.
+Platform exports datasets as NDJSON, not as YOLO folders. [Export Dataset](#export-dataset) shows how to download the images and build the YOLO folders from that file, with or without training. [On Premise](../integrations/on-premise.md) datasets cannot be exported.
 
 ### How does Platform split my images into train, val and test?
 

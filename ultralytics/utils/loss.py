@@ -693,14 +693,14 @@ class SegmentLoss26(v8SegmentationLoss):
         bs, _, mh, mw = proto.shape
         n = torch.bincount(batch_idx, minlength=bs)
         masks = batch["masks"].to(self.device)
+        if masks.numel() and masks.shape[-2:] != (mh, mw):
+            masks = F.interpolate(masks[None].float(), (mh, mw), mode="nearest")[0]
         if self.overlap:  # (bs, h, w) where i + 1 marks each image's i-th object
             gt_masks = masks[:, None] == torch.arange(1, int(n.max()) + 1, device=self.device)[:, None, None]
         else:  # (n_objects, h, w) in batch order, padded into per-image slots as in preprocess()
             gt_masks = masks.new_zeros(bs, int(n.max()), *masks.shape[1:])
             gt_masks[batch_idx, torch.arange(len(batch_idx), device=self.device) - (n.cumsum(0) - n)[batch_idx]] = masks
             gt_masks = gt_masks > 0.5
-        if gt_masks.shape[-2:] != (mh, mw):
-            gt_masks = F.interpolate(gt_masks.float(), (mh, mw), mode="nearest") > 0.5
         anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
         pd_bboxes = self.bbox_decode(anchor_points, preds["boxes"].detach().permute(0, 2, 1)).float()  # fp16 overflows
         pd_mboxes = pd_bboxes * stride_tensor * mh / (preds["feats"][0].shape[2] * self.stride[0])

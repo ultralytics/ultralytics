@@ -222,6 +222,10 @@ Once you've successfully exported your Ultralytics YOLO26 models to ONNX format,
 
 - **[Triton Inference Server](../guides/triton-inference-server.md)**: Learn how to deploy your ONNX models with NVIDIA's Triton Inference Server for high-performance, scalable deployments.
 
+## Windows ML Inference
+
+On Windows 11 24H2 (build 26100) or newer with Python 3.10+, you can install `onnxruntime-windowsml` in a separate environment to let [Windows ML select execution providers](https://learn.microsoft.com/en-us/windows/ai/new-windows-ml/select-execution-providers) for your hardware. Install it instead of other ONNX Runtime builds, then use the same exported `.onnx` model with `YOLO("model.onnx")`. The Windows ML backend preserves the PyTorch thread count and any supplied session options. Measure prediction latency on your device before choosing this runtime; it is optional and is not installed by default.
+
 ## AMD GPU Inference with MIGraphX
 
 Ultralytics runs exported ONNX models on AMD GPUs through the ONNX Runtime [MIGraphX execution provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html). On a ROCm (HIP) system, the ONNX backend installs the `onnxruntime-ep-migraphx` plugin on first use and selects `MIGraphXExecutionProvider` automatically with no code changes, and all YOLO26 tasks are supported. See the [AMD GPU inference guide](amd.md) for prerequisites, installation, usage, [benchmarks](amd.md#benchmarks), and the compiled-program cache.

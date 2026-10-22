@@ -1129,11 +1129,7 @@ class Exporter:
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
-            # Supported Windows gets Windows ML, the build ONNXBackend installs for inference there.
-            from ultralytics.nn.backends.onnx import WINML_SUPPORTED
-
             ort = "onnxruntime-gpu" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
-            ort = "onnxruntime-windowsml" if WINML_SUPPORTED and ort == "onnxruntime" else ort
             builds = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
             requirements += [(ort, *builds)]
         if self.args.simplify:

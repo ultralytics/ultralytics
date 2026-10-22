@@ -198,11 +198,12 @@ jobs:
           pytest $xdist --cov=ultralytics/ --cov-report=xml tests/ --export-env base
         env:
           YOLO_AUTOINSTALL: "false"
-      - name: Windows ML first export and predict # without stock onnxruntime, ONNX export installs Windows ML
+      - name: Windows ML export and predict
         if: matrix.os == 'windows-latest'
         run: |
           uv pip uninstall onnxruntime
-          python -c "from importlib.metadata import version; from ultralytics import YOLO; YOLO(YOLO('yolo26n.pt').export(format='onnx', imgsz=32))(imgsz=32); print(version('onnxruntime-windowsml'))"
+          uv pip install onnxruntime-windowsml
+          python -c "import torch; from importlib.metadata import version; from ultralytics import YOLO; path = YOLO('yolo26n.pt').export(format='onnx', imgsz=32); threads = torch.get_num_threads(); YOLO(path)(imgsz=32); assert torch.get_num_threads() == threads; print(version('onnxruntime-windowsml'))"
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
         continue-on-error: true

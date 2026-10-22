@@ -207,13 +207,12 @@ class ONNXBackend(BaseBackend):
             if rocm and IS_PYTHON_MINIMUM_3_11 and not ARM64:  # MIGraphX EP wheels are Python>=3.11 x86_64 only
                 check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
             # Stock onnxruntime underlies the MIGraphX plugin and is the CPU fallback if the plugin is unavailable
-            # Windows ML by default on supported Windows where no other ONNX Runtime build is installed, and on CUDA
-            # devices only once Windows ML is the installed build (it has no CUDA EP)
+            # Use Windows ML only when explicitly installed without another ONNX Runtime build.
             builds = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai")
             winml = (
                 WINML_SUPPORTED
                 and not check_requirements([builds], install=False)
-                and check_requirements("onnxruntime-windowsml", install=not cuda)
+                and check_requirements("onnxruntime-windowsml", install=False)
             )
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
@@ -243,13 +242,13 @@ class ONNXBackend(BaseBackend):
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
                     providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
-                elif winml:  # Windows ML selects the fastest execution provider, GPU first with CPU fallback
+                elif winml:  # Windows ML selects execution providers using its maximum-performance policy
                     providers = None
-                    self.session_options = self.session_options or onnxruntime.SessionOptions()
-                    policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
-                    self.session_options.set_provider_selection_policy(policy)
-                    torch.set_num_threads(1)  # spinning torch threads stall DirectML, 2x slower predict
-                    cuda = False  # outputs are host arrays, no CUDA IO binding
+                    if self.session_options is None:
+                        self.session_options = onnxruntime.SessionOptions()
+                        policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
+                        self.session_options.set_provider_selection_policy(policy)
+                    self.device, cuda = torch.device("cpu"), False  # outputs are host arrays, no CUDA IO binding
                 else:
                     providers = ["CPUExecutionProvider"]
 

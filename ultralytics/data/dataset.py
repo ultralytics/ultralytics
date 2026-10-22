@@ -445,10 +445,10 @@ class YOLODataset(BaseDataset):
         keys = batch[0].keys()
         values = list(zip(*[list(b.values()) for b in batch]))
         worker = torch.utils.data.get_worker_info()
-        slots = getattr(worker.dataset, "img_slots", None) if worker else None
+        slots = getattr(worker.dataset, "img_slots", None) if worker else None  # see pin_image_slots()
         for i, k in enumerate(keys):
             value = values[i]
-            if k == "img" and slots is not None and value[0].shape == slots.shape[3:]:  # see pin_image_slots()
+            if k == "img" and slots is not None and (value[0].shape, value[0].dtype) == (slots.shape[3:], slots.dtype):
                 s = worker.dataset.last_img_slot = (getattr(worker.dataset, "last_img_slot", -1) + 1) % slots.shape[1]
                 torch.stack(value, 0, out=slots[worker.id, s, : len(value)])
                 new_batch["img_slot"] = torch.tensor([worker.id, s, len(value)])

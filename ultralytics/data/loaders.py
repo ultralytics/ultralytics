@@ -117,6 +117,8 @@ class LoadStreams:
                 encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
                 with TextIOWrapper(f, encoding=encoding) as reader:
                     sources = reader.read().rsplit()
+            if not sources:
+                raise FileNotFoundError(f"No streams found in {f.name}. {FORMATS_HELP_MSG}")
         else:
             sources = [sources]
         n = len(sources)

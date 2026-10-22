@@ -1524,7 +1524,7 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
     assert provenance["dataset_hash"] == "manifest-sha256"
     assert provenance["validation_split"] == "images/val"
     assert provenance["strategy"] == "two-fold-held-out-delta1"
-    assert set(provenance["scores"]) == {"identity", "scale-only"}
+    assert set(provenance["scores"]) == {"identity", "current", "scale-only"}
     assert float(head.cal_a) == provenance["a"]
     assert float(head.cal_b) == provenance["b"]
 

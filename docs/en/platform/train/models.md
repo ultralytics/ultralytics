@@ -103,11 +103,11 @@ Below it, **Training Configuration** lists every hyperparameter used and **Perfo
 
 ### Train Tab
 
-The Train tab has three subtabs:
+The Train tab has **Metrics**, **Console**, and **System** subtabs, plus **Validation** when validation results are available:
 
-#### Charts Subtab
+#### Metrics Subtab
 
-Interactive metric charts over epochs, split into **Training** and **Validation** views when the run produced validation artifacts. The chart groups follow the metrics the run reported:
+Interactive metric charts over epochs. The chart groups follow the metrics the run reported:
 
 | Chart Group       | Charts                                                                           |
 | ----------------- | -------------------------------------------------------------------------------- |
@@ -117,7 +117,7 @@ Interactive metric charts over epochs, split into **Training** and **Validation*
 
 Each group collapses, its menu hides or shows individual charts (and, for losses, the train or validation series), and charts can be dragged and resized into a layout that persists across sessions.
 
-![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/c2fa4095937cf79df4aac265fe3260af.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Metrics Subtab](https://cdn.ul.run/i/83338b5e71c1c107b68ad69cb0873a2a.avif)<!-- screenshot -->
 
 #### Console Subtab
 
@@ -144,7 +144,7 @@ A host card summarizing the training instance (hostname, CPU, GPU, RAM and disk 
 
 GPU, network, and disk charts appear only when the run reported those counters.
 
-![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/431560840cca48aead94bb0fccca9f98.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/829264dda9e58523f9d02e99e57d7c9b.avif)<!-- screenshot -->
 
 ### Predict Tab
 
@@ -169,19 +169,19 @@ Create and manage dedicated inference endpoints. See [Deployments](../deploy/ind
 
 ## Validation Plots
 
-After training completes, the **Validation** view inside the Charts subtab shows a detailed analysis of the final epoch.
+The **Validation** subtab shows a detailed analysis when validation results are available.
 
 ### Confusion Matrix
 
 Interactive heatmap showing prediction accuracy per class:
 
-![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/780955dffa9f05b51aff04e167dc4627.avif)<!-- screenshot -->
+![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/54d1acf67ececc569c73a27cf49bb035.avif)<!-- screenshot -->
 
 ### PR/F1 Curves
 
 When the training run provides them, the **Validation** view also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
 
-![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/b312aab61b8bdfc868ebbe7400c888a8.avif)<!-- screenshot -->
+![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/ef5b9b340a9335771bfacdad87f2f7f0.avif)<!-- screenshot -->
 
 | Curve                    | Description                              |
 | ------------------------ | ---------------------------------------- |
@@ -317,7 +317,7 @@ Some export formats have architecture or task restrictions:
 | Format       | Restriction                                                                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IMX500**   | Available only for `YOLOv8n` and `YOLO11n` detect, segment, classify, and pose models; INT8 only                                                                                       |
-| **Axelera**  | YOLO26 segmentation models are not supported; INT8 only                                                                                                                                |
+| **Axelera**  | INT8 only                                                                                                                                                                              |
 | **DeepX**    | INT8 only                                                                                                                                                                              |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
@@ -362,7 +362,7 @@ Download your model weights:
 
 1. Open the model page
 2. Click the **download icon** in the model header (available from any tab)
-3. The model's primary `.pt` checkpoint downloads automatically
+3. The model's primary `.pt` checkpoint downloads automatically, named after the model (`{model}.pt`)
 
 Exported formats can be downloaded from the **Export** tab after export completes.
 

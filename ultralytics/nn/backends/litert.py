@@ -36,7 +36,7 @@ class LiteRTBackend(BaseBackend):
             check_requirements(["ai-edge-litert>=2.3.0", "ai-edge-litert-sdk-intel>=2.3.0"])
             from ai_edge_litert.compiled_model import CompiledModel, HardwareAccelerator, IntelOpenVinoOptions, Options
 
-            backend = getattr(IntelOpenVinoOptions.GRAPH_BACKEND, self.device.split(":")[1].upper())
+            backend = getattr(IntelOpenVinoOptions.GRAPH_BACKEND, self.device.partition(":")[2].upper(), None)
             self.device = torch.device("cpu")
             self.model = CompiledModel.from_file(
                 str(tflite_file),

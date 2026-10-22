@@ -117,7 +117,6 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     ```yaml
     # data.yaml
-    path: .
     train: images/train
     val: images/val
 
@@ -319,16 +318,16 @@ flowchart TD
 ```
 
 1. **Validation**: Format and size checks
-2. **Normalization**: Large images resized (max 4096px, min dimension 28px), grayscale expanded to RGB, transparency flattened onto white, and EXIF orientation applied; TIFF originals are stored as uploaded
+2. **Normalization**: Large images resized (max 4096px, min dimension 28px), grayscale expanded to RGB, transparency flattened onto white, and EXIF orientation applied; TIFF originals are stored as uploaded unless training needs them converted (see Stored Image Encoding below)
 3. **Thumbnails**: 256px WebP previews generated
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, [LabelMe](../integrations/labelme.md), and [Ultralytics](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
 !!! info "Stored Image Encoding"
 
-    TIFF originals are always stored byte-for-byte, and AVIF and WebP originals are when no resize or color change is needed. Everything else is re-encoded — WebP sources stay WebP, and all other sources (JPEG, PNG, BMP, HEIC, JP2, DNG, MPO, and resized or color-changed AVIF) become JPEG at quality 92. Your original filename and source extension are retained as metadata.
+    TIFF originals are stored byte-for-byte, except multi-band floating-point TIFFs in datasets of up to 3 channels, which training cannot read: they keep their first three bands, are scaled to 8-bit, and are re-encoded. AVIF and WebP originals are stored byte-for-byte when no resize or color change is needed. Everything else is re-encoded — WebP sources stay WebP, and all other sources (JPEG, PNG, BMP, HEIC, JP2, DNG, MPO, converted TIFF, and resized or color-changed AVIF) become JPEG at quality 92. Your original filename and source extension are retained as metadata.
 
-![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.ul.run/i/5ed3a283c82984bbc109ac647d26f73f.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.ul.run/i/17de3eb93ee619a53dbaad3c3a73f6f4.avif)<!-- screenshot -->
 
 ??? tip "Validate Before Upload"
 
@@ -342,7 +341,7 @@ flowchart TD
 
 !!! warning "Image Size Requirements"
 
-    Images must be at least 28px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved, except TIFF originals, which are stored as uploaded.
+    Images must be at least 28px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved, except TIFF originals kept byte-for-byte (see Stored Image Encoding above).
 
 ## Browse Images
 
@@ -507,7 +506,7 @@ Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 ### Find Similar Images
 
-The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog shows the source image beside up to 24 of the nearest images, each labeled with its similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog shows the source image beside up to 24 of the nearest images, each labeled with its similarity score, excluding your dataset and any dataset that holds a copy of the selected image. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
 
 ![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/004538a8ce286784bffe8a0e3fd1a3f3.avif)<!-- screenshot -->
 
@@ -720,6 +719,16 @@ Pose datasets also carry a `kpt_shape` field in the dataset header line, inferre
 Depth exports declare `"task": "depth"` and `"depth_scale": 1000` in the dataset line. Each image line includes a
 `depth.url` for its paired plain uint16 PNG. Ultralytics downloads image and depth URLs concurrently and writes a
 training YAML with the same scale, so the NDJSON file can be passed directly to `model.train(data=...)`.
+
+The NDJSON file links to the images rather than containing them. To get the images and YOLO-format labels on your computer, pass the file, or the dataset's [`ul://` URI](#dataset-uri), straight to `model.train(data=...)` and Ultralytics downloads the images and builds the YOLO folders for you. To get the folders without training, convert the file locally:
+
+```python
+import asyncio
+
+from ultralytics.data.converter import convert_ndjson_to_yolo
+
+yaml_path = asyncio.run(convert_ndjson_to_yolo("my-dataset.ndjson", output_path="datasets"))
+```
 
 !!! note "Signed URLs"
 
@@ -936,7 +945,7 @@ Control who can see your dataset:
 | **Private** | You and permitted workspace members can access   |
 | **Public**  | Anyone can view, including from the Explore page |
 
-Visibility is set when creating a dataset in the `New Dataset` dialog using a toggle switch. To change it later, click the **Public** or **Private** badge next to the dataset name in the page breadcrumb; making a dataset public asks for confirmation. [On Premise](../integrations/on-premise.md) datasets are always private. Public datasets are visible on the [Explore](../explore.md) page.
+Visibility is set when creating a dataset in the `New Dataset` dialog using a toggle switch, which starts at the workspace's [default visibility](../account/settings.md#default-visibility). To change it later, click the **Public** or **Private** badge next to the dataset name in the page breadcrumb; making a dataset public asks for confirmation. [On Premise](../integrations/on-premise.md) datasets are always private. Public datasets are visible on the [Explore](../explore.md) page.
 
 ## Edit Dataset
 
@@ -963,7 +972,7 @@ Workspace viewers can inspect metadata, while members with edit access can repla
 
 ## Clone Dataset
 
-When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions. Public source datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
+When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions. Public source datasets stay public by default unless the workspace's [default dataset visibility](../account/settings.md#default-visibility) is Private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
 
 The clone dialog keeps **Clone Dataset** disabled while the URL is already used in the target workspace, and cloning requires enough remaining storage quota to hold the copy.
 
@@ -1017,7 +1026,7 @@ Your data is processed and stored in your selected region (US, EU, or AP). Image
 
 1. Validated for format and size
 2. Rejected if minimum dimension is below 28px
-3. Normalized if larger than 4096px (preserving aspect ratio; encoded for optimized storage; TIFF stored as uploaded)
+3. Normalized if larger than 4096px (preserving aspect ratio; encoded for optimized storage; most TIFF originals stored as uploaded)
 4. Stored with deduplication, so identical images are kept only once
 5. Thumbnails generated at 256px WebP for fast browsing
 
@@ -1040,17 +1049,7 @@ Yes. Copy or cut images in one dataset and paste them into another dataset you c
 
 ### Can I download my dataset in YOLO format?
 
-Platform exports datasets as [NDJSON](#export-dataset), not as YOLO folders. You usually don't need to convert it: pass the NDJSON file, or the dataset's [`ul://` URI](#dataset-uri), straight to `model.train(data=...)` and Ultralytics downloads the images and builds the YOLO folders for you. To get the folders without training, convert the file locally:
-
-```python
-import asyncio
-
-from ultralytics.data.converter import convert_ndjson_to_yolo
-
-yaml_path = asyncio.run(convert_ndjson_to_yolo("my-dataset.ndjson", output_path="datasets"))
-```
-
-The image links in an export expire 7 days after the export is generated, and a cached export may have only a day left, so convert it promptly. [On Premise](../integrations/on-premise.md) datasets cannot be exported.
+Platform exports datasets as NDJSON, not as YOLO folders. [Export Dataset](#export-dataset) shows how to download the images and build the YOLO folders from that file, with or without training. [On Premise](../integrations/on-premise.md) datasets cannot be exported.
 
 ### How does Platform split my images into train, val and test?
 
@@ -1063,7 +1062,7 @@ To change the split afterwards:
 
 ### Are my datasets private?
 
-Check the visibility toggle before you create a dataset: new datasets default to **Public** on Free and Pro plans and to **Private** on Enterprise. A public dataset can be viewed by anyone, including people who are not signed in, and appears on [Explore](../explore.md). A private dataset is visible only to you and permitted workspace members. Members with edit access can change visibility from the badge next to the dataset name, and [On Premise](../integrations/on-premise.md) datasets are always private. Making a dataset private does not remove copies other users have already cloned. See [Visibility Settings](#visibility-settings).
+Check the visibility toggle before you create a dataset: new datasets start with the workspace's [default visibility](../account/settings.md#default-visibility), which is **Public** on Free and Pro plans and **Private** on Enterprise until an owner or admin changes it. A public dataset can be viewed by anyone, including people who are not signed in, and appears on [Explore](../explore.md). A private dataset is visible only to you and permitted workspace members. Members with edit access can change visibility from the badge next to the dataset name, and [On Premise](../integrations/on-premise.md) datasets are always private. Making a dataset private does not remove copies other users have already cloned. See [Visibility Settings](#visibility-settings).
 
 ### What label formats are supported?
 

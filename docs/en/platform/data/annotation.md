@@ -369,7 +369,7 @@ Batch Annotation runs one model — a YOLO model, or on detection datasets with 
 
 By default only unlabeled images are annotated, and existing labels are never changed. A run needs dataset classes. For a YOLO model, if the model's classes differ from the dataset's, a **Map classes** step maps each model class to a dataset class or skips it, and on a dataset without classes it creates them — the run starts only after the classes exist. Starting a run saves a [dataset version](datasets.md#versions-tab) first, so you can restore the dataset if you don't like the result.
 
-The dataset page shows the run's progress, and **Stop** keeps and bills the images processed so far. When the run finishes, a summary shows the images processed and the annotations and classes added.
+The dataset page shows the run's progress, and **Stop** keeps and bills the images processed so far. When the run finishes, a summary shows the images processed and the annotations and classes added. If a paid provider refuses or rate-limits your key on three images in a row, the run stops early and reports how many images were not attempted.
 
 !!! note "Batch Annotation Cost"
 
@@ -404,7 +404,7 @@ Right-click an annotation to open a context menu with:
 | Hide Annotation(s)   |                        |
 | Delete Annotation(s) | `Delete` / `Backspace` |
 
-Right-clicking a polygon vertex or edge adds **Remove Point** or **Add Point**, and right-clicking a pose keypoint adds **Hide Point** and **Reset Visibility**. The menu also offers [**Blur faces**](datasets.md#blur-faces) when available.
+Right-clicking a polygon vertex or edge adds **Remove Point** or **Add Point**, and right-clicking a pose keypoint adds **Hide Point** and **Reset Visibility**. The menu also offers [**Blur faces**](datasets.md#blur-faces) when available, and on detect, segment, and OBB datasets with smart annotation available, **Annotate similar**: YOLOE-26x takes every label of the selected classes on the image (at most 200) as visual prompts and previews the matches with confidence and IoU sliders, and **Apply** adds them to this image at no cost, skipping duplicates of existing labels. Right-clicking the image outside any annotation also offers **Annotate similar**, with every annotation of the dataset task on the image as the examples (at most 200); it stays disabled until the image has one.
 
 ## Visibility Controls
 

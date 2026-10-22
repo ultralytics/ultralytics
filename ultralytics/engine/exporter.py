@@ -385,12 +385,11 @@ EXPORT_ENVS = {
     "isolated-axelera": {
         "python": "3.13",
         "extras": ["export-base"],
-        # Axelera export requires 2.8.0 <= torch < 2.13.0.
-        "torch": ">=2.8,<2.13",
+        # Axelera export requires 2.8.0 <= torch < 2.15.0.
+        "torch": ">=2.8,<2.15",
         "requirements": [
             f"axelera-devkit=={AXELERA_SDK}",
             f"axelera-rt=={AXELERA_SDK}",
-            "omnimalloc==0.5.0",
             "onnx>=1.12.0,<2.0.0",
             "onnxslim>=0.1.71",
         ],
@@ -692,8 +691,6 @@ class Exporter:
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
                 raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
-        if fmt == "axelera" and model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
-            raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
         if fmt == "imx":
             if model.task == "depth":
                 raise ValueError("IMX export is not supported for depth models.")
@@ -721,8 +718,10 @@ class Exporter:
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)
         model.names = check_class_names(model.names)
-        if hasattr(model, "end2end"):
-            model.end2end = self.args.nms is False
+        if hasattr(model, "end2end"):  # the Axelera runtime decodes the NMS-free head, so nms=None keeps it there
+            model.end2end = self.args.nms is False or (
+                fmt == "axelera" and self.args.nms is None and getattr(head, "one2one_cv2", None) is not None
+            )
         if getattr(model, "end2end", False):
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable the end2end branch for formats without top-k support
@@ -1046,10 +1045,21 @@ class Exporter:
         return f  # path to final export artifact
 
     def get_int8_calibration_dataloader(self, prefix=""):
-        """Build and return a dataloader for calibration of INT8 models."""
+        """Build and return a dataloader for calibration of INT8 models.
+
+        Images are emitted as uint8 [0, 255] at the export input shape. Classification images are resized and
+        center-cropped to the exact export (height, width) like classify inference, so rectangular `imgsz` exports
+        calibrate on rectangular inputs; other tasks reuse their validation dataset transforms.
+
+        Args:
+            prefix (str): Prefix for log messages.
+
+        Returns:
+            (InfiniteDataLoader): Calibration dataloader that drops the last incomplete batch.
+        """
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
-        cfg.imgsz = max(self.imgsz)
+        cfg.imgsz = self.imgsz if self.model.task == "classify" else max(self.imgsz)  # classify keeps exact (h, w)
         cfg.rect = False
         split = self.args.split or "val"
         if self.model.task == "classify":
@@ -1059,8 +1069,8 @@ class Exporter:
             if not isinstance(cfg.fraction, list):
                 cfg.fraction = [cfg.fraction] * 3
             dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
-            # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
-            dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
+            # INT8 backends divide images by 255, so keep the classify_transforms resize and center crop but emit uint8
+            dataset.torch_transforms = T.Compose([*dataset.torch_transforms.transforms[:2], T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=split)
             cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction

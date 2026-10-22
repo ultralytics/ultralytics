@@ -103,6 +103,8 @@ Before diving into the usage instructions for YOLO26 model training with Weights
         yolo train data=coco8.yaml epochs=5 project=ultralytics name=yolo26n
         ```
 
+Runs that Ultralytics creates chart training metrics against `epoch`. If you start a run with `wandb.init()` before training, Ultralytics logs into that run, with an `epoch` value in every row, and leaves it open so you can keep logging to it and call `wandb.finish()` yourself. Training arguments are added to that run's config, and any key you or a W&B sweep already set keeps its value.
+
 ### W&B Arguments
 
 | Argument | Default | Description                                                                                                                                               |
@@ -127,7 +129,7 @@ Before diving into the usage instructions for YOLO26 model training with Weights
 
 !!! tip "Offline Mode and Resume"
 
-    Set `WANDB_MODE=offline` to log without a network connection, then upload the run with `wandb sync <save_dir>/wandb/offline-run-*`. Resuming training with `resume=True` continues the same W&B run, online or offline, as long as the original save directory still holds `wandb/latest-run`.
+    Set `WANDB_MODE=offline` to log without a network connection, then upload the run with `wandb sync <save_dir>/wandb/offline-run-*`. Resuming training with `resume=True` continues the same W&B run, online or offline and on every operating system, by reading the run ID from the most recent run folder in the original save directory's `wandb/` directory, so keep that directory in place.
 
 ### Understanding the Output
 

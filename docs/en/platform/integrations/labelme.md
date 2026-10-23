@@ -60,7 +60,7 @@ leave those out of a LabelMe ZIP.
 5. [Edit the annotations](../data/annotation.md), [train a model](../train/index.md), and
    [deploy it](../deploy/index.md) from the same workspace.
 
-![Ultralytics Platform LabelMe Dataset Import](https://cdn.ul.run/i/288724b5bff7cae57605d3f10d628942.avif)<!-- screenshot -->
+![Ultralytics Platform LabelMe Dataset Import](https://cdn.ul.run/i/4285b28053143a0c5e5253b8f58e3903.avif)<!-- screenshot -->
 
 LabelMe runs entirely offline. Only the ZIP file you select in the upload dialog is sent to Platform.
 

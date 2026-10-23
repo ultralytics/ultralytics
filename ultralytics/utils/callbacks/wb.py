@@ -1,7 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import sys
-
 from ultralytics.utils import TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -120,9 +118,9 @@ def _log_plots(plots):
 def on_pretrain_routine_end(trainer):
     """Initialize and start wandb project if module is present, or log into a run the user already started.
 
-    Only a run created here is finished on teardown. When resuming, the run continues under the ID of the newest
-    `wandb/*run-*/run-<id>.wandb` file in the save directory. wandb writes this file on every platform, unlike the
-    `wandb/latest-run` symlink, which it skips on Windows.
+    Only a run created here is finished, as failed if training raises before on_train_end. When resuming, the run
+    continues under the ID of the newest `wandb/*run-*/run-<id>.wandb` file in the save directory. wandb writes this
+    file on every platform, unlike the `wandb/latest-run` symlink, which it skips on Windows.
     """
     if not wb.run:
         import re
@@ -132,7 +130,8 @@ def on_pretrain_routine_end(trainer):
         name = str(trainer.args.name)
         runs = (Path(trainer.save_dir) / "wandb").glob("*run-*/run-*.wandb")
         resuming = trainer.args.resume and max(runs, key=lambda f: f.stat().st_mtime, default=None)
-        trainer.add_callback("teardown", lambda _: wb.finish(exit_code=int(sys.exc_info()[0] is not None)))
+        trainer.add_callback("on_train_end", lambda _: wb.finish())
+        trainer.add_callback("teardown", lambda _: wb.finish(exit_code=1))  # no-op once on_train_end finished it
         wb.init(
             project=re.sub(r"[/\\#?%:]", "-", str(trainer.args.project or "Ultralytics"))[-128:],
             name=name,

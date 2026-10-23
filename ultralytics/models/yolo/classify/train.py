@@ -19,8 +19,8 @@ from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_fi
 class ClassificationTrainer(BaseTrainer):
     """A trainer class extending BaseTrainer for training image classification models.
 
-    This trainer handles the training process for image classification tasks, supporting both YOLO classification models
-    and torchvision models with comprehensive dataset handling and validation.
+    This trainer handles image classification with YOLO models and TorchVision backbones configured in model YAMLs,
+    including dataset handling and validation.
 
     Attributes:
         model (ClassificationModel): The classification model to be trained.
@@ -97,24 +97,7 @@ class ClassificationTrainer(BaseTrainer):
         Returns:
             (Any): Model checkpoint if applicable, otherwise None.
         """
-        import torchvision  # scope for faster 'import ultralytics'
-
-        if str(self.model) in torchvision.models.__dict__:
-            weights = "IMAGENET1K_V1" if self.args.pretrained else None
-            self.model = self.get_model(
-                cfg={
-                    "nc": self.data["nc"],
-                    "backbone": [],
-                    "head": [[-1, 1, "TorchVisionClassify", [self.model, "nc", weights]]],
-                }
-            )
-            native = self.model.model[-1].model
-            args = self.model.yaml["head"][0][3]
-            args[2] = None  # checkpoints rebuild from their own weights, without downloading
-            args.append({k: getattr(native, k) for k in ("transform_input", "aux_logits") if hasattr(native, k)})
-            ckpt = None
-        else:
-            ckpt = super().setup_model()
+        ckpt = super().setup_model()
         ClassificationModel.reshape_outputs(self.model, self.data["nc"])
         return ckpt
 

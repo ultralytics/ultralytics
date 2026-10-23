@@ -422,8 +422,8 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
     """Task-aligned assigner for segmentation whose overlap is the mean of box IoU and predicted-mask IoU.
 
     Positives, conflict resolution and the soft classification targets then all favor anchors with accurate masks, so
-    the score ranks detections by mask quality. Call it with mask coefficients ``pd_coef`` (b, h*w, nm), predicted boxes
-    in prototype pixels ``pd_mboxes`` (b, h*w, 4), prototypes ``proto`` (b, nm, mh, mw) and binary ground-truth masks
+    the score ranks detections by mask quality. Call it with mask coefficients ``pd_coef`` (b, h*w, nm), per-image
+    prototype-pixel scales ``mask_scale`` (b, 1), prototypes ``proto`` (b, nm, mh, mw) and binary ground-truth masks
     ``gt_masks`` (b, max_num_obj, mh, mw). Predicted masks are binarized and cropped to their box as in validation.
     """
 
@@ -432,7 +432,7 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
         extra.update(scores=pd_scores, labels=gt_labels)
         return super().get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra)
 
-    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, scores, labels, pd_coef, pd_mboxes, proto, gt_masks):
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, scores, labels, pd_coef, mask_scale, proto, gt_masks):
         """Return (IoU + mask IoU) / 2 per pair; mask IoU only for each gt's 3 * topk best box-metric pairs, else 0."""
         b, g, a = indices
         iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
@@ -449,8 +449,9 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
             n = torch.bincount(ub, minlength=self.bs)
             slot = torch.arange(len(key), device=key.device) - (n.cumsum(0) - n)[ub]
             m = int(n.max())
-            coef, boxes = pd_coef.new_zeros(self.bs, m, pd_coef.shape[-1]), pd_mboxes.new_zeros(self.bs, m, 4)
-            coef[ub, slot], boxes[ub, slot] = pd_coef[ub, ua], pd_mboxes[ub, ua]
+            coef = pd_coef.new_zeros(self.bs, m, pd_coef.shape[-1])
+            boxes = pd_bboxes.new_zeros(self.bs, m, 4, dtype=torch.float)
+            coef[ub, slot], boxes[ub, slot] = pd_coef[ub, ua], pd_bboxes[ub, ua].float() * mask_scale[ub]
             dtype = torch.float if proto.device.type == "cpu" else proto.dtype
             gm = gt_masks.flatten(2).float()
             ious = iou.new_empty(self.bs, gm.shape[1], m, dtype=torch.float)  # gt_masks may differ from n_max_boxes

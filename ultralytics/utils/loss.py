@@ -687,7 +687,7 @@ class SegmentLoss26(v8SegmentationLoss):
         self.assigner = SegTaskAlignedAssigner(**args)
 
     def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
-        """Assign with mask coefficients, boxes in prototype pixels, prototypes and per-object ground-truth masks."""
+        """Assign with mask coefficients, prototype-pixel scales, prototypes and per-object ground-truth masks."""
         batch_idx = batch["batch_idx"].view(-1).long().to(self.device)
         proto = (preds["proto"][0] if isinstance(preds["proto"], tuple) else preds["proto"]).detach()
         bs, _, mh, mw = proto.shape
@@ -701,12 +701,10 @@ class SegmentLoss26(v8SegmentationLoss):
             gt_masks = masks.new_zeros(bs, int(n.max()), *masks.shape[1:])
             gt_masks[batch_idx, torch.arange(len(batch_idx), device=self.device) - (n.cumsum(0) - n)[batch_idx]] = masks
             gt_masks = gt_masks > 0.5
-        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
-        pd_bboxes = self.bbox_decode(anchor_points, preds["boxes"].detach().permute(0, 2, 1)).float()  # fp16 overflows
-        pd_mboxes = pd_bboxes * stride_tensor * mh / (preds["feats"][0].shape[2] * self.stride[0])
+        mask_scale = (mh / (preds["feats"][0].shape[2] * self.stride[0])).expand(bs, 1)
         pd_coef = preds["mask_coefficient"].detach().permute(0, 2, 1)
         return super().get_assigned_targets_and_loss(
-            preds, batch, pd_coef=pd_coef, pd_mboxes=pd_mboxes, proto=proto, gt_masks=gt_masks
+            preds, batch, pd_coef=pd_coef, mask_scale=mask_scale, proto=proto, gt_masks=gt_masks
         )
 
 

@@ -112,7 +112,7 @@ Construction-PPE is developed and released under the [AGPL-3.0 License](https://
 
 If you use this dataset in your research, please cite it:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

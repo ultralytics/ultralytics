@@ -97,7 +97,7 @@ The dataset spans varied locations, surfaces, and lighting conditions, so models
 
 If you use the Crack Segmentation dataset in your research or development work, please cite the source appropriately:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

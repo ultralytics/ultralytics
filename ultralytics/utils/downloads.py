@@ -272,7 +272,7 @@ def get_google_drive_file_info(link: str) -> tuple[str, str | None]:
     """Retrieve the direct download link and filename for a shareable Google Drive file link.
 
     Args:
-        link (str): The shareable link of the Google Drive file.
+        link (str): The share link (`/file/d/<id>/view`) or direct link (`uc?id=<id>`) of the Google Drive file.
 
     Returns:
         url (str): Direct download URL for the Google Drive file.
@@ -288,7 +288,7 @@ def get_google_drive_file_info(link: str) -> tuple[str, str | None]:
     """
     import requests  # scoped as slow import
 
-    file_id = link.split("/d/")[1].split("/view", 1)[0]
+    file_id = re.search(r"(?:/d/|[?&]id=)([\w-]+)", link)[1]
     drive_url = f"https://drive.google.com/uc?export=download&id={file_id}"
     filename = None
 
@@ -362,7 +362,7 @@ def safe_download(
     else:
         import requests  # scoped as slow import
 
-        gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
+        gdrive = url.lower().startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
         if gdrive:
             url, file = get_google_drive_file_info(url)
         url = url.replace(" ", "%20")  # encode spaces for curl compatibility

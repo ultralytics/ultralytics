@@ -200,7 +200,7 @@ You are now ready to use YOLO26 with SAHI for both standard and sliced inference
 
 If you use SAHI in your research or development work, please cite the original SAHI paper and acknowledge the authors:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

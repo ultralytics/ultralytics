@@ -89,7 +89,7 @@ The Global Wheat Head Dataset contains a diverse set of outdoor field images, ca
 
 If you use the Global Wheat Head Dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

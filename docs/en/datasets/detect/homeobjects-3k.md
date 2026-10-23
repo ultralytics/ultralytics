@@ -120,7 +120,7 @@ HomeObjects-3K is developed and released by the **[Ultralytics team](https://www
 
 If you use this dataset in your research, please cite it using the mentioned details:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

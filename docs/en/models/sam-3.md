@@ -593,7 +593,7 @@ While SAM 3 represents a major advancement, it has certain limitations:
 
 ## Citation
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

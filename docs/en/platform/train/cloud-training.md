@@ -189,15 +189,15 @@ To receive the completed and failed results without keeping this page open, conn
 
     New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
-![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/848ddc1fe38abc8bb4affb9261148b6b.avif)<!-- screenshot -->
+![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/81d957c08a1df12d2e03cc25b20e39ad.avif)<!-- screenshot -->
 
 ## Monitor Training
 
 View real-time training progress on the model page's **Train** tab:
 
-### Charts Subtab
+### Metrics Subtab
 
-![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/b0ee2230c2e011ca4910789562abba8a.avif)<!-- screenshot -->
+![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/3d712c5c0b2a99a86a906bf3aebefced.avif)<!-- screenshot -->
 
 Charts are grouped by metric family, and the groups that appear depend on what the run reports:
 
@@ -208,6 +208,8 @@ Charts are grouped by metric family, and the groups that appear depend on what t
 | **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                                                    |
 
 Each group can be collapsed, individual charts can be hidden or shown from the group menu, and charts can be dragged and resized — the layout is remembered for next time.
+
+The **Validation** subtab shows [validation results](models.md#validation-plots) when available.
 
 ### Console Subtab
 

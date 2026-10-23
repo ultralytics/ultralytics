@@ -95,7 +95,7 @@ Cityscapes is released under a [custom non-commercial license](https://www.citys
 
 If you use the Cityscapes dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

@@ -95,14 +95,14 @@ The controls row above the models list provides:
 
 - **Search** to filter models by name
 - **Status filter**: All, Completed, Untrained, Running, Starting, or Failed
-- **Group by**: None or Task — grouping applies in Compact and Table modes
+- **Group by**: None or Task (default), in every view mode
 - **Sort by**: Created, Name, or Size, each ascending or descending
 
 ### Models Sidebar
 
 The resizable sidebar lists all models in the project:
 
-- **Checkboxes** to select which models appear in charts and the comparison table
+- **Checkboxes** to select which models appear in charts and the comparison table; charts leave out models hidden by the search, the status filter, or a collapsed task group
 - **Drag and drop** `.pt` files directly onto the sidebar to upload models ([model upload details](models.md#upload-model))
 - **Training progress** shown for running models (epoch count and progress bar)
 - **Model color** picker, used consistently across every chart

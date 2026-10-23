@@ -80,12 +80,7 @@ def on_pretrain_routine_end(trainer):
     except Exception as e:
         LOGGER.warning(f"{PREFIX}Failed to initialize: {e}")
         LOGGER.warning(f"{PREFIX}Not tracking this run")
-        if trainer._mlflow_started_run:
-            trainer._mlflow_started_run = False
-            try:
-                mlflow.end_run()
-            except Exception:
-                pass
+        on_train_end(trainer, status="FAILED")
 
 
 def _log_metrics(trainer, metrics):
@@ -115,11 +110,11 @@ def on_fit_epoch_end(trainer):
         _log_metrics(trainer, sanitize_dict(trainer.metrics))
 
 
-def on_train_end(trainer):
-    """Log model artifacts at the end of training and close any run this callback opened."""
+def on_train_end(trainer, status="FINISHED"):
+    """Log artifacts for finished training and close any run this callback opened with its outcome status."""
     if not mlflow:
         return
-    if getattr(trainer, "_mlflow_active", False):
+    if status == "FINISHED" and getattr(trainer, "_mlflow_active", False):
         try:
             mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
             for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
@@ -130,11 +125,6 @@ def on_train_end(trainer):
             )
         except Exception as e:
             LOGGER.warning(f"{PREFIX}failed to log artifacts: {e}")
-    teardown(trainer, status="FINISHED")
-
-
-def teardown(trainer, status="FAILED"):
-    """Close the run this callback opened, as FAILED unless on_train_end already closed it as FINISHED."""
     if getattr(trainer, "_mlflow_started_run", False):  # only close a run we created
         trainer._mlflow_started_run = False
         if env_bool("MLFLOW_KEEP_RUN_ACTIVE"):
@@ -153,7 +143,7 @@ callbacks = (
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
-        "teardown": teardown,
+        "teardown": lambda trainer: on_train_end(trainer, status="FAILED"),
     }
     if mlflow
     else {}

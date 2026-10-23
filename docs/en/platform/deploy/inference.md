@@ -59,7 +59,7 @@ Drag and drop or click to upload:
 
 !!! note "Client-Side Resize"
 
-    Before uploading, the panel resizes the image so its longest side matches the selected `Image Size`, and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized.
+    Before uploading, the panel shrinks images whose longest side exceeds the selected `Image Size` to that size, and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized. Images the browser cannot decode, such as TIFF in Chrome, are sent at their original size.
 
 ### Example Images
 
@@ -560,10 +560,8 @@ See the [Predict mode documentation](../../modes/predict.md) for the full result
 - **Predict tab limit**: 10 MB
 - **Shared inference API limit**: about 4.5 MB per request, including through the Python SDK
 - **Dedicated endpoint limit**: 32 MB per request sent directly to the endpoint URL
-- **Auto-resize in the Predict tab**: Images are resized to the selected `Image Size` before upload
 
-Large images are automatically resized in the browser while preserving aspect ratio. Requests you send yourself are not
-resized, so requests above the limit are rejected with `413`.
+Images whose longest side exceeds the selected `Image Size` are shrunk in the browser while preserving aspect ratio, unless the browser cannot decode them ([Upload Image](#upload-image)). Requests you send yourself are not resized, so requests above the limit are rejected with `413`.
 
 ### Can I run batch inference?
 

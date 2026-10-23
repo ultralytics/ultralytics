@@ -637,7 +637,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 LOGGER.info(output)
                 # uv prints ' - numpy==2.5.2' and pip prints 'Successfully uninstalled numpy-2.5.2' for a replaced package
                 REPLACED_PACKAGES.update(
-                    a or b for a, b in re.findall(r"^ - ([\w.-]+)==|uninstalled ([\w.-]+?)-\d", output, re.M)
+                    a or b for a, b in re.findall(r"^ - ([\w.-]+)==|uninstalled ([\w.-]+?)-\d", output, re.MULTILINE)
                 )
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")

@@ -1234,6 +1234,7 @@ class YOLOEDetect(Detect):
         if vpe.shape[1] == 0:  # no visual prompt embeddings
             return torch.zeros(x[0].shape[0], 0, self.embed, device=x[0].device)
         if vpe.ndim == 4:  # (B, N, H, W)
+            assert hasattr(self, "savpe"), "Fine-tuned YOLOE has no visual prompt encoder; prompt the original model."
             vpe = self.savpe(x, vpe)
         assert vpe.ndim == 3  # (B, N, D)
         return vpe

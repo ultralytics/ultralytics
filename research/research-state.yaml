@@ -94,9 +94,10 @@ hypotheses:
     priority: done
   - id: H11
     statement: "A YOLO-depth checkpoint is a better pose3d warm start than yolo26n-pose."
-    status: pending
+    status: refuted
     evidence: >
-      2026-10-23 Stage 0: frozen-feature probe ranks depth < detect < pose for person depth on every target, tap and
+      2026-10-24 Stage 1: 3DPW MPJPE YOLO27n-depth init 117.3, baseline-depth 117.3, scratch 117.3, detect 116.0,
+      yolo26n-pose (F_clip) 109.9; COCO-GT pose 0.426 / 0.420 / 0.419 / 0.442 / 0.473. Stage 0: frozen-feature probe ranks depth < detect < pose for person depth on every target, tap and
       size (3DPW backbone root AbsRel 0.162 YOLO27n-depth / 0.131 detect / 0.073 pose). Stage 1 A/B planned, not run.
     priority: medium
   - id: H5

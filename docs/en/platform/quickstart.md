@@ -38,7 +38,7 @@ flowchart TD
 
 [Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google or GitHub accounts, or with your email address.
 
-![Ultralytics Platform Signup](https://cdn.ul.run/i/d1aa583f9f69a3bf49d503774779cb98.avif)<!-- screenshot -->
+![Ultralytics Platform Signup](https://cdn.ul.run/i/1683ea5d0337eeb6e9099ac434afaedb.avif)<!-- screenshot -->
 
 ### Region Selection
 

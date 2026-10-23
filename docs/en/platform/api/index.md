@@ -1729,7 +1729,8 @@ POST /api/training/start
 ```
 
 Training returns `400` when the model task cannot train the dataset task, `402` when your credit balance is too low,
-and `503` when no capacity is available for the requested GPU.
+`409` when the dataset's cloud storage has AI features off or is disconnected, and `503` when no capacity is available
+for the requested GPU.
 
 !!! note "GPU Types"
 

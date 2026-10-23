@@ -80,7 +80,7 @@ curl -X PATCH \
 
 ## Image Generation
 
-[Generate similar images](../data/datasets.md#generate-similar-images) works on Google Cloud Storage datasets whose bucket the service account can write to, while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new objects there and never overwrites or deletes existing ones. On read-only buckets, the action explains that it needs write access.
+[Generate similar images](../data/datasets.md#generate-similar-images) works on Google Cloud Storage datasets whose bucket the service account can write to, while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new objects there and never overwrites or deletes existing ones. If the action says it needs write access, grant it if needed and connect the same service account again in **Settings > Integrations**.
 
 ## Create a Dataset from a GCS Bucket
 

@@ -36,7 +36,8 @@ keys**. SAS-token connection strings, which contain `SharedAccessSignature` inst
 3. Click **Find available containers**, then select the containers to connect. You can also enter a container name
    manually.
 4. Click **Connect**. Platform verifies it can list and read each selected container before saving anything. Account
-   keys can always create blobs, so every connected container can be written to.
+   keys can always create blobs, so containers connected or reconnected since image generation launched can be written
+   to.
 
 ![Ultralytics Platform Azure Blob Storage Integration Settings](https://cdn.ul.run/i/4579a8d20d71e15611a37ef433d1c12c.avif)<!-- screenshot -->
 
@@ -76,7 +77,7 @@ curl -X PATCH \
 
 ## Image Generation
 
-[Generate similar images](../data/datasets.md#generate-similar-images) works on Azure Blob Storage datasets while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new blobs there and never overwrites or deletes existing ones. On read-only containers, the action explains that it needs write access.
+[Generate similar images](../data/datasets.md#generate-similar-images) works on Azure Blob Storage datasets while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new blobs there and never overwrites or deletes existing ones. If the action says it needs write access, connect the same storage account again in **Settings > Integrations**.
 
 ## Create a Dataset from a Blob Container
 

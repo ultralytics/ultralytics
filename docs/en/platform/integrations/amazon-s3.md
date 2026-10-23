@@ -19,7 +19,7 @@ The [Amazon S3](https://aws.amazon.com/s3/) integration connects your S3 buckets
 Read access covers everything except [image generation](#image-generation), which also creates objects. Platform never modifies or deletes your objects. Use a dedicated [IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html) — never root credentials:
 
 1. In the AWS console, go to **IAM > Users** and create a user with no console access.
-2. Attach a policy granting only list and read access to the buckets you want to connect:
+2. Attach a policy granting list and read access to the buckets you want to connect:
 
     ```json
     {
@@ -102,7 +102,7 @@ curl -X PATCH \
 
 ## Image Generation
 
-[Generate similar images](../data/datasets.md#generate-similar-images) works on Amazon S3 datasets whose bucket the IAM user can write to, while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new objects there and never overwrites or deletes existing ones. On read-only buckets, the action explains that it needs write access.
+[Generate similar images](../data/datasets.md#generate-similar-images) works on Amazon S3 datasets whose bucket the IAM user can write to, while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new objects there and never overwrites or deletes existing ones. If the action says it needs write access, grant it if needed and connect the same IAM user again in **Settings > Integrations**.
 
 ## Create a Dataset from an S3 Bucket
 

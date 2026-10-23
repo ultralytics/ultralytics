@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import sys
+import traceback
 from pathlib import Path
 
 from ultralytics.utils import LOGGER, TESTS_RUNNING
@@ -82,6 +84,9 @@ def on_pretrain_routine_start(trainer) -> None:
                 "ClearML Initialized a new task. If you want to run remotely, "
                 "please add clearml-init and connect your arguments before initializing YOLO."
             )
+            if Task.running_locally():  # a clearml-agent run leaves its task to the agent
+                trainer.add_callback("on_train_end", lambda _: task.close())
+                trainer.add_callback("teardown", lambda _: Task.current_task() is task and _close_failed(task))
         task.connect(vars(trainer.args), name="General", ignore_remote_overrides=True)
     except Exception as e:
         LOGGER.warning(f"ClearML installed but not initialized correctly, not logging this run. {e}")
@@ -135,7 +140,21 @@ def on_train_end(trainer) -> None:
         for k, v in trainer.validator.metrics.results_dict.items():
             task.get_logger().report_single_value(k, v)
         # Log the final model
-        task.update_output_model(model_path=str(trainer.best), model_name=trainer.args.name, auto_delete_file=False)
+        if task.is_offline():  # clearml>=1.15 raises AttributeError registering a model offline
+            LOGGER.warning("ClearML offline mode, not logging the final model.")
+        else:
+            task.update_output_model(model_path=str(trainer.best), model_name=trainer.args.name, auto_delete_file=False)
+
+
+def _close_failed(task) -> None:
+    """Close a task whose training raised as failed, or as stopped on interrupt."""
+    exc = sys.exc_info()[1]
+    task.get_logger().report_text(traceback.format_exc())  # close() ends console capture before Python prints it
+    task.close()  # first: it stops the stop-signal poller, which exits the process once the task is failed
+    if isinstance(exc, KeyboardInterrupt):
+        task.stopped(force=True)
+    else:
+        task.mark_failed(status_reason=f"Exception {exc}", force=True)
 
 
 callbacks = (

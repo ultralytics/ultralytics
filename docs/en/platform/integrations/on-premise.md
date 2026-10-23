@@ -65,7 +65,7 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 5. Open the terminal named in the dialog, copy the command, paste it, and press Enter.
 6. Keep the Integrations page open until the progress indicator shows **Connected**.
 
-![Ultralytics Platform On Premise Integration Setup](https://cdn.ul.run/i/b799f5c397f3209b6fffbbe77d2157a0.avif)<!-- screenshot -->
+![Ultralytics Platform On Premise Integration Setup](https://cdn.ul.run/i/961fbf1749ab8ff0e2c11ead3f4ceefa.avif)<!-- screenshot -->
 
 The page tracks the six setup steps live — running the command, downloading the worker files, downloading the Docker
 image, building the worker, starting it, and confirming the connection — so you can watch progress without reading the

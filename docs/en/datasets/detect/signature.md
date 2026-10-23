@@ -115,7 +115,7 @@ The dataset has been made available under the [AGPL-3.0 License](https://github.
 
 If you use the Signature Detection Dataset in your research or development work, please cite it appropriately:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

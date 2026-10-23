@@ -117,7 +117,7 @@ The sample below shows a typical xView scene: high-resolution overhead imagery i
 
 If you use the xView dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

@@ -8,6 +8,7 @@ Instructions for `docs/`; `CLAUDE.md` points here. Follow the root `AGENTS.md` f
 - Shared tables live in `docs/macros/` (`augmentation-args.md`, `export-args.md`, `export-table.md`, `platform-*.md`, ...) and are included into pages such as `docs/en/usage/cfg.md`; edit the macro owner, never copy a table into a consuming page. Jinja default values come from `ultralytics/cfg/default.yaml`. Production renders macros with Portal's publisher (`packages/ui/src/lib/mkdocs-content-build.ts`), which binds only literal `{%set%}` values and evaluates no filters or computed expressions; `build_docs.py`'s MiniJinja accepts more.
 - `docs/en/reference/` is generated from Python docstrings — API prose belongs in the docstring, not in the reference page. `reference/index.md` is the one hand-written page there.
 - Comparison pages are imported from the `ultralytics/docs` GitHub repository during the full build.
+- Citation blocks use an explicitly titled `!!! quote "Citation"` admonition containing an `=== "BibTeX"` tab and a `bibtex` code fence, indented four spaces per level. Use this format across datasets, models, and guides; keep the admonition title and icon visible. Blocks that only acknowledge sources use the title "Acknowledgments".
 - `<canvas id="modelComparisonChart">` and `<platform-annotation-models></platform-annotation-models>` are components the production publisher renders (the benchmark chart, and Platform's paid annotation models from its model registry); keep them even though they render empty locally and on GitHub.
 
 ## Commands

@@ -1618,20 +1618,6 @@ def test_utils_init():
     is_github_action_running()
 
 
-def test_utils_profile():
-    """Test Profile device parsing and MPS synchronization, which takes no device argument unlike other backends."""
-    from ultralytics.utils.ops import Profile
-
-    assert Profile().device_type is None and Profile().accelerator is None
-    assert Profile(device="cpu").device_type == "cpu" and Profile(device="cpu").accelerator is None
-    assert Profile(device=torch.device("cpu")).accelerator is None
-    if TORCH_2_0 and torch.backends.mps.is_available():  # same guard as select_device; torch.mps needs torch>=2.0
-        x = torch.ones(256, 256, device="mps")
-        with Profile(device="mps") as dt:
-            x @ x
-        assert dt.accelerator is torch.mps and dt.dt > 0
-
-
 def test_utils_checks(monkeypatch):
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
 

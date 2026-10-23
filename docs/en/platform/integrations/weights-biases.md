@@ -23,6 +23,8 @@ To log new training runs to W&B, see the [YOLO experiment tracking guide](../../
 
 Imports appear in the background upload tracker and as in-flight rows in the destination project's models sidebar. Keep the browser tab open until uploads finish; you can navigate within Platform while they continue. The preview remains available afterward so you can select more projects without reconnecting.
 
+![Ultralytics Platform Settings Integrations Weights & Biases Import Preview](https://cdn.ul.run/i/04d4d2c502aab468324713c7f6cfbc3d.avif)<!-- screenshot -->
+
 ## Eligible Checkpoints and Training Results
 
 A run is eligible when it has a W&B **model artifact** containing `best.pt`, reports a [supported Platform task](../data/index.md#supported-tasks), and the checkpoint is within the **1 GB model upload limit**. The [Ultralytics W&B integration](../../integrations/weights-biases.md) logs this artifact after training when saving is enabled and a best checkpoint exists. Projects without eligible runs cannot be selected.

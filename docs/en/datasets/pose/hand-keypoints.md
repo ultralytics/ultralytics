@@ -110,7 +110,7 @@ The example showcases the variety and complexity of the images in the Hand Keypo
 
 If you use the Hand Keypoints dataset in your research or development work, please acknowledge the following sources:
 
-!!! quote ""
+!!! quote "Acknowledgments"
 
     We would like to thank the following sources for providing the images used in this dataset:
 

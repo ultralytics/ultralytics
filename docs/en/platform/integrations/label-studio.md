@@ -20,7 +20,7 @@ Until then there is a short path that works today, because Label Studio's YOLO w
 3. **Upload to Platform.** [Create a new dataset](../data/datasets.md) from the ZIP.
 4. **Train.** [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
 
-![Ultralytics Platform Label Studio Dataset Import](https://cdn.ul.run/i/4ee85ff7b18b3eb0b7812a1a00bf448f.avif)<!-- screenshot -->
+![Ultralytics Platform Label Studio Dataset Import](https://cdn.ul.run/i/be5904dd52394f1f486a978cbeef72a8.avif)<!-- screenshot -->
 
 !!! warning "Plain YOLO and COCO export annotations only"
 

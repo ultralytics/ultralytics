@@ -390,6 +390,7 @@ active workspace.
 
 **Imports**
 
+- **Weights & Biases** — select W&B projects and [import their YOLO checkpoints](../integrations/weights-biases.md) using a W&B API key.
 - **Roboflow** — preview and import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
 - **Labelbox** — upload a [Labelbox](../integrations/labelbox.md) NDJSON export directly, with no key to connect.
 - **LabelMe** — upload a zipped folder of LabelMe JSON annotations and their images directly, with no conversion or key. See the [LabelMe guide](../integrations/labelme.md).

@@ -1436,7 +1436,7 @@ Creates an untrained model record you can attach weights to or train.
 | `epochs`      | number | No       | Epoch count for an already-trained model                               |
 | `version`     | string | No       | Version label (max 50 chars)                                           |
 
-**Response (`201`):** `id`, `owner`, `project`, `model`, `region`.
+**Response (`201`):** `id`, `owner`, `project`, `model`, `name`, `region`. The response includes the model slug and display name selected after resolving naming conflicts.
 
 !!! note "Model File Upload"
 
@@ -2445,9 +2445,9 @@ POST /api/integrations/roboflow/preview
 
 **Python SDK:** `client.datasets.preview_roboflow(api_key=...)`
 
-Resolves a Roboflow API key into an import plan: workspace details, `newDatasets` that would be imported, counts of
+Resolves a Roboflow API key into an import plan: workspace details, `newDatasets` that would be imported, `importedDatasets` whose latest version is already imported, counts of
 already-imported (`skippedCount`), version-less, unsupported, and unresolved projects, `bytesTotal`, and your `storage`
-headroom. The Roboflow API key is read from the body and is not persisted.
+headroom. New datasets include their export `sizeBytes`; already-imported datasets include it when the export can still be sized. The Roboflow API key is read from the body and is not persisted.
 
 ```json
 {

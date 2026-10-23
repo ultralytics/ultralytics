@@ -22,7 +22,7 @@ Until then there is a short path that works today, because CVAT already exports 
 5. **Upload to Platform.** [Create a new dataset](../data/datasets.md) from the ZIP.
 6. **Train.** [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
 
-![Ultralytics Platform CVAT Dataset Import](https://cdn.ul.run/i/fea8e962e1f995154a73efc5974ac7c2.avif)<!-- screenshot -->
+![Ultralytics Platform CVAT Dataset Import](https://cdn.ul.run/i/c12aa22532fddbc7e3de98906e5a7e73.avif)<!-- screenshot -->
 
 ### Export with the CLI
 

@@ -2327,8 +2327,7 @@ GET /api/integrations/buckets
 **Python SDK:** `client.storage_integrations.list()`
 
 Returns `integrations`, each with `id`, `provider`, `credentialIdentity`, `targets`, `processing` (whether AI features are
-on), `writableTargets` (targets it can write, omitted until a connection checks), and `createdAt`. Credentials are
-never returned.
+on), and `createdAt`. Credentials are never returned.
 
 ### Discover Locations
 

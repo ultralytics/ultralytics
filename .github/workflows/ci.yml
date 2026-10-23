@@ -413,22 +413,19 @@ jobs:
         uses: ultralytics/actions/cleanup-disk@main
       - uses: actions/checkout@v7
       - name: Export with AutoInstall in a fresh ultralytics/ultralytics:latest container per format
-        # The first attempt may fail once AutoUpdate replaces an imported package; the rerun must pass
+        # The first attempt may fail once AutoUpdate replaces an imported package; the rerun must pass.
+        # Edge TPU compiler fails on YOLO26n at imgsz=160, and IMX supports YOLOv8n and YOLO11n only.
         run: |
-          failed=()
-          for format in torchscript onnx openvino coreml coreai saved_model pb edgetpu litert paddle mnn ncnn imx rknn \
-            executorch axelera deepx qnn xilinx; do
-            ARGS="model=yolo26n.pt format=$format imgsz=160"
-            [ "$format" = edgetpu ] && ARGS="model=yolo26n.pt format=$format imgsz=320" # Edge TPU compiler fails on YOLO26n at 160
-            [ "$format" = imx ] && ARGS="model=yolo11n.pt format=$format imgsz=160"     # IMX supports YOLOv8n and YOLO11n only
-            echo "::group::$format"
-            docker run --rm -e ARGS="$ARGS" -v "$PWD":/src:ro ultralytics/ultralytics:latest bash -c '
-              tar -C /src --exclude=.git -cf - . | tar -C /ultralytics -xf - && cd /tmp
-              yolo export $ARGS || { echo "::warning::First $ARGS attempt failed, retrying"; yolo export $ARGS; }' \
-              || { failed+=("$format"); echo "::error::$format AutoInstall export failed"; }
+          status=0
+          for f in torchscript onnx openvino coreml coreai saved_model pb "edgetpu imgsz=320" litert paddle mnn ncnn \
+            "imx model=yolo11n.pt" rknn executorch axelera deepx qnn xilinx; do
+            echo "::group::$f"
+            docker run --rm -e ARGS="model=yolo26n.pt imgsz=160 format=$f" -v "$PWD":/src:ro ultralytics/ultralytics:latest \
+              bash -c 'tar -C /src --exclude=.git -cf - . | tar -C /ultralytics -xf - && cd /tmp && { yolo export $ARGS || yolo export $ARGS; }' \
+              || { status=1; echo "::error::$f export failed"; }
             echo "::endgroup::"
           done
-          [ ${#failed[@]} -eq 0 ] || { echo "Failed formats: ${failed[*]}"; exit 1; }
+          exit $status
 
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')

@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Platform Integrations
 comments: true
-description: Connect Ultralytics Platform to Slack, existing tools, cloud storage, and Enterprise On Premise compute and datasets.
-keywords: Ultralytics Platform, integrations, Slack, alerts, data import, Roboflow, Labelbox, LabelMe, CVAT, Label Studio, cloud storage, GCS, Amazon S3, Azure Blob Storage, On Premise, dataset migration, YOLO, computer vision
+description: Connect Ultralytics Platform to Slack, import W&B models and existing datasets, and use cloud storage or Enterprise On Premise compute.
+keywords: Ultralytics Platform, integrations, Weights & Biases, W&B, model import, Slack, alerts, data import, Roboflow, Labelbox, LabelMe, CVAT, Label Studio, cloud storage, GCS, Amazon S3, Azure Blob Storage, On Premise, dataset migration, YOLO, computer vision
 ---
 
 # Integrations
 
-[Ultralytics Platform](https://platform.ultralytics.com) [integrations](../../integrations/index.md) connect your workspace to other tools and services you already use. Send job results to Slack, import existing datasets with a single API key, or connect your cloud storage and use the data where it lives.
+[Ultralytics Platform](https://platform.ultralytics.com) [integrations](../../integrations/index.md) connect your workspace to other tools and services you already use. Send job results to Slack, import existing models and datasets with an API key, or connect your cloud storage and use the data where it lives.
 
 ![Ultralytics Platform Settings Integrations Tab](https://cdn.ul.run/i/9693d3023f855f1f852df1827b0c7014.avif)<!-- screenshot -->
 
@@ -20,7 +20,7 @@ All integrations are managed from your account settings:
 2. Pick a service from the list on the left — grouped into **Infrastructure**, **Notifications**, and **Imports** — or type its name in the search box
 3. Follow the connection prompts
 
-Roboflow imports start with a preview so you can review what will be transferred and confirm that you have enough
+W&B and Roboflow imports start with a preview so you can select what will be transferred and confirm that you have enough
 [storage](../account/billing.md). Labelbox, LabelMe, CVAT, and Label Studio need no connection at all — upload the
 exported dataset and Platform reads it directly. Cloud storage connections verify list and read access on every
 selected bucket, and check whether each one can also be written to, before anything is saved.
@@ -34,6 +34,7 @@ selected bucket, and check whether each one can also be written to, before anyth
 | [**Google Cloud Storage**](google-cloud-storage.md) | Infrastructure | Indexes datasets in place from your GCS buckets                                               |
 | [**Azure Blob Storage**](azure-blob-storage.md)     | Infrastructure | Indexes datasets in place from your blob containers                                           |
 | [**Slack**](slack.md)                               | Notifications  | Posts selected training, auto-annotation, export, and deployment results to one Slack channel |
+| [**Weights & Biases**](weights-biases.md)           | Imports        | Imports YOLO checkpoints and available training results from selected W&B projects            |
 | [**Roboflow**](roboflow.md)                         | Imports        | Imports the datasets you select from a Roboflow workspace using an API key                    |
 | [**Labelbox**](labelbox.md)                         | Imports        | Reads Labelbox NDJSON exports as datasets                                                     |
 | [**LabelMe**](labelme.md)                           | Imports        | Reads zipped LabelMe JSON annotations as detection or segmentation datasets                   |
@@ -42,12 +43,12 @@ selected bucket, and check whether each one can also be written to, before anyth
 
 ## Plans and Permissions
 
-Slack alerts and every dataset import work on all plans. Google Cloud Storage, Amazon S3, and Azure Blob Storage
+Import integrations and Slack alerts are available on all plans. Google Cloud Storage, Amazon S3, and Azure Blob Storage
 connections require a [Pro or Enterprise plan](../account/billing.md#plans), and On Premise requires an active
 Enterprise plan.
 
 Connecting, changing, or disconnecting cloud storage and Slack requires the workspace admin or owner
-[role](../account/teams.md#roles-and-permissions). Importing datasets and connecting an On Premise host require the
+[role](../account/teams.md#roles-and-permissions). Importing models or datasets and connecting an On Premise host require the
 editor role.
 
 ## AI Features
@@ -58,7 +59,7 @@ Each cloud storage connection has an **AI features** switch, on by default. Whil
 
 ### Which integrations need a connection and which work from an upload?
 
-On Premise, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Slack are live connections managed from **Settings > Integrations**. Roboflow imports from an API key that is used once and discarded. Labelbox, LabelMe, CVAT, and Label Studio need no connection at all: export from the tool and upload the file as a new dataset.
+On Premise, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Slack are live connections managed from **Settings > Integrations**. W&B and Roboflow use an API key for the import session without saving a connection. Labelbox, LabelMe, CVAT, and Label Studio need no connection at all: export from the tool and upload the file as a new dataset.
 
 ### Do cloud storage datasets count against my Platform storage?
 
@@ -66,7 +67,7 @@ No. Cloud storage and On Premise datasets are indexed in place, so the images ar
 
 ### Which plan do I need?
 
-Slack alerts and every dataset import work on all plans. Cloud storage connections require a [Pro or Enterprise plan](../account/billing.md#plans), and On Premise requires an active Enterprise plan.
+Import integrations and Slack alerts are available on all plans. Cloud storage connections require a [Pro or Enterprise plan](../account/billing.md#plans), and On Premise requires an active Enterprise plan.
 
 ### Can I disconnect an integration without losing my datasets?
 

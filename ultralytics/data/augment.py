@@ -1522,9 +1522,9 @@ class RandomHSV(BaseTransform):
             lut_val = np.clip(x * (r[2] + 1), 0, 255).astype(dtype)
             lut_sat[0] = 0  # prevent pure white changing color, introduced in 8.3.79
 
-            hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
-            im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
-            cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
+            im_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            lut = np.stack((lut_hue, lut_sat, lut_val), -1).reshape(1, 256, 3)  # single 3-channel LUT
+            cv2.cvtColor(cv2.LUT(im_hsv, lut), cv2.COLOR_HSV2BGR, dst=img)  # no return needed
         return labels
 
 

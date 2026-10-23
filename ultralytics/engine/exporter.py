@@ -1130,7 +1130,8 @@ class Exporter:
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
-            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai")]
+            builds = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
+            requirements += [(ort, *builds)]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)

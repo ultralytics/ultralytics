@@ -150,7 +150,7 @@ The sample below shows the bounding-box, relationship, and mask annotations that
 
 If you use the Open Images V7 dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

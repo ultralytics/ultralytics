@@ -157,7 +157,7 @@ assert found_formats <= IMG_FORMATS, f"Unsupported formats: {found_formats - IMG
 
 If you use the COCO dataset in your research, please cite:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

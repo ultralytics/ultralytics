@@ -625,6 +625,7 @@ nav:
       - Integrations:
           - platform/integrations/index.md
           - Slack: platform/integrations/slack.md
+          - Weights & Biases: platform/integrations/weights-biases.md
           - Roboflow: platform/integrations/roboflow.md
           - Labelbox: platform/integrations/labelbox.md
           - LabelMe: platform/integrations/labelme.md

@@ -782,7 +782,7 @@ You can also drag and drop images onto the split filter tabs in grid view. If mo
 
 Redistribute all images across train, validation, and test splits using custom ratios:
 
-1. Click the **split bar** in the dataset toolbar to open the **Redistribute Splits** dialog
+1. In the **Images** tab, click the thin colored **split bar** directly below **All / Train / Val / Test** to open the **Redistribute Splits** dialog
 2. Adjust split percentages using any of the methods below
 3. Review the live image count preview to confirm the distribution
 4. Click **Apply** to randomly reassign all images according to your percentages
@@ -1057,7 +1057,7 @@ Your upload sets the split. With the **All** split filter selected, images insid
 
 To change the split afterwards:
 
-- **Change the ratio**: click the split bar in the dataset toolbar and set the percentages, or click **Auto** for 80/20 train/val. See [Split Redistribution](#split-redistribution).
+- **Change the ratio**: in the **Images** tab, click the thin colored split bar below **All / Train / Val / Test** and set the percentages, or click **Auto** for 80/20 train/val. See [Split Redistribution](#split-redistribution).
 - **Move specific images**: select them in **Table** view, right-click, and choose `Move to split`. See [Bulk Move to Split](#bulk-move-to-split).
 
 ### Are my datasets private?

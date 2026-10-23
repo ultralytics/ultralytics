@@ -750,7 +750,7 @@ DELETE /api/datasets/{owner}/{dataset}/embeddings
 `client.datasets.delete_embeddings(owner, dataset)`
 
 `GET` returns the analysis summary (`analyzedAt`, `embeddingsCount`, `latestImageAt`, `activeJob`). `POST` queues an
-embedding analysis and returns `202` with a `jobId`. `DELETE` cancels the active job and returns the cancelled job ID
+embedding analysis and returns `202` with a `jobId`, or `409` when the dataset's storage has AI features off or is On Premise. `DELETE` cancels the active job and returns the cancelled job ID
 or `null`.
 
 ### Image Clustering
@@ -1138,7 +1138,7 @@ Runs the model on the image and returns predicted annotations. It does not save 
 | `visualPrompts` | array  | No       | With `modelId` `yoloe26x` on a detect, segment, or OBB dataset, 1–200 annotation objects from this image (`classId` plus `bbox`, `segments`, or `obb`) whose classes the model finds again in the image                                                                                                                                                                                                                                                           |
 | `classMapping`  | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models and not allowed with `visualPrompts`                                                                                                                                                                                                                |
 
-**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models without `visualPrompts`), `modelUsed`, `inferenceTime`, for class-prompted models `partial` (`true` when an output limit was reached or suspected, so returned annotations may omit objects), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes (unless it uses `visualPrompts`), `visualPrompts` with another model or task, an unknown `classId`, a prompt too small or outside the image, or `classMapping`, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `402`, `403`, or `404` (a rejected key, model, or request, or an unpaid provider balance; `code`: `provider_refused` for all but `400`), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`, and datasets on connected storage or with more than 3 image channels return `409`.
+**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models without `visualPrompts`), `modelUsed`, `inferenceTime`, for class-prompted models `partial` (`true` when an output limit was reached or suspected, so returned annotations may omit objects), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes (unless it uses `visualPrompts`), `visualPrompts` with another model or task, an unknown `classId`, a prompt too small or outside the image, or `classMapping`, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `402`, `403`, or `404` (a rejected key, model, or request, or an unpaid provider balance; `code`: `provider_refused` for all but `400`), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`. On Premise datasets, cloud storage datasets whose AI features are off or whose credential is disconnected, and datasets with more than 3 image channels return `409`.
 
 ### Find Similar Images
 
@@ -1152,7 +1152,8 @@ Returns up to 24 visually similar `images` from public datasets and from your ow
 `score` (0-1), a signed `thumbnailUrl`, and the source `dataset` (`owner`, `dataset`, `license`). The source dataset
 and datasets holding a copy of the query image are excluded; `includeSourceDataset=true` keeps them and drops only the
 copies. Requires an API key with view access to the image; an image that has not been embedded yet is embedded first,
-and `503` means that preparation failed, so retry.
+and `503` means that preparation failed, so retry. A cloud storage image's own dataset is included only for its workspace, and `409` means
+the image's storage has AI features off or is an On Premise dataset.
 
 ### Auto-Annotate a Dataset
 
@@ -1162,12 +1163,12 @@ POST /api/datasets/{owner}/{dataset}/predict/batch
 
 **Python SDK:** `client.datasets.create_batch(owner, dataset, body={...})` (`ultralytics-platform>=0.1.57`)
 
-Saves a dataset version, then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
+Saves a dataset version (cloud storage datasets have none), then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
 The body takes the same `modelId`, `confidence`, `iou`, and `classMapping` fields as the single-image endpoint, plus
 `includeAnnotated` (default `false`) to also annotate images that already have labels. A class-prompted model detects
 the dataset classes without confidence scores, and a paid provider model needs a provider key saved in the dataset
 workspace's **Settings > API Keys** (`422`, `code`: `missing_provider_api_key`, before the run is admitted). Existing labels are never changed, and the run is billed for the images it actually
-processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not ready, has no images left to
+processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not ready, its storage has AI features off or is On Premise, has no images left to
 annotate, or already has a run in progress, and `422` that the dataset has no classes, or that a class-prompted model
 was given a non-detection dataset or one outside 1–200 classes: create the classes with the
 [classes endpoint](#manage-classes) before calling this endpoint, which is what the app's Map classes step does before it
@@ -2310,7 +2311,8 @@ and is not verified.
 
 ## Storage Integrations API
 
-Connect read-only Google Cloud Storage, Amazon S3, or Azure Blob Storage accounts and browse them as dataset sources.
+Connect Google Cloud Storage, Amazon S3, or Azure Blob Storage accounts, browse them as dataset sources, and turn their
+AI features on or off.
 See [Integrations documentation](../integrations/index.md).
 
 Discovering and connecting storage require workspace admin access and a Pro or Enterprise plan (`403` otherwise);
@@ -2324,7 +2326,8 @@ GET /api/integrations/buckets
 
 **Python SDK:** `client.storage_integrations.list()`
 
-Returns `integrations`, each with `id`, `provider`, `credentialIdentity`, `targets`, and `createdAt`. Credentials are
+Returns `integrations`, each with `id`, `provider`, `credentialIdentity`, `targets`, `processing` (whether AI features are
+on), `writableTargets` (targets it can write, omitted until a connection checks), and `createdAt`. Credentials are
 never returned.
 
 ### Discover Locations
@@ -2385,7 +2388,8 @@ POST /api/integrations/buckets
 **Python SDK:** `client.storage_integrations.create(body=...)`
 
 Same credential shapes as discovery, plus a required `targets` array of 1-50 bucket or container names. Returns `201`
-with the stored integration. Temporary S3 credentials (`ASIA` access keys) are rejected.
+with the stored integration. Connecting checks each target's write access without writing anything. Temporary S3
+credentials (`ASIA` access keys) are rejected.
 
 ### Browse Objects
 
@@ -2404,6 +2408,17 @@ GET /api/integrations/buckets/{id}/objects
 | `cursor`  | string | No       | Provider pagination cursor from a prior page |
 
 Returns `entries` (each `kind` is `folder` or `file`) and an optional `cursor` for the next page.
+
+### Set AI Features
+
+```http
+PATCH /api/integrations/buckets/{id}
+```
+
+**Python SDK:** `client.storage_integrations.update(id, processing=False)`
+
+Turns [AI features](../integrations/index.md#ai-features) on (`{"processing": true}`) or off for every target of the
+integration and returns the updated integration. Turning them off stops new work. Requires workspace admin access.
 
 ### Disconnect Storage
 

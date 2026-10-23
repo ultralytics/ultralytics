@@ -23,7 +23,7 @@ All integrations are managed from your account settings:
 Roboflow imports start with a preview so you can review what will be transferred and confirm that you have enough
 [storage](../account/billing.md). Labelbox, LabelMe, CVAT, and Label Studio need no connection at all — upload the
 exported dataset and Platform reads it directly. Cloud storage connections verify list and read access on every
-selected bucket before anything is saved.
+selected bucket, and check whether each one can also be written to, before anything is saved.
 
 ## Available Integrations
 
@@ -49,6 +49,10 @@ Enterprise plan.
 Connecting, changing, or disconnecting cloud storage and Slack requires the workspace admin or owner
 [role](../account/teams.md#roles-and-permissions). Importing datasets and connecting an On Premise host require the
 editor role.
+
+## AI Features
+
+Each cloud storage connection has an **AI features** switch, on by default. While it's on, Ultralytics GPUs and AI model providers may use that connection's images for smart annotation, auto-annotation, similar-image search, clustering, cloud training, and image generation, which also needs a bucket with write access. Turn it off to keep images off Ultralytics GPUs and AI model providers; manual annotation, sharing, and local training keep working. On Premise images never leave your host, so these features are unavailable there. See [Amazon S3](amazon-s3.md#ai-features), [Google Cloud Storage](google-cloud-storage.md#ai-features), or [Azure Blob Storage](azure-blob-storage.md#ai-features) for details.
 
 ## FAQ
 

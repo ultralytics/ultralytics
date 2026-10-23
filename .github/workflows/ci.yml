@@ -404,6 +404,53 @@ jobs:
       - name: Prune uv Cache
         run: uv cache prune --ci
 
+  AutoInstallExports:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        format:
+          [
+            torchscript,
+            onnx,
+            openvino,
+            coreml,
+            coreai,
+            saved_model,
+            pb,
+            edgetpu,
+            litert,
+            paddle,
+            mnn,
+            ncnn,
+            imx,
+            rknn,
+            executorch,
+            axelera,
+            deepx,
+            qnn,
+            xilinx,
+          ]
+        include:
+          - format: edgetpu
+            imgsz: 320 # Edge TPU compiler fails on YOLO26n at 160
+          - format: imx
+            model: yolo11n.pt # IMX supports YOLOv8n and YOLO11n only
+    steps:
+      - name: Cleanup disk space
+        uses: ultralytics/actions/cleanup-disk@main
+      - uses: actions/checkout@v7
+      - name: Export with AutoInstall in a fresh ultralytics/ultralytics:latest container
+        env:
+          ARGS: model=${{ matrix.model || 'yolo26n.pt' }} format=${{ matrix.format }} imgsz=${{ matrix.imgsz || 160 }}
+        # The first attempt may fail once AutoUpdate replaces an imported package; the rerun must pass
+        run: |
+          docker run --rm -e ARGS -v "$PWD":/src:ro ultralytics/ultralytics:latest bash -c '
+            tar -C /src --exclude=.git -cf - . | tar -C /ultralytics -xf - && cd /tmp
+            yolo export $ARGS || { echo "::warning::First export attempt failed, retrying"; yolo export $ARGS; }'
+
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     permissions:

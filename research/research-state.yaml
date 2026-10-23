@@ -92,6 +92,13 @@ hypotheses:
       2026-10-22. Error is 55% relative depth; oracle bone-length refit <= 5.5 mm, mean-bone refit negative;
       bone+symmetry loss fine-tune +5.3/+9.8 mm MPJPE vs control. Teacher on 3DPW 66.7 mm MPJPE.
     priority: done
+  - id: H11
+    statement: "A YOLO-depth checkpoint is a better pose3d warm start than yolo26n-pose."
+    status: pending
+    evidence: >
+      2026-10-23 Stage 0: frozen-feature probe ranks depth < detect < pose for person depth on every target, tap and
+      size (3DPW backbone root AbsRel 0.162 YOLO27n-depth / 0.131 detect / 0.073 pose). Stage 1 A/B planned, not run.
+    priority: medium
   - id: H5
     statement: "Body-scale-normalized relative depth trains better than metres."
     status: pending

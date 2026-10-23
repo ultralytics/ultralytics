@@ -557,10 +557,10 @@ class ConfusionMatrix(DataExportMixin):
         names, n = list(self.names.values()), self.nc
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1
-            keep_idx = slice(None, None, k)  # create slice instead of array
-            names = names[keep_idx]  # slice class names
-            array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
-            n = (self.nc + k - 1) // k  # number of retained classes
+            keep_idx = np.r_[0 : self.nc : k, self.nc : len(array)]  # every k-th class plus any background row/col
+            names = names[::k]  # slice class names
+            array = array[np.ix_(keep_idx, keep_idx)]  # slice matrix rows and cols
+            n = len(names)  # number of retained classes
         nc = n if self.task in {"classify", "semantic"} else n + 1  # adjust for background if needed
         ticklabels = "auto"
         if 0 < nc < 99:

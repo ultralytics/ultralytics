@@ -51,10 +51,8 @@ class Profile(contextlib.ContextDecorator):
         """
         self.t = t
         self.device = device
-        device_type = getattr(device, "type", str(device).split(":")[0] if device else None)
-        self.accelerator = (
-            get_torch_device_backend(device_type) if device_type in {"cuda", "mps", "npu", "xpu"} else None
-        )
+        kind = getattr(device, "type", str(device).split(":")[0] if device else None)
+        self.accelerator = get_torch_device_backend(kind) if kind in {"cuda", "mps", "npu", "xpu"} else None
 
     def __enter__(self):
         """Start timing."""

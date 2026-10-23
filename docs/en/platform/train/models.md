@@ -22,6 +22,8 @@ Upload existing model weights to the platform:
 
 Multiple files can be uploaded simultaneously (up to 3 concurrent).
 
+To import existing W&B checkpoints without downloading them manually, use the [Weights & Biases integration](../integrations/weights-biases.md). Imported models use the same upload flow and model pages.
+
 ![Ultralytics Platform Model Drag Drop Upload](https://cdn.ul.run/i/abdfc6f752765b2bc24b19f055ab39a9.avif)<!-- screenshot -->
 
 Supported model formats:

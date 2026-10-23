@@ -38,4 +38,8 @@ keywords: Ultralytics, YOLO, ClearML, integration, callbacks, pretraining, train
 
 ## ::: ultralytics.utils.callbacks.clearml.on_train_end
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.callbacks.clearml._close_failed
+
 <br><br>

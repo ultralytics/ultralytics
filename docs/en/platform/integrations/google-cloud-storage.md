@@ -39,7 +39,7 @@ Read access covers everything except [image generation](#image-generation), whic
 4. Click **Connect**. Platform verifies it can list and read each selected bucket before saving anything, and asks
    Google Cloud whether the service account can also create objects. Nothing is written.
 
-![Ultralytics Platform Google Cloud Storage Integration Settings](https://cdn.ul.run/i/e6224d9cf7306aec08d6cc53b3c7d70c.avif)<!-- screenshot -->
+![Ultralytics Platform Google Cloud Storage Integration Settings](https://cdn.ul.run/i/5565a1e22d1771d86e9f30f3c0e684c3.avif)<!-- screenshot -->
 
 Each connected credential has an [AI features](#ai-features) switch. After you change its roles, connect the same service account again to recheck write access.
 

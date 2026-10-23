@@ -38,7 +38,7 @@ keys**. SAS-token connection strings, which contain `SharedAccessSignature` inst
 4. Click **Connect**. Platform verifies it can list and read each selected container before saving anything. Account
    keys can always create blobs, so every connected container can be written to.
 
-![Ultralytics Platform Azure Blob Storage Integration Settings](https://cdn.ul.run/i/31cc31aaf2fa70640c191aaa4de7984a.avif)<!-- screenshot -->
+![Ultralytics Platform Azure Blob Storage Integration Settings](https://cdn.ul.run/i/4579a8d20d71e15611a37ef433d1c12c.avif)<!-- screenshot -->
 
 Each connected credential has an [AI features](#ai-features) switch.
 

@@ -60,7 +60,7 @@ Read access covers everything except [image generation](#image-generation), whic
 4. Click **Connect**. Platform verifies it can list and read each selected bucket before saving anything, and checks
    whether the key can also write to it with a request S3 always rejects, so nothing is stored.
 
-![Ultralytics Platform Amazon S3 Integration Settings](https://cdn.ul.run/i/1375aadf784704fc73daef98e9b8c908.avif)<!-- screenshot -->
+![Ultralytics Platform Amazon S3 Integration Settings](https://cdn.ul.run/i/543e16573a1f751b7d3103da8c3bacc9.avif)<!-- screenshot -->
 
 Each connected credential has an [AI features](#ai-features) switch. After you change the IAM policy, connect the same IAM user again to recheck write access.
 

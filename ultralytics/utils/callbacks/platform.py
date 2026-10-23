@@ -461,9 +461,7 @@ def on_train_end(trainer):
         LOGGER.info(f"{PREFIX}Uploading partial results for cancelled training")
 
     # Stop console capture
-    if ctx["console_logger"]:
-        ctx["console_logger"].stop_capture()
-        ctx["console_logger"] = None
+    ctx["console_logger"].stop_capture()
 
     # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None
@@ -537,4 +535,5 @@ callbacks = {
     "on_fit_epoch_end": on_fit_epoch_end,
     "on_model_save": on_model_save,
     "on_train_end": on_train_end,
+    "teardown": lambda trainer: (ctx := getattr(trainer, "platform", None)) and ctx["console_logger"].stop_capture(),
 }

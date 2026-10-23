@@ -413,18 +413,41 @@ jobs:
         uses: ultralytics/actions/cleanup-disk@main
       - uses: actions/checkout@v7
       - name: Export with AutoInstall in a fresh ultralytics/ultralytics:latest container per format
-        # The first attempt may fail once AutoUpdate replaces an imported package; the rerun must pass.
-        # Edge TPU compiler fails on YOLO26n at imgsz=160, and IMX supports YOLOv8n and YOLO11n only.
+        env:
+          # One export per line, overriding the defaults model=yolo26n.pt imgsz=160
+          EXPORTS: |-
+            torchscript
+            onnx
+            openvino
+            coreml
+            coreai
+            saved_model
+            pb
+            edgetpu imgsz=320
+            litert
+            paddle
+            mnn
+            ncnn
+            imx model=yolo11n.pt
+            rknn
+            executorch
+            axelera
+            deepx
+            qnn
+            xilinx
+        # The first attempt may fail once AutoUpdate replaces an imported package; the rerun must pass
         run: |
           status=0
-          for f in torchscript onnx openvino coreml coreai saved_model pb "edgetpu imgsz=320" litert paddle mnn ncnn \
-            "imx model=yolo11n.pt" rknn executorch axelera deepx qnn xilinx; do
-            echo "::group::$f"
-            docker run --rm -e ARGS="model=yolo26n.pt imgsz=160 format=$f" -v "$PWD":/src:ro ultralytics/ultralytics:latest \
-              bash -c 'tar -C /src --exclude=.git -cf - . | tar -C /ultralytics -xf - && cd /tmp && { yolo export $ARGS || yolo export $ARGS; }' \
-              || { status=1; echo "::error::$f export failed"; }
+          while read -r export; do
+            echo "::group::$export"
+            docker run --rm -e ARGS="model=yolo26n.pt imgsz=160 format=$export" -v "$PWD":/src:ro ultralytics/ultralytics:latest bash -c '
+              set -e
+              tar -C /src --exclude=.git -cf - . | tar -C /ultralytics -xf -
+              cd /tmp
+              yolo export $ARGS || yolo export $ARGS
+            ' || { status=1; echo "::error::$export failed"; }
             echo "::endgroup::"
-          done
+          done <<< "$EXPORTS"
           exit $status
 
   GPU:

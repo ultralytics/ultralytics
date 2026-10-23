@@ -1715,7 +1715,7 @@ class RTDETRDecoder(nn.Module):
             (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6), limited to max_det during
                 export, and last dimension format [cx, cy, w, h, score, class_index].
         """
-        k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        k = min(self.num_queries, self.max_det) if self.export else max(self.num_queries, scores.shape[1])
         k = (
             (torch._shape_as_tensor(scores)[1] * self.nc).clamp(max=k)
             if self.dynamic
@@ -1822,10 +1822,12 @@ class RTDETRDecoder(nn.Module):
         # Query selection
         # (bs*num_queries,)
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        # a max_det raised above its default (dense images) selects that many queries at inference
+        dense = not self.training and not self.learnt_init_query and self.max_det > RTDETRDecoder.max_det
         k = (
             torch._shape_as_tensor(enc_outputs_scores)[1].clamp(max=self.num_queries)
             if self.dynamic
-            else min(self.num_queries, enc_outputs_scores.shape[1])
+            else min(max(self.num_queries, self.max_det) if dense else self.num_queries, enc_outputs_scores.shape[1])
         )
         topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, k, groups)[1].view(-1)
         # (bs*num_queries,)

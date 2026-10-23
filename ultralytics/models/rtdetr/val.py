@@ -80,6 +80,13 @@ class RTDETRValidator(DetectionValidator):
         For further details on the attributes and methods, refer to the parent DetectionValidator class.
     """
 
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """Initialize metrics and pass max_det to the decoder, which selects more queries when max_det is above 300."""
+        super().init_metrics(model)
+        native_model = model.model if getattr(model, "format", None) == "pt" else model
+        if hasattr(native_model, "set_head_attr"):
+            native_model.set_head_attr(max_det=self.args.max_det)
+
     def build_dataset(self, img_path, mode="val", batch=None):
         """Build an RTDETR Dataset.
 

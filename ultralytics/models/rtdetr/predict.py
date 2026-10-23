@@ -32,6 +32,12 @@ class RTDETRPredictor(BasePredictor):
 
     scale_fill = True
 
+    def inference(self, im: torch.Tensor, *args, **kwargs):
+        """Run inference, passing max_det to the decoder, which selects more queries when max_det is above 300."""
+        if self.model.format == "pt":
+            self.model.model.set_head_attr(max_det=max(self.args.max_det, 300))
+        return super().inference(im, *args, **kwargs)
+
     def postprocess(self, preds, img, orig_imgs):
         """Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
 

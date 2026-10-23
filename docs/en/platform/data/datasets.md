@@ -451,7 +451,7 @@ Analysis runs in the background in two stages, `Computing embeddings` and `Clust
 
 !!! note "Analysis Requirements"
 
-    A dataset needs at least 20 and at most 200,000 non-errored images to analyze. [Connected datasets](../integrations/index.md) backed by cloud or On Premise storage are not supported yet.
+    A dataset needs at least 20 and at most 200,000 non-errored images to analyze. Cloud storage datasets need [AI features](../integrations/index.md#ai-features) on, and On Premise datasets are not supported.
 
 ### Visualization
 
@@ -510,7 +510,7 @@ The same embeddings power similarity search across public datasets and your own 
 
 ![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/004538a8ce286784bffe8a0e3fd1a3f3.avif)<!-- screenshot -->
 
-An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
+An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. On cloud storage datasets it needs [AI features](../integrations/index.md#ai-features) on and opens for browsing only, because images cannot be added to a connected dataset; it is unavailable on On Premise datasets. A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
 
 ## Dataset Tabs
 
@@ -837,7 +837,7 @@ Create new training images from one you already have. In a dataset you can edit,
 
 **Ultralytics Image 9B** and **Krea 2 Turbo** are also listed, but you can select them only after you turn on [Early access](../account/settings.md#early-access). Krea 2 Turbo is the slowest option. Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
 
-Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear as they finish, all selected, and **Stop** ends a running batch while keeping the images that already arrived. To try other instructions or settings, change them and click **Generate more**: each new batch appears above the earlier ones, which keep their selection. Click an image to view it full size, clear the checkbox of any you don't want, and click **Add N to dataset**. The kept images are uploaded as JPEGs named after the source image, without labels, counted against your storage, and ready for [annotation](annotation.md). They use the active split filter: choose **Train** before generating to add them to `train`. With **All** selected, normal upload split assignment applies, including automatic validation splitting when needed. **Cancel** discards the previews without adding them. Generated images follow the dataset's [upload face-blurring setting](#blur-faces). The action is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets).
+Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear as they finish, all selected, and **Stop** ends a running batch while keeping the images that already arrived. To try other instructions or settings, change them and click **Generate more**: each new batch appears above the earlier ones, which keep their selection. Click an image to view it full size, clear the checkbox of any you don't want, and click **Add N to dataset**. The kept images are uploaded as JPEGs named after the source image, without labels, counted against your storage, and ready for [annotation](annotation.md). They use the active split filter: choose **Train** before generating to add them to `train`. With **All** selected, normal upload split assignment applies, including automatic validation splitting when needed. **Cancel** discards the previews without adding them. Generated images follow the dataset's [upload face-blurring setting](#blur-faces). On cloud storage datasets, the action needs [AI features](../integrations/index.md#ai-features) on and a bucket with write access: kept images are written to a `generated/` folder in the dataset's folder instead of Platform storage. It is unavailable on read-only buckets and On Premise datasets.
 
 #### Paid Image Generation Models
 
@@ -1112,19 +1112,19 @@ Yes:
 
 ### What is not available for connected datasets?
 
-Datasets that read from [cloud storage](../integrations/index.md) or [On Premise](../integrations/on-premise.md) sources keep their pixels outside Platform, so the features that need Platform-owned copies of the image bytes are unavailable:
+Datasets that read from [cloud storage](../integrations/index.md) or [On Premise](../integrations/on-premise.md) sources keep their pixels outside Platform. Features that need Platform-owned copies of the image bytes are unavailable, and features that read images on Ultralytics GPUs need [AI features](../integrations/index.md#ai-features) on for cloud storage:
 
-| Feature                                                      | Cloud-connected | On Premise  |
-| ------------------------------------------------------------ | --------------- | ----------- |
-| [Smart and Batch Annotation](annotation.md#smart-annotation) | Unavailable     | Unavailable |
-| [Clustering analysis](#clustering)                           | Unavailable     | Unavailable |
-| [Cloning](#clone-dataset)                                    | Unavailable     | Unavailable |
-| [Version snapshots](#versions-tab)                           | Unavailable     | Unavailable |
-| [NDJSON export](#export-dataset)                             | Available       | Unavailable |
-| [Semantic PNG mask import](#preparing-your-dataset)          | Unavailable     | Available   |
-| [Blur faces](#blur-faces)                                    | Unavailable     | Unavailable |
-| [Find similar images](#find-similar-images)                  | Unavailable     | Unavailable |
-| [Generate similar images](#generate-similar-images)          | Unavailable     | Unavailable |
-| [Pasting images](#copy-and-move-images) into the dataset     | Unavailable     | Unavailable |
+| Feature                                                      | Cloud-connected                   | On Premise  |
+| ------------------------------------------------------------ | --------------------------------- | ----------- |
+| [Smart and Batch Annotation](annotation.md#smart-annotation) | With AI features                  | Unavailable |
+| [Clustering analysis](#clustering)                           | With AI features                  | Unavailable |
+| [Cloning](#clone-dataset)                                    | Unavailable                       | Unavailable |
+| [Version snapshots](#versions-tab)                           | Unavailable                       | Unavailable |
+| [NDJSON export](#export-dataset)                             | Available                         | Unavailable |
+| [Semantic PNG mask import](#preparing-your-dataset)          | Unavailable                       | Available   |
+| [Blur faces](#blur-faces)                                    | Unavailable                       | Unavailable |
+| [Find similar images](#find-similar-images)                  | With AI features, browse only     | Unavailable |
+| [Generate similar images](#generate-similar-images)          | With AI features and write access | Unavailable |
+| [Pasting images](#copy-and-move-images) into the dataset     | Unavailable                       | Unavailable |
 
 Browsing, manual annotation, class management, splits, statistics, and training all work normally.

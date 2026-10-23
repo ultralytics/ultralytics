@@ -126,7 +126,7 @@ flowchart TD
 
 Pose annotation uses `Draw` with a skeleton template; its `Smart` mode offers YOLO pose models only, with no SAM picker or auto-apply toggle. Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
 
-Smart annotation is not currently available for [connected datasets](../integrations/index.md) backed by cloud or On Premise storage, or for datasets with more than three image channels.
+Smart annotation needs [AI features](../integrations/index.md#ai-features) on for cloud storage datasets, and is unavailable for On Premise datasets and datasets with more than three image channels.
 
 The editor remembers your mode, model, and auto-apply choice for each dataset in your browser.
 
@@ -613,7 +613,7 @@ Yes, but for best results:
 
 ### Which tasks support SAM smart annotation?
 
-SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. On pose datasets, `Smart` mode runs [YOLO smart annotation](#yolo-smart-annotation) only, and classification uses manual annotation only. Smart annotation is also unavailable on connected cloud and On Premise datasets and on datasets with more than three image channels.
+SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. On pose datasets, `Smart` mode runs [YOLO smart annotation](#yolo-smart-annotation) only, and classification uses manual annotation only. On cloud storage datasets it needs [AI features](../integrations/index.md#ai-features) on, and it is unavailable on On Premise datasets and on datasets with more than three image channels.
 
 ### Can I annotate a whole dataset at once?
 

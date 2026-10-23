@@ -103,7 +103,7 @@ def onnx2saved_model(
         with contextlib.suppress(Exception):  # fails only if TF GPUs are already initialized by earlier user code
             tf.config.set_visible_devices([], "GPU")  # hide GPUs so non-CUDA exports never allocate GPU memory
     check_requirements(
-        f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
+        "onnx2tf>=1.26.3,<1.29.0",  # pin to avoid h5py build issues on aarch64
         cmds="--no-deps",
     )
     check_requirements(
@@ -113,7 +113,7 @@ def onnx2saved_model(
             "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
             "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
             "onnx>=1.12.0,<2.0.0",
-            f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
+            "onnx2tf>=1.26.3,<1.29.0",
             "onnxslim>=0.1.82",
             # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over
             ("onnxruntime-gpu" if cuda else "onnxruntime", "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),

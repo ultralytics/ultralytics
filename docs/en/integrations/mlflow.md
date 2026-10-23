@@ -94,7 +94,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     export MLFLOW_TRACKING_URI=http://127.0.0.1:5000
     ```
 
-4. **Keep the MLflow Run Active After Training**: By default, Ultralytics ends the MLflow run automatically when training finishes. To keep the run open (for example, to log additional metrics or artifacts from the same notebook), set `MLFLOW_KEEP_RUN_ACTIVE` to `True` before training:
+4. **Keep the MLflow Run Active After Training**: By default, Ultralytics ends the MLflow run automatically when training finishes, with status `FAILED` if training raised an error before the run was closed. To keep the run open (for example, to log additional metrics or artifacts from the same notebook), set `MLFLOW_KEEP_RUN_ACTIVE` to `True` before training:
 
     ```bash
     export MLFLOW_KEEP_RUN_ACTIVE=True
@@ -104,7 +104,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
 ### Logging
 
-The logging is taken care of by the `on_pretrain_routine_end`, `on_train_epoch_end`, `on_fit_epoch_end`, and `on_train_end` [callback functions](../reference/utils/callbacks/mlflow.md). These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts.
+The logging is taken care of by the `on_pretrain_routine_end`, `on_train_epoch_end`, `on_fit_epoch_end`, and `on_train_end` [callback functions](../reference/utils/callbacks/mlflow.md). These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts. The `teardown` callback ends a run that a failed training left open.
 
 ## Examples
 

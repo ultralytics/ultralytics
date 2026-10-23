@@ -86,7 +86,7 @@ def on_pretrain_routine_start(trainer) -> None:
             )
             if Task.running_locally():  # a clearml-agent run leaves its task to the agent
                 trainer.add_callback("on_train_end", lambda _: task.close())
-                trainer.add_callback("teardown", lambda _: Task.current_task() is task and _close_failed(task))
+                trainer.add_callback("teardown", lambda _: task.is_main_task() and _close_failed(task))
         task.connect(vars(trainer.args), name="General", ignore_remote_overrides=True)
     except Exception as e:
         LOGGER.warning(f"ClearML installed but not initialized correctly, not logging this run. {e}")

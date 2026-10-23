@@ -36,11 +36,11 @@ keys**. SAS-token connection strings, which contain `SharedAccessSignature` inst
 3. Click **Find available containers**, then select the containers to connect. You can also enter a container name
    manually.
 4. Click **Connect**. Platform verifies it can list and read each selected container before saving anything. Account
-   keys can always create blobs, so every connected container shows **Read and write**.
+   keys can always create blobs, so every connected container can be written to.
 
 ![Ultralytics Platform Azure Blob Storage Integration Settings](https://cdn.ul.run/i/31cc31aaf2fa70640c191aaa4de7984a.avif)<!-- screenshot -->
 
-Each connected container then shows **Read and write** or **Read only**, and each credential has an [AI features](#ai-features) switch.
+Each connected credential has an [AI features](#ai-features) switch.
 
 You need the workspace admin or owner [role](../account/teams.md#roles-and-permissions) to connect cloud storage. You
 can add up to 50 containers at a time, and discovery lists up to 300 containers in the storage account.
@@ -76,7 +76,7 @@ curl -X PATCH \
 
 ## Image Generation
 
-[Generate similar images](../data/datasets.md#generate-similar-images) works on Azure Blob Storage datasets whose container shows **Read and write** while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new blobs there and never overwrites or deletes existing ones. On read-only containers, the action explains that it needs write access.
+[Generate similar images](../data/datasets.md#generate-similar-images) works on Azure Blob Storage datasets while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new blobs there and never overwrites or deletes existing ones. On read-only containers, the action explains that it needs write access.
 
 ## Create a Dataset from a Blob Container
 

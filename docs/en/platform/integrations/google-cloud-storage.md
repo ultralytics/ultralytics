@@ -41,7 +41,7 @@ Read access covers everything except [image generation](#image-generation), whic
 
 ![Ultralytics Platform Google Cloud Storage Integration Settings](https://cdn.ul.run/i/e6224d9cf7306aec08d6cc53b3c7d70c.avif)<!-- screenshot -->
 
-Each connected bucket then shows **Read and write** or **Read only**, and each credential has an [AI features](#ai-features) switch. After you change its roles, connect the same service account again to recheck write access.
+Each connected credential has an [AI features](#ai-features) switch. After you change its roles, connect the same service account again to recheck write access.
 
 You need the workspace admin or owner [role](../account/teams.md#roles-and-permissions) to connect cloud storage. You
 can add up to 50 buckets at a time, and discovery lists up to 300 of the buckets the service account can see.
@@ -80,7 +80,7 @@ curl -X PATCH \
 
 ## Image Generation
 
-[Generate similar images](../data/datasets.md#generate-similar-images) works on Google Cloud Storage datasets whose bucket shows **Read and write** while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new objects there and never overwrites or deletes existing ones. On read-only buckets, the action explains that it needs write access.
+[Generate similar images](../data/datasets.md#generate-similar-images) works on Google Cloud Storage datasets whose bucket the service account can write to, while AI features are on. Images you add are written to a `generated/` folder inside the dataset's folder, then added to the dataset like any other indexed image. Platform only creates new objects there and never overwrites or deletes existing ones. On read-only buckets, the action explains that it needs write access.
 
 ## Create a Dataset from a GCS Bucket
 

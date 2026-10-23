@@ -1838,8 +1838,8 @@ class LetterBox(BaseTransform):
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=self.interpolation)
-            if img.ndim == 2:
-                img = img[..., None]
+        if img.ndim == 2:  # single-channel input (e.g. SAM mask prompts), needs a channel dim for unpack and pad below
+            img = img[..., None]
 
         h, w, c = img.shape
         top, bottom = params["top"], params["bottom"]

@@ -71,11 +71,11 @@ class YOLO(Model):
             verbose (bool): Display model info on load.
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
-        if "-world" in path.stem and path.suffix in {".yaml", ".yml"}:  # if YOLOWorld YAML
+        if "-world" in path.stem and path.suffix.lower() in {".yaml", ".yml"}:  # if YOLOWorld YAML
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
-        elif "yoloe" in path.stem and path.suffix in {".yaml", ".yml"}:  # if YOLOE YAML
+        elif "yoloe" in path.stem and path.suffix.lower() in {".yaml", ".yml"}:  # if YOLOE YAML
             new_instance = YOLOE(path, task=task, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__

@@ -59,8 +59,15 @@ jobs:
                   headers={"PRIVATE-TOKEN": token, "Content-Type": content_type},
                   method=method,
               )
-              with urllib.request.urlopen(request, timeout=60) as response:
-                  return None if response.status == 204 else json.load(response)
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(request, timeout=60) as response:
+                          return None if response.status == 204 else json.load(response)
+                  except urllib.error.HTTPError as error:
+                      # GitLab.com per-minute limits reset within a minute; longer waits (daily limits) fail the repo.
+                      if error.code != 429 or attempt > 1 or (wait := int(error.headers.get("Retry-After", 60))) > 60:
+                          raise
+                      time.sleep(wait)
 
           def unprotect(project):
               for kind in ("branches", "tags"):

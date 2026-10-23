@@ -74,7 +74,7 @@ The YOLO26 depth family is evaluated zero-shot on the iBims-1 benchmark. These m
 
 If you use the iBims-1 dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

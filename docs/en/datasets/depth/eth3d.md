@@ -74,7 +74,7 @@ The YOLO26 depth family is evaluated zero-shot on the ETH3D benchmark. These mod
 
 If you use the ETH3D dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

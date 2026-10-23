@@ -1625,7 +1625,7 @@ def test_utils_profile():
     assert Profile().device_type is None and Profile().accelerator is None
     assert Profile(device="cpu").device_type == "cpu" and Profile(device="cpu").accelerator is None
     assert Profile(device=torch.device("cpu")).accelerator is None
-    if torch.backends.mps.is_available():
+    if TORCH_2_0 and torch.backends.mps.is_available():  # same guard as select_device; torch.mps needs torch>=2.0
         x = torch.ones(256, 256, device="mps")
         with Profile(device="mps") as dt:
             x @ x

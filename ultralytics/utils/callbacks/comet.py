@@ -469,7 +469,7 @@ def _log_plots(experiment, trainer) -> None:
         ]
 
     if plot_filenames is not None:
-        _log_images(experiment, plot_filenames, None)
+        _log_images(experiment, [f for f in plot_filenames if f.exists()], None)
 
     confusion_matrix_filenames = [trainer.save_dir / f"{plots}.png" for plots in CONFUSION_MATRIX_PLOT_NAMES]
     _log_images(experiment, confusion_matrix_filenames, None)

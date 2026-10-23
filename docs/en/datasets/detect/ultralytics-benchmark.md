@@ -181,15 +181,19 @@ results = YOLO("yolo27n.pt").train(
 If you use Ultralytics Benchmark in your work, please cite the
 [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748):
 
-```bibtex
-@misc{jocher2026ultralyticsyolo26unifiedrealtime,
-  title = {Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models},
-  author = {Glenn Jocher and Jing Qiu and Mengyu Liu and Shuai Lyu and Fatih Cagatay Akyon and Muhammet Esat Kalfaoglu},
-  year = {2026},
-  eprint = {2606.03748},
-  archivePrefix = {arXiv},
-  primaryClass = {cs.CV},
-  doi = {10.48550/arXiv.2606.03748},
-  url = {https://arxiv.org/abs/2606.03748},
-}
-```
+!!! quote "Citation"
+
+    === "BibTeX"
+
+        ```bibtex
+        @misc{jocher2026ultralyticsyolo26unifiedrealtime,
+          title = {Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models},
+          author = {Glenn Jocher and Jing Qiu and Mengyu Liu and Shuai Lyu and Fatih Cagatay Akyon and Muhammet Esat Kalfaoglu},
+          year = {2026},
+          eprint = {2606.03748},
+          archivePrefix = {arXiv},
+          primaryClass = {cs.CV},
+          doi = {10.48550/arXiv.2606.03748},
+          url = {https://arxiv.org/abs/2606.03748},
+        }
+        ```

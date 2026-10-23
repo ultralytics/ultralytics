@@ -80,7 +80,7 @@ This example provides simple YOLOv3 training and inference examples. For full do
 
 If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -167,7 +167,7 @@ YOLOv3, YOLOv3-Tiny and YOLOv3-SPP primarily support object detection tasks. The
 
 If you use YOLOv3 in your research, please cite the original YOLO papers and the Ultralytics YOLOv3 repository. Example BibTeX citation:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

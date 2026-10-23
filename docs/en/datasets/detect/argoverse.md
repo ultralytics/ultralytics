@@ -122,7 +122,7 @@ The Argoverse-HD dataset contains high-resolution driving images captured from a
 
 The Argoverse-HD 2D detection annotations used in this dataset come from Carnegie Mellon University's streaming-perception work. If you use the dataset in your research or development, please cite:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

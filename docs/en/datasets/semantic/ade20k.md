@@ -88,7 +88,7 @@ ADE20K images are released for [non-commercial research and educational use only
 
 If you use the ADE20K dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

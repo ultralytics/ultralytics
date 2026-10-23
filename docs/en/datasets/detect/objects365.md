@@ -158,7 +158,7 @@ The Objects365 dataset contains diverse, high-resolution images with dense bound
 
 If you use the Objects365 dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

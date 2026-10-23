@@ -248,10 +248,8 @@ class ONNXBackend(BaseBackend):
                         self.session_options = onnxruntime.SessionOptions()
                         policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
                         self.session_options.set_provider_selection_policy(policy)
-                    self.device, cuda = (
-                        torch.device("cpu"),
-                        False,
-                    )  # outputs are host arrays, no CUDA IO binding                else:
+                    self.device, cuda = torch.device("cpu"), False  # host arrays, no CUDA IO binding
+                else:
                     providers = ["CPUExecutionProvider"]
 
                 try:

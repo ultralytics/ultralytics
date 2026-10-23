@@ -187,6 +187,8 @@ Switch to table view for side-by-side comparison of training arguments and final
 
 ## Upload Models
 
+You can also [import models from W&B](../integrations/weights-biases.md) into automatically created or existing projects.
+
 Upload existing `.pt` model files:
 
 1. **Drag and drop** files onto the project page or models sidebar

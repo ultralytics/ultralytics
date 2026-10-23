@@ -114,7 +114,7 @@ Below is a detailed overview of each model, including links to their pretrained 
 
 If you employ YOLO-NAS in your research or development work, please cite SuperGradients:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

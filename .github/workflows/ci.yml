@@ -412,43 +412,91 @@ jobs:
       - name: Cleanup disk space
         uses: ultralytics/actions/cleanup-disk@main
       - uses: actions/checkout@v7
-      - name: Export with AutoInstall in a fresh ultralytics/ultralytics:latest container per format
-        env:
-          # One export per line, overriding the defaults model=yolo26n.pt imgsz=160
-          EXPORTS: |-
-            torchscript
-            onnx
-            openvino
-            coreml
-            coreai
-            saved_model
-            pb
-            edgetpu imgsz=320
-            litert
-            paddle
-            mnn
-            ncnn
-            imx model=yolo11n.pt
-            rknn
-            executorch
-            axelera
-            deepx
-            qnn
-            xilinx
-        # The first attempt may fail once AutoUpdate replaces an imported package; the rerun must pass
-        run: |
-          status=0
-          while read -r export; do
-            echo "::group::$export"
-            docker run --rm -e ARGS="model=yolo26n.pt imgsz=160 format=$export" -v "$PWD":/src:ro ultralytics/ultralytics:latest bash -c '
-              set -e
-              tar -C /src --exclude=.git -cf - . | tar -C /ultralytics -xf -
-              cd /tmp
-              yolo export $ARGS || yolo export $ARGS
-            ' || { status=1; echo "::error::$export failed"; }
-            echo "::endgroup::"
-          done <<< "$EXPORTS"
-          exit $status
+      # Each export runs in a fresh ultralytics/ultralytics:latest container with the checkout copied in.
+      # The first attempt may fail once AutoUpdate replaces an imported package; the rerun must pass.
+      - parallel:
+          - name: TorchScript
+            env:
+              ARGS: format=torchscript
+            run: &export |
+              docker run --rm -e ARGS -v "$PWD":/src:ro ultralytics/ultralytics:latest bash -c '
+                set -e
+                tar -C /src --exclude=.git -cf - . | tar -C /ultralytics -xf -
+                cd /tmp
+                yolo export model=yolo26n.pt imgsz=160 $ARGS || yolo export model=yolo26n.pt imgsz=160 $ARGS
+              '
+          - name: ONNX
+            env:
+              ARGS: format=onnx
+            run: *export
+          - name: OpenVINO
+            env:
+              ARGS: format=openvino
+            run: *export
+          - name: CoreML
+            env:
+              ARGS: format=coreml
+            run: *export
+          - name: Core AI
+            env:
+              ARGS: format=coreai
+            run: *export
+          - name: TF SavedModel
+            env:
+              ARGS: format=saved_model
+            run: *export
+          - name: TF GraphDef
+            env:
+              ARGS: format=pb
+            run: *export
+          - name: TF Edge TPU
+            env:
+              ARGS: format=edgetpu imgsz=320 # Edge TPU compiler fails on YOLO26n at imgsz=160
+            run: *export
+          - name: LiteRT
+            env:
+              ARGS: format=litert
+            run: *export
+          - name: PaddlePaddle
+            env:
+              ARGS: format=paddle
+            run: *export
+          - name: MNN
+            env:
+              ARGS: format=mnn
+            run: *export
+          - name: NCNN
+            env:
+              ARGS: format=ncnn
+            run: *export
+          - name: IMX
+            env:
+              ARGS: format=imx model=yolo11n.pt # IMX supports YOLOv8n and YOLO11n only
+            run: *export
+          - name: RKNN
+            env:
+              ARGS: format=rknn
+            run: *export
+          - name: ExecuTorch
+            env:
+              ARGS: format=executorch
+            run: *export
+          - name: Axelera
+            env:
+              ARGS: format=axelera
+            run: *export
+          - name: DeepX
+            env:
+              ARGS: format=deepx
+            run: *export
+          - name: QNN
+            env:
+              ARGS: format=qnn
+            run: *export
+          - name: Xilinx
+            env:
+              ARGS: format=xilinx
+            run: *export
 
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')

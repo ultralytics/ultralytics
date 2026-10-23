@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import os
-import platform
 import shutil
 import sys
 from functools import lru_cache
@@ -28,7 +27,7 @@ ROCM_EXTRA_INDEX = (
 ROCM_EP_PACKAGES = ["onnxruntime-ep-migraphx==1.0.0+rocm10.0.0", "migraphx-libs==2.17.0+rocm10.0.0"]
 MIGRAPHX_CACHE_MODELS = 8  # compiled programs kept in the MIGraphX cache, least recently used evicted first
 # Windows ML (onnxruntime-windowsml) on Windows 11 24H2 (build 26100) or newer, with wheels from Python 3.10
-WINML_SUPPORTED = WINDOWS and int(platform.version().rsplit(".", 1)[-1]) >= 26100 and sys.version_info >= (3, 10)
+WINML_SUPPORTED = WINDOWS and sys.getwindowsversion().build >= 26100 and sys.version_info >= (3, 10)
 
 
 def _register_migraphx_ep(onnxruntime) -> str:
@@ -244,8 +243,8 @@ class ONNXBackend(BaseBackend):
                     providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
                 elif winml:  # Windows ML selects execution providers using its maximum-performance policy
                     providers = None
-                    if self.session_options is None:
-                        self.session_options = onnxruntime.SessionOptions()
+                    self.session_options = self.session_options or onnxruntime.SessionOptions()
+                    if not self.session_options.has_providers():
                         policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
                         self.session_options.set_provider_selection_policy(policy)
                     self.device, cuda = torch.device("cpu"), False  # host arrays, no CUDA IO binding

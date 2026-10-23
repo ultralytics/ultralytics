@@ -37,11 +37,23 @@ Read access covers everything except [image generation](#image-generation), whic
 
     `s3:ListAllMyBuckets` is optional — it lets Platform discover your buckets so you don't have to type their names.
 
-    For [image generation](#image-generation), also allow `s3:PutObject` on the bucket:
+    For [image generation](#image-generation), also allow `s3:PutObject`:
 
     ```json
-    { "Effect": "Allow", "Action": "s3:PutObject", "Resource": "arn:aws:s3:::my-bucket/*" }
+    {
+        "Effect": "Allow",
+        "Action": "s3:PutObject",
+        "Resource": [
+            "arn:aws:s3:::my-bucket/generated/*",
+            "arn:aws:s3:::my-bucket/*/generated/*",
+            "arn:aws:s3:::my-bucket/.ultralytics-write-check"
+        ]
+    }
     ```
+
+    S3 has no create-only permission, so this scopes writes to `generated/` folders and the `.ultralytics-write-check`
+    key Platform uses to test write access (that test is always rejected, so nothing is stored). Platform's own writes
+    never overwrite.
 
 3. Open the user's **Security credentials** tab, create an **access key**, and copy the access key ID and secret access key.
 

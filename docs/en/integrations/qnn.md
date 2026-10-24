@@ -17,8 +17,8 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
 
     Export classification models at `imgsz=224`. Export detect, segment, semantic, depth, pose, and OBB models at
     `imgsz=640`. This 224/640 standard is shared by the official QNN, LiteRT, and CoreML mobile assets.
-    Ready-to-run v73 and v81 assets for all seven nano tasks are published in the
-    [yolo-flutter-app `v0.6.6` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.6.6).
+    Ready-to-run v73 and v81 assets for all seven tasks in every size (`n` to `x`) are published in the
+    [yolo-flutter-app `v0.7.0` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.7.0).
 
 ## What is Qualcomm QNN?
 
@@ -59,24 +59,24 @@ The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context bina
 
 ### Android Phone
 
-**Hardware:** [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) with 12 GB LPDDR5X memory and Android 16 /
-API 36. Its 3 nm [Snapdragon 8 Elite Gen 5](https://www.qualcomm.com/smartphones/products/8-series/snapdragon-8-elite-gen-5)
+**Hardware:** [Xiaomi 17](https://www.mi.com/global/product/xiaomi-17/) with 12 GB LPDDR5X memory and Android 17 /
+API 37. Its 3 nm [Snapdragon 8 Elite Gen 5](https://www.qualcomm.com/smartphones/products/8-series/snapdragon-8-elite-gen-5)
 (SM8850) has an 8-core Qualcomm Oryon CPU (2 Prime cores up to 4.6 GHz and 6 Performance cores up to 3.62 GHz),
 Adreno GPU, and Hexagon NPU (HTP v81).
 
 | Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>  | NPU<br><sup>QNN W8A16<br>(ms)</sup>    |
 | ------------- | -------- | --------------------------- | -------------------------------------- | --------------------------------------- | -------------------------------------- |
-| YOLO26n       | Detect   | 640                         | 52.2<br><sup>1.8 / 48.1 / 2.4</sup>    | 15.8<br><sup>2.3 / 8.9 / 4.6</sup>      | **10.7**<br><sup>1.8 / 6.7 / 2.2</sup> |
-| YOLO26n-seg   | Segment  | 640                         | 73.4<br><sup>1.8 / 65.6 / 6.0</sup>    | 33.2<br><sup>1.8 / 23.8 / 7.6</sup>     | **17.4**<br><sup>1.8 / 9.9 / 5.7</sup> |
-| YOLO26n-sem   | Semantic | 640                         | 61.2<br><sup>1.8 / 51.1 / 8.3</sup>    | 34.2<br><sup>1.8 / 24.0 / 8.3</sup>     | **11.5**<br><sup>1.8 / 7.1 / 2.6</sup> |
-| YOLO26n-depth | Depth    | 640                         | 124.4<br><sup>1.9 / 115.1 / 7.4</sup>  | **23.0**<br><sup>1.8 / 13.5 / 7.7</sup> | 35.2<br><sup>1.8 / 26.1 / 7.3</sup>    |
-| YOLO26n-cls   | Classify | 224                         | 4.4<br><sup>0.4 / 4.0 / 0.0</sup>      | 3.1<br><sup>0.8 / 2.1 / 0.2</sup>       | **1.2**<br><sup>0.6 / 0.6 / 0.0</sup>  |
-| YOLO26n-pose  | Pose     | 640                         | 57.4<br><sup>1.8 / 53.8 / 1.8</sup>    | 16.6<br><sup>2.7 / 10.1 / 3.9</sup>     | **10.9**<br><sup>1.8 / 7.0 / 2.0</sup> |
-| YOLO26n-obb   | OBB      | 640                         | 50.3<br><sup>1.8 / 47.2 / 1.4</sup>    | 11.7<br><sup>1.8 / 7.8 / 2.0</sup>      | **8.6**<br><sup>1.8 / 5.7 / 1.1</sup>  |
+| YOLO26n | Detect | 640 | 36.9<br><sup>1.9 / 32.6 / 2.3</sup> | 10.6<br><sup>1.8 / 6.2 / 2.6</sup> | **10.2**<br><sup>1.9 / 6.0 / 2.3</sup> |
+| YOLO26n-seg | Segment | 640 | 50.5<br><sup>1.9 / 42.9 / 5.8</sup> | 18.0<br><sup>1.9 / 9.5 / 6.6</sup> | **16.2**<br><sup>2.1 / 8.4 / 5.7</sup> |
+| YOLO26n-sem | Semantic | 640 | 45.7<br><sup>1.9 / 35.7 / 8.2</sup> | 30.6<br><sup>1.9 / 20.5 / 8.3</sup> | **10.8**<br><sup>2.0 / 6.2 / 2.6</sup> |
+| YOLO26n-depth | Depth | 640 | 66.8<br><sup>2.2 / 55.0 / 9.7</sup> | 21.9<br><sup>2.1 / 10.1 / 9.8</sup> | **19.3**<br><sup>2.2 / 7.4 / 9.7</sup> |
+| YOLO26n-cls | Classify | 224 | 3.6<br><sup>0.3 / 3.3 / 0.0</sup> | 2.0<br><sup>0.4 / 1.4 / 0.2</sup> | **0.8**<br><sup>0.3 / 0.5 / 0.0</sup> |
+| YOLO26n-pose | Pose | 640 | 39.9<br><sup>2.0 / 36.5 / 1.4</sup> | 10.0<br><sup>1.8 / 6.7 / 1.4</sup> | **9.7**<br><sup>1.9 / 5.9 / 1.8</sup> |
+| YOLO26n-obb | OBB | 640 | 36.3<br><sup>2.0 / 33.2 / 1.2</sup> | 10.1<br><sup>2.6 / 5.9 / 1.6</sup> | **8.1**<br><sup>1.9 / 5.1 / 1.0</sup> |
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`,
-  measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) `0.6.10` on-device benchmark
-  harness and the standardized `v0.6.6` assets. Backend order rotated between tasks in one sequential sweep. Native
+  measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) `0.7.0` on-device benchmark
+  harness and the official `v0.7.0` assets (Ultralytics 8.4.188 exports). Backend order rotated between tasks in one sequential sweep. Native
   logs confirmed that every CPU row used LiteRT CPU/XNNPACK, every GPU row delegated the complete graph to LiteRT
   OpenCL (`LITERT_CL`), and every NPU row used the QNN Hexagon HTP backend.
 - The detailed benchmark record is in the

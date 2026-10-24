@@ -262,7 +262,7 @@ def export_formats():
             False,
             False,
             ["batch", "name", "quantize", "opset", "simplify", "fraction", "data"],
-            "base",
+            "qnn",
         ],
         [
             "Hailo",
@@ -427,6 +427,15 @@ EXPORT_ENVS = {
         "indexes": [],
         "env": {},
         "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
+    },
+    "qnn": {
+        "python": "3.14",
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["onnxruntime-qnn"],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=qnn model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
 }
 

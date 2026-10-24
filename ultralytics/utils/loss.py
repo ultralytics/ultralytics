@@ -850,7 +850,11 @@ class PoseLoss26(v8PoseLoss):
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts)
         gt_kpts = self._batch_keypoints(batch, batch_size, imgsz)
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(
-            preds, batch, pd_kpts=pred_kpts.detach()[..., :2] * stride_tensor[:, None], gt_kpts=gt_kpts
+            preds,
+            batch,
+            pd_kpts=pred_kpts.detach()[..., :2] * stride_tensor[:, None],
+            gt_kpts=gt_kpts,
+            anc_strides=stride_tensor.view(-1),
         )
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 

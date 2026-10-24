@@ -314,12 +314,12 @@ Export jobs progress through the following statuses:
 
 ### Open on iPhone or Android
 
-Run Core ML, Core AI, and LiteRT exports on your phone in the free Ultralytics YOLO app ([App Store](https://apps.apple.com/app/ultralytics-yolo/id1452689527), [Google Play](https://play.google.com/store/apps/details?id=com.ultralytics.yolo)):
+Run CoreML, Core AI, and LiteRT exports on your phone in the free Ultralytics YOLO app ([App Store](https://apps.apple.com/app/ultralytics-yolo/id1452689527), [Google Play](https://play.google.com/store/apps/details?id=com.ultralytics.yolo)):
 
-1. Open the export dialog for **CoreML**, **Core AI**, or **LiteRT**. The app box shows a green check when the settings work in the app, or a yellow warning that names the setting to change. Click **Use iPhone app defaults** or **Use Android app defaults** to apply the settings of the official app models: INT8 Core ML (NMS-free for YOLO26), FP16 Core AI, or W8A32 LiteRT, at batch 1 and 640 px (224 px for classification).
+1. Open the export dialog for **CoreML**, **Core AI**, or **LiteRT**. The app box shows a green check when the settings work in the app, or a yellow warning that names the setting to change. Click **Use iPhone app defaults** or **Use Android app defaults** to apply the settings of the official app models: INT8 CoreML (NMS-free for YOLO26), FP16 Core AI, or W8A32 LiteRT, at batch 1 and 640 px (224 px for classification).
 2. Click **Start Export** and wait for the export to complete.
 3. Click the QR button on the completed export.
-4. In the Ultralytics YOLO app, tap the QR button in the bottom toolbar and point the camera at the code.
+4. In the Ultralytics YOLO app, tap the QR button in the bottom bar and point the camera at the code.
 5. Confirm the model name, task, and download size. The app installs the model in the **Custom** section of its model picker, and it works offline.
 
 ![Ultralytics Platform CoreML Export Dialog iPhone App Box](https://cdn.ul.run/i/b3497c87adac56039a1b6dfce091cbe6.avif)<!-- screenshot -->

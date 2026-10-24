@@ -180,6 +180,21 @@ def test_convert_classify_ndjson_skips_unlabeled_images(tmp_path, depth_server):
     ]
 
 
+def test_convert_classify_ndjson_rejects_all_unlabeled_images(tmp_path):
+    """Reject a classification dataset with no labeled images before issuing downloads."""
+    manifest = tmp_path / "unlabeled.ndjson"
+    records = [
+        {"type": "dataset", "task": "classify", "class_names": {"0": "cat"}},
+        {"file": "a.jpg", "url": "http://127.0.0.1:1/a.jpg", "split": "train"},
+        {"file": "b.jpg", "url": "http://127.0.0.1:1/b.jpg", "split": "val", "annotations": {}},
+    ]
+    manifest.write_text("\n".join(json.dumps(record) for record in records))
+
+    with pytest.raises(ValueError, match=r"No labeled classification images remain in unlabeled\.ndjson"):
+        asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+    assert not any(p.is_dir() for p in (tmp_path / "datasets").iterdir())  # only the conversion lock file
+
+
 def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
     """Select requested splits while preserving full metadata and two-item list behavior."""
     base_url, _ = depth_server

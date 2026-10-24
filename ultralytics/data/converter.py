@@ -1016,6 +1016,11 @@ async def _convert_ndjson_to_yolo(
         # Classification has no background class, so unlabeled images must not land in a real class folder
         labeled = [r for r in image_records if r.get("annotations", {}).get("classification")]
         if skipped := len(image_records) - len(labeled):
+            if not labeled:
+                raise ValueError(
+                    f"No labeled classification images remain in {ndjson_path.name} after skipping {skipped} "
+                    "unlabeled image(s). Label images before converting."
+                )
             LOGGER.warning(f"Skipping {skipped} unlabeled classification image(s) in {ndjson_path.name}")
             image_records = labeled
             _h.update(b"skip-unlabeled")  # invalidate conversions cached before unlabeled images were skipped

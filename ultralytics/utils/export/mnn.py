@@ -4,18 +4,17 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import struct
 from pathlib import Path
 
 from ultralytics.utils import LOGGER
+from ultralytics.utils.files import clear_execstack
 
 
 def import_mnn():
     """Import MNN, first clearing the executable-stack flag that glibc>=2.41 refuses in its x86_64 Linux wheels.
 
     MNN's x86_64 assembly kernels lack a ``.note.GNU-stack`` section, so the linker marks its extension modules as
-    requiring an executable stack that they never use (https://github.com/alibaba/MNN/issues/3390). Clearing PF_X on
-    their PT_GNU_STACK program header lets glibc load them.
+    requiring an executable stack that they never use (https://github.com/alibaba/MNN/issues/3390).
 
     Returns:
         (module): The imported ``MNN`` package.
@@ -28,15 +27,7 @@ def import_mnn():
         for name in "_mnncengine", "_tools":  # MNN core and MNN.tools extension modules
             file = importlib.util.find_spec(name).origin
             LOGGER.warning(f"Clearing the executable-stack flag that glibc>=2.41 refuses in {file}")
-            with open(file, "r+b") as f:
-                h = f.read(64)
-                (phoff,), (phentsize, phnum) = struct.unpack_from("<Q", h, 32), struct.unpack_from("<HH", h, 54)
-                for i in range(phnum):
-                    f.seek(phoff + i * phentsize)
-                    p_type, p_flags = struct.unpack("<II", f.read(8))
-                    if p_type == 0x6474E551:  # PT_GNU_STACK
-                        f.seek(-4, 1)
-                        f.write(struct.pack("<I", p_flags & ~1))  # clear PF_X
+            clear_execstack(file)
         import MNN
     return MNN
 

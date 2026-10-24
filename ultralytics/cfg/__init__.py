@@ -212,6 +212,7 @@ CFG_FLOAT_KEYS = frozenset(
         "pose",
         "kobj",
         "kptz",
+        "kpt3d",
         "rle",
         "angle",
         "dlog",

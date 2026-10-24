@@ -108,6 +108,7 @@ dfl: 1.5 # (float) box distance loss gain (DFL when reg_max > 1, L1 on DFL-free 
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 kptz: 4.0 # (float) keypoint depth loss gain (pose3d task)
+kpt3d: 4.0 # (float) metric MPJPE loss gain on the lifted root-relative skeleton (pose3d task)
 rle: 1.0 # (float) rle loss gain (pose tasks)
 angle: 1.0 # (float) oriented angle loss gain (obb tasks)
 dlog: 1.0 # (float) depth log (SILog) loss gain (depth tasks)

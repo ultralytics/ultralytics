@@ -834,25 +834,30 @@ class Pose3DLoss(v8PoseLoss):
     """
 
     def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int = 10):
-        """Initialize the 3D pose criterion and extend the loss names with the two depth terms."""
+        """Initialize the 3D pose criterion and extend the loss names with the depth and metric-skeleton terms."""
         super().__init__(model, tal_topk, tal_topk2)
-        self.loss_names = ("box_loss", "pose_loss", "kobj_loss", "zrel_loss", "zroot_loss", *self.loss_names[3:])
+        self.loss_names = (
+            "box_loss",
+            "pose_loss",
+            "kobj_loss",
+            "zrel_loss",
+            "zroot_loss",
+            *self.loss_names[3:],
+            "mpjpe_loss",
+        )
         # H10 research hook: a body-structure prior (bone lengths against the teacher's rig-consistent skeleton,
-        # plus left/right symmetry), the train-time-only part of a parametric body model. Off unless set.
-        # H12 research hook: MPJPE in metres on the lifted root-relative skeleton, the quantity the benchmark scores,
-        # rather than per-joint L1 in the encoded [0, 1] space. Off unless set.
-        self.extra_gains = {
-            k: float(os.environ.get(f"POSE3D_{k.upper()}_GAIN", 0.0)) for k in ("bone", "mpjpe")
-        }
-        self.extra_gains = {k: g for k, g in self.extra_gains.items() if g > 0}
-        self.loss_names = (*self.loss_names, *(f"{k}_loss" for k in self.extra_gains))
+        # plus left/right symmetry), the train-time-only part of a parametric body model. Refuted; off unless set.
+        self.bone_gain = float(os.environ.get("POSE3D_BONE_GAIN", 0.0))
+        if self.bone_gain > 0:
+            self.loss_names = (*self.loss_names, "bone_loss")
 
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
     ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        """Calculate the total loss, with the two depth terms appended to the 2D pose losses."""
+        """Calculate the total loss: the 2D pose losses plus the two depth terms and the metric-skeleton term."""
         pred_kpts = preds["kpts"].permute(0, 2, 1).contiguous()
-        loss = torch.zeros(len(self.loss_names), device=self.device)  # box, kpt, kobj, zrel, zroot, cls, dfl[, bone]
+        # box, kpt, kobj, zrel, zroot, cls, dfl, mpjpe[, bone]
+        loss = torch.zeros(len(self.loss_names), device=self.device)
         (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
             self.get_assigned_targets_and_loss(preds, batch)
         )
@@ -867,7 +872,7 @@ class Pose3DLoss(v8PoseLoss):
             keypoints = batch["keypoints"].to(self.device).float().clone()
             keypoints[..., 0] *= imgsz[1]
             keypoints[..., 1] *= imgsz[0]
-            loss[1], loss[2], loss[3], loss[4], extras = self.calculate_keypoints_loss(
+            loss[1], loss[2], loss[3], loss[4], loss[7], bone = self.calculate_keypoints_loss(
                 fg_mask,
                 target_gt_idx,
                 keypoints,
@@ -876,8 +881,8 @@ class Pose3DLoss(v8PoseLoss):
                 target_bboxes,
                 pred_kpts,
             )
-            for i, (k, g) in enumerate(self.extra_gains.items()):
-                loss[7 + i] = extras[k] * g
+            if self.bone_gain > 0:
+                loss[8] = bone * self.bone_gain
         else:
             # WARNING: prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
             loss[1] += pred_kpts[..., :0].sum()
@@ -886,6 +891,7 @@ class Pose3DLoss(v8PoseLoss):
         loss[2] *= self.hyp.kobj
         loss[3] *= self.hyp.kptz
         loss[4] *= self.hyp.kptz
+        loss[7] *= self.hyp.kpt3d
 
         return loss * batch_size, dict(zip(self.loss_names, loss.detach()))
 
@@ -898,15 +904,16 @@ class Pose3DLoss(v8PoseLoss):
         stride_tensor: torch.Tensor,
         target_bboxes: torch.Tensor,
         pred_kpts: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Return the (location, visibility, relative-depth, root-depth) losses for the matched anchors.
+    ) -> tuple[torch.Tensor, ...]:
+        """Return the (location, visibility, relative-depth, root-depth, MPJPE, bone) losses for the matched anchors.
 
         Note the visibility mask: the parent keys it off `shape[-1] == 3`, which is False here and would silently
         supervise invisible keypoints against zeroed targets, so it is recomputed from channel 2 directly.
         """
         selected_keypoints = self._select_target_keypoints(keypoints, batch_idx, target_gt_idx, masks)
-        kpts_loss = kpts_obj_loss = zrel_loss = zroot_loss = torch.zeros(1, device=self.device).squeeze()
-        extras = {k: torch.zeros(1, device=self.device).squeeze() for k in self.extra_gains}
+        kpts_loss = kpts_obj_loss = zrel_loss = zroot_loss = mpjpe_loss = bone_loss = torch.zeros(
+            1, device=self.device
+        ).squeeze()
 
         if masks.any():
             target_bboxes = target_bboxes / stride_tensor
@@ -930,20 +937,36 @@ class Pose3DLoss(v8PoseLoss):
             root_mask = kpt_mask[:, -1]
             if root_mask.any():
                 zroot_loss = ((pred_z[:, -1] - gt_z[:, -1]).abs() * root_mask).sum() / root_mask.sum()
-            if self.extra_gains and rel_mask.any():
+            if rel_mask.any():
+                # MPJPE in metres on the lifted root-relative skeleton — the quantity the benchmark scores. The
+                # encoded L1 above sees each depth channel alone; this sees 2D, relative and root depth together
+                # through x = (u - cx) z / f. H12: -3.9 mm 3DPW MPJPE at gain 4 with no 2D cost.
                 stride = stride_tensor.view(1, -1).expand(masks.shape[0], -1)[masks][:, None, None]
                 P, G = self._lift(pred_kpt[..., :2] * stride, pred_z), self._lift(gt_kpt[..., :2] * stride, gt_z)
-                if "bone" in extras:
-                    extras["bone"] = self._bone_prior(P, G, gt_kpt[..., 2] == 2)
-                if "mpjpe" in extras:
-                    err = ((P[:, :-1] - P[:, -1:]) - (G[:, :-1] - G[:, -1:])).norm(dim=-1)  # metres
-                    extras["mpjpe"] = (err * rel_mask).sum() / rel_mask.sum()
+                err = ((P[:, :-1] - P[:, -1:]) - (G[:, :-1] - G[:, -1:])).norm(dim=-1)
+                mpjpe_loss = (err * rel_mask).sum() / rel_mask.sum()
+                if self.bone_gain > 0:
+                    bone_loss = self._bone_prior(P, G, gt_kpt[..., 2] == 2)
 
-        return kpts_loss, kpts_obj_loss, zrel_loss, zroot_loss, extras
+        return kpts_loss, kpts_obj_loss, zrel_loss, zroot_loss, mpjpe_loss, bone_loss
 
     # COCO-17 bones plus the two hip-root spokes (root = joint 17), and the left/right limb pairs among them.
-    BONES = ((5, 7), (7, 9), (6, 8), (8, 10), (11, 13), (13, 15), (12, 14), (14, 16), (5, 6), (11, 12), (5, 11),
-             (6, 12), (11, 17), (12, 17))
+    BONES = (
+        (5, 7),
+        (7, 9),
+        (6, 8),
+        (8, 10),
+        (11, 13),
+        (13, 15),
+        (12, 14),
+        (14, 16),
+        (5, 6),
+        (11, 12),
+        (5, 11),
+        (6, 12),
+        (11, 17),
+        (12, 17),
+    )
     BONE_PAIRS = ((0, 2), (1, 3), (4, 6), (5, 7), (10, 11), (12, 13))
 
     def _lift(self, xy, zenc, focal_ratio: float = 1.2):
@@ -966,9 +989,11 @@ class Pose3DLoss(v8PoseLoss):
         if not ok.any():
             return Lp.sum() * 0
         length = ((Lp - Lg).abs() / Lg.clamp_min(0.05) * ok).sum() / ok.sum()
-        l, r = [i for i, _ in self.BONE_PAIRS], [j for _, j in self.BONE_PAIRS]
-        okp = ok[:, l] * ok[:, r]
-        sym = ((Lp[:, l] - Lp[:, r]).abs() / (Lp[:, l] + Lp[:, r]).clamp_min(1e-3) * 2 * okp).sum() / okp.sum().clamp_min(1)
+        left, right = [i for i, _ in self.BONE_PAIRS], [j for _, j in self.BONE_PAIRS]
+        okp = ok[:, left] * ok[:, right]
+        sym = (
+            (Lp[:, left] - Lp[:, right]).abs() / (Lp[:, left] + Lp[:, right]).clamp_min(1e-3) * 2 * okp
+        ).sum() / okp.sum().clamp_min(1)
         return length + sym
 
 

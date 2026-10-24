@@ -64,15 +64,15 @@ API 37. Its 3 nm [Snapdragon 8 Elite Gen 5](https://www.qualcomm.com/smartphones
 (SM8850) has an 8-core Qualcomm Oryon CPU (2 Prime cores up to 4.6 GHz and 6 Performance cores up to 3.62 GHz),
 Adreno GPU, and Hexagon NPU (HTP v81).
 
-| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup>  | NPU<br><sup>QNN W8A16<br>(ms)</sup>    |
-| ------------- | -------- | --------------------------- | -------------------------------------- | --------------------------------------- | -------------------------------------- |
-| YOLO26n | Detect | 640 | 36.9<br><sup>1.9 / 32.6 / 2.3</sup> | 10.6<br><sup>1.8 / 6.2 / 2.6</sup> | **10.2**<br><sup>1.9 / 6.0 / 2.3</sup> |
-| YOLO26n-seg | Segment | 640 | 50.5<br><sup>1.9 / 42.9 / 5.8</sup> | 18.0<br><sup>1.9 / 9.5 / 6.6</sup> | **16.2**<br><sup>2.1 / 8.4 / 5.7</sup> |
-| YOLO26n-sem | Semantic | 640 | 45.7<br><sup>1.9 / 35.7 / 8.2</sup> | 30.6<br><sup>1.9 / 20.5 / 8.3</sup> | **10.8**<br><sup>2.0 / 6.2 / 2.6</sup> |
-| YOLO26n-depth | Depth | 640 | 66.8<br><sup>2.2 / 55.0 / 9.7</sup> | 21.9<br><sup>2.1 / 10.1 / 9.8</sup> | **19.3**<br><sup>2.2 / 7.4 / 9.7</sup> |
-| YOLO26n-cls | Classify | 224 | 3.6<br><sup>0.3 / 3.3 / 0.0</sup> | 2.0<br><sup>0.4 / 1.4 / 0.2</sup> | **0.8**<br><sup>0.3 / 0.5 / 0.0</sup> |
-| YOLO26n-pose | Pose | 640 | 39.9<br><sup>2.0 / 36.5 / 1.4</sup> | 10.0<br><sup>1.8 / 6.7 / 1.4</sup> | **9.7**<br><sup>1.9 / 5.9 / 1.8</sup> |
-| YOLO26n-obb | OBB | 640 | 36.3<br><sup>2.0 / 33.2 / 1.2</sup> | 10.1<br><sup>2.6 / 5.9 / 1.6</sup> | **8.1**<br><sup>1.9 / 5.1 / 1.0</sup> |
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | GPU<br><sup>w8a32 LiteRT<br>(ms)</sup> | NPU<br><sup>QNN W8A16<br>(ms)</sup>    |
+| ------------- | -------- | --------------------------- | -------------------------------------- | -------------------------------------- | -------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 36.9<br><sup>1.9 / 32.6 / 2.3</sup>    | 10.6<br><sup>1.8 / 6.2 / 2.6</sup>     | **10.2**<br><sup>1.9 / 6.0 / 2.3</sup> |
+| YOLO26n-seg   | Segment  | 640                         | 50.5<br><sup>1.9 / 42.9 / 5.8</sup>    | 18.0<br><sup>1.9 / 9.5 / 6.6</sup>     | **16.2**<br><sup>2.1 / 8.4 / 5.7</sup> |
+| YOLO26n-sem   | Semantic | 640                         | 45.7<br><sup>1.9 / 35.7 / 8.2</sup>    | 30.6<br><sup>1.9 / 20.5 / 8.3</sup>    | **10.8**<br><sup>2.0 / 6.2 / 2.6</sup> |
+| YOLO26n-depth | Depth    | 640                         | 66.8<br><sup>2.2 / 55.0 / 9.7</sup>    | 21.9<br><sup>2.1 / 10.1 / 9.8</sup>    | **19.3**<br><sup>2.2 / 7.4 / 9.7</sup> |
+| YOLO26n-cls   | Classify | 224                         | 3.6<br><sup>0.3 / 3.3 / 0.0</sup>      | 2.0<br><sup>0.4 / 1.4 / 0.2</sup>      | **0.8**<br><sup>0.3 / 0.5 / 0.0</sup>  |
+| YOLO26n-pose  | Pose     | 640                         | 39.9<br><sup>2.0 / 36.5 / 1.4</sup>    | 10.0<br><sup>1.8 / 6.7 / 1.4</sup>     | **9.7**<br><sup>1.9 / 5.9 / 1.8</sup>  |
+| YOLO26n-obb   | OBB      | 640                         | 36.3<br><sup>2.0 / 33.2 / 1.2</sup>    | 10.1<br><sup>2.6 / 5.9 / 1.6</sup>     | **8.1**<br><sup>1.9 / 5.1 / 1.0</sup>  |
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`,
   measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) `0.7.0` on-device benchmark

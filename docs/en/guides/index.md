@@ -51,6 +51,7 @@ Guides are grouped by project stage — from environment setup and data preparat
 - [YOLO26 Training Recipe](yolo26-training-recipe.md): Full documentation of the hyperparameters, augmentation pipelines, and optimizer settings used to train the official YOLO26 base checkpoints on COCO, with practical fine-tuning guidance.
 - [Hyperparameter Tuning](hyperparameter-tuning.md): Discover how to optimize your YOLO models by fine-tuning hyperparameters using the Tuner class and genetic evolution algorithms.
 - [Knowledge Distillation](knowledge-distillation.md): Learn how to improve model performance by transferring knowledge from a larger teacher model to a smaller student model using feature-based distillation.
+- [Adding and Fine-Tuning Classes](adding-classes.md): Learn how to add a class a trained detection model does not have, or tune one it already predicts, while every other class keeps its exact predictions.
 - [K-Fold Cross Validation](kfold-cross-validation.md): Learn how to improve model generalization using K-Fold cross-validation technique.
 - [Customizing Trainer](custom-trainer.md): Learn how to subclass the YOLO trainer to log custom metrics, add class-weighted loss, customize model saving, freeze/unfreeze the backbone, and set per-layer learning rates.
 - [Model YAML Configuration Guide](model-yaml-config.md): A comprehensive deep dive into Ultralytics' model architecture definitions. Explore the YAML format, understand the module resolution system, and learn how to integrate custom modules seamlessly.

@@ -228,6 +228,7 @@ def torch2coreml(
     }
     if not mlmodel:
         # ML Program conversion defaults to FP16. Pin FP32 unless FP16/INT8 was requested.
+        from ultralytics.engine.exporter import NMSModel
         from ultralytics.nn.modules.head import RTDETRDecoder
 
         if not (fp16 or weight_int8):
@@ -237,6 +238,15 @@ def torch2coreml(
             fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
             convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
                 op_selector=lambda op: op.op_type not in fp32_ops
+            )
+        elif isinstance(model, NMSModel):
+            # NMSModel's class-offset boxes lose their geometry in fp16 and duplicates survive NMS: pin its own box math
+            # (single-level torch scopes, unlike the wrapped model's ops) and torchvision NMS to fp32.
+            from coremltools.converters.mil.mil.scope import ScopeSource
+
+            nms_ops = [["div"], ["mul"], ["add"], ["cat"], ["torchvision::nms"]]
+            convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
+                op_selector=lambda op: op.scopes[ScopeSource.TORCHSCRIPT_MODULE_TYPE] not in nms_ops
             )
     ct_model = ct.convert(ts, **convert_kwargs)
     bits, mode = (8, "kmeans") if weight_int8 else (16, "linear") if fp16 else (32, None)

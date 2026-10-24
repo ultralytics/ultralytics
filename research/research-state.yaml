@@ -100,6 +100,13 @@ hypotheses:
       yolo26n-pose (F_clip) 109.9; COCO-GT pose 0.426 / 0.420 / 0.419 / 0.442 / 0.473. Stage 0: frozen-feature probe ranks depth < detect < pose for person depth on every target, tap and
       size (3DPW backbone root AbsRel 0.162 YOLO27n-depth / 0.131 detect / 0.073 pose). Stage 1 A/B planned, not run.
     priority: medium
+  - id: H12
+    statement: "Supervising MPJPE on the lifted skeleton beats per-joint encoded-depth L1; COCO+BEDLAM mixing beats COCO alone."
+    status: supported (loss) / refuted (1:1 mix)
+    evidence: >
+      2026-10-24. MPJPE gain 4, F_clip + 20 ep: 3DPW 107.2 vs control 111.1 (−3.9), COCO −7.6, BEDLAM −6.9, 2D
+      unchanged. Mix 1:1 step-matched: 3DPW −1.4, BEDLAM −19.3, COCO +6.0 and GT pose −0.018.
+    priority: high
   - id: H5
     statement: "Body-scale-normalized relative depth trains better than metres."
     status: pending

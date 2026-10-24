@@ -8,7 +8,7 @@ from torch import nn
 from . import LOGGER
 from .metrics import bbox_iou, probiou
 from .ops import crop_mask, xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
-from .torch_utils import TORCH_1_11
+from .torch_utils import TORCH_1_11, autocast
 
 
 class TaskAlignedAssigner(nn.Module):
@@ -463,8 +463,8 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
                 pm = (coef[s, :m] @ proto[o].flatten(2)) > 0
                 pm = crop_mask(pm.view(-1, mh, mw), boxes[s, :m].reshape(-1, 4)).view(pm.shape)
                 gm, pmt = gt_masks[o].flatten(2).to(dtype), pm.to(dtype).transpose(1, 2)
-                # Intersections over <=2048-pixel blocks are exact FP16 integers, summed in FP32
-                inter = sum((gm[..., k : k + 2048] @ pmt[:, k : k + 2048]).float() for k in range(0, mh * mw, 2048))
+                with autocast(False):  # intersections over <=2048-pixel blocks are exact FP16 integers, unlike BF16
+                    inter = sum((gm[..., k : k + 2048] @ pmt[:, k : k + 2048]).float() for k in range(0, mh * mw, 2048))
                 union = gm.sum(-1, dtype=torch.float)[..., None] + pm.sum(-1)[:, None] - inter
                 ious[s, :, :m] = inter / union.clamp(min=1)
                 i = s.stop

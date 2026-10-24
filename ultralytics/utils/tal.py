@@ -448,22 +448,29 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
             ub, ua = key // na, key % na
             n = torch.bincount(ub, minlength=self.bs)
             slot = torch.arange(len(key), device=key.device) - (n.cumsum(0) - n)[ub]
-            m = int(n.max())
-            coef = pd_coef.new_zeros(self.bs, m, pd_coef.shape[-1])
-            boxes = pd_bboxes.new_zeros(self.bs, m, 4, dtype=torch.float)
-            coef[ub, slot], boxes[ub, slot] = pd_coef[ub, ua], pd_bboxes[ub, ua].float() * mask_scale[ub]
+            order = n.argsort(descending=True)  # images by anchor count, so each chunk pads only to its own largest
+            r, counts = order.argsort()[ub], n[order].tolist()
+            coef = pd_coef.new_zeros(self.bs, counts[0], pd_coef.shape[-1])
+            boxes = pd_bboxes.new_zeros(self.bs, counts[0], 4, dtype=torch.float)
+            coef[r, slot], boxes[r, slot] = pd_coef[ub, ua], pd_bboxes[ub, ua].float() * mask_scale[ub]
             dtype = torch.float if proto.device.type == "cpu" else proto.dtype
-            gm = gt_masks.flatten(2).float()
-            ious = iou.new_empty(self.bs, gm.shape[1], m, dtype=torch.float)  # gt_masks may differ from n_max_boxes
-            step = max(1, (1 << 29) // (m * mh * mw * (torch.finfo(dtype).bits // 8)))  # ~512 MB of masks
-            for i in range(0, self.bs, step):
-                s = slice(i, i + step)
-                pm = (coef[s].to(dtype) @ proto[s].to(dtype).flatten(2)).gt_(0).to(dtype)
-                pm = crop_mask(pm.view(-1, mh, mw), boxes[s].reshape(-1, 4).float()).view(pm.shape)
-                inter = torch.matmul(gm[s], pm.float().transpose(1, 2), out=ious[s])  # FP32 also under autocast
-                union = gm[s].sum(-1, dtype=torch.float)[..., None] + pm.sum(-1, dtype=torch.float)[:, None] - inter
-                ious[s] = inter / union.clamp(min=1)
-            miou[sel] = ious[b[sel], g[sel], slot[inv]].to(iou.dtype)
+            proto, gm = proto[order], gt_masks[order].flatten(2).float()
+            ious = iou.new_zeros(self.bs, gm.shape[1], counts[0], dtype=torch.float)  # gt_masks may exceed n_max_boxes
+            tf32, torch.backends.cuda.matmul.allow_tf32 = torch.backends.cuda.matmul.allow_tf32, True  # exact on 0/1
+            try:
+                i = 0
+                while i < self.bs and counts[i]:
+                    m = counts[i]
+                    s = slice(i, i + max(1, (1 << 27) // (m * mh * mw)))  # ~512 MB of FP32 masks
+                    pm = (coef[s, :m].to(dtype) @ proto[s].to(dtype).flatten(2)) > 0
+                    pm = crop_mask(pm.view(-1, mh, mw), boxes[s, :m].reshape(-1, 4)).view(pm.shape).float()
+                    inter = torch.matmul(gm[s], pm.transpose(1, 2), out=gm.new_empty(*gm[s].shape[:2], m))  # FP32
+                    union = gm[s].sum(-1)[..., None] + pm.sum(-1)[:, None] - inter
+                    ious[s, :, :m] = inter / union.clamp(min=1)
+                    i = s.stop
+            finally:
+                torch.backends.cuda.matmul.allow_tf32 = tf32
+            miou[sel] = ious[r[inv], g[sel], slot[inv]].to(iou.dtype)
         return (iou + miou) / 2
 
 

@@ -662,6 +662,11 @@ def test_export_qnn(isolated_model):
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
     file = YOLO(isolated_model).export(format="qnn", imgsz=32)
     assert Path(file).is_file() and file.endswith("_qnn.onnx"), f"QNN export failed, no context binary found: {file}"
+    # ONNX Runtime's built-in QNN EP (onnxruntime-android-qnn) cannot load EPContext nodes with I/O name overrides
+    import onnx
+
+    ep_nodes = [n for n in onnx.load(file).graph.node if n.op_type == "EPContext"]
+    assert ep_nodes and not any(a.name == "io_name_overrides" for n in ep_nodes for a in n.attribute)
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     Path(file).unlink(missing_ok=True)  # cleanup
 

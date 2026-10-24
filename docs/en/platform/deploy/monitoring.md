@@ -143,7 +143,9 @@ The gallery contains recent processed images with prediction overlays. Open an i
 
 ### Save Examples to a Dataset
 
-Workspace members with content editing permission can save examples to a dataset in the endpoint's workspace:
+Use this workflow to keep useful frames from a [background camera](inference.md#background-camera) or other endpoint
+predictions before they leave temporary storage. Workspace members with content editing permission can save examples
+to a dataset in the endpoint's workspace:
 
 1. Select individual examples using their checkboxes, or click **Select all**.
 2. Click **Save to dataset**.

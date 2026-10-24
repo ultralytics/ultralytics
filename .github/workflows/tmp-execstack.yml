@@ -1,0 +1,47 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Temporary PR #26866 matrix: Ubuntu releases x torch versions around the glibc 2.41 executable-stack change. Delete before merge.
+name: Temp Ubuntu x PyTorch
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  Smoke:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04]
+        include-torch:
+          - { python: "3.9", torch: "1.10.0", torchvision: "0.11.0", extra: ",export-legacy-torch" }
+          - { python: "3.10", torch: "1.11.0", torchvision: "0.12.0", extra: ",export-legacy-torch" }
+          - { python: "3.10", torch: "1.12.0", torchvision: "0.13.0", extra: ",export-legacy-torch" }
+          - { python: "3.10", torch: "1.13.0", torchvision: "0.14.0", extra: ",export-legacy-torch" }
+          - { python: "3.13", torch: "latest", torchvision: "", extra: "" }
+    name: Smoke (${{ matrix.os }}, torch ${{ matrix.include-torch.torch }})
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ultralytics/actions/setup-uv@main
+        with:
+          python-version: ${{ matrix.include-torch.python }}
+      - name: Install
+        run: |
+          torch=""
+          if [ "${{ matrix.include-torch.torch }}" != "latest" ]; then
+            torch="torch==${{ matrix.include-torch.torch }} torchvision==${{ matrix.include-torch.torchvision }}"
+          fi
+          uv pip install -e ".[export-base${{ matrix.include-torch.extra }}]" $torch MNN --torch-backend cpu
+      - name: Smoke
+        run: |
+          ldd --version | head -1
+          yolo checks
+          yolo checks 2>&1 | tail -1
+          python -c "from ultralytics import YOLO; r = YOLO('yolo26n.pt')('https://ultralytics.com/images/bus.jpg', verbose=False)[0]; print(r.verbose()); assert len(r.boxes) >= 4"
+          yolo export model=yolo26n.pt format=mnn imgsz=320
+          yolo predict model=yolo26n.mnn imgsz=320 source=bus.jpg

@@ -27,6 +27,7 @@ Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
+Arm Ethos-U             | `ethos`                   | yolo26n_ethos_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -291,6 +292,7 @@ def export_formats():
             ["name", "quantize", "data", "fraction", "opset", "simplify"],
             "isolated-xilinx",
         ],
+        ["Arm Ethos-U", "ethos", "_ethos_model", False, False, ["data", "quantize", "fraction", "name"], "ethos"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -428,6 +430,15 @@ EXPORT_ENVS = {
         "env": {},
         "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
     },
+    "ethos": {
+        "python": "3.13",
+        "extras": ["export-base", "export-executorch"],
+        "torch": ">=2.13",
+        "requirements": ["tosa-tools", "ethos-u-vela"],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=ethos model=yolo26n.pt imgsz=32 data=coco8.yaml"],
+    },
 }
 
 
@@ -451,11 +462,14 @@ INT8_FORMATS = frozenset(
         "deepx",
         "hailo",
         "xilinx",
+        "ethos",
     }
 )
 W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx"})
+FP32_UNSUPPORTED_FORMATS = frozenset(
+    {"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx", "ethos"}
+)
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -572,6 +586,7 @@ class Exporter:
         export_hailo: Export model to Hailo HEF format.
         export_ascend: Export model to Huawei Ascend format.
         export_xilinx: Export model to AMD Xilinx Vitis AI format.
+        export_ethos: Export model to Arm Ethos-U ExecuTorch format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -658,10 +673,9 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "xilinx"} and self.args.quantize not in {
-            8,
-            "w8a16",
-        }:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "xilinx", "ethos"} and (
+            self.args.quantize not in {8, "w8a16"}
+        ):
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
         if fmt in {"axelera", "hailo", "xilinx"} and not self.args.data:
@@ -691,6 +705,13 @@ class Exporter:
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
                 raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
+        if fmt == "ethos":
+            if not self.args.name:
+                LOGGER.warning(
+                    "Arm Ethos-U export requires a missing 'name' arg for the target NPU. "
+                    "Using default name='ethos-u85-256'."
+                )
+            self.args.name = str(self.args.name or "ethos-u85-256").lower()
         if fmt == "imx":
             if model.task == "depth":
                 raise ValueError("IMX export is not supported for depth models.")
@@ -718,12 +739,19 @@ class Exporter:
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)
         model.names = check_class_names(model.names)
-        if hasattr(model, "end2end"):  # the Axelera runtime decodes the NMS-free head, so nms=None keeps it there
+        # The Axelera and Arm Ethos-U runtimes decode the NMS-free head, so nms=None keeps it there. Ethos-U exports
+        # the raw one-to-one outputs of a YOLO26 Detect head (ethos_wrapper), no top-k: TOSA has none.
+        ethos_raw_head = fmt == "ethos" and type(head) is Detect and getattr(head, "reg_max", 0) == 1
+        if hasattr(model, "end2end"):
             model.end2end = self.args.nms is False or (
-                fmt == "axelera" and self.args.nms is None and getattr(head, "one2one_cv2", None) is not None
+                (fmt == "axelera" or ethos_raw_head)
+                and self.args.nms is None
+                and getattr(head, "one2one_cv2", None) is not None
             )
         if getattr(model, "end2end", False):
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
+            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"} or (
+                fmt == "ethos" and not ethos_raw_head
+            ):
                 # Disable the end2end branch for formats without top-k support
                 model.end2end = False
                 LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
@@ -918,10 +946,14 @@ class Exporter:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
-        if fmt == "executorch":
+        if fmt in {"executorch", "ethos"}:
             from ultralytics.utils.export.executorch import executorch_wrapper
 
             model = executorch_wrapper(model)
+        if fmt == "ethos":
+            from ultralytics.utils.export.ethos import ethos_wrapper
+
+            model = ethos_wrapper(model)
         for m in model.modules():
             if isinstance(m, Attention) and fmt == "coreml" and self.args.format != "mlmodel":
                 m.format = fmt
@@ -1546,6 +1578,22 @@ class Exporter:
             model=self.model,
             im=self.im,
             output_dir=str(self.file).replace(self.file.suffix, "_executorch_model/"),
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_ethos(self, prefix=colorstr("Ethos:")):  # noqa: B008
+        """Export YOLO model to Arm Ethos-U NPU ExecuTorch *.pte format."""
+        assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        from ultralytics.utils.export.ethos import torch2ethos
+
+        return torch2ethos(
+            self.model,
+            self.file,
+            self.im,
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            target=self.args.name,
             metadata=self.metadata,
             prefix=prefix,
         )

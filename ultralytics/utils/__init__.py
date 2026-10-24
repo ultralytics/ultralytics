@@ -28,17 +28,10 @@ import numpy as np
 
 try:
     import torch
-except ImportError as e:  # torch 1.10-1.12 x86_64 wheels request an unused executable stack that glibc>=2.41 refuses
-    if "cannot enable executable stack" not in str(e):
-        raise
+except ImportError as e:  # torch 1.10-1.12 x86_64 wheels request an executable stack that glibc>=2.41 refuses
     from ultralytics.utils.files import clear_execstack
 
-    for lib in importlib.metadata.distribution("torch").locate_file("torch/lib").glob("*.so*"):
-        if clear_execstack(lib):
-            warnings.warn(f"Cleared the executable-stack flag that glibc>=2.41 refuses in {lib}")
-    for name in [m for m in sys.modules if m.startswith("torch.")]:  # drop the failed import's partial submodules
-        del sys.modules[name]
-    import torch
+    torch = clear_execstack(e, "torch", "torch/lib/*.so*")
 
 from ultralytics import __version__
 from ultralytics.utils.git import GitRepo

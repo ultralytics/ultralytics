@@ -2,34 +2,11 @@
 
 from __future__ import annotations
 
-import importlib.util
 import json
 from pathlib import Path
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.files import clear_execstack
-
-
-def import_mnn():
-    """Import MNN, first clearing the executable-stack flag that glibc>=2.41 refuses in its x86_64 Linux wheels.
-
-    MNN's x86_64 assembly kernels lack a ``.note.GNU-stack`` section, so the linker marks its extension modules as
-    requiring an executable stack that they never use (https://github.com/alibaba/MNN/issues/3390).
-
-    Returns:
-        (module): The imported ``MNN`` package.
-    """
-    try:
-        import MNN
-    except ImportError as e:
-        if "cannot enable executable stack" not in str(e):
-            raise
-        for name in "_mnncengine", "_tools":  # MNN core and MNN.tools extension modules
-            file = importlib.util.find_spec(name).origin
-            LOGGER.warning(f"Clearing the executable-stack flag that glibc>=2.41 refuses in {file}")
-            clear_execstack(file)
-        import MNN
-    return MNN
 
 
 def onnx2mnn(
@@ -58,7 +35,10 @@ def onnx2mnn(
     assert Path(onnx_file).exists(), f"failed to export ONNX file: {onnx_file}"
 
     check_requirements("MNN>=2.9.6")
-    MNN = import_mnn()
+    try:
+        import MNN
+    except ImportError as e:  # MNN x86_64 wheels request an executable stack that glibc>=2.41 refuses
+        MNN = clear_execstack(e, "MNN", "_mnncengine*.so", "_tools*.so")
     from MNN.tools import mnnconvert
 
     LOGGER.info(f"\n{prefix} starting export with MNN {MNN.version()}...")

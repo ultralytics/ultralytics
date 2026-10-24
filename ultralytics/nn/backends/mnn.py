@@ -30,9 +30,12 @@ class MNNBackend(BaseBackend):
         """
         LOGGER.info(f"Loading {weight} for MNN inference...")
         check_requirements("MNN")
-        from ultralytics.utils.export.mnn import import_mnn
+        from ultralytics.utils.files import clear_execstack
 
-        MNN = import_mnn()
+        try:
+            import MNN
+        except ImportError as e:  # MNN x86_64 wheels request an executable stack that glibc>=2.41 refuses
+            MNN = clear_execstack(e, "MNN", "_mnncengine*.so", "_tools*.so")
 
         config = {"precision": "low", "backend": "CPU", "numThread": (os.cpu_count() + 1) // 2}
         rt = MNN.nn.create_runtime_manager((config,))

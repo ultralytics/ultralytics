@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import contextlib
 import glob
+import importlib.util
 import os
 import shutil
 import struct
+import sys
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
@@ -179,28 +181,32 @@ def file_size(path: str | Path | None) -> float:
     return 0.0
 
 
-def clear_execstack(file: str | Path) -> bool:
-    """Clear the executable-stack flag that glibc>=2.41 refuses on x86_64 Linux shared objects that never use it.
-
-    Equivalent to ``patchelf --clear-execstack``: clears PF_X on the PT_GNU_STACK program header of a 64-bit ELF file.
+def clear_execstack(e: ImportError, name: str, *patterns: str):
+    """Import ``name`` after clearing the unused executable-stack flag that glibc>=2.41 refuses on its shared objects.
 
     Args:
-        file (str | Path): Path to the shared object.
+        e (ImportError): The failed import's error, re-raised unless glibc refused an executable stack.
+        name (str): Module to import.
+        *patterns (str): Glob patterns of the module's shared objects, relative to site-packages.
 
     Returns:
-        (bool): True if the flag was set and has been cleared.
+        (module): The imported module.
     """
-    with open(file, "r+b") as f:
-        h = f.read(64)
-        (phoff,), (phentsize, phnum) = struct.unpack_from("<Q", h, 32), struct.unpack_from("<HH", h, 54)
-        for i in range(phnum):
-            f.seek(phoff + i * phentsize)
-            p_type, p_flags = struct.unpack("<II", f.read(8))
-            if p_type == 0x6474E551 and p_flags & 1:  # PT_GNU_STACK with PF_X
-                f.seek(-4, 1)
-                f.write(struct.pack("<I", p_flags & ~1))
-                return True
-    return False
+    if "cannot enable executable stack" not in str(e):
+        raise e
+    for file in (f for p in patterns for f in Path(importlib.util.find_spec(name).origin).parents[1].glob(p)):
+        with open(file, "r+b") as f:  # clear PF_X on PT_GNU_STACK, like `patchelf --clear-execstack`
+            h = f.read(64)
+            (phoff,), (phentsize, phnum) = struct.unpack_from("<Q", h, 32), struct.unpack_from("<HH", h, 54)
+            for i in range(phnum):
+                f.seek(phoff + i * phentsize)
+                p_type, p_flags = struct.unpack("<II", f.read(8))
+                if p_type == 0x6474E551 and p_flags & 1:
+                    f.seek(-4, 1)
+                    f.write(struct.pack("<I", p_flags & ~1))
+    for m in [m for m in sys.modules if m.startswith(f"{name}.")]:  # partial submodules of the failed import
+        del sys.modules[m]
+    return importlib.import_module(name)
 
 
 def get_latest_run(search_dir: str = ".") -> str:

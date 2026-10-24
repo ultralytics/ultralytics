@@ -277,9 +277,11 @@ def torch2imx(
             "edge-mdt-cl<1.1.0",
             "edge-mdt-tpc>=1.2.0",
             "pydantic<2.12",
+            "pulp<4",  # PuLP 4 removed the LpVariable 'lowBound' argument that model-compression-toolkit uses
         )
     )
     check_requirements("imx500-converter[pt]>=3.17.3")
+    check_requirements("protobuf>=6.31.1")  # imx500-converter pins protobuf 4.x, which breaks onnx>=1.17 imports
     dataset = dataset() if callable(dataset) else dataset  # resolve lazy dataloader
 
     import model_compression_toolkit as mct

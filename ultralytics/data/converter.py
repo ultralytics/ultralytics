@@ -1012,6 +1012,13 @@ async def _convert_ndjson_to_yolo(
         if r.get("file"):
             hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
         _h.update(json.dumps(hash_record, sort_keys=True).encode())
+    if is_classification:
+        # Classification has no background class, so unlabeled images must not land in a real class folder
+        labeled = [r for r in image_records if r.get("annotations", {}).get("classification")]
+        if skipped := len(image_records) - len(labeled):
+            LOGGER.warning(f"Skipping {skipped} unlabeled classification image(s) in {ndjson_path.name}")
+            image_records = labeled
+            _h.update(b"skip-unlabeled")  # invalidate conversions cached before unlabeled images were skipped
     _hash = _h.hexdigest()[:8]
     class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
     classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
@@ -1033,12 +1040,6 @@ async def _convert_ndjson_to_yolo(
                 return dataset_dir if is_classification else metadata_path
         except Exception:
             pass
-    if is_classification:
-        # Classification has no background class, so unlabeled images must not land in a real class folder
-        labeled = [r for r in image_records if r.get("annotations", {}).get("classification")]
-        if skipped := len(image_records) - len(labeled):
-            LOGGER.warning(f"Skipping {skipped} unlabeled classification image(s) in {ndjson_path.name}")
-            image_records = labeled
     splits = {record["split"] for record in image_records}
     if not is_classification:
         if "train" not in splits:

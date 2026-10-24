@@ -238,17 +238,17 @@ jobs:
             torch: "1.9.0"
             torchvision: "0.10.0"
             numpy_extra: export-legacy-torch
-          - os: ubuntu-latest
+          - os: ubuntu-24.04 # torch 1.10-1.12 libtorch_cpu.so requires an executable stack, rejected by glibc 2.41+ (Ubuntu 26.04)
             python: "3.9"
             torch: "1.10.0"
             torchvision: "0.11.0"
             numpy_extra: export-legacy-torch
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             python: "3.10"
             torch: "1.11.0"
             torchvision: "0.12.0"
             numpy_extra: export-legacy-torch
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             python: "3.10"
             torch: "1.12.0"
             torchvision: "0.13.0"

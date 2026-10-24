@@ -181,19 +181,21 @@ def file_size(path: str | Path | None) -> float:
     return 0.0
 
 
-def clear_execstack(e: ImportError, name: str, *patterns: str):
-    """Import ``name`` after clearing the unused executable-stack flag that glibc>=2.41 refuses on its shared objects.
+def import_execstack(name: str, *patterns: str):
+    """Import ``name``, clearing the unused executable-stack flag that glibc>=2.41 refuses on its shared objects.
 
     Args:
-        e (ImportError): The failed import's error, re-raised unless glibc refused an executable stack.
         name (str): Module to import.
         *patterns (str): Glob patterns of the module's shared objects, relative to site-packages.
 
     Returns:
         (module): The imported module.
     """
-    if "cannot enable executable stack" not in str(e):
-        raise e
+    try:
+        return importlib.import_module(name)
+    except ImportError as e:
+        if "cannot enable executable stack" not in str(e):
+            raise
     for file in (f for p in patterns for f in Path(importlib.util.find_spec(name).origin).parents[1].glob(p)):
         with open(file, "r+b") as f:  # clear PF_X on PT_GNU_STACK, like `patchelf --clear-execstack`
             h = f.read(64)

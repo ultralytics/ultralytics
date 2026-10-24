@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.files import clear_execstack
+from ultralytics.utils.files import import_execstack
 
 
 def onnx2mnn(
@@ -35,10 +35,7 @@ def onnx2mnn(
     assert Path(onnx_file).exists(), f"failed to export ONNX file: {onnx_file}"
 
     check_requirements("MNN>=2.9.6")
-    try:
-        import MNN
-    except ImportError as e:  # MNN x86_64 wheels request an executable stack that glibc>=2.41 refuses
-        MNN = clear_execstack(e, "MNN", "_mnncengine*.so", "_tools*.so")
+    MNN = import_execstack("MNN", "_mnncengine*.so", "_tools*.so")
     from MNN.tools import mnnconvert
 
     LOGGER.info(f"\n{prefix} starting export with MNN {MNN.version()}...")

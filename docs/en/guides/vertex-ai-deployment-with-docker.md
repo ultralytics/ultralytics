@@ -513,6 +513,7 @@ For more specific instructions on how to work with images in Artifact Registry, 
 Using the Docker image you've just pushed, you can now import the model in Vertex AI.
 
 1. In Google Cloud navigation menu, go to Vertex AI > Model Registry. Alternatively, search for "Vertex AI" in the search bar at the top of the Google Cloud Console.
+
  <p align="center">
    <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry import interface">
  </p>
@@ -539,6 +540,7 @@ Using the Docker image you've just pushed, you can now import the model in Verte
 To deploy a model, you need to create an Endpoint in Vertex AI.
 
 1.  In your Vertex AI navigation menu, go to Endpoints. Select your region you used when importing your model. Click Create.
+
 <p align="center">
   <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/endpoint-name.png" alt="Vertex AI create endpoint interface">
 </p>

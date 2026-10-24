@@ -312,6 +312,22 @@ Export jobs progress through the following statuses:
 - **Export All**: Click `Export All` to start export jobs for all CPU-based formats with default settings. Formats that need a GPU selection, are unavailable for this model, or already have an export are skipped and listed for you.
 - **Delete All Exports**: Click `Delete All` to remove all exports for the model.
 
+### Open on iPhone or Android
+
+Run CoreML, Core AI, and LiteRT exports on your phone in the free Ultralytics YOLO app ([App Store](https://apps.apple.com/app/ultralytics-yolo/id1452689527), [Google Play](https://play.google.com/store/apps/details?id=com.ultralytics.yolo)):
+
+1. Open the export dialog for **CoreML**, **Core AI**, or **LiteRT**. The app box shows a green check when the settings work in the app, or a yellow warning that names the setting to change. Click **Use iPhone app defaults** or **Use Android app defaults** to apply the settings of the official app models: INT8 CoreML (NMS-free for YOLO26), FP16 Core AI, or W8A32 LiteRT, at batch 1 and 640 px (224 px for classification).
+2. Click **Start Export** and wait for the export to complete.
+3. Click the QR button on the completed export.
+4. In the Ultralytics YOLO app, tap the QR button in the bottom bar and point the camera at the code.
+5. Confirm the model name, task, and download size. The app installs the model in the **Custom** section of its model picker, and it works offline.
+
+![Ultralytics Platform CoreML Export Dialog iPhone App Box](https://cdn.ul.run/i/b3497c87adac56039a1b6dfce091cbe6.avif)<!-- screenshot -->
+
+![Ultralytics Platform Open on iPhone QR Code Dialog](https://cdn.ul.run/i/5622a65ab3a499177cf63bc982b0731d.avif)<!-- screenshot -->
+
+QR codes expire after 24 hours; click **Refresh code** to create a new one. Anyone with the code can download the export until it expires. Without the app, scanning the code with the phone's camera opens a page with App Store and Google Play links.
+
 ### Format Restrictions
 
 Some export formats have architecture or task restrictions:

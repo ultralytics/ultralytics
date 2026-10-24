@@ -105,7 +105,7 @@ To understand your model's performance in detail, you can access specific evalua
 
 Note that `fitness()` is a method and must be called with parentheses, while metrics like `map`, `map50`, and `mp` are properties accessed directly.
 
-The `results.box.image_metrics` attribute is a per-image dictionary keyed by image filename, holding `precision`, `recall`, `f1`, `tp`, `fp`, and `fn` at IoU 0.5 for each image. Preprocessing, inference, loss, and postprocessing timings are reported separately in the `results.speed` dictionary. Together, these let you pinpoint which images the model struggles with and fine-tune accordingly.
+The `results.box.image_metrics` attribute is a per-image dictionary keyed by absolute image path, holding `precision`, `recall`, `f1`, `tp`, `fp`, and `fn` at IoU 0.5 for each image. Preprocessing, inference, loss, and postprocessing timings are reported separately in the `results.speed` dictionary. Together, these let you pinpoint which images the model struggles with and fine-tune accordingly.
 
 ## Fine-Tuning Your Model
 

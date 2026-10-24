@@ -75,7 +75,7 @@ Adreno GPU, and Hexagon NPU (HTP v81).
 | YOLO26n-obb   | OBB      | 640                         | 36.3<br><sup>2.0 / 33.2 / 1.2</sup>    | 10.1<br><sup>2.6 / 5.9 / 1.6</sup>     | **8.1**<br><sup>1.9 / 5.1 / 1.0</sup>  |
 
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`,
-  measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) `0.7.0` on-device benchmark
+  measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) `0.7.1` on-device benchmark
   harness and the official `v0.7.0` assets (Ultralytics 8.4.188 exports). Backend order rotated between tasks in one sequential sweep. Native
   logs confirmed that every CPU row used LiteRT CPU/XNNPACK, every GPU row delegated the complete graph to LiteRT
   OpenCL (`LITERT_CL`), and every NPU row used the QNN Hexagon HTP backend.

@@ -839,9 +839,13 @@ class Pose3DLoss(v8PoseLoss):
         self.loss_names = ("box_loss", "pose_loss", "kobj_loss", "zrel_loss", "zroot_loss", *self.loss_names[3:])
         # H10 research hook: a body-structure prior (bone lengths against the teacher's rig-consistent skeleton,
         # plus left/right symmetry), the train-time-only part of a parametric body model. Off unless set.
-        self.bone_gain = float(os.environ.get("POSE3D_BONE_GAIN", 0.0))
-        if self.bone_gain > 0:
-            self.loss_names = (*self.loss_names, "bone_loss")
+        # H12 research hook: MPJPE in metres on the lifted root-relative skeleton, the quantity the benchmark scores,
+        # rather than per-joint L1 in the encoded [0, 1] space. Off unless set.
+        self.extra_gains = {
+            k: float(os.environ.get(f"POSE3D_{k.upper()}_GAIN", 0.0)) for k in ("bone", "mpjpe")
+        }
+        self.extra_gains = {k: g for k, g in self.extra_gains.items() if g > 0}
+        self.loss_names = (*self.loss_names, *(f"{k}_loss" for k in self.extra_gains))
 
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
@@ -863,7 +867,7 @@ class Pose3DLoss(v8PoseLoss):
             keypoints = batch["keypoints"].to(self.device).float().clone()
             keypoints[..., 0] *= imgsz[1]
             keypoints[..., 1] *= imgsz[0]
-            loss[1], loss[2], loss[3], loss[4], bone = self.calculate_keypoints_loss(
+            loss[1], loss[2], loss[3], loss[4], extras = self.calculate_keypoints_loss(
                 fg_mask,
                 target_gt_idx,
                 keypoints,
@@ -872,8 +876,8 @@ class Pose3DLoss(v8PoseLoss):
                 target_bboxes,
                 pred_kpts,
             )
-            if self.bone_gain > 0:
-                loss[7] = bone * self.bone_gain
+            for i, (k, g) in enumerate(self.extra_gains.items()):
+                loss[7 + i] = extras[k] * g
         else:
             # WARNING: prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
             loss[1] += pred_kpts[..., :0].sum()
@@ -901,7 +905,8 @@ class Pose3DLoss(v8PoseLoss):
         supervise invisible keypoints against zeroed targets, so it is recomputed from channel 2 directly.
         """
         selected_keypoints = self._select_target_keypoints(keypoints, batch_idx, target_gt_idx, masks)
-        kpts_loss = kpts_obj_loss = zrel_loss = zroot_loss = bone_loss = torch.zeros(1, device=self.device).squeeze()
+        kpts_loss = kpts_obj_loss = zrel_loss = zroot_loss = torch.zeros(1, device=self.device).squeeze()
+        extras = {k: torch.zeros(1, device=self.device).squeeze() for k in self.extra_gains}
 
         if masks.any():
             target_bboxes = target_bboxes / stride_tensor
@@ -925,33 +930,36 @@ class Pose3DLoss(v8PoseLoss):
             root_mask = kpt_mask[:, -1]
             if root_mask.any():
                 zroot_loss = ((pred_z[:, -1] - gt_z[:, -1]).abs() * root_mask).sum() / root_mask.sum()
-            if self.bone_gain > 0 and rel_mask.any():
+            if self.extra_gains and rel_mask.any():
                 stride = stride_tensor.view(1, -1).expand(masks.shape[0], -1)[masks][:, None, None]
-                bone_loss = self._bone_prior(pred_kpt[..., :2] * stride, pred_z, gt_kpt[..., :2] * stride, gt_z,
-                                             gt_kpt[..., 2] == 2)
+                P, G = self._lift(pred_kpt[..., :2] * stride, pred_z), self._lift(gt_kpt[..., :2] * stride, gt_z)
+                if "bone" in extras:
+                    extras["bone"] = self._bone_prior(P, G, gt_kpt[..., 2] == 2)
+                if "mpjpe" in extras:
+                    err = ((P[:, :-1] - P[:, -1:]) - (G[:, :-1] - G[:, -1:])).norm(dim=-1)  # metres
+                    extras["mpjpe"] = (err * rel_mask).sum() / rel_mask.sum()
 
-        return kpts_loss, kpts_obj_loss, zrel_loss, zroot_loss, bone_loss
+        return kpts_loss, kpts_obj_loss, zrel_loss, zroot_loss, extras
 
     # COCO-17 bones plus the two hip-root spokes (root = joint 17), and the left/right limb pairs among them.
     BONES = ((5, 7), (7, 9), (6, 8), (8, 10), (11, 13), (13, 15), (12, 14), (14, 16), (5, 6), (11, 12), (5, 11),
              (6, 12), (11, 17), (12, 17))
     BONE_PAIRS = ((0, 2), (1, 3), (4, 6), (5, 7), (10, 11), (12, 13))
 
-    def _bone_prior(self, pred_xy, pred_z, gt_xy, gt_z, has_depth, focal_ratio: float = 1.2):
-        """Relative bone-length error against the target skeleton plus left/right symmetry, both lifted to metres.
+    def _lift(self, xy, zenc, focal_ratio: float = 1.2):
+        """Lift (N, 18, 2) pixel keypoints with encoded depth to metric camera space, (N, 18, 3).
 
-        Both skeletons are lifted the same way, with the training canvas centre as principal point and the
-        declared `focal_ratio * max(imgsz)` focal, so any convention error is shared and cancels in the comparison.
+        Prediction and target are lifted the same way, with the training canvas centre as principal point and the
+        declared `focal_ratio * max(imgsz)` focal, so any convention error is shared and cancels when compared.
         """
         h, w = self._imgsz
         f, c = focal_ratio * max(h, w), torch.stack([w, h]) / 2
+        z_rel, z_root = decode_z(zenc[:, :-1], zenc[:, -1:])
+        z = torch.cat([z_rel + z_root, z_root], 1)
+        return torch.cat([(xy - c) * z[..., None] / f, z[..., None]], -1)
 
-        def lift(xy, zenc):
-            z_rel, z_root = decode_z(zenc[:, :-1], zenc[:, -1:])
-            z = torch.cat([z_rel + z_root, z_root], 1)
-            return torch.cat([(xy - c) * z[..., None] / f, z[..., None]], -1)
-
-        P, G = lift(pred_xy, pred_z), lift(gt_xy, gt_z)
+    def _bone_prior(self, P, G, has_depth):
+        """Relative bone-length error of lifted skeleton `P` against target `G`, plus left/right symmetry."""
         a, b = [i for i, _ in self.BONES], [j for _, j in self.BONES]
         Lp, Lg = (P[:, a] - P[:, b]).norm(dim=-1), (G[:, a] - G[:, b]).norm(dim=-1)
         ok = (has_depth[:, a] & has_depth[:, b]).float()

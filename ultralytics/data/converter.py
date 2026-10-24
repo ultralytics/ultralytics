@@ -999,12 +999,11 @@ async def _convert_ndjson_to_yolo(
             )
             stem = f"{content_hash}_{i}" if content_hash else i
             r["file"] = f"{stem}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{stem}.jpg"
-            if is_classification:
-                ids = r.get("annotations", {}).get("classification", [])
-                class_id = ids[0] if ids else 0
-                if not isinstance(class_id, int):
-                    raise ValueError(f"Invalid NDJSON classification ID: {class_id!r}")
-                classification_ids.add(class_id)
+            # Unlabeled classification images get no class folder and are skipped below
+            if is_classification and (ids := r.get("annotations", {}).get("classification", [])):
+                if not isinstance(ids[0], int):
+                    raise ValueError(f"Invalid NDJSON classification ID: {ids[0]!r}")
+                classification_ids.add(ids[0])
         hash_record = {k: v for k, v in r.items() if k != "url"}
         if isinstance(r.get("depth"), dict):
             hash_record["depth"] = {k: v for k, v in r["depth"].items() if k != "url"}
@@ -1034,6 +1033,12 @@ async def _convert_ndjson_to_yolo(
                 return dataset_dir if is_classification else metadata_path
         except Exception:
             pass
+    if is_classification:
+        # Classification has no background class, so unlabeled images must not land in a real class folder
+        labeled = [r for r in image_records if r.get("annotations", {}).get("classification")]
+        if skipped := len(image_records) - len(labeled):
+            LOGGER.warning(f"Skipping {skipped} unlabeled classification image(s) in {ndjson_path.name}")
+            image_records = labeled
     splits = {record["split"] for record in image_records}
     if not is_classification:
         if "train" not in splits:
@@ -1185,9 +1190,7 @@ async def _convert_ndjson_to_yolo(
 
             if is_classification:
                 # Classification: place image in {split}/{class_index}/ folder
-                class_ids = annotations.get("classification", [])
-                class_id = class_ids[0] if class_ids else 0
-                class_name = class_dirs[class_id]
+                class_name = class_dirs[annotations["classification"][0]]
                 image_path = dataset_dir / split / class_name / original_name
             else:
                 image_path = dataset_dir / "images" / split / original_name

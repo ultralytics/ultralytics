@@ -451,26 +451,24 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
             order = n.argsort(descending=True)  # images by anchor count, so each chunk pads only to its own largest
             r, counts = order.argsort()[ub], n[order].tolist()
             coef = pd_coef.new_zeros(self.bs, counts[0], pd_coef.shape[-1])
-            boxes = pd_bboxes.new_zeros(self.bs, counts[0], 4, dtype=torch.float)
-            coef[r, slot], boxes[r, slot] = pd_coef[ub, ua], pd_bboxes[ub, ua].float() * mask_scale[ub]
-            dtype = torch.float if proto.device.type == "cpu" else proto.dtype
-            proto, gm = proto[order], gt_masks[order].flatten(2).float()
-            ious = iou.new_zeros(self.bs, gm.shape[1], counts[0], dtype=torch.float)  # gt_masks may exceed n_max_boxes
-            tf32, torch.backends.cuda.matmul.allow_tf32 = torch.backends.cuda.matmul.allow_tf32, True  # exact on 0/1
-            try:
-                i = 0
-                while i < self.bs and counts[i]:
-                    m = counts[i]
-                    s = slice(i, i + max(1, (1 << 27) // (m * mh * mw)))  # ~512 MB of FP32 masks
-                    pm = (coef[s, :m].to(dtype) @ proto[s].to(dtype).flatten(2)) > 0
-                    pm = crop_mask(pm.view(-1, mh, mw), boxes[s, :m].reshape(-1, 4)).view(pm.shape).float()
-                    inter = torch.matmul(gm[s], pm.transpose(1, 2), out=gm.new_empty(*gm[s].shape[:2], m))  # FP32
-                    union = gm[s].sum(-1)[..., None] + pm.sum(-1)[:, None] - inter
-                    ious[s, :, :m] = inter / union.clamp(min=1)
-                    i = s.stop
-            finally:
-                torch.backends.cuda.matmul.allow_tf32 = tf32
-            miou[sel] = ious[r[inv], g[sel], slot[inv]].to(iou.dtype)
+            boxes = pd_bboxes.new_zeros(self.bs, counts[0], 4)
+            coef[r, slot], boxes[r, slot] = pd_coef[ub, ua], pd_bboxes[ub, ua] * mask_scale[ub]
+            dtype = torch.half if proto.device.type == "cuda" else torch.float
+            ious = iou.new_zeros(self.bs, gt_masks.shape[1], counts[0])  # gt_masks may exceed n_max_boxes
+            i = 0
+            while i < self.bs and counts[i]:
+                m = counts[i]
+                s = slice(i, i + max(1, (1 << 27) // (m * mh * mw)))  # ~128M mask pixels per chunk
+                o = order[s]
+                pm = (coef[s, :m] @ proto[o].flatten(2)) > 0
+                pm = crop_mask(pm.view(-1, mh, mw), boxes[s, :m].reshape(-1, 4)).view(pm.shape)
+                gm, pmt = gt_masks[o].flatten(2).to(dtype), pm.to(dtype).transpose(1, 2)
+                # Intersections over <=2048-pixel blocks are exact FP16 integers, summed in FP32
+                inter = sum((gm[..., k : k + 2048] @ pmt[:, k : k + 2048]).float() for k in range(0, mh * mw, 2048))
+                union = gm.sum(-1, dtype=torch.float)[..., None] + pm.sum(-1)[:, None] - inter
+                ious[s, :, :m] = inter / union.clamp(min=1)
+                i = s.stop
+            miou[sel] = ious[r[inv], g[sel], slot[inv]]
         return (iou + miou) / 2
 
 

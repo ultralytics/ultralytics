@@ -1130,6 +1130,18 @@ def test_results_plot_without_boxes():
         assert r.plot(color_mode=color_mode).shape == orig_img.shape
 
 
+def test_results_save_crop_and_verbose_without_boxes(tmp_path):
+    """Masks-only Results have no box to crop, and verbose() still returns a string."""
+    from ultralytics.engine.results import Results
+
+    orig_img = np.zeros((32, 32, 3), dtype=np.uint8)
+    r = Results(orig_img, path="image.jpg", names={0: "a"}, masks=torch.zeros((2, 32, 32)))
+    assert r.boxes is None and r.obb is None
+    r.save_crop(save_dir=tmp_path / "crops", file_name="detection")
+    assert not any((tmp_path / "crops").rglob("*.jpg"))
+    assert r.verbose() == "(no detections), "
+
+
 def test_results_plot_instance_keypoints_track_color():
     """Test that color_mode='instance' colors tracked keypoints by track ID, like boxes and masks."""
     from ultralytics.engine.results import Results

@@ -468,7 +468,11 @@ POST /api/datasets/{owner}/{dataset}/clone
 
 **Python SDK:** `client.datasets.clone(owner, dataset)`
 
-Copies an accessible dataset, with its images and labels, into your personal workspace or a team workspace.
+Copies an accessible dataset, with its images and labels, into your personal workspace or a team workspace. Optional
+`splits` (`train`, `val`, `test`) or `imageIds` (up to 1,000) clone only part of it, `version` clones a saved version
+instead of the live images, `annotations: false` copies images without labels, and `into` adds the images unlabeled to
+a dataset you own instead of creating a new one. `version` cannot be combined with `splits`, `imageIds`, `into`, or
+`annotations: false`.
 
 **Optional body (all fields optional):**
 
@@ -484,9 +488,9 @@ Copies an accessible dataset, with its images and labels, into your personal wor
 ```
 
 **Response (`201`):** `id`, `owner`, `dataset`, `name`, `imageCount`, `classCount`, and `region`. Datasets backed by a
-connected storage source return `409` because their files are not copied. Without `visibility`, the clone is private
-when the destination workspace's [default visibility](../account/settings.md#default-visibility) is Private and
-otherwise keeps the source's visibility.
+connected storage source, or an `into` dataset that is processing or connected, return `409`. Without `visibility`, the
+clone is private when the destination workspace's [default visibility](../account/settings.md#default-visibility) is
+Private and otherwise keeps the source's visibility.
 
 ### Download a Dataset Export
 
@@ -1368,9 +1372,9 @@ POST /api/projects/{owner}/{project}/clone
 **Python SDK:** `client.projects.clone(owner, project)`
 
 Clones an accessible project and its completed models. The optional body accepts `project`, `name`, `description`,
-`visibility`, `license`, and a destination `owner`. Without `visibility`, the clone is private when the destination
-workspace's [default visibility](../account/settings.md#default-visibility) is Private and otherwise keeps the source's
-visibility.
+`visibility`, `license`, a destination `owner`, and `models`, a list of model names to clone instead of every completed
+model. Without `visibility`, the clone is private when the destination workspace's
+[default visibility](../account/settings.md#default-visibility) is Private and otherwise keeps the source's visibility.
 
 ---
 

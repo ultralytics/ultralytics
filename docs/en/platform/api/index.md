@@ -2904,7 +2904,7 @@ Very large image sets are best walked with the cursor returned as `nextCursor`:
 
 ```bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://platform.ultralytics.com/api/datasets/acme-vision/warehouse/images?limit=1000&includeTotal=false&cursor=LAST_IMAGE_ID"
+  "https://platform.ultralytics.com/api/datasets/acme-vision/warehouse/images?limit=1000&includeTotal=false&cursor=NEXT_CURSOR"
 ```
 
 Trash uses `page`, and deployment logs use the opaque `pageToken` returned as `nextPageToken`.

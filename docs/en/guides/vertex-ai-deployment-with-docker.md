@@ -7,7 +7,7 @@ keywords: YOLO26, Vertex AI, Docker, FastAPI, deployment, container, GCP, Artifa
 
 # Deploy a pretrained YOLO model with Ultralytics on Vertex AI for inference
 
-This guide will show you how to containerize a pretrained YOLO26 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO26, but the same principles will apply for using [other YOLO modes](../modes/index.md).
+This guide will show you how to containerize a pretrained YOLO26 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO26, but the same principles will apply for using [other YOLO tasks](../tasks/index.md).
 
 Before we start, you will need to create a Google Cloud Platform (GCP) project. You get $300 in GCP credits to use for free as a new user, and this amount is enough to test a running setup that you can later extend for any other YOLO26 use case, including training, or batch and streaming inference.
 
@@ -83,10 +83,11 @@ version = "0.0.1"
 description = "YOUR_PROJECT_DESCRIPTION"
 requires-python = ">=3.10,<3.13"
 dependencies = [
-   "ultralytics>=8.3.0",
+   "ultralytics>=8.4.0",
    "fastapi[all]>=0.89.1",
    "uvicorn[standard]>=0.20.0",
    "pillow>=9.0.0",
+   "loguru",
 ]
 
 [build-system]
@@ -95,6 +96,7 @@ build-backend = "setuptools.build_meta"
 ```
 
 - `uvicorn` will be used to run the FastAPI server.
+- `loguru` will be used for logging in the FastAPI server.
 - `pillow` will be used for image processing, but you are not limited to PIL images only — Ultralytics supports [many other formats](../modes/predict.md#inference-sources).
 
 ### Create inference logic with Ultralytics YOLO26
@@ -103,6 +105,7 @@ Now that you have the project structure and dependencies set up, you can impleme
 
 ```python
 # src/app.py
+
 
 from ultralytics import YOLO
 
@@ -223,12 +226,17 @@ def get_annotated_image(results: list) -> Image.Image:
 
 Now that you have the core YOLO26 inference logic, you can create a FastAPI application to serve it. This will include the health check and prediction endpoints required by Vertex AI.
 
-First, add the imports and configure logging for Vertex AI. Because Vertex AI treats stderr as error output, it makes sense to pipe the logs to stdout.
+First, create `src/main.py`, add the imports, create the FastAPI app, and configure logging for Vertex AI. Because Vertex AI treats stderr as error output, it makes sense to pipe the logs to stdout.
 
 ```python
+# src/main.py
+
 import sys
 
+from fastapi import FastAPI
 from loguru import logger
+
+app = FastAPI()
 
 # Configure logger
 logger.remove()
@@ -331,8 +339,6 @@ async def predict(request: PredictionRequest):
                 and result["results"][0].boxes is not None
                 and len(result["results"][0].boxes) > 0
             ):
-                import base64
-
                 annotated_image = get_annotated_image(result["results"])
                 img_bytes = get_bytes_from_image(annotated_image)
                 prediction["annotated_image"] = base64.b64encode(img_bytes).decode("utf-8")
@@ -389,7 +395,7 @@ You should receive a JSON response with the detected objects. On your first requ
 
 ## 2. Extend the Ultralytics Docker image with your application
 
-Ultralytics provides several Docker images that you can use as a base for your application image. Docker will install Ultralytics and the necessary GPU drivers.
+Ultralytics provides several Docker images that you can use as a base for your application image. They include Ultralytics and the necessary CUDA libraries, so you only need to add your application on top.
 
 To use the full capabilities of Ultralytics YOLO models, you should select the CUDA-optimized image for GPU inference. However, if CPU inference is enough for your task, you can save computing resources by selecting the CPU-only image as well:
 
@@ -404,18 +410,17 @@ Create a `Dockerfile` in the root of your project with the following content:
 # Extends official Ultralytics Docker image for YOLO26
 FROM ultralytics/ultralytics:latest
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Install FastAPI and dependencies
-RUN uv pip install fastapi[all] uvicorn[standard] loguru
+RUN uv pip install --system fastapi[all] uvicorn[standard] loguru
 
 WORKDIR /app
 COPY src/ ./src/
 COPY pyproject.toml ./
 
 # Install the application package
-RUN uv pip install -e .
+RUN uv pip install --system -e .
 
 RUN mkdir -p /app/logs
 ENV PYTHONPATH=/app/src
@@ -514,21 +519,26 @@ Using the Docker image you've just pushed, you can now import the model in Verte
 
 1. In Google Cloud navigation menu, go to Vertex AI > Model Registry. Alternatively, search for "Vertex AI" in the search bar at the top of the Google Cloud Console.
 
- <p align="center">
-   <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry import interface">
- </p>
+    <p align="center">
+      <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry import interface">
+    </p>
+
 1. Click Import.
 1. Select Import as a new model.
 1. Select the region. You can choose the same region as your Artifact Registry repository, but your selection should be dictated by the availability of machine types and quotas in your region.
 1. Select Import an existing model container.
- <p align="center">
-   <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/import-model.png" alt="Vertex AI import model dialog">
- </p>
+
+    <p align="center">
+      <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/import-model.png" alt="Vertex AI import model dialog">
+    </p>
+
 1. In the Container image field, browse the Artifact Registry repository you created earlier and select the image you just pushed.
 1. Scroll down to the Environment variables section and enter the predict and health endpoints, and the port that you defined in your FastAPI application.
- <p align="center">
-   <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/predict-health-port.png" alt="Vertex AI environment variables configuration">
- </p>
+
+    <p align="center">
+      <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/predict-health-port.png" alt="Vertex AI environment variables configuration">
+    </p>
+
 1. Click Import. Vertex AI will take several minutes to register the model and prepare it for deployment. You will receive an email notification once the import is complete.
 
 ## 5. Create a Vertex AI Endpoint and deploy your model
@@ -541,9 +551,10 @@ To deploy a model, you need to create an Endpoint in Vertex AI.
 
 1.  In your Vertex AI navigation menu, go to Endpoints. Select your region you used when importing your model. Click Create.
 
-<p align="center">
-  <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/endpoint-name.png" alt="Vertex AI create endpoint interface">
-</p>
+    <p align="center">
+      <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/endpoint-name.png" alt="Vertex AI create endpoint interface">
+    </p>
+
 1.  Enter the Endpoint name.
 1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/choose-endpoint-type).
 1.  Click Continue.

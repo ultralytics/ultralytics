@@ -69,7 +69,7 @@ flowchart TD
 | [Projects](../train/projects.md)           | Model workspaces                | CRUD, clone                                                   |
 | [Models](../train/models.md)               | Trained checkpoints             | CRUD, predict, download, clone, training status               |
 | [Training](../train/cloud-training.md)     | Cloud GPU training jobs         | GPU availability, start, progress, cancel                     |
-| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel                                  |
+| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel, mobile link                     |
 | [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints   | Create, update, start/stop, predict, metrics, logs            |
 | [Agents](../agents.md)                     | Saved visual workflows          | List, save, delete                                            |
 | [Trash](../account/trash.md)               | Soft-deleted resources          | List, restore, permanently delete                             |
@@ -1822,6 +1822,18 @@ GET /api/models/{owner}/{project}/{model}/exports/{exportId}
 Returns the `export` object with `status`, `format`, `args`, `gpuType` (TensorRT only), timestamps, and — once complete —
 a `file` object containing `size`, `downloadUrl`, and `downloadFilename`.
 
+### Create Mobile Import Link
+
+```http
+POST /api/models/{owner}/{project}/{model}/exports/{exportId}/mobile
+```
+
+**Python SDK:** none yet; send the HTTP request directly.
+
+Returns `importUrl` and `expiresAt` for opening a completed CoreML, Core AI, or LiteRT export in the
+[Ultralytics YOLO app](../train/models.md#open-on-iphone-or-android). The link expires after 24 hours,
+and anyone with it can download the export until then. An incomplete or incompatible export returns `409`.
+
 ### Cancel or Delete Export
 
 ```http
@@ -2936,7 +2948,7 @@ admin access to disconnect storage, or a higher plan or quota for exports and de
 
 Reading public datasets, projects, and models, including their images, signed image URLs, class statistics, embedding
 status, clustering layout, models trained on a dataset, and export list; checking training progress on a public model;
-downloading a public model's files; running inference on a public model; looking up a public user profile; listing
-deployments filtered to one public model; and searching Explore. `GET /api/training/gpu-availability` is fully public
-unless you request managed capacity. Everything else requires a key, and supplying one on a public endpoint also
-reveals your private resources.
+downloading a public model's files; creating a mobile import link for a public model's export; running inference on a
+public model; looking up a public user profile; listing deployments filtered to one public model; and searching Explore.
+`GET /api/training/gpu-availability` is fully public unless you request managed capacity. Everything else requires a
+key, and supplying one on a public endpoint also reveals your private resources.

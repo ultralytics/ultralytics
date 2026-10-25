@@ -341,7 +341,7 @@ Under **API Docs**, the `Predict` tab shows example code in Python, JavaScript, 
 
 !!! tip "Auto-Inference"
 
-    The Predict tab runs inference automatically when you drop an image — no need to click a button — and re-runs it whenever you change confidence, IoU, or image size. Example images (bus.jpg, zidane.jpg) are preloaded for instant testing.
+    The Predict tab runs inference automatically when you drop an image — no need to click a button — and re-runs it whenever you change confidence, IoU, or image size. Example images are preloaded for instant testing.
 
 Read more about [inference](deploy/inference.md).
 

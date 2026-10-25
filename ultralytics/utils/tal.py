@@ -442,8 +442,8 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         oks = ((-d / ((2 * self.sigmas).pow(2) * (area + self.eps) * 2)).exp() * vis).sum(-1) / vis.sum(-1).clamp(min=1)
         live = oks.pow(self.beta).gt(0)  # the same power align_metric takes: fall back only when it is exactly zero
         key = b * gt_bboxes.shape[1] + g  # unique id per (batch, ground truth)
-        oks_gt = oks.new_zeros(gt_bboxes.shape[0] * gt_bboxes.shape[1]).index_put_((key,), live.to(oks.dtype), True)
-        return torch.where(vis.any(-1) & oks_gt[key].gt(0), oks.to(iou.dtype), iou)
+        counts = oks.new_zeros(gt_bboxes.shape[0] * gt_bboxes.shape[1]).scatter_add_(0, key, live.to(oks.dtype))
+        return torch.where(vis.any(-1) & counts[key].gt(0), oks.to(iou.dtype), iou)
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):

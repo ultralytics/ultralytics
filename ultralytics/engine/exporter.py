@@ -124,7 +124,7 @@ from ultralytics.utils import (
     is_jetson,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_MINIMUM_3_9,
+    IS_PYTHON_MINIMUM_3_10,
     IS_PYTHON_MINIMUM_3_13,
     check_data_portable,
     check_imgsz,
@@ -367,7 +367,7 @@ EXPORT_ENVS = {
             "edge-mdt-cl>=1.1.0",
             "edge-mdt-tpc>=1.2.0",
             "pydantic<2.12",
-            "imx500-converter[pt]>=3.19.2",
+            "imx500-converter[pt]>=3.18.2",
         ],
         "indexes": [],
         "env": {},
@@ -1650,7 +1650,7 @@ class Exporter:
             "Export only supported on Linux. "
             "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
-        assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
+        assert IS_PYTHON_MINIMUM_3_10 and not IS_PYTHON_MINIMUM_3_13, "IMX export requires Python>=3.10,<3.13."
 
         from ultralytics.utils.export.imx import torch2imx
 

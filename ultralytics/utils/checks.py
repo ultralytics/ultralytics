@@ -58,6 +58,7 @@ from ultralytics.utils import (
 )
 
 REMOTE_FILE_PREFIXES = ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://", "gs://")
+REPLACED_PACKAGES = set()  # installed packages that an AutoUpdate replaced with another version in this process
 
 
 def normalize_platform_uri(uri):
@@ -621,7 +622,9 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         )
 
     if pkgs:
-        packages = [*pkgs, *constrain]
+        # Pin the installed torch so no AutoUpdate downgrades it, unless torch itself is requested
+        pin = [] if any(re.match(r"torch(?![\w-])", p) for p in pkgs) else [f"torch=={TORCH_VERSION}"]
+        packages = [*pkgs, *constrain, *pin]
         if install and AUTOINSTALL:  # check environment variable
             # Note uv fails on arm64 macOS and Raspberry Pi runners
             n = len(pkgs)  # number of packages updates
@@ -630,7 +633,12 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
                 use_uv = not ARM64 and check_uv()  # uv fails on ARM64
-                LOGGER.info(attempt_install(packages, cmds, use_uv=use_uv))
+                output = attempt_install(packages, cmds, use_uv=use_uv)
+                LOGGER.info(output)
+                # uv prints ' - numpy==2.5.2' and pip prints 'Successfully uninstalled numpy-2.5.2' for a replaced package
+                REPLACED_PACKAGES.update(
+                    a or b for a, b in re.findall(r"^ - ([\w.-]+)==|uninstalled ([\w.-]+?)-\d", output, re.MULTILINE)
+                )
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(
@@ -661,7 +669,7 @@ def check_executorch_requirements():
     # executorch>=1.5 no longer declares its torch floor and its runtime fails below torch 2.13 with "tensor does not
     # have a device", so cap it where pip can no longer pair the two itself
     executorch = "executorch" if check_version(TORCH_VERSION, "2.13.0") else "executorch<1.5"
-    check_requirements(executorch, cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
+    check_requirements(executorch)
 
 
 def check_tensorrt(min_version: str = "7.0.0"):

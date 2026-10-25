@@ -126,6 +126,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_9,
     IS_PYTHON_MINIMUM_3_13,
+    REPLACED_PACKAGES,
     check_data_portable,
     check_imgsz,
     check_python,
@@ -530,6 +531,11 @@ def try_export(inner_func):
             return f
         except Exception as e:
             LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
+            if REPLACED_PACKAGES:
+                LOGGER.warning(
+                    f"{prefix} AutoUpdate replaced {', '.join(sorted(REPLACED_PACKAGES))} while running. "
+                    "Rerun the export command to load the new versions."
+                )
             raise
 
     return outer_func

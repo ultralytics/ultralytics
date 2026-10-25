@@ -52,7 +52,9 @@ def torch2axelera(
     # vars, plus any working-directory files the compiler writes), so concurrent in-process exports must
     # not overlap.
     with _AXELERA_EXPORT_LOCK:
-        prev_env = {key: os.environ.get(key) for key in ("PATH", "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")}
+        prev_env = {
+            key: os.environ.get(key) for key in ("PATH", "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "AXELERA_DEVICE_DIR")
+        }
         try:
             os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
             # The compiler runs `axkernelcc` from PATH, which is missing when the interpreter is launched
@@ -64,6 +66,9 @@ def torch2axelera(
             ):
                 raise ModuleNotFoundError(f"Axelera export requires axelera-devkit=={AXELERA_SDK}.")
             from axelera import compiler
+
+            # axkernelcc only finds its device files next to its own path under site-packages, not Debian dist-packages
+            os.environ.setdefault("AXELERA_DEVICE_DIR", str(Path(compiler.__file__).parents[1]))
             from axelera.compiler import CompilerConfig
             from axelera.compiler.config.model_specific import extract_ultralytics_metadata
 

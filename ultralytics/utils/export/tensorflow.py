@@ -98,10 +98,6 @@ def onnx2saved_model(
         import tensorflow as tf
     except ImportError:
         check_requirements("tensorflow>2.19.0" if IS_PYTHON_MINIMUM_3_13 else "tensorflow>=2.0.0,<=2.19.0")
-        import tensorflow as tf
-    if not cuda:
-        with contextlib.suppress(Exception):  # fails only if TF GPUs are already initialized by earlier user code
-            tf.config.set_visible_devices([], "GPU")  # hide GPUs so non-CUDA exports never allocate GPU memory
     check_requirements(
         "onnx2tf>=1.26.3,<1.29.0",  # pin to avoid h5py build issues on aarch64
         cmds="--no-deps",
@@ -117,11 +113,15 @@ def onnx2saved_model(
             "onnxslim>=0.1.82",
             # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over
             ("onnxruntime-gpu" if cuda else "onnxruntime", "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),
-            "protobuf>=6.31.1,<7.0.0"
-            if IS_PYTHON_MINIMUM_3_13
-            else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault
         )
     )
+    # Checked last as TF<=2.19 installs downgrade protobuf below the ONNX gencode; cap <7 to avoid PaddlePaddle segfault
+    check_requirements("protobuf>=6.31.1,<7.0.0")
+    import tensorflow as tf
+
+    if not cuda:
+        with contextlib.suppress(Exception):  # fails only if TF GPUs are already initialized by earlier user code
+            tf.config.set_visible_devices([], "GPU")  # hide GPUs so non-CUDA exports never allocate GPU memory
 
     LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
     check_version(

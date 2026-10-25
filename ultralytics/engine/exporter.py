@@ -1153,7 +1153,9 @@ class Exporter:
         min_opset = {"classify": 7, "depth": 11}.get(self.model.task, 11 if self.args.nms else 9)
         if self.metadata["head"] == "RTDETRDecoder":
             min_opset = 16
-        elif self.metadata["head"].startswith(("WorldDetect", "YOLOE")):
+        elif self.metadata["head"] == "WorldDetect" or (
+            self.metadata["head"].startswith("YOLOE") and not self.model.model[-1].is_fused
+        ):
             min_opset = 12  # einsum
         assert opset >= min_opset, f"ONNX export requires opset>={min_opset} for this model, but got opset={opset}"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")

@@ -766,8 +766,8 @@ class Exporter:
                 self.args.quantize = 8
             elif self.args.quantize is None:
                 self.args.quantize = 16
-            if self.args.quantize == 8 and model.task != "detect":
-                raise ValueError("Rockchip RKNN INT8 export is only supported for detection models.")
+            if self.args.quantize == 8 and model.task not in {"detect", "depth"}:
+                raise ValueError("Rockchip RKNN INT8 export is only supported for detection and depth models.")
         if fmt == "ascend":
             # No SoC allowlist: valid --soc_version values depend on which Ascend-cann-kernels-* packages are
             # installed, so a hardcoded list would reject valid targets. ATC reports an unknown SoC itself.
@@ -1616,6 +1616,7 @@ class Exporter:
                 quantize=self.args.quantize,
                 batch=self.args.batch,
                 dataset=rknn_dataset,
+                auto_hybrid=self.model.task == "depth",  # full INT8 collapses larger depth models
                 metadata=self.metadata,
                 prefix=prefix,
             )

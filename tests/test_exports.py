@@ -217,6 +217,7 @@ def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     image = tmp_path / "image.jpg"
     exporter = SimpleNamespace(
         args=SimpleNamespace(opset=None, quantize=8, name="rk3588", batch=8),
+        model=SimpleNamespace(task="detect"),
         im=torch.zeros(8, 3, 32, 32),
         file=tmp_path / "model.pt",
         metadata={},

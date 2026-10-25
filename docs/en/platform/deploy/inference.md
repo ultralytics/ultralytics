@@ -218,7 +218,7 @@ key, ready to copy and run.
 
 Include your API key in requests:
 
-```bash
+```http
 Authorization: Bearer YOUR_API_KEY
 ```
 

@@ -364,10 +364,10 @@ EXPORT_ENVS = {
         "torch": ">=2.9,<2.12",
         "requirements": [
             "model-compression-toolkit>=2.4.1",
-            "edge-mdt-cl<1.1.0",
+            "edge-mdt-cl>=1.1.0",
             "edge-mdt-tpc>=1.2.0",
             "pydantic<2.12",
-            "imx500-converter[pt]>=3.17.3",
+            "imx500-converter[pt]>=3.19.2",
         ],
         "indexes": [],
         "env": {},
@@ -1774,14 +1774,17 @@ class Exporter:
                 end_nodes = [
                     f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3, 4)
                 ]
-                if task == "segment":
-                    end_nodes.append(f"/model.{head_index}/proto/cv3/act/Mul")
             else:
                 end_nodes = [
                     f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3)
                 ]
         self.args.opset = 11
         f_onnx = Path(self.export_onnx())
+        if task == "segment":  # prototypes end at proto.cv3's last node, whose op depends on the model's activation
+            import onnx
+
+            proto = f"/model.{head_index}/proto/cv3/"
+            end_nodes.append([n.name for n in onnx.load(f_onnx).graph.node if n.name.startswith(proto)][-1])
         output_dir = self.file.parent / f"{self.file.stem}_hailo_model"
         if output_dir.exists():
             shutil.rmtree(output_dir)

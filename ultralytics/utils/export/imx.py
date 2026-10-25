@@ -274,12 +274,13 @@ def torch2imx(
     check_requirements(
         (
             "model-compression-toolkit>=2.4.1",
-            "edge-mdt-cl<1.1.0",
+            "edge-mdt-cl>=1.1.0",
             "edge-mdt-tpc>=1.2.0",
             "pydantic<2.12",
+            "onnx>=1.12.0,<2.0.0",
         )
     )
-    check_requirements("imx500-converter[pt]>=3.17.3")
+    check_requirements("imx500-converter[pt]>=3.19.2")
     dataset = dataset() if callable(dataset) else dataset  # resolve lazy dataloader
 
     import model_compression_toolkit as mct

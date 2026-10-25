@@ -968,7 +968,15 @@ async def _convert_ndjson_to_yolo(
     ):
         raise ValueError("Depth datasets require a positive finite depth_scale")
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
-    classification_ids = set()
+    if is_classification:
+        image_records = [r for r in image_records if r.get("annotations", {}).get("classification")]
+        if not image_records:
+            raise ValueError(f"No labeled classification images remain in {ndjson_path.name}. Label images first.")
+        if skipped := len(lines) - 1 - len(image_records):
+            LOGGER.warning(f"Skipping {skipped} unlabeled classification image(s) in {ndjson_path.name}")
+        if any(not isinstance(r["annotations"]["classification"][0], int) for r in image_records):
+            raise ValueError(f"Invalid NDJSON classification IDs in {ndjson_path.name}")
+    classification_ids = {r["annotations"]["classification"][0] for r in image_records} if is_classification else set()
 
     local_path = dataset_record.pop("path", None) if local and not (is_classification or is_depth) else None
 
@@ -979,7 +987,7 @@ async def _convert_ndjson_to_yolo(
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256(repr(fraction).encode() + (split or "").encode())
-    for i, r in enumerate(lines):
+    for i, r in enumerate([dataset_record, *image_records] if is_classification else lines):
         if i:
             split, source_name = r.get("split"), r.get("file")
             if split not in {"train", "val", "test"}:
@@ -999,12 +1007,6 @@ async def _convert_ndjson_to_yolo(
             )
             stem = f"{content_hash}_{i}" if content_hash else i
             r["file"] = f"{stem}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{stem}.jpg"
-            if is_classification:
-                ids = r.get("annotations", {}).get("classification", [])
-                class_id = ids[0] if ids else 0
-                if not isinstance(class_id, int):
-                    raise ValueError(f"Invalid NDJSON classification ID: {class_id!r}")
-                classification_ids.add(class_id)
         hash_record = {k: v for k, v in r.items() if k != "url"}
         if isinstance(r.get("depth"), dict):
             hash_record["depth"] = {k: v for k, v in r["depth"].items() if k != "url"}
@@ -1185,9 +1187,7 @@ async def _convert_ndjson_to_yolo(
 
             if is_classification:
                 # Classification: place image in {split}/{class_index}/ folder
-                class_ids = annotations.get("classification", [])
-                class_id = class_ids[0] if class_ids else 0
-                class_name = class_dirs[class_id]
+                class_name = class_dirs[annotations["classification"][0]]
                 image_path = dataset_dir / split / class_name / original_name
             else:
                 image_path = dataset_dir / "images" / split / original_name

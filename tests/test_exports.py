@@ -546,7 +546,9 @@ def test_export_ncnn_matrix(task, quantize, batch):
 
 
 @pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="IMX export requires Python>=3.9")
+@pytest.mark.skipif(
+    not checks.IS_PYTHON_MINIMUM_3_10 or checks.IS_PYTHON_MINIMUM_3_13, reason="IMX export requires Python>=3.10,<3.13"
+)
 @pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"

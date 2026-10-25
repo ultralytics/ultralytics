@@ -126,7 +126,7 @@ The **SA-Co evaluation benchmark** contains **214K unique phrases** across **126
 SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotation throughput** through:
 
 1. **AI Annotators**: [Llama](https://arxiv.org/abs/2302.13971) based models propose diverse noun phrases including hard negatives
-2. **AI Verifiers**: Fine-tuned [multimodal LLMs](https://ai.google.dev/gemini-api/docs) verify mask quality and exhaustivity at near-human performance
+2. **AI Verifiers**: Fine-tuned [multimodal LLMs](https://www.ultralytics.com/glossary/vision-language-model-vlm) verify mask quality and exhaustivity at near-human performance
 3. **Active Mining**: Focuses human effort on challenging failure cases where AI struggles
 4. **Ontology-Driven**: Leverages a large ontology grounded in [Wikidata](https://www.wikidata.org/wiki/Wikidata:Main_Page) for concept coverage
 
@@ -617,7 +617,7 @@ SAM 3 was released by Meta on **November 19, 2025** and is fully integrated into
 
 ### Is SAM 3 Integrated Into Ultralytics?
 
-Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. SAM 3 and SAM 3.1 also power the [smart annotation](../platform/data/annotation.md) feature on [Ultralytics Platform](https://platform.ultralytics.com), where SAM 3.1 is the default model and you can annotate images with just a few clicks.
+Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. SAM 3 and SAM 3.1 also power the [smart annotation](../platform/data/annotation.md) feature on [Ultralytics Platform](https://platform.ultralytics.com), where SAM 3.1 is the default model and you can annotate images with just a few clicks. On detection datasets with 1–200 classes, [SAM 3 Text](https://platform.ultralytics.com/models/sam3) and [SAM 3.1 Text](https://platform.ultralytics.com/models/sam3.1) also auto-annotate from your class names, and the [VLM Leaderboard](https://www.ultralytics.com/benchmarks/vlm) compares their accuracy with vision language models.
 
 ### Does Ultralytics support SAM 3.1?
 

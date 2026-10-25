@@ -2424,7 +2424,7 @@ def test_verify_image_label_whitespace_lines(tmp_path):
 
 
 def test_load_yolo_dota_whitespace_lines(tmp_path):
-    """Test whitespace-only lines in DOTA label files no longer crash the loader."""
+    """Test whitespace-only lines and a UTF-8 BOM in DOTA label files no longer crash the loader."""
     from ultralytics.data.split_dota import load_yolo_dota
 
     images, labels = tmp_path / "images" / "train", tmp_path / "labels" / "train"
@@ -2432,7 +2432,7 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     labels.mkdir(parents=True)
     cv2.imwrite(str(images / "a.jpg"), np.zeros((64, 64, 3), dtype=np.uint8))
     (labels / "a.txt").write_text(
-        "0.1 0.1 0.3 0.1 0.3 0.3 0.1 0.3 0\n \t\n0.4 0.4 0.6 0.4 0.6 0.6 0.4 0.6 1\n", encoding="utf-8"
+        "0.1 0.1 0.3 0.1 0.3 0.3 0.1 0.3 0\n \t\n0.4 0.4 0.6 0.4 0.6 0.6 0.4 0.6 1\n", encoding="utf-8-sig"
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed

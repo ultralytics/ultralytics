@@ -837,13 +837,9 @@ def save_one_box(
     xyxy = ops.clip_boxes(xyxy, im.shape)
     is_2d = im.ndim == 2
     grayscale = is_2d or im.shape[2] == 1  # grayscale image
-    crop = (
-        im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2])]
-        if is_2d
-        else im[
-            int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR or grayscale else -1)
-        ]
-    )
+    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2])]
+    if not BGR and not grayscale:
+        crop = crop[..., ::-1]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
         f = str(increment_path(file.with_suffix(".jpg")))

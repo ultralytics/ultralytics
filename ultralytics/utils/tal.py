@@ -431,8 +431,7 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         """Return the OKS of each candidate pair, or the box IoU where OKS carries no signal.
 
         Ground truths without visible keypoints already keep the IoU; with tiny ``kpt_oks_sigmas`` every candidate's
-        exponent can also underflow below what ``align_metric``'s ``oks ** beta`` represents, starving the ground
-        truth of positives.
+        ``oks ** beta`` in ``align_metric`` can also underflow to exact zeros, starving the ground truth of positives.
         """
         b, g, a = indices
         iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
@@ -441,7 +440,7 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         area = (gt_bboxes[b, g, 2:] - gt_bboxes[b, g, :2]).prod(-1, keepdim=True) * 0.53  # as in PoseValidator
         d = (pd_kpts[b, a].float() - gt_kpts[..., :2]).pow(2).sum(-1)
         oks = ((-d / ((2 * self.sigmas).pow(2) * (area + self.eps) * 2)).exp() * vis).sum(-1) / vis.sum(-1).clamp(min=1)
-        live = oks.gt(torch.finfo(oks.dtype).tiny ** (1 / self.beta))  # below this oks ** beta is subnormal
+        live = oks.pow(self.beta).gt(0)  # the same power align_metric takes: fall back only when it is exactly zero
         key = b * gt_bboxes.shape[1] + g  # unique id per (batch, ground truth)
         oks_gt = oks.new_zeros(gt_bboxes.shape[0] * gt_bboxes.shape[1]).index_put_((key,), live.to(oks.dtype), True)
         return torch.where(vis.any(-1) & oks_gt[key].gt(0), oks.to(iou.dtype), iou)

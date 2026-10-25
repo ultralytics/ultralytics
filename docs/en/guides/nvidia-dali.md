@@ -386,11 +386,22 @@ Serialize the DALI pipeline for the Triton DALI backend:
 !!! example "Export YOLO model to TensorRT engine"
 
     ```python
+    from pathlib import Path
+
     from ultralytics import YOLO
 
     model = YOLO("yolo26n.pt")
-    model.export(format="engine", imgsz=640, quantize=16, batch=8)
-    # Copy the .engine file to model_repository/yolo_trt/1/model.plan
+    engine_path = model.export(
+        format="engine", imgsz=640, quantize=16, batch=8, dynamic=True, nms=False
+    )  # NMS-free (N, 300, 6); TensorRT >= 8.5
+
+    # Ultralytics prepends a metadata header to .engine files; strip it so Triton can load the raw TensorRT plan
+    with open(engine_path, "rb") as f:
+        meta_len = int.from_bytes(f.read(4), byteorder="little")  # length of the JSON metadata header
+        f.seek(4 + meta_len)
+        plan = f.read()
+    Path("model_repository/yolo_trt/1").mkdir(parents=True, exist_ok=True)
+    Path("model_repository/yolo_trt/1/model.plan").write_bytes(plan)
     ```
 
 ### Step 3: Configure Triton
@@ -519,7 +530,7 @@ ensemble_scheduling {
     result = client.infer(model_name="ensemble_dali_yolo", inputs=[input_tensor])
     detections = result.as_numpy("OUTPUT")  # Shape: (1, 300, 6) -> [x1, y1, x2, y2, conf, class_id]
 
-    # Filter by confidence (no NMS needed — YOLO26 is end-to-end)
+    # Filter by confidence (no NMS needed for the nms=False export)
     detections = detections[0]  # First image
     detections = detections[detections[:, 4] > 0.25]  # Confidence threshold
     print(f"Detected {len(detections)} objects")
@@ -538,6 +549,7 @@ DALI preprocessing works with all YOLO tasks that use the standard `LetterBox` p
 | [Detection](../tasks/detect.md)               | ✅        | Standard letterbox preprocessing                         |
 | [Instance Segmentation](../tasks/segment.md)  | ✅        | Same preprocessing as detection                          |
 | [Semantic Segmentation](../tasks/semantic.md) | ✅        | Same image preprocessing as detection                    |
+| [Depth Estimation](../tasks/depth.md)         | ✅        | Same image preprocessing as detection                    |
 | [Classification](../tasks/classify.md)        | ❌        | Uses torchvision transforms (center crop), not letterbox |
 | [Pose Estimation](../tasks/pose.md)           | ✅        | Same preprocessing as detection                          |
 | [Oriented Detection (OBB)](../tasks/obb.md)   | ✅        | Same preprocessing as detection                          |

@@ -19,12 +19,12 @@ class TaskAlignedAssigner(nn.Module):
 
     Attributes:
         topk (int): The number of top candidates to consider.
-        topk2 (int): Secondary topk value for additional filtering.
+        topk2 (int): Secondary topk value for additional filtering, defaults to topk.
         num_classes (int): The number of object classes.
         alpha (float): The alpha parameter for the classification component of the task-aligned metric.
         beta (float): The beta parameter for the localization component of the task-aligned metric.
         stride (list): List of stride values for different feature levels.
-        stride_val (int): The stride value used for select_candidates_in_gts.
+        stride_val (int): Minimum ground-truth box side in select_candidates_in_gts; smaller sides are enlarged to it.
         eps (float): A small value to prevent division by zero.
     """
 
@@ -36,7 +36,7 @@ class TaskAlignedAssigner(nn.Module):
         beta: float = 6.0,
         stride: list | None = None,
         eps: float = 1e-9,
-        topk2=None,
+        topk2: int | None = None,
     ):
         """Initialize a TaskAlignedAssigner object with customizable hyperparameters.
 
@@ -47,7 +47,7 @@ class TaskAlignedAssigner(nn.Module):
             beta (float, optional): The beta parameter for the localization component of the task-aligned metric.
             stride (list, optional): List of stride values for different feature levels.
             eps (float, optional): A small value to prevent division by zero.
-            topk2 (int, optional): Secondary topk value for additional filtering.
+            topk2 (int, optional): Secondary topk value for additional filtering. If None, topk is used.
         """
         super().__init__()
         self.topk = topk
@@ -61,7 +61,7 @@ class TaskAlignedAssigner(nn.Module):
         self._oom_warned = False
 
     @torch.no_grad()
-    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra):
         """Compute the task-aligned assignment.
 
         Args:
@@ -71,6 +71,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             target_labels (torch.Tensor): Target labels with shape (bs, num_total_anchors).
@@ -78,6 +79,9 @@ class TaskAlignedAssigner(nn.Module):
             target_scores (torch.Tensor): Target scores with shape (bs, num_total_anchors, num_classes).
             fg_mask (torch.Tensor): Foreground mask with shape (bs, num_total_anchors).
             target_gt_idx (torch.Tensor): Target ground truth indices with shape (bs, num_total_anchors).
+
+        Notes:
+            On a CUDA out-of-memory error the assignment is retried one image at a time.
 
         References:
             https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
@@ -89,12 +93,12 @@ class TaskAlignedAssigner(nn.Module):
                 torch.full_like(pd_scores[..., 0], self.num_classes),
                 torch.zeros_like(pd_bboxes),
                 torch.zeros_like(pd_scores),
-                torch.zeros_like(pd_scores[..., 0]),
+                torch.zeros_like(pd_scores[..., 0], dtype=torch.bool),
                 torch.zeros_like(pd_scores[..., 0]),
             )
 
         try:
-            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra)
         except RuntimeError as e:
             if "out of memory" not in str(e).lower():
                 raise
@@ -125,6 +129,7 @@ class TaskAlignedAssigner(nn.Module):
                     gt_labels[i : i + 1, : self.n_max_boxes],
                     gt_bboxes[i : i + 1, : self.n_max_boxes],
                     mask_gt[i : i + 1, : self.n_max_boxes],
+                    **{k: v[i : i + 1] for k, v in extra.items()},
                 )
                 if results is None:
                     results = tuple(x.new_empty((bs, *x.shape[1:])) for x in result)
@@ -134,7 +139,7 @@ class TaskAlignedAssigner(nn.Module):
             self.bs, self.n_max_boxes = bs, n_max_boxes
         return results
 
-    def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+    def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra):
         """Compute the task-aligned assignment.
 
         Args:
@@ -144,6 +149,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             target_labels (torch.Tensor): Target labels with shape (bs, num_total_anchors).
@@ -153,7 +159,7 @@ class TaskAlignedAssigner(nn.Module):
             target_gt_idx (torch.Tensor): Target ground truth indices with shape (bs, num_total_anchors).
         """
         mask_pos, align_metric, overlaps = self.get_pos_mask(
-            pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
+            pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt, **extra
         )
 
         target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(
@@ -174,7 +180,7 @@ class TaskAlignedAssigner(nn.Module):
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
 
-    def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
+    def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt, **extra):
         """Get positive mask for each ground truth box.
 
         Args:
@@ -184,6 +190,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             anc_points (torch.Tensor): Anchor points with shape (num_total_anchors, 2).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             mask_pos (torch.Tensor): Positive mask with shape (bs, max_num_obj, h*w).
@@ -192,7 +199,9 @@ class TaskAlignedAssigner(nn.Module):
         """
         mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
         # Get anchor_align metric, (b, max_num_obj, h*w)
-        align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
+        align_metric, overlaps = self.get_box_metrics(
+            pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt, **extra
+        )
         # Get topk_metric mask, (b, max_num_obj, h*w)
         mask_topk = self.select_topk_candidates(align_metric, topk_mask=mask_gt.expand(-1, -1, self.topk).bool())
         # Merge all mask to a final mask, (b, max_num_obj, h*w)
@@ -200,7 +209,7 @@ class TaskAlignedAssigner(nn.Module):
 
         return mask_pos, align_metric, overlaps
 
-    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra):
         """Compute alignment metric given predicted and ground truth bounding boxes.
 
         Args:
@@ -209,17 +218,20 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, h*w).
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
-            align_metric (torch.Tensor): Alignment metric combining classification and localization.
-            overlaps (torch.Tensor): IoU overlaps between predicted and ground truth boxes.
+            align_metric (torch.Tensor): Alignment metric combining classification and localization with shape (bs,
+                n_max_boxes, h*w).
+            overlaps (torch.Tensor): IoU overlaps between predicted and ground truth boxes with shape (bs, n_max_boxes,
+                h*w).
         """
         na = pd_bboxes.shape[-2]
         mask_gt = mask_gt.bool()  # b, max_num_obj, h*w
         shape = self.bs, self.n_max_boxes, na
         indices = mask_gt.nonzero(as_tuple=True)
         bbox_scores = pd_scores[indices[0], indices[2], gt_labels[indices[0], indices[1], 0].long()]
-        overlap_values = self.iou_calculation(gt_bboxes[indices[:2]], pd_bboxes[indices[0], indices[2]])
+        overlap_values = self.pair_overlaps(indices, gt_bboxes, pd_bboxes, **extra)
         align_values = bbox_scores.pow(self.alpha) * overlap_values.pow(self.beta)
 
         overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)
@@ -228,15 +240,19 @@ class TaskAlignedAssigner(nn.Module):
         align_metric[indices] = align_values
         return align_metric, overlaps
 
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes):
+        """Return the overlap of each candidate (batch, gt, anchor) pair in `indices`, shape (N,)."""
+        return self.iou_calculation(gt_bboxes[indices[:2]], pd_bboxes[indices[0], indices[2]])
+
     def iou_calculation(self, gt_bboxes, pd_bboxes):
-        """Calculate IoU for horizontal bounding boxes.
+        """Calculate CIoU for horizontal bounding boxes, clamped to be non-negative.
 
         Args:
-            gt_bboxes (torch.Tensor): Ground truth boxes.
-            pd_bboxes (torch.Tensor): Predicted boxes.
+            gt_bboxes (torch.Tensor): Ground truth boxes in xyxy format with shape (N, 4).
+            pd_bboxes (torch.Tensor): Predicted boxes in xyxy format with shape (N, 4).
 
         Returns:
-            (torch.Tensor): IoU values between each pair of boxes.
+            (torch.Tensor): CIoU values between each pair of boxes with shape (N,).
         """
         return bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
 
@@ -247,11 +263,12 @@ class TaskAlignedAssigner(nn.Module):
             metrics (torch.Tensor): A tensor of shape (b, max_num_obj, h*w), where b is the batch size, max_num_obj is
                 the maximum number of objects, and h*w represents the total number of anchor points.
             topk_mask (torch.Tensor, optional): An optional boolean tensor of shape (b, max_num_obj, topk), where topk
-                is the number of top candidates to consider. If not provided, the top-k values are automatically
-                computed based on the given metrics.
+                is the number of top candidates to consider. If not provided, it is derived from whether each row's
+                largest metric exceeds eps.
 
         Returns:
-            (torch.Tensor): A tensor of shape (b, max_num_obj, h*w) containing the selected top-k candidates.
+            (torch.Tensor): An int8 tensor of shape (b, max_num_obj, h*w) that is 1 for the selected top-k candidates
+                and 0 elsewhere.
         """
         # (b, max_num_obj, topk)
         topk_metrics, topk_idxs = torch.topk(metrics, self.topk, dim=-1, largest=True)
@@ -323,6 +340,7 @@ class TaskAlignedAssigner(nn.Module):
         Notes:
             - b: batch size, n_boxes: number of ground truth boxes, h: height, w: width.
             - Bounding box format: [x_min, y_min, x_max, y_max].
+            - Valid boxes with a side smaller than stride_val are enlarged to stride_val about their center.
         """
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
         wh_mask = gt_bboxes_xywh[..., 2:] < self.stride_val  # floor tiny sides so the pool grows monotonically
@@ -347,7 +365,7 @@ class TaskAlignedAssigner(nn.Module):
             mask_pos (torch.Tensor): Positive mask, shape (b, n_max_boxes, h*w).
             overlaps (torch.Tensor): IoU overlaps, shape (b, n_max_boxes, h*w).
             n_max_boxes (int): Maximum number of ground truth boxes.
-            align_metric (torch.Tensor): Alignment metric for selecting best matches.
+            align_metric (torch.Tensor): Alignment metric, shape (b, n_max_boxes, h*w), used for the topk2 filtering.
 
         Returns:
             target_gt_idx (torch.Tensor): Indices of assigned ground truths, shape (b, h*w).
@@ -356,15 +374,12 @@ class TaskAlignedAssigner(nn.Module):
         """
         # Convert (b, n_max_boxes, h*w) -> (b, h*w)
         fg_mask = mask_pos.sum(-2)
-        if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
-            mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
-
-            max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
-            is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-            is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
-            mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos)  # (b, n_max_boxes, h*w)
-
-            fg_mask = mask_pos.sum(-2)
+        # Anchors assigned to multiple gt_bboxes keep the highest overlap; a no-op when there are none, without a sync
+        mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
+        max_overlaps_idx = overlaps.max(1).indices  # (b, h*w)
+        is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+        is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
+        mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos)  # (b, n_max_boxes, h*w)
 
         if self.topk2 != self.topk:
             align_metric = align_metric * mask_pos  # update overlaps
@@ -373,25 +388,70 @@ class TaskAlignedAssigner(nn.Module):
             topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
             topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
             mask_pos *= topk_idx
-            fg_mask = mask_pos.sum(-2)
-        # Find each grid serve which gt(index)
-        target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
+        # Column max gives fg flag + gt idx; NPU aclnnMaxDim lacks INT8 through CANN 9.1.1; cast 0/1 mask to int64
+        fg_mask, target_gt_idx = (mask_pos.to(torch.int64) if mask_pos.device.type == "npu" else mask_pos).max(-2)
         return target_gt_idx, fg_mask, mask_pos
+
+
+class PoseTaskAlignedAssigner(TaskAlignedAssigner):
+    """Task-aligned assigner for pose whose overlap is keypoint OKS, with an FCOS-style pyramid-level gate.
+
+    Positives, conflict resolution and the soft classification targets then all favor anchors with accurate keypoints,
+    so the score ranks detections by pose quality. OKS carries no scale prior, so each ground truth is only a candidate
+    for anchors whose stride s satisfies ``lo * s <= sqrt(box area) <= hi * s`` (the finest and coarsest levels stay
+    open below and above). Call it with ``pd_kpts`` (b, h*w, K, 2) and ``gt_kpts`` (b, max_num_obj, K, 3) in pixels and
+    ``anc_strides`` (h*w,); ground truths without visible keypoints keep the box IoU.
+    """
+
+    level_range = (2.0, 12.0)  # (lo, hi) ground-truth size range per stride, in strides
+
+    def __init__(self, sigmas: torch.Tensor, **kwargs):
+        """Initialize with the per-keypoint OKS sigmas (K,) and the TaskAlignedAssigner arguments."""
+        super().__init__(**kwargs)
+        self.sigmas = sigmas
+
+    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, anc_strides, **extra):
+        """Assign like TaskAlignedAssigner, gating candidates by the per-anchor strides ``anc_strides`` (h*w,)."""
+        self.anc_strides = anc_strides
+        return super().forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra)
+
+    def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
+        """Select anchors inside each ground-truth box on the pyramid levels that fit its size.
+
+        A ground truth that the gate would leave without candidates (e.g. a thin box narrower than the coarse strides)
+        keeps its ungated candidates.
+        """
+        mask = super().select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt, eps)
+        side = (gt_bboxes[..., 2:] - gt_bboxes[..., :2]).prod(-1, keepdim=True).clamp(min=0).sqrt()  # (b, n, 1)
+        s, (lo, hi) = self.anc_strides, self.level_range
+        gated = mask & ((side >= lo * s) | (s == s.min())) & ((side <= hi * s) | (s == s.max()))
+        return torch.where(gated.any(-1, keepdim=True), gated, mask)
+
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, pd_kpts, gt_kpts):
+        """Return the OKS of each candidate pair, or the box IoU for ground truths without visible keypoints."""
+        b, g, a = indices
+        iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
+        gt_kpts = gt_kpts[b, g]  # (P, K, 3)
+        vis = gt_kpts[..., 2] > 0
+        area = (gt_bboxes[b, g, 2:] - gt_bboxes[b, g, :2]).prod(-1, keepdim=True) * 0.53  # as in PoseValidator
+        d = (pd_kpts[b, a].float() - gt_kpts[..., :2]).pow(2).sum(-1)
+        oks = ((-d / ((2 * self.sigmas).pow(2) * (area + self.eps) * 2)).exp() * vis).sum(-1) / vis.sum(-1).clamp(min=1)
+        return torch.where(vis.any(-1), oks.to(iou.dtype), iou)
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
     """Assigns ground-truth objects to rotated bounding boxes using a task-aligned metric."""
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
-        """Calculate IoU for rotated bounding boxes."""
+        """Calculate probabilistic IoU (ProbIoU) for rotated bounding boxes, clamped to be non-negative."""
         return probiou(gt_bboxes, pd_bboxes).squeeze(-1).clamp_(0)
 
     def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt):
-        """Select the positive anchor center in gt for rotated bounding boxes.
+        """Select positive anchor centers within rotated ground truth bounding boxes.
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates with shape (h*w, 2).
-            gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (b, n_boxes, 5).
+            gt_bboxes (torch.Tensor): Ground truth bounding boxes in xywhr format with shape (b, n_boxes, 5).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (b, n_boxes, 1).
 
         Returns:
@@ -412,26 +472,39 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         ab = b - a
         ad = d - a
 
-        # (b, n_boxes, h*w, 2)
-        ap = xy_centers - a
+        # (b, n_boxes, h*w) per coordinate
+        apx = xy_centers[:, 0] - a[..., 0]
+        apy = xy_centers[:, 1] - a[..., 1]
         norm_ab = (ab * ab).sum(dim=-1)
         norm_ad = (ad * ad).sum(dim=-1)
-        ap_dot_ab = (ap * ab).sum(dim=-1)
-        ap_dot_ad = (ap * ad).sum(dim=-1)
+        ap_dot_ab = apx * ab[..., 0] + apy * ab[..., 1]
+        ap_dot_ad = apx * ad[..., 0] + apy * ad[..., 1]
         return (ap_dot_ab >= 0) & (ap_dot_ab <= norm_ab) & (ap_dot_ad >= 0) & (ap_dot_ad <= norm_ad)  # is_in_box
 
 
 def make_anchors(feats, strides, grid_cell_offset=0.5):
-    """Generate anchors from features."""
+    """Generate anchor points and stride tensors from feature maps.
+
+    Args:
+        feats (list[torch.Tensor] | torch.Tensor): Feature maps with shape (b, c, h, w) per level, or a tensor of
+            per-level (h, w) sizes.
+        strides (torch.Tensor | list): Stride of each feature level.
+        grid_cell_offset (float): Offset added to grid cell indices, 0.5 for cell centers.
+
+    Returns:
+        anchor_points (torch.Tensor): Anchor points in grid units with shape (N, 2), where N is the sum of h*w over all
+            levels.
+        stride_tensor (torch.Tensor): Stride of each anchor point with shape (N, 1).
+    """
     anchor_points, stride_tensor = [], []
     assert feats is not None
     dtype = feats[0].dtype
     for i in range(len(feats)):  # use len(feats) to avoid TracerWarning from iterating over strides tensor
         stride = strides[i]
         h, w = feats[i].shape[2:] if isinstance(feats, list) else (int(feats[i][0]), int(feats[i][1]))
-        # arange(out=new_*) avoids nondeterministic CUDA cumsum while preserving runtime device inheritance in traces
-        sx = torch.arange(w, out=feats[0].new_full((w,), 0, dtype=dtype)) + grid_cell_offset  # shift x
-        sy = torch.arange(h, out=feats[0].new_full((h,), 0, dtype=dtype)) + grid_cell_offset  # shift y
+        # no cumsum (nondeterministic on CUDA), no device= (baked into traces), no out= (does not convert to CoreML)
+        sx = torch.arange(w).type_as(feats[0]) + grid_cell_offset  # shift x
+        sy = torch.arange(h).type_as(feats[0]) + grid_cell_offset  # shift y
         sy, sx = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
         anchor_points.append(torch.stack((sx, sy), -1).view(-1, 2))
         stride_tensor.append(feats[0].new_full((h * w, 1), stride, dtype=dtype))
@@ -439,7 +512,17 @@ def make_anchors(feats, strides, grid_cell_offset=0.5):
 
 
 def dist2bbox(distance, anchor_points, xywh=True, dim=-1):
-    """Transform distance(ltrb) to box(xywh or xyxy)."""
+    """Transform distance (ltrb) to box (xywh or xyxy).
+
+    Args:
+        distance (torch.Tensor): Left, top, right, bottom distances from the anchor points with size 4 along dim.
+        anchor_points (torch.Tensor): Anchor points with size 2 along dim.
+        xywh (bool): Whether to return boxes in xywh format (True) or xyxy format (False).
+        dim (int): Dimension along which to split and concatenate.
+
+    Returns:
+        (torch.Tensor): Decoded bounding boxes.
+    """
     lt, rb = distance.chunk(2, dim)
     x1y1 = anchor_points - lt
     x2y2 = anchor_points + rb
@@ -451,7 +534,16 @@ def dist2bbox(distance, anchor_points, xywh=True, dim=-1):
 
 
 def bbox2dist(anchor_points: torch.Tensor, bbox: torch.Tensor, reg_max: int | None = None) -> torch.Tensor:
-    """Transform bbox(xyxy) to dist(ltrb)."""
+    """Transform bbox (xyxy) to distance (ltrb).
+
+    Args:
+        anchor_points (torch.Tensor): Anchor points with shape (..., 2).
+        bbox (torch.Tensor): Bounding boxes in xyxy format with shape (..., 4).
+        reg_max (int, optional): If provided, distances are clamped to [0, reg_max - 0.01].
+
+    Returns:
+        (torch.Tensor): Left, top, right, bottom distances with shape (..., 4).
+    """
     x1y1, x2y2 = bbox.chunk(2, -1)
     dist = torch.cat((anchor_points - x1y1, x2y2 - anchor_points), -1)
     if reg_max is not None:
@@ -463,13 +555,13 @@ def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
     """Decode predicted rotated bounding box coordinates from anchor points and distribution.
 
     Args:
-        pred_dist (torch.Tensor): Predicted rotated distance with shape (bs, h*w, 4).
+        pred_dist (torch.Tensor): Predicted left, top, right, bottom distances with shape (bs, h*w, 4).
         pred_angle (torch.Tensor): Predicted angle with shape (bs, h*w, 1).
         anchor_points (torch.Tensor): Anchor points with shape (h*w, 2).
         dim (int, optional): Dimension along which to split.
 
     Returns:
-        (torch.Tensor): Predicted rotated bounding boxes with shape (bs, h*w, 4).
+        (torch.Tensor): Predicted rotated bounding boxes in xywh format (angle excluded) with shape (bs, h*w, 4).
     """
     lt, rb = pred_dist.split(2, dim=dim)
     cos, sin = torch.cos(pred_angle), torch.sin(pred_angle)

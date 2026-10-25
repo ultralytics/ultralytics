@@ -3,7 +3,7 @@ comments: true
 license:
     name: CC-BY-4.0
     url: https://creativecommons.org/licenses/by/4.0/
-description: Explore the TartanAir depth dataset for monocular depth estimation, a large synthetic dataset rendered in AirSim with diverse environments and dense ground truth used to train Ultralytics YOLO26-Depth models.
+description: Explore the TartanAir depth dataset, a large synthetic AirSim dataset with diverse environments and dense ground truth for training Ultralytics YOLO26-Depth models.
 keywords: Ultralytics, YOLO, depth estimation, TartanAir, synthetic dataset, AirSim, visual SLAM, dense depth, monocular depth
 ---
 
@@ -52,14 +52,14 @@ from ultralytics.data.utils import save_depth_png
 VAL_ENVS = {"neighborhood"}  # environments held out for validation
 src, dst = Path("data"), Path("datasets/depth-tartanair")
 for depth_file in sorted(src.rglob("depth_left/*_left_depth.npy")):
-    env, traj = depth_file.parts[-5], depth_file.parts[-3]
+    env, level, traj = depth_file.parts[-5:-2]  # e.g. neighborhood, Easy, P000
     out = "val" if env.lower() in VAL_ENVS else "train"
     (dst / f"images/{out}").mkdir(parents=True, exist_ok=True)
     (dst / f"depth/{out}").mkdir(parents=True, exist_ok=True)
     depth = np.load(depth_file)
     depth[depth > 80.0] = 0.0  # sky/extreme range → 0 = invalid
     frame = depth_file.name.replace("_depth.npy", "")  # e.g. 000000_left
-    name = f"{env}_{traj}_{frame}"
+    name = f"{env}_{level}_{traj}_{frame}"  # Easy and Hard reuse trajectory names such as P000
     save_depth_png(dst / f"depth/{out}/{name}.png", depth, scale=256)
     shutil.copy(depth_file.parents[1] / "image_left" / f"{frame}.png", dst / f"images/{out}/{name}.png")
 ```
@@ -72,7 +72,7 @@ There is no standalone held-out TartanAir benchmark in this setup. Instead, the 
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For TartanAir, the `depth-tartanair.yaml` file defines the paths and the single `depth` class.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For TartanAir, the `depth-tartanair.yaml` file defines the paths and the single `depth` class.
 
 !!! example "ultralytics/cfg/datasets/depth-tartanair.yaml"
 
@@ -113,7 +113,7 @@ The YOLO26 depth family (`yolo26n-depth.pt`, `yolo26s-depth.pt`, `yolo26m-depth.
 
 If you use the TartanAir dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -127,3 +127,17 @@ If you use the TartanAir dataset in your research or development work, please ci
         ```
 
 We would like to acknowledge the creators of TartanAir for making this diverse synthetic dataset available to the computer vision community.
+
+## FAQ
+
+### What is the TartanAir dataset?
+
+TartanAir is a large synthetic dataset rendered in the AirSim simulator, originally built to stress visual SLAM. It spans indoor, outdoor, urban, and natural environments under varied season, weather, and lighting conditions, and contributes 61,470 images (55,660 train, 5,810 val) with dense depth to roughly 80 m to the YOLO26-Depth training mix.
+
+### How do I obtain and convert TartanAir?
+
+TartanAir has no automatic download. Fetch the RGB and depth data with the [tartanair_tools](https://github.com/castacks/tartanair_tools) scripts, then convert the float32 `.npy` depth in meters to uint16 PNGs with `depth_scale: 256`, clipping sky pixels beyond 80 m to `0`. Hold out one or more environments for validation, as shown in [Obtain the Data](#obtain-the-data).
+
+### How do I train a YOLO26 depth model on TartanAir?
+
+Run `yolo depth train data=depth-tartanair.yaml model=yolo26n-depth.pt epochs=100 imgsz=640`, or use the Python example in the [Usage](#usage) section. The [Training](../../modes/train.md) page lists every available argument.

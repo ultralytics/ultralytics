@@ -135,9 +135,9 @@ class SecurityAlarm(BaseSolution):
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         # Iterate over bounding boxes and classes index
-        for box, cls in zip(self.boxes, self.clss):
+        for box, cls, conf in zip(self.boxes, self.clss, self.confs):
             # Draw bounding box
-            annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
+            annotator.box_label(box, label=self.adjust_box_label(cls, conf), color=colors(cls, True))
 
         total_det = len(self.clss)
         if total_det >= self.records and not self.email_sent and self.server:

@@ -202,7 +202,7 @@ Adjust these based on your dataset and hardware. Learn more in [Train Settings](
 
 ### How do I set the learning rate for training a YOLO model?
 
-The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for [Adam optimizer](https://www.ultralytics.com/glossary/adam-optimizer). Monitor metrics and adjust as needed. Use cosine learning rate schedulers (`cos_lr`) or warmup (`warmup_epochs`, `warmup_momentum`). Details are in the [Train Guide](../modes/train.md).
+The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for [Adam optimizer](https://www.ultralytics.com/glossary/adam-optimizer), and set `optimizer` explicitly since the default `auto` ignores `lr0`. Monitor metrics and adjust as needed. Use cosine learning rate schedulers (`cos_lr`) or warmup (`warmup_epochs`, `warmup_momentum`). Details are in the [Train Guide](../modes/train.md).
 
 ### What are the default inference settings for YOLO models?
 
@@ -211,7 +211,7 @@ Default settings include:
 - **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
 - **IoU Threshold (`iou=0.7`)**: For [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms).
 - **Image Size (`imgsz=640`)**: Resizes input images.
-- **Device (`device=None`)**: Selects CPU, GPU, Apple MPS or Huawei Ascend NPU (`npu`).
+- **Device (`device=None`)**: Selects CPU, CUDA GPU, Apple MPS, Intel XPU (`xpu`), or Huawei Ascend NPU (`npu`).
 
 For a full overview, see [Predict Settings](#predict-settings) and the [Predict Guide](../modes/predict.md).
 

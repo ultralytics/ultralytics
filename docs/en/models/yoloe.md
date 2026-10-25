@@ -127,31 +127,31 @@ Zero-shot results on [LVIS](../datasets/detect/lvis.md) minival at 640 pixels, f
 
 Each accuracy and parameter cell reads **text prompt / visual prompt**; FLOPs are given once. Parameters and FLOPs are for the detection configuration the paper evaluates. Accuracy is the paper's Non-E2E figure, the only protocol it reports for every model in the comparison; the YOLOE-26 end-to-end head trails it by at most 1.1 AP under text prompts and 2.6 AP under visual prompts.
 
-| Model     | mAP<sub>50-95</sub> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| --------- | ------------------- | --------------- | --------------- | --------------- | ------------------------ | ----------------------- |
-| YOLOE-26n | 24.7 / 21.9         | 20.5 / 17.6     | 24.1 / 22.3     | 26.1 / 22.4     | 3.9 / 3.1                | 6.1                     |
-| YOLOE-26s | 30.8 / 28.6         | 23.9 / 25.1     | 29.6 / 27.8     | 33.0 / 29.9     | 10.7 / 11.0              | 21.9                    |
-| YOLOE-26m | 35.4 / 33.9         | 31.1 / 33.4     | 34.7 / 34.0     | 36.9 / 33.8     | 21.3 / 25.1              | 70.6                    |
-| YOLOE-26l | 37.8 / 36.3         | 35.1 / 37.6     | 37.6 / 36.2     | 38.5 / 36.1     | 25.5 / 29.3              | 89.0                    |
-| YOLOE-26x | 40.6 / 38.5         | 37.4 / 35.3     | 40.9 / 38.8     | 41.0 / 38.8     | 55.2 / 65.2              | 197.7                   |
-| YOLOE-11s | 27.5 / 26.3         | 21.4 / 22.5     | 26.8 / 27.1     | 29.3 / 26.4     | 10.7 / 10.9              | 22.7                    |
-| YOLOE-11m | 33.0 / 31.4         | 26.9 / 27.1     | 32.5 / 31.9     | 34.5 / 31.7     | 21.0 / 24.8              | 70.4                    |
-| YOLOE-11l | 35.2 / 33.7         | 29.1 / 28.1     | 35.0 / 34.6     | 36.5 / 33.8     | 26.0 / 29.8              | 89.5                    |
-| YOLOE-v8s | 27.9 / 26.2         | 22.3 / 21.3     | 27.8 / 27.7     | 29.0 / 25.7     | 12.3 / 12.6              | 29.8                    |
-| YOLOE-v8m | 32.6 / 31.0         | 26.9 / 27.0     | 31.9 / 31.7     | 34.4 / 31.1     | 26.4 / 28.4              | 80.7                    |
-| YOLOE-v8l | 35.9 / 34.2         | 33.2 / 33.2     | 34.8 / 34.6     | 37.3 / 34.1     | 43.5 / 47.3              | 167.6                   |
+| Model     | mAP<sub>50-95</sub> | mAP<sub>r</sub> | mAP<sub>c</sub>     | mAP<sub>f</sub>     | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| --------- | ------------------- | --------------- | ------------------- | ------------------- | ------------------------ | ----------------------- |
+| YOLOE-26n | 24.7 / 21.9         | 20.5 / 17.6     | 24.1 / 22.3         | 26.1 / 22.4         | **3.9** / **3.1**        | **6.1**                 |
+| YOLOE-26s | 30.8 / 28.6         | 23.9 / 25.1     | 29.6 / 27.8         | 33.0 / 29.9         | 10.7 / 11.0              | 21.9                    |
+| YOLOE-26m | 35.4 / 33.9         | 31.1 / 33.4     | 34.7 / 34.0         | 36.9 / 33.8         | 21.3 / 25.1              | 70.6                    |
+| YOLOE-26l | 37.8 / 36.3         | 35.1 / **37.6** | 37.6 / 36.2         | 38.5 / 36.1         | 25.5 / 29.3              | 89.0                    |
+| YOLOE-26x | **40.6** / **38.5** | **37.4** / 35.3 | **40.9** / **38.8** | **41.0** / **38.8** | 55.2 / 65.2              | 197.7                   |
+| YOLOE-11s | 27.5 / 26.3         | 21.4 / 22.5     | 26.8 / 27.1         | 29.3 / 26.4         | 10.7 / 10.9              | 22.7                    |
+| YOLOE-11m | 33.0 / 31.4         | 26.9 / 27.1     | 32.5 / 31.9         | 34.5 / 31.7         | 21.0 / 24.8              | 70.4                    |
+| YOLOE-11l | 35.2 / 33.7         | 29.1 / 28.1     | 35.0 / 34.6         | 36.5 / 33.8         | 26.0 / 29.8              | 89.5                    |
+| YOLOE-v8s | 27.9 / 26.2         | 22.3 / 21.3     | 27.8 / 27.7         | 29.0 / 25.7         | 12.3 / 12.6              | 29.8                    |
+| YOLOE-v8m | 32.6 / 31.0         | 26.9 / 27.0     | 31.9 / 31.7         | 34.4 / 31.1         | 26.4 / 28.4              | 80.7                    |
+| YOLOE-v8l | 35.9 / 34.2         | 33.2 / 33.2     | 34.8 / 34.6         | 37.3 / 34.1         | 43.5 / 47.3              | 167.6                   |
 
 ### Prompt-free
 
 The prompt-free checkpoints answer from their built-in vocabulary with no prompt supplied. Each accuracy cell reads **end-to-end / Non-E2E**, the two protocols the paper scores YOLOE-26 under; the [YOLO26 page](yolo26.md#yoloe-26-open-vocabulary-detection-and-segmentation) quotes the Non-E2E column.
 
-| Model        | mAP<sub>50-95</sub> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ------------ | ------------------- | --------------- | --------------- | --------------- | ------------------------ | ----------------------- |
-| YOLOE-26n-pf | 16.6 / 17.7         | 15.7 / 15.8     | 15.3 / 16.4     | 17.9 / 19.2     | 2.3                      | 5.3                     |
-| YOLOE-26s-pf | 21.4 / 22.6         | 16.2 / 20.2     | 20.1 / 20.9     | 23.5 / 24.5     | 9.0                      | 20.8                    |
-| YOLOE-26m-pf | 25.7 / 26.4         | 26.7 / 24.5     | 24.0 / 25.0     | 26.9 / 27.9     | 19.4                     | 68.4                    |
-| YOLOE-26l-pf | 27.2 / 28.0         | 26.3 / 25.7     | 25.7 / 26.8     | 28.7 / 29.5     | 23.6                     | 86.8                    |
-| YOLOE-26x-pf | 29.9 / 31.1         | 27.5 / 28.9     | 29.1 / 30.7     | 31.1 / 31.7     | 53.1                     | 194.4                   |
+| Model        | mAP<sub>50-95</sub> | mAP<sub>r</sub>     | mAP<sub>c</sub>     | mAP<sub>f</sub>     | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------ | ------------------- | ------------------- | ------------------- | ------------------- | ------------------------ | ----------------------- |
+| YOLOE-26n-pf | 16.6 / 17.7         | 15.7 / 15.8         | 15.3 / 16.4         | 17.9 / 19.2         | **2.3**                  | **5.3**                 |
+| YOLOE-26s-pf | 21.4 / 22.6         | 16.2 / 20.2         | 20.1 / 20.9         | 23.5 / 24.5         | 9.0                      | 20.8                    |
+| YOLOE-26m-pf | 25.7 / 26.4         | 26.7 / 24.5         | 24.0 / 25.0         | 26.9 / 27.9         | 19.4                     | 68.4                    |
+| YOLOE-26l-pf | 27.2 / 28.0         | 26.3 / 25.7         | 25.7 / 26.8         | 28.7 / 29.5         | 23.6                     | 86.8                    |
+| YOLOE-26x-pf | **29.9** / **31.1** | **27.5** / **28.9** | **29.1** / **30.7** | **31.1** / **31.7** | 53.1                     | 194.4                   |
 
 Under text and visual prompts the YOLOE-26 models lead their YOLOE-11 and YOLOE-v8 counterparts at every matching scale on mAP<sub>50-95</sub>, while staying below the v8 line on parameters and FLOPs. On the same split the paper reports YOLO-Worldv2 at 24.4 (S), 32.4 (M) and 35.5 (L), and the transformer-based detectors GLIP-T at 26.0, GDINO-T at 27.4 and DetCLIP-T at 34.4, each carrying 155 to 232 M parameters. The original YOLOE paper adds two results for the v8-scale models it introduced. On LVIS, YOLOE-v8s beats YOLO-Worldv2-S by **3.5 AP** at a third of the training cost and 1.4× the inference speed. Transferred to COCO, YOLOE-v8l gains **0.6 box AP** and **0.4 mask AP** over closed-set YOLOv8-L with nearly **4× less training time**.
 
@@ -161,11 +161,11 @@ Under text and visual prompts the YOLOE-26 models lead their YOLOE-11 and YOLOE-
 
 ## Usage Examples
 
-Every YOLOE example below runs from the [Python API](../usage/python.md). Text-prompt prediction, validation, export, tracking and plain training also work from the [CLI](../usage/cli.md); the fine-tuning recipes and visual prompting pass a trainer or predictor class as an argument, which only the Python API accepts.
+Every YOLOE example below runs from the [Python API](../usage/python.md). Text-prompt prediction, validation, export, tracking and plain training also work from the [CLI](../usage/cli.md); the fine-tuning recipes pass a trainer class and visual prompting passes NumPy prompt arrays, which only the Python API accepts.
 
 ### Train Usage
 
-Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names.
+Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names. The resulting checkpoint predicts your dataset's classes directly: its head no longer reads prompts, so `set_classes()` raises an error if the classes change. Prompt the original checkpoint for other classes.
 
 <p align="center">
   <br>
@@ -241,7 +241,7 @@ Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This most
 
 ### Predict Usage
 
-The text-prompt call is the one shown in [Quick Start](#quick-start). The remaining two modes each need an extra argument:
+The text-prompt call is the one shown in [Quick Start](#quick-start). Visual prompting adds a `visual_prompts` argument, and prompt-free prediction loads a `-pf` checkpoint instead:
 
 !!! example
 
@@ -255,7 +255,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26l-seg.pt")
 
@@ -268,7 +267,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         results = model.predict(
             "ultralytics/assets/bus.jpg",
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
         )
         results[0].show()
         ```
@@ -279,7 +277,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26l-seg.pt")
 
@@ -289,7 +286,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
             "ultralytics/assets/zidane.jpg",  # Target image
             refer_image="ultralytics/assets/bus.jpg",  # Where the example boxes live
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
         )
         results[0].show()
 
@@ -309,7 +305,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import torch
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-11l-seg.pt")
 
@@ -320,7 +315,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
             img_tensor,
             refer_image=img_tensor,
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
             imgsz=640,
         )
         ```
@@ -331,7 +325,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26l-seg.pt")
 
@@ -346,7 +339,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         results = model.predict(
             ["ultralytics/assets/bus.jpg", "ultralytics/assets/zidane.jpg"],
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
         )
         results[0].show()
         ```
@@ -364,6 +356,8 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         results[0].show()
         ```
 
+        The `yoloe-26*-seg-pf.pt` checkpoints keep both detection branches, so `nms` selects between them as on any other YOLOE-26 model: the default runs the one-to-many head with NMS, and `nms=False` runs the NMS-free head. The YOLOE-11 and YOLOE-v8 prompt-free checkpoints carry the one-to-many head only.
+
 ### Val Usage
 
 Validation runs like any other model on a segmentation dataset:
@@ -377,6 +371,8 @@ Validation runs like any other model on a segmentation dataset:
 
     metrics = model.val(data="coco128-seg.yaml")
     ```
+
+`data` can also be an [NDJSON file](../datasets/detect/index.md#ultralytics-ndjson-format) or a Platform [`ul://` dataset URI](../platform/data/datasets.md#dataset-uri); it is converted to YOLO format before the text or visual prompts are built.
 
 Two variants of the same call cover the other prompting modes:
 
@@ -414,14 +410,12 @@ Prompt embeddings can be saved once and reused when producing static exports suc
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26n-seg.pt")
         model.predict(
             "path/to/image.jpg",
             refer_image="path/to/reference.jpg",
             visual_prompts={"bboxes": np.array([[50, 80, 180, 260]]), "cls": np.array([0])},
-            predictor=YOLOEVPSegPredictor,
         )
         model.save_prompt_embeddings("visual-object.npz")
 
@@ -580,11 +574,20 @@ model.set_vocab(vocab, names)
 model.save("yoloe-26l-seg-pf-custom.pt")  # never overwrite the released checkpoint
 ```
 
+`get_vocab` returns the branch that the model's `end2end` flag selects, and `set_vocab` re-parameterizes that one branch. The released YOLOE-26 files instead carry a vocabulary per branch, which is what keeps `nms` selecting between them; reproduce that by taking the second vocabulary from another copy of the text-prompt model. YOLOE-11 and YOLOE-v8 have a single branch, so they take the call above unchanged.
+
+```python
+one2one_model = YOLOE("runs/segment/train/weights/best.pt")  # get_vocab fuses the head it reads, so load a second copy
+one2one_model.model.end2end = True  # read the NMS-free branch
+
+model.set_vocab(vocab, names, one2one_vocab=one2one_model.get_vocab(names))
+```
+
 ## Citations and Acknowledgments
 
 If YOLOE has contributed to your research or project, please cite the original paper by **Ao Wang, Lihao Liu, Hui Chen, Zijia Lin, Jungong Han, and Guiguang Ding** from **Tsinghua University**:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

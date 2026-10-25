@@ -45,7 +45,7 @@ This setup process ensures you have a Python environment version 3.8.0 or newer 
 
 ## Step 3: Train and Deploy Your YOLOv5 Models
 
-With the setup complete, you are ready to [train](../../modes/train.md), [validate](../../modes/val.md), [predict](../../modes/predict.md), and [export](../../modes/export.md) with YOLOv5 on your GCP VM:
+With the setup complete, you are ready to train, validate, predict, and export with YOLOv5 on your GCP VM:
 
 ```bash
 # Train a YOLOv5 model on your dataset (e.g., yolov5s)
@@ -93,14 +93,14 @@ To train YOLOv5 on your custom dataset within GCP, follow these general steps:
 1.  Prepare your dataset according to the YOLOv5 format (images and corresponding label files). See our [datasets overview](../../datasets/index.md) for guidance.
 2.  Upload your dataset to your GCP VM using `gcloud compute scp` or the web console's SSH feature.
 3.  Create a dataset configuration YAML file (`custom_dataset.yaml`) that specifies the paths to your training and validation data, the number of classes, and class names.
-4.  Begin the [training process](../../modes/train.md) using your custom dataset YAML and potentially starting from pretrained weights:
+4.  Begin the [training process](../tutorials/train-custom-data.md) using your custom dataset YAML and potentially starting from pretrained weights:
 
     ```bash
     # Example: Train YOLOv5s on a custom dataset for 100 epochs
     python train.py --img 640 --batch 16 --epochs 100 --data custom_dataset.yaml --weights yolov5s.pt
     ```
 
-For comprehensive instructions on preparing data and training with custom datasets, consult the [Ultralytics YOLOv5 Train documentation](../../modes/train.md).
+For comprehensive instructions on preparing data and training with custom datasets, consult the [Train Custom Data](../tutorials/train-custom-data.md) tutorial.
 
 ## Leveraging Cloud Storage
 
@@ -129,3 +129,21 @@ Consider using [Ultralytics Platform](../../platform/index.md) for a streamlined
 Remember to document your progress, share insights with the vibrant Ultralytics community, and utilize resources like [GitHub discussions](https://github.com/ultralytics/yolov5/discussions) for collaboration and support. Now, go forth and innovate with YOLOv5 and GCP!
 
 Want to continue enhancing your ML skills? Dive into our [documentation](../../quickstart.md) and explore the [Ultralytics Blog](https://www.ultralytics.com/blog) for more tutorials and insights. Let your AI adventure continue!
+
+## FAQ
+
+### Which VM configuration should I choose?
+
+An `n1-standard-8` machine with a single T4 GPU is enough for most YOLOv5 training and inference. Move to an L4 or A100 for large datasets or bigger models, and always tick the option to install the NVIDIA driver automatically on first startup.
+
+### How do I stop paying when I am not training?
+
+Stop the VM from the Compute Engine console when it is idle. You are still billed for the attached disk, so delete the VM and disk once the project is finished and your weights are safely copied to Cloud Storage.
+
+### How do I get my dataset onto the VM?
+
+For small datasets use `gcloud compute scp`. For anything larger, upload to a Cloud Storage bucket and pull it with `gsutil cp -r gs://your-bucket/dataset ./datasets/`, which is much faster inside Google's network.
+
+### Can I use the `ultralytics` package on the same VM?
+
+Yes. The Deep Learning VM already has PyTorch, so `pip install ultralytics` adds YOLO26 training and export with the `yolo` CLI. See the [Quickstart](../../quickstart.md) for details.

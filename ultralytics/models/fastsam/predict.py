@@ -60,10 +60,10 @@ class FastSAMPredictor(SegmentationPredictor):
         Returns:
             (list[Results]): Processed results with prompts applied.
         """
-        bboxes = self.prompts.pop("bboxes", None)
-        points = self.prompts.pop("points", None)
-        labels = self.prompts.pop("labels", None)
-        texts = self.prompts.pop("texts", None)
+        bboxes = self.prompts.get("bboxes")
+        points = self.prompts.get("points")
+        labels = self.prompts.get("labels")
+        texts = self.prompts.get("texts")
         results = super().postprocess(preds, img, orig_imgs)
         for result in results:
             full_box = torch.tensor(
@@ -114,20 +114,20 @@ class FastSAMPredictor(SegmentationPredictor):
                 union = bbox_areas[:, None] + full_mask_areas - mask_areas
                 idx[torch.argmax(mask_areas / union, dim=1)] = True
             if points is not None:
-                coords = torch.as_tensor(points, dtype=torch.int32, device=self.device).clone()
+                coords = torch.as_tensor(points, dtype=torch.int64, device=self.device).clone()
                 coords = coords[None] if coords.ndim == 1 else coords
                 coords = clip_coords(coords, tuple(x - 1 for x in result.orig_shape))
                 if labels is None:
                     labels = torch.ones(coords.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
                 assert len(labels) == len(coords), "Labels and points must contain the same number of items."
+                point_masks = masks[:, coords[:, 1], coords[:, 0]].bool()
                 point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)
                     if labels.sum() == 0  # all negative points
-                    else torch.zeros(len(result), dtype=torch.bool, device=self.device)
+                    else point_masks[:, labels == 1].any(1)
                 )
-                for point, label in zip(coords, labels):
-                    point_idx[torch.nonzero(masks[:, point[1], point[0]], as_tuple=True)[0]] = bool(label)
+                point_idx &= ~point_masks[:, labels == 0].any(1)
                 idx |= point_idx
             if texts is not None:
                 if isinstance(texts, str):
@@ -160,7 +160,8 @@ class FastSAMPredictor(SegmentationPredictor):
             texts (list[str]): List of prompt texts, each should be a string object.
 
         Returns:
-            (torch.Tensor): Similarity matrix between given images and texts with shape (M, N).
+            (torch.Tensor): Similarity matrix between texts and images with shape (M, N), where M is the number of texts
+                and N is the number of images.
         """
         from ultralytics.nn.text_model import CLIP
 

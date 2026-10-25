@@ -37,7 +37,7 @@ ADEChallengeData2016/
 
 !!! warning "Manual Download Required"
 
-    ADE20K has no automatic download script. Download the ~1 GB [`ADEChallengeData2016.zip`](https://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive and extract it directly into your `datasets/` folder. The archive's own top-level folder is already named `ADEChallengeData2016/`, so this produces `datasets/ADEChallengeData2016/` matching the layout above — do not create an `ADEChallengeData2016` folder yourself and extract into it, or you'll end up with a nested `datasets/ADEChallengeData2016/ADEChallengeData2016/` directory that the YAML won't find.
+    ADE20K has no automatic download script. Download the ~1 GB `ADEChallengeData2016.zip` archive from the [MIT Scene Parsing Benchmark](http://sceneparsing.csail.mit.edu/) page and extract it directly into your `datasets/` folder. The archive's own top-level folder is already named `ADEChallengeData2016/`, so this produces `datasets/ADEChallengeData2016/` matching the layout above — do not create an `ADEChallengeData2016` folder yourself and extract into it, or you'll end up with a nested `datasets/ADEChallengeData2016/ADEChallengeData2016/` directory that the YAML won't find.
 
 The `masks_dir` field is set to `annotations`, so each image under `images/` is paired with its corresponding mask under `annotations/`. The original ADE20K masks use source label IDs where `0` is ignored, and the `label_mapping` section converts valid labels `1` through `150` to contiguous train IDs `0` through `149`, mapping ignored pixels to `255`.
 
@@ -59,7 +59,7 @@ A dataset YAML file defines the ADE20K paths, classes, mask directory, and label
 
 ## Usage
 
-To train a YOLO26n-sem model on the ADE20K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 512, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-sem model on the ADE20K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -69,17 +69,17 @@ To train a YOLO26n-sem model on the ADE20K dataset for 100 [epochs](https://www.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-sem.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-sem-ade20k.pt")  # load an ADE20K-pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="ade20k.yaml", epochs=100, imgsz=512)
+        results = model.train(data="ade20k.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semantic train data=ade20k.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
+        yolo semantic train data=ade20k.yaml model=yolo26n-sem-ade20k.pt epochs=100 imgsz=640
         ```
 
 ## Citations, License and Acknowledgments
@@ -88,7 +88,7 @@ ADE20K images are released for [non-commercial research and educational use only
 
 If you use the ADE20K dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -111,7 +111,7 @@ The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale scene 
 
 ### How can I train a YOLO model using the ADE20K dataset?
 
-To train a YOLO26n-sem model on the ADE20K dataset for 100 epochs with an image size of 512, you can use the following code snippets. For a detailed list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-sem model on the ADE20K dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a detailed list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -121,17 +121,17 @@ To train a YOLO26n-sem model on the ADE20K dataset for 100 epochs with an image 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-sem.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-sem-ade20k.pt")  # load an ADE20K-pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="ade20k.yaml", epochs=100, imgsz=512)
+        results = model.train(data="ade20k.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semantic train data=ade20k.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
+        yolo semantic train data=ade20k.yaml model=yolo26n-sem-ade20k.pt epochs=100 imgsz=640
         ```
 
 ### How is the ADE20K dataset structured?
@@ -140,7 +140,7 @@ The ADE20K dataset follows the official ADEChallengeData2016 layout, with images
 
 ### Do I need to download ADE20K manually?
 
-Yes. Download the [`ADEChallengeData2016.zip`](https://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip) archive (~1 GB) and extract it directly into your `datasets/` folder before training — the archive's own top-level folder is already named `ADEChallengeData2016/`, so extracting it there (not into a separate `ADEChallengeData2016` folder you create yourself) produces the `images/` and `annotations/` layout that `ade20k.yaml` expects.
+Yes. Download the `ADEChallengeData2016.zip` archive (~1 GB) from the [MIT Scene Parsing Benchmark](http://sceneparsing.csail.mit.edu/) page and extract it directly into your `datasets/` folder before training — the archive's own top-level folder is already named `ADEChallengeData2016/`, so extracting it there (not into a separate `ADEChallengeData2016` folder you create yourself) produces the `images/` and `annotations/` layout that `ade20k.yaml` expects.
 
 ### Why does ADE20K use `label_mapping`?
 

@@ -14,8 +14,6 @@ keywords: Ultralytics Explorer, CV datasets, semantic search, SQL queries, vecto
     <img width="1709" alt="Ultralytics Explorer dataset visualization GUI" src="https://cdn.ul.run/i/21d5ef59dc96909047855598246a1e42.avif">
 </p>
 
-<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
-
 Ultralytics Explorer is a tool for exploring CV datasets using semantic search, SQL queries, vector similarity search, and natural language prompts. It also provides a Python API for accessing the same functionality.
 
 <p align="center">
@@ -34,7 +32,7 @@ Ultralytics Explorer is a tool for exploring CV datasets using semantic search, 
 Explorer depends on external libraries for some of its functionality. These are automatically installed when you use Explorer. To manually install these dependencies, use the following command:
 
 ```bash
-pip install ultralytics[explorer]
+pip install "ultralytics[explorer]==8.3.11"
 ```
 
 !!! tip
@@ -77,7 +75,7 @@ Learn more about the [Explorer API](api.md).
 To manually install the optional dependencies needed for Ultralytics Explorer, you can use the following `pip` command:
 
 ```bash
-pip install ultralytics[explorer]
+pip install "ultralytics[explorer]==8.3.11"
 ```
 
 These dependencies are essential for the full functionality of semantic search and SQL querying. By including libraries powered by [LanceDB](https://www.lancedb.com/), the installation ensures that the database operations remain efficient and scalable, even for large datasets like [COCO](../detect/coco.md).
@@ -96,7 +94,7 @@ For storage and scalability information, check out our [installation instruction
 
 ### What is the Ask AI feature in Ultralytics Explorer?
 
-The Ask AI feature in Ultralytics Explorer allows users to interact with their datasets using natural language queries. Powered by [OpenAI](https://www.ultralytics.com/blog/openai-gpt-4o-showcases-ai-potential), this feature enables you to ask complex questions and receive insightful answers without needing to write SQL queries or similar commands. To use this feature, you'll need to set your OpenAI API key the first time you run the GUI:
+The Ask AI feature in Ultralytics Explorer allows users to interact with their datasets using natural language queries. Powered by [OpenAI](https://openai.com/), this feature enables you to ask complex questions and receive insightful answers without needing to write SQL queries or similar commands. To use this feature, you'll need to set your OpenAI API key the first time you run the GUI:
 
 ```bash
 yolo settings openai_api_key="YOUR_API_KEY"
@@ -106,8 +104,4 @@ For more on this feature and how to integrate it, see our [GUI Explorer Usage](#
 
 ### Can I run Ultralytics Explorer in Google Colab?
 
-Yes, Ultralytics Explorer can be run in Google Colab, providing a convenient and powerful environment for dataset exploration. You can start by opening the provided Colab notebook, which is pre-configured with all the necessary settings:
-
-<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
-
-This setup allows you to explore your datasets fully, taking advantage of Google's cloud resources. Learn more in our [Google Colab Guide](../../integrations/google-colab.md).
+Yes. Install the pinned release with `pip install ultralytics==8.3.11` in a Colab notebook and follow the [VOC Exploration Example](explorer.md) to build embeddings and run searches on Google's cloud resources. Learn more in our [Google Colab Guide](../../integrations/google-colab.md).

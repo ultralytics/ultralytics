@@ -31,7 +31,7 @@ pip install -r requirements.txt # install
 
 ## Test Baseline Performance
 
-Before pruning, establish a baseline performance to compare against. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models, see the README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+Before pruning, establish a baseline performance to compare against. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset, i.e. `runs/train/exp/weights/best.pt`. For details on all available models, see the README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
@@ -69,7 +69,7 @@ Results saved to runs/val/exp2
 
 ## Apply Pruning to YOLOv5x (30% Sparsity)
 
-We can apply pruning to the model using the `torch_utils.prune()` command defined in `utils/torch_utils.py`. To test a pruned model, we update `val.py` to prune YOLOv5x to 0.3 sparsity (30% of weights set to zero):
+We can apply pruning to the model using the `prune()` function defined in `utils/torch_utils.py`. To test a pruned model, we update `val.py` to prune YOLOv5x to 0.3 sparsity (30% of weights set to zero):
 
 <img width="894" alt="YOLOv5 model pruning to 30% sparsity code" src="https://cdn.ul.run/i/7467c17a4caacd673678e6fd992a57a9.avif">
 
@@ -111,7 +111,7 @@ From the results, we can observe:
 - **30% sparsity achieved**: 30% of the model's weight parameters in `nn.Conv2d` layers are now zero
 - **Inference time remains unchanged**: Despite pruning, the processing speed is essentially the same
 - **Minimal performance impact**: mAP dropped slightly from 0.507 to 0.489 (only 3.6% reduction)
-- **Model size reduction**: The pruned model requires less memory for storage
+- **Model size unchanged**: Zeroed weights are still stored densely, so file size only shrinks with sparse-aware formats or compression
 
 This demonstrates that pruning can significantly reduce model complexity with only a minor impact on performance, making it an effective optimization technique for deployment in resource-constrained environments.
 
@@ -140,3 +140,27 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### Why is the pruned model not faster?
+
+Unstructured pruning sets weights to zero but leaves the tensor shapes unchanged, so dense PyTorch kernels do the same amount of work. Speedups require a sparsity-aware runtime such as [DeepSparse](neural-magic-pruning-quantization.md) or structured pruning that removes whole channels.
+
+### How do I prune a model in code?
+
+Call the helper from `utils/torch_utils.py` before validation or export:
+
+```python
+from utils.torch_utils import prune
+
+prune(model, amount=0.3)  # 30% global sparsity on nn.Conv2d weights
+```
+
+### How much sparsity can I apply?
+
+Start at 0.3 and measure mAP. YOLOv5x lost about 3.6% mAP at 30% sparsity without fine-tuning; higher sparsity levels usually need a few epochs of retraining with a low learning rate to recover accuracy.
+
+### Can I export a pruned model?
+
+Yes. The zeroed weights are saved like any others, so `export.py` works unchanged. File size only shrinks if the target format or runtime compresses sparse tensors.

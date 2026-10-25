@@ -34,7 +34,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO26](https://gi
 
 |                                            Workouts Monitoring                                             |                                            Workouts Monitoring                                             |
 | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
-| ![YOLO push-ups counting with pose estimation](https://cdn.ul.run/i/23814aa65bc9fb3e54e9b3d3ba5ddf25.avif) | ![YOLO pull-ups counting with pose estimation](https://cdn.ul.run/i/a2cf99202738097f0d6e3b7dc3334683.avif) |
+| ![YOLO push-ups counting with pose estimation](https://cdn.ul.run/i/06540a95f1b69df0a9be6d123120cc36.avif) | ![YOLO pull-ups counting with pose estimation](https://cdn.ul.run/i/a2cf99202738097f0d6e3b7dc3334683.avif) |
 |                                              PushUps Counting                                              |                                              PullUps Counting                                              |
 
 ## Monitor Workouts with YOLO26
@@ -99,7 +99,7 @@ The `AIGym` solution runs [pose estimation](../tasks/pose.md) and counts repetit
 
 ### KeyPoints Map
 
-![YOLO pose estimation keypoints order diagram](https://cdn.ul.run/i/81cf2f22517cde0e0773b02eb3d852ee.avif)
+![YOLO pose estimation keypoints order diagram](https://cdn.ul.run/i/498f468d15cb311aab12de0c25f2968d.avif)
 
 ### `AIGym` Arguments
 
@@ -110,13 +110,12 @@ Here's a table with the `AIGym` arguments:
 
 The `AIGym` solution also supports a range of object tracking parameters:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Additionally, the following visualization settings can be applied:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_labels"]) }}
 
 ## FAQ
 
@@ -146,6 +145,7 @@ while cap.isOpened():
         break
     results = gym(im0)
 
+cap.release()
 cv2.destroyAllWindows()
 ```
 

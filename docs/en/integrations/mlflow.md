@@ -20,7 +20,7 @@ This documentation page is a comprehensive guide to setting up and utilizing the
 
 ## Features
 
-- **Metrics Logging**: Logs metrics at the end of each epoch and at the end of the training.
+- **Metrics Logging**: Logs learning rates, training losses, and validation metrics at the end of each epoch.
 - **Parameter Logging**: Logs all the parameters used in the training.
 - **Artifacts Logging**: Logs model artifacts, including weights and configuration files, at the end of the training.
 
@@ -32,13 +32,14 @@ Ensure MLflow is installed. If not, install it using pip:
 pip install mlflow
 ```
 
-Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mlflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
+Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mlflow` key. See the [settings](../usage/settings.md) page for more info.
 
 !!! example "Update Ultralytics MLflow Settings"
 
     === "Python"
 
         Within the Python environment, call the `update` method on the `settings` object to change your settings:
+
         ```python
         from ultralytics import settings
 
@@ -52,6 +53,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     === "CLI"
 
         If you prefer using the command-line interface, the following commands will allow you to modify your settings:
+
         ```bash
         # Update a setting
         yolo settings mlflow=True
@@ -80,19 +82,19 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
     Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
 
-3. **Start Local MLflow Server**: To start tracking, use:
+3. **Start Local MLflow Server**: Without `MLFLOW_TRACKING_URI`, runs are logged to MLflow's default local store in the directory where you train (`mlflow.db` on MLflow 3.7 and later unless the directory already holds an `mlruns/` history, `mlruns/` on earlier versions). To view them, run this from the same directory:
 
     ```bash
-    mlflow server --backend-store-uri runs/mlflow
+    mlflow ui
     ```
 
-    This will start a local server at `http://127.0.0.1:5000` by default and save all mlflow logs to the 'runs/mlflow' directory. To point your training runs at a different tracking server, export `MLFLOW_TRACKING_URI` before training:
+    This will start a local server at `http://127.0.0.1:5000` by default. To point your training runs at a different tracking server, export `MLFLOW_TRACKING_URI` before training:
 
     ```bash
     export MLFLOW_TRACKING_URI=http://127.0.0.1:5000
     ```
 
-4. **Keep the MLflow Run Active After Training**: By default, Ultralytics ends the MLflow run automatically when training finishes. To keep the run open (for example, to log additional metrics or artifacts from the same notebook), set `MLFLOW_KEEP_RUN_ACTIVE` to `True` before training:
+4. **Keep the MLflow Run Active After Training**: By default, Ultralytics ends the MLflow run automatically when training finishes, with status `FAILED` if training raised an error before the run was closed. To keep the run open (for example, to log additional metrics or artifacts from the same notebook), set `MLFLOW_KEEP_RUN_ACTIVE` to `True` before training:
 
     ```bash
     export MLFLOW_KEEP_RUN_ACTIVE=True
@@ -102,7 +104,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
 ### Logging
 
-The logging is taken care of by the `on_pretrain_routine_end`, `on_fit_epoch_end`, and `on_train_end` [callback functions](../reference/utils/callbacks/mlflow.md). These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts.
+The logging is taken care of by the `on_pretrain_routine_end`, `on_train_epoch_end`, `on_fit_epoch_end`, and `on_train_end` [callback functions](../reference/utils/callbacks/mlflow.md). These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts. The `teardown` callback ends a run that a failed training left open.
 
 ## Examples
 
@@ -134,7 +136,7 @@ To set up MLflow logging with Ultralytics YOLO, you first need to ensure MLflow 
 pip install mlflow
 ```
 
-Next, enable MLflow logging in Ultralytics settings. This can be controlled using the `mlflow` key. For more information, see the [settings guide](../quickstart.md#ultralytics-settings).
+Next, enable MLflow logging in Ultralytics settings. This can be controlled using the `mlflow` key. For more information, see the [settings guide](../usage/settings.md).
 
 !!! example "Update Ultralytics MLflow Settings"
 
@@ -160,10 +162,10 @@ Next, enable MLflow logging in Ultralytics settings. This can be controlled usin
         yolo settings reset
         ```
 
-Finally, start a local MLflow server for tracking:
+Finally, after training, view your runs by starting a local MLflow server from the directory where you trained:
 
 ```bash
-mlflow server --backend-store-uri runs/mlflow
+mlflow ui
 ```
 
 ### What metrics and parameters can I log using MLflow with Ultralytics YOLO?
@@ -184,14 +186,14 @@ Yes, you can disable MLflow logging for Ultralytics YOLO by updating the setting
 yolo settings mlflow=False
 ```
 
-For further customization and resetting settings, refer to the [settings guide](../quickstart.md#ultralytics-settings).
+For further customization and resetting settings, refer to the [settings guide](../usage/settings.md).
 
 ### How can I start and stop an MLflow server for Ultralytics YOLO tracking?
 
-To start an MLflow server for tracking your experiments in Ultralytics YOLO, use the following command:
+To view your Ultralytics YOLO experiments in a local MLflow server, run the following command from the directory where you trained:
 
 ```bash
-mlflow server --backend-store-uri runs/mlflow
+mlflow ui
 ```
 
 This command starts a local server at `http://127.0.0.1:5000` by default. Press `Ctrl+C` in that terminal to stop it.

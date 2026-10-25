@@ -1,8 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import io
 import os
-from typing import Any
 
 import cv2
 import torch
@@ -16,20 +17,22 @@ torch.classes.__path__ = []  # Torch module __path__._path issue: https://github
 
 
 class Inference:
-    """A class to perform object detection, image classification, image segmentation and pose estimation inference.
+    """A class to perform Ultralytics YOLO inference in a Streamlit web application.
 
-    This class provides functionalities for loading models, configuring settings, uploading video files, and performing
-    real-time inference using Streamlit and Ultralytics YOLO models.
+    This class provides functionalities for loading models, configuring settings, uploading video or image files, and
+    performing real-time inference using Streamlit and Ultralytics YOLO models for tasks such as detection,
+    segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding boxes.
 
     Attributes:
         st (module): Streamlit module for UI creation.
-        temp_dict (dict): Temporary dictionary to store the model path and other configuration.
-        model_path (str): Path to the loaded model.
+        model_path (str | None): Custom model path added to the top of the model selection list.
         model (YOLO): The YOLO model instance.
-        source (str): Selected video source (webcam or video file).
+        source (str): Selected input source ("webcam", "video", or "image").
+        img_file_names (list[dict[str, str]]): Uploaded images as dicts with temporary file "path" and original "name".
+        imgsz (int): Inference image size.
         enable_trk (bool): Enable tracking option.
-        conf (float): Confidence threshold for detection.
-        iou (float): IoU threshold for non-maximum suppression.
+        conf (float): Confidence threshold for detection, adjustable in the sidebar.
+        iou (float): IoU threshold for non-maximum suppression, adjustable in the sidebar.
         org_frame (Any): Container for the original frame to be displayed.
         ann_frame (Any): Container for the annotated frame to be displayed.
         vid_file_name (str | int): Name of the uploaded video file or webcam index.
@@ -38,9 +41,10 @@ class Inference:
     Methods:
         web_ui: Set up the Streamlit web interface with custom HTML elements.
         sidebar: Configure the Streamlit sidebar for model and inference settings.
-        source_upload: Handle video file uploads through the Streamlit interface.
+        source_upload: Handle video and image file uploads through the Streamlit interface.
         configure: Configure the model and load selected classes for inference.
-        inference: Perform real-time object detection inference.
+        image_inference: Perform inference on uploaded images.
+        inference: Run the Streamlit app and perform inference on the selected source.
 
     Examples:
         Create an Inference instance with a custom model
@@ -52,11 +56,14 @@ class Inference:
         >>> inf.inference()
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, model: str | None = None, imgsz: int = 640, conf: float = 0.25, iou: float = 0.7) -> None:
         """Initialize the Inference class, checking Streamlit requirements and setting up the model path.
 
         Args:
-            **kwargs (Any): Additional keyword arguments for model configuration.
+            model (str, optional): Custom model path offered first in the model selection list.
+            imgsz (int): Inference image size.
+            conf (float): Initial confidence threshold for the sidebar slider.
+            iou (float): Initial NMS IoU threshold for the sidebar slider.
         """
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st
@@ -65,21 +72,18 @@ class Inference:
         self.source = None  # Video source selection (webcam or video file)
         self.img_file_names = []  # List of image file names
         self.enable_trk = False  # Flag to toggle object tracking
-        self.conf = 0.25  # Confidence threshold for detection
-        self.iou = 0.45  # Intersection-over-Union (IoU) threshold for non-maximum suppression
+        self.conf = conf  # Confidence threshold for detection
+        self.iou = iou  # Intersection-over-Union (IoU) threshold for non-maximum suppression
         self.org_frame = None  # Container for the original frame display
         self.ann_frame = None  # Container for the annotated frame display
         self.vid_file_name = None  # Video file name or webcam index
         self.selected_ind: list[int] = []  # List of selected class indices for detection
         self.model = None  # YOLO model instance
 
-        self.temp_dict = {"model": None, **kwargs}
-        self.model_path = None  # Model file path
-        if self.temp_dict["model"] is not None:
-            self.model_path = self.temp_dict["model"]
-        self.imgsz = self.temp_dict.get("imgsz", 640)
+        self.model_path = model  # Custom model file path
+        self.imgsz = imgsz
 
-        LOGGER.info(f"Ultralytics Solutions: ✅ {self.temp_dict}")
+        LOGGER.info(f"Ultralytics Solutions: ✅ model={model}, imgsz={imgsz}, conf={conf}, iou={iou}")
 
     def web_ui(self) -> None:
         """Set up the Streamlit web interface with custom HTML elements."""
@@ -124,7 +128,7 @@ class Inference:
             self.ann_frame = col2.empty()  # Container for annotated frame
 
     def source_upload(self) -> None:
-        """Handle video file uploads through the Streamlit interface."""
+        """Handle video and image file uploads, or webcam selection, through the Streamlit interface."""
         from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS  # scope import
 
         self.vid_file_name = ""
@@ -189,7 +193,7 @@ class Inference:
                 col1, col2 = self.st.columns(2)
                 with col1:
                     self.st.image(image, channels="BGR", caption="Original Image")
-                results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)
+                results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind, imgsz=self.imgsz)
                 annotated_image = results[0].plot()
                 with col2:
                     self.st.image(annotated_image, channels="BGR", caption="Predicted Image")
@@ -201,7 +205,7 @@ class Inference:
                 self.st.error("Could not load the uploaded image.")
 
     def inference(self) -> None:
-        """Perform real-time object detection inference on video or webcam feed."""
+        """Run the Streamlit app and perform inference on the selected webcam, video, or image source."""
         self.web_ui()  # Initialize the web interface
         self.sidebar()  # Create the sidebar
         self.source_upload()  # Upload the video source
@@ -247,14 +251,12 @@ class Inference:
                 self.ann_frame.image(annotated_frame, channels="BGR", caption="Predicted Frame")  # Display processed
 
             cap.release()  # Release the capture
-        cv2.destroyAllWindows()  # Destroy all OpenCV windows
 
 
 if __name__ == "__main__":
     import sys  # Import the sys module for accessing command-line arguments
 
-    # Check if a model name is provided as a command-line argument
-    args = len(sys.argv)
-    model = sys.argv[1] if args > 1 else None  # Assign first argument as the model name if provided
-    # Create an instance of the Inference class and run inference
-    Inference(model=model).inference()
+    from ultralytics.cfg import parse_key_value_pair
+
+    # Create an Inference instance from 'key=value' command-line arguments, i.e. model=yolo26n.pt conf=0.5
+    Inference(**dict(parse_key_value_pair(arg) for arg in sys.argv[1:])).inference()

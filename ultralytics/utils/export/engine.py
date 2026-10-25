@@ -5,13 +5,24 @@ from __future__ import annotations
 import json
 import re
 import types
+from functools import lru_cache
 from pathlib import Path
 
+import cv2
+import numpy as np
 import torch
 
-from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
+from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, imread, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
 from ultralytics.utils.torch_utils import TORCH_2_4
+
+
+@lru_cache
+def get_tensorrt_logger():
+    """Return the shared TensorRT logger, kept alive for every builder and inference runtime."""
+    import tensorrt as trt
+
+    return trt.Logger(trt.Logger.INFO)
 
 
 class _NormalizeCoords(torch.nn.Module):
@@ -49,7 +60,14 @@ class _NormalizeCoords(torch.nn.Module):
 
 
 def best_onnx_opset(onnx: types.ModuleType) -> int:
-    """Return max ONNX opset for this torch version with ONNX fallback."""
+    """Return max ONNX opset for this torch version with ONNX fallback.
+
+    Args:
+        onnx (types.ModuleType): The imported `onnx` module, used to cap the opset at the installed ONNX version.
+
+    Returns:
+        (int): The ONNX opset version to export with.
+    """
     version = ".".join(TORCH_VERSION.split(".")[:2])
     opset = {
         "1.8": 12,
@@ -129,18 +147,22 @@ def modelopt_quantize_onnx(
         quantize (int | str | None): Precision scheme, 8 for INT8 Q/DQ nodes or 16 for FP16 precision.
         dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
             Required when ``quantize=8``.
-        shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
+        shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for INT8 calibration shapes
+            of dynamic models and for the FP16 AutoCast calibration image.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         prefix (str): Prefix for log messages.
 
     Returns:
         (str): Path to the precision-converted ONNX file.
+
+    Raises:
+        ValueError: If ``quantize=8`` and no calibration dataset is provided.
     """
     if quantize == 8 and dataset is None:
         raise ValueError("INT8 ModelOpt quantization requires a calibration dataset.")
 
-    # Require modelopt >= 0.44: older releases import onnx.mapping which was removed in onnx >= 1.18 and crash
-    check_requirements("nvidia-modelopt[onnx]>=0.44")
+    # modelopt<0.44 imports onnx.mapping (removed in onnx 1.18); pin torch so modelopt's torch>=2.8 can't replace it
+    check_requirements("nvidia-modelopt[onnx]>=0.44", constrain=(f"torch=={TORCH_VERSION}",))
     import onnx
 
     input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
@@ -156,7 +178,9 @@ def modelopt_quantize_onnx(
             n += images[-1].shape[0]
             if n >= 512:
                 break
-        calib = torch.cat(images).to(torch.float32) / 255.0
+        calib = torch.cat(images)
+        del images, batch
+        calib = calib.to(torch.float32).div_(255.0)
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
         modelopt_quantize(
@@ -168,6 +192,9 @@ def modelopt_quantize_onnx(
             # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
+            # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
+            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
+            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"],
             output_path=out_file,
             **kwargs,
         )
@@ -177,12 +204,17 @@ def modelopt_quantize_onnx(
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
+    # AutoCast keeps a node in FP32 when its observed activation range exceeds `data_max`, so calibrate it on a real
+    # image: unstructured noise inflates the early activations and strands the first convolutions of most models.
+    im = cv2.resize(imread(ASSETS / "bus.jpg"), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)  # BGR HWC to RGB CHW
+    im = np.resize(im, shape[1:])  # repeat or drop channels for models that are not 3-channel
+    im = np.broadcast_to(im, shape).astype(np.float32, order="C") / 255
     onnx.save(
         autocast.convert_to_mixed_precision(
             onnx_file,
             low_precision_type="fp16",
             keep_io_types=True,
-            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+            calibration_data={input_name: im},
         ),
         out_file,
     )
@@ -192,7 +224,7 @@ def modelopt_quantize_onnx(
 def onnx2engine(
     onnx_file: str,
     output_file: Path | str | None = None,
-    workspace: int | None = None,
+    workspace: float | None = None,
     quantize: int | str | None = None,
     dynamic: bool = False,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
@@ -207,12 +239,13 @@ def onnx2engine(
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
         output_file (Path | str | None): Path to save the generated TensorRT engine file.
-        workspace (int | None): Workspace size in GB for TensorRT.
+        workspace (float | None): Workspace size in GiB for TensorRT, or None for TensorRT auto-allocation.
         quantize (int | str | None): Precision scheme, 16 for FP16 or 8 for INT8.
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
         dla (int | None): DLA core to use (Jetson devices only).
-        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
+        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration, unused when the
+            ONNX graph already carries Q/DQ ranges.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
@@ -221,21 +254,25 @@ def onnx2engine(
         (str): Path to the exported engine file.
 
     Raises:
-        ValueError: If DLA is enabled on non-Jetson devices or required precision is not set.
-        RuntimeError: If the ONNX file cannot be parsed.
+        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11, or
+            without FP16/INT8 precision.
+        RuntimeError: If the ONNX file cannot be parsed or the engine build fails.
 
     Notes:
         TensorRT version compatibility is handled for workspace size and engine building. On TensorRT 7-10, INT8
-        calibration uses an ``IInt8Calibrator`` over ``dataset`` and writes a calibration cache, while FP16/INT8 are
-        enabled with builder flags. On TensorRT 11 these were removed in favor of strongly-typed networks, so reduced
-        precision is baked into the ONNX with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by
-        `modelopt_quantize_onnx`. The TensorRT 7-10 path keeps the Sigmoid layers at higher precision to preserve
-        confidence-score calibration (see #24668). Metadata is serialized and written to the engine file if provided.
+        calibration uses an ``IInt8Calibrator`` over ``dataset``, while FP16/INT8 are enabled with builder flags. On
+        TensorRT 11 these were removed in favor of strongly-typed networks, so reduced precision is baked into the ONNX
+        with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by `modelopt_quantize_onnx`. The
+        TensorRT 7-10 path keeps the head Sigmoid layers in FP32 to preserve confidence-score calibration (see #24668)
+        and the head's output convolutions in FP16 for accuracy. Metadata is serialized and written to the engine file
+        if provided.
     """
-    # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
+    import onnx
+
+    # Force re-install TensorRT on CUDA 13 ARM devices to >=10.15 for RT-DETR exports, <11 on JetPack (unsupported)
     # https://github.com/ultralytics/ultralytics/issues/22873
     if is_jetson(jetpack=7) or is_dgx():
-        check_tensorrt("10.15")
+        check_tensorrt("10.15,<11" if IS_JETSON else "10.15")
 
     try:
         import tensorrt as trt
@@ -248,9 +285,8 @@ def onnx2engine(
     LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
     output_file = output_file or Path(onnx_file).with_suffix(".engine")
 
-    logger = trt.Logger(trt.Logger.INFO)
-    if verbose:
-        logger.min_severity = trt.Logger.Severity.VERBOSE
+    logger = get_tensorrt_logger()
+    logger.min_severity = trt.Logger.VERBOSE if verbose else trt.Logger.INFO
 
     # Engine builder
     builder = trt.Builder(logger)
@@ -271,17 +307,19 @@ def onnx2engine(
     # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
     use_fp16 = getattr(builder, "platform_has_fast_fp16", True) and quantize == 16
     use_int8 = getattr(builder, "platform_has_fast_int8", True) and quantize == 8
-    if use_int8 and dataset is None:
+    qdq = any(n.op_type == "QuantizeLinear" for n in onnx.load(onnx_file, load_external_data=False).graph.node)
+    calibrate = use_int8 and not qdq  # explicit quantization carries its ranges in the graph
+    if calibrate and dataset is None:
         raise ValueError("INT8 TensorRT export requires a calibration dataset.")
 
     # Optionally switch to DLA if enabled
     if dla is not None:
         if not IS_JETSON:
             raise ValueError("DLA is only available on NVIDIA Jetson devices")
-        if check_version(trt.__version__, ">=11.0.0,<11.1.0"):
-            # DLA is unsupported in TensorRT 11.0 and is planned to return in a later release
+        if is_trt11:
+            # DLA is unsupported in TensorRT 11 (through at least 11.4) and is planned to return in a later release
             # https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html
-            raise ValueError("DLA is not supported in TensorRT 11.0; export with TensorRT 10.x to use DLA.")
+            raise ValueError("DLA is not supported in TensorRT 11; export with TensorRT 10.x to use DLA.")
         LOGGER.info(f"{prefix} enabling DLA on core {dla}...")
         if not use_fp16 and not use_int8:
             raise ValueError(
@@ -294,7 +332,7 @@ def onnx2engine(
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (use_fp16 or use_int8):
-        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
+        onnx_file = modelopt_quantize_onnx(onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)
@@ -312,13 +350,13 @@ def onnx2engine(
     if dynamic:
         profile = builder.create_optimization_profile()
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
-        max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
+        max_shape = (*shape[:2], *(2 * d for d in shape[2:]))  # max input shape, 2x imgsz
         for inp in inputs:
             inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))
             inp_max = tuple(d if d != -1 else hi for d, hi in zip(inp.shape, max_shape))
             profile.set_shape(inp.name, min=inp_min, opt=shape, max=inp_max)
         config.add_optimization_profile(profile)
-        if use_int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
+        if calibrate and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)
 
     LOGGER.info(
@@ -327,34 +365,34 @@ def onnx2engine(
     if use_int8 and not is_trt11:
         config.set_flag(trt.BuilderFlag.INT8)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
+    if (use_fp16 or use_int8 or qdq) and not is_trt11:  # unquantized layers take the fastest precision allowed
+        config.set_flag(trt.BuilderFlag.FP16)
+
+    # Explicit Q/DQ graphs need neither calibration nor per-layer Sigmoid constraints.
+    if calibrate and not is_trt11:
 
         class EngineCalibrator(trt.IInt8Calibrator):
             """Custom INT8 calibrator for TensorRT engine optimization.
 
             This calibrator provides the necessary interface for TensorRT to perform INT8 quantization calibration using
-            a dataset. It handles batch generation, caching, and calibration algorithm selection.
+            a dataset. It handles batch generation and calibration algorithm selection.
 
             Attributes:
                 dataset: Dataset for calibration.
                 data_iter: Iterator over the calibration dataset.
                 algo (trt.CalibrationAlgoType): Calibration algorithm type.
                 batch (int): Batch size for calibration.
-                cache (Path): Path to save the calibration cache.
 
             Methods:
                 get_algorithm: Get the calibration algorithm to use.
                 get_batch_size: Get the batch size to use for calibration.
                 get_batch: Get the next batch to use for calibration.
-                read_calibration_cache: Use existing cache instead of calibrating again.
-                write_calibration_cache: Write calibration cache to disk.
+                read_calibration_cache: Return no cache so every export calibrates the current model and data.
+                write_calibration_cache: Discard the calibration cache.
             """
 
-            def __init__(
-                self,
-                dataset,  # ultralytics.data.build.InfiniteDataLoader
-                cache: str = "",
-            ) -> None:
-                """Initialize the INT8 calibrator with dataset and cache path."""
+            def __init__(self, dataset) -> None:  # ultralytics.data.build.InfiniteDataLoader
+                """Initialize the INT8 calibrator with a dataset."""
                 trt.IInt8Calibrator.__init__(self)
                 self.dataset = dataset
                 self.data_iter = iter(dataset)
@@ -364,7 +402,6 @@ def onnx2engine(
                     else trt.CalibrationAlgoType.MINMAX_CALIBRATION
                 )
                 self.batch = dataset.batch_size
-                self.cache = Path(cache)
 
             def get_algorithm(self) -> trt.CalibrationAlgoType:
                 """Get the calibration algorithm to use."""
@@ -384,41 +421,40 @@ def onnx2engine(
                     # Return None to signal to TensorRT there is no calibration data remaining
                     return None
 
-            def read_calibration_cache(self) -> bytes | None:
-                """Use existing cache instead of calibrating again, otherwise, implicitly return None."""
-                if self.cache.exists() and self.cache.suffix == ".cache":
-                    return self.cache.read_bytes()
+            def read_calibration_cache(self) -> None:
+                """Return no cache so every export calibrates the current model and data."""
 
             def write_calibration_cache(self, cache: bytes) -> None:
-                """Write calibration cache to disk."""
-                _ = self.cache.write_bytes(cache)
+                """Discard the calibration cache, which would be stale for any other model or data."""
 
         # Load dataset w/ builder (for batching) and calibrate
-        config.int8_calibrator = EngineCalibrator(
-            dataset=dataset,
-            cache=str(Path(onnx_file).with_suffix(".cache")),
-        )
+        config.int8_calibrator = EngineCalibrator(dataset)
 
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep the head Sigmoid (an
         # ACTIVATION layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve
         # confidence-score calibration, mirroring the OpenVINO IgnoredScope
-        # https://github.com/ultralytics/ultralytics/issues/24668. Scope this to the head: every SiLU activation is
-        # also a Sigmoid, and constraining all of them costs INT8 speed across backbone and neck.
+        # https://github.com/ultralytics/ultralytics/issues/24668, and the head's output convolutions and DFL in FP16
+        # as `modelopt_quantize_onnx` does. Scope this to the head: every SiLU activation is also a Sigmoid, and
+        # constraining all of them costs INT8 speed across backbone and neck.
         names = [network.get_layer(i).name for i in range(network.num_layers)]
-        indices = [int(m.group(1)) for n in names if (m := re.match(r"/model\.(\d+)/", n))]
+        # search, not match: nms=True exports wrap the model in NMSModel, prefixing every name with "/model"
+        indices = [int(m.group(1)) for n in names if (m := re.search(r"/model\.(\d+)/", n))]
         head = f"/model.{max(indices)}/" if indices else "/"
         count = 0
         for i in range(network.num_layers):
             layer = network.get_layer(i)
-            if (
-                layer.type == trt.LayerType.ACTIVATION
-                and "sigmoid" in layer.name.lower()
-                and layer.name.startswith(head)
-            ):
-                layer.precision = trt.float32
-                for j in range(layer.num_outputs):
-                    layer.set_output_type(j, trt.float32)
-                count += 1
+            if head not in layer.name:
+                continue
+            if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
+                dtype = trt.float32
+            elif layer.type == trt.LayerType.CONVOLUTION and (layer.name.endswith(".2/Conv") or "/dfl/" in layer.name):
+                dtype = trt.float16
+            else:
+                continue
+            layer.precision = dtype
+            for j in range(layer.num_outputs):
+                layer.set_output_type(j, dtype)
+            count += 1
         if count:
             flag = (
                 trt.BuilderFlag.OBEY_PRECISION_CONSTRAINTS
@@ -426,10 +462,7 @@ def onnx2engine(
                 else trt.BuilderFlag.STRICT_TYPES
             )
             config.set_flag(flag)  # OBEY_PRECISION_CONSTRAINTS replaced STRICT_TYPES in TensorRT 8.2
-            LOGGER.info(f"{prefix} keeping {count} head Sigmoid layers in FP32 for INT8 accuracy")
-
-    elif use_fp16 and not is_trt11:
-        config.set_flag(trt.BuilderFlag.FP16)
+            LOGGER.info(f"{prefix} keeping {count} head layers out of INT8 for accuracy")
 
     # Write file
     if hasattr(builder, "build_serialized_network"):

@@ -17,10 +17,11 @@ from ultralytics.utils import LINUX, LOGGER, MACOS, RANK, WINDOWS
 class ConsoleLogger:
     """Console output capture with batched streaming to file, API, or custom callback.
 
-    Captures stdout/stderr output and streams it with intelligent deduplication and configurable batching.
+    Captures stdout/stderr and Ultralytics logger output and streams it with deduplication and configurable batching.
 
     Attributes:
         destination (str | Path | None): Target destination for streaming (URL, Path, or None for callback-only).
+        is_api (bool): Whether the destination is an HTTP(S) API endpoint.
         batch_size (int): Number of lines to batch before flushing (default: 1 for immediate).
         flush_interval (float): Seconds between automatic flushes (default: 5.0).
         on_flush (callable | None): Optional callback function called with batched content on flush.
@@ -75,7 +76,7 @@ class ConsoleLogger:
         self.buffer = []
         self.buffer_lock = threading.Lock()
         self.flush_thread = None
-        self.chunk_id = 0
+        self.chunk_id = int(time.time() * 1000)  # unique across processes, e.g. a resumed run
 
         # Deduplication state
         self.last_line = ""
@@ -280,7 +281,7 @@ class _DriveInfo:
     disambiguation.
 
     Examples:
-        >>> logger = SystemLogger(all_drives=True)
+        >>> logger = SystemLogger()
         >>> logger.mounts
         ['/']
     """
@@ -381,7 +382,9 @@ class _DriveInfo:
                 values = block.get("mountpoints") or [block.get("mountpoint")]
                 if isinstance(values, str):
                     values = [values]
-                mounts.extend(m for m in values if isinstance(m, str) and m.startswith("/") and Path(m).is_dir())
+                values = [m for m in values if isinstance(m, str) and m.startswith("/") and Path(m).is_dir()]
+                if values:  # one mount per device, bind mounts report the same usage
+                    mounts.append(min(values, key=lambda m: (len(m), m)))
             for child in block.get("children", []):
                 visit(child, physical)
 
@@ -412,10 +415,13 @@ class SystemLogger:
     performance monitoring and analysis.
 
     Attributes:
-        pynvml: NVIDIA pynvml module instance if successfully imported, None otherwise.
+        pynvml (module | None): NVIDIA pynvml module if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
-        net_start: Initial network I/O counters for calculating cumulative usage.
-        disk_start: Initial disk I/O counters for calculating cumulative usage.
+        nvidia_versions (dict): NVIDIA 'driver_version' and 'cuda_version' strings read from NVML, if available.
+        net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
+        disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
+        mounts (list[str]): Mounted drive paths monitored for disk usage.
+        gpus (list[int] | None): NVML indices of the GPUs reported, or None for every GPU.
 
     Examples:
         Basic usage (single drive):
@@ -431,6 +437,10 @@ class SystemLogger:
         >>> for disk in metrics["disk"]:
         ...     print(f"{disk['mount']}: {disk['used_gb']}/{disk['total_gb']} GB")
 
+        Report only the GPUs a training run uses (an empty list reports none, e.g. for CPU training):
+        >>> logger = SystemLogger(gpus=[0, 1])
+        >>> list(logger.get_metrics()["gpus"])  # ['0', '1'] on a host with at least two NVIDIA GPUs
+
         Training loop integration:
         >>> system_logger = SystemLogger()
         >>> for epoch in range(epochs):
@@ -439,19 +449,30 @@ class SystemLogger:
         ...     # Log to database/file
     """
 
-    def __init__(self, all_drives=False):
+    def __init__(self, all_drives=False, gpus=None):
         """Initialize the system logger.
 
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
+            gpus (list[int] | None): NVML indices of the GPUs to report, such as those a training run uses. None reports
+                every GPU and an empty list reports none.
         """
         import psutil  # scoped as slow import
 
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
+        self.nvidia_versions = {}
+        if self.nvidia_initialized:
+            try:
+                self.nvidia_versions["driver_version"] = self.pynvml.nvmlSystemGetDriverVersion()
+                cuda = self.pynvml.nvmlSystemGetCudaDriverVersion_v2()
+                self.nvidia_versions["cuda_version"] = f"{cuda // 1000}.{cuda % 1000 // 10}"
+            except self.pynvml.NVMLError:
+                pass
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
         self.mounts = _DriveInfo.mounts(psutil, all_drives)
+        self.gpus = gpus
 
         # For rate calculation
         self._prev_net = self.net_start
@@ -481,6 +502,9 @@ class SystemLogger:
 
         Collects comprehensive system metrics including CPU usage, RAM usage, disk usage, disk I/O statistics, network
         I/O statistics, and GPU metrics (if available).
+
+        On NVIDIA systems, also reports `driver_version` and `cuda_version` cached from NVML at initialization. CUDA is the
+        driver-supported version shown by nvidia-smi, not the installed toolkit or PyTorch build version.
 
         Example output (rates=False, default):
         ```python
@@ -515,7 +539,8 @@ class SystemLogger:
             rates (bool): If True, return disk/network as MB/s rates instead of cumulative MB.
 
         Returns:
-            (dict): Metrics dictionary with cpu, ram, disk, network, and gpus keys.
+            (dict): Metrics dictionary with cpu, ram, disk, disk_io, network, and gpus keys, plus driver_version and
+                cuda_version on NVIDIA systems.
 
         Examples:
             >>> logger = SystemLogger()
@@ -561,6 +586,7 @@ class SystemLogger:
                 break
 
         metrics = {
+            **self.nvidia_versions,
             "cpu": round(psutil.cpu_percent(), 3),
             "ram": round(memory.percent, 3),
             "disk": disks,
@@ -597,7 +623,7 @@ class SystemLogger:
             return gpus
         try:
             device_count = self.pynvml.nvmlDeviceGetCount()
-            for i in range(device_count):
+            for i in range(device_count) if self.gpus is None else [i for i in self.gpus if i < device_count]:
                 handle = self.pynvml.nvmlDeviceGetHandleByIndex(i)
                 util = self.pynvml.nvmlDeviceGetUtilizationRates(handle)
                 memory = self.pynvml.nvmlDeviceGetMemoryInfo(handle)

@@ -57,7 +57,7 @@ Converting Ultralytics YOLO26 models to ExecuTorch format enables efficient depl
 
 ### Installation
 
-ExecuTorch export requires Python 3.10-3.13 and PyTorch >= 2.9.0 along with the `executorch` package:
+ExecuTorch export requires Python 3.10-3.14 and PyTorch >= 2.9.0. Ultralytics installs a compatible `executorch` package when you export or load an ExecuTorch model, pinned to `executorch<1.5` on PyTorch older than 2.13, so do not upgrade it by hand.
 
 !!! tip "Installation"
 
@@ -258,7 +258,7 @@ To reduce model size for deployment:
 
 - **Use Smaller Models**: Start with YOLO26n (nano) for the smallest footprint
 - **Lower Input Resolution**: Use smaller image sizes (e.g., `imgsz=320` or `imgsz=416`)
-- **Quantization**: Apply quantization techniques (supported in future ExecuTorch versions)
+- **Quantization**: Apply ExecuTorch quantization techniques outside Ultralytics (Ultralytics ExecuTorch export is FP32 only)
 
 ### Inference Speed Optimization
 
@@ -289,7 +289,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     !!! note
 
-        Inference time does not include pre/ post-processing.
+        Inference time does not include pre/post-processing.
 
 ## Troubleshooting
 
@@ -297,28 +297,12 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
 **Issue**: `Python version error`
 
-**Solution**: ExecuTorch requires Python 3.10 or higher. Upgrade your Python installation:
+**Solution**: ExecuTorch requires Python 3.10 to 3.14. Create an environment with a supported version:
 
 ```bash
 # Using conda
-conda create -n executorch python=3.10
+conda create -n executorch python=3.14
 conda activate executorch
-```
-
-**Issue**: `Export fails during first run`
-
-**Solution**: Ensure you have the latest prebuilt `executorch` wheel installed:
-
-```bash
-pip install --upgrade executorch
-```
-
-**Issue**: `Import errors for ExecuTorch modules`
-
-**Solution**: Ensure ExecuTorch is properly installed:
-
-```bash
-pip install executorch --force-reinstall
 ```
 
 For more troubleshooting help, visit the [Ultralytics GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [ExecuTorch Documentation](https://docs.pytorch.org/executorch/stable/getting-started-setup.html).
@@ -333,7 +317,7 @@ Key takeaways:
 - Export is simple with `format='executorch'` parameter
 - Models are optimized for mobile CPUs via XNNPACK backend
 - Supports iOS, Android, and embedded Linux platforms
-- Requires Python 3.10-3.13 and PyTorch >= 2.9.0
+- Requires Python 3.10-3.14 and PyTorch >= 2.9.0
 
 ## FAQ
 
@@ -358,8 +342,8 @@ yolo export model=yolo26n.pt format=executorch
 
 ExecuTorch export requires:
 
-- Python 3.10 or higher
-- `executorch` package (install via `pip install executorch`)
+- Python 3.10 to 3.14
+- `executorch` package, installed automatically (`executorch<1.5` on PyTorch older than 2.13, which newer ExecuTorch runtimes do not support)
 - PyTorch (installed automatically with ultralytics)
 
 Note: The `executorch` package ships prebuilt wheels (with the XNNPACK backend), so no extra compilation step is required during export.

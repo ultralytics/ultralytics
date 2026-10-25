@@ -30,11 +30,13 @@ class MNNBackend(BaseBackend):
         """
         LOGGER.info(f"Loading {weight} for MNN inference...")
         check_requirements("MNN")
-        import MNN
+        from ultralytics.utils.files import import_execstack
+
+        MNN = import_execstack("MNN", "_mnncengine*.so", "_tools*.so")
 
         config = {"precision": "low", "backend": "CPU", "numThread": (os.cpu_count() + 1) // 2}
         rt = MNN.nn.create_runtime_manager((config,))
-        self.net = MNN.nn.load_module_from_file(weight, [], [], runtime_manager=rt, rearrange=True)
+        self.net = MNN.nn.load_module_from_file(str(weight), [], [], runtime_manager=rt, rearrange=True)
         self.expr = MNN.expr
 
         # Load metadata from bizCode

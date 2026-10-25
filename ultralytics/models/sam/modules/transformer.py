@@ -89,7 +89,8 @@ class TwoWayTransformer(nn.Module):
         Args:
             image_embedding (torch.Tensor): Image to attend to, with shape (B, embedding_dim, H, W).
             image_pe (torch.Tensor): Positional encoding to add to the image, with same shape as image_embedding.
-            point_embedding (torch.Tensor): Embedding to add to query points, with shape (B, N_points, embedding_dim).
+            point_embedding (torch.Tensor): Query point embeddings, also used as their positional encoding, with shape
+                (B, N_points, embedding_dim).
 
         Returns:
             queries (torch.Tensor): Processed point embeddings with shape (B, N_points, embedding_dim).

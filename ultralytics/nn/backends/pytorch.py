@@ -9,7 +9,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import IS_JETSON, LOGGER, is_jetson
-from ultralytics.utils.torch_utils import unwrap_model
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_2_1, unwrap_model
 
 from .base import BaseBackend
 
@@ -45,11 +45,11 @@ class PyTorchBackend(BaseBackend):
         self.end2end_override = end2end
         super().__init__(weight, device, fp16)
 
-    def load_model(self, weight: str | torch.nn.Module) -> None:
+    def load_model(self, weight: str | Path | nn.Module) -> None:
         """Load a PyTorch model from a checkpoint file or nn.Module instance.
 
         Args:
-            weight (str | torch.nn.Module): Path to the .pt checkpoint or a pre-loaded module.
+            weight (str | Path | nn.Module): Path to the .pt checkpoint or a pre-loaded module.
         """
         from ultralytics.nn.tasks import BaseModel, load_checkpoint
 
@@ -103,25 +103,20 @@ class TorchScriptBackend(BaseBackend):
     torch.jit.script. Supports FP16 precision and embedded metadata extraction.
     """
 
-    def __init__(self, weight: str | Path, device: torch.device, fp16: bool = False):
-        """Initialize the TorchScript backend.
-
-        Args:
-            weight (str | Path): Path to the .torchscript model file.
-            device (torch.device): Device to run inference on (e.g., 'cpu', 'cuda:0').
-            fp16 (bool): Whether to use FP16 half-precision inference.
-        """
-        super().__init__(weight, device, fp16)
-
-    def load_model(self, weight: str) -> None:
+    def load_model(self, weight: str | Path) -> None:
         """Load a TorchScript model from a .torchscript file with optional embedded metadata.
 
         Args:
-            weight (str): Path to the .torchscript model file.
+            weight (str | Path): Path to the .torchscript model file.
         """
         import torchvision  # noqa - required for TorchScript model deserialization
 
         LOGGER.info(f"Loading {weight} for TorchScript inference...")
+        # NNC builds no shape expression for a traced constant, so a repeat forward raises "RuntimeError:
+        # _Map_base::at" or segfaults. Never restored: this setter is global, so restoring it races concurrent
+        # forwards, and the optimization it disables is the broken one on these versions.
+        if TORCH_1_10 and not TORCH_2_1:
+            torch._C._jit_set_texpr_fuser_enabled(False)
         self.model = torch.jit.load(weight, map_location=self.device)
         self.model.half() if self.fp16 else self.model.float()
         self.apply_metadata(self.read_metadata(weight))

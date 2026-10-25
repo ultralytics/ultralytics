@@ -10,22 +10,22 @@ title: Account Settings
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-Settings is organized into eight tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Usage`, `Teams`, `Integrations`, and `Trash`.
+Settings is organized into nine tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Usage`, `Referrals`, `Teams`, `Integrations`, and `Trash`.
 
-Settings is workspace-aware. Switch workspaces in the sidebar and every tab — profile, keys, billing, usage, members,
-integrations, and trash — shows data for the workspace you're in. On extra-wide screens a sidebar next to the tabs lists
-your five most recent training charges and payments.
+Settings is workspace-aware. Switch workspaces in the sidebar and the profile, keys, billing, usage, members,
+integrations, and trash tabs show data for the workspace you're in; referrals stay tied to your personal account. On
+extra-wide screens a sidebar next to the tabs lists your five most recent training charges and payments.
 
 ## Profile Tab
 
-The `Profile` tab contains your profile information, social links, data region, security, and account management
-options.
+The `Profile` tab contains your profile information, email, social links, default visibility, data region, connected
+accounts, and account management options.
 
 ### Profile Information
 
 Update your profile information:
 
-![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/679e7eb184fe9db51391b1d3548c9aa2.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/55147df3a6dd2d51b090844848e0c4d5.avif)<!-- screenshot -->
 
 | Field                      | Description                                              |
 | -------------------------- | -------------------------------------------------------- |
@@ -34,7 +34,7 @@ Update your profile information:
 | **Company / Organization** | Company or organization name                             |
 | **Primary Use Case**       | Primary application (select from list)                   |
 | **Bio**                    | Short description (minimum 10 characters when filled in) |
-| **Profile Icon**           | Avatar with color, initials, or image                    |
+| **Profile Picture**        | Avatar with color, initials, or image                    |
 
 In a team workspace the same card edits the workspace profile and icon, and requires the Admin role or higher.
 
@@ -65,15 +65,29 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 ### Edit Profile
 
 1. Go to **Settings > Profile**
-2. Update fields (display name, company, use case, bio)
-3. Wait for the **Saved** indicator next to the Profile heading. Changes save automatically about a second after you
-   stop typing — there is no Save button.
+2. Update fields (display name, company, use case, bio, and social links)
+3. Click **Save changes** on the bar that appears at the bottom of the screen once you have unsaved changes, or
+   **Discard** to revert them.
+
+### Early Access
+
+Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile**, enable **Early access**, and click **Save changes** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
+
+### Default Visibility
+
+The **Default Visibility** switches set whether new projects and new datasets in the current workspace start as Public
+or Private; click **Save changes** to apply them. Each workspace has its own defaults, and in a team workspace only
+owners and admins can change them. Until they are changed, new projects and datasets start Private in Enterprise
+workspaces and Public otherwise. You can still choose the visibility of each new project or dataset when you create it,
+except [On Premise](../integrations/on-premise.md) datasets, which are always private. Clones start private when the
+default is Private and otherwise keep the source's visibility, which you can change in the clone dialog. [Roboflow
+imports](../integrations/roboflow.md) and the projects that remote training creates use the default directly.
 
 ### Social Links
 
 Connect your professional profiles:
 
-![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/6632010d3fc5d6ffd4045df2e1db0e89.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/b5c6ee3fb5f4ece6ef9cf782da20709c.avif)<!-- screenshot -->
 
 | Platform           | Format         |
 | ------------------ | -------------- |
@@ -87,31 +101,20 @@ Connect your professional profiles:
 
 Social links appear on your public profile page.
 
-### Emails
+### Email
 
-Manage email addresses linked to your account in the `Profile` tab. The Emails card appears on personal accounts only —
-team workspaces have no separate email list.
+The **Email** card on the `Profile` tab of your personal workspace shows your sign-in email with a **Verified** or
+**Unverified** badge, plus a **Company** badge for a verified work address. Team workspaces have no email card.
 
-![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/f09baef9e8e5b2ceec2fa688b597eeeb.avif)<!-- screenshot -->
-
-| Action             | Description                                                                |
-| ------------------ | -------------------------------------------------------------------------- |
-| **Add**            | Add a new email address, which immediately sends a 6-digit code            |
-| **Verify**         | Enter the 6-digit code sent to the address (use **Resend** to get another) |
-| **Set as primary** | Set a verified email as your primary address                               |
-| **Remove**         | Remove a non-primary email address                                         |
-
-Each address is labeled with **Primary**, **Verified** or **Unverified**, and **Company** badges.
-
-!!! note "Primary Email"
-
-    Your primary email is used for notifications and account recovery. Only verified emails can be set as primary.
+To change it, enter the new address under **Change email address**, click **Send code**, then enter the 6-digit code
+sent to that address and click **Verify** (**Resend** sends another). The new address replaces the old one for sign-in,
+notifications, and account recovery.
 
 !!! tip "Company Email Bonus"
 
-    Verifying a company or work email address (not gmail.com, outlook.com, and similar consumer domains) adds the
-    remaining $20 of the $25 signup credit to your balance. The bonus is granted once per account. See
-    [Billing](billing.md#free-plan).
+    Changing your email to a verified company or work address (not gmail.com, outlook.com, and similar consumer
+    domains) adds the remaining $20 of the $25 signup credit to your balance. The bonus is granted once per account.
+    See [Billing](billing.md#free-plan).
 
 ### Data Region
 
@@ -127,16 +130,15 @@ View your data region on the `Profile` tab:
 
 ### Security
 
-The `Profile` tab includes a Security card:
-
-- **Two-Factor Authentication**: marked **Coming Soon** in Platform settings
-- **Connected Accounts**: shows the OAuth provider linked to your sign-in
+The `Profile` tab includes a **Connected accounts** card that lists the Google and GitHub accounts linked to your
+sign-in. Click **Connect Google** or **Connect GitHub** to link another provider, or **Disconnect** to remove one.
 
 ### Storage Usage
 
 Monitor your storage consumption on the [`Usage` tab](#usage-tab) and the **Home** page:
 
-![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/d4907e21c741a134223d33d80be6f9ed.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/8acbf23174b52dd5b6ff18ca4f700ce6.avif)<!-- screenshot -->
+
 The storage card shows:
 
 - **Overall progress bar** with color-coded status (green under 70%, amber 70-89%, red 90%+)
@@ -199,6 +201,7 @@ The export is a single JSON file of metadata — images and model weights are no
 - Profile information
 - Storage usage records
 - Project metadata
+- Saved [Agents](../agents.md) workflows
 - Dataset metadata
 - Model metadata
 - Full activity history
@@ -237,14 +240,15 @@ are deleted automatically.
 
 ## API Keys Tab
 
-The `API Keys` tab lets you create and manage API keys for remote training and inference. Only the workspace owner can
-create, view, or revoke keys — a workspace key acts as the owner. See [API Keys](api-keys.md) for full documentation.
+The `API Keys` tab lets you create and manage API keys for remote training and inference, and stores provider keys for
+Agents, class-prompted annotation, and paid image generation. Only the workspace owner can create, view, or revoke
+keys — a workspace key acts as the owner. See [API Keys](api-keys.md) for full documentation.
 
 ## Plans Tab
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
 
 {% include "macros/platform-plan-comparison.md" %}
 
@@ -264,12 +268,15 @@ See [Billing](billing.md) for detailed plan information, pricing, and upgrade in
 The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits pay for
 metered cloud training.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
+
 From this tab you can:
 
 - **View your current plan** and cancel, resume, or upgrade it from the plan card
 - **View credit balance** and monitor remaining credits
 - **Add credits** via manual top-up (presets from $10–$500 or custom amounts of $5–$1,000)
+- **Redeem a promo code** you did not apply at signup (personal workspaces only; see
+  [Redeem a Promo Code](billing.md#redeem-a-promo-code))
 - **Enable auto top-up** to automatically add credits when your balance falls below a threshold, reducing the chance of
   training interruption
 - **Manage payment methods** and set the default card used for top-ups and renewals
@@ -300,13 +307,31 @@ The `Usage` tab charts credit spend and storage for the active workspace.
 
 Grouping by user or API key makes it easy to see which team member or automation is consuming a shared team balance.
 
+## Referrals Tab
+
+The `Referrals` tab holds your personal referral link under the heading **Give $10, get $10**. Click **Copy link** and
+share it anywhere — the code is applied automatically at signup.
+
+![Ultralytics Platform Settings Referrals Tab](https://cdn.ul.run/i/de42d722e31147b67f9f48004059b535.avif)<!-- screenshot -->
+
+- A friend who signs up with your link gets $10 in credits on top of the usual [signup credit](billing.md#free-plan)
+- You get $10 once they top up $10 in credits on their personal account; Pro subscriptions and team payments do not
+  count
+- Rewards land in your Platform balance as [Promo Bonus](billing.md#transaction-types) transactions
+- Each link covers up to 100 friends ($1,000 in rewards); the tab counts signups, qualified referrals, earned credit,
+  and signups used
+
+Referral rewards apply to new users only, one code per person. You cannot refer yourself or accounts you control, and
+the rewards are Platform credits with no cash value that cannot be transferred. A refund that drops a friend's paid
+top-ups below $10 reverses your reward, and that friend cannot earn another one.
+
 ## Teams Tab
 
 The `Teams` tab lets you manage workspace members, roles, and invitations. Member seats are available on
 [Pro and Enterprise plans](billing.md#plans) — on the Free plan the tab shows the roles reference and an
 **Upgrade to Pro** button instead of an invite control.
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/b680a4b6f2db15b3a34bc19adab8515e.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/5f238fe52109870671d17728d8f3ca94.avif)<!-- screenshot -->
 
 The member card header shows the workspace name, plan badge, your own role, and a seat summary such as
 `3 of 5 seats used · 2 available (includes 1 pending invite)`.
@@ -329,7 +354,7 @@ Owners and admins can manage the team from the actions menu on each row:
 - **Leave team**: any member can leave their own team, which returns them to their personal workspace
 - **Cancel invite** / **Resend invite**: cancel a pending invitation to free its seat, or rotate its token and restart
   the 14-day window
-- **Transfer ownership**: transfer workspace ownership to another member (Owner only; you become an Admin)
+- **Transfer Ownership**: transfer a team workspace to another member (Owner only; you become an Admin)
 
 ### Shared Resources
 
@@ -361,13 +386,14 @@ active workspace.
 
 **Notifications**
 
-- **Slack** — send selected training, export, and deployment results to a [Slack channel](../integrations/slack.md).
+- **Slack** — send selected training, export, auto-annotation, and deployment results to a [Slack channel](../integrations/slack.md).
 
 **Imports**
 
+- **Weights & Biases** — select W&B projects and [import their YOLO checkpoints](../integrations/weights-biases.md) using a W&B API key.
 - **Roboflow** — preview and import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
 - **Labelbox** — upload a [Labelbox](../integrations/labelbox.md) NDJSON export directly, with no key to connect.
-- **LabelMe** — export offline annotations to YOLO format and upload the archive using the [LabelMe guide](../integrations/labelme.md).
+- **LabelMe** — upload a zipped folder of LabelMe JSON annotations and their images directly, with no conversion or key. See the [LabelMe guide](../integrations/labelme.md).
 - **CVAT** — marked **Coming Soon**; upload a CVAT Ultralytics YOLO export today. See [CVAT](../integrations/cvat.md).
 - **Label Studio** — marked **Coming Soon**; upload a Label Studio "YOLO with Images" export today. See [Label Studio](../integrations/label-studio.md).
 
@@ -382,7 +408,8 @@ See [Integrations](../integrations/index.md) for the full list of supported serv
 
 The `Trash` tab shows all deleted items and lets you restore or permanently remove them. Deleted items follow a 30-day soft delete policy before automatic permanent deletion.
 
-![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/1fda3fe06d0527f579017b71afa6a2ff.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/63c5caae0d664afcbcfd9713453f37e5.avif)<!-- screenshot -->
+
 From this tab you can:
 
 - **Browse deleted items** filtered by type (All, Datasets, Projects, Models) and search them by name
@@ -413,11 +440,9 @@ Feedback is private and sent directly to the Ultralytics team to help prioritize
 
 ### How do I change my email?
 
-Manage your email addresses directly on the platform:
-
-1. Go to **Settings > Profile**
-2. Scroll to the **Emails** section
-3. Add a new email, enter the 6-digit code sent to it, then click **Set as primary**
+1. In your personal workspace, go to **Settings > Profile**
+2. In the **Email** card, enter the new address and click **Send code**
+3. Enter the 6-digit code sent to it and click **Verify**
 
 ### How do I change my password?
 
@@ -428,8 +453,8 @@ If you signed up with email and password, use the password reset flow on the sig
 
 ### Is two-factor authentication available?
 
-Platform currently marks two-factor authentication as **Coming Soon** in its Security card. If you sign in through
-Google or GitHub, configure multi-factor authentication with that provider.
+Platform settings do not include a two-factor authentication option. If you sign in through Google or GitHub, configure
+multi-factor authentication with that provider.
 
 ### How long until deleted data is removed?
 

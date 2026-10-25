@@ -12,6 +12,8 @@ keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-t
 
 In the world of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), the process of making sense of visual data is often called inference or prediction. Ultralytics YOLO26 offers a powerful feature known as **predict mode**, tailored for high-performance, real-time inference across a wide range of data sources.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for planned inference examples.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YKbBXWBJloY"
@@ -249,14 +251,14 @@ Below are code examples for using each source type:
 
     === "CSV"
 
-        Run inference on a collection of images, URLs, videos, and directories listed in a CSV file.
+        Run inference on a collection of images, videos, and directories listed in a CSV file.
         ```python
         from ultralytics import YOLO
 
         # Load a pretrained YOLO26n model
         model = YOLO("yolo26n.pt")
 
-        # Define a path to a CSV file with images, URLs, videos and directories
+        # Define a path to a CSV file with images, videos and directories
         source = "path/to/file.csv"
 
         # Run inference on the source
@@ -398,14 +400,14 @@ Below are code examples for using each source type:
 
 ### Fixed shape vs minimum rectangle (`rect`)
 
-By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or dynamic ONNX / Triton). Otherwise, images are padded to the **full** `imgsz` target.
+By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or a dynamic-shape export such as dynamic ONNX). Otherwise, images are padded to the **full** `imgsz` target. Depth and RT-DETR models ignore `rect` and stretch every image to the full `imgsz` without padding.
 
-Use **`rect=False`** to always pad to the full `imgsz` target. This is recommended when you need a fixed input size to match exported models (ONNX, TensorRT, etc.).
+Use **`rect=False`** to always use the full `imgsz` target. This is recommended when you need a fixed input size to match exported models (ONNX, TensorRT, etc.).
 
 **Integer vs tuple `imgsz`**
 
 - An **integer** `imgsz=640` becomes a square target `(640, 640)` after stride rounding.
-- A **tuple** `imgsz=(384, 672)` sets a rectangular target. With `rect=True` and `auto=True`, the actual tensor can be smaller than this target.
+- A **tuple** `imgsz=(384, 672)` sets a rectangular target. With `rect=True`, the actual tensor can be smaller than this target.
 
 **Training vs predict/export**
 
@@ -522,6 +524,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `keypoints`     | `Keypoints, optional`    | A Keypoints object containing detected keypoints for each object.                        |
 | `obb`           | `OBB, optional`          | An OBB object containing oriented bounding boxes.                                        |
 | `semantic_mask` | `SemanticMask, optional` | A SemanticMask object containing a dense per-pixel class map.                            |
+| `depth`         | `DepthMap, optional`     | A DepthMap object containing a dense per-pixel depth map.                                |
 | `speed`         | `dict`                   | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
 | `names`         | `dict`                   | A dictionary mapping class indices to class names.                                       |
 | `path`          | `str`                    | The path to the image file.                                                              |
@@ -530,8 +533,8 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 ### Results by Task
 
 Which fields below populate depends on your model's task — [compare detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB](../tasks/index.md) if you haven't picked one yet. Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
-task-specific prediction data is stored in the fields below. Coordinate, confidence, and probability tensors are
-`torch.float32` unless half precision is used, then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
+task-specific prediction data is stored in the fields below. YOLO coordinate and confidence tensors are
+`torch.float32`; probability tensors are `torch.float32` unless the model runs in FP16 (`quantize=16` with a PyTorch or TorchScript model off CPU, or an ONNX model with FP16 inputs), then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
 Instance masks are `torch.uint8` binary tensors, while semantic masks use the smallest practical integer dtype for class
 IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 
@@ -547,22 +550,32 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 
 === "Segment"
 
-    | Attribute           | Type          | Shape         | Description                         |
-    | ------------------- | ------------- | ------------- | ----------------------------------- |
-    | `result.boxes`      | `Boxes`       | `(N)`         | Instance boxes/classes/confidences. |
-    | `result.masks`      | `Masks`       | `(N)`         | Instance masks.                     |
-    | `result.masks.data` | `torch.uint8` | `(N,H,W)`     | Binary masks, values `0` or `1`.    |
-    | `result.masks.xy`   | `np.float32`  | `list[(P,2)]` | Pixel polygons.                     |
-    | `result.masks.xyn`  | `np.float32`  | `list[(P,2)]` | Normalized polygons.                |
+    | Attribute           | Type            | Shape         | Description                         |
+    | ------------------- | --------------- | ------------- | ----------------------------------- |
+    | `result.masks`      | `Masks`         | `(N)`         | Instance masks.                     |
+    | `result.masks.data` | `torch.uint8`   | `(N,H,W)`     | Binary masks, values `0` or `1`.    |
+    | `result.masks.xy`   | `np.float32`    | `list[(P,2)]` | Pixel polygons.                     |
+    | `result.masks.xyn`  | `np.float32`    | `list[(P,2)]` | Normalized polygons.                |
+    | `result.boxes`      | `Boxes`         | `(N)`         | Instance boxes/classes/confidences. |
+    | `result.boxes.cls`  | `torch.float32` | `(N,)`        | Class IDs; cast to `int` for names. |
 
 === "Semantic"
 
-    | Attribute                   | Type                                            | Shape   | Description                                         |
-    | --------------------------- | ----------------------------------------------- | ------- | --------------------------------------------------- |
-    | `result.semantic_mask`      | `SemanticMask`                                  | `(H,W)` | Dense class map.                                    |
-    | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Per-pixel class IDs, dtype selected by class count. |
-    | `result.masks`              | -                                               | -       | No instance masks.                                  |
-    | `result.boxes`              | -                                               | -       | No instance boxes/confidences.                      |
+    | Attribute                   | Type                                            | Shape   | Description                               |
+    | --------------------------- | ----------------------------------------------- | ------- | ----------------------------------------- |
+    | `result.semantic_mask`      | `SemanticMask`                                  | `(H,W)` | Dense class map.                          |
+    | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Class IDs; dtype selected by class count. |
+    | `result.masks`              | -                                               | -       | No instance masks.                        |
+    | `result.boxes`              | -                                               | -       | No instance boxes/confidences.            |
+
+=== "Depth"
+
+    | Attribute           | Type           | Shape   | Description                                              |
+    | ------------------- | -------------- | ------- | -------------------------------------------------------- |
+    | `result.depth`      | `DepthMap`     | `(H,W)` | Dense per-pixel depth map.                               |
+    | `result.depth.data` | `torch.Tensor` | `(H,W)` | Depth values in meters; call `.cpu().numpy()` for NumPy. |
+    | `result.boxes`      | -              | -       | No instance boxes.                                       |
+    | `result.masks`      | -              | -       | No instance masks.                                       |
 
 === "Classify"
 
@@ -578,11 +591,11 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 
     | Attribute               | Type            | Shape       | Description                                |
     | ----------------------- | --------------- | ----------- | ------------------------------------------ |
-    | `result.boxes`          | `Boxes`         | `(N)`       | Instance boxes.                            |
     | `result.keypoints`      | `Keypoints`     | `(N)`       | Keypoints.                                 |
     | `result.keypoints.data` | `torch.float32` | `(N,K,2/3)` | `x,y` plus optional visibility/confidence. |
     | `result.keypoints.xy`   | `torch.float32` | `(N,K,2)`   | Pixel keypoints.                           |
     | `result.keypoints.xyn`  | `torch.float32` | `(N,K,2)`   | Normalized keypoints.                      |
+    | `result.boxes`          | `Boxes`         | `(N)`       | Instance boxes.                            |
 
 === "OBB"
 
@@ -596,24 +609,24 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 
 `Results` objects have the following methods:
 
-| Method        | Return Type            | Description                                                                                              |
-| ------------- | ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| `update()`    | `None`                 | Updates the Results object with new data such as boxes, masks, probs, obb, keypoints, or semantic masks. |
-| `cpu()`       | `Results`              | Returns a copy of the Results object with all tensors moved to CPU memory.                               |
-| `numpy()`     | `Results`              | Returns a copy of the Results object with all tensors converted to NumPy arrays.                         |
-| `cuda()`      | `Results`              | Returns a copy of the Results object with all tensors moved to GPU memory.                               |
-| `to()`        | `Results`              | Returns a copy of the Results object with tensors moved to specified device and dtype.                   |
-| `new()`       | `Results`              | Creates a new Results object with the same image, path, names, and speed attributes.                     |
-| `plot()`      | `np.ndarray`           | Plots detection results on an input BGR image and returns the annotated image.                           |
-| `show()`      | `None`                 | Displays the image with annotated inference results.                                                     |
-| `save()`      | `str`                  | Saves annotated inference results image to file and returns the filename.                                |
-| `verbose()`   | `str`                  | Returns a log string for each task, detailing detection and classification outcomes.                     |
-| `save_txt()`  | `str`                  | Saves detection results to a text file and returns the path to the saved file.                           |
-| `save_crop()` | `None`                 | Saves cropped detection images to specified directory.                                                   |
-| `summary()`   | `List[Dict[str, Any]]` | Converts inference results to a summarized dictionary with optional normalization.                       |
-| `to_df()`     | `DataFrame`            | Converts detection results to a Polars DataFrame.                                                        |
-| `to_csv()`    | `str`                  | Converts detection results to CSV format.                                                                |
-| `to_json()`   | `str`                  | Converts detection results to JSON format.                                                               |
+| Method        | Return Type            | Description                                                                                                     |
+| ------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `update()`    | `None`                 | Updates the Results object with new data such as boxes, masks, probs, obb, keypoints, semantic masks, or depth. |
+| `cpu()`       | `Results`              | Returns a copy of the Results object with all tensors moved to CPU memory.                                      |
+| `numpy()`     | `Results`              | Returns a copy of the Results object with all tensors converted to NumPy arrays.                                |
+| `cuda()`      | `Results`              | Returns a copy of the Results object with all tensors moved to GPU memory.                                      |
+| `to()`        | `Results`              | Returns a copy of the Results object with tensors moved to specified device and dtype.                          |
+| `new()`       | `Results`              | Creates a new Results object with the same image, path, names, and speed attributes.                            |
+| `plot()`      | `np.ndarray`           | Plots detection results on an input BGR image and returns the annotated image.                                  |
+| `show()`      | `None`                 | Displays the image with annotated inference results.                                                            |
+| `save()`      | `str`                  | Saves annotated inference results image to file and returns the filename.                                       |
+| `verbose()`   | `str`                  | Returns a log string for each task, detailing detection and classification outcomes.                            |
+| `save_txt()`  | `str`                  | Saves detection results to a text file and returns the path to the saved file.                                  |
+| `save_crop()` | `None`                 | Saves cropped detection images to specified directory.                                                          |
+| `summary()`   | `List[Dict[str, Any]]` | Converts inference results to a summarized dictionary with optional normalization.                              |
+| `to_df()`     | `DataFrame`            | Converts detection results to a Polars DataFrame.                                                               |
+| `to_csv()`    | `str`                  | Converts detection results to CSV format.                                                                       |
+| `to_json()`   | `str`                  | Converts detection results to JSON format.                                                                      |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 
@@ -747,8 +760,8 @@ Here is a table for the `Keypoints` class methods and properties, including thei
 | `numpy()` | Method                    | Returns the keypoints tensor as a NumPy array.                    |
 | `cuda()`  | Method                    | Returns the keypoints tensor on GPU memory.                       |
 | `to()`    | Method                    | Returns the keypoints tensor with the specified device and dtype. |
-| `xyn`     | Property (`torch.Tensor`) | A list of normalized keypoints represented as tensors.            |
-| `xy`      | Property (`torch.Tensor`) | A list of keypoints in pixel coordinates represented as tensors.  |
+| `xyn`     | Property (`torch.Tensor`) | Normalized keypoint coordinates with shape `(N,K,2)`.             |
+| `xy`      | Property (`torch.Tensor`) | Keypoint coordinates in pixels with shape `(N,K,2)`.              |
 | `conf`    | Property (`torch.Tensor`) | Returns confidence values of keypoints if available, else None.   |
 
 For more details see the [`Keypoints` class documentation](../reference/engine/results.md#ultralytics.engine.results.Keypoints).
@@ -878,7 +891,7 @@ The `plot()` method supports various arguments to customize the output:
 | `save`       | `bool`                       | Save the annotated image to a file specified by `filename`.                | `False`           |
 | `filename`   | `str`                        | Path and name of the file to save the annotated image if `save` is `True`. | `None`            |
 | `color_mode` | `str`                        | Specify the color mode, e.g., 'instance' or 'class'.                       | `'class'`         |
-| `txt_color`  | `tuple[int, int, int]`       | BGR text color for bounding box and image classification label.            | `(255, 255, 255)` |
+| `txt_color`  | `tuple[int, int, int]`       | BGR text color for classification labels.                                  | `(255, 255, 255)` |
 
 ## Thread-Safe Inference
 
@@ -964,7 +977,7 @@ Ready to move past a pretrained model? [Confirm your task fits your problem](../
 
 ### What is Ultralytics YOLO and its predict mode for real-time inference?
 
-Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), and [classification](../tasks/classify.md). Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
+Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box (OBB) detection](../tasks/obb.md). Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
 
 ### How can I run inference using Ultralytics YOLO on different data sources?
 

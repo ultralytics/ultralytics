@@ -1,6 +1,6 @@
 <div align="center">
   <p>
-    <a href="https://www.ultralytics.com/events/yolovision?utm_source=github&utm_medium=social&utm_campaign=yolovision26&utm_content=banner" target="_blank">
+    <a href="https://www.ultralytics.com/yolo/yolo27?utm_source=github&utm_medium=social&utm_campaign=yolo27-launch-2026&utm_content=banner" target="_blank">
       <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
   </p>
 
@@ -26,7 +26,7 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com) 基于多年在计算机视觉和人工智能领域的基础研究，创造了尖端的、最先进的 (SOTA) [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断更新以提高性能和灵活性，具有**速度快**、**精度高**和**易于使用**的特点。它们在[目标检测](https://docs.ultralytics.com/tasks/detect)、[实例分割](https://docs.ultralytics.com/tasks/segment)、[语义分割](https://docs.ultralytics.com/tasks/semantic)、[深度估计](https://docs.ultralytics.com/tasks/depth)、[图像分类](https://docs.ultralytics.com/tasks/classify)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务中表现出色，并可在视频帧间[跟踪](https://docs.ultralytics.com/modes/track)已检测到的目标。
+[Ultralytics](https://www.ultralytics.com) 基于多年在计算机视觉和人工智能领域的基础研究，创造了尖端的、最先进的 (SOTA) [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断更新以提高性能和灵活性，具有**速度快**、**精度高**和**易于使用**的特点。它们在[目标检测](https://docs.ultralytics.com/tasks/detect)、[实例分割](https://docs.ultralytics.com/tasks/segment)、[语义分割](https://docs.ultralytics.com/tasks/semantic)、[深度估计](https://docs.ultralytics.com/tasks/depth)、[图像分类](https://docs.ultralytics.com/tasks/classify)、[姿态估计](https://docs.ultralytics.com/tasks/pose)和[定向目标检测](https://docs.ultralytics.com/tasks/obb)任务中表现出色，并可在视频帧间[跟踪](https://docs.ultralytics.com/modes/track)已检测到的目标。
 
 在 [Ultralytics 文档](https://docs.ultralytics.com)中查找详细文档。通过 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose) 获取支持。加入 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 和 [Ultralytics 社区论坛](https://community.ultralytics.com)参与讨论！
 
@@ -122,7 +122,7 @@ path = model.export(format="onnx")  # 返回导出模型的路径
 
 ## ✨ 模型
 
-Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https://docs.ultralytics.com/models/yolov3) 到最新的 [YOLO26](https://docs.ultralytics.com/models/yolo26)。下表展示了在 [COCO](https://docs.ultralytics.com/datasets/detect/coco) 上预训练的 YOLO26 模型，用于[检测](https://docs.ultralytics.com/tasks/detect)、[分割](https://docs.ultralytics.com/tasks/segment)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务。[语义分割](https://docs.ultralytics.com/tasks/semantic)模型在 [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes) 上预训练，[深度估计](https://docs.ultralytics.com/tasks/depth)模型在广泛的多数据集混合上预训练并在 [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) 上评估，[分类](https://docs.ultralytics.com/tasks/classify)模型在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) 上预训练。[跟踪](https://docs.ultralytics.com/modes/track)模式与检测、分割、姿态和 OBB 模型兼容。所有[模型](https://docs.ultralytics.com/models)在首次使用时都会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)下载。
+Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https://docs.ultralytics.com/models/yolov3) 到最新的 [YOLO26](https://docs.ultralytics.com/models/yolo26)。下表展示了在 [COCO](https://docs.ultralytics.com/datasets/detect/coco) 上预训练的 YOLO26 模型，用于[检测](https://docs.ultralytics.com/tasks/detect)、[分割](https://docs.ultralytics.com/tasks/segment)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务。[语义分割](https://docs.ultralytics.com/tasks/semantic)模型在 [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes) 上预训练，[深度估计](https://docs.ultralytics.com/tasks/depth)模型在广泛的多数据集混合上预训练并在 [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) 上评估，[分类](https://docs.ultralytics.com/tasks/classify)模型在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) 上预训练，[OBB](https://docs.ultralytics.com/tasks/obb) 模型在 [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10) 上预训练。[跟踪](https://docs.ultralytics.com/modes/track)模式与检测、分割、姿态和 OBB 模型兼容。所有[模型](https://docs.ultralytics.com/models)在首次使用时都会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)下载。
 
 <a href="https://docs.ultralytics.com/tasks" target="_blank">
     <img width="100%" src="https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif" alt="Ultralytics YOLO supported tasks">
@@ -142,8 +142,8 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l) | 640                 | 55.0                 | 54.4                      | 286.2 ± 2.0                     | 6.2 ± 0.2                            | 24.8                | 86.8                 |
 | [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x) | 640                 | 57.5                 | 56.9                      | 525.8 ± 4.0                     | 11.8 ± 0.2                           | 55.7                | 194.4                |
 
-- **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val detect data=coco.yaml device=0` 复现结果。
-- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val detect data=coco.yaml batch=1 device=0|cpu` 复现结果。
+- **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val detect data=coco.yaml device=0` 复现结果，添加 `nms=False` 可复现 e2e 列。
+- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val detect data=coco.yaml batch=1 device=0|cpu nms=False` 复现结果。
 
 </details>
 
@@ -159,8 +159,8 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-seg) | 640                 | 54.4                      | 45.5                       | 387.0 ± 3.7                     | 8.0 ± 0.1                            | 28.0                | 140.1                |
 | [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg) | 640                 | 56.5                      | 47.0                       | 787.0 ± 6.8                     | 16.4 ± 0.1                           | 62.8                | 314.0                |
 
-- **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val segment data=coco.yaml device=0` 复现结果。
-- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val segment data=coco.yaml batch=1 device=0|cpu` 复现结果。
+- **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val segment data=coco.yaml device=0 nms=False` 复现结果。
+- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val segment data=coco.yaml batch=1 device=0|cpu nms=False` 复现结果。
 
 </details>
 
@@ -194,7 +194,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) | 768                 | 0.933                | 0.080                 | 0.344              | 1240.9 ± 73.3                   | 13.6 ± 0.2                           | 57.0                | 301.7                |
 
 - **delta1<sup>NYU</sup>** 是在 NYU Depth V2 Eigen 测试集（654 张图像）上，通过多尺度 + 水平翻转 TTA 和对数最小二乘对齐后，预测深度在真实深度 1.25 倍范围内的像素比例。
-- 不使用 TTA 的单尺度准确率可通过 `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0`（为每个模型尺寸替换 `model=` 参数）复现，该方法采用中值（仅尺度）对齐，得分较低：delta1 0.785 (n), 0.786 (s), 0.827 (m), 0.839 (l), 0.843 (x)。
+- 不使用 TTA 的单尺度准确率可通过 `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0`（为每个模型尺寸替换 `model=` 参数）复现，该方法采用中值（仅尺度）对齐，得分较低：delta1 0.783 (n), 0.793 (s), 0.840 (m), 0.853 (l), 0.860 (x)。
 - **abs_rel** 是预测深度与真实深度之间的平均绝对相对误差。
 - **rmse** 是均方根误差（单位为米）。
 - **速度** 为纯推理延迟（不含前/后处理），在 `imgsz=768`、`batch=1` 下测得，经预热后取多次计时运行的均值 ± 标准差。**CPU ONNX** 为在 32 核 Intel Xeon (Skylake) 上以 ONNX Runtime fp32 运行；**T4 TensorRT10** 为在 Tesla T4 上以 TensorRT fp16 运行。
@@ -231,8 +231,8 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26l-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-pose) | 640                 | 70.4                       | 90.5                    | 275.4 ± 2.4                     | 6.5 ± 0.1                            | 25.9                | 91.7                 |
 | [YOLO26x-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-pose) | 640                 | 71.6                       | 91.6                    | 565.4 ± 3.0                     | 12.2 ± 0.2                           | 57.6                | 202.3                |
 
-- **mAP<sup>val</sup>** 值指的是在 [COCO Keypoints val2017](https://docs.ultralytics.com/datasets/pose/coco) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val pose data=coco-pose.yaml device=0` 复现结果。
-- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu` 复现结果。
+- **mAP<sup>val</sup>** 值指的是在 [COCO Keypoints val2017](https://docs.ultralytics.com/datasets/pose/coco) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val pose data=coco-pose.yaml device=0 nms=False` 复现结果。
+- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu nms=False` 复现结果。
 
 </details>
 
@@ -248,8 +248,8 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26l-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-obb) | 1024                | 56.2                       | 81.6                    | 735.6 ± 3.1                     | 13.0 ± 0.2                           | 25.6                | 232.4                |
 | [YOLO26x-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-obb) | 1024                | 56.7                       | 81.7                    | 1485.7 ± 11.5                   | 30.5 ± 0.9                           | 57.6                | 520.1                |
 
-- **mAP<sup>test</sup>** 值指的是在 [DOTAv1 测试集](https://captain-whu.github.io/DOTA/dataset.html)上的单模型多尺度性能。<br>通过 `yolo val obb data=DOTAv1.yaml device=0 split=test` 复现结果，并将合并后的结果提交到 [DOTA 评估服务器](https://captain-whu.github.io/DOTA/evaluation.html)。
-- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 [DOTAv1 val 图像](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10)进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>通过 `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu` 复现结果。
+- **mAP<sup>test</sup>** 值指的是在 [DOTAv1 测试集](https://captain-whu.github.io/DOTA/dataset.html)上的单模型多尺度性能。<br>通过 `yolo val obb data=DOTAv1.yaml device=0 split=test nms=False save_json=True` 复现结果，并将合并后的结果提交到 [DOTA 评估服务器](https://captain-whu.github.io/DOTA/evaluation.html)。
+- **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 [DOTAv1 val 图像](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10)进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>通过 `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu nms=False` 复现结果。
 
 </details>
 

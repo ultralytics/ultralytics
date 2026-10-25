@@ -51,7 +51,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     model = YOLO("yolo26n.pt")
 
     # Run inference on an image
-    results = model.predict(source="ultralytics/assets/bus.jpg")
+    results = model.predict(source="https://ultralytics.com/images/bus.jpg")
 
     # Plot inference results
     plot = results[0].plot()  # (1)!
@@ -115,7 +115,7 @@ from ultralytics import YOLO
 model = YOLO("yolo26n.pt")
 
 # Run inference on an image
-results = model.predict(source="ultralytics/assets/bus.jpg")
+results = model.predict(source="https://ultralytics.com/images/bus.jpg")
 
 # Plot inference results
 plot = results[0].plot()  # (3)!
@@ -134,8 +134,6 @@ w.draw(mem_file)
 1. It's possible to use other image extensions as well.
 2. Only the object at index `1` that is returned is needed.
 3. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
-
----
 
 !!! tip "Clearing the image"
 
@@ -166,7 +164,7 @@ To view YOLO inference results in a VSCode terminal on macOS or Linux, follow th
     from ultralytics import YOLO
 
     model = YOLO("yolo26n.pt")
-    results = model.predict(source="ultralytics/assets/bus.jpg")
+    results = model.predict(source="https://ultralytics.com/images/bus.jpg")
     plot = results[0].plot()
     ```
 

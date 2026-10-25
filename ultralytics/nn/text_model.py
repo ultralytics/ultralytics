@@ -333,19 +333,24 @@ class MobileCLIPTS(TextModel):
         return self.encoder(texts).to(dtype)
 
 
-def build_text_model(variant: str, device: torch.device = None) -> TextModel:
+def build_text_model(variant: str, device: torch.device | str | None = None) -> TextModel:
     """Build a text encoding model based on the specified variant.
 
     Args:
-        variant (str): Model variant in format "base:size" (e.g., "clip:ViT-B/32" or "mobileclip:s0").
-        device (torch.device, optional): Device to load the model on.
+        variant (str): Model variant in format "base:size" (e.g., "clip:ViT-B/32" or "mobileclip:blt"). The size is used
+            only for "clip"; "mobileclip" and "mobileclip2" always load their TorchScript text encoders
+            (`mobileclip_blt.ts` and `mobileclip2_b.ts`).
+        device (torch.device | str, optional): Device to load the model on.
 
     Returns:
         (TextModel): Instantiated text encoding model.
 
+    Raises:
+        ValueError: If the variant base is not 'clip', 'mobileclip', or 'mobileclip2'.
+
     Examples:
         >>> model = build_text_model("clip:ViT-B/32", device=torch.device("cuda"))
-        >>> model = build_text_model("mobileclip:s0", device=torch.device("cpu"))
+        >>> model = build_text_model("mobileclip:blt", device=torch.device("cpu"))
     """
     base, size = variant.split(":")
     if base == "clip":

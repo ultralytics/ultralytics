@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import contextlib
 import glob
+import importlib.util
 import os
 import shutil
+import struct
+import sys
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime
@@ -106,15 +109,15 @@ def spaces_in_path(path: str | Path):
 def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "-", mkdir: bool = False) -> Path:
     """Increment a file or directory path, i.e., runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
-    If the path exists and `exist_ok` is not True, the path will be incremented by appending a number and `sep` to the
-    end of the path. If the path is a file, the file extension will be preserved. If the path is a directory, the number
-    will be appended directly to the end of the path.
+    If the path exists and `exist_ok` is not True, the path will be incremented by appending `sep` and a number to the
+    end of the path. If the path is a file, the number is inserted before the file extension. If the path is a
+    directory, `sep` and the number are appended directly to the end of the path.
 
     Args:
         path (str | Path): Path to increment.
         exist_ok (bool, optional): If True, the path will not be incremented and returned as-is.
         sep (str, optional): Separator to use between the path and the incrementation number.
-        mkdir (bool, optional): Create a directory if it does not exist.
+        mkdir (bool, optional): Create a directory at the returned path if it does not exist.
 
     Returns:
         (Path): Incremented path.
@@ -123,6 +126,7 @@ def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "-", mkd
         Increment a directory path:
         >>> import tempfile
         >>> from pathlib import Path
+        >>> from ultralytics.utils.files import increment_path
         >>> with tempfile.TemporaryDirectory() as tmp:
         ...     exp = Path(tmp) / "exp"
         ...     exp.mkdir()
@@ -165,8 +169,8 @@ def file_date(path: str | Path = __file__) -> str:
     return f"{t.year}-{t.month}-{t.day}"
 
 
-def file_size(path: str | Path) -> float:
-    """Return the size of a file or directory in mebibytes (MiB)."""
+def file_size(path: str | Path | None) -> float:
+    """Return the size of a file or directory in mebibytes (MiB), or 0.0 if the path is None or missing."""
     if isinstance(path, (str, Path)):
         mb = 1 << 20  # bytes to MiB (1024 ** 2)
         path = Path(path)
@@ -177,22 +181,53 @@ def file_size(path: str | Path) -> float:
     return 0.0
 
 
+def import_execstack(name: str, *patterns: str):
+    """Import ``name``, clearing the unused executable-stack flag that glibc>=2.41 refuses on its shared objects.
+
+    Args:
+        name (str): Module to import.
+        *patterns (str): Glob patterns of the module's shared objects, relative to site-packages.
+
+    Returns:
+        (module): The imported module.
+    """
+    try:
+        return importlib.import_module(name)
+    except ImportError as e:
+        if "cannot enable executable stack" not in str(e):
+            raise
+    for file in (f for p in patterns for f in Path(importlib.util.find_spec(name).origin).parents[1].glob(p)):
+        with open(file, "r+b") as f:  # clear PF_X on PT_GNU_STACK, like `patchelf --clear-execstack`
+            h = f.read(64)
+            (phoff,), (phentsize, phnum) = struct.unpack_from("<Q", h, 32), struct.unpack_from("<HH", h, 54)
+            for i in range(phnum):
+                f.seek(phoff + i * phentsize)
+                p_type, p_flags = struct.unpack("<II", f.read(8))
+                if p_type == 0x6474E551 and p_flags & 1:
+                    f.seek(-4, 1)
+                    f.write(struct.pack("<I", p_flags & ~1))
+    for m in [m for m in sys.modules if m.startswith(f"{name}.")]:  # partial submodules of the failed import
+        del sys.modules[m]
+    return importlib.import_module(name)
+
+
 def get_latest_run(search_dir: str = ".") -> str:
-    """Return the path to the most recent 'last.pt' file in the specified directory for resuming training."""
+    """Return the path to the most recent 'last*.pt' file under a directory for resuming training, or '' if none."""
     last_list = glob.glob(f"{search_dir}/**/last*.pt", recursive=True)
     return max(last_list, key=os.path.getctime) if last_list else ""
 
 
 def update_models(model_names: tuple = ("yolo26n.pt",), source_dir: Path = Path("."), update_names: bool = False):
-    """Update and re-save specified YOLO models in an 'updated_models' subdirectory.
+    """Convert specified YOLO models to FP16 and re-save them in an 'updated_models' subdirectory.
 
     Args:
         model_names (tuple, optional): Model filenames to update.
         source_dir (Path, optional): Directory containing models and target subdirectory.
-        update_names (bool, optional): Update model names from a data YAML.
+        update_names (bool, optional): Replace model class names with the COCO names from 'coco8.yaml'.
 
     Examples:
         Update specified YOLO models and save them in 'updated_models' subdirectory:
+        >>> from pathlib import Path
         >>> from ultralytics.utils.files import update_models
         >>> model_names = ("yolo26n.pt", "yolo11s.pt")
         >>> update_models(model_names, source_dir=Path("/models"), update_names=True)

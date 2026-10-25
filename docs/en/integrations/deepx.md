@@ -57,21 +57,19 @@ To install the required packages, run:
         pip install ultralytics
         ```
 
-The `dx_com` compiler is automatically installed from the [DEEPX SDK repository](https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html) on first export. The current export workflow uses DX-COM 2.3.0, which provides wheels for Python 3.8–3.12 on x86-64 Linux with glibc 2.31 or newer.
-
-The compiler's PyPI releases are yanked. To preinstall the export dependencies, supply the SDK wheel page with `--find-links`; this works with both `pip` and `uv pip`:
+The `dx_com` compiler is automatically installed from [PyPI](https://pypi.org/project/dx-com/) on first export. DX-COM 2.4.1 provides wheels for Python 3.8–3.14 on x86-64 Linux with glibc 2.31 or newer. To preinstall the export dependencies:
 
 ```bash
-pip install "ultralytics[export-deepx]" --find-links https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html
+pip install "ultralytics[export-deepx]"
 ```
 
-For an editable repository install, replace `"ultralytics[export-deepx]"` with `-e ".[export-base,export-deepx]"`. To reproduce the Python 3.12 environment and smoke export used by CI, run the existing environment builder from the repository root:
+For an editable repository install, replace `"ultralytics[export-deepx]"` with `-e ".[export-base,export-deepx]"`. To reproduce the Python 3.14 environment and smoke export used by CI, run the existing environment builder from the repository root:
 
 ```bash
 ULTRALYTICS_ISOLATED_VENVS="$PWD/.venvs" python .github/scripts/create-export-env.py --env isolated-deepx
 ```
 
-The environment builder requires [uv](https://docs.astral.sh/uv/getting-started/installation/) and an installed Ultralytics checkout. It installs the compiler from the SDK source and applies the tested dependency constraints automatically.
+The environment builder requires [uv](https://docs.astral.sh/uv/getting-started/installation/) and an installed Ultralytics checkout. It applies the tested dependency constraints automatically.
 
 ### Usage
 
@@ -163,10 +161,12 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 After a successful export, a model directory is created with the following layout:
 
-    yolo26n_deepx_model/
-    ├── yolo26n.dxnn     # Compiled DEEPX model binary (NPU executable)
-    ├── config.json      # Calibration and preprocessing configuration
-    └── metadata.yaml    # Model metadata (classes, image size, task, etc.)
+```text
+yolo26n_deepx_model/
+├── yolo26n.dxnn     # Compiled DEEPX model binary (NPU executable)
+├── config.json      # Calibration and preprocessing configuration
+└── metadata.yaml    # Model metadata (classes, image size, task, etc.)
+```
 
 The `.dxnn` file is the compiled model binary that the `dx_engine` runtime loads directly on the NPU. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline.
 
@@ -267,7 +267,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     !!! note
 
-        Validation for the above benchmarks were done using coco128 for detection, coco128-seg for segmentation, coco8-pose for pose estimation, imagenet100 for classification and dota128 for OBB models. Inference time does not include pre/ post-processing.
+        Validation for the above benchmarks was done using COCO128 for detection, COCO128-seg for segmentation, COCO8-pose for pose estimation, ImageNet100 for classification and DOTA128 for OBB models. Inference time does not include pre/post-processing.
 
 !!! tip "Performance Optimization Tips"
 
@@ -369,7 +369,7 @@ Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exp
 
 ### How many calibration images should I use for DEEPX export?
 
-The DEEPX export pipeline uses every image in the calibration dataset with the EMA calibration method. A few hundred images is usually sufficient for good quantization accuracy. Point `data` at a smaller dataset if compilation time becomes a concern on large datasets.
+The DEEPX export pipeline configures the `dx_com` compiler for 100 EMA calibration steps over images from the calibration dataset. A few hundred images is usually sufficient for good quantization accuracy. Point `data` at a smaller dataset if compilation time becomes a concern on large datasets.
 
 ### How do I install the DEEPX runtime for inference?
 

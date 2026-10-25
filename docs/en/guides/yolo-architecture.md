@@ -25,91 +25,68 @@ The fundamental unit is the **`Conv`** block (defined in [`conv.py`](../referenc
 
 ## Architecture Diagrams
 
-Each version keeps the same **backbone → neck → head** skeleton and changes specific stages. The tabs below show the per-version structure: the backbone and neck stages follow the configs in `ultralytics/cfg/models/`, while the YOLOv3 and YOLOv5 heads are drawn in their original anchor-based form rather than the anchor-free `u`-variant head their package configs actually ship. Stepping through the tabs shows what each generation added. In short, the progression is: YOLOv3 is an FPN-only, anchor-based detector; YOLOv5 adds the bottom-up PAN path and `SPPF`; YOLOv8 switches to the `C2f` block with an anchor-free, [DFL](#distribution-focal-loss-dfl) head; YOLO11 inserts `C2PSA` attention and the `C3k2` block; and YOLO26 adds an `SPPF` residual and makes the head NMS-free and DFL-free. Node colors follow the documentation diagram convention: green input, blue backbone, slate spatial pooling and attention, orange neck, purple head and output.
+Each version keeps the same **backbone → neck → head** skeleton and changes specific stages. The tabs below show the per-version structure: the backbone and neck stages follow the configs in `ultralytics/cfg/models/`, while the YOLOv3 and YOLOv5 heads are drawn in their original anchor-based form rather than the anchor-free `u`-variant head their package configs actually ship. Stepping through the tabs shows what each generation added. In short, the progression is: YOLOv3 is an FPN-only, anchor-based detector; YOLOv5 adds the bottom-up PAN path and `SPPF`; YOLOv8 switches to the `C2f` block with an anchor-free, [DFL](#distribution-focal-loss-dfl) head; YOLO11 inserts `C2PSA` attention and the `C3k2` block; and YOLO26 adds an `SPPF` residual, removes DFL, and adds an optional NMS-free head.
 
 === "YOLOv3"
 
     ```mermaid
     flowchart TD
-        IN[Input 640x640]:::start --> ST[Conv stem<br/>5x stride-2 down to P1-P5]:::proc
-        ST --> BB[Darknet-53 backbone<br/>stacked Bottleneck]:::proc
-        BB --> FPN[Neck FPN only<br/>top-down Upsample + Concat]:::decide
-        FPN --> HD[Detect head<br/>3 scales, anchor-based]:::out
-        HD --> O[Predictions + NMS]:::out
-        classDef start fill:#4CAF50,color:#fff
-        classDef proc fill:#2196F3,color:#fff
-        classDef decide fill:#FF9800,color:#fff
-        classDef out fill:#9C27B0,color:#fff
+        IN([Input 640x640]) --> BB[Darknet-53 backbone]
+        BB --> FPN["FPN neck, top-down only"]
+        FPN --> HD[Anchor-based Detect head]
+        HD --> O([Predictions with NMS])
     ```
 
 === "YOLOv5"
 
     ```mermaid
     flowchart TD
-        IN[Input 640x640]:::start --> BB[CSP backbone<br/>C3 blocks]:::proc
-        BB --> SP[SPPF]:::extern
-        SP --> FPN[Neck FPN top-down<br/>Upsample + Concat]:::decide
-        FPN --> PAN[Neck PAN bottom-up<br/>Conv + Concat]:::decide
-        PAN --> HD[Detect head<br/>anchor-based]:::out
-        HD --> O[Predictions + NMS]:::out
-        classDef start fill:#4CAF50,color:#fff
-        classDef proc fill:#2196F3,color:#fff
-        classDef decide fill:#FF9800,color:#fff
-        classDef out fill:#9C27B0,color:#fff
-        classDef extern fill:#607D8B,color:#fff
+        IN([Input 640x640]) --> BB["CSP backbone, C3 blocks"]
+        BB --> SP[SPPF]
+        SP --> FPN["FPN neck, top-down"]
+        FPN --> PAN["PAN neck, bottom-up"]
+        PAN --> HD[Anchor-based Detect head]
+        HD --> O([Predictions with NMS])
     ```
 
 === "YOLOv8"
 
     ```mermaid
     flowchart TD
-        IN[Input 640x640]:::start --> BB[CSP backbone<br/>C2f blocks]:::proc
-        BB --> SP[SPPF]:::extern
-        SP --> FPN[Neck FPN top-down<br/>Upsample + Concat]:::decide
-        FPN --> PAN[Neck PAN bottom-up<br/>Conv + Concat]:::decide
-        PAN --> HD[Detect head<br/>anchor-free, decoupled, DFL reg_max 16]:::out
-        HD --> O[Predictions + NMS]:::out
-        classDef start fill:#4CAF50,color:#fff
-        classDef proc fill:#2196F3,color:#fff
-        classDef decide fill:#FF9800,color:#fff
-        classDef out fill:#9C27B0,color:#fff
-        classDef extern fill:#607D8B,color:#fff
+        IN([Input 640x640]) --> BB["CSP backbone, C2f blocks"]
+        BB --> SP[SPPF]
+        SP --> FPN["FPN neck, top-down"]
+        FPN --> PAN["PAN neck, bottom-up"]
+        PAN --> HD[Anchor-free DFL head]
+        HD --> O([Predictions with NMS])
     ```
 
 === "YOLO11"
 
     ```mermaid
     flowchart TD
-        IN[Input 640x640]:::start --> BB[CSP backbone<br/>C3k2 blocks]:::proc
-        BB --> SP[SPPF]:::extern
-        SP --> PSA[C2PSA attention]:::extern
-        PSA --> FPN[Neck FPN top-down<br/>Upsample + Concat]:::decide
-        FPN --> PAN[Neck PAN bottom-up<br/>Conv + Concat]:::decide
-        PAN --> HD[Detect head<br/>anchor-free, DFL reg_max 16]:::out
-        HD --> O[Predictions + NMS]:::out
-        classDef start fill:#4CAF50,color:#fff
-        classDef proc fill:#2196F3,color:#fff
-        classDef decide fill:#FF9800,color:#fff
-        classDef out fill:#9C27B0,color:#fff
-        classDef extern fill:#607D8B,color:#fff
+        IN([Input 640x640]) --> BB["CSP backbone, C3k2 blocks"]
+        BB --> SP[SPPF]
+        SP --> PSA[C2PSA attention]
+        PSA --> FPN["FPN neck, top-down"]
+        FPN --> PAN["PAN neck, bottom-up"]
+        PAN --> HD[Anchor-free DFL head]
+        HD --> O([Predictions with NMS])
     ```
 
 === "YOLO26"
 
     ```mermaid
     flowchart TD
-        IN[Input 640x640]:::start --> BB[CSP backbone<br/>C3k2 blocks]:::proc
-        BB --> SP[SPPF + shortcut]:::extern
-        SP --> PSA[C2PSA attention]:::extern
-        PSA --> FPN[Neck FPN top-down<br/>Upsample + Concat]:::decide
-        FPN --> PAN[Neck PAN bottom-up<br/>Conv + Concat]:::decide
-        PAN --> HD[Detect head<br/>anchor-free, reg_max 1, dual heads]:::out
-        HD --> O[Predictions<br/>NMS by default; optional NMS-free]:::out
-        classDef start fill:#4CAF50,color:#fff
-        classDef proc fill:#2196F3,color:#fff
-        classDef decide fill:#FF9800,color:#fff
-        classDef out fill:#9C27B0,color:#fff
-        classDef extern fill:#607D8B,color:#fff
+        IN([Input 640x640]) --> BB["CSP backbone, C3k2 blocks"]
+        BB --> SP[SPPF + shortcut]
+        SP --> PSA[C2PSA attention]
+        PSA --> FPN["FPN neck, top-down"]
+        FPN --> PAN["PAN neck, bottom-up"]
+        PAN --> HD["Dual heads, DFL-free"]
+        HD --> Q{"Set nms=False?"}
+        Q -->|no| O1([Predictions with NMS])
+        Q -->|yes| O2([NMS-free predictions])
     ```
 
 The YOLOv3 and YOLOv5 diagrams show the original anchor-based head. The `ultralytics` package ships the anchor-free **YOLOv3u** and **YOLOv5u** configs — the same Darknet-53 and `C3` backbones with YOLOv8's `Detect` head — described under [Detection Head](#detection-head-anchor-based-anchor-free-nms-free).
@@ -260,7 +237,7 @@ YOLO26n reports `reg_max=1` and an `Identity` DFL layer. Prediction and validati
 
 ## Conclusion
 
-Across versions, the YOLO architecture changed one stage at a time: the backbone moved from Darknet-53 to CSP-based `C3`, `C2f`, and `C3k2` blocks with `C2PSA` attention; the neck kept its FPN + PAN structure while `SPP` became `SPPF`; and the head moved from anchor-based to anchor-free, then to YOLO26's NMS-free, DFL-free end-to-end design.
+Across versions, the YOLO architecture changed one stage at a time: the backbone moved from Darknet-53 to CSP-based `C3`, `C2f`, and `C3k2` blocks with `C2PSA` attention; the neck kept its FPN + PAN structure while `SPP` became `SPPF`; and the head moved from anchor-based to anchor-free, then to YOLO26's DFL-free design with an optional NMS-free end-to-end head.
 
 To define custom architectures, see the [Model YAML Configuration Guide](model-yaml-config.md), or compare models on the [model pages](../models/index.md). For questions, reach out on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
 

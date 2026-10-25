@@ -49,7 +49,7 @@ TFLite models offer a wide range of key features that enable on-device machine l
     (SM8850) has an 8-core Qualcomm Oryon CPU (2 Prime cores up to 4.6 GHz and 6 Performance cores up to 3.62 GHz),
     Adreno GPU, and Hexagon NPU. These tables compare the legacy onnx2tf INT8 TFLite assets with candidate
     litert-torch exports evaluated during the migration. The release assets were subsequently overwritten with the
-    standardized exports, so these numbers do **not** describe the current `v0.6.6` asset bytes. See the
+    standardized exports, so these numbers do **not** describe the current `v0.7.0` asset bytes. See the
     [LiteRT performance tables](litert.md#measured-performance) for current measurements.
 
 Both formats ran in the same back-to-back GPU sweep at the input sizes shown. Each cell is the total time
@@ -264,7 +264,7 @@ For further optimizations, you might consider using [Coral Edge TPU](https://dev
 
 ### Can I use TFLite models on microcontrollers for YOLO26 predictions?
 
-Yes, TFLite supports deployment on microcontrollers with limited resources. TFLite's core runtime requires only 16 KB of memory on an Arm Cortex M3 and can run basic YOLO26 models. This makes it suitable for deployment on devices with minimal computational power and memory.
+TFLite supports deployment on microcontrollers with limited resources: its core runtime requires only 16 KB of memory on an Arm Cortex M3 and can run many basic models. However, YOLO26 models are generally too large for typical microcontroller memory budgets, so single-board computers, mobile devices, or dedicated accelerators are better targets for YOLO26.
 
 To get started, visit the [TFLite Micro for Microcontrollers guide](https://developers.google.com/edge/litert/microcontrollers/overview).
 

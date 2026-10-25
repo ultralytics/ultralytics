@@ -27,7 +27,7 @@ Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), fo
 
 ## Results
 
-The table below reports the `delta1` accuracy (percentage of pixels within a 1.25× threshold, higher is better) on the iBims-1 evaluation images by model size.
+The table below reports the `delta1` accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the iBims-1 evaluation images by model size.
 
 | Model         | delta1 |
 | ------------- | ------ |
@@ -68,13 +68,13 @@ iBims-1 is an external benchmark, so models are typically run with `predict` on 
 
 ## Pretrained Models
 
-The YOLO26 depth family is evaluated zero-shot on the iBims-1 benchmark. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) from v8.4.0, and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
+The YOLO26 depth family is evaluated zero-shot on the iBims-1 benchmark. These models auto-download on first use from the Ultralytics [v8.4.0 assets release](https://github.com/ultralytics/assets/releases/tag/v8.4.0), for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth), and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
 
 ## Citations and Acknowledgments
 
 If you use the iBims-1 dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -88,3 +88,17 @@ If you use the iBims-1 dataset in your research or development work, please cite
         ```
 
 We would like to acknowledge the authors for creating and maintaining this valuable resource for the computer vision community.
+
+## FAQ
+
+### What does iBims-1 evaluate?
+
+iBims-1 is a 100-image indoor benchmark with survey-grade laser-scanner depth designed to test sharp depth edges and planar surfaces, going beyond aggregate accuracy to probe depth-map quality. The YOLO26-Depth models are evaluated on it zero-shot, with YOLO26x-depth reaching a delta1 of 0.961.
+
+### Can I validate on iBims-1 with a dataset YAML?
+
+No. iBims-1 ships without a bundled YAML and is scored through a dedicated evaluation script with multi-scale and flip test-time augmentation and log-least-squares scale alignment. Use [predict mode](../../modes/predict.md) on its images as shown in the [Usage](#usage) section.
+
+### What other benchmarks are used alongside iBims-1?
+
+The released models are also evaluated zero-shot on [NYU Depth V2](nyu-depth-v2.md), [ETH3D](eth3d.md), and [Make3D](make3d.md), and on the [KITTI Eigen](kitti.md) split, whose training drives are part of the pretraining mix; see the [Depth Estimation task page](../../tasks/depth.md) for the combined results.

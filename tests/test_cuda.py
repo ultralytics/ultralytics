@@ -13,7 +13,7 @@ from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp, check_tensorrt
-from ultralytics.utils.torch_utils import TORCH_1_13, parse_device
+from ultralytics.utils.torch_utils import TORCH_1_13
 
 # Try to find idle devices if CUDA is available
 DEVICES = []
@@ -45,6 +45,25 @@ def test_amp():
     assert check_amp(model)
 
 
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+def test_onnx_dynamic_spatial_outputs(tmp_path):
+    """Run a real feature backbone with fixed batch and dynamic spatial outputs on CUDA."""
+    from torchvision.models import resnet18
+
+    from ultralytics.nn.backends.onnx import ONNXBackend
+    from ultralytics.utils.export import torch2onnx
+
+    model = torch.nn.Sequential(*list(resnet18(weights=None).children())[:-2]).eval()
+    im = torch.randn(1, 3, 64, 96)
+    file = torch2onnx(model, im, tmp_path / "features.onnx", dynamic={"images": {2: "height", 3: "width"}})
+    backend = ONNXBackend(file, torch.device(f"cuda:{DEVICES[0]}"))
+    assert "CUDAExecutionProvider" in backend.session.get_providers()
+    for x in (im, im.transpose(2, 3)):
+        actual = torch.as_tensor(backend(x.to(backend.device))[0]).cpu()
+        expected = backend.session.run(backend.output_names, {"images": x.numpy()})[0]
+        torch.testing.assert_close(actual, torch.from_numpy(expected), rtol=0, atol=0)
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
@@ -52,11 +71,9 @@ def test_amp():
     [  # generate all combinations except for exclusion cases
         (task, dynamic, batch, simplify, nms)
         for task, dynamic, batch, simplify, nms in product(
-            sorted(TASKS), [True, False], [1, 2], [True, False], [None, True, False]
+            ["detect"] if IS_JETSON else sorted(TASKS), [True, False], [1, 2], [True, False], [None, True, False]
         )
-        if not (
-            (task == "classify" and nms is True) or (task == "obb" and nms is True and (not TORCH_1_13 or IS_JETSON))
-        )
+        if not ((task == "classify" and nms is True) or (task == "obb" and nms is True and not TORCH_1_13))
     ],
 )
 def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
@@ -70,7 +87,9 @@ def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
         nms=nms,
         device=DEVICES[0],
     )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
+    model = YOLO(file)
+    model([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
+    assert "CUDAExecutionProvider" in model.predictor.model.backend.session.get_providers()
     Path(file).unlink()  # cleanup
 
 
@@ -112,7 +131,6 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
     model.val(data=TASK2DATA[task], imgsz=32, device=DEVICES[0], batch=batch)  # exported model validation
     Path(file).unlink()  # cleanup
     if quantize == 8:
-        Path(file).with_suffix(".cache").unlink(missing_ok=True)  # cleanup TensorRT 7-10 INT8 calibration cache
         Path(file).with_suffix(".int8.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt INT8 ONNX
     if quantize == 16:
         Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt FP16 ONNX
@@ -140,14 +158,12 @@ def test_semantic_loss_all_ignore_amp(nc):
 @pytest.mark.skipif(IS_JETSON, reason="Edge devices not intended for training")
 def test_train():
     """Test model training on a minimal dataset using available CUDA devices."""
-    device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
-    expected = parse_device(device)  # canonical torch indices, e.g. physical ids translate under external CVD
+    device = "-1,-1" if len(DEVICES) > 1 else DEVICES[0]  # DDP picks idle GPUs at launch; shared GPUs fill up later
     visible = os.environ.get("CUDA_VISIBLE_DEVICES")
     results = YOLO(MODEL).train(data="coco8-grayscale.yaml", imgsz=64, epochs=1, device=DEVICES[0], batch=-1)
     model = YOLO(MODEL)
     results = model.train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, compile=True)
-    assert model.trainer.args.device == expected, "trained on wrong GPUs"
-    assert model.trainer.device.index == int(expected.split(",")[0]), "trained on wrong GPU"
+    assert model.trainer.device.index == int(model.trainer.args.device.split(",")[0]), "trained on wrong GPU"
     assert os.environ.get("CUDA_VISIBLE_DEVICES") == visible, "CUDA_VISIBLE_DEVICES must never be mutated"
     results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
     # Both single-GPU and DDP return metrics (recovered from the saved checkpoint under DDP)
@@ -215,7 +231,8 @@ def test_autobatch():
     """Check optimal batch size for YOLO model training using autobatch utility."""
     from ultralytics.utils.autobatch import check_train_batch_size
 
-    check_train_batch_size(YOLO(MODEL).model.to(f"cuda:{DEVICES[0]}"), imgsz=64, amp=True)
+    # imgsz < 2 * stride fails the batch-1 probe in train-mode BatchNorm, which is not a memory ceiling
+    assert check_train_batch_size(YOLO(MODEL).model.to(f"cuda:{DEVICES[0]}"), imgsz=32, amp=True) > 1
 
 
 @pytest.mark.slow

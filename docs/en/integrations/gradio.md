@@ -5,7 +5,7 @@ description: Discover an interactive way to perform object detection with Ultral
 keywords: Ultralytics, YOLO26, Gradio, object detection, interactive, real-time, image processing, AI
 ---
 
-# Interactive Object Detection: Gradio & Ultralytics YOLO26 🚀
+# Interactive Object Detection: Gradio & Ultralytics YOLO26
 
 ## Introduction to Interactive Object Detection
 
@@ -146,7 +146,7 @@ def predict_image(img, conf_threshold, iou_threshold):
         show_labels=True,
         show_conf=True,
     )
-    return results[0].plot() if results else None
+    return results[0].plot(pil=True)  # RGB PIL image; plot() without pil=True returns a BGR array
 
 
 iface = gr.Interface(

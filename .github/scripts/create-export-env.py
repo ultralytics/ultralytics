@@ -10,6 +10,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import psutil
+
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
@@ -78,6 +80,10 @@ def main():
     parser.add_argument("--list", action="store_true", help="Print isolated export environment ids and exit.")
     args = parser.parse_args()
     envs = args.env or isolated_env_ids()
+
+    if "isolated-deepx" in envs and psutil.virtual_memory().total < 15 * (1 << 30):
+        print("Skipping DEEPX: at least 15 GiB of RAM is required.", file=sys.stderr)
+        envs = [env for env in envs if env != "isolated-deepx"]
 
     if args.list:
         print("\n".join(envs))

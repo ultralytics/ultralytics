@@ -22,7 +22,7 @@ class RegionCounter(BaseSolution):
             polygon coordinates, and display colors.
         counting_regions (list): List storing all defined regions, where each entry is based on `region_template` and
             includes specific region settings like name, coordinates, and color.
-        region_counts (dict): Dictionary storing the count of objects for each named region.
+        region_counts (dict[str, int]): Dictionary storing the count of objects for each named region.
 
     Methods:
         add_region: Add a new counting region with specified attributes.
@@ -69,6 +69,9 @@ class RegionCounter(BaseSolution):
 
         Returns:
             (dict[str, Any]): Region information including name, polygon, and display colors.
+
+        Raises:
+            ValueError: If `polygon_points` contains fewer than 3 points.
         """
         if len(polygon_points) < 3:
             raise ValueError(
@@ -90,7 +93,11 @@ class RegionCounter(BaseSolution):
         return region
 
     def initialize_regions(self):
-        """Initialize regions from `self.region` only once."""
+        """Initialize counting regions from `self.region`, using a default rectangle if no region is provided.
+
+        `self.region` may be a list of points (a single region named "Region#01") or a dict mapping region names to
+        point lists.
+        """
         if self.region is None:
             self.initialize_region()
         if not isinstance(self.region, dict):  # Ensure self.region is initialized and structured as a dictionary

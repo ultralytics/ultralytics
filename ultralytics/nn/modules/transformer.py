@@ -64,7 +64,7 @@ class TransformerEncoderLayer(nn.Module):
             cm (int): Hidden dimension in the feedforward network.
             num_heads (int): Number of attention heads.
             dropout (float): Dropout probability.
-            act (nn.Module): Activation function.
+            act (nn.Module, optional): Activation function. Defaults to nn.GELU() if None.
             normalize_before (bool): Whether to apply normalization before attention and feedforward.
         """
         super().__init__()
@@ -191,7 +191,7 @@ class AIFI(TransformerEncoderLayer):
             cm (int): Hidden dimension in the feedforward network.
             num_heads (int): Number of attention heads.
             dropout (float): Dropout probability.
-            act (nn.Module): Activation function.
+            act (nn.Module, optional): Activation function. Defaults to nn.GELU() if None.
             normalize_before (bool): Whether to apply normalization before attention and feedforward.
         """
         super().__init__(c1, cm, num_heads, dropout, act, normalize_before)
@@ -206,14 +206,14 @@ class AIFI(TransformerEncoderLayer):
             (torch.Tensor): Output tensor with shape [B, C, H, W].
         """
         c, h, w = x.shape[1:]
-        pos_embed = self.build_2d_sincos_position_embedding(w, h, c, device=x.device)
+        pos_embed = self.build_2d_sincos_position_embedding(w, h, c, like=x)
         # Flatten [B, C, H, W] to [B, HxW, C]
-        x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(device=x.device, dtype=x.dtype))
+        x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(x.dtype))
         return x.permute(0, 2, 1).view([-1, c, h, w]).contiguous()
 
     @staticmethod
     def build_2d_sincos_position_embedding(
-        w: int, h: int, embed_dim: int = 256, temperature: float = 10000.0, device=None
+        w: int, h: int, embed_dim: int = 256, temperature: float = 10000.0, *, like: torch.Tensor
     ) -> torch.Tensor:
         """Build 2D sine-cosine position embedding.
 
@@ -222,26 +222,28 @@ class AIFI(TransformerEncoderLayer):
             h (int): Height of the feature map.
             embed_dim (int): Embedding dimension.
             temperature (float): Temperature for the sine/cosine functions.
-            device (torch.device, optional): Device on which to build the embedding grids.
+            like (torch.Tensor): Tensor whose device the embedding grids are built on.
 
         Returns:
             (torch.Tensor): Position embedding with shape [1, h*w, embed_dim].
         """
         assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
-        # Build on the input's device so a traced graph doesn't bake a CPU `arange` that clashes with GPU activations
-        # (e.g. TorchScript export of RT-DETR: the traced `arange` is pinned to CPU and fails GPU inference).
-        grid_w = torch.arange(w, dtype=torch.float32, device=device)
-        grid_h = torch.arange(h, dtype=torch.float32, device=device)
-        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij") if TORCH_1_11 else torch.meshgrid(grid_w, grid_h)
+        # type_as inherits the runtime device in traces, unlike a device= literal; fp32 seed keeps sin/cos exact
+        like = like.new_zeros(1, dtype=torch.float32)
+        grid_w = torch.arange(w).type_as(like)
+        grid_h = torch.arange(h).type_as(like)
+        # Tokens are flattened row-major from [B, C, H, W], so the grid must be (h, w)
+        grid_h, grid_w = torch.meshgrid(grid_h, grid_w, indexing="ij") if TORCH_1_11 else torch.meshgrid(grid_h, grid_w)
         pos_dim = embed_dim // 4
-        omega = torch.arange(pos_dim, dtype=torch.float32, device=device) / pos_dim
+        omega = torch.arange(pos_dim).type_as(like) / pos_dim
         omega = 1.0 / (temperature**omega)
 
         # Pin matmul to fp32 for CoreML export: fp16 sin/cos on integer-derived positions accumulates visible error.
         out_w = grid_w.flatten()[..., None].float() @ omega[None]
         out_h = grid_h.flatten()[..., None].float() @ omega[None]
 
-        return torch.cat([torch.sin(out_w), torch.cos(out_w), torch.sin(out_h), torch.cos(out_h)], 1)[None]
+        # Row encoding first keeps square inputs identical to the original layout
+        return torch.cat([torch.sin(out_h), torch.cos(out_h), torch.sin(out_w), torch.cos(out_w)], 1)[None]
 
 
 class TransformerLayer(nn.Module):
@@ -266,7 +268,7 @@ class TransformerLayer(nn.Module):
         """Apply a transformer block to the input x and return the output.
 
         Args:
-            x (torch.Tensor): Input tensor.
+            x (torch.Tensor): Input tensor with shape (seq_len, batch, c).
 
         Returns:
             (torch.Tensor): Output tensor after transformer layer.
@@ -360,6 +362,8 @@ class MLP(nn.Module):
         layers (nn.ModuleList): List of linear layers.
         sigmoid (bool): Whether to apply sigmoid to the output.
         act (nn.Module): Activation function.
+        residual (bool): Whether to add the input to the output.
+        out_norm (nn.Module): Normalization layer applied to the output (nn.Identity if not provided).
     """
 
     def __init__(
@@ -371,7 +375,7 @@ class MLP(nn.Module):
         act=nn.ReLU,
         sigmoid: bool = False,
         residual: bool = False,
-        out_norm: nn.Module = None,
+        out_norm: nn.Module | None = None,
     ):
         """Initialize the MLP with specified input, hidden, output dimensions and number of layers.
 
@@ -453,10 +457,7 @@ class LayerNorm2d(nn.Module):
         Returns:
             (torch.Tensor): Normalized output tensor.
         """
-        u = x.mean(1, keepdim=True)
-        s = (x - u).pow(2).mean(1, keepdim=True)
-        x = (x - u) / torch.sqrt(s + self.eps)
-        return self.weight[:, None, None] * x + self.bias[:, None, None]
+        return F.layer_norm(x.permute(0, 2, 3, 1), x.shape[1:2], self.weight, self.bias, self.eps).permute(0, 3, 1, 2)
 
 
 class MSDeformAttn(nn.Module):
@@ -492,10 +493,6 @@ class MSDeformAttn(nn.Module):
         super().__init__()
         if d_model % n_heads != 0:
             raise ValueError(f"d_model must be divisible by n_heads, but got {d_model} and {n_heads}")
-        _d_per_head = d_model // n_heads
-        # Better to set _d_per_head to a power of 2 which is more efficient in a CUDA implementation
-        assert _d_per_head * n_heads == d_model, "`d_model` must be divisible by `n_heads`"
-
         self.im2col_step = 64
 
         self.d_model = d_model
@@ -627,9 +624,9 @@ class DeformableTransformerDecoderLayer(nn.Module):
             n_heads (int): Number of attention heads.
             d_ffn (int): Dimension of the feedforward network.
             dropout (float): Dropout probability.
-            act (nn.Module): Activation function.
+            act (nn.Module, optional): Activation function. Defaults to nn.ReLU() if None.
             n_levels (int): Number of feature levels.
-            n_points (int): Number of sampling points.
+            n_points (int): Number of sampling points per attention head per feature level.
         """
         super().__init__()
 
@@ -682,10 +679,10 @@ class DeformableTransformerDecoderLayer(nn.Module):
         """Perform the forward pass through the entire decoder layer.
 
         Args:
-            embed (torch.Tensor): Input embeddings.
-            refer_bbox (torch.Tensor): Reference bounding boxes.
-            feats (torch.Tensor): Feature maps.
-            shapes (list): Feature shapes.
+            embed (torch.Tensor): Input embeddings with shape (bs, num_queries, d_model).
+            refer_bbox (torch.Tensor): Normalized reference bounding boxes with shape (bs, num_queries, 4).
+            feats (torch.Tensor): Flattened multi-level feature maps with shape (bs, sum(H_i * W_i), d_model).
+            shapes (list): Feature shapes [(H_0, W_0), ..., (H_{L-1}, W_{L-1})].
             padding_mask (torch.Tensor, optional): Padding mask.
             attn_mask (torch.Tensor, optional): Attention mask.
             query_pos (torch.Tensor, optional): Query position embeddings.
@@ -749,8 +746,8 @@ class DeformableTransformerDecoder(nn.Module):
         refer_bbox: torch.Tensor,  # anchor
         feats: torch.Tensor,  # image features
         shapes: list,  # feature shapes
-        bbox_head: nn.Module,
-        score_head: nn.Module,
+        bbox_head: nn.ModuleList,
+        score_head: nn.ModuleList,
         pos_mlp: nn.Module,
         attn_mask: torch.Tensor | None = None,
         padding_mask: torch.Tensor | None = None,
@@ -758,19 +755,20 @@ class DeformableTransformerDecoder(nn.Module):
         """Perform the forward pass through the entire decoder.
 
         Args:
-            embed (torch.Tensor): Decoder embeddings.
-            refer_bbox (torch.Tensor): Reference bounding boxes.
-            feats (torch.Tensor): Image features.
-            shapes (list): Feature shapes.
-            bbox_head (nn.Module): Bounding box prediction head.
-            score_head (nn.Module): Score prediction head.
-            pos_mlp (nn.Module): Position MLP.
+            embed (torch.Tensor): Decoder embeddings with shape (bs, num_queries, hidden_dim).
+            refer_bbox (torch.Tensor): Reference bounding boxes as unnormalized logits (sigmoid is applied internally).
+            feats (torch.Tensor): Flattened multi-level image features with shape (bs, sum(H_i * W_i), hidden_dim).
+            shapes (list): Feature shapes [(H_0, W_0), ..., (H_{L-1}, W_{L-1})].
+            bbox_head (nn.ModuleList): Per-layer bounding box prediction heads.
+            score_head (nn.ModuleList): Per-layer score prediction heads.
+            pos_mlp (nn.Module): MLP generating query position embeddings from reference boxes.
             attn_mask (torch.Tensor, optional): Attention mask.
             padding_mask (torch.Tensor, optional): Padding mask.
 
         Returns:
-            dec_bboxes (torch.Tensor): Decoded bounding boxes.
-            dec_cls (torch.Tensor): Decoded classification scores.
+            dec_bboxes (torch.Tensor): Decoded normalized bounding boxes with shape (L, bs, num_queries, 4), where L is
+                num_layers in training and 1 (the `eval_idx` layer) in inference.
+            dec_cls (torch.Tensor): Classification logits with shape (L, bs, num_queries, nc).
         """
         output = embed
         dec_bboxes = []

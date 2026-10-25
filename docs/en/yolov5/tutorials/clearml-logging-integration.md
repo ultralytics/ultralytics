@@ -56,13 +56,13 @@ This will enable integration with the YOLOv5 training script. Every training run
 To customize the project and task names, pass `--project` and `--name` to `train.py`. The defaults are `YOLOv5` and `Training`. ClearML uses `/` as a subproject delimiter, so avoid `/` in custom project names.
 
 ```bash
-python train.py --img 640 --batch 16 --epochs 3 --data coco8.yaml --weights yolov5s.pt --cache
+python train.py --img 640 --batch 16 --epochs 3 --data coco128.yaml --weights yolov5s.pt --cache
 ```
 
 Or with custom names:
 
 ```bash
-python train.py --project my_project --name my_training --img 640 --batch 16 --epochs 3 --data coco8.yaml --weights yolov5s.pt --cache
+python train.py --project my_project --name my_training --img 640 --batch 16 --epochs 3 --data coco128.yaml --weights yolov5s.pt --cache
 ```
 
 Each run captures:
@@ -161,7 +161,7 @@ pip install optuna
 python utils/loggers/clearml/hpo.py
 ```
 
-Switch `task.execute_locally()` to `task.execute()` to push the job to a ClearML queue for a remote agent to pick up.
+To run the trials on remote agents instead, replace `optimizer.start_locally()` with `optimizer.start()` and set `execution_queue` in the `HyperParameterOptimizer` call to the queue your agents listen to.
 
 ![ClearML HPO dashboard with YOLOv5 metrics](https://cdn.ul.run/i/49f494e1b64967a77f01b991fcf3c1f1.avif)
 
@@ -199,11 +199,12 @@ You can also flag a running script for remote execution programmatically by addi
 # Loggers
 data_dict = None
 if RANK in {-1, 0}:
-    loggers = Loggers(save_dir, weights, opt, hyp, LOGGER)  # loggers instance
+    loggers = Loggers(save_dir=save_dir, weights=weights, opt=opt, hyp=hyp, logger=LOGGER)
     if loggers.clearml:
         loggers.clearml.task.execute_remotely(queue="my_queue")  # <------ ADD THIS LINE
-        # data_dict is None unless the user selected a ClearML dataset, in which case ClearML fills it in.
-        data_dict = loggers.clearml.data_dict
+    # ...
+    # Process custom dataset artifact link
+    data_dict = loggers.remote_dataset
 # ...
 ```
 
@@ -220,3 +221,21 @@ Watch the getting-started video below:
 ## Learn More
 
 For more information about integrating ClearML with Ultralytics models, check out our [ClearML integration guide](../../integrations/clearml.md) and explore how you can enhance your [MLOps workflow](https://www.ultralytics.com/blog/exploring-yolov8-ml-experiment-tracking-integrations) with other experiment tracking tools.
+
+## FAQ
+
+### Do I need to host a ClearML server?
+
+No. The free hosted service at [app.clear.ml](https://app.clear.ml) works out of the box after `clearml-init`. Self-hosting is optional and is the usual choice when data cannot leave your network.
+
+### How do I turn ClearML logging off?
+
+YOLOv5 activates the integration whenever the `clearml` package is importable, so uninstall it with `pip uninstall clearml` to disable tracking for a run.
+
+### How do I train on a versioned ClearML dataset?
+
+Register the dataset with `clearml-data sync`, then pass its ID as the data argument: `python train.py --data clearml://YOUR_DATASET_ID --weights yolov5s.pt`. The ID is recorded on the task so every experiment knows exactly which data it used.
+
+### Can I run hyperparameter optimization on remote machines?
+
+Yes. Start a `clearml-agent daemon` on each machine, then either enqueue cloned experiments from the UI or edit `utils/loggers/clearml/hpo.py` to call `optimizer.start()` with `execution_queue` set so the optimizer pushes trials to the queue.

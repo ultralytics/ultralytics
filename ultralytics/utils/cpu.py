@@ -23,6 +23,7 @@ class CPUInfo:
         __str__: Return the normalized CPU name for string contexts.
 
     Examples:
+        >>> from ultralytics.utils.cpu import CPUInfo
         >>> name = CPUInfo.name()
         >>> text = str(CPUInfo())
     """

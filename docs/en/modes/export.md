@@ -12,6 +12,8 @@ keywords: YOLO26, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine
 
 The ultimate goal of training a model is to deploy it for real-world applications. Export mode in Ultralytics YOLO26 offers a versatile range of options for exporting your trained model to different formats, making it deployable across various platforms and devices. This comprehensive guide aims to walk you through the nuances of model exporting, showcasing how to achieve maximum compatibility and performance.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned export support.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/KGHYU-MKYeE"
@@ -29,20 +31,6 @@ The ultimate goal of training a model is to deploy it for real-world application
 - **Performance:** Gain up to 5x GPU speedup with TensorRT and 3x CPU speedup with ONNX or [OpenVINO](../integrations/openvino.md).
 - **Compatibility:** Make your model universally deployable across numerous hardware and software environments.
 - **Ease of Use:** Simple CLI and Python API for quick and straightforward model exporting.
-
-### Key Features of Export Mode
-
-Here are some of the standout functionalities:
-
-- **One-Click Export:** Simple commands for exporting to different formats.
-- **Batch Export:** Export batched-inference capable models.
-- **Optimized Inference:** Exported models are optimized for quicker inference times.
-- **Tutorial Videos:** In-depth guides and tutorials for a smooth exporting experience.
-
-!!! tip
-
-    * Export to [ONNX](../integrations/onnx.md) or [OpenVINO](../integrations/openvino.md) for up to 3x CPU speedup.
-    * Export to [TensorRT](../integrations/tensorrt.md) for up to 5x GPU speedup.
 
 ## Usage Examples
 
@@ -80,9 +68,17 @@ Adjusting these parameters allows for customization of the export process to fit
 
 ## Export Formats
 
-Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes. Models can also be exported directly from the browser on [Ultralytics Platform](../platform/train/models.md#export-model) without any local setup.
+Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, e.g., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, e.g., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes. Models can also be exported directly from the browser on [Ultralytics Platform](../platform/train/models.md#export-model) without any local setup.
 
 {% include "macros/export-table.md" %}
+
+!!! note "Automatic installation of export dependencies"
+
+    Most formats need packages that are not installed with `ultralytics`. When one is missing, export installs it at runtime with `uv` or `pip`, and on Linux with `apt` for system packages such as Java for IMX. The Edge TPU compiler is downloaded without `apt` or `sudo`. To keep the environment fixed, for example in a container image, CI job, or production service, set `YOLO_AUTOINSTALL=False`. Export then still checks for the missing packages and reports them, but leaves the environment unchanged and fails until they are installed.
+
+    ```bash
+    export YOLO_AUTOINSTALL=False
+    ```
 
 ## Quantization Options
 
@@ -107,23 +103,78 @@ Not every export format supports every precision. Explicit `quantize` requests e
 | ONNX          | ✅                | ✅                | ✅         | ❌                | INT8 uses ONNX Runtime static quantization and calibration data.                                                                                                                                                                                        |
 | OpenVINO      | ✅                | ✅                | ✅         | ❌                | INT8 uses NNCF post-training quantization.                                                                                                                                                                                                              |
 | TensorRT      | ✅                | ✅                | ✅         | ❌                | INT8 needs representative calibration data.                                                                                                                                                                                                             |
-| CoreML        | ✅¹               | ✅                | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations. ¹Unset NMS ML Programs default to FP16.                                                                                                                              |
+| CoreML        | ✅¹               | ✅                | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations. ¹Unset NMS ML Programs default to FP16, and segment/pose `nms=True` exports are always FP16.                                                                         |
+| Core AI       | ✅                | ✅                | ❌         | ❌                | FP32 by default or an FP16 `.aimodel` asset with `quantize=16`; no INT8 path.                                                                                                                                                                           |
 | TF SavedModel | ✅                | ❌                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                                                                                                                                                                |
 | TF GraphDef   | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                                                                                                                                                                    |
 | Edge TPU      | ❌                | ❌                | ✅ auto    | ❌                | Edge TPU requires INT8; it is auto-enabled when unset.                                                                                                                                                                                                  |
+| LiteRT        | ✅                | ❌                | ✅         | ✅                | Static INT8 (`8`) and `"w8a16"` (int8 weights + **int16** activations) use calibration data; also supports `"w8a32"` dynamic INT8 (no calibration). `quantize=16` is not a separate export; an FP32 model runs in FP16 at runtime via the GPU delegate. |
 | PaddlePaddle  | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                                                                                                                                                                    |
 | MNN           | ✅                | ✅                | ✅         | ❌                | INT8 is weight quantization through MNN conversion.                                                                                                                                                                                                     |
 | NCNN          | ✅                | ✅                | ❌         | ❌                | Mobile/embedded runtime format.                                                                                                                                                                                                                         |
-| IMX500        | ❌                | ❌                | ✅ auto    | ✅                | IMX500 requires quantization; INT8 is auto-enabled when unset.                                                                                                                                                                                          |
+| IMX500        | ❌                | ❌                | ✅ auto    | ❌                | IMX500 requires quantization; INT8 is auto-enabled when unset.                                                                                                                                                                                          |
 | RKNN          | ❌                | ✅ chip-dependent | ✅         | ❌                | RK3588/RK3576/RK3566/RK3568/RK3562/RK2118/RV1126B support FP16 or INT8; RV1103/RV1106 variants are INT8-only.                                                                                                                                           |
 | ExecuTorch    | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                                                                                                                                                                    |
 | Axelera       | ❌                | ❌                | ✅ auto    | ❌                | Axelera export requires INT8; it is auto-enabled when unset.                                                                                                                                                                                            |
 | DEEPX         | ❌                | ❌                | ✅ auto    | ❌                | DEEPX export requires INT8; it is auto-enabled when unset.                                                                                                                                                                                              |
 | Qualcomm QNN  | ❌                | ❌                | ❌         | ✅ auto           | QNN HTP export is fixed to INT8 weights with 16-bit activations.                                                                                                                                                                                        |
-| LiteRT        | ✅                | ❌                | ✅         | ✅                | Static INT8 (`8`) and `"w8a16"` (int8 weights + **int16** activations) use calibration data; also supports `"w8a32"` dynamic INT8 (no calibration). `quantize=16` is not a separate export; an FP32 model runs in FP16 at runtime via the GPU delegate. |
+| Hailo         | ❌                | ❌                | ✅ auto    | ❌                | Hailo export requires INT8; it is auto-enabled when unset.                                                                                                                                                                                              |
 | Huawei Ascend | ❌                | ✅ auto           | ❌         | ❌                | Ascend AI Core convolutions accept only FP16/INT8 inputs, so ATC compiles FP16; it is auto-enabled when unset.                                                                                                                                          |
+| AMD Xilinx    | ❌                | ❌                | ✅ auto    | ❌                | AMD Xilinx export requires Vitis AI INT8 (`VINT8`); it is auto-enabled when unset.                                                                                                                                                                      |
 
 For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior. The LiteRT `"w8a32"` (dynamic INT8) scheme needs no calibration data.
+
+### Quantization-Aware Training
+
+The INT8 exports above are post-training quantization (PTQ): ranges are observed in a single calibration pass over `data`. Quantization-aware training (QAT) instead learns weights that tolerate INT8 by fine-tuning with fake-quantization in the loop, which recovers accuracy that calibration alone loses. Pass `quantize=8` to `train` to fine-tune a pretrained checkpoint, then export it as usual:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+        model.train(
+            data="coco.yaml",
+            quantize=8,
+            epochs=5,
+            batch=64,
+            optimizer="AdamW",
+            lr0=0.00001,
+            lrf=0.1,
+            warmup_epochs=0.5,
+            cos_lr=True,
+            mosaic=0.0,
+        )
+        model.export(format="engine", quantize=8)  # ranges travel with the checkpoint, no calibration data needed
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolo26n.pt data=coco.yaml quantize=8 epochs=5 batch=64 optimizer=AdamW lr0=0.00001 lrf=0.1 warmup_epochs=0.5 cos_lr=True mosaic=0
+        yolo export model=runs/detect/train/weights/best.pt format=engine quantize=8
+        ```
+
+Use a small learning rate when fine-tuning a pretrained checkpoint. QAT can initially reduce accuracy, and its benefit over post-training quantization depends on the model, dataset, and training budget. Validate the exported model against both the original checkpoint and a post-training quantized export; fake-quantization scores during training do not establish deployment accuracy.
+
+How much QAT is worth depends on how well the export backend's own calibration handles the model. The values below are mAP50-95 on COCO val2017, measured with TensorRT 10.16 engines at `imgsz=640` and batch 1, where each QAT checkpoint was trained with `epochs=20 patience=3`:
+
+| Model     | FP32 engine | PTQ INT8 engine | QAT INT8 engine |
+| --------- | ----------- | --------------- | --------------- |
+| `yolo26n` | 0.4032      | 0.3934          | 0.3935          |
+| `yolo26s` | 0.4794      | 0.4412          | 0.4711          |
+| `yolo26m` | 0.5269      | 0.4696          | 0.5137          |
+| `yolo26l` | 0.5440      | 0.4889          | 0.5307          |
+| `yolo26x` | 0.5701      | 0.5138          | 0.5527          |
+
+QAT costs 0.008 to 0.017 mAP50-95 against FP32 across the range, while post-training quantization costs 0.010 on `yolo26n` and 0.038 to 0.057 on the larger models. So QAT buys almost nothing on the smallest model, where calibration already works well, and 0.030 to 0.044 on the rest. Expect different figures on another dataset, export format, or TensorRT version, and measure your own.
+
+QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
+
+The head's final output convolutions are deliberately left in float to limit INT8 accuracy loss; TensorRT enables FP16 mixed precision for its unquantized layers. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 
@@ -190,7 +241,7 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         yolo export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml # export ONNX model with INT8 quantization
         ```
 
-INT8 quantization can be applied to formats such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter. See [Quantization Options](#quantization-options) for accepted `quantize` values and supported formats.
+INT8 quantization can be applied to formats such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [Rockchip RKNN](../integrations/rockchip-rknn.md), and [AMD Xilinx](../integrations/xilinx.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter. See [Quantization Options](#quantization-options) for accepted `quantize` values and supported formats.
 
 ### Why is dynamic input size important when exporting models?
 
@@ -217,14 +268,20 @@ To enable this feature, use the `dynamic=True` flag during export:
 
 Dynamic input sizing is particularly useful for applications where input dimensions may vary, such as video processing or when handling images from different sources.
 
+### Why do exported model predictions differ from PyTorch on non-square images?
+
+PyTorch models and dynamic exports use [minimum-rectangle padding](../modes/predict.md#fixed-shape-vs-minimum-rectangle-rect) by default, while static exports pad to the full `imgsz`, so detections near the confidence threshold can differ. Use `rect=False` for native inference to match a static export, or export with `dynamic=True` where supported.
+
 ### What are the key export arguments to consider for optimizing model performance?
 
 Understanding and configuring export arguments is crucial for optimizing model performance:
 
-- **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
+- **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `saved_model`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
 - **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or the mixed weight/activation schemes `"w8a16"` and `"w8a32"` (LiteRT dynamic INT8) on supported formats. See [Quantization Options](#quantization-options).
-- **`optimize:`** Enables higher compiler optimization for DEEPX exports.
+- **`dynamic:`** Accepts variable input sizes on formats that support dynamic shapes, such as ONNX, OpenVINO, and TensorRT.
+- **`nms:`** Selects raw outputs for external NMS (`None`; YOLO26 keeps its NMS-free head on Axelera), embedded NMS (`True`), or the NMS-free head (`False`).
+- **`device:`** Device used to trace the model during export, such as `cpu` or `0` for the first CUDA GPU; FP16 TorchScript requires a GPU.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.
 
@@ -234,7 +291,7 @@ When you export a YOLO model to formats like ONNX or TensorRT, the output tensor
 
 For **YOLO26 detection models** (e.g., `yolo26n.pt`) exported with `nms=False`, supported formats produce NMS-free output shaped like `(batch_size, max_detections, 6)` with `[x1, y1, x2, y2, confidence, class_id]` values. With the default `max_det=300`, this is commonly `(batch_size, 300, 6)`. Some constrained formats automatically fall back to the traditional output layout when end-to-end operators are unsupported.
 
-By default (`nms=None`), detection models including YOLO26 export raw one-to-many predictions: the output is typically a single tensor shaped like `(batch_size, 4 + num_classes, num_predictions)` where the channels represent box coordinates plus per-class scores, and `num_predictions` depends on the export input resolution (and can be dynamic). The [End-to-End Detection guide](../guides/end2end-detection.md) covers which formats keep the end-to-end output.
+By default (`nms=None`), detection models including YOLO26 export raw one-to-many predictions (YOLO26 keeps its NMS-free head on [Axelera](../integrations/axelera.md#supported-tasks)). The output is typically a single tensor shaped like `(batch_size, 4 + num_classes, num_predictions)` where the channels represent box coordinates plus per-class scores, and `num_predictions` depends on the export input resolution (and can be dynamic). The [End-to-End Detection guide](../guides/end2end-detection.md) covers which formats keep the end-to-end output.
 
 For **segmentation models** (e.g., `yolo26n-seg.pt`), you'll typically get two outputs: the first tensor shaped like `(batch_size, 4 + num_classes + mask_dim, num_predictions)` (boxes, class scores, and mask coefficients), and the second tensor shaped like `(batch_size, mask_dim, proto_h, proto_w)` containing mask prototypes used with the coefficients to generate instance masks. Sizes depend on the export input resolution (and can be dynamic).
 
@@ -261,6 +318,4 @@ When exporting with `quantize=16` (FP16) or `quantize=8` (INT8), most tensors ar
 
 The `output0` tensor contains class indices, which are internally represented as floating-point values. FP16 cannot reliably represent integer values above 2048 due to its limited mantissa precision. To avoid potential precision loss or incorrect class IDs, `output0` is intentionally kept in FP32.
 
-This behavior is expected and also applies to lower-precision or quantized exports where class index fidelity must be preserved.
-
-If full FP16 outputs are required, export with `nms=None` and perform post-processing externally.
+If full FP16 outputs are required, export with `nms=None` on a GPU and perform post-processing externally. FP16 ONNX exports on CPU keep FP32 inputs and outputs regardless, converting only the internal graph.

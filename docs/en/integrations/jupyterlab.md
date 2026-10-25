@@ -144,12 +144,9 @@ To train a YOLO26 model using JupyterLab:
 5. Visualize training results using JupyterLab's built-in plotting capabilities:
 
     ```python
-    import matplotlib
-
     from ultralytics.utils.plotting import plot_results
 
-    matplotlib.use("inline")  # or 'notebook' for interactive
-    plot_results("runs/detect/train/results.csv")
+    plot_results("runs/detect/train/results.csv")  # saves results.png next to results.csv
     ```
 
 JupyterLab's interactive environment allows you to easily modify parameters, visualize results, and iterate on your model training process.
@@ -171,20 +168,16 @@ These features allow for a seamless development experience when working with YOL
 
 To optimize YOLO26 model performance in JupyterLab:
 
-1. Use the autobatch feature to determine the optimal batch size:
+1. Use AutoBatch to pick the largest batch size that fits in GPU memory:
 
     ```python
-    from ultralytics.utils.autobatch import autobatch
-
-    optimal_batch_size = autobatch(model)
+    results = model.train(data="path/to/data.yaml", batch=-1)
     ```
 
 2. Implement [hyperparameter tuning](../guides/hyperparameter-tuning.md) using libraries like Ray Tune:
 
     ```python
-    from ultralytics.utils.tuner import run_ray_tune
-
-    best_results = run_ray_tune(model, data="path/to/data.yaml")
+    result_grid = model.tune(data="path/to/data.yaml", use_ray=True)
     ```
 
 3. Visualize and analyze model metrics using JupyterLab's plotting capabilities:
@@ -192,7 +185,7 @@ To optimize YOLO26 model performance in JupyterLab:
     ```python
     from ultralytics.utils.plotting import plot_results
 
-    plot_results("runs/detect/train/results.csv")
+    plot_results("runs/detect/train/results.csv")  # saves results.png next to results.csv
     ```
 
 4. Experiment with different model architectures and [export formats](../modes/export.md) to find the best balance of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for your specific use case.

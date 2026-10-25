@@ -9,12 +9,11 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, env_bool, ops
+from ultralytics.utils import LOGGER, RANK, TESTS_RUNNING, env_bool, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["comet"] is True  # verify integration is enabled
     import comet_ml
 
     assert hasattr(comet_ml, "__version__")  # verify package is not directory
@@ -160,7 +159,7 @@ def _scale_bounding_box_to_original_image_shape(
         ratio_pad (tuple): Ratio and padding information for scaling.
 
     Returns:
-        (list[float]): Scaled bounding box coordinates in xywh format with top-left corner adjustment.
+        (list[float]): Scaled bounding box as [x_min, y_min, width, height] in original image pixels.
     """
     resized_image_height, resized_image_width = resized_image_shape
 
@@ -170,7 +169,7 @@ def _scale_bounding_box_to_original_image_shape(
     box = ops.scale_boxes(resized_image_shape, box, original_image_shape, ratio_pad)
     # Convert bounding box format from xyxy to xywh for Comet logging
     box = ops.xyxy2xywh(box)
-    # Adjust xy center to correspond top-left corner
+    # Adjust xy center to the top-left corner
     box[:2] -= box[2:] / 2
     box = box.tolist()
 
@@ -234,7 +233,8 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
 
     Args:
         image_path (Path): Path to the image file.
-        metadata (dict): Prediction metadata containing bounding boxes and class information.
+        metadata (dict): Mapping from image ID to a list of COCO-style prediction dicts with 'bbox', 'score',
+            'category_id', and optional 'segmentation' keys.
         class_label_map (dict, optional): Mapping from class indices to class names.
         class_map (dict, optional): Additional class mapping for label conversion.
 
@@ -281,11 +281,11 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
     return {"name": "prediction", "data": data}
 
 
-def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> list[list[Any]] | None:
+def _extract_segmentation_annotation(segmentation_raw: dict, decode: Callable) -> list[list[Any]] | None:
     """Extract segmentation annotation from compressed segmentations as list of polygons.
 
     Args:
-        segmentation_raw (str): Raw segmentation data in compressed format.
+        segmentation_raw (dict): Raw segmentation data in compressed COCO RLE format with 'size' and 'counts' keys.
         decode (Callable): Function to decode the compressed segmentation data.
 
     Returns:
@@ -313,7 +313,8 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
         class_map (dict): Additional class mapping for label conversion.
 
     Returns:
-        (list | None): List of annotation dictionaries or None if no annotations exist.
+        (list[list[dict]] | None): A single-element list wrapping the image's annotation dictionaries, or None if no
+            annotations exist.
     """
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(
         img_idx, image_path, batch, class_label_map
@@ -340,10 +341,11 @@ def _create_prediction_metadata_map(model_predictions) -> dict:
 
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
     """Log the confusion matrix to Comet experiment."""
-    conf_mat = trainer.validator.confusion_matrix.matrix
-    names = [*list(trainer.data["names"].values()), "background"]
+    if (cm := trainer.validator.confusion_matrix) is None:  # e.g. depth has no confusion matrix
+        return
+    names = [*cm.names.values(), "background"][: len(cm.matrix)]
     experiment.log_confusion_matrix(
-        matrix=conf_mat, labels=names, max_categories=len(names), epoch=curr_epoch, step=curr_step
+        matrix=cm.matrix.T, labels=names, max_categories=len(names), epoch=curr_epoch, step=curr_step
     )
 
 
@@ -355,7 +357,7 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
-        image_paths (list[Path]): List of paths to images that will be logged.
+        image_paths (Iterable[Path]): Paths to images that will be logged, e.g. a list or a glob generator.
         curr_step (int | None): Current training step/iteration for tracking in the experiment timeline.
         annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each annotation
             contains visualization data like bounding boxes, labels, and confidence scores.
@@ -467,7 +469,7 @@ def _log_plots(experiment, trainer) -> None:
         ]
 
     if plot_filenames is not None:
-        _log_images(experiment, plot_filenames, None)
+        _log_images(experiment, [f for f in plot_filenames if f.exists()], None)
 
     confusion_matrix_filenames = [trainer.save_dir / f"{plots}.png" for plots in CONFUSION_MATRIX_PLOT_NAMES]
     _log_images(experiment, confusion_matrix_filenames, None)
@@ -490,10 +492,7 @@ def _log_image_batches(experiment, trainer, curr_step: int) -> None:
 
 
 def _log_asset(experiment, asset_path) -> None:
-    """Logs a specific asset file to the given experiment.
-
-    This function facilitates logging an asset, such as a file, to the provided
-    experiment. It enables integration with experiment tracking platforms.
+    """Log a specific asset file to the given experiment.
 
     Args:
         experiment (comet_ml.CometExperiment): The experiment instance to which the asset will be logged.
@@ -503,9 +502,7 @@ def _log_asset(experiment, asset_path) -> None:
 
 
 def _log_table(experiment, table_path) -> None:
-    """Logs a table to the provided experiment.
-
-    This function is used to log a table file to the given experiment. The table is identified by its file path.
+    """Log a table file to the provided experiment.
 
     Args:
         experiment (comet_ml.CometExperiment): The experiment object where the table file will be logged.
@@ -516,11 +513,13 @@ def _log_table(experiment, table_path) -> None:
 
 def on_pretrain_routine_start(trainer) -> None:
     """Create or resume a CometML experiment at the start of a YOLO pre-training routine."""
+    global _comet_image_prediction_count
+    _comet_image_prediction_count = 0
     _resume_or_create_experiment(trainer.args)
 
 
 def on_train_epoch_end(trainer) -> None:
-    """Log metrics and save batch images at the end of training epochs."""
+    """Log training loss metrics at the end of each training epoch."""
     experiment = comet_ml.get_running_experiment()
     if not experiment:
         return
@@ -533,11 +532,11 @@ def on_train_epoch_end(trainer) -> None:
 
 
 def on_fit_epoch_end(trainer) -> None:
-    """Log model assets at the end of each epoch during training.
+    """Log metrics and, on save intervals, model assets at the end of each fit epoch.
 
-    This function is called at the end of each training epoch to log metrics, learning rates, and model information to a
-    Comet ML experiment. It also logs model assets, confusion matrices, and image predictions based on configuration
-    settings.
+    This function is called at the end of each fit epoch (train + val) to log metrics, learning rates, and model
+    information to a Comet ML experiment. It also logs model assets, confusion matrices, and image predictions based on
+    configuration settings.
 
     The function retrieves the current Comet ML experiment and logs various training metrics. If it's the first epoch,
     it also logs model information. On specified save intervals, it logs the model, confusion matrix (if enabled), and
@@ -577,7 +576,7 @@ def on_fit_epoch_end(trainer) -> None:
 
 
 def on_train_end(trainer) -> None:
-    """Perform operations at the end of training."""
+    """Log the final model, plots, confusion matrix, image predictions, results table, and args."""
     experiment = comet_ml.get_running_experiment()
     if not experiment:
         return
@@ -604,11 +603,6 @@ def on_train_end(trainer) -> None:
     if args_path.exists():
         _log_asset(experiment, args_path)
 
-    experiment.end()
-
-    global _comet_image_prediction_count
-    _comet_image_prediction_count = 0
-
 
 callbacks = (
     {
@@ -616,6 +610,7 @@ callbacks = (
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
+        "teardown": lambda trainer: (experiment := comet_ml.get_running_experiment()) and experiment.end(),
     }
     if comet_ml
     else {}

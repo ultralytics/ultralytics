@@ -34,7 +34,7 @@ Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 |                                                       Logistics                                                        |                                                 Aquaculture                                                  |
 | :--------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------: |
-| ![Conveyor Belt Packets Counting Using Ultralytics YOLO26](https://cdn.ul.run/i/f63ae2faf83bb9dff2ef777c213b85f5.avif) | ![Fish Counting in Sea using Ultralytics YOLO26](https://cdn.ul.run/i/01c5af886b2295753d88a201fbda959a.avif) |
+| ![Conveyor Belt Packets Counting Using Ultralytics YOLO26](https://cdn.ul.run/i/2a4c1a09409b2d04c7885ed5fd527d67.avif) | ![Fish Counting in Sea using Ultralytics YOLO26](https://cdn.ul.run/i/01c5af886b2295753d88a201fbda959a.avif) |
 |                                Conveyor Belt Packets Counting Using Ultralytics YOLO26                                 |                                Fish Counting in Sea using Ultralytics YOLO26                                 |
 
 ## Count Objects with YOLO26
@@ -113,8 +113,7 @@ Here's a table with the `ObjectCounter` arguments:
 
 The `ObjectCounter` solution allows the use of several `track` arguments:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Additionally, the visualization arguments listed below are supported:
 

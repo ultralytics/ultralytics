@@ -28,12 +28,15 @@ class Analytics(BaseSolution):
         max_points (int): Maximum number of data points to display on the chart.
         fontsize (int): Font size for text display.
         color_cycle (cycle): Cyclic iterator for chart colors.
-        total_counts (int): Total count of detected objects (used for line charts).
-        clswise_count (dict[str, int]): Dictionary for class-wise object counts.
+        total_counts (int): Detections accumulated since the last line chart update (used for line charts).
+        clswise_count (dict[str, int]): Dictionary for class-wise object counts in the current frame.
+        update_every (int): Chart refresh interval in frames.
+        last_plot_im (np.ndarray | None): Cached image of the most recently rendered chart.
+        line (Line2D): Matplotlib line object for line charts.
         fig (Figure): Matplotlib figure object for the chart.
         ax (Axes): Matplotlib axes object for the chart.
         canvas (FigureCanvasAgg): Canvas for rendering the chart.
-        lines (dict): Dictionary to store line objects for area charts.
+        lines (dict): Dictionary of line objects, initialized for line and area charts.
         color_mapping (dict[str, str]): Dictionary mapping class labels to colors for consistent visualization.
 
     Methods:
@@ -71,7 +74,7 @@ class Analytics(BaseSolution):
 
         self.total_counts = 0  # Stores total counts for line charts.
         self.clswise_count = {}  # dictionary for class-wise counts
-        self.update_every = kwargs.get("update_every", 30)  # Only update graph every 30 frames by default
+        self.update_every = 30  # Only update graph every 30 frames
         self.last_plot_im = None  # Cache of the last rendered chart
 
         # Ensure line and area chart
@@ -95,13 +98,16 @@ class Analytics(BaseSolution):
     def process(self, im0: np.ndarray, frame_number: int) -> SolutionResults:
         """Process image data and run object tracking to update analytics charts.
 
+        The chart is re-rendered every `update_every` frames (and on the first call); otherwise the cached chart image
+        is returned.
+
         Args:
             im0 (np.ndarray): Input image for processing.
             frame_number (int): Video frame number for plotting the data.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (int, total number of tracked objects)
-                and 'classwise_count' (dict, per-class object count).
+            (SolutionResults): Contains the chart image `plot_im`, 'total_tracks' (int, total number of tracked objects)
+                and 'classwise_count' (dict, per-class object count; empty for line charts).
 
         Raises:
             ValueError: If an unsupported chart type is specified.
@@ -113,11 +119,10 @@ class Analytics(BaseSolution):
         """
         self.extract_tracks(im0)  # Extract tracks
         if self.type == "line":
-            self.total_counts += len(self.boxes)
+            self.total_counts = len(self.boxes)  # per-frame count, sampled every update_every frames like area/bar/pie
             update_required = frame_number % self.update_every == 0 or self.last_plot_im is None
             if update_required:
                 self.last_plot_im = self.update_graph(frame_number=frame_number)
-                self.total_counts = 0
             plot_im = self.last_plot_im
         elif self.type in {"pie", "bar", "area"}:
             from collections import Counter
@@ -147,7 +152,7 @@ class Analytics(BaseSolution):
             plot (str): Type of the plot. Options are 'line', 'bar', 'pie', or 'area'.
 
         Returns:
-            (np.ndarray): Updated image containing the graph.
+            (np.ndarray): Updated BGR image containing the graph.
 
         Examples:
             >>> analytics = Analytics(analytics_type="bar")
@@ -175,21 +180,15 @@ class Analytics(BaseSolution):
                 color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
                 # Multiple lines or area update
                 x_data = self.ax.lines[0].get_xdata() if self.ax.lines else np.array([])
-                y_data_dict = {key: np.array([]) for key in count_dict}
-                if self.ax.lines:
-                    for line, key in zip(self.ax.lines, count_dict.keys()):
-                        y_data_dict[key] = line.get_ydata()
+                # Match histories to classes by line label, since count_dict order follows detection order
+                y_data_dict = {
+                    line.get_label().rsplit(" Data Points", 1)[0]: line.get_ydata() for line in self.ax.lines
+                }
 
-                x_data = np.append(x_data, float(frame_number))
-                max_length = len(x_data)
-                for key in count_dict:
-                    y_data_dict[key] = np.append(y_data_dict[key], float(count_dict[key]))
-                    if len(y_data_dict[key]) < max_length:
-                        y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])))
-                if len(x_data) > self.max_points:
-                    x_data = x_data[1:]
-                    for key in count_dict:
-                        y_data_dict[key] = y_data_dict[key][1:]
+                for key in dict.fromkeys([*y_data_dict, *count_dict]):  # absent and new classes count 0
+                    y_data = y_data_dict.get(key, np.zeros(len(x_data)))
+                    y_data_dict[key] = np.append(y_data, float(count_dict.get(key, 0)))[-self.max_points :]
+                x_data = np.append(x_data, float(frame_number))[-self.max_points :]
 
                 self.ax.clear()
                 for key, y_data in y_data_dict.items():
@@ -224,20 +223,21 @@ class Analytics(BaseSolution):
                 for bar, label in zip(bars, labels):
                     bar.set_label(label)  # Assign label to each bar
             elif plot == "pie":
-                total = sum(counts)
-                percentages = [size / total * 100 for size in counts]
                 self.ax.clear()
+                if total := sum(counts):  # matplotlib cannot draw a pie without detections
+                    percentages = [size / total * 100 for size in counts]
+                    start_angle = 90
+                    # Create pie chart and create legend labels with percentages
+                    wedges, _ = self.ax.pie(
+                        counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None
+                    )
+                    legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]
 
-                start_angle = 90
-                # Create pie chart and create legend labels with percentages
-                wedges, _ = self.ax.pie(
-                    counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None
-                )
-                legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]
-
-                # Assign the legend using the wedges and manually created labels
-                self.ax.legend(wedges, legend_labels, title="Classes", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-                self.fig.subplots_adjust(left=0.1, right=0.75)  # Adjust layout to fit the legend
+                    # Assign the legend using the wedges and manually created labels
+                    self.ax.legend(
+                        wedges, legend_labels, title="Classes", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1)
+                    )
+                    self.fig.subplots_adjust(left=0.1, right=0.75)  # Adjust layout to fit the legend
 
         # Common plot settings
         self.ax.set_facecolor("#f0f0f0")  # Set to light gray or any other color you like

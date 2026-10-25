@@ -12,6 +12,8 @@ keywords: Ultralytics, YOLO26, model training, deep learning, object detection, 
 
 Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO26's robust set of features. If you haven't installed Ultralytics yet, start with the [Quickstart guide](../quickstart.md).
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for planned training examples.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs"
@@ -134,18 +136,13 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
 
-AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the
-[AMD integration guide](../integrations/amd.md) for installation and the current MIGraphX, DirectML, and Ryzen AI NPU
-support status.
+AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the [AMD integration guide](../integrations/amd.md) for ROCm installation, multi-GPU training, AMP notes, and [MIGraphX inference](../integrations/amd.md#export-and-inference-with-migraphx) of exported models.
 
 Intel GPU training uses `device=xpu:0`, or multiple XPU IDs with a PyTorch build that provides XCCL.
 
 ### Huawei Ascend NPU Training
 
-Ultralytics supports training and validation on Huawei Ascend NPUs through
-[`torch_npu`](https://github.com/Ascend/pytorch). Install mutually compatible CANN, PyTorch, and `torch_npu`
-versions by following the [Ascend Extension for PyTorch installation guide](https://github.com/Ascend/pytorch#installation),
-then source the CANN environment before starting Ultralytics:
+Ultralytics supports training and validation on Huawei Ascend NPUs through [`torch_npu`](https://github.com/Ascend/pytorch). Install mutually compatible CANN, PyTorch, and `torch_npu` versions by following the [Ascend Extension for PyTorch installation guide](https://github.com/Ascend/pytorch#installation), then source the CANN environment before starting Ultralytics:
 
 ```bash
 source /usr/local/Ascend/ascend-toolkit/set_env.sh
@@ -177,9 +174,7 @@ source /usr/local/Ascend/ascend-toolkit/set_env.sh
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=npu:0,1
         ```
 
-The standard training features, including AMP, validation, checkpointing, and resume, use the active NPU. AutoBatch is
-available for single-NPU training, while multiple NPU IDs launch distributed training through HCCL. See the
-[Huawei Ascend integration guide](../integrations/ascend.md) for model export and deployment after training.
+The standard training features, including AMP, validation, checkpointing, and resume, use the active NPU. AutoBatch is available for single-NPU training, while multiple NPU IDs launch distributed training through HCCL. See the [Huawei Ascend integration guide](../integrations/ascend.md) for model export and deployment after training.
 
 ### Idle GPU Training
 
@@ -218,7 +213,6 @@ The auto-selection algorithm prioritizes GPUs with:
 
 1. Lower current utilization percentages
 2. Higher available memory (free VRAM)
-3. Lower temperature and power consumption
 
 This feature is especially valuable in shared computing environments or when running multiple training jobs across different models. It automatically adapts to changing system conditions, ensuring optimal resource allocation without manual intervention.
 
@@ -255,7 +249,7 @@ While leveraging the computational power of the Apple silicon chips, this enable
 
 Resuming training from a previously saved state is a crucial feature when working with deep learning models. This can come in handy in various scenarios, like when the training process has been unexpectedly interrupted, or when you wish to continue training a model with new data or for more epochs.
 
-When training is resumed, Ultralytics YOLO loads the weights from the last saved model and also restores the optimizer state, [learning rate](https://www.ultralytics.com/glossary/learning-rate) scheduler, and the epoch number. This allows you to continue the training process seamlessly from where it was left off.
+When training is resumed, Ultralytics YOLO loads the weights from the last saved model and also restores the optimizer state, [learning rate](https://www.ultralytics.com/glossary/learning-rate) scheduler, epoch number, and dataset. This allows you to continue the training process seamlessly from where it was left off. Pass an explicit `data=` alongside `resume` to continue on a different dataset instead of the checkpoint's.
 
 You can easily resume training in Ultralytics YOLO by setting the `resume` argument to `True` when calling the `train` method, and specifying the path to the `.pt` file containing the partially trained model weights.
 
@@ -282,7 +276,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         yolo train resume model=path/to/last.pt
         ```
 
-By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session.
+By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session. A run that streams to [Ultralytics Platform](../platform/train/cloud-training.md#resume-remote-training) continues the same Platform model when resumed.
 
 Remember that checkpoints are saved at the end of every epoch by default, or at fixed intervals using the `save_period` argument, so you must complete at least 1 epoch to resume a training run.
 
@@ -298,7 +292,7 @@ It is **recommended for longer YOLO26 training runs and larger datasets**, where
 
 Only 2D linear weights and 4D convolutional filters (reshaped to 2D) receive the Muon style update together with SGD, while all other parameters, such as batch normalization weights and bias terms, remain on standard SGD.
 
-When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**.
+When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**. In `auto` mode, the trainer also selects the learning rate, so a user-provided `lr0` is ignored. To control these settings manually, select an optimizer explicitly, for example `optimizer=AdamW lr0=0.001`.
 
 Example usage:
 
@@ -334,9 +328,7 @@ These settings can be adjusted to meet the specific requirements of the dataset 
 
 ## Logging
 
-In training a YOLO26 model, you might find it valuable to keep track of the model's performance over time. This is where logging comes into play. Ultralytics YOLO provides support for three types of loggers - [Comet](../integrations/comet.md), [ClearML](../integrations/clearml.md), and [TensorBoard](../integrations/tensorboard.md).
-
-To use a logger, select it from the dropdown menu in the code snippet above and run it. The chosen logger will be installed and initialized.
+Training metrics, plots, and checkpoints are always written to the run directory, and Ultralytics also streams them to any experiment tracker you have installed and enabled: [Comet](../integrations/comet.md), [ClearML](../integrations/clearml.md), [TensorBoard](../integrations/tensorboard.md), [MLflow](../integrations/mlflow.md), [Weights & Biases](../integrations/weights-biases.md), and [DVCLive](../integrations/dvc.md). Each logger is toggled through the [Ultralytics settings](../usage/settings.md), for example `yolo settings tensorboard=True`. The three most common setups are shown below.
 
 ### Comet
 
@@ -352,7 +344,7 @@ To use Comet:
         # pip install comet_ml
         import comet_ml
 
-        comet_ml.init()
+        comet_ml.login()
         ```
 
 Remember to sign in to your Comet account on their website and get your API key. You will need to add this to your environment variables or your script to log your experiments.
@@ -387,7 +379,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
     === "CLI"
 
         ```bash
-        load_ext tensorboard
+        %load_ext tensorboard
         tensorboard --logdir ultralytics/runs # replace with 'runs' directory
         ```
 
@@ -488,7 +480,7 @@ The `cls_pw` argument controls class weighting power based on inverse class freq
 - `cls_pw=1.0`: Applies full inverse frequency weighting
 - Values between `0.0` and `1.0`: Provide partial weighting for moderate imbalance
 
-The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0.
+The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0. Classes without training labels, such as those excluded by `classes=`, get a weight of 1.0.
 
 !!! example "Training on Imbalanced Dataset"
 

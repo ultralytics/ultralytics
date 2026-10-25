@@ -7,6 +7,8 @@ from copy import copy
 from pathlib import Path
 from typing import Any
 
+import torch
+
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import DepthModel
@@ -35,11 +37,11 @@ class DepthTrainer(DetectionTrainer):
         overrides["task"] = "depth"
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True) -> DepthModel:
+    def get_model(
+        self, cfg: str | dict | None = None, weights: torch.nn.Module | None = None, verbose: bool = True
+    ) -> DepthModel:
         """Return a DepthModel initialized with the given config and weights."""
-        model = DepthModel(
-            cfg, ch=self.data.get("channels", 3), nc=self.data["nc"], verbose=verbose and RANK in {-1, 0}
-        )
+        model = DepthModel(cfg, ch=self.data.get("channels", 3), nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model
@@ -130,10 +132,11 @@ class DepthTrainer(DetectionTrainer):
     def final_eval(self) -> None:
         """Run the standard final evaluation, then calibrate the saved checkpoints.
 
-        After training, fits the scale-only log-affine (``cal_a``/``cal_b``) on the validation
-        set and writes it into best.pt/last.pt, so the model outputs metric-scaled depth out of
-        the box. When ``plots`` is set, also writes ``val_batch{ni}_calibrated.jpg``
-        (RGB | GT | raw | calibrated) comparison panels.
+        After training, selects the log-affine calibration (``cal_a``/``cal_b``) on the validation
+        set — identity, the checkpoint's current calibration, or a scale-only refit, see
+        :func:`calibrate_checkpoint` — and writes it into best.pt/last.pt, so the model outputs
+        metric-scaled depth out of the box. When ``plots`` is set, also writes
+        ``val_batch{ni}_calibrated.jpg`` (RGB | GT | raw | calibrated) comparison panels.
         """
         super().final_eval()
         if RANK not in {-1, 0}:
@@ -146,7 +149,7 @@ class DepthTrainer(DetectionTrainer):
             for ckpt in (self.best, self.last):
                 if ckpt.exists():
                     plot_dir = self.save_dir if self.args.plots and ckpt == plot_ckpt else None
-                    validation_path = self.data.get("val") or self.data.get("test")
+                    validation_path = self.data[self.args.split]
                     validation_split = None
                     if isinstance(validation_path, (str, Path)):
                         try:

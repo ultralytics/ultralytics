@@ -14,12 +14,10 @@ from ultralytics.utils import (
     ENVIRONMENT,
     GIT,
     LOGGER,
-    PLATFORM_API_URL,
     PLATFORM_URL,
     PYTHON_VERSION,
     SETTINGS,
     TESTS_RUNNING,
-    Retry,
     colorstr,
 )
 
@@ -55,7 +53,7 @@ def _interp_plot(plot, n=101):
     else:
         y_new = np.array([np.interp(x_new, x, yi) for yi in y])
 
-    # Also interpolate ap if present (for PR curves)
+    # Keep ap as-is if present (per-class scalars for PR curves, not interpolated)
     result = {**plot, "x": x_new.tolist(), "y": y_new.tolist()}
     if "ap" in plot:
         result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)
@@ -83,7 +81,7 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
 
 
 def _sanitize_json_value(value):
-    """Replace non-finite floats in payloads with None so requests JSON encoding succeeds."""
+    """Replace non-finite floats in payloads with None so JSON encoding succeeds."""
     if isinstance(value, dict):
         return {k: _sanitize_json_value(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
@@ -94,49 +92,36 @@ def _sanitize_json_value(value):
 
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
-    """Send event to Platform endpoint with retry logic."""
+    """Send a training event using the SDK's retry policy."""
+    global _api_key
     if not _api_key:
         return None
-    import requests  # scoped as slow import
+    import httpx
 
-    payload = {"event": event, "data": _sanitize_json_value(data)}
-    if model_id:
-        payload["modelId"] = model_id
-    else:
-        payload.update(project=project, name=name)
+    from ultralytics import APIError, Platform
 
-    def send_once():
-        global _api_key
-        r = requests.post(
-            f"{PLATFORM_API_URL}/training/metrics",
-            json=payload,
-            headers={"Authorization": f"Bearer {_api_key}"},
-            timeout=timeout,
-        )
-        if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
-            try:
-                msg = r.json().get("error", r.reason)
-            except Exception:
-                msg = r.reason
-            # Only 401 is credential-scoped; 403/404 concern one run and must not disable the process.
-            if r.status_code == 401:
-                _api_key = None
-            # A console_output failure must not be logged: ConsoleLogger flushes the warning back as the
-            # next chunk, which fails again. 401 is safe — the cleared key short-circuits _send.
-            if event != "console_output" or r.status_code == 401:
-                LOGGER.warning(f"{PREFIX}{msg}")
-            return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
-        r.raise_for_status()
-        return r.json()
-
-    # Same loop as above, so a console_output send stays silent at every level — including Retry's
-    # per-attempt warning. It must still retry: _flush_buffer clears the buffer before calling us.
-    quiet = event == "console_output"
+    identity = {"model_id": model_id} if model_id else {"project": project, "name": name}
     try:
-        return Retry(times=retry, delay=1, verbose=not quiet)(send_once)()
-    except Exception as e:
-        if not quiet:
-            LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
+        with Platform(
+            api_key=_api_key,
+            base_url=PLATFORM_URL,
+            max_retries=retry - 1,
+            retry_methods=("POST",),
+            http_client=httpx.Client(follow_redirects=True),
+        ) as client:
+            response = client.training.metrics(
+                event=event, data=_sanitize_json_value(data), timeout=timeout, **identity
+            )
+            return response if isinstance(response, dict) else None
+    except Exception as error:
+        if isinstance(error, APIError) and error.status_code == 401:
+            _api_key = None
+        # Console errors must not generate another console event; clearing the key makes 401 safe to log.
+        if event != "console_output" or not _api_key:
+            detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
+            LOGGER.warning(f"{PREFIX}Failed to send {event}: {detail}")
+        if event == "training_started" and model_id and isinstance(error, APIError) and error.status_code == 404:
+            return {}  # {} marks a missing model, seen only by the resume lookup in on_pretrain_routine_start
         return None
 
 
@@ -165,33 +150,28 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
         return None
     model_size = model_path.stat().st_size
-    if os.getenv("PLATFORM_API_URL"):
-        return {"modelPath": str(model_path.resolve()), "modelSize": model_size}
-    import requests  # scoped as slow import
+    import httpx
 
-    # Get signed upload URL from Platform (server sanitizes filename for storage safety)
-    @Retry(times=3, delay=2)
-    def get_signed_url():
-        payload = {"filename": model_path.name}
-        if model_id:
-            payload["modelId"] = model_id  # Direct lookup avoids slug mismatch from auto-increment
-        else:
-            payload.update(project=project, name=name)
-        if run_id:
-            payload["runId"] = run_id
-        r = requests.post(
-            f"{PLATFORM_API_URL}/models/upload",
-            json=payload,
-            headers={"Authorization": f"Bearer {_api_key}"},
-            timeout=30,
-        )
-        r.raise_for_status()
-        return r.json()
+    from ultralytics import APIError, Platform
+
+    identity = {"model_id": model_id} if model_id else {"project": project, "name": name}
+    if run_id:
+        identity["run_id"] = run_id
 
     try:
-        data = get_signed_url()
-    except Exception as e:
-        LOGGER.warning(f"{PREFIX}Failed to get upload URL: {e}")
+        with Platform(
+            api_key=_api_key,
+            base_url=PLATFORM_URL,
+            max_retries=2,
+            retry_methods=("POST",),
+            http_client=httpx.Client(follow_redirects=True),
+        ) as client:
+            data = client.models.upload_checkpoint(filename=model_path.name, timeout=30, **identity)
+            if not isinstance(data, dict):
+                raise TypeError("Invalid Platform upload response")
+    except Exception as error:
+        detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
+        LOGGER.warning(f"{PREFIX}Failed to get upload URL: {detail}")
         return None
 
     # Upload to GCS using safe_upload with retry logic and optional progress bar
@@ -276,13 +256,47 @@ def _get_project_name(trainer):
     return project, slugify(str(trainer.args.name or "train"))
 
 
+def _get_training_gpus(trainer):
+    """Return the NVML indices of the GPUs a run trains on, so a shared host reports no other runs' GPUs.
+
+    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES. Non-CUDA training
+    reports no GPUs, and a CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every GPU.
+    """
+    if trainer.device.type != "cuda":
+        return []
+    indices = [int(x) for x in trainer.args.device.split(",") if x.isdigit()] or [trainer.device.index]
+    visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
+    if not visible:
+        return indices
+    ids = [visible[i] for i in indices]
+    return [int(x) for x in ids] if all(x.isdigit() for x in ids) else None
+
+
+def _get_system_metrics(trainer):
+    """Sample the run's system logger without making optional host monitoring a training dependency."""
+    ctx = trainer.platform
+    try:
+        if not ctx["system_logger"]:
+            from ultralytics.utils.logger import SystemLogger
+
+            ctx["system_logger"] = SystemLogger(all_drives=True, gpus=_get_training_gpus(trainer))
+        return ctx["system_logger"].get_metrics(rates=True)
+    except Exception:
+        return None
+
+
 def on_pretrain_routine_start(trainer):
-    """Initialize Platform logging at training start."""
+    """Initialize Platform logging at training start, continuing the recorded Platform model when resuming."""
     global _api_key
     if TESTS_RUNNING or not trainer.args.project:
         return
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not _api_key:
+        return
+    if sys.version_info < (3, 11):
+        LOGGER.warning(
+            f"{PREFIX}Platform integration requires Python 3.11 or newer. Training will continue without tracking."
+        )
         return
 
     project, name = _get_project_name(trainer)
@@ -330,29 +344,28 @@ def on_pretrain_routine_start(trainer):
 
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
-    train_args = {k: str(v) for k, v in vars(trainer.args).items()}
+    data = {
+        "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+        "epochs": trainer.epochs,
+        "device": str(trainer.device),
+        "environment": environment,
+        "system": _get_system_metrics(trainer),
+    }
+    record = Path(trainer.save_dir) / "platform_model_id.txt"  # resume continues the Platform model recorded here
+    model_id = record.read_text() if trainer.args.resume and record.exists() else None
 
     # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
-    response = _send(
-        "training_started",
-        {
-            "trainArgs": train_args,
-            "epochs": trainer.epochs,
-            "device": str(trainer.device),
-            "environment": environment,
-        },
-        project,
-        name,
-        retry=4,
-    )
+    response = _send("training_started", data, project, name, model_id=model_id, retry=4)
+    if model_id and (response == {} or (response and response.get("cancelled"))):  # model gone or ended, track as new
+        response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
+        record.write_text(response["modelId"])
         ctx["model_id"] = response["modelId"]
         ctx["run_id"] = response.get("runId")
-        # Server returns actual slug (may differ from requested name due to auto-increment, e.g. "train" → "train-2")
-        if response.get("modelSlug"):
-            ctx["model_slug"] = response["modelSlug"]
-            url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
-            LOGGER.info(f"{PREFIX}View model at {url}")
+        # Server resolves the owner, project and final slug (e.g. "train" → "train-2") into the model link
+        ctx["model_url"] = response.get("modelUrl")
+        if ctx["model_url"]:
+            LOGGER.info(f"{PREFIX}View model at {ctx['model_url']}")
         ctx["console_logger"].start_capture()  # only now: the run is tracked and model_id is known
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
         _handle_control_response(trainer, ctx, response)
@@ -396,21 +409,10 @@ def on_fit_epoch_end(trainer):
         except Exception:
             pass
 
-    # Get system metrics (cache SystemLogger in platform context for efficiency)
-    system = {}
-    try:
-        if not ctx["system_logger"]:
-            from ultralytics.utils.logger import SystemLogger
-
-            ctx["system_logger"] = SystemLogger(all_drives=True)
-        system = ctx["system_logger"].get_metrics(rates=True)
-    except Exception:
-        pass
-
     payload = {
         "epoch": trainer.epoch,
         "metrics": metrics,
-        "system": system,
+        "system": _get_system_metrics(trainer),
         "fitness": trainer.fitness,
         "best_fitness": trainer.best_fitness,
     }
@@ -459,17 +461,16 @@ def on_train_end(trainer):
         LOGGER.info(f"{PREFIX}Uploading partial results for cancelled training")
 
     # Stop console capture
-    if ctx["console_logger"]:
-        ctx["console_logger"].stop_capture()
-        ctx["console_logger"] = None
+    ctx["console_logger"].stop_capture()
 
-    # Upload best model (blocking with progress bar to ensure it completes)
+    # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None
-    if trainer.best and Path(trainer.best).exists():
+    model_path = trainer.best if trainer.best and Path(trainer.best).exists() else trainer.last
+    if Path(model_path).exists():
         if ctx["checkpoint_upload"]:
             ctx["checkpoint_upload"].result()
         artifact = _upload_model(
-            trainer.best,
+            model_path,
             project,
             name,
             progress=True,
@@ -485,9 +486,14 @@ def on_train_end(trainer):
     for info in getattr(trainer, "plots", {}).values():
         if info.get("data") and info["data"].get("type"):
             plots_by_type[info["data"]["type"]] = info["data"]
-    for info in getattr(getattr(trainer, "validator", None), "plots", {}).values():
+    for info in reversed(getattr(getattr(trainer, "validator", None), "plots", {}).values()):
         if info.get("data") and info["data"].get("type"):
             plots_by_type.setdefault(info["data"]["type"], info["data"])  # Don't overwrite trainer plots
+    # Curve rows only cover classes with val labels: send their model class indices when any class is missing
+    if pr := plots_by_type.get("pr_curve"):
+        classes = [int(c) for c in trainer.validator.metrics.ap_class_index]
+        if len(classes) < len(trainer.validator.names):
+            plots_by_type["pr_curve"] = {**pr, "classes": classes}
     plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
 
     # Get class names
@@ -519,8 +525,8 @@ def on_train_end(trainer):
         ctx["model_id"],
         retry=4,  # Critical, more retries
     )
-    url = f"{PLATFORM_URL}/{project}/{ctx.get('model_slug', name)}"
-    LOGGER.info(f"{PREFIX}View results at {url}")
+    if ctx.get("model_url"):
+        LOGGER.info(f"{PREFIX}View results at {ctx['model_url']}")
 
 
 callbacks = {
@@ -529,4 +535,5 @@ callbacks = {
     "on_fit_epoch_end": on_fit_epoch_end,
     "on_model_save": on_model_save,
     "on_train_end": on_train_end,
+    "teardown": lambda trainer: (ctx := getattr(trainer, "platform", None)) and ctx["console_logger"].stop_capture(),
 }

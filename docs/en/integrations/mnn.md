@@ -121,17 +121,17 @@ The MNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
 ### Export Arguments
 
-| Argument   | Type             | Default | Description                                                                                                                                                                                                                                          |
-| ---------- | ---------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                   |
-| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                    |
-| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16) or `8` (INT8) reduce the exported weights; `32`/unset exports FP32 weights, which MNN's CPU runtime still computes at its default `low` precision rather than FP32. Replaces the deprecated `half`/`int8` flags. |
-| `simplify` | `bool`           | `True`  | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                              |
-| `opset`    | `int`            | `None`  | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                     |
-| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                              |
-| `dynamic`  | `bool`           | `False` | Enables dynamic input image dimensions. Cannot be combined with `nms=True`.                                                                                                                                                                          |
-| `nms`      | `bool`, optional | `None`  | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). Embedded NMS supports detect and pose with `dynamic=False`.                                                                                              |
-| `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                      |
+| Argument   | Type             | Default | Description                                                                                                                                                                                                                                  |
+| ---------- | ---------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                           |
+| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                            |
+| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16) or `8` (INT8) reduce the exported weights; `32`/unset exports FP32 weights, which Ultralytics' `MNNBackend` still runs at `low` precision rather than FP32. Replaces the deprecated `half`/`int8` flags. |
+| `simplify` | `bool`           | `True`  | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                      |
+| `opset`    | `int`            | `None`  | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                             |
+| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                      |
+| `dynamic`  | `bool`           | `False` | Enables dynamic input image dimensions. Cannot be combined with `nms=True`.                                                                                                                                                                  |
+| `nms`      | `bool`, optional | `None`  | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). Embedded NMS supports detect and pose with `dynamic=False`.                                                                                      |
+| `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                              |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -179,14 +179,12 @@ A function that relies solely on MNN for YOLO26 inference and preprocessing is i
             w = output_var[2]
             h = output_var[3]
             probs = output_var[4:]
-            # [cx, cy, w, h] -> [y0, x0, y1, x1]
+            # [cx, cy, w, h] -> [x0, y0, x1, y1]
             x0 = cx - w * 0.5
             y0 = cy - h * 0.5
             x1 = cx + w * 0.5
             y1 = cy + h * 0.5
             boxes = np.stack([x0, y0, x1, y1], axis=1)
-            # ensure ratio is within the valid range [0.0, 1.0]
-            boxes = np.clip(boxes, 0, 1)
             # get max prob and idx
             scores = np.max(probs, 0)
             class_ids = np.argmax(probs, 0)
@@ -299,15 +297,12 @@ A function that relies solely on MNN for YOLO26 inference and preprocessing is i
             std::vector<int> sizevals { -1, -1 };
             auto size = _Const(static_cast<void*>(sizevals.data()), {2}, NCHW, halide_type_of<int>());
             auto probs = _Slice(output, start, size);
-            // [cx, cy, w, h] -> [y0, x0, y1, x1]
+            // [cx, cy, w, h] -> [x0, y0, x1, y1]
             auto x0 = cx - w * _Const(0.5);
             auto y0 = cy - h * _Const(0.5);
             auto x1 = cx + w * _Const(0.5);
             auto y1 = cy + h * _Const(0.5);
             auto boxes = _Stack({x0, y0, x1, y1}, 1);
-            // ensure ratio is within the valid range [0.0, 1.0]
-            boxes = _Maximum(boxes, _Scalar<float>(0.0f));
-            boxes = _Minimum(boxes, _Scalar<float>(1.0f));
             auto scores = _ReduceMax(probs, {0});
             auto ids = _ArgMax(probs, 0);
             auto result_ids = _Nms(boxes, scores, 100, 0.45, 0.25);

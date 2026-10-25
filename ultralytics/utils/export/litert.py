@@ -30,12 +30,12 @@ def _litert_gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
 def torch2litert(
     model: torch.nn.Module,
     im: torch.Tensor,
-    file: Path,
-    quantize: int | str | None,
-    calibration_dataset: torch.utils.data.DataLoader | None,
-    metadata: dict | None,
-    prefix: str,
-) -> Path:
+    file: Path | str,
+    quantize: int | str | None = None,
+    calibration_dataset: torch.utils.data.DataLoader | None = None,
+    metadata: dict | None = None,
+    prefix: str = "",
+) -> str:
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.
 
     Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations) and
@@ -56,16 +56,18 @@ def torch2litert(
         prefix (str): Prefix for log messages.
 
     Returns:
-        (Path): Path to the exported ``.tflite`` file with metadata embedded as a ``metadata.json`` entry.
+        (str): Path to the exported ``.tflite`` file with metadata embedded as a ``metadata.json`` entry.
     """
     from ultralytics.utils.checks import check_requirements
 
-    check_requirements(("litert-torch>=0.9.0", "ai-edge-litert>=2.1.4"))
+    check_requirements(("litert-torch>=0.10.0", "ai-edge-litert>=2.3.0"))
     import litert_torch
 
     static_int8 = quantize == 8
     static_int16 = quantize == "w8a16"
     dynamic_int8 = quantize == "w8a32"
+    if (static_int8 or static_int16) and calibration_dataset is None:
+        raise ValueError(f"LiteRT quantize={quantize!r} export requires a calibration dataset.")
     LOGGER.info(f"\n{prefix} starting export with litert_torch {litert_torch.__version__}...")
     file = Path(file)
     quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_w8a32" if dynamic_int8 else ""
@@ -74,7 +76,11 @@ def torch2litert(
     # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.
     meta = metadata or {}
     task = meta.get("task")
-    if task in {"detect", "segment", "pose", "obb"} and not meta.get("end2end", False):
+    if (
+        task in {"detect", "segment", "pose", "obb"}
+        and not meta.get("end2end", False)
+        and meta.get("head") != "RTDETRDecoder"
+    ):
         model = _NormalizeCoords(
             model, int(im.shape[2]), int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape")
         )
@@ -88,12 +94,12 @@ def torch2litert(
     litert_torch.fx_infra.decomp.add_pre_lower_decomp(
         torch.ops.aten.index_select.default, lambda x, dim, index: torch.ops.tfl.gather(x, index.int(), dim)
     )
-    edge_model = litert_torch.convert(model, (im,))
+    edge_model = litert_torch.convert(model.eval(), (im,))  # export wrappers default to training mode
     tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")
     edge_model.export(tflite_file)
 
     if static_int8 or static_int16 or dynamic_int8:
-        check_requirements("ai-edge-quantizer>=0.6.0")
+        check_requirements("ai-edge-quantizer>=0.10.0")
         from ai_edge_quantizer import qtyping, quantizer, recipe
 
         qt = quantizer.Quantizer(str(tflite_file))
@@ -127,4 +133,4 @@ def torch2litert(
     # self-contained file that LiteRTBackend reads back at load time.
     with zipfile.ZipFile(tflite_file, "a", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("metadata.json", json.dumps(metadata or {}))
-    return tflite_file
+    return str(tflite_file)

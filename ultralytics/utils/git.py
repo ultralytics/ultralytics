@@ -43,6 +43,7 @@ class GitRepo:
 
         Args:
             path (Path, optional): File or directory path used as the starting point to locate the repository root.
+                Defaults to the location of this module.
         """
         self.root = self._find_root(path or Path(__file__).resolve())
         self.gitdir = self._gitdir(self.root) if self.root else None

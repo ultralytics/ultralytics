@@ -7,13 +7,15 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 
 # Multi-Object Tracking with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.ul.run/i/6e908e05328f03661dc48ce86a4db3fc.avif" alt="YOLO multi-object tracking with trajectory paths">
+<img width="1024" src="https://cdn.ul.run/i/f30f62b4f5592a70ec688ae46cce61b1.avif" alt="YOLO multi-object tracking with trajectory paths">
 
 Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned tracking support.
+
 !!! tip "🚀 New Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
 
-    Starting with Ultralytics YOLO v8.4.63, [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack) are available alongside BoT-SORT and ByteTrack.
+    Starting with `ultralytics` 8.4.63, [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack) are available alongside BoT-SORT and ByteTrack.
 
 ## Why Choose Ultralytics YOLO for Object Tracking?
 
@@ -289,9 +291,20 @@ Once exported, point to the TensorRT model path in your tracker config.
 
 ## Tracker Details
 
-Expand the sections below for each tracker's design, specific parameters, and tuning tips.
+The sections below describe each tracker's design, specific parameters, and tuning tips.
 
-#### BoT-SORT
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ZsxHIN2PoiY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Which Object Tracker Performs Better? | Speed, FPS & ID Stability | Ultralytics YOLO26 📊
+</p>
+
+### BoT-SORT
 
 [BoT-SORT](https://github.com/NirAharon/BoT-SORT) (Aharon et al., 2022) extends ByteTrack with camera-motion compensation and optional ReID:
 
@@ -316,7 +329,7 @@ Expand the sections below for each tracker's design, specific parameters, and tu
 - **Heavy camera motion:** keep `sparseOptFlow`; `ecc` is more accurate but slower.
 - **Look-alike crowds:** turn on `with_reid: True` and raise `appearance_thresh` (e.g. `0.85+`).
 
-#### ByteTrack
+### ByteTrack
 
 [ByteTrack](https://github.com/FoundationVision/ByteTrack) (Zhang et al., ECCV 2022) is the lightweight baseline. It uses linear Kalman + IoU with a two-stage association:
 
@@ -335,7 +348,7 @@ There is no appearance model and no camera-motion compensation.
 - **High-recall detector:** raise `track_high_thresh` to reduce fragmented IDs.
 - **Frequent ID flicker:** raise `track_buffer` so briefly-missed tracks survive.
 
-#### OC-SORT
+### OC-SORT
 
 [OC-SORT](https://arxiv.org/abs/2203.14360) (Cao et al., CVPR 2023) is an observation-centric extension of SORT. It keeps SORT's lightweight design (no appearance features) and adds three corrections:
 
@@ -361,7 +374,7 @@ There is no appearance model and no camera-motion compensation.
 
 With OBB models, OCR uses the Kalman-predicted oriented box because an oriented last-observation history is not retained.
 
-#### Deep OC-SORT
+### Deep OC-SORT
 
 [Deep OC-SORT](https://arxiv.org/abs/2302.11813) augments OC-SORT with appearance information and camera-motion compensation:
 
@@ -391,7 +404,7 @@ With OBB models, OCR uses the Kalman-predicted oriented box because an oriented 
 - **Moving camera:** set `gmc_method: sparseOptFlow` (Deep OC-SORT defaults to `none`).
 - **Lower latency:** keep `with_reid: False` (default) for motion + CMC only; enable ReID only when ID swaps dominate errors.
 
-#### FastTracker
+### FastTracker
 
 [FastTracker](https://arxiv.org/abs/2508.14370) is an occlusion-aware ByteTrack variant with no appearance model:
 
@@ -422,7 +435,7 @@ With OBB models, OCR uses the Kalman-predicted oriented box because an oriented 
 - **Long occlusions:** raise `occ_reappear_window` and `track_buffer` together.
 - **Fast-moving targets:** raise `dampen_motion_occ` (closer to `1.0`); raise `enlarge_bbox_occ` only when a wider search region improves recovery.
 
-#### TrackTrack
+### TrackTrack
 
 [TrackTrack](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) (Shim et al., CVPR 2025) is the default tracker. It reasons from each track's perspective with multi-cue iterative association:
 
@@ -462,13 +475,13 @@ With Segment and Pose models, TrackTrack skips loose-NMS detection recovery so m
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/leOPZhE0ckg"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/hPXsZ_fVz6M"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Build Interactive Object Tracking with Ultralytics YOLO | Click to Crop & Display ⚡
+  <strong>Watch:</strong> How to Build Interactive Object Tracking with Ultralytics YOLO26: Build it in Minutes | Python!
 </p>
 
 ### Persisting Tracks Loop
@@ -601,7 +614,7 @@ Multithreaded tracking provides the capability to run object tracking on multipl
 
 In the provided Python script, we make use of Python's `threading` module to run multiple instances of the tracker concurrently. Each thread is responsible for running the tracker on one video file, and all the threads run simultaneously in the background.
 
-To ensure that each thread receives the correct parameters (the video file, the model to use and the file index), we define a function `run_tracker_in_thread` that accepts these parameters and contains the main tracking loop. This function reads the video frame by frame, runs the tracker, and displays the results.
+To ensure that each thread receives the correct parameters (the video file, the model to use and the file index), we define a function `run_tracker_in_thread` that accepts these parameters and contains the main tracking loop. This function reads the video frame by frame, runs the tracker, and saves the annotated results.
 
 Two different models are used in this example: `yolo26n.pt` and `yolo26n-seg.pt`, each tracking objects in a different video file. The video files are specified in `SOURCES`.
 
@@ -776,18 +789,19 @@ To visualize object tracks over multiple video frames, you can use the YOLO mode
     while cap.isOpened():
         success, frame = cap.read()
         if success:
-            results = model.track(frame, persist=True)
-            boxes = results[0].boxes.xywh.cpu()
-            track_ids = results[0].boxes.id.int().cpu().tolist()
-            annotated_frame = results[0].plot()
-            for box, track_id in zip(boxes, track_ids):
-                x, y, w, h = box
-                track = track_history[track_id]
-                track.append((float(x), float(y)))
-                if len(track) > 30:
-                    track.pop(0)
-                points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-                cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
+            result = model.track(frame, persist=True)[0]
+            annotated_frame = result.plot()
+            if result.boxes and result.boxes.is_track:
+                boxes = result.boxes.xywh.cpu()
+                track_ids = result.boxes.id.int().cpu().tolist()
+                for box, track_id in zip(boxes, track_ids):
+                    x, y, w, h = box
+                    track = track_history[track_id]
+                    track.append((float(x), float(y)))
+                    if len(track) > 30:
+                        track.pop(0)
+                    points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+                    cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
             cv2.imshow("YOLO26 Tracking", annotated_frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break

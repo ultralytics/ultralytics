@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, activity feed, audit log, notifications, event t
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
 
-![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.ul.run/i/13a07c40c136229925eb9c2dd08e109b.avif)<!-- screenshot -->
+![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.ul.run/i/4d369a183f4629a4381db26b1c50ed65.avif)<!-- screenshot -->
 
 ## Overview
 
@@ -28,13 +28,13 @@ The Activity Feed provides one place for:
 
 Navigate to the Activity Feed in any of the following ways:
 
-1. Click the activity indicator in the top navigation bar, then **View all**
+1. Click the activity indicator in the top navigation bar, then **View all activity**
 2. Open the profile menu at the bottom of the sidebar and select **Activity**
 3. Navigate directly to `/activity`
 
 The dropdown in the top bar shows the most recent events with the same archive and undo actions as the full page.
 
-![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.ul.run/i/25e9aec0b788985d37cc314093ebb1d8.avif)<!-- screenshot -->
+![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.ul.run/i/a134f64884708d614161832aab866305.avif)<!-- screenshot -->
 
 ## Activity Types
 
@@ -115,7 +115,7 @@ Filter by time period using the date range picker:
 - The page defaults to the last 30 days
 - Custom date ranges supported
 
-![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.ul.run/i/f5366025524c00a10e8a1135437f1d89.avif)<!-- screenshot -->
+![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.ul.run/i/5333b2027ed10f52e204388533445951.avif)<!-- screenshot -->
 
 ## Event Details
 

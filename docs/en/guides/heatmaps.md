@@ -13,13 +13,13 @@ The [Heatmap solution](../reference/solutions/heatmap.md) in [Ultralytics YOLO26
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/4ezde5-nZZw"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/UU87gGC-kKg"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Heatmaps using Ultralytics YOLO26
+  <strong>Watch:</strong> How to Create Heatmaps with Ultralytics YOLO26 | Visualize Object Activity | VisionAI in Retail 🚀
 </p>
 
 ## Why Use Heatmaps for Video Analytics?
@@ -32,7 +32,7 @@ The [Heatmap solution](../reference/solutions/heatmap.md) in [Ultralytics YOLO26
 
 |                                                         Transportation                                                          |                                                              Retail                                                              |
 | :-----------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO heatmap overlay showing vehicle traffic density](https://cdn.ul.run/i/704450c331ec65eddec9abe69f1d12fc.avif) | ![Ultralytics YOLO heatmap overlay showing retail customer movement](https://cdn.ul.run/i/17a2a0f51ed28061f9991f3d85c106ae.avif) |
+| ![Ultralytics YOLO heatmap overlay showing vehicle traffic density](https://cdn.ul.run/i/3cd03197081f4d99e3017c7537e01f7a.avif) | ![Ultralytics YOLO heatmap overlay showing retail customer movement](https://cdn.ul.run/i/17a2a0f51ed28061f9991f3d85c106ae.avif) |
 |                                             Ultralytics YOLO Transportation Heatmap                                             |                                                 Ultralytics YOLO Retail Heatmap                                                  |
 
 ## How to Generate Heatmaps with Ultralytics YOLO
@@ -113,8 +113,7 @@ Here's a table with the `Heatmap` arguments:
 
 You can also apply different `track` arguments in the `Heatmap` solution.
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Additionally, the supported visualization arguments are listed below:
 
@@ -157,7 +156,7 @@ The [Heatmap solution](../reference/solutions/heatmap.md) extends the [ObjectCou
 1. YOLO26 tracking detects and follows every object in the frame
 2. For each tracked object, the heatmap intensity increases within a circular region centered in its bounding box
 
-Once per frame, the accumulated intensity layer is normalized, colorized with the selected colormap, and blended with the original frame. The overlay appears as soon as at least one object is tracked; frames without tracked objects are shown without the heatmap overlay.
+Once per frame, the accumulated intensity layer is normalized, colorized with the selected colormap, and blended with the original frame. The overlay appears once at least one object has been tracked; until then, frames are shown without the heatmap overlay.
 
 The result is a dynamic visualization that builds up over time, revealing traffic patterns, crowd movements, or other spatial behaviors in your video data. When a `region` is set, the solution also [counts objects](object-counting.md) entering and exiting that region while the heatmap builds.
 

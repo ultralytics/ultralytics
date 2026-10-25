@@ -98,7 +98,7 @@ export COMET_LOG_CONFUSION_MATRIX=false            # Set to disable logging a Co
 export COMET_MAX_IMAGE_UPLOADS=30                  # Controls how many total image predictions to log to Comet. Defaults to 100.
 export COMET_LOG_PER_CLASS_METRICS=true            # Set to log evaluation metrics for each detected class at the end of training. Defaults to false
 export COMET_DEFAULT_CHECKPOINT_FILENAME="last.pt" # Set this if you would like to resume training from a different checkpoint. Defaults to 'last.pt'
-export COMET_LOG_BATCH_LEVEL_METRICS=true          # Set this if you would like to log training metrics at the batch level. Defaults to false.
+export COMET_LOG_BATCH_METRICS=true                # Set this if you would like to log training metrics at the batch level. Defaults to false.
 export COMET_LOG_PREDICTIONS=true                  # Set this to false to disable logging model predictions
 ```
 
@@ -122,7 +122,7 @@ By default, model predictions (images, ground truth labels and bounding boxes) w
 
 You can control the frequency of logged predictions and the associated images by passing the `bbox_interval` command line argument. Predictions can be visualized using Comet's [Object Detection](https://www.ultralytics.com/glossary/object-detection) Custom Panel. This frequency corresponds to every Nth batch of data per [epoch](https://www.ultralytics.com/glossary/epoch). In the example below, we are logging every 2nd batch of data for each epoch.
 
-**Note:** The YOLOv5 validation dataloader will default to a [batch size](https://www.ultralytics.com/glossary/batch-size) of 32, so you will have to set the logging frequency accordingly.
+**Note:** The YOLOv5 validation dataloader uses twice the training [batch size](https://www.ultralytics.com/glossary/batch-size) (32 for `--batch 16`), so you will have to set the logging frequency accordingly.
 
 Here is an [example project using the Panel](https://www.comet.com/examples/comet-example-yolov5?shareable=YcwMiJaZSXfcEXpGOHDD12vA1&utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)
 
@@ -255,3 +255,21 @@ python utils/loggers/comet/hpo.py \
 Comet provides a number of ways to visualize the results of your sweep. Take a look at a [project with a completed sweep here](https://www.comet.com/examples/comet-example-yolov5/view/PrlArHGuuhDTKC1UuBmTtOSXD/panels?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github).
 
 ![Comet Hyperparameter Visualization](https://cdn.ul.run/i/9d78fed3421a57006224ecd94dcd5696.avif)
+
+## FAQ
+
+### Where do I find my Comet API key?
+
+Create a free account at [comet.com](https://www.comet.com/site/), open your account settings, and copy the API key. Export it as `COMET_API_KEY` or store it in a `.comet.config` file next to `train.py`.
+
+### Can I log runs without an internet connection?
+
+Yes. Set `COMET_MODE=offline` to write the experiment to a local archive, then upload it later with `comet upload path/to/archive.zip`.
+
+### Why are no model checkpoints appearing in Comet?
+
+Checkpoint logging is off by default. Pass `--save-period 1` (or another interval) to `train.py` and each saved checkpoint is uploaded to the experiment.
+
+### How do I resume an interrupted run?
+
+Copy the run path from the Comet UI and start training with `python train.py --resume "comet://WORKSPACE/PROJECT/EXPERIMENT_ID"`. YOLOv5 restores the checkpoint, hyperparameters, and any Comet dataset artifact, and continues logging to the same experiment.

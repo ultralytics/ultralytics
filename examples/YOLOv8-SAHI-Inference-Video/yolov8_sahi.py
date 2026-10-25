@@ -1,42 +1,40 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
-import os
 
 import cv2
 from sahi import AutoDetectionModel
 from sahi.predict import get_sliced_prediction
-from sahi.utils.ultralytics import download_model_weights
 
 from ultralytics.utils.files import increment_path
 
 
 class SAHIInference:
-    """Runs Ultralytics YOLO11 and SAHI for object detection on video with options to view, save, and track results.
+    """Runs Ultralytics YOLO26 and SAHI for object detection on video with options to view, save, and track results.
 
-    This class integrates SAHI (Slicing Aided Hyper Inference) with YOLO11 models to perform efficient object detection
+    This class integrates SAHI (Slicing Aided Hyper Inference) with YOLO26 models to perform efficient object detection
     on large images by slicing them into smaller pieces, running inference on each slice, and then merging the results.
 
     Attributes:
-        detection_model (AutoDetectionModel): The loaded YOLO11 model wrapped with SAHI functionality.
+        detection_model (AutoDetectionModel): The loaded YOLO26 model wrapped with SAHI functionality.
 
     Methods:
-        load_model: Load a YOLO11 model with specified weights for object detection using SAHI.
-        inference: Run object detection on a video using YOLO11 and SAHI.
+        load_model: Load a YOLO26 model with specified weights for object detection using SAHI.
+        inference: Run object detection on a video using YOLO26 and SAHI.
         parse_opt: Parse command line arguments for the inference process.
 
     Examples:
         Initialize and run SAHI inference on a video
         >>> sahi_inference = SAHIInference()
-        >>> sahi_inference.inference(weights="yolo11n.pt", source="video.mp4", view_img=True)
+        >>> sahi_inference.inference(weights="yolo26n.pt", source="video.mp4", view_img=True)
     """
 
     def __init__(self):
-        """Initialize the SAHIInference class for performing sliced inference using SAHI with YOLO11 models."""
+        """Initialize the SAHIInference class for performing sliced inference using SAHI with YOLO26 models."""
         self.detection_model = None
 
     def load_model(self, weights: str, device: str) -> None:
-        """Load a YOLO11 model with specified weights for object detection using SAHI.
+        """Load a YOLO26 model with specified weights for object detection using SAHI.
 
         Args:
             weights (str): Path to the model weights file.
@@ -44,18 +42,13 @@ class SAHIInference:
         """
         from ultralytics.utils.torch_utils import select_device
 
-        if weights and os.path.exists(weights):
-            yolo11_model_path = weights
-        else:
-            yolo11_model_path = f"models/{weights}"
-            download_model_weights(yolo11_model_path)  # Download model if not present
         self.detection_model = AutoDetectionModel.from_pretrained(
-            model_type="ultralytics", model_path=yolo11_model_path, device=select_device(device)
+            model_type="ultralytics", model_path=weights, device=select_device(device)
         )
 
     def inference(
         self,
-        weights: str = "yolo11n.pt",
+        weights: str = "yolo26n.pt",
         source: str = "test.mp4",
         view_img: bool = False,
         save_img: bool = False,
@@ -65,7 +58,7 @@ class SAHIInference:
         slice_width: int = 512,
         slice_height: int = 512,
     ) -> None:
-        """Run object detection on a video using YOLO11 and SAHI.
+        """Run object detection on a video using YOLO26 and SAHI.
 
         The function processes each frame of the video, applies sliced inference using SAHI, and optionally displays
         and/or saves the results with bounding boxes and labels.
@@ -132,7 +125,7 @@ class SAHIInference:
             (argparse.Namespace): Parsed command line arguments.
         """
         parser = argparse.ArgumentParser()
-        parser.add_argument("--weights", type=str, default="yolo11n.pt", help="initial weights path")
+        parser.add_argument("--weights", type=str, default="yolo26n.pt", help="initial weights path")
         parser.add_argument("--source", type=str, required=True, help="video file path")
         parser.add_argument("--view-img", action="store_true", help="show results")
         parser.add_argument("--save-img", action="store_true", help="save results")

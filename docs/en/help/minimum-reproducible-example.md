@@ -29,7 +29,7 @@ Provide a clear and concise description of the issue you're experiencing. Explai
 
 Format your code properly using code blocks in the issue description. This makes it easier for others to read and understand your code. In GitHub, you can create a code block by wrapping your code with triple backticks (\```) and specifying the language:
 
-````bash
+````markdown
 ```python
 # Your Python code goes here
 ```
@@ -72,8 +72,8 @@ RuntimeError: Expected input[1, 0, 640, 640] to have 3 channels, but got 0 chann
 
 **Dependencies:**
 
-- `torch==2.3.0`
-- `ultralytics==8.2.0`
+- `torch==2.8.0`
+- `ultralytics==8.4.142`
 
 In this example, the MRE demonstrates the issue with a minimal amount of code, uses a public model (`"yolo26n.pt"`), includes all necessary dependencies, and provides a clear description of the problem along with the error message.
 
@@ -120,7 +120,7 @@ To format your code properly when submitting a bug report on GitHub:
 
 Example:
 
-````bash
+````markdown
 ```python
 # Your Python code goes here
 ```

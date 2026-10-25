@@ -75,7 +75,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
         trackzone = solutions.TrackZone(
             show=True,  # display the output
             region=region_points,  # pass region points
-            model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., YOLOv9, YOLOv10
+            model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., yolo26s.pt
             # line_width=2,  # adjust the line width for bounding boxes and text display
         )
 
@@ -113,8 +113,7 @@ Here's a table with the `TrackZone` arguments:
 
 The TrackZone solution includes support for `track` parameters:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Moreover, the following visualization options are available:
 
@@ -191,6 +190,8 @@ cv2.destroyAllWindows()
 Configuring zone points for video processing with Ultralytics TrackZone is simple and customizable. You can directly define and adjust the zones through a Python script, allowing precise control over the areas you want to monitor.
 
 ```python
+from ultralytics import solutions
+
 # Define region points
 region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
 
@@ -201,7 +202,7 @@ trackzone = solutions.TrackZone(
 )
 ```
 
-Remember that `TrackZone` reduces the points to their convex hull, so list them in order around the perimeter of the area you want to monitor.
+Remember that `TrackZone` reduces the points to their convex hull, so a concave outline is simplified to the smallest convex polygon that contains all of its points.
 
 ### When should I use TrackZone instead of ObjectCounter or RegionCounter?
 

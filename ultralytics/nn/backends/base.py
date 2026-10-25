@@ -18,7 +18,7 @@ def _read_proto_map(file: Path, path: tuple[int, ...]) -> dict:
     """Read a protobuf ``map<string, string>`` at a nested field path, without importing the format's framework.
 
     Args:
-        file (Path): Path to the protobuf file, i.e. an ONNX or CoreML model.
+        file (Path): Path to the protobuf file, e.g. an ONNX or CoreML model.
         path (tuple[int, ...]): Field numbers to descend, the last holding the repeated ``key``/``value`` entries.
 
     Returns:
@@ -70,7 +70,7 @@ class BaseBackend(ABC):
         nhwc (bool): Whether the model expects NHWC input format instead of NCHW.
         stride (int): Model stride, typically 32 for YOLO models.
         names (dict): Dictionary mapping class indices to class names.
-        task (str | None): The task type (detect, segment, semantic, classify, pose, obb).
+        task (str | None): The task type (detect, segment, semantic, depth, classify, pose, obb).
         batch (int): Batch size for inference.
         imgsz (tuple): Input image size as (height, width).
         channels (int): Number of input channels, typically 3 for RGB.
@@ -81,11 +81,11 @@ class BaseBackend(ABC):
         metadata (dict): Model metadata dictionary containing export configuration.
     """
 
-    def __init__(self, weight: str | torch.nn.Module, device: torch.device | str, fp16: bool = False):
+    def __init__(self, weight: str | Path | torch.nn.Module, device: torch.device | str, fp16: bool = False):
         """Initialize the base backend with common attributes and load the model.
 
         Args:
-            weight (str | torch.nn.Module): Path to the model weights file or a PyTorch module instance.
+            weight (str | Path | torch.nn.Module): Path to the model weights file or a PyTorch module instance.
             device (torch.device | str): Device to run inference on (e.g., 'cpu', 'cuda:0').
             fp16 (bool): Whether to use FP16 half-precision inference.
         """
@@ -105,11 +105,11 @@ class BaseBackend(ABC):
         self.load_model(weight)
 
     @abstractmethod
-    def load_model(self, weight: str | torch.nn.Module) -> None:
+    def load_model(self, weight: str | Path | torch.nn.Module) -> None:
         """Load the model from a weights file or module instance.
 
         Args:
-            weight (str | torch.nn.Module): Path to model weights or a PyTorch module.
+            weight (str | Path | torch.nn.Module): Path to model weights or a PyTorch module.
         """
         raise NotImplementedError
 
@@ -126,9 +126,7 @@ class BaseBackend(ABC):
         raise NotImplementedError
 
     def __call__(self, *args, **kwargs) -> Any:
-        """Allow the backend instance to be called directly to perform inference, forwarding arguments to the `forward`
-        method.
-        """
+        """Run inference by forwarding all arguments to `forward`."""
         return self.forward(*args, **kwargs)
 
     @staticmethod
@@ -168,24 +166,27 @@ class BaseBackend(ABC):
         import zipfile
 
         p = Path(file)
+        suffix = p.suffix.lower()
         try:
-            if p.suffix == ".engine":  # 4-byte little-endian length then that many bytes of JSON
+            if suffix == ".engine":  # 4-byte little-endian length then that many bytes of JSON
                 return BaseBackend.engine_header(p)[1]
-            if p.suffix in {".tflite", ".torchscript"}:  # metadata appended to or saved inside the model zip
+            if suffix in {".tflite", ".torchscript"}:  # metadata appended to or saved inside the model zip
                 with zipfile.ZipFile(p) as z:
                     names = z.namelist()
                     if "metadata.json" in names:  # litert-torch and single-file tflite exports
                         return json.loads(z.read("metadata.json"))
                     name = next((n for n in names if n.endswith("extra/config.txt")), None)  # torch.jit extra file
                     return json.loads(z.read(name)) if name else ast.literal_eval(z.read(names[0]).decode())
-            if p.suffix == ".onnx" or p.name.endswith("_imx_model"):  # IMX packages its ONNX in a directory
+            if suffix == ".onnx" or p.name.lower().endswith(
+                ("_imx_model", "_xilinx_model")
+            ):  # ONNX packaged in a directory
                 return _read_proto_map(next(p.glob("*.onnx")) if p.is_dir() else p, (14,))  # metadata_props
-            if p.suffix in {".mlpackage", ".mlmodel"}:  # description.metadata.userDefined
+            if suffix in {".mlpackage", ".mlmodel"}:  # description.metadata.userDefined
                 return _read_proto_map(next(p.rglob("*.mlmodel")) if p.is_dir() else p, (2, 100, 100))
-            if p.suffix == ".aimodel":  # Core AI keeps it in the asset's own metadata.json
+            if suffix == ".aimodel":  # Core AI keeps it in the asset's own metadata.json
                 return json.loads((p / "metadata.json").read_text()).get("creatorDefinedMetadata", {})
             sidecar = (p if p.is_dir() else p.parent) / "metadata.yaml"  # openvino, ncnn, paddle, saved_model, ...
-            if p.suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
+            if suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
                 sidecar = next(p.resolve().parent.rglob(f"{p.stem}_saved_model*/metadata.yaml"), sidecar)
             return YAML.load(sidecar) if sidecar.exists() else {}
         except Exception:  # a third-party, truncated or metadata-less artifact

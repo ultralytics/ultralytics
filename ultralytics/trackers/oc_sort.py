@@ -22,7 +22,7 @@ class OCSortTrack(STrack):
     Attributes:
         last_observation (np.ndarray): Last real detection in xyxy format.
         observations (dict): Maps frame_id to xyxy observation arrays.
-        velocity (np.ndarray | None): Observation-centric velocity direction vector (dx, dy).
+        velocity (np.ndarray | None): Normalized observation-centric velocity direction vector (dx, dy).
         delta_t (int): Temporal window for velocity computation.
     """
 
@@ -134,7 +134,12 @@ class OCSortTrack(STrack):
         return (direction / norm).astype(np.float32)
 
     def apply_oru(self, new_observation_xyxy: np.ndarray, current_frame_id: int) -> None:
-        """Repair Kalman state across an occlusion gap by replaying predict-updates on virtual observations."""
+        """Repair Kalman state across an occlusion gap by replaying predict-updates on virtual observations.
+
+        Args:
+            new_observation_xyxy (np.ndarray): The re-associated detection box in xyxy format.
+            current_frame_id (int): Current frame id; the gap is measured from the last stored observation.
+        """
         if self._saved_mean is None or not self.observations:
             return
 

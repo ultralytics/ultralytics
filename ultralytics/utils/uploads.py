@@ -55,6 +55,9 @@ def safe_upload(
     Returns:
         (bool): True if upload succeeded, False otherwise.
 
+    Raises:
+        FileNotFoundError: If the file does not exist.
+
     Examples:
         >>> from ultralytics.utils.uploads import safe_upload
         >>> success = safe_upload("model.pt", "https://storage.googleapis.com/...", progress=True)

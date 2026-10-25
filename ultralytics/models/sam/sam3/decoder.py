@@ -1,10 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
-"""
-Transformer decoder.
-Inspired from Pytorch's version, adds the pre-norm variant.
-"""
+"""Transformer decoder for SAM3 with iterative box refinement and an optional presence token."""
 
 from __future__ import annotations
 
@@ -64,7 +61,7 @@ class TransformerDecoderLayer(nn.Module):
         return tensor if pos is None else tensor + pos
 
     def forward_ffn(self, tgt):
-        """Feedforward network forward pass."""
+        """Apply the feedforward network with a residual connection and layer normalization."""
         tgt2 = self.linear2(self.dropout3(self.activation(self.linear1(tgt))))
         tgt = tgt + self.dropout4(tgt2)
         tgt = self.norm3(tgt)
@@ -74,16 +71,16 @@ class TransformerDecoderLayer(nn.Module):
         self,
         # for tgt
         tgt: torch.Tensor,  # nq, bs, d_model
-        tgt_query_pos: torch.Tensor = None,  # pos for query. MLP(Sine(pos))
-        memory_text: torch.Tensor = None,  # num_token, bs, d_model
-        text_attention_mask: torch.Tensor = None,  # bs, num_token
+        tgt_query_pos: torch.Tensor | None = None,  # pos for query. MLP(Sine(pos))
+        memory_text: torch.Tensor | None = None,  # num_token, bs, d_model
+        text_attention_mask: torch.Tensor | None = None,  # bs, num_token
         # for memory
-        memory: torch.Tensor = None,  # hw, bs, d_model
-        memory_key_padding_mask: torch.Tensor = None,
-        memory_pos: torch.Tensor = None,  # pos for memory
+        memory: torch.Tensor | None = None,  # hw, bs, d_model
+        memory_key_padding_mask: torch.Tensor | None = None,
+        memory_pos: torch.Tensor | None = None,  # pos for memory
         # sa
-        self_attn_mask: torch.Tensor = None,  # mask used for self-attention
-        cross_attn_mask: torch.Tensor = None,  # mask used for cross-attention
+        self_attn_mask: torch.Tensor | None = None,  # mask used for self-attention
+        cross_attn_mask: torch.Tensor | None = None,  # mask used for cross-attention
         # dac
         dac=False,
         dac_use_selfatt_ln=True,
@@ -91,7 +88,13 @@ class TransformerDecoderLayer(nn.Module):
         # skip inside deformable attn
         **kwargs,  # additional kwargs for compatibility
     ):
-        """Forward pass of the TransformerDecoderLayer."""
+        """Apply self-attention, optional text cross-attention, image cross-attention, and the FFN to the queries.
+
+        Returns:
+            tgt (torch.Tensor): Updated queries with shape (nq, bs, d_model).
+            presence_token_out (torch.Tensor | None): Updated presence token with shape (1, bs, d_model), or None if no
+                presence token was provided.
+        """
         # self attention
         tgt, tgt_query_pos = self._apply_self_attention(
             tgt, tgt_query_pos, dac, dac_use_selfatt_ln, presence_token, self_attn_mask
@@ -136,11 +139,8 @@ class TransformerDecoderLayer(nn.Module):
 
     def _apply_self_attention(self, tgt, tgt_query_pos, dac, dac_use_selfatt_ln, presence_token, self_attn_mask):
         """Apply self-attention with optional DAC splitting."""
-        if self.self_attn is None:
-            return tgt
-
         if dac:
-            # Split queries for DAC (detect-and-classify)
+            # Split queries for DAC (divide-and-conquer)
             assert tgt.shape[0] % 2 == 0, "DAC requires even number of queries"
             num_o2o_queries = tgt.shape[0] // 2
             tgt_o2o = tgt[:num_o2o_queries]
@@ -260,9 +260,6 @@ class TransformerDecoder(nn.Module):
             n_input = 4 if boxRPB == "both" else 2
             self.boxRPB_embed_x = MLP(n_input, d_model, nheads, 2)
             self.boxRPB_embed_y = MLP(n_input, d_model, nheads, 2)
-            self.compilable_cord_cache = None
-            self.compilable_stored_size = None
-            self.coord_cache = {}
 
         if interaction_layer is not None:
             # Scoped for import ultralytics speed: ROI align requires optional torchvision ops.
@@ -295,9 +292,8 @@ class TransformerDecoder(nn.Module):
         assert self.return_intermediate, "support return_intermediate only"
         assert self.box_refine, "support box refine only"
 
-        self.compile_mode = compile_mode
-        self.compiled = False
-        # We defer compilation till after the first forward, to first warm-up the boxRPB cache
+        if compile_mode is not None:
+            self.forward = torch.compile(self.forward, mode=compile_mode, fullgraph=True)
 
         # assign layer index to each layer so that some layers can decide what to do
         # based on which layer index they are (e.g. cross attention to memory bank only
@@ -305,37 +301,13 @@ class TransformerDecoder(nn.Module):
         for layer_idx, decoder_layer in enumerate(self.layers):
             decoder_layer.layer_idx = layer_idx
 
-    @staticmethod
-    def _get_coords(H, W, device, dtype):
-        """Get normalized coordinates for height and width."""
-        coords_h = torch.arange(0, H, dtype=dtype, device=device) / H
-        coords_w = torch.arange(0, W, dtype=dtype, device=device) / W
-        return coords_h, coords_w
-
     def _get_rpb_matrix(self, reference_boxes, feat_size):
         """Get the relative position bias (RPB) matrix for box-relative position bias."""
         H, W = feat_size
         boxes_xyxy = xywh2xyxy(reference_boxes).transpose(0, 1)
         bs, num_queries, _ = boxes_xyxy.shape
-        if self.compilable_cord_cache is None:
-            self.compilable_cord_cache = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
-            self.compilable_stored_size = (H, W)
-
-        if torch.compiler.is_dynamo_compiling() or self.compilable_stored_size == (
-            H,
-            W,
-        ):
-            # good, hitting the cache, will be compilable
-            coords_h, coords_w = self.compilable_cord_cache
-        else:
-            # cache miss, will create compilation issue
-            # In case we're not compiling, we'll still rely on the dict-based cache
-            if feat_size not in self.coord_cache:
-                self.coord_cache[feat_size] = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
-            coords_h, coords_w = self.coord_cache[feat_size]
-
-            assert coords_h.shape == (H,)
-            assert coords_w.shape == (W,)
+        coords_h = torch.arange(H, device=reference_boxes.device, dtype=reference_boxes.dtype) / H
+        coords_w = torch.arange(W, device=reference_boxes.device, dtype=reference_boxes.dtype) / W
 
         deltas_y = coords_h.view(1, -1, 1) - boxes_xyxy.reshape(-1, 1, 4)[:, :, 1:4:2]
         deltas_y = deltas_y.view(bs, num_queries, -1, 2)
@@ -378,17 +350,17 @@ class TransformerDecoder(nn.Module):
         self,
         tgt,
         memory,
-        tgt_mask: torch.Tensor = None,
-        memory_mask: torch.Tensor = None,
-        memory_key_padding_mask: torch.Tensor = None,
-        pos: torch.Tensor = None,
-        reference_boxes: torch.Tensor = None,  # num_queries, bs, 4
+        tgt_mask: torch.Tensor | None = None,
+        memory_mask: torch.Tensor | None = None,
+        memory_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
+        reference_boxes: torch.Tensor | None = None,  # num_queries, bs, 4
         # for memory
-        spatial_shapes: torch.Tensor = None,  # bs, num_levels, 2
-        valid_ratios: torch.Tensor = None,
+        spatial_shapes: list[tuple[int, int]] | None = None,  # height and width of each feature level
+        valid_ratios: torch.Tensor | None = None,
         # for text
-        memory_text: torch.Tensor = None,
-        text_attention_mask: torch.Tensor = None,
+        memory_text: torch.Tensor | None = None,
+        text_attention_mask: torch.Tensor | None = None,
         # if `apply_dac` is None, it will default to `self.dac`
         apply_dac: bool | None = None,
         is_instance_prompt=False,
@@ -398,7 +370,17 @@ class TransformerDecoder(nn.Module):
         obj_roi_memory_mask=None,
         box_head_trk=None,
     ):
-        """Forward pass of the TransformerDecoder."""
+        """Decode queries against image memory with iterative box refinement.
+
+        Returns:
+            intermediate (torch.Tensor): Normalized outputs of each layer with shape (num_layers, nq, bs, d_model).
+            intermediate_ref_boxes (torch.Tensor): Reference boxes in normalized (cx, cy, w, h) format used as input to
+                each layer, with shape (num_layers, nq, bs, 4).
+            intermediate_presence_logits (torch.Tensor | None): Presence logits of each layer with shape (num_layers, 1,
+                bs), or None if the presence token is disabled or is_instance_prompt is True.
+            presence_feats (torch.Tensor | None): Presence token features from the last layer with shape (1, bs,
+                d_model), or None.
+        """
         if memory_mask is not None:
             assert self.boxRPB == "none", (
                 "inputting a memory_mask in the presence of boxRPB is unexpected/not implemented"
@@ -462,11 +444,8 @@ class TransformerDecoder(nn.Module):
             query_pos = self.ref_point_head(query_sine_embed)  # nq, bs, d_model
 
             if self.boxRPB != "none" and reference_boxes is not None:
-                assert spatial_shapes.shape[0] == 1, "only single scale support implemented"
-                memory_mask = self._get_rpb_matrix(
-                    reference_boxes,
-                    (spatial_shapes[0, 0], spatial_shapes[0, 1]),
-                )
+                assert len(spatial_shapes) == 1, "only single scale support implemented"
+                memory_mask = self._get_rpb_matrix(reference_boxes, spatial_shapes[0])
                 memory_mask = memory_mask.flatten(0, 1)  # (bs*n_heads, nq, H*W)
             if self.training:
                 assert self.use_act_checkpoint, "Activation checkpointing not enabled in the decoder"
@@ -530,10 +509,6 @@ class TransformerDecoder(nn.Module):
 
                 intermediate_presence_logits.append(intermediate_layer_presence_logits)
                 presence_feats = presence_out.clone()
-
-        if not self.compiled and self.compile_mode is not None:
-            self.forward = torch.compile(self.forward, mode=self.compile_mode, fullgraph=True)
-            self.compiled = True
 
         return (
             torch.stack(intermediate),

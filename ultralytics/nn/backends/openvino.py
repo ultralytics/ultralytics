@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import os
 from functools import partial
 from pathlib import Path
 
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER
+from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -32,13 +33,18 @@ class OpenVINOBackend(BaseBackend):
         import openvino as ov
 
         core = ov.Core()
+        if WINDOWS:  # Avoid reduced-precision CPU kernel failures without restricting native FP32 instructions
+            core.set_property("CPU", {"INFERENCE_PRECISION_HINT": ov.Type.f32})
+            # Windows VMs that report AMX as enabled can still fault on AMX INT8 kernels (0xc000001d), see
+            # https://github.com/openvinotoolkit/openvino/issues/37076, so cap oneDNN just below AMX
+            os.environ.setdefault("ONEDNN_MAX_CPU_ISA", "AVX512_CORE_FP16")
         fallback_device = "CPU" if core.available_devices == ["CPU"] else "AUTO"
         device_name = fallback_device
 
         if isinstance(self.device, str) and self.device.startswith("intel"):
-            device_name = self.device.split(":")[1].upper()
+            device_name = self.device.partition(":")[2].upper() or fallback_device
             self.device = torch.device("cpu")
-            if not any(d == device_name or d.startswith(f"{device_name}.") for d in core.available_devices):
+            if not any(d == device_name or d.startswith(f"{device_name}.") for d in [*core.available_devices, "AUTO"]):
                 LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using '{fallback_device}' instead.")
                 device_name = fallback_device
 
@@ -47,21 +53,19 @@ class OpenVINOBackend(BaseBackend):
             w = next(w.glob("*.xml"))
 
         ov_model = core.read_model(model=str(w), weights=w.with_suffix(".bin"))
-        if ov_model.get_parameters()[0].get_layout().empty:
-            ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
         self.apply_metadata(self.read_metadata(w))
 
-        # OpenVINO CPU plugin segfaults running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
+        # OpenVINO CPU plugin crashes running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
         # newer), see https://github.com/openvinotoolkit/openvino/issues/37577, so run those as static models by
         # reshaping and recompiling per input shape in forward() instead
         cpuinfo = Path("/proc/cpuinfo")
         self.read_model = (
             partial(core.read_model, model=str(w), weights=w.with_suffix(".bin"))
-            if LINUX
-            and device_name in {"CPU", "AUTO"}
+            if device_name in {"CPU", "AUTO"}
             and ov_model.input().get_partial_shape().is_dynamic
             and any(op.get_type_name() == "FakeQuantize" for op in ov_model.get_ops())
+            and LINUX
             and cpuinfo.exists()
             and "amx_int8" in cpuinfo.read_text()
             else None
@@ -71,25 +75,29 @@ class OpenVINOBackend(BaseBackend):
 
         # Force sync inference because AsyncInferQueue can hang indefinitely on Intel and AMD CPUs, see
         # https://github.com/ultralytics/ultralytics/issues/25923.
-        self.inference_mode = "LATENCY"
-        config = {"PERFORMANCE_HINT": self.inference_mode}
+        config = {"PERFORMANCE_HINT": "LATENCY"}
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
-        if (
-            self.task == "classify"
-            and device_name.startswith("NPU")
-            and "NPU_TURBO" in core.get_property(device_name, "SUPPORTED_PROPERTIES")
-        ):
-            config["NPU_TURBO"] = "YES"
+        if device_name.startswith("NPU"):  # NPU is wrong at batch>1, so compile batch 1 and AutoBackend splits batches
+            shape = list(ov_model.input().partial_shape)
+            if self.metadata.get("dynamic"):  # NPU needs static shapes, so pin dynamic exports to imgsz
+                shape[2:] = self.imgsz
+                self.dynamic = self.metadata["dynamic"] = False  # and run them as fixed letterbox models
+            ov_model.reshape([1, *shape[1:]])
+            self.batch = 1
+            if self.task == "depth":  # drop the final upsample NPU gets wrong; depth predict/val resize to input size
+                up = ov_model.output().get_node().input_value(0).get_node()
+                ov_model = ov.Model([up.input_value(0)], ov_model.get_parameters())
+            if self.task == "classify" and "NPU_TURBO" in core.get_property(device_name, "SUPPORTED_PROPERTIES"):
+                config["NPU_TURBO"] = "YES"
 
         self.compile_model = partial(core.compile_model, device_name=device_name, config=config)
         self.ov_compiled_model = self.compile_model(ov_model)
         LOGGER.info(
-            f"Using OpenVINO {self.inference_mode} mode for batch={self.batch} inference on "
+            f"Using OpenVINO LATENCY mode for batch={self.batch} inference on "
             f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
         )
-        self.input_name = self.ov_compiled_model.input().get_any_name()
         self.ov = ov
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
@@ -109,25 +117,4 @@ class OpenVINOBackend(BaseBackend):
             ov_model.reshape(list(im.shape))
             self.ov_compiled_model = self.compile_model(ov_model)
 
-        if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:
-            # Async inference for larger batch sizes
-            n = im.shape[0]
-            results = [None] * n
-
-            def callback(request, userdata):
-                """Store async inference result in the preallocated results list at the given index."""
-                results[userdata] = request.results
-
-            async_queue = self.ov.AsyncInferQueue(self.ov_compiled_model)
-            async_queue.set_callback(callback)
-
-            for i in range(n):
-                async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)
-            async_queue.wait_all()
-
-            y = [list(r.values()) for r in results]
-            y = [np.concatenate(x) for x in zip(*y)]
-        else:
-            # Sync inference for LATENCY mode
-            y = list(self.ov_compiled_model(im).values())
-        return y
+        return list(self.ov_compiled_model(im).values())

@@ -26,12 +26,12 @@ class WorldValidator(DetectionValidator):
 
                 model = load_checkpoint(model or self.args.model, device=self.device)[0]
             model.eval().to(self.device)
-            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction, split=self.args.split)
             names = [name.split("/", 1)[0] for name in check_det_dataset(self.args.data)["names"].values()]
             current = model.names.values() if isinstance(model.names, dict) else model.names  # names may be a list
             if list(current) != names:  # regenerate prompts only if class order differs from dataset
                 state = (model.names, model.txt_feats, model.model[-1].nc)  # restore after to avoid leak to caller
-                model.set_classes(names, cache_clip_model=False)
+                model.set_classes(names)
                 model.names = dict(enumerate(names))  # set_classes updates embeddings/nc but not names
                 try:
                     return super().__call__(trainer, model)

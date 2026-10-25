@@ -16,6 +16,8 @@ keywords: model benchmarking, YOLO26, Ultralytics, performance evaluation, expor
 
 Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLO26 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary speed benchmarks.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/UF7pYdLSMng"
@@ -36,7 +38,9 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 ### Key Metrics in Benchmark Mode
 
-- **mAP50-95:** For [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and pose estimation.
+- **mAP50-95:** For [object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, pose estimation, and OBB.
+- **mIoU:** For semantic segmentation.
+- **delta1:** For depth estimation.
 - **accuracy_top1:** For [image classification](https://www.ultralytics.com/glossary/image-classification).
 - **Inference Time:** Time taken for each image in milliseconds.
 
@@ -96,15 +100,15 @@ Arguments such as `model`, `data`, `imgsz`, `quantize`, `device`, `verbose` and 
 | `model`    | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo26n.pt"` for pretrained models or configuration files.                                                                                                                                                                                                                                                                                                                                                                        |
 | `data`     | `None`        | Path to the dataset YAML for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. Classification instead takes a dataset directory or a built-in dataset name (e.g., `imagenet10`).                                                                                                                                                                                                                               |
 | `imgsz`    | `640`         | The input image size for the model. Must be a single integer for square images (e.g., `640`); `benchmark()` only supports square image sizes.                                                                                                                                                                                                                                                                                                                                                                           |
-| `quantize` | `None`        | Requested precision: `16` (FP16) or `8` (INT8; PTQ schemes need calibration `data`/`fraction`, weight-only ones do not); `32`/unset is FP32 where the format supports it — a format that cannot export FP32 rejects an explicit `32` or falls back to the precision it requires. The native PyTorch row is not exported: only `16` affects it, selecting FP16 inference, while `8`, `32` and unset run FP32. Each format then runs inference at its own runtime precision. Replaces the deprecated `half`/`int8` flags. |
-| `device`   | `'cpu'`       | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `verbose`  | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `quantize` | `None`        | Requested precision: `16` (FP16) or `8` (INT8; PTQ schemes need calibration `data`/`fraction`, weight-only ones do not); `32`/unset is FP32 where the format supports it — a format that cannot export FP32 rejects an explicit `32` or falls back to the precision it requires. The native PyTorch row is not exported: only `16` affects it, selecting FP16 inference off CPU; otherwise, it runs in FP32. Each format then runs inference at its own runtime precision. Replaces the deprecated `half`/`int8` flags. |
+| `device`   | `None`        | Defines the computation device for benchmarking, such as `"cpu"` or `"cuda:0"`; unset uses the first available GPU, else CPU.                                                                                                                                                                                                                                                                                                                                                                                           |
+| `verbose`  | `False`       | If `True` or a float, benchmark failures (other than assertions) raise instead of logging an error; a float such as `0.25` also asserts every successful format's metric exceeds that floor.                                                                                                                                                                                                                                                                                                                            |
 | `eps`      | `0.001`       | Small epsilon (milliseconds) added to the per-image inference time before converting it to FPS, preventing division by zero. Rarely changed.                                                                                                                                                                                                                                                                                                                                                                            |
 | `format`   | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                                                                                                                                                                                                                                                                                                                                         |
 
 !!! note "Standalone `benchmark()` function defaults"
 
-    The standalone `benchmark()` function (`from ultralytics.utils.benchmarks import benchmark`) uses its own signature defaults instead of the table values above, notably `model="yolo26n.pt"` and `imgsz=160`; pass `imgsz` explicitly to match the `yolo benchmark` CLI.
+    The standalone `benchmark()` function (`from ultralytics.utils.benchmarks import benchmark`) uses its own signature defaults instead of the table values above, notably `model="yolo26n.pt"`, `imgsz=160`, and `device="cpu"`; pass `imgsz` and `device` explicitly to match the `yolo benchmark` CLI.
 
 ## Export Formats
 
@@ -147,7 +151,7 @@ Exporting YOLO26 models to different formats such as [ONNX](../integrations/onnx
 - **TensorRT:** Offers up to 5x GPU speedup.
 - **OpenVINO:** Specifically optimized for Intel hardware.
 
-These formats enhance both the speed and accuracy of your models, making them more efficient for various real-world applications. Visit the [Export](../modes/export.md) page for complete details.
+These formats improve inference speed on their target hardware, making your models more efficient for various real-world applications. Visit the [Export](../modes/export.md) page for complete details.
 
 ### Why is benchmarking crucial in evaluating YOLO26 models?
 
@@ -178,8 +182,8 @@ When running benchmarks, several arguments can be customized to suit specific ne
 - **model:** Path to the model file (e.g., "yolo26n.pt").
 - **data:** Path to the dataset YAML (e.g., `"coco8.yaml"`); classification instead takes a dataset directory or a built-in dataset name (e.g., `imagenet10`).
 - **imgsz:** The square input image size as a single integer, such as `640`. Benchmark mode uses the same square image size across PyTorch and exported formats for fair comparison.
-- **quantize:** Requested precision: `16` for FP16, `8` for INT8 (useful for edge devices); `32`/unset is FP32 where the format supports it — a format that cannot export FP32 rejects an explicit `32` or falls back to the precision it requires. The native PyTorch row is not exported: only `16` affects it, selecting FP16 inference, while `8`, `32` and unset run FP32. Each format then runs inference at its own runtime precision.
+- **quantize:** Requested precision: `16` for FP16, `8` for INT8 (useful for edge devices); `32`/unset is FP32 where the format supports it — a format that cannot export FP32 rejects an explicit `32` or falls back to the precision it requires. The native PyTorch row is not exported: only `16` affects it, selecting FP16 inference off CPU; otherwise, it runs in FP32. Each format then runs inference at its own runtime precision.
 - **device:** Specify the computation device (e.g., "cpu", "cuda:0").
-- **verbose:** Control the level of logging detail.
+- **verbose:** Raise on benchmark failures instead of logging them; pass a float to also require each format's metric to exceed that floor.
 
 For a full list of arguments, refer to the [Arguments](#arguments) section.

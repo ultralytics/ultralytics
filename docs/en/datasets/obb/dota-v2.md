@@ -93,7 +93,7 @@ Use the YAML that matches the release you downloaded, or author a custom YAML if
 
 ## Split DOTA images
 
-The raw imagery routinely exceeds 10,000 pixels on a side, so tiling is required before feeding the data to YOLO. Use the helper below to slice the source imagery into overlapping 1024 × 1024 crops at multiple scales while keeping the annotations in sync.
+The raw imagery routinely exceeds 10,000 pixels on a side, so tiling is recommended before feeding the data to YOLO. Use the helper below to slice the source imagery into overlapping 1024 × 1024 crops at multiple scales while keeping the annotations in sync.
 
 !!! example "Split images"
 
@@ -137,8 +137,8 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLO26n-OBB model from scratch
-        model = YOLO("yolo26n-obb.yaml")
+        # Load a pretrained YOLO26n-OBB model
+        model = YOLO("yolo26n-obb.pt")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -147,7 +147,7 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
     === "CLI"
 
         ```bash
-        # Train a new YOLO26n-OBB model on the DOTAv1 dataset
+        # Train a pretrained YOLO26n-OBB model on the DOTAv1 dataset
         yolo obb train data=DOTAv1.yaml model=yolo26n-obb.pt epochs=100 imgsz=1024
         ```
 
@@ -155,7 +155,7 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
 
 Having a glance at the dataset illustrates its depth:
 
-![DOTA dataset  with oriented bounding box annotations](https://cdn.ul.run/i/088eb7273a274b58c389da29578dfe28.avif)
+![DOTA dataset with oriented bounding box annotations](https://cdn.ul.run/i/088eb7273a274b58c389da29578dfe28.avif)
 
 - **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) annotations, capturing objects in their natural orientation.
 
@@ -165,7 +165,7 @@ The dataset's richness offers invaluable insights into object detection challeng
 
 If you use DOTA in your work, please cite the relevant research papers:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -205,8 +205,8 @@ To train a model on the DOTA dataset, you can use the following example with [Ul
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLO26n-OBB model from scratch
-        model = YOLO("yolo26n-obb.yaml")
+        # Load a pretrained YOLO26n-OBB model
+        model = YOLO("yolo26n-obb.pt")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -215,7 +215,7 @@ To train a model on the DOTA dataset, you can use the following example with [Ul
     === "CLI"
 
         ```bash
-        # Train a new YOLO26n-OBB model on the DOTAv1 dataset
+        # Train a pretrained YOLO26n-OBB model on the DOTAv1 dataset
         yolo obb train data=DOTAv1.yaml model=yolo26n-obb.pt epochs=100 imgsz=1024
         ```
 

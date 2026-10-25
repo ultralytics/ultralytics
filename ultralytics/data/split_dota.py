@@ -15,6 +15,7 @@ from PIL import Image
 from ultralytics.data.utils import exif_size, img2label_paths
 from ultralytics.utils import TQDM
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.patches import imread_unicode
 
 
 def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.ndarray:
@@ -91,17 +92,18 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
     annos = []
     for im_file, lb_file in zip(im_files, lb_files):
         w, h = exif_size(Image.open(im_file))
-        with open(lb_file, encoding="utf-8") as f:
-            lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-            lb = np.array(lb, dtype=np.float32)
-        annos.append({"ori_size": (h, w), "label": lb, "filepath": im_file})
+        lb = []  # an image without a label file is a background image
+        if Path(lb_file).is_file():
+            with open(lb_file, encoding="utf-8") as f:
+                lb = [x.split() for x in f.read().strip().splitlines() if x.strip()]
+        annos.append({"ori_size": (h, w), "label": np.array(lb, dtype=np.float32), "filepath": im_file})
     return annos
 
 
 def get_windows(
     im_size: tuple[int, int],
-    crop_sizes: tuple[int, ...] = (1024,),
-    gaps: tuple[int, ...] = (200,),
+    crop_sizes: tuple[int, ...] | list[int] = (1024,),
+    gaps: tuple[int, ...] | list[int] = (200,),
     im_rate_thr: float = 0.6,
     eps: float = 0.01,
 ) -> np.ndarray:
@@ -109,8 +111,8 @@ def get_windows(
 
     Args:
         im_size (tuple[int, int]): Original image size, (H, W).
-        crop_sizes (tuple[int, ...], optional): Crop size of windows.
-        gaps (tuple[int, ...], optional): Gap between crops.
+        crop_sizes (tuple[int, ...] | list[int], optional): Crop size of windows.
+        gaps (tuple[int, ...] | list[int], optional): Gap between crops.
         im_rate_thr (float, optional): Threshold for the ratio of image area within a window to the total window area.
         eps (float, optional): Epsilon value for math operations.
 
@@ -151,7 +153,17 @@ def get_windows(
 
 
 def get_window_obj(anno: dict[str, Any], windows: np.ndarray, iof_thr: float = 0.7) -> list[np.ndarray]:
-    """Get objects for each window based on IoF threshold."""
+    """Get objects for each window based on IoF threshold.
+
+    Args:
+        anno (dict[str, Any]): Annotation dict with 'ori_size' (H, W) and 'label' (N, 9) keys, where each label row is
+            [cls, x1, y1, x2, y2, x3, y3, x4, y4] in normalized coordinates. The labels are denormalized in place.
+        windows (np.ndarray): Array of window coordinates with shape (M, 4) as [x_start, y_start, x_stop, y_stop].
+        iof_thr (float, optional): IoF threshold at or above which an object is assigned to a window.
+
+    Returns:
+        (list[np.ndarray]): List of M label arrays, one per window, with pixel coordinates in the original image.
+    """
     h, w = anno["ori_size"]
     label = anno["label"]
     if len(label):
@@ -192,7 +204,7 @@ def crop_and_save(
                     - train
                     - val
     """
-    im = cv2.imread(anno["filepath"])
+    im = imread_unicode(anno["filepath"])
     name = Path(anno["filepath"]).stem
     for i, window in enumerate(windows):
         x_start, y_start, x_stop, y_stop = window.tolist()
@@ -219,8 +231,8 @@ def split_images_and_labels(
     data_root: str,
     save_dir: str,
     split: str = "train",
-    crop_sizes: tuple[int, ...] = (1024,),
-    gaps: tuple[int, ...] = (200,),
+    crop_sizes: tuple[int, ...] | list[int] = (1024,),
+    gaps: tuple[int, ...] | list[int] = (200,),
 ) -> None:
     """Split both images and labels for a given dataset split.
 
@@ -228,8 +240,8 @@ def split_images_and_labels(
         data_root (str): Root directory of the dataset.
         save_dir (str): Directory to save the split dataset.
         split (str, optional): The split data set, could be 'train' or 'val'.
-        crop_sizes (tuple[int, ...], optional): Tuple of crop sizes.
-        gaps (tuple[int, ...], optional): Tuple of gaps between crops.
+        crop_sizes (tuple[int, ...] | list[int], optional): Crop sizes.
+        gaps (tuple[int, ...] | list[int], optional): Gaps between crops.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -328,9 +340,8 @@ def split_test(
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(im_dir / "*"))
     for im_file in TQDM(im_files, total=len(im_files), desc="test"):
-        w, h = exif_size(Image.open(im_file))
-        windows = get_windows((h, w), crop_sizes=crop_sizes, gaps=gaps)
-        im = cv2.imread(im_file)
+        im = imread_unicode(im_file)
+        windows = get_windows(im.shape[:2], crop_sizes=crop_sizes, gaps=gaps)
         name = Path(im_file).stem
         for window in windows:
             x_start, y_start, x_stop, y_stop = window.tolist()

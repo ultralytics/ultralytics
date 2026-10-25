@@ -23,8 +23,8 @@ class BOTrack(STrack):
 
     Attributes:
         shared_kalman (KalmanFilterXYWH): A shared Kalman filter for all instances of BOTrack.
-        smooth_feat (np.ndarray): Smoothed feature vector.
-        curr_feat (np.ndarray): Current feature vector.
+        smooth_feat (np.ndarray | None): Smoothed feature vector.
+        curr_feat (np.ndarray | None): Current feature vector.
         alpha (float): Smoothing factor for the exponential moving average of features.
         mean (np.ndarray): The mean state of the Kalman filter.
         covariance (np.ndarray): The covariance matrix of the Kalman filter.
@@ -139,8 +139,8 @@ class BOTSORT(BYTETracker):
         proximity_thresh (float): Threshold for spatial proximity (IoU) between tracks and detections.
         appearance_thresh (float): Threshold for appearance similarity (ReID embeddings) between tracks and detections.
         encoder (Any): Object to handle ReID embeddings, set to None if ReID is not enabled.
-        gmc (GMC): An instance of the GMC algorithm for data association.
-        args (Any): Parsed command-line arguments containing tracking parameters.
+        gmc (GMC): An instance of the GMC algorithm for camera motion compensation.
+        args (Any): Parsed tracker configuration containing tracking parameters.
 
     Methods:
         get_kalmanfilter: Return an instance of KalmanFilterXYWH for object tracking.
@@ -151,19 +151,26 @@ class BOTSORT(BYTETracker):
 
     Examples:
         Initialize BOTSORT and process detections
+        >>> from ultralytics import YOLO
+        >>> from ultralytics.utils import YAML, IterableSimpleNamespace
+        >>> from ultralytics.utils.checks import check_yaml
+        >>> args = IterableSimpleNamespace(**YAML.load(check_yaml("botsort.yaml")))
         >>> bot_sort = BOTSORT(args)
-        >>> bot_sort.init_track(results, img)
-        >>> bot_sort.multi_predict(tracks)
+        >>> result = YOLO("yolo26n.pt")("https://ultralytics.com/images/bus.jpg")[0]
+        >>> tracked_objects = bot_sort.update(result.boxes.cpu().numpy(), result.orig_img)
 
     Notes:
-        The class is designed to work with a YOLO object detection model and supports ReID only if enabled via args.
+        The class is designed to work with a YOLO object detection model and supports ReID only if enabled via
+        `with_reid`. With `model="auto"`, ReID features are taken from the detector's own features instead of an
+        external encoder.
     """
 
     def __init__(self, args: Any):
         """Initialize BOTSORT object with ReID module and GMC algorithm.
 
         Args:
-            args (Any): Parsed command-line arguments containing tracking parameters.
+            args (Any): Parsed tracker configuration providing the BYTETracker keys plus `gmc_method`,
+                `proximity_thresh`, `appearance_thresh`, `with_reid`, and `model`.
         """
         super().__init__(args)
         self.gmc = GMC(method=args.gmc_method)
@@ -171,7 +178,7 @@ class BOTSORT(BYTETracker):
         # ReID module
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
-        self.encoder = build_encoder(args.with_reid, args.model, getattr(args, "device", None))
+        self.encoder = build_encoder(args.with_reid, getattr(args, "model", "auto"), getattr(args, "device", None))
 
     def get_kalmanfilter(self) -> KalmanFilterXYWH:
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""

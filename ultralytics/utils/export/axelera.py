@@ -17,9 +17,9 @@ import torch
 from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_requirements
 
-AXELERA_SDK = "1.8.0"
+AXELERA_SDK = "1.9.0"
 
-# Axelera exports mutate process-global state (the PROTOCOL_BUFFERS env var below, plus any working-directory
+# Axelera exports mutate process-global state (the PROTOCOL_BUFFERS and PATH env vars below, plus any working-directory
 # files the compiler emits), so a module-level lock serializes concurrent in-process exports. Cross-process
 # Platform workers each hold their own lock and never contend.
 _AXELERA_EXPORT_LOCK = threading.Lock()
@@ -63,7 +63,6 @@ def torch2axelera(
                 cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
             ):
                 raise ModuleNotFoundError(f"Axelera export requires axelera-devkit=={AXELERA_SDK}.")
-            check_requirements("omnimalloc==0.5.0")
             from axelera import compiler
             from axelera.compiler import CompilerConfig
             from axelera.compiler.config.model_specific import extract_ultralytics_metadata

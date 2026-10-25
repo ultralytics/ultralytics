@@ -22,7 +22,9 @@ OKS_SIGMA = (
     )
     / 10.0
 )
-RLE_WEIGHT = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5])
+RLE_WEIGHT = np.array(
+    [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5], dtype=np.float32
+)
 CITYSCAPES_WEIGHT = np.array(
     [
         0.8373,
@@ -58,7 +60,8 @@ def bbox_ioa(box1: np.ndarray, box2: np.ndarray, iou: bool = False, eps: float =
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
-        (np.ndarray): A numpy array of shape (N, M) representing the intersection over box2 area.
+        (np.ndarray): A numpy array of shape (N, M) representing the intersection over box2 area, or the IoU if
+            iou=True.
     """
     # Get the coordinates of bounding boxes
     b1_x1, b1_y1, b1_x2, b1_y2 = box1.T
@@ -94,12 +97,12 @@ def box_iou(box1: torch.Tensor, box2: torch.Tensor, eps: float = 1e-7) -> torch.
         https://github.com/pytorch/vision/blob/main/torchvision/ops/boxes.py
     """
     # NOTE: Need .float() to get accurate iou values
-    # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
     (a1, a2), (b1, b2) = box1.float().unsqueeze(1).chunk(2, 2), box2.float().unsqueeze(0).chunk(2, 2)
-    inter = (torch.min(a2, b2) - torch.max(a1, b1)).clamp_(0).prod(2)
+    wh, wh1, wh2 = (torch.min(a2, b2) - torch.max(a1, b1)).clamp_(0), a2 - a1, b2 - b1
+    inter = wh[..., 0] * wh[..., 1]  # slice products, not prod(2): MPS compiles a reduction graph per input shape
 
     # IoU = inter / (area1 + area2 - inter)
-    return inter / ((a2 - a1).prod(2) + (b2 - b1).prod(2) - inter + eps)
+    return inter / (wh1[..., 0] * wh1[..., 1] + wh2[..., 0] * wh2[..., 1] - inter + eps)
 
 
 def bbox_iou(
@@ -163,7 +166,7 @@ def bbox_iou(
             if CIoU:  # https://github.com/Zzh-tju/DIoU-SSD-pytorch/blob/master/utils/box/box_utils.py#L47
                 v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
                 with torch.no_grad():
-                    alpha = v / (v - iou + (1 + eps))
+                    alpha = v / (1 - iou + v + eps)
                 return iou - (rho2 / c2 + v * alpha)  # CIoU
             return iou - rho2 / c2  # DIoU
         c_area = cw * ch + eps  # convex area
@@ -241,12 +244,12 @@ def probiou(
     Args:
         obb1 (torch.Tensor): Ground truth OBBs, shape (N, 5), format xywhr.
         obb2 (torch.Tensor): Predicted OBBs, shape (N, 5), format xywhr.
-        CIoU (bool, optional): If True, calculate CIoU.
+        CIoU (bool, optional): If True, subtract the CIoU aspect-ratio penalty term.
         eps (float, optional): Small value to avoid division by zero.
         floor (float, optional): Small value passed to `_get_covariance_matrix` to bound gradients for sub-stride boxes.
 
     Returns:
-        (torch.Tensor): OBB similarities, shape (N,).
+        (torch.Tensor): Element-wise OBB similarities, shape (N, 1).
 
     Notes:
         OBB format: [center_x, center_y, width, height, rotation_angle].
@@ -337,8 +340,9 @@ class ConfusionMatrix(DataExportMixin):
     """A class for calculating and updating a confusion matrix for object detection and classification tasks.
 
     Attributes:
-        task (str): The type of task, one of 'detect', 'classify', 'semantic', or 'obb'.
-        matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
+        task (str): The type of task, one of 'detect', 'semantic', 'classify', or 'obb'.
+        matrix (np.ndarray): The confusion matrix indexed as [predicted, true], of shape (nc, nc) for 'semantic' and
+            'classify' or (nc + 1, nc + 1) with a trailing background row and column otherwise.
         nc (int): The number of classes.
         names (dict[int, str]): The names of the classes, used as labels on the plot.
         matches (dict | None): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
@@ -349,7 +353,7 @@ class ConfusionMatrix(DataExportMixin):
 
         Args:
             names (dict[int, str], optional): Names of classes, used as labels on the plot.
-            task (str, optional): Type of task, one of 'detect', 'classify', 'semantic', or 'obb'.
+            task (str, optional): Type of task, one of 'detect', 'semantic', 'classify', or 'obb'.
             save_matches (bool, optional): Save the indices of GTs, TPs, FPs, FNs for visualization.
         """
         names = names if names is not None else {}
@@ -392,8 +396,9 @@ class ConfusionMatrix(DataExportMixin):
         """Update confusion matrix for classification task.
 
         Args:
-            preds (list[torch.Tensor]): Predicted class labels.
-            targets (list[torch.Tensor]): Ground truth class labels.
+            preds (list[torch.Tensor]): Predicted class indices, each of shape (N, k) sorted by confidence; only the
+                top-1 column is used.
+            targets (list[torch.Tensor]): Ground truth class indices, each of shape (N,).
         """
         preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
@@ -415,7 +420,13 @@ class ConfusionMatrix(DataExportMixin):
             batch (dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M,
                 5]) and 'cls' (Array[M]) keys, where M is the number of ground truth objects.
             conf (float, optional): Confidence threshold for detections.
-            iou_thres (float, optional): IoU threshold for matching detections to ground truth.
+            iou_thres (float, optional): IoU threshold for matching detections to ground truth. This is a matching
+                threshold, not the NMS `iou` argument, and the detection validator uses this 0.45 default.
+
+        Notes:
+            Matching is greedy and one-to-one: each detection claims its best unclaimed ground truth above
+            `iou_thres` in descending confidence order, the same policy the detection validator applies, but
+            class-agnostic so cross-class confusions are still counted.
         """
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         if self.matches is not None:  # only if visualization is enabled
@@ -445,22 +456,15 @@ class ConfusionMatrix(DataExportMixin):
         bboxes = detections["bboxes"]
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 
-        x = torch.where(iou > iou_thres)
-        if x[0].shape[0]:
-            matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()
-            if x[0].shape[0] > 1:
-                matches = matches[matches[:, 2].argsort()[::-1]]
-                matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                matches = matches[matches[:, 2].argsort()[::-1]]
-                matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-        else:
-            matches = np.zeros((0, 3))
-
-        m0, m1, _ = matches.transpose().astype(int)
-        # matches is deduplicated on both columns, so each gt and each detection appears at most once
+        iou = iou.cpu().numpy()
         gt_match = np.full(len(gt_classes), -1)
-        gt_match[m0] = m1
-        matched_det = set(m1.tolist())
+        candidates = np.flatnonzero((iou > iou_thres).any(0))
+        for det_idx in candidates[np.argsort(-detections["conf"].cpu().numpy()[candidates], kind="stable")]:
+            gt_idx = iou[:, det_idx].argmax()
+            if iou[gt_idx, det_idx] > iou_thres:
+                gt_match[gt_idx] = det_idx
+                iou[gt_idx] = 0
+        matched_det = set(gt_match[gt_match >= 0].tolist())
         for i, gc in enumerate(gt_classes):
             if (di := gt_match[i].item()) >= 0:
                 dc = detection_classes[di]
@@ -536,12 +540,12 @@ class ConfusionMatrix(DataExportMixin):
 
     @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()
-    def plot(self, normalize: bool = True, save_dir: str = "", on_plot=None):
+    def plot(self, normalize: bool = True, save_dir: str | Path = "", on_plot=None):
         """Plot the confusion matrix using matplotlib and save it to a file.
 
         Args:
             normalize (bool, optional): Whether to normalize the confusion matrix.
-            save_dir (str, optional): Directory where the plot will be saved.
+            save_dir (str | Path, optional): Directory where the plot will be saved.
             on_plot (callable, optional): An optional callback to pass plots path and data when they are rendered.
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
@@ -553,10 +557,10 @@ class ConfusionMatrix(DataExportMixin):
         names, n = list(self.names.values()), self.nc
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1
-            keep_idx = slice(None, None, k)  # create slice instead of array
-            names = names[keep_idx]  # slice class names
-            array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
-            n = (self.nc + k - 1) // k  # number of retained classes
+            keep_idx = np.r_[0 : self.nc : k, self.nc : len(array)]  # every k-th class plus any background row/col
+            names = names[::k]  # slice class names
+            array = array[np.ix_(keep_idx, keep_idx)]  # slice matrix rows and cols
+            n = len(names)  # number of retained classes
         nc = n if self.task in {"classify", "semantic"} else n + 1  # adjust for background if needed
         ticklabels = "auto"
         if 0 < nc < 99:
@@ -615,9 +619,10 @@ class ConfusionMatrix(DataExportMixin):
             LOGGER.info(" ".join(map(str, self.matrix[i])))
 
     def summary(self, normalize: bool = False, decimals: int = 5) -> list[dict[str, float]]:
-        """Generate a summarized representation of the confusion matrix as a list of dictionaries, with optional
-        normalization. This is useful for exporting the matrix to various formats such as CSV, XML, HTML, JSON,
-        or SQL.
+        """Generate a summarized representation of the confusion matrix as a list of dictionaries.
+
+        Values are optionally normalized per true class. This is useful for exporting the matrix to various formats
+        such as CSV, XML, HTML, JSON, or SQL.
 
         Args:
             normalize (bool): Whether to normalize the confusion matrix values.
@@ -628,6 +633,8 @@ class ConfusionMatrix(DataExportMixin):
                 values for all actual classes.
 
         Examples:
+            >>> from ultralytics import YOLO
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model.val(data="coco8.yaml", plots=True)
             >>> cm_dict = results.confusion_matrix.summary(normalize=True, decimals=5)
             >>> print(cm_dict)
@@ -657,7 +664,7 @@ class ConfusionMatrix(DataExportMixin):
 
 
 def smooth(y: np.ndarray, f: float = 0.05) -> np.ndarray:
-    """Box filter of fraction f."""
+    """Smooth a 1D array with a box filter whose width is fraction f of its length."""
     nf = round(len(y) * f * 2) // 2 + 1  # number of filter elements (must be odd)
     p = np.ones(nf // 2)  # ones padding
     yp = np.concatenate((p * y[0], y, p * y[-1]), 0)  # y padded
@@ -676,9 +683,9 @@ def plot_pr_curve(
     """Plot precision-recall curve.
 
     Args:
-        px (np.ndarray): X values for the PR curve.
-        py (np.ndarray): Y values for the PR curve.
-        ap (np.ndarray): Average precision values.
+        px (np.ndarray): Recall values (x-axis) for the PR curve, shape (1000,).
+        py (np.ndarray): Precision values for each class, shape (nc, 1000).
+        ap (np.ndarray): Average precision values, shape (nc, 10); the first column (mAP@0.5) is shown.
         save_dir (Path, optional): Path to save the plot.
         names (dict[int, str], optional): Dictionary mapping class indices to class names.
         on_plot (callable, optional): Function to call after plot is saved.
@@ -723,8 +730,8 @@ def plot_mc_curve(
     """Plot metric-confidence curve.
 
     Args:
-        px (np.ndarray): X values for the metric-confidence curve.
-        py (np.ndarray): Y values for the metric-confidence curve.
+        px (np.ndarray): Confidence values (x-axis) for the metric-confidence curve, shape (1000,).
+        py (np.ndarray): Metric values for each class, shape (nc, 1000).
         save_dir (Path, optional): Path to save the plot.
         names (dict[int, str], optional): Dictionary mapping class indices to class names.
         xlabel (str, optional): X-axis label.
@@ -757,6 +764,10 @@ def plot_mc_curve(
         on_plot(save_dir, {"type": f"{ylabel.lower()}_curve", "x": px.tolist(), "y": py.tolist()})
 
 
+_AP_X = np.linspace(0, 1, 101)  # 101-point interp (COCO), constant across compute_ap calls
+_TRAPZ = np.trapezoid if checks.check_version(np.__version__, ">=2.0") else np.trapz  # np.trapz deprecated
+
+
 def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.ndarray, np.ndarray]:
     """Compute the average precision (AP) given the recall and precision curves.
 
@@ -776,15 +787,7 @@ def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.n
     # Compute the precision envelope
     mpre = np.flip(np.maximum.accumulate(np.flip(mpre)))
 
-    # Integrate area under curve
-    method = "interp"  # methods: 'continuous', 'interp'
-    if method == "interp":
-        x = np.linspace(0, 1, 101)  # 101-point interp (COCO)
-        func = np.trapezoid if checks.check_version(np.__version__, ">=2.0") else np.trapz  # np.trapz deprecated
-        ap = func(np.interp(x, mrec, mpre), x)  # integrate
-    else:  # 'continuous'
-        i = np.where(mrec[1:] != mrec[:-1])[0]  # points where x-axis (recall) changes
-        ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])  # area under curve
+    ap = _TRAPZ(np.interp(_AP_X, mrec, mpre), _AP_X)  # 101-point interpolation (COCO)
 
     return ap, mpre, mrec
 
@@ -804,7 +807,7 @@ def ap_per_class(
     """Compute the average precision per class for object detection evaluation.
 
     Args:
-        tp (np.ndarray): Binary array indicating whether the detection is correct (True) or not (False).
+        tp (np.ndarray): Binary (N, 10) array marking whether each detection is correct at IoU thresholds 0.5:0.95.
         conf (np.ndarray): Array of confidence scores of the detections.
         pred_cls (np.ndarray): Array of predicted classes of the detections.
         target_cls (np.ndarray): Array of true classes of the targets.
@@ -816,27 +819,27 @@ def ap_per_class(
         prefix (str, optional): A prefix string for saving the plot files.
 
     Returns:
-        tp (np.ndarray): True positive counts at threshold given by max F1 metric for each class.
-        fp (np.ndarray): False positive counts at threshold given by max F1 metric for each class.
-        p (np.ndarray): Precision values at threshold given by max F1 metric for each class.
-        r (np.ndarray): Recall values at threshold given by max F1 metric for each class.
-        f1 (np.ndarray): F1-score values at threshold given by max F1 metric for each class.
-        ap (np.ndarray): Average precision for each class at different IoU thresholds.
-        unique_classes (np.ndarray): An array of unique classes that have data.
-        p_curve (np.ndarray): Precision curves for each class.
-        r_curve (np.ndarray): Recall curves for each class.
-        f1_curve (np.ndarray): F1-score curves for each class.
-        x (np.ndarray): X-axis values for the curves.
-        prec_values (np.ndarray): Precision values at mAP@0.5 for each class.
+        tp (np.ndarray): True positive counts for each class at the confidence threshold that maximizes the mean F1.
+        fp (np.ndarray): False positive counts for each class at the confidence threshold that maximizes the mean F1.
+        p (np.ndarray): Precision values for each class at the confidence threshold that maximizes the mean F1.
+        r (np.ndarray): Recall values for each class at the confidence threshold that maximizes the mean F1.
+        f1 (np.ndarray): F1-score values for each class at the confidence threshold that maximizes the mean F1.
+        ap (np.ndarray): Average precision for each class at the 10 IoU thresholds, shape (nc, 10).
+        unique_classes (np.ndarray): An array of unique classes present in target_cls.
+        p_curve (np.ndarray): Precision-confidence curves for each class, shape (nc, 1000).
+        r_curve (np.ndarray): Recall-confidence curves for each class, shape (nc, 1000).
+        f1_curve (np.ndarray): F1-confidence curves for each class, shape (nc, 1000).
+        x (np.ndarray): X-axis values for the curves, shape (1000,).
+        prec_values (np.ndarray): Precision at each x recall value at IoU 0.5 for each class, shape (nc, 1000).
     """
     names = names if names is not None else {}
-    # Sort by objectness
+    # Sort by confidence
     i = np.argsort(-conf)
     tp, conf, pred_cls = tp[i], conf[i], pred_cls[i]
 
     # Find unique classes
     unique_classes, nt = np.unique(target_cls, return_counts=True)
-    nc = unique_classes.shape[0]  # number of classes, number of detections
+    nc = unique_classes.shape[0]  # number of classes with labels
 
     # Create Precision-Recall curve and compute AP for each class
     x, prec_values = np.linspace(0, 1, 1000), []
@@ -874,13 +877,13 @@ def ap_per_class(
     # Compute F1 (harmonic mean of precision and recall)
     f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + eps)
     names = {i: names[k] for i, k in enumerate(unique_classes) if k in names}  # dict: only classes that have data
-    if plot:
+    if plot and nc:
         plot_pr_curve(x, prec_values, ap, save_dir / f"{prefix}PR_curve.png", names, on_plot=on_plot)
         plot_mc_curve(x, f1_curve, save_dir / f"{prefix}F1_curve.png", names, ylabel="F1", on_plot=on_plot)
         plot_mc_curve(x, p_curve, save_dir / f"{prefix}P_curve.png", names, ylabel="Precision", on_plot=on_plot)
         plot_mc_curve(x, r_curve, save_dir / f"{prefix}R_curve.png", names, ylabel="Recall", on_plot=on_plot)
 
-    i = smooth(f1_curve.mean(0), 0.1).argmax()  # max F1 index
+    i = smooth(f1_curve.mean(0), 0.1).argmax() if nc else 0  # max F1 index
     p, r, f1 = p_curve[:, i], r_curve[:, i], f1_curve[:, i]  # max-F1 precision, recall, F1 values
     tp = (r * nt).round()  # true positives
     fp = (tp / (p + eps) - tp).round()  # false positives
@@ -897,6 +900,7 @@ class Metric(SimpleClass):
         all_ap (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
         ap_class_index (list): Index of class for each AP score. Shape: (nc,).
         nc (int): Number of classes.
+        image_metrics (dict[str, dict]): Per-image precision, recall, F1, TP, FP, and FN keyed by image name.
 
     Methods:
         ap50: AP at IoU threshold of 0.5 for all classes.
@@ -1101,15 +1105,15 @@ class DetMetrics(SimpleClass, DataExportMixin):
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
             target classes, and target images.
-        nt_per_class: Number of targets per class.
-        nt_per_image: Number of targets per image.
+        nt_per_class (np.ndarray): Number of targets per class.
+        nt_per_image (np.ndarray): Number of images containing each class.
 
     Methods:
         update_stats: Update statistics by appending new values to existing stat collections.
         process: Process predicted results for object detection and update metrics.
         clear_stats: Clear the stored statistics.
         keys: Return a list of keys for accessing specific metrics.
-        mean_results: Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95.
+        mean_results: Return mean precision, recall, mAP50, and mAP50-95.
         class_result: Return the result of evaluating the performance of an object detection model on a specific class.
         maps: Return mean Average Precision (mAP) scores per class.
         fitness: Return the fitness of box object.
@@ -1138,7 +1142,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
         Args:
             stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
-                keys in self.stats.
+                keys in self.stats, plus 'im_name' for per-image metrics.
         """
         for k in self.stats:
             self.stats[k].append(stat[k])
@@ -1190,7 +1194,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
 
     def mean_results(self) -> list[float]:
-        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
+        """Return mean precision, recall, mAP50, and mAP50-95."""
         return self.box.mean_results()
 
     def class_result(self, i: int) -> tuple[float, float, float, float]:
@@ -1230,8 +1234,10 @@ class DetMetrics(SimpleClass, DataExportMixin):
         return self.box.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
-        """Generate a summarized representation of per-class detection metrics as a list of dictionaries. Includes
-        shared scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+        """Generate a summarized representation of per-class detection metrics as a list of dictionaries.
+
+        Each row includes the class image and instance counts, precision, recall, F1-score, mAP50, mAP75, and
+        mAP50-95.
 
         Args:
             normalize (bool): For Detect metrics, everything is normalized by default [0-1].
@@ -1242,9 +1248,11 @@ class DetMetrics(SimpleClass, DataExportMixin):
                 values.
 
         Examples:
-           >>> results = model.val(data="coco8.yaml")
-           >>> detection_summary = results.summary()
-           >>> print(detection_summary)
+            >>> from ultralytics import YOLO
+            >>> model = YOLO("yolo26n.pt")
+            >>> results = model.val(data="coco8.yaml")
+            >>> detection_summary = results.summary()
+            >>> print(detection_summary)
         """
         per_class = {
             "Box-P": self.box.p,
@@ -1275,8 +1283,8 @@ class SegmentMetrics(DetMetrics):
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
             target classes, and target images.
-        nt_per_class: Number of targets per class.
-        nt_per_image: Number of targets per image.
+        nt_per_class (np.ndarray): Number of targets per class.
+        nt_per_image (np.ndarray): Number of images containing each class.
 
     Methods:
         process: Process the detection and segmentation metrics over the given set of predictions.
@@ -1305,7 +1313,7 @@ class SegmentMetrics(DetMetrics):
 
         Args:
             stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
-                keys in self.stats.
+                keys in self.stats, plus 'im_name' for per-image metrics.
         """
         super().update_stats(stat)  # update box stats
         self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
@@ -1388,9 +1396,9 @@ class SegmentMetrics(DetMetrics):
         return DetMetrics.curves_results.fget(self) + self.seg.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
-        """Generate a summarized representation of per-class segmentation metrics as a list of dictionaries. Includes
-        both box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for
-        each class.
+        """Generate a summarized representation of per-class segmentation metrics as a list of dictionaries.
+
+        Extends the box summary rows with mask precision, recall, and F1-score for each class.
 
         Args:
             normalize (bool): For Segment metrics, everything is normalized by default [0-1].
@@ -1401,6 +1409,8 @@ class SegmentMetrics(DetMetrics):
                 values.
 
         Examples:
+            >>> from ultralytics import YOLO
+            >>> model = YOLO("yolo26n-seg.pt")
             >>> results = model.val(data="coco8-seg.yaml")
             >>> seg_summary = results.summary(decimals=4)
             >>> print(seg_summary)
@@ -1426,8 +1436,8 @@ class PoseMetrics(DetMetrics):
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
             target classes, and target images.
-        nt_per_class: Number of targets per class.
-        nt_per_image: Number of targets per image.
+        nt_per_class (np.ndarray): Number of targets per class.
+        nt_per_image (np.ndarray): Number of images containing each class.
 
     Methods:
         process: Process the detection and pose metrics over the given set of predictions.
@@ -1456,7 +1466,7 @@ class PoseMetrics(DetMetrics):
 
         Args:
             stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
-                keys in self.stats.
+                keys in self.stats, plus 'im_name' for per-image metrics.
         """
         super().update_stats(stat)  # update box stats
         self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
@@ -1539,8 +1549,9 @@ class PoseMetrics(DetMetrics):
         return DetMetrics.curves_results.fget(self) + self.pose.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
-        """Generate a summarized representation of per-class pose metrics as a list of dictionaries. Includes both box
-        and pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+        """Generate a summarized representation of per-class pose metrics as a list of dictionaries.
+
+        Extends the box summary rows with pose precision, recall, and F1-score for each class.
 
         Args:
             normalize (bool): For Pose metrics, everything is normalized by default [0-1].
@@ -1551,6 +1562,8 @@ class PoseMetrics(DetMetrics):
                 values.
 
         Examples:
+            >>> from ultralytics import YOLO
+            >>> model = YOLO("yolo26n-pose.pt")
             >>> results = model.val(data="coco8-pose.yaml")
             >>> pose_summary = results.summary(decimals=4)
             >>> print(pose_summary)
@@ -1590,12 +1603,12 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         self.top5 = 0
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
 
-    def process(self, targets: torch.Tensor, pred: torch.Tensor):
+    def process(self, targets: list[torch.Tensor], pred: list[torch.Tensor]):
         """Process target classes and predicted classes to compute metrics.
 
         Args:
-            targets (torch.Tensor): Target classes.
-            pred (torch.Tensor): Predicted classes.
+            targets (list[torch.Tensor]): Target classes, each of shape (N,).
+            pred (list[torch.Tensor]): Top-k predicted classes sorted by confidence, each of shape (N, k).
         """
         pred, targets = torch.cat(pred), torch.cat(targets)
         correct = (targets[:, None] == pred).float()
@@ -1638,6 +1651,8 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
             (list[dict[str, float]]): A list with one dictionary containing Top-1 and Top-5 classification accuracy.
 
         Examples:
+            >>> from ultralytics import YOLO
+            >>> model = YOLO("yolo26n-cls.pt")
             >>> results = model.val(data="imagenet10")
             >>> classify_summary = results.summary(decimals=4)
             >>> print(classify_summary)
@@ -1654,8 +1669,8 @@ class OBBMetrics(DetMetrics):
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
             target classes, and target images.
-        nt_per_class: Number of targets per class.
-        nt_per_image: Number of targets per image.
+        nt_per_class (np.ndarray): Number of targets per class.
+        nt_per_image (np.ndarray): Number of images containing each class.
 
     References:
         https://arxiv.org/pdf/2106.06072.pdf
@@ -1677,7 +1692,6 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
         names (dict): Class names mapping.
         nc (int): Number of classes.
         cm_nc (int): Confusion matrix side length (2 for binary segmentation, else nc).
-        device (torch.device | None): Device used for confusion matrix accumulation.
         matrix (torch.Tensor | None): Accumulated confusion matrix of shape (cm_nc, cm_nc).
         speed (dict): Processing speed statistics.
         nt_per_image (np.ndarray): Number of images containing each class.
@@ -1704,7 +1718,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
         self._pixel_accuracy = 0.0
         self._per_class_iou = np.zeros(self.nc, dtype=np.float32)
         self._per_class_pixel_acc = np.zeros(self.nc, dtype=np.float32)
-        self.nt_per_class = np.zeros(self.nc, dtype=np.int32)
+        self.nt_per_class = np.zeros(self.nc, dtype=np.int64)
 
     def update_stats(self, preds: torch.Tensor, targets: torch.Tensor) -> None:
         """Accumulate confusion matrix from predictions and targets.
@@ -1717,10 +1731,10 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             self.matrix = torch.zeros((self.cm_nc, self.cm_nc), device=preds.device, dtype=torch.float32)
 
         valid = (targets != 255) & (preds >= 0) & (preds < self.cm_nc) & (targets >= 0) & (targets < self.cm_nc)
-        hist = torch.bincount(self.cm_nc * targets[valid] + preds[valid], minlength=self.cm_nc**2).reshape(
-            self.cm_nc, self.cm_nc
-        )
-        self.matrix += hist.to(self.matrix.dtype)
+        idx = (self.cm_nc * targets[valid] + preds[valid]).long()
+        for i in idx.split(1 << 24):  # float32 counts are exact up to 2**24 per chunk; bincount is very slow on MPS
+            hist = torch.zeros(self.cm_nc**2, device=i.device, dtype=self.matrix.dtype)
+            self.matrix += hist.scatter_add_(0, i, torch.ones_like(i, dtype=hist.dtype)).view_as(self.matrix)
 
         present = torch.zeros((targets.shape[0], self.cm_nc), dtype=torch.bool, device=targets.device)
         batch_idx = torch.arange(targets.shape[0], device=targets.device).view(-1, 1, 1).expand_as(targets)
@@ -1751,7 +1765,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             self._miou = float(iou[1].item())
             self._per_class_iou = iou[1:].cpu().numpy()
             self._per_class_pixel_acc = pa[1:].cpu().numpy()
-            self.nt_per_class = np.array([row_sum[1].item()], dtype=np.int32)
+            self.nt_per_class = np.array([row_sum[1].item()], dtype=np.int64)
         else:
             # Average IoU only over classes present in the ground truth; classes with no GT pixels (absent
             # from the val set or removed by the `classes` filter) are excluded.
@@ -1759,7 +1773,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             self._miou = float(iou[present].mean().item()) if present.any() else 0.0
             self._per_class_iou = iou.cpu().numpy()
             self._per_class_pixel_acc = pa.cpu().numpy()
-            self.nt_per_class = row_sum[: self.nc].cpu().numpy().astype(np.int32)
+            self.nt_per_class = row_sum[: self.nc].cpu().numpy().astype(np.int64)
 
         self._pixel_accuracy = float((intersection.sum() / (self.matrix.sum() + 1e-10)).item())
 
@@ -1863,8 +1877,9 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
         return []
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict]:
-        """Generate a per-class summary of semantic segmentation metrics, with global mIoU and pixel accuracy on each
-        row.
+        """Generate a per-class summary of semantic segmentation metrics.
+
+        Each row includes the class image and pixel counts, per-class IoU, and the global mIoU and pixel accuracy.
 
         Args:
             normalize (bool): For semantic metrics, values are already in [0, 1].
@@ -1904,6 +1919,8 @@ class DepthMetrics(SimpleClass, DataExportMixin):
     Attributes:
         min_depth (float): Minimum valid depth in meters.
         max_depth (float): Maximum valid depth in meters.
+        align (str): Per-image scale alignment mode, "median" or "none".
+        speed (dict[str, float]): Processing speed statistics.
     """
 
     def __init__(
@@ -1976,7 +1993,10 @@ class DepthMetrics(SimpleClass, DataExportMixin):
             self._count += 1.0
 
     def process(self, *args, **kwargs) -> None:
-        """Finalize metrics by averaging the accumulated per-image results."""
+        """Finalize metrics by averaging the accumulated per-image results.
+
+        Arguments are accepted for interface parity with the other metrics classes and ignored.
+        """
         if self._totals is None or self._count == 0:
             self._results = dict.fromkeys(self.keys, 0.0)
             return
@@ -2019,12 +2039,12 @@ class DepthMetrics(SimpleClass, DataExportMixin):
 
     @property
     def delta2(self) -> float:
-        """Mean per-image fraction of pixels with max(p/g, g/p) < 1.25**2."""
+        """Mean per-image fraction of pixels with max(p/g, g/p) < `1.25**2`."""
         return self._results.get("metrics/delta2", 0.0)
 
     @property
     def delta3(self) -> float:
-        """Mean per-image fraction of pixels with max(p/g, g/p) < 1.25**3."""
+        """Mean per-image fraction of pixels with max(p/g, g/p) < `1.25**3`."""
         return self._results.get("metrics/delta3", 0.0)
 
     @property
@@ -2063,5 +2083,5 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         return []
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict]:
-        """Single-row summary of global depth metrics."""
+        """Return a single-row summary of global depth metrics."""
         return [{k.split("/")[-1]: round(v, decimals) for k, v in self._results.items()}]

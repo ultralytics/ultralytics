@@ -20,7 +20,7 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
     --8<-- "ultralytics/cfg/datasets/coco8.yaml"
     ```
 
-Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a UTF-8 `*.txt` file, with or without a byte-order mark, listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
 
 !!! example "Image paths as a `*.txt` file"
 
@@ -98,7 +98,7 @@ An NDJSON dataset file contains:
             "task": "detect",
             "name": "Example",
             "description": "COCO NDJSON example dataset",
-            "url": "https://app.ultralytics.com/user/datasets/example",
+            "url": "https://platform.ultralytics.com/user/datasets/example",
             "class_names": { "0": "person", "1": "bicycle", "2": "car" },
             "bytes": 426342,
             "version": 0,
@@ -295,13 +295,13 @@ To use an NDJSON dataset with YOLO26, simply specify the path to the `.ndjson` f
 
 ## Supported Datasets
 
-Here is a list of the supported datasets and a brief description for each:
+Here is a list of the supported datasets and a brief description for each. Most of these datasets are also hosted on [Ultralytics Platform](https://platform.ultralytics.com), where you can browse the images and annotations, view dataset statistics, and clone them for cloud training.
 
 - [African-wildlife](african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebras.
-- [Argoverse](argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
+- [Argoverse](argoverse.md): The Argoverse-HD 2D detection dataset of 54,446 urban autonomous-driving images across 8 road-object classes.
 - [Brain-tumor](brain-tumor.md): A dataset for detecting brain tumors includes MRI or CT scan images with details on tumor presence, location, and characteristics.
 - [COCO](coco.md): Common Objects in Context (COCO) is a large-scale [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning dataset with 80 object categories.
-- [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
+- [COCO8](coco8.md): A smaller subset of the first 8 images from COCO train2017, 4 for training and 4 for validation, suitable for quick tests.
 - [COCO8-Grayscale](coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
 - [COCO8-Multispectral](coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
 - [COCO12-Formats](coco12-formats.md): A test dataset with 12 images covering 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
@@ -313,14 +313,15 @@ Here is a list of the supported datasets and a brief description for each:
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [HomeObjects-3K](homeobjects-3k.md): A dataset of indoor household items including beds, chairs, TVs, and more—ideal for applications in smart home automation, robotics, augmented reality, and room layout analysis.
 - [KITTI](kitti.md): A dataset featuring real-world driving scenes with stereo, LiDAR, and GPS/IMU data, used here for **2D object detection** tasks such as identifying cars, pedestrians, and cyclists in urban, rural, and highway environments.
-- [LVIS](lvis.md): A large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
+- [LVIS](lvis.md): A large-scale object detection and instance segmentation dataset with 1,203 object categories.
 - [Medical-pills](medical-pills.md): A dataset featuring images of medical-pills, annotated for applications such as pharmaceutical quality assurance, pill sorting, and regulatory compliance.
-- [Objects365](objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 600K annotated images.
+- [Objects365](objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 1.7M training images.
 - [OpenImagesV7](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
 - [Roboflow 100](roboflow-100.md): A diverse object detection benchmark with 100 datasets spanning seven imagery domains for comprehensive model evaluation.
 - [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 - [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
 - [TT100K](tt100k.md): Explore the Tsinghua-Tencent 100K (TT100K) traffic sign dataset with 16,817 street-view images across 221 sign categories for robust detection and classification.
+- [Ultralytics Benchmark](ultralytics-benchmark.md): A first-party benchmark suite of 37 curated detection datasets across medical, aerial, industrial, retail, and other domains, with a fixed protocol for measuring real-world model generalization.
 - [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.
@@ -416,4 +417,4 @@ Refer to the [Usage](#usage-example) section for more details on utilizing diffe
 
 ### Where can I find practical examples of using Ultralytics YOLO for object detection?
 
-Ultralytics provides numerous examples and practical guides for using YOLO26 in diverse applications. For a comprehensive overview, visit the [Ultralytics Blog](https://www.ultralytics.com/blog) where you can find case studies, detailed tutorials, and community stories showcasing object detection, segmentation, and more with YOLO26. For specific examples, check the [Usage](../../modes/predict.md) section in the documentation.
+Ultralytics provides numerous examples and practical guides for using YOLO26 in diverse applications. For a comprehensive overview, visit the [Ultralytics Blog](https://www.ultralytics.com/blog) where you can find case studies, detailed tutorials, and community stories showcasing object detection, segmentation, and more with YOLO26. For specific examples, check the [Predict mode](../../modes/predict.md) page in the documentation.

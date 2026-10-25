@@ -34,7 +34,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale [object detect
 - LVIS spans roughly 160,000 images with about 2 million instance annotations for object detection and instance segmentation.
 - The dataset defines 1,203 object categories, including common objects like cars, bicycles, and animals as well as fine-grained categories such as umbrellas, handbags, and sports equipment.
 - Annotations include object bounding boxes and segmentation masks, with a strong focus on rare, long-tailed categories.
-- LVIS provides standardized evaluation metrics like [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) for detection and mean Average [Recall](https://www.ultralytics.com/glossary/recall) (mAR) for segmentation, making model comparison straightforward.
+- LVIS provides standardized evaluation metrics like [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) for detection and instance segmentation, including separate AP for rare, common, and frequent categories, making model comparison straightforward.
 - LVIS uses the same images as the [COCO](./coco.md) dataset but with different splits and far more detailed annotations.
 
 ## Dataset Structure
@@ -102,7 +102,7 @@ The LVIS dataset contains diverse images with many object categories in complex 
 
 If you use the LVIS dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

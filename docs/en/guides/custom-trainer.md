@@ -115,7 +115,7 @@ class WeightedTrainer(DetectionTrainer):
     """Detection trainer with hand-picked class-weight ratios."""
 
     def compute_class_weights(self, class_counts):
-        """Return custom per-class weights for the production loss owner."""
+        """Return custom per-class weights that the detection loss applies."""
         weights = np.ones_like(class_counts)
         weights[0] = 2.0
         weights[1] = 3.0

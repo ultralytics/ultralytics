@@ -56,158 +56,158 @@ The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/
 
     === "Python"
 
-         ```python
-         from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-         # Load a YOLO11n PyTorch model
-         model = YOLO("yolo11n.pt")
+        # Load a YOLO11n PyTorch model
+        model = YOLO("yolo11n.pt")
 
-         # Export the model
-         model.export(format="imx", data="coco8.yaml")  # exports with PTQ quantization by default
+        # Export the model
+        model.export(format="imx", data="coco8.yaml")  # exports with PTQ quantization by default
 
-         # Load the exported model
-         imx_model = YOLO("yolo11n_imx_model")
+        # Load the exported model
+        imx_model = YOLO("yolo11n_imx_model")
 
-         # Run inference
-         results = imx_model("https://ultralytics.com/images/bus.jpg")
-         ```
+        # Run inference
+        results = imx_model("https://ultralytics.com/images/bus.jpg")
+        ```
 
     === "CLI"
 
-         ```bash
-         # Export a YOLO11n PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolo11n.pt format=imx data=coco8.yaml
+        ```bash
+        # Export a YOLO11n PyTorch model to imx format with Post-Training Quantization (PTQ)
+        yolo export model=yolo11n.pt format=imx data=coco8.yaml
 
-         # Run inference with the exported model
-         yolo predict model=yolo11n_imx_model source='https://ultralytics.com/images/bus.jpg'
-         ```
+        # Run inference with the exported model
+        yolo predict model=yolo11n_imx_model source='https://ultralytics.com/images/bus.jpg'
+        ```
 
 !!! example "Pose Estimation"
 
     === "Python"
 
-         ```python
-         from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-         # Load a YOLO11n-pose PyTorch model
-         model = YOLO("yolo11n-pose.pt")
+        # Load a YOLO11n-pose PyTorch model
+        model = YOLO("yolo11n-pose.pt")
 
-         # Export the model
-         model.export(format="imx", data="coco8-pose.yaml")  # exports with PTQ quantization by default
+        # Export the model
+        model.export(format="imx", data="coco8-pose.yaml")  # exports with PTQ quantization by default
 
-         # Load the exported model
-         imx_model = YOLO("yolo11n-pose_imx_model")
+        # Load the exported model
+        imx_model = YOLO("yolo11n-pose_imx_model")
 
-         # Run inference
-         results = imx_model("https://ultralytics.com/images/bus.jpg")
-         ```
+        # Run inference
+        results = imx_model("https://ultralytics.com/images/bus.jpg")
+        ```
 
     === "CLI"
 
-         ```bash
-         # Export a YOLO11n-pose PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolo11n-pose.pt format=imx data=coco8-pose.yaml
+        ```bash
+        # Export a YOLO11n-pose PyTorch model to imx format with Post-Training Quantization (PTQ)
+        yolo export model=yolo11n-pose.pt format=imx data=coco8-pose.yaml
 
-         # Run inference with the exported model
-         yolo predict model=yolo11n-pose_imx_model source='https://ultralytics.com/images/bus.jpg'
-         ```
+        # Run inference with the exported model
+        yolo predict model=yolo11n-pose_imx_model source='https://ultralytics.com/images/bus.jpg'
+        ```
 
 !!! example "Classification"
 
     === "Python"
 
-         ```python
-         from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-         # Load a YOLO11n-cls PyTorch model
-         model = YOLO("yolo11n-cls.pt")
+        # Load a YOLO11n-cls PyTorch model
+        model = YOLO("yolo11n-cls.pt")
 
-         # Export the model
-         model.export(format="imx", data="imagenet10")  # exports with PTQ quantization by default
+        # Export the model
+        model.export(format="imx", data="imagenet10")  # exports with PTQ quantization by default
 
-         # Load the exported model
-         imx_model = YOLO("yolo11n-cls_imx_model")
+        # Load the exported model
+        imx_model = YOLO("yolo11n-cls_imx_model")
 
-         # Run inference
-         results = imx_model("https://ultralytics.com/images/bus.jpg", imgsz=224)
-         ```
+        # Run inference
+        results = imx_model("https://ultralytics.com/images/bus.jpg", imgsz=224)
+        ```
 
     === "CLI"
 
-         ```bash
-         # Export a YOLO11n-cls PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolo11n-cls.pt format=imx data=imagenet10
+        ```bash
+        # Export a YOLO11n-cls PyTorch model to imx format with Post-Training Quantization (PTQ)
+        yolo export model=yolo11n-cls.pt format=imx data=imagenet10
 
-         # Run inference with the exported model
-         yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg' imgsz=224
-         ```
+        # Run inference with the exported model
+        yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg' imgsz=224
+        ```
 
 !!! example "Instance Segmentation"
 
     === "Python"
 
-         ```python
-         from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-         # Load a YOLO11n-seg PyTorch model
-         model = YOLO("yolo11n-seg.pt")
+        # Load a YOLO11n-seg PyTorch model
+        model = YOLO("yolo11n-seg.pt")
 
-         # Export the model
-         model.export(format="imx", data="coco8-seg.yaml")  # exports with PTQ quantization by default
+        # Export the model
+        model.export(format="imx", data="coco8-seg.yaml")  # exports with PTQ quantization by default
 
-         # Load the exported model
-         imx_model = YOLO("yolo11n-seg_imx_model")
+        # Load the exported model
+        imx_model = YOLO("yolo11n-seg_imx_model")
 
-         # Run inference
-         results = imx_model("https://ultralytics.com/images/bus.jpg")
-         ```
+        # Run inference
+        results = imx_model("https://ultralytics.com/images/bus.jpg")
+        ```
 
     === "CLI"
 
-         ```bash
-         # Export a YOLO11n-seg PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolo11n-seg.pt format=imx data=coco8-seg.yaml
+        ```bash
+        # Export a YOLO11n-seg PyTorch model to imx format with Post-Training Quantization (PTQ)
+        yolo export model=yolo11n-seg.pt format=imx data=coco8-seg.yaml
 
-         # Run inference with the exported model
-         yolo predict model=yolo11n-seg_imx_model source='https://ultralytics.com/images/bus.jpg'
-         ```
+        # Run inference with the exported model
+        yolo predict model=yolo11n-seg_imx_model source='https://ultralytics.com/images/bus.jpg'
+        ```
 
 !!! example "Validate"
 
     === "Python"
 
-         ```python
-         from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-         # Load the exported IMX500 model
-         model = YOLO("yolo11n_imx_model")
+        # Load the exported IMX500 model
+        model = YOLO("yolo11n_imx_model")
 
-         # Validate accuracy on the COCO8 dataset
-         metrics = model.val(data="coco8.yaml")
-         ```
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
 
     === "CLI"
 
-         ```bash
-         # Validate the exported IMX500 model
-         yolo val model=yolo11n_imx_model data=coco8.yaml
-         ```
+        ```bash
+        # Validate the exported IMX500 model
+        yolo val model=yolo11n_imx_model data=coco8.yaml
+        ```
 
 !!! warning
 
-    The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
+    IMX export is only supported on Linux with Python 3.9 or later and requires Java 17 or later. The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
 
 ## Export Arguments
 
-| Argument   | Type                      | Default  | Description                                                                                                                                                                                                                                                                   |
-| ---------- | ------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`                     | `'imx'`  | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                            |
-| `imgsz`    | `int` or `tuple`          | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                             |
-| `quantize` | `int` or `str`            | `8`/auto | Quantization precision. `8` (INT8/PTQ) is auto-enabled for IMX500; `"w8a16"` exports INT8 weights with FP16 activations. FP32 and FP16-only export are not supported. Replaces the deprecated `half`/`int8` flags.                                                            |
-| `data`     | `str`                     | `None`   | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8` or `'w8a16'`, Ultralytics selects the default calibration dataset for the model task. |
-| `fraction` | `float`, `int`, or `list` | `1.0`    | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                                      |
-| `nms`      | `bool`, optional          | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). IMX requires `nms=True` for detect, segment and pose and selects it automatically.                                                                                                |
-| `device`   | `str`                     | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                                     |
+| Argument   | Type                      | Default  | Description                                                                                                                                                                                                                                    |
+| ---------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'imx'`  | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                             |
+| `imgsz`    | `int` or `tuple`          | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                              |
+| `quantize` | `int` or `str`            | `8`/auto | Quantization precision. `8` (INT8/PTQ) is required and auto-enabled for IMX500. FP32 and FP16-only export are not supported. Replaces the deprecated `half`/`int8` flags.                                                                      |
+| `data`     | `str`                     | `None`   | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects the default calibration dataset for the model task. |
+| `fraction` | `float`, `int`, or `list` | `1.0`    | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                       |
+| `nms`      | `bool`, optional          | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). IMX requires `nms=True` for detect, segment and pose and selects it automatically.                                                                 |
+| `device`   | `str`                     | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                      |
 
 !!! tip
 
@@ -519,7 +519,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchm
 
 !!! note
 
-    Validation for the above benchmarks were done using COCO128 dataset for detection models, COCO8-Pose dataset for pose estimation models and ImageNet10 for classification models.
+    Validation for the above benchmarks was done using the COCO128 dataset for detection models, COCO8-Pose dataset for pose estimation models and ImageNet10 for classification models.
 
 ## What's Under the Hood?
 

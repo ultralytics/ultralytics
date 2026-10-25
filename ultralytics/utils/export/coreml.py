@@ -39,7 +39,15 @@ class IOSDetectModel(nn.Module):
             )
 
     def forward(self, x: torch.Tensor):
-        """Normalize predictions of object detection model with input size-dependent factors."""
+        """Normalize predictions of object detection model with input size-dependent factors.
+
+        Args:
+            x (torch.Tensor): Input image tensor with shape (B, C, H, W).
+
+        Returns:
+            cls (torch.Tensor): Class scores, padded to a multiple of 80 classes for MLProgram.
+            xywh (torch.Tensor): xywh boxes normalized to [0, 1] by image size.
+        """
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         if self.mlprogram and self.nc % 80 != 0:  # NMS bug https://github.com/ultralytics/ultralytics/issues/22309
             pad_length = int(((self.nc + 79) // 80) * 80) - self.nc  # pad class length to multiple of 80
@@ -61,18 +69,18 @@ def pipeline_coreml(
     """Create CoreML pipeline with NMS for YOLO detection models.
 
     Args:
-        model: CoreML model.
+        model (ct.models.MLModel): CoreML detection model to combine with an NMS stage.
         output_shape (tuple[int, ...]): Output shape tuple from the exporter.
         metadata (dict): Model metadata.
         mlmodel (bool): Whether the model is an MLModel (vs MLProgram).
-        iou (float): IoU threshold for NMS.
+        iou (float): IoU threshold for NMS, default 0.45; the exporter passes its `iou` arg (default 0.7).
         conf (float): Confidence threshold for NMS.
         agnostic_nms (bool): Whether to use class-agnostic NMS.
         weights_dir (Path | str | None): Weights directory for MLProgram models.
         prefix (str): Prefix for log messages.
 
     Returns:
-        CoreML pipeline model.
+        (ct.models.MLModel): CoreML pipeline model with NMS.
     """
     import coremltools as ct
 
@@ -91,13 +99,11 @@ def pipeline_coreml(
     if len(names) != nc:  # Hack fix for MLProgram NMS bug https://github.com/ultralytics/ultralytics/issues/22309
         names = {**names, **{i: str(i) for i in range(len(names), nc)}}
 
-    model = ct.models.MLModel(spec, weights_dir=weights_dir, skip_model_load=True)
-
     # Create NMS protobuf
     nms_spec = ct.proto.Model_pb2.Model()
     nms_spec.specificationVersion = spec.specificationVersion
     for i in range(len(outs)):
-        decoder_output = model._spec.description.output[i].SerializeToString()
+        decoder_output = spec.description.output[i].SerializeToString()
         nms_spec.description.input.add()
         nms_spec.description.input[i].ParseFromString(decoder_output)
         nms_spec.description.output.add()
@@ -139,11 +145,11 @@ def pipeline_coreml(
         ],
         output_features=output_names,
     )
-    pipeline.add_model(model)
+    pipeline.add_model(spec)
     pipeline.add_model(nms_model)
 
     # Correct datatypes
-    pipeline.spec.description.input[0].ParseFromString(model._spec.description.input[0].SerializeToString())
+    pipeline.spec.description.input[0].ParseFromString(spec.description.input[0].SerializeToString())
     pipeline.spec.description.output[0].ParseFromString(nms_model._spec.description.output[0].SerializeToString())
     pipeline.spec.description.output[1].ParseFromString(nms_model._spec.description.output[1].SerializeToString())
 
@@ -192,7 +198,8 @@ def torch2coreml(
         classifier_names (list[str] | None): Class names for classifier config, or None if not a classifier.
         output_file (Path | str | None): Output file path, or None to skip saving.
         mlmodel (bool): Whether to export as ``.mlmodel`` (neural network) instead of ``.mlpackage`` (ML program).
-        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8/``"w8a16"`` for INT8 weights.
+        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8/``"w8a16"`` for 8-bit k-means palettized
+            weights.
         metadata (dict | None): Metadata to embed in the CoreML model.
         prefix (str): Prefix for log messages.
 
@@ -205,12 +212,12 @@ def torch2coreml(
     for m in model.modules():  # MIL types int64 gather indices as fp32 and then rejects them
         if isinstance(m, Detect):
             m._gather = types.MethodType(_coreml_gather, m)
-    ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
+    ts = torch.jit.trace(model.eval(), im, strict=False, check_trace=False)  # skip re-trace check, like other exports
     fp16 = quantize == 16
     weight_int8 = quantize in {8, "w8a16"}
 
     # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
-    # Internally based on the model conversion and output type.
+    # internally based on the model conversion and output type.
     # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
     # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
     convert_kwargs = {
@@ -253,13 +260,5 @@ def torch2coreml(
     ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
 
     if output_file is not None:
-        try:
-            ct_model.save(str(output_file))  # save *.mlpackage
-        except Exception as e:
-            LOGGER.warning(
-                f"{prefix} CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
-                f"Known coremltools Python 3.11 and Windows bugs https://github.com/apple/coremltools/issues/1928."
-            )
-            output_file = Path(output_file).with_suffix(".mlmodel")
-            ct_model.save(str(output_file))
+        ct_model.save(str(output_file))  # save *.mlpackage or *.mlmodel
     return ct_model

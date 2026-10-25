@@ -70,7 +70,7 @@ def get_1d_sine_pe(pos_inds: torch.Tensor, dim: int, temperature: float = 10000)
         temperature (float, optional): Scaling factor for the frequency of the sinusoidal functions.
 
     Returns:
-        (torch.Tensor): Sinusoidal positional embeddings with shape (pos_inds.shape, dim).
+        (torch.Tensor): Sinusoidal positional embeddings with shape (*pos_inds.shape, dim).
 
     Examples:
         >>> pos = torch.tensor([0, 1, 2, 3])
@@ -90,7 +90,7 @@ def get_1d_sine_pe(pos_inds: torch.Tensor, dim: int, temperature: float = 10000)
 def init_t_xy(end_x: int, end_y: int, scale: float = 1.0, offset: int = 0):
     """Initialize 1D and 2D coordinate tensors for a grid of specified dimensions.
 
-    This function creates coordinate tensors for a grid with dimensions end_x × end_y. It generates a linear index
+    This function creates coordinate tensors for a grid with dimensions end_x x end_y. It generates a linear index
     tensor and corresponding x and y coordinate tensors.
 
     Args:
@@ -339,7 +339,7 @@ def add_decomposed_rel_pos(
 ) -> torch.Tensor:
     """Add decomposed Relative Positional Embeddings to the attention map.
 
-    This function calculates and applies decomposed Relative Positional Embeddings as described in the MVITv2
+    This function calculates and applies decomposed Relative Positional Embeddings as described in the MViTv2
     paper. It enhances the attention mechanism by incorporating spatial relationships between query and key
     positions.
 
@@ -393,8 +393,7 @@ def get_abs_pos(
     retain_cls_token: bool = False,
     tiling: bool = False,
 ) -> torch.Tensor:
-    """Calculate absolute positional embeddings. If needed, resize embeddings and remove cls_token dimension for the
-    original embeddings.
+    """Calculate absolute positional embeddings, resizing them and removing the cls_token dimension if needed.
 
     Args:
         abs_pos (torch.Tensor): Absolute positional embeddings with shape (1, num_position, C).
@@ -459,7 +458,7 @@ def concat_rel_pos(
     rel_pos_h: torch.Tensor,
     rel_pos_w: torch.Tensor,
     rescale: bool = False,
-    relative_coords: torch.Tensor = None,
+    relative_coords: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Concatenate rel pos coeffs to the q & k tensors, so that qk^T is now effectively including rel pos biases.
 

@@ -84,14 +84,14 @@ The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which sup
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export the model to TF.js format
+        # Export the model to LiteRT format (replaces TF.js)
         model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to TF.js format
+        # Export a YOLO26n PyTorch model to LiteRT format (replaces TF.js)
         yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
         ```
 
@@ -101,15 +101,15 @@ The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which sup
 
 ### Export Arguments
 
-| Argument   | Type                      | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ---------- | ------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`                     | `'tfjs'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                                                                                                                                                                                                            |
-| `imgsz`    | `int` or `tuple`          | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                                                                                                                                                                                                             |
-| `quantize` | `int` or `str`            | `None`   | Quantization precision: `8` (static INT8, int8 weights + int8 activations; needs calibration `data`/`fraction`), `'w8a16'` (static, int8 weights + int16 activations; needs calibration `data`/`fraction`), `'w8a32'` (dynamic INT8, int8 weights + FP32 activations; no calibration needed), or `32`/unset (FP32). FP16 is not exported separately — an FP32 model runs in FP16 automatically on GPU delegates. Replaces the deprecated `half`/`int8` flags. |
-| `batch`    | `int`                     | `1`      | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                                                                                                                                                                                                       |
-| `data`     | `str`                     | `None`   | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8` or `'w8a16'`, Ultralytics selects the default calibration dataset for the model task.                                                                                                                                                                                 |
-| `fraction` | `float`, `int`, or `list` | `1.0`    | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                                                                                                                                                                                                                      |
-| `device`   | `str`                     | `None`   | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                                                                                                                                                                                                                 |
+| Argument   | Type                      | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------- | ------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'litert'` | Target format for the exported model; the deprecated `'tfjs'` value exports LiteRT.                                                                                                                                                                                                                                                                                                                                                                           |
+| `imgsz`    | `int` or `tuple`          | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                                                                                                                                                                                                             |
+| `quantize` | `int` or `str`            | `None`     | Quantization precision: `8` (static INT8, int8 weights + int8 activations; needs calibration `data`/`fraction`), `'w8a16'` (static, int8 weights + int16 activations; needs calibration `data`/`fraction`), `'w8a32'` (dynamic INT8, int8 weights + FP32 activations; no calibration needed), or `32`/unset (FP32). FP16 is not exported separately — an FP32 model runs in FP16 automatically on GPU delegates. Replaces the deprecated `half`/`int8` flags. |
+| `batch`    | `int`                     | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                                                                                                                                                                                                       |
+| `data`     | `str`                     | `None`     | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8` or `'w8a16'`, Ultralytics selects the default calibration dataset for the model task.                                                                                                                                                                                 |
+| `fraction` | `float`, `int`, or `list` | `1.0`      | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                                                                                                                                                                                                                      |
+| `device`   | `str`                     | `None`     | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                                                                                                                                                                                                                 |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -149,7 +149,7 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export the model to TF.js format
+        # Export the model to LiteRT format (replaces TF.js)
         model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
 
         # The exported '.tflite' model runs in the browser via LiteRT.js or locally with yolo predict/val.
@@ -158,7 +158,7 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to TF.js format
+        # Export a YOLO26n PyTorch model to LiteRT format (replaces TF.js)
         yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
 
         # The exported '.tflite' model runs in the browser via LiteRT.js or locally with yolo predict/val.

@@ -73,7 +73,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 - **Oriented Bounding Boxes**: Rectangles that carry a rotation angle, used in [OBB](../tasks/obb.md) tasks where objects appear at arbitrary orientations, such as aerial imagery.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/8315a6d4fd7fa40b602fb0d05b56bba5.avif" alt="Data annotation types including bounding boxes, polygons, and masks">
+  <img width="100%" src="https://cdn.ul.run/i/47c0f7d8d7c867c6e6ff55384de2f8f6.avif" alt="Annotation examples for classification, bounding boxes, instance and semantic segmentation masks, pose keypoints, oriented bounding boxes, and depth">
 </p>
 
 ### Common Annotation Formats
@@ -171,7 +171,7 @@ A few hundred annotated objects per class is enough to start experimenting with 
 
 ### Does Ultralytics provide a data annotation tool?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) includes a built-in [annotation editor](../platform/data/annotation.md) that supports bounding boxes, polygons, keypoints, oriented boxes, and classification labels in a single workspace. [SAM-powered smart annotation](https://www.ultralytics.com/annotate) speeds up labeling for detection, instance segmentation, semantic segmentation, and OBB tasks by generating masks from a single click, while pose and classification are annotated manually. Annotations are stored in the layout each task expects — [YOLO `.txt` rows](../datasets/detect/index.md#ultralytics-yolo-format) for the spatial tasks, [class folders](../datasets/classify/index.md) for classification — ready for [training](../modes/train.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com) includes a built-in [annotation editor](../platform/data/annotation.md) that supports bounding boxes, polygons, keypoints, oriented boxes, and classification labels in a single workspace. [SAM-powered smart annotation](https://www.ultralytics.com/annotate) speeds up labeling for detection, instance segmentation, semantic segmentation, and OBB tasks by generating masks from a single click; pose datasets can use YOLO pose models for smart annotation, and classification is annotated manually. Annotations are stored in the layout each task expects — [YOLO `.txt` rows](../datasets/detect/index.md#ultralytics-yolo-format) for the spatial tasks, [class folders](../datasets/classify/index.md) for classification — ready for [training](../modes/train.md).
 
 ### Which annotation type should I choose for my project?
 

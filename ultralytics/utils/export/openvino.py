@@ -49,6 +49,8 @@ def torch2openvino(
     if quantize == 8:
         import nncf
 
+        from ultralytics.nn.modules import RTDETRDecoder
+
         ignored_scope = None
         if int8_detect:
             operations = ov_model.get_ordered_ops()
@@ -66,6 +68,9 @@ def torch2openvino(
             model=ov_model,
             calibration_dataset=calibration_dataset,
             preset=nncf.QuantizationPreset.MIXED,
+            model_type=nncf.ModelType.TRANSFORMER
+            if any(isinstance(m, RTDETRDecoder) for m in model.modules())
+            else None,
             # Calibrate on the full dataset like other INT8 backends, not nncf's 300-batch default
             subset_size=calibration_dataset.get_length() or 300,
             ignored_scope=ignored_scope,

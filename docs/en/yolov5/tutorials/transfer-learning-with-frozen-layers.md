@@ -27,7 +27,7 @@ Here's how YOLOv5 implements layer freezing in its [training script](https://git
 
 ```python
 # Freeze specified layers
-freeze = [f"model.{x}." for x in range(freeze)]  # Define layers to freeze based on module index
+freeze = [f"model.{x}." for x in (freeze if len(freeze) > 1 else range(freeze[0]))]  # layers to freeze
 for k, v in model.named_parameters():
     v.requires_grad = True  # Ensure all parameters are initially trainable
     if any(x in k for x in freeze):
@@ -46,9 +46,9 @@ for name, param in model.named_parameters():
 
 """
 Example Output:
-model.0.conv.conv.weight
-model.0.conv.bn.weight
-model.0.conv.bn.bias
+model.0.conv.weight
+model.0.bn.weight
+model.0.bn.bias
 model.1.conv.weight
 model.1.bn.weight
 model.1.bn.bias
@@ -86,7 +86,7 @@ head:
 
 ## Freezing Options
 
-You can control which layers are frozen using the `--freeze` argument in the training command. This argument specifies the index of the first _unfrozen_ module; all modules before this index will have their weights frozen. Use `model.model` (a `nn.Sequential`) to inspect the module ordering if you need to confirm which indices correspond to a particular block.
+You can control which layers are frozen using the `--freeze` argument in the training command. This argument specifies the index of the first _unfrozen_ module; all modules before this index will have their weights frozen. Passing several indices instead (e.g., `--freeze 0 1 2`) freezes exactly those modules. Use `model.model` (a `nn.Sequential`) to inspect the module ordering if you need to confirm which indices correspond to a particular block.
 
 ### Freeze Backbone Only
 
@@ -149,7 +149,7 @@ Layer freezing during transfer learning is particularly advantageous in several 
 3.  **Rapid Prototyping**: When you need to quickly adapt an existing model to a new task or domain for initial evaluation.
 4.  **Similar Feature Domains**: If the low-level features in your new dataset are very similar to those in the dataset the model was pretrained on.
 
-Explore more about the nuances of transfer learning in our [glossary entry](https://www.ultralytics.com/glossary/transfer-learning) and consider techniques like [hyperparameter tuning](../../guides/hyperparameter-tuning.md) for optimizing performance.
+Explore more about the nuances of transfer learning in our [glossary entry](https://www.ultralytics.com/glossary/transfer-learning) and consider [hyperparameter evolution](hyperparameter-evolution.md) for optimizing performance.
 
 ## Supported Environments
 
@@ -166,3 +166,21 @@ Ultralytics offers various ready-to-use environments with essential dependencies
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 Continuous Integration Status"></a>
 
 This badge confirms that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are passing successfully. These CI tests rigorously evaluate the functionality and performance of YOLOv5 across key operations: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, running automatically every 24 hours and on each new code commit.
+
+## FAQ
+
+### What does `--freeze N` do?
+
+It freezes the first `N` modules of `model.model`, so their weights stay fixed and receive no gradients. `--freeze 10` freezes the backbone, and `--freeze 24` freezes everything except the final `Detect` module.
+
+### How much accuracy do I lose by freezing layers?
+
+In the VOC experiment above, training all layers gave the best mAP, freezing the backbone cost a little accuracy, and freezing all but the detection head cost the most. In return, frozen runs train faster and use much less GPU memory.
+
+### When is freezing the backbone a good idea?
+
+When your images share low-level features with the pretraining data, your dataset is small, or you need a quick baseline on limited hardware. Train all layers once the dataset grows or when you need the last few points of mAP.
+
+### Can I unfreeze the layers later?
+
+Yes. Start a new run from the frozen model's `best.pt` without `--freeze` to fine-tune the whole network, typically with a lower learning rate.

@@ -5,7 +5,7 @@ description: Estimate the speed of tracked objects in video with Ultralytics YOL
 keywords: Ultralytics YOLO26, speed estimation, object tracking, vehicle speed, traffic control, autonomous navigation, surveillance, computer vision
 ---
 
-# Speed Estimation using Ultralytics YOLO26 🚀
+# Speed Estimation using Ultralytics YOLO26
 
 ## What is Speed Estimation?
 
@@ -36,7 +36,7 @@ keywords: Ultralytics YOLO26, speed estimation, object tracking, vehicle speed, 
 
 |                                                  Transportation                                                  |                                                   Transportation                                                   |
 | :--------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: |
-| ![Speed Estimation on Road using Ultralytics YOLO26](https://cdn.ul.run/i/4d24b34b71b3154a20cb4ec598022204.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO26](https://cdn.ul.run/i/f48362a36acbf45ed3627dda1b2c88df.avif) |
+| ![Speed Estimation on Road using Ultralytics YOLO26](https://cdn.ul.run/i/ac237f61d997cd8b854b88fd51c85833.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO26](https://cdn.ul.run/i/f48362a36acbf45ed3627dda1b2c88df.avif) |
 |                                Speed Estimation on Road using Ultralytics YOLO26                                 |                                Speed Estimation on Bridge using Ultralytics YOLO26                                 |
 
 ???+ warning "Speed is an Estimate"
@@ -116,13 +116,12 @@ Here's a table with the `SpeedEstimator` arguments:
 
 The `SpeedEstimator` solution allows the use of `track` parameters:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Additionally, the following visualization options are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_labels"]) }}
 
 ## FAQ
 

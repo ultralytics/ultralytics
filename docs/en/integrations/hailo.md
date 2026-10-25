@@ -301,6 +301,46 @@ hailortcli parse-hef yolo11n_hailo_model/yolo11n.hef
 
 Device-only performance measurements isolate Hailo inference from video decoding, image resizing, drawing, and application I/O. Measure the complete application separately when estimating end-to-end latency or frames per second.
 
+## Benchmarks
+
+The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy between PyTorch and Hailo.
+
+!!! tip "Performance"
+
+    === "Raspberry Pi 5 + AI HAT+ (Hailo-8)"
+
+        <div align="center">
+        <img width="800" src="https://cdn.ul.run/i/819fc70745c567ecb814812b2f75f9ce.avif" alt="Raspberry Pi 5 Hailo 8 NPU vs PyTorch benchmarks">
+        </div>
+
+        | Model   | Format  | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | ------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO26n | PyTorch | ✅     | 5.3       | 0.477               | 364.6                  |
+        | YOLO26n | Hailo   | ✅     | 7.3       | 0.455               | 21.7                   |
+
+        | Model       | Format  | Status | Size (MB) | metrics/mIoU | Inference time (ms/im) |
+        | ----------- | ------- | ------ | --------- | ------------ | ---------------------- |
+        | YOLO26n-sem | PyTorch | ✅     | 3.3       | 0.611        | 831.2                  |
+        | YOLO26n-sem | Hailo   | ✅     | 6.2       | 0.611        | 34.8                   |
+
+        | Model         | Format  | Status | Size (MB) | metrics/delta1 | metrics/abs_rel | metrics/rmse | Inference time (ms/im) |
+        | ------------- | ------- | ------ | --------- | -------------- | --------------- | ------------ | ---------------------- |
+        | YOLO26n-depth | PyTorch | ✅     | 12.4      | 0.8535         | 0.0983          | 0.2047       | 2133.4                 |
+        | YOLO26n-depth | Hailo   | ✅     | 9.9       | 0.8241         | 0.1232          | 0.2554       | 29.6                   |
+
+        | Model       | Format  | Status | Size (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
+        | ----------- | ------- | ------ | --------- | ---------- | ---------- | ---------------------- |
+        | YOLO26n-cls | PyTorch | ✅     | 5.5       | 0.431      | 0.716      | 33.8                   |
+        | YOLO26n-cls | Hailo   | ✅     | 3.5       | 0.441      | 0.716      | 2.0                    |
+
+    === "More devices coming soon!"
+
+    Benchmarked with Ultralytics 8.4.174
+
+    !!! note
+
+        Validation for the above benchmarks was done using COCO128 for detection, Cityscapes8 for semantic segmentation, Depth8 for depth estimation, and ImageNet100 for classification. Cityscapes8 and Depth8 contain only 4 validation images each, so treat their semantic segmentation and depth accuracy values as smoke-test results, not accuracy-retention measurements; validate on a full dataset such as Cityscapes or NYU Depth V2 before drawing accuracy conclusions. Inference time does not include pre/post-processing.
+
 ## Hailo Compared with Other YOLO Export Formats
 
 Choose an export format based on the hardware that will execute the model. HEF is hardware-specific and should be selected when the final device already contains a Hailo accelerator, not as a general-purpose or automatically fastest edge format.
@@ -315,6 +355,8 @@ Choose an export format based on the hardware that will execute the model. HEF i
 | Apple hardware                         | [CoreML](coreml.md)            | Uses the Apple Neural Engine, GPU, and CPU through the native Apple runtime                          |
 | Qualcomm Snapdragon NPU                | [QNN](qnn.md)                  | Compiles for Qualcomm's on-device NPU rather than requiring an external accelerator                  |
 | Rockchip NPU                           | [RKNN](rockchip-rknn.md)       | Widely used across affordable SBCs and embedded systems                                              |
+| Huawei Ascend NPU                      | [Ascend](ascend.md)            | Compiles a CANN `.om` model for the Ascend AI Core on Atlas boards and OrangePi AIPro                |
+| Google Coral Edge TPU                  | [Edge TPU](edge-tpu.md)        | Runs an INT8 LiteRT model on the Coral accelerator instead of a Hailo module                         |
 | Ambarella CVflow SoC                   | [Ambarella](ambarella.md)      | Compiles for Ambarella camera and embedded-vision SoCs                                               |
 | Raspberry Pi AI Camera                 | [Sony IMX500](sony-imx500.md)  | Runs the network in the camera sensor rather than through a host-attached Hailo accelerator          |
 | Mobile or embedded CPU/GPU             | [NCNN](ncnn.md)                | Provides a lightweight portable runtime when a dedicated supported NPU is unavailable                |
@@ -346,6 +388,7 @@ Model and pipeline choices often matter more than compiler flags:
 | `simplify` | `bool`                    | `True`    | Simplify the intermediate ONNX graph                                                                                                                                        |
 | `conf`     | `float`                   | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold                                                                                                                              |
 | `iou`      | `float`                   | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold                                                                                                                                     |
+| `device`   | `str`                     | `None`    | Device for the intermediate ONNX export step, CPU by default (`device=cpu`). The Dataflow Compiler steps do not use it.                                                     |
 
 YOLOv8/YOLO11 detection exports receive HailoRT NMS. YOLO26 defaults to raw one-to-many outputs for host NMS; `nms=False` selects its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, classification returns on-chip probabilities, and semantic segmentation returns raw logits on Hailo-8/8L and all single-class heads or baked class maps for multi-class Hailo-10H/15 heads. Depth estimation returns the raw depth logit, which Ultralytics decodes into a metric depth map at inference. Dynamic shapes, embedded Ultralytics NMS, FP16, and FP32 are not supported.
 

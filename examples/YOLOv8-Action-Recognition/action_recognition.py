@@ -312,7 +312,7 @@ def crop_and_pad(frame: np.ndarray, box: list[float], margin_percent: int) -> np
 
 
 def run(
-    weights: str = "yolo11n.pt",
+    weights: str = "yolo26n.pt",
     device: str = "",
     source: str = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     output_path: str | None = None,
@@ -452,7 +452,7 @@ def run(
             out.write(frame)
 
         # Display the annotated frame
-        cv2.imshow("YOLOv8 Tracking with S3D Classification", frame)
+        cv2.imshow("Ultralytics Action Recognition", frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
@@ -466,7 +466,7 @@ def run(
 def parse_opt() -> argparse.Namespace:
     """Parse command line arguments for action recognition pipeline."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", type=str, default="yolo11n.pt", help="ultralytics detector model path")
+    parser.add_argument("--weights", type=str, default="yolo26n.pt", help="ultralytics detector model path")
     parser.add_argument("--device", default="", help='cuda device, i.e. 0 or 0,1,2,3 or cpu/mps, "" for auto-detection')
     parser.add_argument(
         "--source",

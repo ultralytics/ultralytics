@@ -12,12 +12,12 @@ title: Labelbox Dataset Import - Ultralytics Platform
 
 ## Import from Labelbox
 
-1. **Export from Labelbox.** Open the [labeling project](https://docs.labelbox.com/docs/export-labels) or [catalog](https://docs.labelbox.com/docs/export-from-catalog) you want to bring over and go to the **Data Rows** tab. Select **All**, click **Export data**, choose the fields to include, and confirm. Exporting from Catalog rather than a project? Enable **Export labels from project** and pick the project, or the file arrives with no annotations at all.
+1. **Export from Labelbox.** For a [labeling project](https://docs.labelbox.com/docs/export-labels), open its **Data Rows** tab, select **All**, click **Export data**, choose the fields to include, and confirm. From [Catalog](https://docs.labelbox.com/docs/export-from-catalog), select the data rows and choose **Manage selection > Export data**, then turn on **Export labels from project** and pick the project, or the file arrives with no annotations at all.
 2. **Download the file.** Labelbox runs the export as a background job. Watch for it in [Notifications](https://app.labelbox.com/notifications) and click **Download** when it finishes to save the `.ndjson` file.
 3. **Upload to Platform.** Create a new dataset and upload the `.ndjson` file, or paste a direct link to it. You can also start from **Settings > [Integrations](index.md) > Labelbox**.
 4. **Train.** Once processing finishes, [edit the annotations](../data/annotation.md) and [train](../train/index.md) exactly like any other Platform dataset.
 
-![Ultralytics Platform Labelbox Dataset Import](https://cdn.ul.run/i/ed409c5949cea058af70f46bc53d924f.avif)<!-- screenshot -->
+![Ultralytics Platform Labelbox Dataset Import](https://cdn.ul.run/i/c3c23f235544c7145eb2472fd62e551c.avif)<!-- screenshot -->
 
 Unlike [CVAT](cvat.md) and [Label Studio](label-studio.md), there is no format to choose — Labelbox's own export is the supported one.
 
@@ -52,7 +52,7 @@ Platform recognizes the Labelbox format on its own and maps bounding boxes and p
 | Polygon                                                          | [Segment](../../datasets/segment/index.md) |
 | Segmentation mask, point, polyline, relationship, classification | Not yet                                    |
 
-Each object's `name` becomes the class name — so a `"name": "Dog"` annotation imports as the class `Dog`, not its lowercase `value` — and pixel coordinates are normalized against the `media_attributes` dimensions in the export. Each image is named after its `data_row.external_id`, falling back to the file name in the signed URL when the export carries no external ID. A catalog export with no annotations imports as an unlabeled image dataset, ready to label in Platform's [annotation editor](../data/annotation.md).
+Each object's `name` becomes the class name — so a `"name": "Dog"` annotation imports as the class `Dog`, not its lowercase `value` — and pixel coordinates are normalized against the `media_attributes` dimensions in the export, so keep media attributes in the export: rows without a width and height import their image without annotations. Only objects Platform can import register a class, so mask, point, and polyline tools don't add empty classes to the dataset. Each image is named after its `data_row.external_id`, then its `global_key`, falling back to the file name in the signed URL when the export carries neither. Image data rows are imported; video, text, and other non-image data rows are skipped. A catalog export with no annotations imports as an unlabeled image dataset, ready to label in Platform's [annotation editor](../data/annotation.md).
 
 A single data row looks like this, trimmed to the fields Platform reads:
 
@@ -60,6 +60,7 @@ A single data row looks like this, trimmed to the fields Platform reads:
 {
     "data_row": {
         "external_id": "000000000307.jpg",
+        "global_key": "000000000307.jpg",
         "row_data": "https://storage.labelbox.com/...?Expires=...&Signature=..."
     },
     "media_attributes": { "height": 480, "width": 640, "mime_type": "image/jpeg" },
@@ -96,3 +97,21 @@ Everything else in the export — `embeddings`, `metadata_fields`, `attachments`
 !!! warning "In a mixed export, the boxes are dropped"
 
     An export containing both bounding boxes and polygons is imported as a segment dataset, and a segment dataset carries polygon geometry only — the box annotations are not used for training or included in version exports. Export boxes and polygons as separate Labelbox projects if you need both. Polygons also need at least three points to be read.
+
+## FAQ
+
+### Which Labelbox annotations are imported?
+
+Bounding boxes import as a [detect](../../datasets/detect/index.md) dataset and polygons as a [segment](../../datasets/segment/index.md) dataset. Segmentation masks, points, polylines, relationships, and classifications are not yet read, so a project labeled only with those tools imports its images without annotations.
+
+### Why did my export import with no data rows?
+
+Platform reads NDJSON, one JSON object per line. An export saved as a single JSON array is skipped entirely. Use the SDK loop above or Labelbox's own **Export data** download, which is already NDJSON.
+
+### Why did the import fail with expired links?
+
+Labelbox exports reference images by signed URL, and those signatures expire. Re-export from Labelbox and upload the new file soon after it finishes.
+
+### Can I keep both boxes and polygons from one project?
+
+No. A mixed export imports as a segment dataset and only the polygons are used. Export boxes and polygons as separate Labelbox projects if you need both.

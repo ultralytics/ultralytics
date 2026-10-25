@@ -1,7 +1,7 @@
 ---
 title: YOLO Python Usage
 comments: true
-description: Learn to integrate Ultralytics YOLO in Python for object detection, segmentation, semantic segmentation, depth estimation, and classification. Load and train models, and make predictions easily with our comprehensive guide.
+description: Learn to use Ultralytics YOLO in Python for detection, segmentation, semantic segmentation, depth estimation, and classification. Load and train models and run predictions.
 keywords: YOLO, Python, object detection, segmentation, semantic segmentation, depth estimation, classification, machine learning, AI, pretrained models, train models, make predictions
 ---
 
@@ -73,6 +73,8 @@ For example, users can load a model, train it, evaluate its performance on a val
     === "Resume"
 
         ```python
+        from ultralytics import YOLO
+
         model = YOLO("last.pt")
         results = model.train(resume=True)
         ```
@@ -96,7 +98,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         # Train the model
         model.train(data="coco8.yaml", epochs=5)
 
-        # Validate on training data
+        # Validate on the training dataset's validation split
         model.val()
         ```
 
@@ -151,13 +153,13 @@ For example, users can load a model, train it, evaluate its performance on a val
     === "Results usage"
 
         ```python
-        # results would be a list of Results object including all the predictions by default
-        # but be careful as it could occupy a lot memory when there're many images,
-        # especially the task is segmentation.
+        # results is a list of Results objects containing all predictions by default,
+        # but it can occupy a lot of memory when there are many images,
+        # especially for segmentation tasks.
         # 1. return as a list
         results = model.predict(source="folder")
 
-        # results would be a generator which is more friendly to memory by setting stream=True
+        # results is a memory-efficient generator when stream=True
         # 2. return as a generator
         results = model.predict(source=0, stream=True)
 
@@ -167,8 +169,8 @@ For example, users can load a model, train it, evaluate its performance on a val
             result.boxes.xywh  # box with xywh format, (N, 4)
             result.boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
             result.boxes.xywhn  # box with xywh format but normalized, (N, 4)
-            result.boxes.conf  # confidence score, (N, 1)
-            result.boxes.cls  # cls, (N, 1)
+            result.boxes.conf  # confidence score, (N,)
+            result.boxes.cls  # cls, (N,)
 
             # Segmentation
             result.masks.data  # masks, (N, H, W)
@@ -266,22 +268,24 @@ The `YOLO` model class serves as a high-level wrapper for Trainer classes. Each 
     ```python
     from ultralytics.models.yolo.detect import DetectionPredictor, DetectionTrainer, DetectionValidator
 
-    # trainer
-    trainer = DetectionTrainer(overrides={})
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "epochs": 3}
+
+    # Trainer
+    trainer = DetectionTrainer(overrides=overrides)
     trainer.train()
-    trained_model = trainer.best
+    trained_model = trainer.best  # path to best.pt
 
     # Validator
-    val = DetectionValidator(args=...)
-    val(model=trained_model)
+    validator = DetectionValidator(args={"data": "coco8.yaml"})
+    validator(model=trained_model)
 
-    # predictor
-    pred = DetectionPredictor(overrides={})
-    pred(source=SOURCE, model=trained_model)
+    # Predictor
+    predictor = DetectionPredictor(overrides={"model": trained_model})
+    predictor(source="https://ultralytics.com/images/bus.jpg")
 
-    # resume from last weight
-    overrides["resume"] = trainer.last
-    trainer = DetectionTrainer(overrides=overrides)
+    # Resume an interrupted training run from its last checkpoint
+    trainer = DetectionTrainer(overrides={"resume": "path/to/last.pt"})
+    trainer.train()
     ```
 
 You can easily customize Trainers to support custom tasks or explore research and development ideas. The modular design of Ultralytics YOLO allows you to adapt the framework to your specific needs, whether you're working on a novel [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) task or fine-tuning existing models for better performance.

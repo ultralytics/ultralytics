@@ -1,9 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import torch
-
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import ops
 
 __all__ = ["NASValidator"]
 
@@ -16,23 +13,14 @@ class NASValidator(DetectionValidator):
     ultimately producing the final detections.
 
     Attributes:
-        args (Namespace): Namespace containing various configurations for post-processing, such as confidence and IoU
-            thresholds.
-        lb (torch.Tensor): Optional tensor for multilabel NMS.
+        args (SimpleNamespace): Namespace containing various configurations for post-processing, such as confidence and
+            IoU thresholds.
 
     Examples:
         >>> from ultralytics import NAS
-        >>> model = NAS("yolo_nas_s")
-        >>> validator = model.validator
-        >>> # Assumes that raw_preds are available
-        >>> final_preds = validator.postprocess(raw_preds)
+        >>> model = NAS("yolo_nas_s.pt")
+        >>> metrics = model.val(data="coco8.yaml")  # runs NASValidator internally
 
     Notes:
         This class is generally not instantiated directly but is used internally within the NAS class.
     """
-
-    def postprocess(self, preds_in):
-        """Apply Non-maximum suppression to prediction outputs."""
-        boxes = ops.xyxy2xywh(preds_in[0][0])  # Convert bounding box format from xyxy to xywh
-        preds = torch.cat((boxes, preds_in[0][1]), -1).permute(0, 2, 1)  # Concatenate boxes with scores and permute
-        return super().postprocess(preds)

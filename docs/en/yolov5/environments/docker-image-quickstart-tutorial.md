@@ -140,15 +140,28 @@ python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos # P
 python export.py --weights yolov5s.pt --include onnx coreml tflite # Export model
 ```
 
-Explore the documentation for detailed usage of different modes:
-
-- [Train](../../modes/train.md)
-- [Validate](../../modes/val.md)
-- [Predict](../../modes/predict.md)
-- [Export](../../modes/export.md)
+See the [Train Custom Data](../tutorials/train-custom-data.md) and [Model Export](../tutorials/model-export.md) tutorials for detailed usage.
 
 Learn more about evaluation metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). Understand different export formats like [ONNX](../../integrations/onnx.md), [CoreML](../../integrations/coreml.md), and [TFLite](../../integrations/litert.md), and explore various [Model Deployment Options](../../guides/model-deployment-options.md). Remember to manage your [model weights](https://www.ultralytics.com/glossary/model-weights) effectively.
 
 <p align="center"><img width="1000" src="https://cdn.ul.run/i/3d3f5576bad0b4a2ea37db62f9d020f8.avif" alt="Running YOLOv5 inside a Docker container on GCP"></p>
 
 You have successfully set up and run YOLOv5 within a Docker container.
+
+## FAQ
+
+### Why is `--ipc=host` needed?
+
+PyTorch dataloader workers share tensors through shared memory, and the Docker default of 64 MB is too small. `--ipc=host` shares the host's memory segment; `--shm-size=8g` is an alternative if you prefer to keep the container isolated.
+
+### The container cannot see my GPU. What should I check?
+
+Run `nvidia-smi` on the host to confirm the driver works, verify the NVIDIA Container Toolkit is installed with `nvidia-ctk cdi list`, and make sure Docker is 28.2 or newer so `--device nvidia.com/gpu=all` is accepted.
+
+### How do I keep datasets and training results after the container exits?
+
+Mount host directories with `-v /path/on/host:/path/in/container` and point `--data` and `--project` at the mounted paths. Files written elsewhere inside the container are discarded when it is removed.
+
+### Can I open `--view-img` windows from inside the container?
+
+Yes, but the container needs access to a display server. See the [X11 and Wayland](../../guides/docker-quickstart.md#run-graphical-user-interface-gui-applications-in-a-docker-container) instructions in the Ultralytics Docker guide. Without a display, save results with `--save-txt` or the default `runs/detect/` output instead.

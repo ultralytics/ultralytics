@@ -1,11 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import SETTINGS, TESTS_RUNNING
+from ultralytics.utils import TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["wandb"] is True  # verify integration is enabled
     import wandb as wb
 
     assert hasattr(wb, "__version__")  # verify package is not directory
@@ -16,7 +15,7 @@ except (ImportError, AssertionError):
 
 
 def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall", y_title="Precision"):
-    """Create and log a custom metric visualization table.
+    """Create a custom metric visualization table for logging to wandb.
 
     This function crafts a custom metric visualization that mimics the behavior of the default wandb precision-recall
     curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across
@@ -31,7 +30,7 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
         y_title (str, optional): Label for the y-axis.
 
     Returns:
-        (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
+        (wandb.plot.CustomChart): A wandb custom chart object suitable for logging, showing the metric visualization.
     """
     import polars as pl  # scope for faster 'import ultralytics'
     import polars.selectors as cs
@@ -52,29 +51,27 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
 def _plot_curve(
     x,
     y,
-    names=None,
+    names,
     id="precision-recall",
     title="Precision Recall Curve",
     x_title="Recall",
     y_title="Precision",
     num_x=100,
-    only_mean=False,
 ):
     """Log a metric curve visualization.
 
-    This function generates a metric curve based on input data and logs the visualization to wandb. The curve can
-    represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
+    This function generates a metric curve based on input data and logs the visualization to wandb, showing the mean
+    curve together with each individual class curve.
 
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
         y (np.ndarray): Corresponding data points for the y-axis with shape (C, N), where C is the number of classes.
-        names (list, optional): Names of the classes corresponding to the y-axis data; length C.
+        names (list): Names of the classes corresponding to the y-axis data; length C.
         id (str, optional): Unique identifier for the logged data in wandb.
         title (str, optional): Title for the visualization plot.
         x_title (str, optional): Label for the x-axis.
         y_title (str, optional): Label for the y-axis.
         num_x (int, optional): Number of interpolated data points for visualization.
-        only_mean (bool, optional): Flag to indicate if only the mean curve should be plotted.
 
     Notes:
         The function leverages the '_custom_table' function to generate the actual visualization.
@@ -82,36 +79,29 @@ def _plot_curve(
     import numpy as np
 
     # Create new x
-    if names is None:
-        names = []
     x_new = np.linspace(x[0], x[-1], num_x).round(5)
 
     # Create arrays for logging
     x_log = x_new.tolist()
     y_log = np.interp(x_new, x, np.mean(y, axis=0)).round(3).tolist()
 
-    if only_mean:
-        table = wb.Table(data=list(zip(x_log, y_log)), columns=[x_title, y_title])
-        wb.run.log({title: wb.plot.line(table, x_title, y_title, title=title)})
-    else:
-        classes = ["mean"] * len(x_log)
-        for i, yi in enumerate(y):
-            x_log.extend(x_new)  # add new x
-            y_log.extend(np.interp(x_new, x, yi))  # interpolate y to new x
-            classes.extend([names[i]] * len(x_new))  # add class names
-        wb.log({id: _custom_table(x_log, y_log, classes, title, x_title, y_title)}, commit=False)
+    classes = ["mean"] * len(x_log)
+    for i, yi in enumerate(y):
+        x_log.extend(x_new)  # add new x
+        y_log.extend(np.interp(x_new, x, yi))  # interpolate y to new x
+        classes.extend([names[i]] * len(x_new))  # add class names
+    wb.log({id: _custom_table(x_log, y_log, classes, title, x_title, y_title)}, commit=False)
 
 
-def _log_plots(plots, step):
-    """Log plots to WandB at a specific step if they haven't been logged already.
+def _log_plots(plots):
+    """Log plots to WandB in the current, uncommitted step if they haven't been logged already.
 
     This function checks each plot in the input dictionary against previously processed plots and logs new or updated
-    plots to WandB at the specified step.
+    plots to WandB.
 
     Args:
-        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries containing plot
-            metadata including timestamps.
-        step (int): The step/epoch at which to log the plots in the WandB run.
+        plots (dict): Dictionary of plots to log, where keys are plot file paths and values are dictionaries containing
+            plot metadata including timestamps.
 
     Notes:
         The function uses a shallow copy of the plots dictionary to prevent modification during iteration.
@@ -121,52 +111,61 @@ def _log_plots(plots, step):
     for name, params in plots.copy().items():  # shallow copy to prevent plots dict changing during iteration
         timestamp = params["timestamp"]
         if _processed_plots.get(name) != timestamp:
-            wb.run.log({name.stem: wb.Image(str(name))}, step=step)
+            wb.run.log({name.stem: wb.Image(str(name))}, commit=False)
             _processed_plots[name] = timestamp
 
 
-def on_pretrain_routine_start(trainer):
-    """Initialize and start wandb project if module is present."""
+def on_pretrain_routine_end(trainer):
+    """Initialize and start wandb project if module is present, or log into a run the user already started.
+
+    Only a run created here is finished, as failed if training raises before on_train_end. When resuming, the run
+    continues under the ID of the newest `wandb/*run-*/run-<id>.wandb` file in the save directory. wandb writes this
+    file on every platform, unlike the `wandb/latest-run` symlink, which it skips on Windows.
+    """
     if not wb.run:
+        import re
         from datetime import datetime
         from pathlib import Path
 
-        name = str(trainer.args.name).replace("/", "-").replace(" ", "_")
-        latest_run = Path(trainer.save_dir) / "wandb" / "latest-run"
-        resuming = trainer.args.resume and latest_run.exists()
+        name = str(trainer.args.name)
+        runs = (Path(trainer.save_dir) / "wandb").glob("*run-*/run-*.wandb")
+        resuming = trainer.args.resume and max(runs, key=lambda f: f.stat().st_mtime, default=None)
+        trainer.add_callback("on_train_end", lambda _: wb.finish())
+        trainer.add_callback("teardown", lambda _: wb.finish(exit_code=1))  # no-op once on_train_end finished it
         wb.init(
-            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
+            project=re.sub(r"[/\\#?%:]", "-", str(trainer.args.project or "Ultralytics"))[-128:],
             name=name,
             config=vars(trainer.args),
-            id=latest_run.resolve().name.split("-", 2)[2]
+            id=resuming.stem[4:]
             if resuming
-            else f"{name}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
+            else f"{re.sub('[^A-Za-z0-9_.-]', '_', name)[:64]}_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}",
             resume="allow" if resuming else None,
             dir=str(trainer.save_dir),
         )
+        for prefix in ("train", "lr", "metrics", "val"):
+            wb.run.define_metric(f"{prefix}/*", step_metric="epoch")
+    wb.run.config.setdefaults(vars(trainer.args))  # keep values the user or a sweep already set
 
 
 def on_fit_epoch_end(trainer):
-    """Log training metrics and model information at the end of an epoch."""
-    _log_plots(trainer.plots, step=trainer.epoch + 1)
-    _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
+    """Log plots, validation metrics, and (on the first epoch) model information at the end of each fit epoch."""
+    _log_plots(trainer.plots)
+    _log_plots(trainer.validator.plots)
     if trainer.epoch == 0:
-        wb.run.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
-    wb.run.log(trainer.metrics, step=trainer.epoch + 1, commit=True)  # commit forces sync
+        wb.run.log(model_info_for_loggers(trainer), commit=False)
+    wb.run.log({**trainer.metrics, "epoch": trainer.epoch + 1}, commit=True)  # commit forces sync
 
 
 def on_train_epoch_end(trainer):
-    """Log metrics and save images at the end of each training epoch."""
-    wb.run.log(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
-    wb.run.log(trainer.lr, step=trainer.epoch + 1)
-    if trainer.epoch == 1:
-        _log_plots(trainer.plots, step=trainer.epoch + 1)
+    """Log training losses and learning rates at each training epoch end."""
+    wb.run.log({**trainer.label_loss_items(trainer.tloss, prefix="train"), "epoch": trainer.epoch + 1}, commit=False)
+    wb.run.log(trainer.lr, commit=False)
 
 
 def on_train_end(trainer):
     """Save the best model as an artifact and log final plots at the end of training."""
-    _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
-    _log_plots(trainer.plots, step=trainer.epoch + 1)
+    _log_plots(trainer.validator.plots)
+    _log_plots(trainer.plots)
     if trainer.args.save and trainer.best.exists():
         art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")
         art.add_file(trainer.best)
@@ -184,12 +183,12 @@ def on_train_end(trainer):
                 x_title=x_title,
                 y_title=y_title,
             )
-    wb.run.finish()  # required or run continues on dashboard
+    wb.run.log({"epoch": trainer.epoch + 1}, commit=True)
 
 
 callbacks = (
     {
-        "on_pretrain_routine_start": on_pretrain_routine_start,
+        "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,

@@ -9,10 +9,12 @@ import torch
 
 from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
 from ultralytics.data.augment import LoadVisualPrompt
+from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.nn.tasks import YOLOEModel, YOLOESegModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils.patches import torch_load
 from ultralytics.utils.torch_utils import unwrap_model
 
 from ..world.train_world import WorldTrainerFromScratch
@@ -48,25 +50,25 @@ class YOLOETrainer(DetectionTrainer):
         overrides["overlap_mask"] = False
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True):
+    def get_model(self, cfg: dict | str | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a task-appropriate YOLOE model initialized with the specified configuration and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration. Can be a dictionary containing a 'yaml_file' key, a direct
                 path to a YAML file, or None to use default configuration.
-            weights (str | Path, optional): Path to pretrained weights file to load into the model.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:
             (YOLOEModel | YOLOESegModel): The initialized YOLOE model.
 
         Notes:
-            - The number of classes (nc) is hard-coded to a maximum of 80 following the official configuration.
+            - The number of classes (nc) is capped at 80 following the official configuration.
             - The nc parameter here represents the maximum number of different text samples in one image,
               rather than the actual number of classes.
         """
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
-        # NOTE: Following the official config, nc hard-coded to 80 for now.
+        # NOTE: Following the official config, nc is capped at 80 for now.
         model = (YOLOESegModel if self.args.task == "segment" else YOLOEModel)(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
@@ -99,6 +101,8 @@ class YOLOETrainer(DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
 
+    set_class_weights = BaseTrainer.set_class_weights  # cls channels are prompt positions, not dataset classes
+
 
 class YOLOEPETrainer(DetectionTrainer):
     """Fine-tune YOLOE model using linear probing approach.
@@ -111,12 +115,12 @@ class YOLOEPETrainer(DetectionTrainer):
         get_validator: Return a task-appropriate validator.
     """
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True):
+    def get_model(self, cfg: dict | str | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a task-appropriate YOLOE model initialized with specified config and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration.
-            weights (str, optional): Path to pretrained weights.
+            weights (torch.nn.Module): Pretrained model whose weights are loaded, required for linear probing.
             verbose (bool): Whether to display model information.
 
         Returns:
@@ -132,16 +136,14 @@ class YOLOEPETrainer(DetectionTrainer):
         del model.model[-1].savpe
 
         assert weights is not None, "Pretrained weights must be provided for linear probing."
-        if weights:
-            model.load(weights)
-
-        model.eval()
         names = list(self.data["names"].values())
-        # NOTE: `get_text_pe` related to text model and YOLOEDetect.reprta,
-        # it'd get correct results as long as loading proper pretrained weights.
-        tpe = model.get_text_pe(names)
-        model.set_classes(names, tpe)
-        model.model[-1].fuse(model.pe)  # fuse text embeddings to classify head
+        model.eval()
+        if weights.model[-1].is_fused:  # resume or continued fine-tuning: build the fused head, then load into it
+            model.set_classes(names, torch.zeros(1, len(names), model.model[-1].embed))
+            model.model[-1].fuse(model.pe)
+        model.load(weights)
+        if not model.model[-1].is_fused:
+            model.get_vocab(names)  # fuse text embeddings to classify head
         model.model[-1].cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
         model.model[-1].cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
         model.model[-1].cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
@@ -203,7 +205,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
-            txt_map = torch.load(cache_path, map_location=self.device)
+            txt_map = torch_load(cache_path, map_location=self.device)
             if sorted(txt_map.keys()) == sorted(texts):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")
@@ -225,15 +227,15 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
     """
 
     def preprocess_batch(self, batch):
-        """Preprocess a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
+        """Preprocess a batch of images for prompt-free YOLOE training without adding text features."""
         return DetectionTrainer.preprocess_batch(self, batch)
 
-    def set_text_embeddings(self, datasets, batch: int):
+    def set_text_embeddings(self, datasets, batch: int | None):
         """No-op override for prompt-free training that does not require text embeddings.
 
         Args:
             datasets (list[Dataset]): List of datasets containing category names to process.
-            batch (int): Batch size for processing text embeddings.
+            batch (int | None): Batch size for processing text embeddings.
         """
 
 

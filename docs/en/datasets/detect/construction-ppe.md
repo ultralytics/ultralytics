@@ -19,13 +19,13 @@ The Ultralytics Construction-PPE dataset is an [object detection](https://www.ul
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lFaVnrhMmaE"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/L6Mz0OJQ6SU"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to train Ultralytics YOLO on Personal Protective Equipment Dataset | VisionAI in Construction 👷
+  <strong>Watch:</strong> How to Detect Personal Protective Equipment with Ultralytics YOLO26 | Workplace Safety Monitoring 🦺
 </p>
 
 ## Dataset Structure
@@ -112,7 +112,7 @@ Construction-PPE is developed and released under the [AGPL-3.0 License](https://
 
 If you use this dataset in your research, please cite it:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

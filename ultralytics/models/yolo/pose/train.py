@@ -6,6 +6,8 @@ from copy import copy
 from pathlib import Path
 from typing import Any
 
+import torch
+
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG, RANK
@@ -25,7 +27,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     Methods:
         get_model: Retrieve a pose estimation model with specified configuration.
-        set_model_attributes: Set keypoints shape attribute on the model.
+        set_model_attributes: Set keypoint shape, OKS sigmas, and keypoint names on the model.
         get_validator: Create a validator instance for model evaluation.
         plot_training_samples: Visualize training samples with keypoints.
         get_dataset: Retrieve the dataset and ensure it contains required kpt_shape key.
@@ -47,7 +49,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
         Notes:
             This trainer will automatically set the task to 'pose' regardless of what is provided in overrides.
-            A warning is issued when using Apple MPS device due to known bugs with pose models.
         """
         if overrides is None:
             overrides = {}
@@ -57,14 +58,14 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def get_model(
         self,
         cfg: str | Path | dict[str, Any] | None = None,
-        weights: str | Path | None = None,
+        weights: torch.nn.Module | None = None,
         verbose: bool = True,
     ) -> PoseModel:
         """Get pose estimation model with specified configuration and weights.
 
         Args:
             cfg (str | Path | dict, optional): Model configuration file path or dictionary.
-            weights (str | Path, optional): Path to the model weights file.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool): Whether to display model information.
 
         Returns:
@@ -85,7 +86,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         return model
 
     def set_model_attributes(self):
-        """Set keypoints shape attribute of PoseModel."""
+        """Set keypoint shape, OKS sigmas, and keypoint names on the PoseModel."""
         super().set_model_attributes()
         self.model.kpt_shape = self.data["kpt_shape"]
         self.model.kpt_oks_sigmas = self.data.get("kpt_oks_sigmas")

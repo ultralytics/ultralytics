@@ -121,12 +121,11 @@ We'd like to thank the original dataset author, [Bianca Ferreira](https://www.ka
 
 If you use this dataset in your research, please cite it using the mentioned details:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
         ```bibtex
-
         @dataset{Ferreira_African_Wildlife_Ultralytics_Adaptation_2024,
             author  = {Ferreira, Bianca},
             title   = {African Wildlife Detection Dataset (Ultralytics YOLO Adaptation)},

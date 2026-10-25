@@ -38,7 +38,6 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     ONLINE,
-    PLATFORM_API_URL,
     PLATFORM_URL,
     PYTHON_VERSION,
     RKNN_CHIPS,
@@ -86,93 +85,74 @@ def resolve_platform_uri(uri, hard=True):
         hard (bool): Whether to raise an error if resolution fails.
 
     Returns:
-        (str | None): Signed URL on success, None if not found and hard=False.
+        (str | None): Signed URL on success, None if not found or the request fails and hard=False.
 
     Raises:
         ValueError: If the API key or URI is invalid.
         PermissionError: If access is denied.
         RuntimeError: If the resource is not ready or Platform returns another error.
         FileNotFoundError: If the resource is not found and hard=True.
-        ConnectionError: If the request fails and hard=True.
+        ConnectionError: If the request fails or Platform returns HTTP 408, 429, or 5xx, and hard=True.
     """
-    import requests  # scoped as slow import
-
-    # Scoped: SettingsManager imports torch_utils, which imports checks before SETTINGS is assigned.
+    from ultralytics import APIConnectionError, APIError, Platform
     from ultralytics.utils import SETTINGS
 
-    path = str(uri)[5:]
-    parts = path.split("/")
+    parts = str(uri)[5:].split("/")
+    if len(parts) != 3 or not all(parts):
+        raise ValueError(f"Invalid Platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
     api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not api_key:
         raise ValueError(f"ULTRALYTICS_API_KEY required for '{uri}'. Get a key at {PLATFORM_URL}/settings")
 
-    if len(parts) == 3 and parts[1] == "datasets":
-        username, _, slug = parts
-        endpoint = f"datasets/{username}/{slug}/export"
-    elif len(parts) == 3:
-        username, project, model = parts
-        endpoint = f"models/{username}/{project}/{model}/download"
-    else:
-        raise ValueError(f"Invalid Platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
+    import httpx
 
-    url = f"{PLATFORM_API_URL}/{endpoint}"
-    # Short connect so retries are fast; long read for server-side generation.
-    timeout = (10, 3600) if "/datasets/" in url else (10, 90)
-    headers = {"Authorization": f"Bearer {api_key}"}
-
+    dataset = parts[1] == "datasets"
     try:
-        for attempt in range(5):
-            try:
-                # GET preserves Platform error bodies, unlike HEAD.
-                response = requests.get(url, headers=headers, allow_redirects=False, timeout=timeout)
-                if response.status_code in {408, 429} or response.status_code >= 500:
-                    raise requests.exceptions.HTTPError(f"HTTP {response.status_code}", response=response)
-                break
-            except (
-                requests.exceptions.ConnectionError,
-                requests.exceptions.ReadTimeout,
-                requests.exceptions.HTTPError,
-            ) as error:
-                if attempt >= 4:
-                    raise
-                delay = 2 * (2**attempt)  # 2s, 4s, 8s, 16s backoff
-                LOGGER.warning(f"Retry {attempt + 1}/5 for {uri} in {delay}s: {error}")
-                time.sleep(delay)
-    except Exception as error:
+        with Platform(
+            api_key=api_key,
+            base_url=PLATFORM_URL,
+            timeout=httpx.Timeout(3600 if dataset else 90, connect=10),
+            max_retries=4,
+        ) as client:
+            if dataset:
+                return client.datasets.export(parts[0], parts[2])["downloadUrl"]
+            files = client.models.files(*parts)["files"]
+            if files:
+                return files[0]["downloadUrl"]
+    except APIConnectionError as error:
         if hard:
             raise ConnectionError(f"Failed to resolve {uri}: {error}") from error
         LOGGER.warning(f"Failed to resolve {uri}: {error}")
         return None
+    except APIError as error:
+        # APIError.body may contain a proxy page echoing credentials; show only bounded JSON errors.
+        detail = str(error.json.get("error", "")).strip()[:500] if isinstance(error.json, dict) else ""
+        if error.status_code == 401:
+            raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'. {detail}") from None
+        if error.status_code == 403:
+            raise PermissionError(f"Access denied for '{uri}'. {detail}") from None
+        if error.status_code in {408, 429} or error.status_code >= 500:
+            message = f"Failed to resolve {uri} (HTTP {error.status_code}). {detail}"
+            if hard:
+                raise ConnectionError(message) from None
+            LOGGER.warning(message)
+            return None
+        if error.status_code != 404:
+            raise RuntimeError(f"Platform error for '{uri}' (HTTP {error.status_code}). {detail}") from None
 
-    if 300 <= response.status_code < 400 and "location" in response.headers:
-        return response.headers["location"]
-
-    # Echo only Platform's bounded JSON error: proxy/WAF pages may quote the Authorization header.
-    try:
-        detail = str(response.json().get("error", "")).strip()
-    except (AttributeError, TypeError, ValueError):
-        detail = ""
-    detail = f" {detail[:500]}" if detail else ""
-    if response.status_code == 401:
-        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'.{detail}")
-    if response.status_code == 403:
-        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.{detail}")
-    if response.status_code == 404:
-        if hard:
-            raise FileNotFoundError(f"Not found on Platform: {uri}.{detail}")
-        LOGGER.warning(f"Not found on Platform: {uri}.{detail}")
-        return None
-    if response.status_code == 409:
-        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.{detail}")
-    raise RuntimeError(f"Platform error for '{uri}' (HTTP {response.status_code}).{detail or f' {response.reason}'}")
+    if hard:
+        raise FileNotFoundError(f"No dataset or model weights found on Platform: {uri}")
+    LOGGER.warning(f"No dataset or model weights found on Platform: {uri}")
+    return None
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     """Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
-        file_path (Path): Path to the requirements.txt file.
-        package (str, optional): Python package to use instead of requirements.txt file.
+        file_path (str | Path): Path to the requirements.txt file.
+        package (str, optional): Installed Python package whose non-extra requirements are parsed instead of the
+            requirements.txt file.
 
     Returns:
         requirements (list[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
@@ -215,10 +195,11 @@ def parse_version(version="0.0.0") -> tuple:
     equal to '1.0'. Use the `packaging` library where exact pre-release ordering matters.
 
     Args:
-        version (str): Version string, i.e. '2.0.1+cpu', '4.13.0.92', or 'v2.1'
+        version (str): Version string, e.g. '2.0.1+cpu', '4.13.0.92', or 'v2.1'.
 
     Returns:
-        (tuple): Tuple of integers representing the release segments, at least 3 long, i.e. (2, 0, 1)
+        (tuple): Tuple of integers representing the release segments, at least 3 long, e.g. (2, 0, 1), or (0, 0, 0) if
+            parsing fails.
     """
     try:
         nums = [int(x) for x in re.search(r"\d+(?:\.\d+)*", version).group(0).split(".")]
@@ -241,18 +222,26 @@ def is_ascii(s) -> bool:
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
-    """Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
-    stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
+    """Verify image size is a multiple of the given stride in each dimension.
+
+    If the image size is not a multiple of the stride, update it to the nearest multiple of the stride that is greater
+    than or equal to the given floor value.
 
     Args:
-        imgsz (int | list[int]): Image size.
-        stride (int): Stride value.
-        min_dim (int): Minimum number of dimensions.
-        max_dim (int): Maximum number of dimensions.
+        imgsz (int | list[int] | tuple[int, ...] | str): Image size, e.g. 640, [640, 480], '640', or '[640,480]'.
+        stride (int | torch.Tensor): Stride value. For a tensor, its maximum is used.
+        min_dim (int): Minimum number of dimensions. A single size is returned as an int if 1 or expanded to [sz, sz] if
+            2.
+        max_dim (int): Maximum number of dimensions. If 1, longer inputs are reduced to their maximum with a warning;
+            otherwise, exceeding it raises a ValueError.
         floor (int): Minimum allowed value for image size.
 
     Returns:
         (list[int] | int): Updated image size.
+
+    Raises:
+        ValueError: If `imgsz` is an unparsable string or has more than `max_dim` dimensions when `max_dim` != 1.
+        TypeError: If `imgsz` is not an int, list, tuple, or str.
     """
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
@@ -287,7 +276,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         LOGGER.warning(f"updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
-    sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
+    sz = [max(math.ceil(x / stride) * stride, floor, stride) for x in imgsz]  # at least one stride, i.e. imgsz=0
 
     # Print warning message if image size was updated
     if sz != imgsz:
@@ -301,7 +290,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 @functools.lru_cache
 def check_uv():
-    """Check if uv package manager is installed and can run successfully."""
+    """Return True if the uv package manager is installed and can run successfully."""
     try:
         return subprocess.run(["uv", "-V"], capture_output=True, check=False).returncode == 0
     except FileNotFoundError:
@@ -340,7 +329,7 @@ def check_version(
         Check if current version is less than or equal to 22.04
         >>> check_version(current="22.04", required="<=22.04")
 
-        Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
+        Check if current version is between 20.04 and 22.04 (both exclusive)
         >>> check_version(current="21.10", required=">20.04,<22.04")
     """
     if not current:  # if current is '' or None
@@ -385,7 +374,7 @@ def check_version(
         if (
             (op == "==" and cn != vn)
             or (op == "!=" and cn == vn)
-            or (op == ">=" and not (cn >= vn))
+            or (op in {">=", "~="} and not (cn >= vn))
             or (op == "<=" and not (cn <= vn))
             or (op == ">" and not (cn > vn))
             or (op == "<" and not (cn < vn))
@@ -451,7 +440,7 @@ def check_font(font="Arial.ttf"):
         font (str): Path or name of font.
 
     Returns:
-        (Path | str): Resolved font file path.
+        (Path | str | None): Resolved font file path, or None if the font is not found locally and cannot be downloaded.
     """
     from matplotlib import font_manager  # scope for faster 'import ultralytics'
 
@@ -461,8 +450,9 @@ def check_font(font="Arial.ttf"):
     if file.exists():
         return file
 
-    # Check system fonts
-    matches = [s for s in font_manager.findSystemFonts() if font in s]
+    # Check system fonts in matplotlib's cached list only: findSystemFonts() rescans the OS (8s on macOS), and a miss
+    # is routine (e.g. Arial.Unicode.ttf on macOS) until the download below lands in USER_CONFIG_DIR
+    matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
     if any(matches):
         return matches[0]
 
@@ -512,6 +502,12 @@ def check_apt_requirements(requirements):
 
     # Install missing packages if any
     if missing_packages:
+        if not AUTOINSTALL:  # check environment variable
+            LOGGER.warning(
+                f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, "
+                f"AutoUpdate disabled by YOLO_AUTOINSTALL=False. Install with 'apt install {' '.join(missing_packages)}'"
+            )
+            return
         LOGGER.info(
             f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, attempting AutoUpdate..."
         )
@@ -532,20 +528,24 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     """Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
-        requirements (Path | str | list[str|tuple] | tuple[str]): Path to a requirements.txt file, a single package
-            requirement as a string, a list of package requirements as strings, or a list containing strings and tuples
-            of interchangeable packages.
-        exclude (tuple): Tuple of package names to exclude from checking.
+        requirements (Path | str | list[str | tuple] | tuple[str]): Path object pointing to a requirements.txt file, a
+            single package requirement as a string, a list of package requirements as strings, or a list containing
+            strings and tuples of interchangeable packages.
+        exclude (tuple): Tuple of package names to exclude from checking when `requirements` is a requirements.txt Path.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
         constrain (tuple | list): Extra version constraints always appended to the install command even if already
             satisfied, preventing the resolver from upgrading those packages during install.
 
+    Returns:
+        (bool): True if all requirements are met or were successfully installed, False otherwise.
+
     Examples:
+        >>> from pathlib import Path
         >>> from ultralytics.utils.checks import check_requirements
 
         Check a requirements.txt file
-        >>> check_requirements("path/to/requirements.txt")
+        >>> check_requirements(Path("path/to/requirements.txt"))
 
         Check a single package
         >>> check_requirements("ultralytics>=8.3.200", cmds="--index-url https://download.pytorch.org/whl/cpu")
@@ -576,7 +576,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
         for candidate in candidates:
             r_stripped = candidate.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
-            match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
+            match = re.match(r"([a-zA-Z0-9-_]+)(?:\[[^\]]*\])?([<>!=~]+.*)?", r_stripped)
             name, required = match[1], match[2].strip() if match[2] else ""
             try:
                 if check_version(metadata.version(name), required):
@@ -643,6 +643,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 LOGGER.warning(msg)
                 return False
         else:
+            if install:  # AutoUpdate disabled by environment variable
+                LOGGER.warning(
+                    f"{prefix} Ultralytics requirement{'s' * (len(pkgs) > 1)} {pkgs} not found, AutoUpdate disabled by YOLO_AUTOINSTALL=False"
+                )
             return False
 
     return True
@@ -654,7 +658,10 @@ def check_executorch_requirements():
     if LINUX and ARM64 and IS_DOCKER:
         check_requirements("packaging>=22.0")
 
-    check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
+    # executorch>=1.5 no longer declares its torch floor and its runtime fails below torch 2.13 with "tensor does not
+    # have a device", so cap it where pip can no longer pair the two itself
+    executorch = "executorch" if check_version(TORCH_VERSION, "2.13.0") else "executorch<1.5"
+    check_requirements(executorch, cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
 
 
 def check_tensorrt(min_version: str = "7.0.0"):
@@ -669,39 +676,22 @@ def check_tensorrt(min_version: str = "7.0.0"):
 
 
 def check_torchvision():
-    """Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
+    """Warn if the installed torchvision does not match the installed torch release.
 
-    This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
-    to the compatibility table based on: https://github.com/pytorch/vision#installation.
+    Torch 1.x and 2.0-2.13 each pair with one torchvision release, 0.(minor + 1) and 0.(minor + 15) respectively.
+    Torchvision 0.29 is ABI stable with torch 2.14, so torch>=2.14 accepts torchvision>=0.29. See
+    https://github.com/pytorch/vision#installation.
     """
-    compatibility_table = {
-        "2.10": ["0.25"],
-        "2.9": ["0.24"],
-        "2.8": ["0.23"],
-        "2.7": ["0.22"],
-        "2.6": ["0.21"],
-        "2.5": ["0.20"],
-        "2.4": ["0.19"],
-        "2.3": ["0.18"],
-        "2.2": ["0.17"],
-        "2.1": ["0.16"],
-        "2.0": ["0.15"],
-        "1.13": ["0.14"],
-        "1.12": ["0.13"],
-    }
-
-    # Check major and minor versions
-    v_torch = ".".join(TORCH_VERSION.split("+", 1)[0].split(".")[:2])
-    if v_torch in compatibility_table:
-        compatible_versions = compatibility_table[v_torch]
-        v_torchvision = ".".join(TORCHVISION_VERSION.split("+", 1)[0].split(".")[:2])
-        if all(v_torchvision != v for v in compatible_versions):
-            LOGGER.warning(
-                f"torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
-                f"Run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
-                "'pip install -U torch torchvision' to update both.\n"
-                "For a full compatibility table see https://github.com/pytorch/vision#installation"
-            )
+    major, minor = (int(x) for x in TORCH_VERSION.split(".")[:2])
+    expected = {1: minor + 1, 2: min(minor + 15, 29)}.get(major)  # torchvision 0.x minor
+    v_torchvision = int(TORCHVISION_VERSION.split(".")[1])
+    if expected and v_torchvision != expected and (expected < 29 or v_torchvision < 29):
+        LOGGER.warning(
+            f"torchvision==0.{v_torchvision} is incompatible with torch=={major}.{minor}.\n"
+            f"Run 'pip install torchvision==0.{expected}' to fix torchvision or "
+            "'pip install -U torch torchvision' to update both.\n"
+            "For a full compatibility table see https://github.com/pytorch/vision#installation"
+        )
 
 
 def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
@@ -711,6 +701,9 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
         file (str | list[str]): File or list of files to check.
         suffix (str | tuple): Acceptable suffix or tuple of suffixes.
         msg (str): Additional message to display in case of error.
+
+    Raises:
+        AssertionError: If a file has a suffix that is not acceptable.
     """
     if file and suffix:
         if isinstance(suffix, str):
@@ -733,7 +726,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
     if "yolov3" in file or "yolov5" in file:
         if "u.yaml" in file:
             file = file.replace("u.yaml", ".yaml")  # i.e. yolov5nu.yaml -> yolov5n.yaml
-        elif ".pt" in file and "u" not in file:
+        elif file.endswith(".pt") and "u" not in file:
             original_file = file
             file = re.sub(r"(.*yolov5([nsmlx]))\.pt", "\\1u.pt", file)  # i.e. yolov5n.pt -> yolov5nu.pt
             file = re.sub(r"(.*yolov5([nsmlx])6)\.pt", "\\1u.pt", file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
@@ -747,7 +740,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
     return file
 
 
-def check_model_file_from_stem(model: str = "yolo11n") -> str | Path:
+def check_model_file_from_stem(model: str = "yolo26n") -> str | Path:
     """Return a model filename from a valid model stem.
 
     Args:
@@ -766,14 +759,18 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
-        file (str): File name or path, URL, platform URI (ul://), or GCS path (gs://).
+        file (str | Path): File name or path, URL, Ultralytics Platform URI (ul://) or web URL, or GCS path (gs://).
         suffix (str | tuple): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
-        download_dir (str): Directory to download the file to.
-        hard (bool): Whether to raise an error if the file is not found.
+        download_dir (str | Path): Directory to download the file to.
+        hard (bool): Whether to raise an error if the file is not found or multiple files match.
 
     Returns:
-        (str | list): Path to the file, or an empty list if not found.
+        (str | list): Path to the file, or an empty list if not found and hard=False.
+
+    Raises:
+        FileNotFoundError: If the file is not found or multiple files match, and hard=True.
+        ValueError: If an Ultralytics Platform URI contains an unsafe path.
     """
     file = normalize_platform_uri(file)  # accept Platform web URLs (rewritten to ul://)
     check_suffix(file, suffix)  # optional
@@ -781,7 +778,8 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if (
         not file
-        or ("://" not in file and Path(file).exists())  # '://' check required in Windows Python<3.10
+        # os.path.exists over Path.exists: returns False instead of raising PermissionError under unreadable dirs
+        or ("://" not in file and os.path.exists(file))  # '://' check required in Windows Python<3.10
         or file.lower().startswith("grpc://")
     ):  # file exists or gRPC Triton images
         return file
@@ -794,9 +792,6 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         if uri_path.is_absolute() or ".." in uri_path.parts:
             raise ValueError(f"Unsafe Ultralytics Platform URI path: {file}")
         local_file = Path(download_dir) / uri_path / url2file(url)
-        # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
-        if local_file.suffix == ".ndjson":
-            local_file.unlink(missing_ok=True)
         if local_file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
         else:
@@ -831,9 +826,25 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
         hard (bool): Whether to raise an error if the file is not found or multiple files are found.
 
     Returns:
-        (str): Path to the YAML file.
+        (str | list): Path to the YAML file, or an empty list if not found and hard=False.
     """
     return check_file(file, suffix, hard=hard)
+
+
+def check_data_portable(data) -> bool:
+    """Check whether a recorded dataset resolves on this host: a bare name, a URL or a local file.
+
+    Args:
+        data (str | Path | dict | None): Dataset recorded in a checkpoint, e.g. 'coco8.yaml' or '/abs/path/data.yaml'.
+
+    Returns:
+        (bool): True if the dataset can be passed as `data=` here; False for dicts, empty values or paths recorded on
+            another host or OS.
+    """
+    if not data or not isinstance(data, (str, Path)):  # absent, or a YOLOE multi-source training dict
+        return False
+    data = str(data)
+    return "://" in data or not any(sep in data for sep in "/\\") or bool(check_file(data, hard=False))
 
 
 def check_is_path_safe(basedir: Path | str, path: Path | str) -> bool:
@@ -844,7 +855,7 @@ def check_is_path_safe(basedir: Path | str, path: Path | str) -> bool:
         path (Path | str): The path to check.
 
     Returns:
-        (bool): True if the path is safe, False otherwise.
+        (bool): True if the path exists and is under `basedir`, False otherwise.
     """
     base_dir_resolved = Path(basedir).resolve()
     path_resolved = Path(path).resolve()
@@ -1137,6 +1148,15 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
+def rocm_is_available() -> bool:
+    """Check if ROCm (AMD GPU) is available in the environment.
+
+    Returns:
+        (bool): True if running on Linux with ROCm/HIP-enabled PyTorch, False otherwise.
+    """
+    return sys.platform == "linux" and bool(torch.version.hip) and torch.cuda.is_available()
+
+
 def is_rockchip():
     """Check if the current environment is running on a Rockchip SoC.
 
@@ -1148,12 +1168,10 @@ def is_rockchip():
             with open("/proc/device-tree/compatible") as f:
                 dev_str = f.read()
                 *_, soc = dev_str.split(",")
-                if soc.replace("\x00", "").split("-", 1)[0] in RKNN_CHIPS:
-                    return True
+            return soc.replace("\x00", "").split("-", 1)[0] in RKNN_CHIPS
         except OSError:
             return False
-    else:
-        return False
+    return False
 
 
 def is_intel():
@@ -1197,12 +1215,9 @@ check_torchvision()  # check torch-torchvision compatibility
 
 # Define constants
 IS_PYTHON_3_8 = PYTHON_VERSION.startswith("3.8")
-IS_PYTHON_3_9 = PYTHON_VERSION.startswith("3.9")
-IS_PYTHON_3_10 = PYTHON_VERSION.startswith("3.10")
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
-IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 
 IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
-IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
+IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)

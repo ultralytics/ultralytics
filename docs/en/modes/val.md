@@ -12,6 +12,8 @@ keywords: Ultralytics, YOLO26, model validation, machine learning, object detect
 
 Validation is a critical step in the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) pipeline, allowing you to assess the quality of your trained models. Val mode in Ultralytics YOLO26 provides a robust suite of tools and metrics for evaluating the performance of your [object detection](https://www.ultralytics.com/glossary/object-detection) models. This guide serves as a complete resource for understanding how to effectively use the Val mode to ensure that your models are both accurate and reliable.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary validation results.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/j8uQc0qB91s?start=47"
@@ -43,11 +45,11 @@ These are the notable functionalities offered by YOLO26's Val mode:
 
 !!! tip
 
-    * YOLO26 models automatically remember their training settings, so you can validate a model at the same image size and on the original dataset easily with just `yolo val model=yolo26n.pt` or `YOLO("yolo26n.pt").val()`
+    * YOLO26 models automatically remember their training settings, so `yolo val model=path/to/best.pt` or `YOLO("path/to/best.pt").val()` validates at the training image size on the original dataset. Official weights fall back to the task default dataset; pass `data` to override.
 
 ## Usage Examples
 
-Validate a trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes. See the Arguments section below for a full list of validation arguments.
+Validate a trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/accuracy). No arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` validates on the dataset it was trained on. Official weights record a training dataset path that doesn't exist on your machine, so they fall back to the task default `coco8.yaml` with a warning. Pass `data` to validate on another dataset. See the Arguments section below for a full list of validation arguments.
 
 !!! warning "Windows Multi-Processing Error"
 
@@ -76,8 +78,8 @@ Validate a trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary
     === "CLI"
 
         ```bash
-        yolo detect val model=yolo26n.pt      # val official model
-        yolo detect val model=path/to/best.pt # val custom model
+        yolo detect val model=yolo26n.pt data=coco8.yaml             # val official model
+        yolo detect val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
 
 ## Arguments for YOLO Model Validation
@@ -87,6 +89,15 @@ When validating YOLO models, several arguments can be fine-tuned to optimize the
 {% include "macros/validation-args.md" %}
 
 Each of these settings plays a vital role in the validation process, allowing for a customizable and efficient evaluation of YOLO models. Adjusting these parameters according to your specific needs and resources can help achieve the best balance between accuracy and performance.
+
+### Rectangular validation geometry (`rect`)
+
+Static exports use their recorded `(height, width)` input shape, including non-square exports, for validation. For example,
+`YOLO("yolo26n.onnx").val(data="coco8.yaml")` uses a `384×640` input if the model was exported with `imgsz=(384, 640)`.
+
+For detection, instance segmentation, pose, and OBB, rectangular validation (`rect=True`) rounds each batch dimension up using `ceil(shape * imgsz / stride + 0.5) * stride`, where `shape` is the batch's normalized height or width. The resulting padding is split between opposite sides. For example, a square 640×640 image validated at `imgsz=640` with stride 32 uses a 672×672 input with 16 px of padding on each side, while `predict()` uses 640×640 without padding.
+
+This difference can affect validation metrics. For square, stride-aligned inputs, `model.val(rect=False)` matches the geometry of `predict()` and square fixed-shape exports. During training, these YOLO tasks use rectangular validation batches regardless of the training `rect` setting, so `model.train(rect=False)` still selects `best.pt` using rectangular validation. Other tasks differ: semantic segmentation adds no extra validation padding, depth disables rectangular validation, classification ignores `rect`, and RT-DETR uses its own dataset builder with `rect=False`.
 
 ### Example Validation with Arguments
 
@@ -174,6 +185,8 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
     This feature is available for detection, segmentation, pose, and OBB tasks.
 
+The returned metrics object also exposes export helpers for downstream analysis:
+
 | Method      | Return Type            | Description                                                                |
 | ----------- | ---------------------- | -------------------------------------------------------------------------- |
 | `summary()` | `List[Dict[str, Any]]` | Converts validation results to a summarized dictionary.                    |
@@ -207,7 +220,7 @@ print(metrics.box.map)  # map50-95
 Alternatively, you can use the command-line interface (CLI):
 
 ```bash
-yolo val model=yolo26n.pt
+yolo detect val model=yolo26n.pt data=coco8.yaml
 ```
 
 For further customization, you can adjust various arguments like `imgsz`, `batch`, and `conf` in both Python and CLI modes. Check the [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) section for the full list of parameters.
@@ -295,4 +308,4 @@ Example using CLI:
 yolo val model=yolo26n.pt save_json=True
 ```
 
-This functionality is particularly useful for further analysis or integration with other tools. Check the [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) for more details.
+On detection datasets, `save_json=True` also reports small-, medium-, and large-object mAP through `faster-coco-eval`. Check the [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) for more details.

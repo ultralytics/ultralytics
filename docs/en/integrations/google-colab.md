@@ -60,7 +60,7 @@ Now, let's look at some of the standout features that make Google Colab a go-to 
 
 - **Library Support:** Google Colab includes pre-installed libraries for data analysis and machine learning and allows additional libraries to be installed as needed. It also supports various libraries for creating interactive charts and visualizations.
 
-- **Hardware Resources:** Users can also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
+- **Hardware Resources:** Users can also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to GPUs such as the NVIDIA T4, L4, and A100, as well as TPUs, which are specialized circuits designed specifically for machine learning tasks.
 
 ![Google Colab runtime settings for GPU selection](https://cdn.ul.run/i/af1c887793a644cb29b011c3bebd6299.avif)
 
@@ -152,7 +152,7 @@ Yes, you can use custom datasets to train YOLO26 models in Google Colab. Upload 
 If your Google Colab training session is interrupted:
 
 1. **Save Regularly:** Avoid losing unsaved progress by regularly saving your work to Google Drive or GitHub.
-2. **Resume Training:** Restart your session and re-run the cells from where the interruption occurred.
-3. **Use Checkpoints:** Incorporate checkpointing in your training script to save progress periodically.
+2. **Resume Training:** Restart your session, load the interrupted run's `last.pt` checkpoint, and continue with `model.train(resume=True)` (see [Resuming Interrupted Trainings](../modes/train.md#resuming-interrupted-trainings)).
+3. **Use Checkpoints:** Save the training `project` directory to Google Drive so `last.pt` survives a disconnected runtime, and use `save_period` to keep periodic epoch checkpoints.
 
 These practices help ensure your progress is secure. Learn more about session management on [Google Colab's FAQ page](https://research.google.com/colaboratory/faq.html).

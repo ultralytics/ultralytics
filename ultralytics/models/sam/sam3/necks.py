@@ -23,7 +23,7 @@ class Sam3DualViTDetNeck(nn.Module):
         scale_factors=(4.0, 2.0, 1.0, 0.5),
         add_sam2_neck: bool = False,
     ):
-        """SimpleFPN neck a la ViTDet, very lightly adapted from detectron2.
+        """Initialize a SimpleFPN neck à la ViTDet, very lightly adapted from detectron2.
 
         Supports a "dual neck" setting with two identical necks (for SAM3 and SAM2) that have different weights.
 
@@ -104,9 +104,19 @@ class Sam3DualViTDetNeck(nn.Module):
             self.sam2_convs = deepcopy(self.convs)
 
     def forward(
-        self, tensor_list: list[torch.Tensor]
+        self, tensor_list: torch.Tensor
     ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor] | None, list[torch.Tensor] | None]:
-        """Get feature maps and positional encodings from the neck."""
+        """Get feature maps and positional encodings from the neck.
+
+        Args:
+            tensor_list (torch.Tensor): Input images with shape (B, C, H, W) passed to the trunk.
+
+        Returns:
+            sam3_out (list[torch.Tensor]): SAM3 neck feature maps, one per scale factor.
+            sam3_pos (list[torch.Tensor]): Positional encodings for sam3_out.
+            sam2_out (list[torch.Tensor] | None): SAM2 neck feature maps, or None if add_sam2_neck is False.
+            sam2_pos (list[torch.Tensor] | None): Positional encodings for sam2_out, or None if add_sam2_neck is False.
+        """
         xs = self.trunk(tensor_list)
         x = xs[-1]  # simpleFPN
         sam3_out, sam3_pos = self.sam_forward_feature_levels(x, self.convs)

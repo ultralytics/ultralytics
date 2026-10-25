@@ -31,7 +31,7 @@ Explorer GUI is built on the [Ultralytics Explorer API](api.md). It allows you t
 ### Installation
 
 ```bash
-pip install ultralytics[explorer]
+pip install "ultralytics[explorer]==8.3.11"
 ```
 
 !!! note
@@ -88,7 +88,7 @@ Ultralytics Explorer GUI is a powerful interface that unlocks advanced data expl
 To install the Explorer GUI, you can use pip:
 
 ```bash
-pip install ultralytics[explorer]
+pip install "ultralytics[explorer]==8.3.11"
 ```
 
 Note: To use the Ask AI feature, you'll need to set the OpenAI API key: `yolo settings openai_api_key="..."`.

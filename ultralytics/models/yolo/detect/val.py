@@ -13,10 +13,11 @@ import torch.distributed as dist
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, nms, ops
+from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
 
 class DetectionValidator(BaseValidator):
@@ -33,7 +34,6 @@ class DetectionValidator(BaseValidator):
         iouv (torch.Tensor): IoU thresholds for mAP calculation.
         niou (int): Number of IoU thresholds.
         jdict (list[dict[str, Any]]): List for storing JSON detection results.
-        stats (dict[str, list[torch.Tensor]]): Dictionary for storing statistics during validation.
 
     Examples:
         >>> from ultralytics.models.yolo.detect import DetectionValidator
@@ -51,8 +51,6 @@ class DetectionValidator(BaseValidator):
             args (dict[str, Any], optional): Arguments for the validator.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
-        conf = args.get("conf") if isinstance(args, dict) else getattr(args, "conf", None)
-        self.confusion_matrix_conf = 0.25 if conf is None else conf
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.is_coco = False
         self.is_lvis = False
@@ -117,6 +115,12 @@ class DetectionValidator(BaseValidator):
         Args:
             model (torch.nn.Module): Model to validate.
         """
+        if self.args.save_txt:  # labels are appended per image, drop those a previous run or epoch left in save_dir
+            with torch_distributed_zero_first(LOCAL_RANK):
+                if LOCAL_RANK in {-1, 0}:
+                    for f in (self.save_dir / "labels").glob("*.txt"):
+                        f.unlink(missing_ok=True)
+            self.label_root = os.path.commonpath([os.path.dirname(f) for f in self.dataloader.dataset.im_files])
         if not self.training:
             self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path
@@ -209,7 +213,7 @@ class DetectionValidator(BaseValidator):
             pred (dict[str, torch.Tensor]): Post-processed predictions from the model.
 
         Returns:
-            (dict[str, torch.Tensor]): Prepared predictions in native space.
+            (dict[str, torch.Tensor]): Predictions with classes set to 0 when `single_cls` is enabled.
         """
         if self.args.single_cls:
             pred["cls"] *= 0
@@ -259,7 +263,7 @@ class DetectionValidator(BaseValidator):
                 }
             )
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, pbatch, conf=self.confusion_matrix_conf)
+                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
                     self.confusion_matrix.plot_matches(
                         batch["img"][si],
@@ -276,12 +280,10 @@ class DetectionValidator(BaseValidator):
                 predn_scaled = self.scale_preds(predn, pbatch)
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
-            if self.args.save_txt:
+            if self.args.save_txt:  # flatten the split-relative path so a/1.jpg and b/1.jpg write a_1.txt and b_1.txt
+                name = "_".join(Path(pbatch["im_file"]).relative_to(self.label_root).with_suffix("").parts)
                 self.save_one_txt(
-                    predn_scaled,
-                    self.args.save_conf,
-                    pbatch["ori_shape"],
-                    self.save_dir / "labels" / f"{Path(pbatch['im_file']).stem}.txt",
+                    predn_scaled, self.args.save_conf, pbatch["ori_shape"], self.save_dir / "labels" / f"{name}.txt"
                 )
 
     def finalize_metrics(self) -> None:
@@ -417,13 +419,15 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        if self.names and len(self.names) < self.data["nc"]:  # standalone val of a model with fewer classes
+            LOGGER.warning(f"Skipping labels of classes the model (nc={len(self.names)}) cannot predict.")
+            dataset.update_labels(list(range(len(self.names))))
         return build_dataloader(
             dataset,
             batch_size,
             self.args.workers,
             shuffle=False,
             rank=-1,
-            drop_last=self.args.compile,
             pin_memory=self.training,
             device=self.device,
         )
@@ -452,7 +456,7 @@ class DetectionValidator(BaseValidator):
             batch (dict[str, Any]): Batch containing images and annotations.
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
-            max_det (int | None): Maximum number of detections to plot.
+            max_det (int | None): Maximum number of detections to plot per image, defaults to `args.max_det`.
         """
         if not preds:
             return
@@ -498,13 +502,13 @@ class DetectionValidator(BaseValidator):
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Examples:
-             >>> result = {
-             ...     "image_id": 42,
-             ...     "file_name": "42.jpg",
-             ...     "category_id": 18,
-             ...     "bbox": [258.15, 41.29, 348.26, 243.78],
-             ...     "score": 0.236,
-             ... }
+            >>> result = {
+            ...     "image_id": 42,
+            ...     "file_name": "42.jpg",
+            ...     "category_id": 18,
+            ...     "bbox": [258.15, 41.29, 348.26, 243.78],
+            ...     "score": 0.236,
+            ... }
         """
         path = Path(pbatch["im_file"])
         stem = path.stem
@@ -523,7 +527,7 @@ class DetectionValidator(BaseValidator):
             )
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Scales predictions to the original image size."""
+        """Scale predictions to the original image size."""
         return {
             **predn,
             "bboxes": ops.scale_boxes(
@@ -610,9 +614,9 @@ class DetectionValidator(BaseValidator):
                         stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
                         stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
                         stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
-                    stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
-                    stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
-                    stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
+                    for x in "small", "medium", "large":
+                        if f"AP_{x}" in val.stats_as_dict:  # COCO keypoint evaluation has no small area range
+                            stats[f"metrics/mAP_{x}({suffix[i][0]})"] = val.stats_as_dict[f"AP_{x}"]
                     if not self.training and self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
                         stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]

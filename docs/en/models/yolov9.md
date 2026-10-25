@@ -44,7 +44,7 @@ where `I` denotes mutual information, and `f` and `g` represent transformation f
 
 The concept of Reversible Functions is another cornerstone of YOLOv9's design. A function is deemed reversible if it can be inverted without any loss of information, as expressed by:
 
-```python
+```text
 X = v_zeta(r_psi(X))
 ```
 
@@ -70,7 +70,7 @@ Benchmarking in YOLOv9 using [Ultralytics](../modes/benchmark.md) involves evalu
 
 - **Performance Evaluation:** Assessing the model's speed and accuracy.
 - **Export Formats:** Testing the model across different export formats to ensure it meets the necessary standards and performs well in various environments.
-- **Framework Support:** Providing a comprehensive framework within Ultralytics YOLOv8 to facilitate these assessments and ensure consistent and reliable results.
+- **Framework Support:** Providing a comprehensive framework within the Ultralytics package to facilitate these assessments and ensure consistent and reliable results.
 
 By benchmarking, you can ensure that your model not only performs well in controlled testing environments but also maintains high performance in practical, real-world applications.
 
@@ -97,18 +97,18 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 
         | Model                                                                                | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | mAP<sup>val<br>50</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ------------------------------------------------------------------------------------ | --------------------------- | -------------------------- | ----------------------- | ------------------------ | ----------------------- |
-        | [YOLOv9t](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9t.pt) | 640                         | 38.3                       | 53.1                    | 2.0                      | 7.7                     |
+        | [YOLOv9t](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9t.pt) | 640                         | 38.3                       | 53.1                    | **2.0**                  | **7.7**                 |
         | [YOLOv9s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9s.pt) | 640                         | 46.8                       | 63.4                    | 7.2                      | 26.7                    |
         | [YOLOv9m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9m.pt) | 640                         | 51.4                       | 68.1                    | 20.1                     | 76.8                    |
         | [YOLOv9c](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9c.pt) | 640                         | 53.0                       | 70.2                    | 25.5                     | 102.8                   |
-        | [YOLOv9e](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e.pt) | 640                         | 55.6                       | 72.8                    | 58.1                     | 192.5                   |
+        | [YOLOv9e](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e.pt) | 640                         | **55.6**                   | **72.8**                | 58.1                     | 192.5                   |
 
     === "Segmentation (COCO)"
 
         | Model                                                                                        | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | -------------------------------------------------------------------------------------------- | --------------------------- | -------------------------- | --------------------------- | ------------------------ | ----------------------- |
-        | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9c-seg.pt) | 640                         | 52.4                       | 42.2                        | 27.9                     | 159.4                   |
-        | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e-seg.pt) | 640                         | 55.1                       | 44.3                        | 60.5                     | 248.4                   |
+        | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9c-seg.pt) | 640                         | 52.4                       | 42.2                        | **27.9**                 | **159.4**               |
+        | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e-seg.pt) | 640                         | **55.1**                   | **44.3**                    | 60.5                     | 248.4                   |
 
 YOLOv9's iterations, ranging from the tiny `t` variant to the extensive `e` model, demonstrate improvements not only in accuracy (mAP metrics) but also in efficiency with a reduced number of parameters and computational needs (FLOPs). This table underscores YOLOv9's ability to deliver high [precision](https://www.ultralytics.com/glossary/precision) while maintaining or reducing the computational overhead compared to prior versions and competing models.
 
@@ -133,7 +133,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in Python:
 
         ```python
         from ultralytics import YOLO
@@ -141,7 +141,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
         # Build a YOLOv9c model from scratch
         model = YOLO("yolov9c.yaml")
 
-        # Build a YOLOv9c model from pretrained weight
+        # Build a YOLOv9c model from pretrained weights
         model = YOLO("yolov9c.pt")
 
         # Display model information (optional)
@@ -185,7 +185,7 @@ This table provides a detailed overview of the YOLOv9 model variants, highlighti
 
 We would like to acknowledge the YOLOv9 authors for their significant contributions in the field of real-time object detection:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

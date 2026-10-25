@@ -30,7 +30,7 @@ The [Ultralytics](https://www.ultralytics.com) COCO8-Grayscale dataset is a comp
 
 ## Dataset Structure
 
-COCO8-Grayscale mirrors [COCO8](coco8.md)—the first 8 images from the COCO train 2017 set, split into 4 for training and 4 for validation across all 80 COCO object classes—but each image is stored as a single-channel (`channels: 1`) grayscale image in [YOLO label format](../index.md):
+COCO8-Grayscale mirrors [COCO8](coco8.md)—the first 8 images from the COCO train 2017 set, split into 4 for training and 4 for validation and labeled with the 80 COCO class names—but each image is stored as a single-channel (`channels: 1`) grayscale image in [YOLO label format](../index.md):
 
 ```text
 coco8-grayscale/
@@ -97,7 +97,7 @@ This technique is especially useful for small datasets like COCO8-Grayscale, as 
 
 If you use the COCO dataset in your research or development, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

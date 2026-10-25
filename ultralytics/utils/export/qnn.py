@@ -41,7 +41,6 @@ def onnx2qnn(
     transform_fn,
     name: str = "73",
     metadata: dict | None = None,
-    batch: int = 0,
     prefix: str = "",
 ) -> str:
     """Convert an ONNX model to a Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
@@ -64,12 +63,13 @@ def onnx2qnn(
             chip when exporting on a host without a Snapdragon NPU.
         metadata (dict | None): Ultralytics model metadata ensured present in the context model's `metadata_props` (ONNX
             Runtime normally carries the source model's metadata through, but this is not a documented guarantee).
-        batch (int): Static batch dimension of the ONNX graph used to tile undersized calibration batches, or 0 for
-            dynamic-batch models.
         prefix (str): Prefix for log messages.
 
     Returns:
         (str): Path to the exported `*_qnn.onnx` file.
+
+    Raises:
+        RuntimeError: If no QNN devices are found after plugin registration, or the context binary is not generated.
 
     Notes:
         `onnxruntime-qnn` wheels may expose QNN either as a plugin library or as a built-in ONNX Runtime provider.
@@ -106,7 +106,7 @@ def onnx2qnn(
         # 16-bit activations + 8-bit weights is the ORT-recommended accuracy/perf balance for the HTP backend
         qdq_config = get_qnn_qdq_config(
             str(pre_file),
-            onnx_calibration_reader(dataset, transform_fn, batch=batch),
+            onnx_calibration_reader(dataset, transform_fn),
             activation_type=QuantType.QUInt16,
             weight_type=QuantType.QUInt8,
         )
@@ -117,10 +117,13 @@ def onnx2qnn(
         # is disabled (no device present). Targets not exposed by ONNX Runtime's htp_arch parser are finalized through
         # their QNN SoC model instead.
         ep_name = "QNNExecutionProvider"
+        # Keep graph I/O quantization inside the context binary: offloading it to the CPU makes onnxruntime-qnn>=2.4
+        # write an EPContext `io_name_overrides` map that ONNX Runtime's built-in QNN EP (Android) cannot read.
         ep_options = {
             "backend_path": htp_backend,
             "htp_graph_finalization_optimization_mode": "3",
             "enable_htp_shared_memory_allocator": "0",
+            "offload_graph_io_quantization": "0",
         }
         option, value = QNN_HTP_TARGETS[name]
         ep_options[option] = value

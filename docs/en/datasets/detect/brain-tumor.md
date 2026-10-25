@@ -127,7 +127,7 @@ The dataset has been made available under the [AGPL-3.0 License](https://github.
 
 If you use this dataset in your research or development work, please cite it appropriately:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -172,7 +172,6 @@ You can train a YOLO26 model on the brain tumor dataset for 100 epochs with an i
         # Train the model
         results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
         ```
-
 
     === "CLI"
 

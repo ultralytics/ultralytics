@@ -19,14 +19,12 @@ class WorldTrainerFromScratch(WorldTrainer):
     supporting training YOLO-World models with combined vision-language capabilities.
 
     Attributes:
-        cfg (dict): Configuration dictionary with default parameters for model training.
-        overrides (dict): Dictionary of parameter overrides to customize the configuration.
-        _callbacks (dict): Dictionary of callback functions to be executed during different stages of training.
         data (dict): Final processed data configuration containing train/val paths and metadata.
         training_data (dict): Dictionary mapping training dataset paths to their configurations.
 
     Methods:
         build_dataset: Build YOLO Dataset for training or validation with mixed dataset support.
+        check_data_config: Check and load the data configuration from a YAML file or dictionary.
         get_dataset: Get train and validation paths from data dictionary.
         plot_training_labels: Skip label plotting for YOLO-World training.
         final_eval: Perform final evaluation and validation for the YOLO-World model.
@@ -130,12 +128,15 @@ class WorldTrainerFromScratch(WorldTrainer):
             (dict): Final processed data configuration containing train/val paths and metadata.
 
         Raises:
-            AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
+            AssertionError: If train or val is not a non-empty dict of datasets, or if validation has multiple datasets.
         """
         final_data = {}
         self.args.data = data_yaml = self.check_data_config(self.args.data)
-        assert data_yaml.get("train", False), "train dataset not found"  # object365.yaml
-        assert data_yaml.get("val", False), "validation dataset not found"  # lvis.yaml
+        for split in ("train", "val"):
+            assert isinstance(data_yaml.get(split), dict) and data_yaml[split], (
+                f"Expected 'data' to map '{split}' to a dict like {{'yolo_data': ['coco8.yaml']}}, "
+                f"but got {split}={data_yaml.get(split)!r}"
+            )
         data = {k: [check_det_dataset(d) for d in v.get("yolo_data", [])] for k, v in data_yaml.items()}
         assert len(data["val"]) == 1, f"Only support validating on 1 dataset for now, but got {len(data['val'])}."
         val_split = "minival" if "lvis" in data["val"][0]["val"] else "val"
@@ -186,9 +187,6 @@ class WorldTrainerFromScratch(WorldTrainer):
         """Perform final evaluation and validation for the YOLO-World model.
 
         Configures the validator with appropriate dataset and split information before running evaluation.
-
-        Returns:
-            (dict): Dictionary containing evaluation metrics and results.
         """
         val = self.args.data["val"]["yolo_data"][0]
         self.validator.args.data = val

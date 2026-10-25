@@ -24,7 +24,7 @@ pip install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requi
 
 ### Simple Example
 
-This example loads a pretrained YOLOv5s model from PyTorch Hub as `model` and passes an image for inference. `'yolov5s'` is the lightest and fastest YOLOv5 model. For details on all available models please see the [README](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+This example loads a pretrained YOLOv5s model from PyTorch Hub as `model` and passes an image for inference. `'yolov5s'` is a small, fast YOLOv5 model. For details on all available models please see the [README](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
 
 ```python
 import torch
@@ -48,7 +48,7 @@ results.pandas().xyxy[0]
 
 ### Detailed Example
 
-This example shows **batched inference** with **PIL** and **[OpenCV](https://www.ultralytics.com/glossary/opencv)** image sources. `results` can be **printed** to console, **saved** to `runs/hub`, **showed** to screen on supported environments, and returned as **tensors** or **pandas** dataframes.
+This example shows **batched inference** with **PIL** and **[OpenCV](https://www.ultralytics.com/glossary/opencv)** image sources. `results` can be **printed** to console, **saved** to `runs/hub`, **shown** on screen on supported environments, and returned as **tensors** or **pandas** dataframes.
 
 ```python
 import cv2
@@ -151,7 +151,7 @@ In this case the model will be composed of pretrained weights **except for** the
 
 ### Force Reload
 
-If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and force a fresh download of the latest YOLOv5 version from PyTorch Hub. Cached copies live in `~/.cache/torch/hub`; deleting that folder achieves the same effect.
+If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and forcing a fresh download of the latest YOLOv5 version from PyTorch Hub. Cached copies live in `~/.cache/torch/hub`; deleting that folder achieves the same effect.
 
 ```python
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", force_reload=True)  # force reload
@@ -278,7 +278,7 @@ results.pandas().xyxy[0].sort_values("xmin")  # sorted left-right
 Results can be returned in JSON format once converted to `.pandas()` dataframes using the `.to_json()` method. The JSON format can be modified using the `orient` argument. See pandas `.to_json()` [documentation](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html) for details.
 
 ```python
-results = model(ims)  # inference
+results = model(im)  # inference
 results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 ```
 
@@ -356,7 +356,7 @@ model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.torchscript
 model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.onnx")  # ONNX
 model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_openvino_model/")  # OpenVINO
 model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.engine")  # TensorRT
-model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.mlmodel")  # CoreML (macOS-only)
+model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.mlpackage")  # CoreML (macOS-only)
 model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s.tflite")  # TFLite
 model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_paddle_model/")  # PaddlePaddle
 ```
@@ -376,3 +376,25 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### Do I have to clone the YOLOv5 repository?
+
+No. `torch.hub.load("ultralytics/yolov5", ...)` downloads the code into `~/.cache/torch/hub` and the weights on first use. Only the packages in `requirements.txt` need to be installed.
+
+### How do I load my own trained weights?
+
+Use the `custom` entry point with the checkpoint path: `torch.hub.load("ultralytics/yolov5", "custom", path="runs/train/exp/weights/best.pt")`. Add `source="local"` and a local repository path to load without network access.
+
+### Can I load exported ONNX or TensorRT models?
+
+Yes. Pass the exported file to the same `custom` loader and YOLOv5 selects the matching backend from the suffix, for example `yolov5s.onnx`, `yolov5s.engine`, or `yolov5s_openvino_model/`.
+
+### What should I do when loading fails with a cache or version error?
+
+Pass `force_reload=True` to discard the cached repository and fetch the latest code, or delete `~/.cache/torch/hub` manually. This also picks up new releases of YOLOv5.
+
+### How do I get results as numbers instead of an image?
+
+`results.xyxy[0]` returns a tensor of `[x1, y1, x2, y2, confidence, class]` rows, `results.pandas().xyxy[0]` returns a DataFrame with class names, and `.to_json(orient="records")` on that DataFrame produces JSON.

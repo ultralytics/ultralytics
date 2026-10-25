@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
-import cv2
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -13,9 +13,8 @@ import torch.nn.functional as F
 from PIL import Image
 
 from ultralytics.data.dataset import SemanticDataset
-from ultralytics.data.utils import add_polygon_background
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils import LOGGER, RANK, ops
 from ultralytics.utils.metrics import ConfusionMatrix, SemanticMetrics
 from ultralytics.utils.plotting import plot_images
 
@@ -49,7 +48,6 @@ class SemanticSegmentationValidator(DetectionValidator):
         self.dataset = None
         self.results_dir = None
         self.metrics = SemanticMetrics()
-        self.image_shapes = {}
         self._semantic_target_shape = None
 
     def init_metrics(self, model):
@@ -63,12 +61,10 @@ class SemanticSegmentationValidator(DetectionValidator):
         self.metrics = SemanticMetrics(names=self.names)
         self.seen = 0
         self.dataset = getattr(self.dataloader, "dataset", None)
-        labels = getattr(self.dataset, "labels", []) if self.dataset is not None else []
-        self.image_shapes = {lb["im_file"]: tuple(lb["shape"]) for lb in labels if "im_file" in lb and "shape" in lb}
         self.results_dir = None
         if self.args.save_json:
             self.results_dir = self.save_dir / "results"
-            self.results_dir.mkdir(parents=True, exist_ok=True)
+            self.mask_root = os.path.commonpath([os.path.dirname(f) for f in self.dataset.im_files])
         cm_nc = self.metrics.cm_nc
         if cm_nc == 2 and len(self.names) == 1:  # binary segmentation, expand to include background
             cm_names = {0: "background", 1: next(iter(self.names.values()))}
@@ -110,7 +106,9 @@ class SemanticSegmentationValidator(DetectionValidator):
         pred_hw = preds.shape[2:]
         if pred_hw[0] != self._semantic_target_shape[0] or pred_hw[1] != self._semantic_target_shape[1]:
             preds = F.interpolate(preds, size=self._semantic_target_shape, mode="bilinear", align_corners=False)
-        return preds.argmax(dim=1).to(torch.int32) if self.nc > 1 else preds.gt(0).squeeze(1).to(torch.int32)
+        if self.nc > 1:  # CPU argmax over a non-innermost dim runs as a per-output loop; max(dim) streams
+            return (preds.max(dim=1).indices if preds.device.type == "cpu" else preds.argmax(dim=1)).to(torch.int32)
+        return preds.gt(0).squeeze(1).to(torch.int32)
 
     def update_metrics(self, preds, batch):
         """Update metrics with predictions and ground truth.
@@ -141,21 +139,24 @@ class SemanticSegmentationValidator(DetectionValidator):
             dist.gather_object(self.metrics.nt_per_image, None, dst=0)
 
     def save_pred_masks(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:
-        """Save semantic predictions as single-channel PNG masks."""
+        """Save semantic predictions as single-channel PNG masks at the original image size.
+
+        Each mask keeps its image's path relative to the common parent directory of all validation images, so
+        `images/val/a/1.jpg` and `images/val/b/1.jpg` are saved as `results/a/1.png` and `results/b/1.png`. Masks use
+        the original dataset label IDs when the dataset defines `label_mapping`.
+        """
         if self.results_dir is None:
             return
         im_files = batch.get("im_file", [])
         if not im_files:
             return
-        preds = preds.cpu().numpy()
-        if isinstance(self.dataset, SemanticDataset) and self.dataset.label_mapping:
-            preds = self.dataset.convert_label(preds, inverse=True)
-        preds = preds.astype(np.uint8, copy=False)
-        for pred, im_file in zip(preds, im_files):
-            orig_shape = self.image_shapes.get(im_file)
-            if orig_shape and pred.shape != orig_shape:
-                pred = cv2.resize(pred, (orig_shape[1], orig_shape[0]), interpolation=cv2.INTER_NEAREST)
-            save_path = self.results_dir / Path(im_file).with_suffix(".png").name
+        for pred, im_file, ori_shape, ratio_pad in zip(preds, im_files, batch["ori_shape"], batch["ratio_pad"]):
+            pred = ops.scale_masks(pred[None, None].float(), ori_shape, ratio_pad=ratio_pad, mode="nearest")
+            pred = pred[0, 0].byte().cpu().numpy()
+            if isinstance(self.dataset, SemanticDataset) and self.dataset.label_mapping:
+                pred = self.dataset.convert_label(pred, inverse=True)
+            save_path = self.results_dir / Path(im_file).relative_to(self.mask_root).with_suffix(".png")
+            save_path.parent.mkdir(parents=True, exist_ok=True)
             Image.fromarray(pred).save(save_path)
 
     def get_stats(self):
@@ -183,10 +184,6 @@ class SemanticSegmentationValidator(DetectionValidator):
         super().print_results()
         if self.args.save_json and self.results_dir is not None:
             LOGGER.info(f"Semantic prediction masks saved to {self.results_dir}")
-
-    def get_dataset(self):
-        """Parse the dataset YAML and add background metadata for polygon labels when required."""
-        return add_polygon_background(super().get_dataset())
 
     def plot_predictions(self, batch, preds, ni):
         """Plot predicted semantic masks on input images."""

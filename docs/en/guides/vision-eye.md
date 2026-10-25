@@ -5,7 +5,7 @@ description: Discover VisionEye's object mapping and tracking powered by Ultraly
 keywords: VisionEye, YOLO26, Ultralytics, object mapping, object tracking, distance calculation, computer vision, AI, machine learning, Python, tutorial
 ---
 
-# VisionEye View Object Mapping using Ultralytics YOLO26 🚀
+# VisionEye View Object Mapping using Ultralytics YOLO26
 
 ## What is VisionEye Object Mapping?
 
@@ -51,7 +51,7 @@ VisionEye fixes a single observation point in the frame and draws a ray from it 
         # Initialize vision eye object
         visioneye = solutions.VisionEye(
             show=True,  # display the output
-            model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
+            model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., yolo26s.pt
             classes=[0, 2],  # generate visioneye view for specific classes
             vision_point=(50, 50),  # the point where VisionEye will view objects and draw tracks
         )
@@ -86,8 +86,7 @@ Here's a table with the `VisionEye` arguments:
 
 You can also utilize various `track` arguments within the `VisionEye` solution:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Furthermore, some visualization arguments are supported, as listed below:
 
@@ -100,7 +99,7 @@ VisionEye works by establishing a fixed vision point in the frame and drawing li
 
 The `process` method in the VisionEye class performs several key operations:
 
-1. Extracts tracks (bounding boxes, classes, and masks) from the input image
+1. Extracts tracks (bounding boxes, classes, and track IDs) from the input image
 2. Creates an annotator to draw bounding boxes and labels
 3. For each detected object, draws a box label and creates a vision line from the vision point
 4. Returns the annotated image with tracking statistics
@@ -140,7 +139,7 @@ video_writer = cv2.VideoWriter("vision-eye-mapping.avi", cv2.VideoWriter_fourcc(
 # Init vision eye object
 visioneye = solutions.VisionEye(
     show=True,  # display the output
-    model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
+    model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., yolo26s.pt
     classes=[0, 2],  # generate visioneye view for specific classes
 )
 
@@ -176,6 +175,6 @@ For more information on applications and benefits, check out the [Ultralytics YO
 
 ### How can I integrate VisionEye with other [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools like Comet or ClearML?
 
-Ultralytics YOLO26 can integrate seamlessly with various machine learning tools like Comet and ClearML, enhancing experiment tracking, collaboration, and reproducibility. Follow the detailed guides on [how to use YOLOv5 with Comet](https://www.ultralytics.com/blog/how-to-use-yolov5-with-comet) and [integrate YOLO26 with ClearML](../integrations/clearml.md) to get started.
+Ultralytics YOLO26 can integrate seamlessly with various machine learning tools like Comet and ClearML, enhancing experiment tracking, collaboration, and reproducibility. Follow the detailed guides on [integrating YOLO26 with Comet](../integrations/comet.md) and [integrating YOLO26 with ClearML](../integrations/clearml.md) to get started.
 
 For further exploration and integration examples, check our [Ultralytics Integrations Guide](../integrations/index.md).

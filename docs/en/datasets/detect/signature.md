@@ -97,7 +97,7 @@ Once trained, you can run [inference](../../modes/predict.md) on documents or vi
     === "CLI"
 
         ```bash
-        # Start prediction with a finetuned *.pt model
+        # Start prediction with a fine-tuned *.pt model
         yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/signature-s.mp4" conf=0.75
         ```
 
@@ -115,7 +115,7 @@ The dataset has been made available under the [AGPL-3.0 License](https://github.
 
 If you use the Signature Detection Dataset in your research or development work, please cite it appropriately:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

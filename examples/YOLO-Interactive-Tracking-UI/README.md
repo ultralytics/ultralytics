@@ -1,6 +1,6 @@
 # Ultralytics YOLO Interactive Object Tracking UI 🚀
 
-A real-time [object detection](https://docs.ultralytics.com/tasks/detect) and [tracking](https://docs.ultralytics.com/modes/track) UI built with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and [OpenCV](https://opencv.org/), designed for interactive demos and seamless integration of tracking overlays. Whether you're just getting started with object tracking or looking to enhance it with additional features, this project provides a solid foundation.
+A real-time [object detection](https://docs.ultralytics.com/tasks/detect) and [tracking](https://docs.ultralytics.com/modes/track) UI built with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) and [OpenCV](https://opencv.org/), designed for interactive demos and seamless integration of tracking overlays. Whether you're just getting started with object tracking or looking to enhance it with additional features, this project provides a solid foundation.
 
 https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 
@@ -18,7 +18,7 @@ https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 
 ## 🏗️ Project Structure
 
-```
+```text
 YOLO-Interactive-Tracking-UI/
 ├── interactive_tracker.py   # Main Python tracking UI script
 └── README.md                # You're here!
@@ -28,10 +28,10 @@ YOLO-Interactive-Tracking-UI/
 
 | Platform         | Model Format       | Example Model        | GPU Acceleration | Notes                           |
 | ---------------- | ------------------ | -------------------- | ---------------- | ------------------------------- |
-| Raspberry Pi 4/5 | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌ CPU only      | Recommended format for Pi/ARM   |
-| Jetson Nano      | PyTorch (.pt)      | `yolov8n.pt`         | ✅ CUDA          | Real-time performance possible  |
-| Desktop w/ GPU   | PyTorch (.pt)      | `yolov8s.pt`         | ✅ CUDA          | Best performance                |
-| CPU-only laptops | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌               | Decent performance (~10–15 FPS) |
+| Raspberry Pi 4/5 | NCNN (.param/.bin) | `yolo26n_ncnn_model` | ❌ CPU only      | Recommended format for Pi/ARM   |
+| Jetson Nano      | PyTorch (.pt)      | `yolo26n.pt`         | ✅ CUDA          | Real-time performance possible  |
+| Desktop w/ GPU   | PyTorch (.pt)      | `yolo26s.pt`         | ✅ CUDA          | Best performance                |
+| CPU-only laptops | NCNN (.param/.bin) | `yolo26n_ncnn_model` | ❌               | Decent performance (~10–15 FPS) |
 
 _Note: Performance may vary based on the specific hardware, model complexity, and input resolution._
 
@@ -53,13 +53,13 @@ pip install ultralytics
 
 ### Step 1: Download, Convert, or Specify Model
 
-- For pre-trained Ultralytics YOLO [models](https://docs.ultralytics.com/models) (e.g., `yolo11s.pt` or `yolov8s.pt`), simply specify the model name in the script parameters (`model_file`). These models will be automatically downloaded and cached. You can also manually download them from [Ultralytics Assets Releases](https://github.com/ultralytics/assets/releases) and place them in the project folder.
+- For pre-trained Ultralytics YOLO [models](https://docs.ultralytics.com/models) (e.g., `yolo26s.pt`), simply specify the model name in the script parameters (`model_file`). These models will be automatically downloaded and cached. You can also manually download them from [Ultralytics Assets Releases](https://github.com/ultralytics/assets/releases) and place them in the project folder.
 - If you're using a custom-trained YOLO model, ensure the model file is in the project folder or provide its relative path.
-- For CPU-only devices, export your chosen model (e.g., `yolov8n.pt`) to the [NCNN format](https://docs.ultralytics.com/integrations/ncnn) using the Ultralytics `export` mode.
+- For CPU-only devices, export your chosen model (e.g., `yolo26n.pt`) to the [NCNN format](https://docs.ultralytics.com/integrations/ncnn) using the Ultralytics `export` mode.
 
 - **Supported Formats:**
-  - `yolo11s.pt` (for GPU with PyTorch)
-  - `yolov8n_ncnn_model` (directory containing `.param` and `.bin` files for CPU with NCNN)
+  - `yolo26s.pt` (for GPU with PyTorch)
+  - `yolo26n_ncnn_model` (directory containing `.param` and `.bin` files for CPU with NCNN)
 
 ### Step 2: Configure the Script
 
@@ -68,7 +68,7 @@ Edit the global parameters at the top of `interactive_tracker.py`:
 ```python
 # --- Configuration ---
 enable_gpu = False  # Set True if running with CUDA and PyTorch model
-model_file = "yolo11s.pt"  # Path to model file (.pt for GPU, _ncnn_model dir for CPU)
+model_file = "yolo26s.pt"  # Path to model file (.pt for GPU, _ncnn_model dir for CPU)
 show_fps = True  # Display current FPS in the top-left corner
 show_conf = False  # Display confidence score for each detection
 save_video = False  # Set True to save the output video stream

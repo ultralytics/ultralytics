@@ -27,10 +27,10 @@ The Deployment section helps you:
 
 - **Test** models directly in the browser with the `Predict` tab
 - **Deploy** to dedicated endpoints in 42 global regions
-- **Monitor** request metrics, logs, and health checks
-- **Scale to zero** when idle (deployments currently run a single active instance)
+- **Monitor** request metrics, logs, health checks, and temporary predictions on every dedicated endpoint
+- **Choose resources**: default endpoints scale to zero; custom sizes keep a warm instance with uptime billing
 
-![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.ul.run/i/e922afb2e2f7573c320821ec4fa62537.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/61603cb9902cf112660c2a5d2fb5bc44.avif)<!-- screenshot -->
 
 ## Deployment Options
 
@@ -38,30 +38,26 @@ Ultralytics Platform offers multiple deployment paths:
 
 | Option                                        | Description                                              | Best For                |
 | --------------------------------------------- | -------------------------------------------------------- | ----------------------- |
-| **[Predict Tab](inference.md)**               | Browser-based inference with image, webcam, and examples | Development, validation |
+| **[Predict Tab](inference.md)**               | Image, webcam, examples; IP camera on own endpoints      | Development, validation |
 | **Shared Inference**                          | Multi-tenant service across 3 data regions               | Light usage, testing    |
 | **[Dedicated Endpoints](endpoints.md)**       | Single-tenant services across 42 regions                 | Production, low latency |
-| **[Export](../train/models.md#export-model)** | Download weights in 20 formats for local or edge runtime | Offline, on-device      |
+| **[Export](../train/models.md#export-model)** | Download weights in 22 formats for local or edge runtime | Offline, on-device      |
 
 ## Workflow
 
 ```mermaid
-graph LR
-    A[✅ Test]:::start --> B[⚙️ Configure]:::proc
-    B --> C[🌐 Deploy]:::proc
-    C --> D[📊 Monitor]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Test]) --> B[Configure]
+    B --> C[Deploy]
+    C --> D([Monitor])
 ```
 
-| Stage         | Description                                                               |
-| ------------- | ------------------------------------------------------------------------- |
-| **Test**      | Validate model with the [`Predict` tab](inference.md)                     |
-| **Configure** | Select a region; the deployment name is generated from the model and city |
-| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)         |
-| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md)  |
+| Stage         | Description                                                                       |
+| ------------- | --------------------------------------------------------------------------------- |
+| **Test**      | Validate model with the [`Predict` tab](inference.md)                             |
+| **Configure** | Select a model, region, CPU, and memory; review pricing and the deployment name   |
+| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)                 |
+| **Monitor**   | Inspect endpoint metrics and temporary predictions in [Monitoring](monitoring.md) |
 
 ## Architecture
 
@@ -71,17 +67,12 @@ The shared inference service runs in 3 key regions. Requests to a model are rout
 [data region](../account/settings.md), so results stay inside the region where the model is stored:
 
 ```mermaid
-graph TB
-    User[User Request]:::start --> API[Platform API]:::proc
-    API --> Router{Model Data Region}:::decide
-    Router -->|US models| US["US Predict Service<br/>Iowa"]:::out
-    Router -->|EU models| EU["EU Predict Service<br/>Belgium"]:::out
-    Router -->|AP models| AP["AP Predict Service<br/>Taiwan"]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([User request]) --> B[Platform API]
+    B --> C{Model data region?}
+    C -->|US| D[Iowa]
+    C -->|EU| E[Belgium]
+    C -->|AP| F[Taiwan]
 ```
 
 {% include "macros/platform-data-regions.md" %}
@@ -97,26 +88,33 @@ Deploy to 42 regions worldwide on Ultralytics Cloud:
 
 Each endpoint is a single-tenant service with:
 
-- Platform-managed sizing (not configurable today)
-- Scale-to-zero when idle
+- Configurable CPU and memory with pricing shown before deployment
+- Scale-to-zero for default resources; a warm, uptime-billed instance for custom resources
 - Unique endpoint URL with its own interactive API reference at `/docs`
 - Its own API key binding, so only that key can call the endpoint
 - Independent monitoring, logs, and health checks
 
-## Deployments Page
+## Deployments Tab
 
-Access the global deployments page from the sidebar under `Deploy`. This page shows:
+All your deployments are listed on the **Deployments** tab of your profile (`/{username}?tab=deployments`), next to
+Datasets and Projects. The sidebar's **Deployments** section lists your deployments, each linking to its deployment
+page, with a `+` button to create one and a link to the full tab. The tab shows:
 
 - **World map** with deployed region pins; click a region to open the `New Deployment` dialog
-- **Overview cards**: Total Requests (24h), Active Deployments, Error Rate (24h), P95 Latency (24h)
-- **Deployments list** with three view modes: cards, compact, and table
+- **Overview cards**: Active Deployments, HTTP Requests (24h), HTTP Error Rate (24h), HTTP P95 Latency (24h)
+- **Deployments list** with search, sorting, and three view modes: cards, compact, and table; each deployment links to
+  its own page with `Overview`, `Monitoring`, `Predict`, and `Logs` tabs
 - **New Deployment** button to create endpoints from any completed model
-- **Refresh** button and an `Updated` timestamp in the page header
 
-![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.ul.run/i/eb51c1bb9c4884b4b1bc89e4caf94eee.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab Overview Cards And Deployments List](https://cdn.ul.run/i/b46672351aac3f3b75e8359a819e941e.avif)<!-- screenshot -->
+
 !!! info "Automatic Polling"
 
-    The page refreshes automatically, polling faster while deployments are in a transitional state (`creating`, `deploying`, or `stopping`). See [Monitoring](monitoring.md) for details.
+    The tab refreshes automatically, and faster while a deployment is changing state (`creating`, `deploying`, or `stopping`). See [Monitoring](monitoring.md) for details.
+
+!!! warning "Lightweight, Temporary Monitoring"
+
+    Every ready dedicated endpoint provides charts and example images held only in the serving instance's memory. Stopping, restarting, redeploying, resizing, or replacing the model can clear this data. Save examples to a dataset and wait for ingestion to finish to keep them. See [Monitoring](monitoring.md#monitoring-tab).
 
 ## Key Features
 
@@ -132,10 +130,11 @@ Deploy close to your users with 42 regions covering:
 
 Endpoints currently behave as follows:
 
-- **Scale to zero**: idle endpoints scale down to zero and cold-start on the next request
+- **Default resources**: idle endpoints scale down to zero and cold-start on the next request
+- **Custom resources**: one instance stays warm and accrues uptime charges until stopped
 - **Single active instance**: each endpoint currently serves from one instance on all plans
 - **Load shedding**: requests receive `429` responses when the endpoint is temporarily at capacity — see [Direct Endpoint Requests](endpoints.md#direct-endpoint-requests)
-- **Request timeout**: each request may run for up to 1 hour, which is enough for video inference
+- **Request timeout**: direct endpoint requests have a maximum duration of 1 hour; see [Inference](inference.md) for supported inputs
 
 ### Regional Deployment
 
@@ -149,7 +148,7 @@ Each running deployment includes an automatic health check with:
 - Live status indicator (healthy/unhealthy)
 - Response latency display
 - Auto-retry when unhealthy, stopping once healthy
-- Manual refresh button
+- Manual re-ping button
 
 ## Quick Start
 
@@ -157,16 +156,17 @@ Create a deployment:
 
 1. Train or upload a model to a project
 2. Go to the model's **Deploy** tab
-3. Select a region from the latency table
-4. Click **Deploy** and wait for the deployment status to become **Ready**
+3. Click **Deploy** for a region in the latency table
+4. Review CPU, memory, pricing, and name in the deployment dialog
+5. Click **Create Deployment** and wait for the deployment status to become **Ready**
 
 !!! example "Quick Deploy"
 
     ```text
-    Model → Deploy tab → Select region → Click Deploy → Endpoint URL ready
+    Model → Deploy tab → Deploy in a region → Review configuration → Create Deployment
     ```
 
-    The deployment name is generated from the model name and the region city, so no naming step is required. Once deployed, use the endpoint URL with your API key to send inference requests from any application.
+    The deployment name is generated from the model name and region city and can be edited before deployment. Once deployed, use the endpoint URL with your API key to send inference requests from any application.
 
 ## Quick Links
 
@@ -178,15 +178,15 @@ Create a deployment:
 
 ### What's the difference between shared and dedicated inference?
 
-| Feature         | Shared                       | Dedicated                                |
-| --------------- | ---------------------------- | ---------------------------------------- |
-| **Service**     | Shared across Platform users | Dedicated to one deployment              |
-| **Scale**       | Managed by Platform          | Scale-to-zero, one instance              |
-| **Regions**     | 3 data regions               | Choose from 42 deployment regions        |
-| **URL**         | Platform model API           | Generated deployment endpoint URL        |
-| **Testing**     | Model `Predict` tab          | Deployment-card `Predict` tab or API     |
-| **Rate limits** | 20 requests/minute           | No Platform rate limit on direct calls   |
-| **Auth**        | Any workspace API key        | Only the API key bound to the deployment |
+| Feature         | Shared                       | Dedicated                                   |
+| --------------- | ---------------------------- | ------------------------------------------- |
+| **Service**     | Shared across Platform users | Dedicated to one deployment                 |
+| **Scale**       | Managed by Platform          | Default: scales to zero; custom: stays warm |
+| **Regions**     | 3 data regions               | Choose from 42 deployment regions           |
+| **URL**         | Platform model API           | Generated deployment endpoint URL           |
+| **Testing**     | Model `Predict` tab          | Deployment page `Predict` tab or API        |
+| **Rate limits** | 20 requests/minute           | No Platform rate limit on direct calls      |
+| **Auth**        | Any workspace API key        | Only the API key bound to the deployment    |
 
 ### How long does deployment take?
 
@@ -201,11 +201,13 @@ one model at a time — use [model replacement](endpoints.md#replace-a-model) to
 
 ### What happens when an endpoint is idle?
 
-With scale-to-zero enabled:
+Default-resource endpoints scale to zero when idle:
 
 - Endpoint scales down after inactivity
 - First request triggers cold start
 - Subsequent requests are fast
 
-First requests after an idle period trigger a cold start. Opening the deployment card runs a health check that warms
+First requests after an idle period trigger a cold start. Opening the deployment page runs a health check that warms
 the endpoint, so a test prediction right after it responds quickly.
+
+Custom-resource endpoints stay warm and are charged for uptime, including idle time. Stop an endpoint to stop its uptime charge.

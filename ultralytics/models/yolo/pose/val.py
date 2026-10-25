@@ -20,7 +20,8 @@ class PoseValidator(DetectionValidator):
     metrics for pose evaluation.
 
     Attributes:
-        sigma (np.ndarray): Sigma values for OKS calculation, either OKS_SIGMA or ones divided by number of keypoints.
+        sigma (np.ndarray): Sigma values for OKS calculation: dataset `kpt_oks_sigmas` if provided, else OKS_SIGMA for
+            COCO keypoints or ones divided by number of keypoints.
         kpt_shape (list[int]): Shape of the keypoints, typically [17, 3] for COCO format.
         args (dict): Arguments for the validator including task set to "pose".
         metrics (PoseMetrics): Metrics object for pose evaluation.
@@ -30,15 +31,14 @@ class PoseValidator(DetectionValidator):
         get_desc: Return description of evaluation metrics in string format.
         init_metrics: Initialize pose estimation metrics for YOLO model.
         postprocess: Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
-        _prepare_batch: Prepare a batch for processing by converting keypoints to float and scaling to original
-            dimensions.
-        _process_batch: Return correct prediction matrix by computing Intersection over Union (IoU) between detections
-            and ground truth.
+        _prepare_batch: Prepare a batch for processing by scaling normalized keypoints to model input image dimensions.
+        _process_batch: Return correct prediction matrices from box IoU and keypoint OKS between detections and ground
+            truth.
         gather_stats: Gather stats from all GPUs.
         scale_preds: Scale predictions to the original image size.
         save_one_txt: Save YOLO pose detections to a text file in normalized coordinates.
         pred_to_json: Convert YOLO predictions to COCO JSON format.
-        eval_json: Evaluate object detection model using COCO JSON format.
+        eval_json: Evaluate pose estimation model using COCO JSON format.
 
     Examples:
         >>> from ultralytics.models.yolo.pose import PoseValidator
@@ -48,8 +48,7 @@ class PoseValidator(DetectionValidator):
 
     Notes:
         This class extends DetectionValidator with pose-specific functionality. It initializes with sigma values
-        for OKS calculation and sets up PoseMetrics for evaluation. A warning is displayed when using Apple MPS
-        due to a known bug with pose models.
+        for OKS calculation and sets up PoseMetrics for evaluation.
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
@@ -97,6 +96,9 @@ class PoseValidator(DetectionValidator):
 
         Args:
             model (torch.nn.Module): Model to validate.
+
+        Raises:
+            ValueError: If dataset `kpt_oks_sigmas` does not contain one positive value per keypoint.
         """
         super().init_metrics(model)
         self.kpt_shape = self.data["kpt_shape"]
@@ -137,7 +139,7 @@ class PoseValidator(DetectionValidator):
         return preds
 
     def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
-        """Prepare a batch for processing by converting keypoints to float and scaling to original dimensions.
+        """Prepare a batch for processing by scaling normalized keypoints to model input image dimensions.
 
         Args:
             si (int): Sample index within the batch.
@@ -160,8 +162,7 @@ class PoseValidator(DetectionValidator):
         return pbatch
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
-        """Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground
-        truth.
+        """Return correct prediction matrices from box IoU and keypoint OKS between detections and ground truth.
 
         Args:
             preds (dict[str, torch.Tensor]): Dictionary containing prediction data with keys 'cls' for class predictions
@@ -170,8 +171,8 @@ class PoseValidator(DetectionValidator):
                 for bounding boxes, and 'keypoints' for keypoint annotations.
 
         Returns:
-            (dict[str, np.ndarray]): Dictionary containing the correct prediction matrix including 'tp_p' for pose true
-                positives across 10 IoU levels.
+            (dict[str, np.ndarray]): Dictionary containing the box true positives 'tp' and the pose true positives
+                'tp_p', each with shape (N, 10) for 10 IoU/OKS thresholds.
 
         Notes:
             `0.53` scale factor used in area computation is referenced from
@@ -239,7 +240,7 @@ class PoseValidator(DetectionValidator):
             self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Scales predictions to the original image size."""
+        """Scale boxes and keypoints to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
             "keypoints": ops.scale_coords(
@@ -251,7 +252,7 @@ class PoseValidator(DetectionValidator):
         }
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
-        """Evaluate object detection model using COCO JSON format."""
+        """Evaluate pose estimation model using COCO JSON format."""
         anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
         pred_json = self.save_dir / "predictions.json"  # predictions
         return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "keypoints"], suffix=["Box", "Pose"])

@@ -36,7 +36,7 @@ COCO8-Multispectral is fully compatible with [Ultralytics Platform](https://plat
 
 ## Dataset Structure
 
-COCO8-Multispectral shares the same 8 images as [COCO8](coco8.md)—4 for training and 4 for validation across all 80 COCO object classes—but each image is stored as a 10-channel multispectral `.tiff` in [YOLO label format](../index.md):
+COCO8-Multispectral shares the same 8 images as [COCO8](coco8.md)—4 for training and 4 for validation, labeled with the 80 COCO class names—but each image is stored as a 10-channel multispectral `.tiff` in [YOLO label format](../index.md):
 
 ```text
 coco8-multispectral/
@@ -127,7 +127,7 @@ This technique is especially valuable for small datasets like COCO8-Multispectra
 
 If you use the COCO dataset in your research or development, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

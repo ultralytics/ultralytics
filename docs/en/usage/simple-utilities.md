@@ -77,8 +77,8 @@ The converted masks will be saved in the specified output directory.
 ```python
 from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
-# The classes here is the total classes in the dataset.
-# for COCO dataset we have 80 classes.
+# `classes` is the total number of classes in the dataset.
+# For the COCO dataset, there are 80 classes.
 convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
 ```
 
@@ -144,7 +144,7 @@ from ultralytics.data.converter import yolo_bbox2segment
 
 yolo_bbox2segment(
     im_dir="path/to/images",
-    save_dir=None,  # saved to "labels-segment" in images directory
+    save_dir=None,  # saved to "labels-segment" next to the images directory
     sam_model="sam_b.pt",
 )
 ```
@@ -223,7 +223,7 @@ import numpy as np
 from ultralytics.data.utils import polygon2mask
 
 imgsz = (1080, 810)
-polygon = np.array([805, 392, 797, 400, ..., 808, 714, 808, 392])  # (238, 2)
+polygon = np.array([805, 392, 797, 400, ..., 808, 714, 808, 392])  # (N,) flat x, y coordinates
 
 mask = polygon2mask(
     imgsz,  # tuple
@@ -291,7 +291,7 @@ from ultralytics.utils.ops import scale_boxes
 
 image = cv.imread("ultralytics/assets/bus.jpg")
 h, w, c = image.shape
-resized = cv.resize(image, None, (), fx=1.2, fy=1.2)
+resized = cv.resize(image, None, fx=1.2, fy=1.2)
 new_h, new_w, _ = resized.shape
 
 xyxy_boxes = np.array(
@@ -438,7 +438,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 
         from ultralytics.utils.plotting import Annotator, colors
 
-        obb_names = {10: "small vehicle"}
+        obb_names = {0: "plane", 9: "large vehicle"}
         obb_image = cv.imread("datasets/dota8/images/train/P1142__1024__0___824.jpg")
         obb_boxes = np.array(
             [
@@ -568,12 +568,10 @@ Find additional details about the `sweep_annotator` method in our reference sect
 
 #### Adaptive label Annotation
 
-!!! warning
+`SolutionAnnotator.adaptive_label` draws a label whose shape is chosen with the `shape` argument (it replaces the older `circle_label` and `text_label` methods):
 
-    Starting from **Ultralytics v8.3.167**, `circle_label` and `text_label` have been replaced by a unified `adaptive_label` function. You can now specify the annotation type using the `shape` argument:
-
-    * **Rectangle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="rect")`
-    * **Circle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="circle")`
+- **Rectangle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="rect")`
+- **Circle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="circle")`
 
 <p align="center">
   <br>
@@ -734,7 +732,7 @@ auto_annotate(
 )
 ```
 
-For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate), or use [Ultralytics Platform](https://platform.ultralytics.com) as a hosted, no-code alternative with click-based masking via [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md), or predictions from pretrained and fine-tuned YOLO models for detect, segment, and OBB tasks.
+For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate), or use [Ultralytics Platform](https://platform.ultralytics.com) as a hosted, no-code alternative with click-based masking via [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31), or predictions from pretrained and fine-tuned YOLO models for detect, segment, and OBB tasks.
 
 ### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
 
@@ -766,7 +764,7 @@ from ultralytics.data.converter import yolo_bbox2segment
 
 yolo_bbox2segment(
     im_dir="path/to/images",
-    save_dir=None,  # saved to "labels-segment" in the images directory
+    save_dir=None,  # saved to "labels-segment" next to the images directory
     sam_model="sam_b.pt",
 )
 ```

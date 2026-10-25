@@ -5,7 +5,7 @@ description: Automatically detect and blur objects in real time with Ultralytics
 keywords: YOLO26, object blurring, real-time processing, privacy protection, face blurring, data anonymization, GDPR, image manipulation, video editing, Ultralytics
 ---
 
-# Object Blurring using Ultralytics YOLO26 🚀
+# Object Blurring using Ultralytics YOLO26
 
 ## What is Object Blurring?
 
@@ -100,8 +100,7 @@ Here's a table with the `ObjectBlurrer` arguments:
 
 The `ObjectBlurrer` solution also supports a range of `track` arguments:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Moreover, the following visualization arguments can be used:
 

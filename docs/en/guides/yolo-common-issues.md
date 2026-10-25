@@ -80,13 +80,13 @@ Common training problems and their fixes are covered below.
 
 **Issue**: You are unsure whether the configuration settings in the `.yaml` file are being applied correctly during model training.
 
-**Solution**: The configuration settings in the `.yaml` file should be applied when using the `model.train()` function. To ensure that these settings are correctly applied, follow these steps:
+**Solution**: Dataset settings and training settings live in different `.yaml` files and are passed through different arguments of `model.train()`. To ensure that these settings are correctly applied, follow these steps:
 
-- Confirm that the path to your `.yaml` configuration file is correct.
-- Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
+- Confirm that the paths to your `.yaml` files are correct.
+- Pass your dataset `.yaml` (paths, class names, splits) as the `data` argument, and a custom training-settings `.yaml` (for example `epochs` or `lr0`) as the `cfg` argument. Arguments passed directly to `model.train()` take priority over both:
 
     ```python
-    model.train(data="/path/to/your/data.yaml", batch=4)
+    model.train(data="/path/to/your/data.yaml", cfg="/path/to/your/cfg.yaml", batch=4)
     ```
 
 #### Accelerating Training with Multiple GPUs
@@ -115,7 +115,7 @@ Common training problems and their fixes are covered below.
 - Recall
 - [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP)
 
-You can access these metrics from the training logs or by using tools like TensorBoard or wandb for visualization. Implementing early stopping based on these metrics can help you achieve better results.
+You can access these metrics from the training logs or by using tools like TensorBoard or Weights & Biases for visualization. Implementing early stopping based on these metrics can help you achieve better results.
 
 #### Tools for Tracking Training Progress
 
@@ -202,7 +202,7 @@ Common problems encountered during model prediction and their fixes are covered 
     y2 = y2 / 640
     ```
 
-- File Name: To obtain the file name of the image you're predicting on, access the image file path directly from the result object within your prediction loop.
+- File Name: To obtain the file name of the image you're predicting on, read the image file path from the `path` attribute of each result object (for example `result.path`) within your prediction loop.
 
 #### Filtering Objects in YOLO26 Predictions
 
@@ -211,7 +211,7 @@ Common problems encountered during model prediction and their fixes are covered 
 **Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
 
 ```bash
-yolo task=segment mode=predict model=yolo26n-seg.pt source='path/to/car.mp4' show=True classes=2
+yolo segment predict model=yolo26n-seg.pt source='path/to/car.mp4' show=True classes=2
 ```
 
 #### Understanding Precision Metrics in YOLO26
@@ -272,7 +272,7 @@ Get help and share solutions through these channels and resources.
 
 ### Forums and Channels for Getting Help
 
-**GitHub Issues:** The YOLO26 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
+**GitHub Issues:** The Ultralytics repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
 
 **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://discord.com/invite/ultralytics) where you can interact with other users and the developers.
 

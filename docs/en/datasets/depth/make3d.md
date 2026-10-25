@@ -27,7 +27,7 @@ Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), fo
 
 ## Results
 
-The table below reports the `delta1` accuracy (percentage of pixels within a 1.25× threshold, higher is better) on the Make3D test set by model size.
+The table below reports the `delta1` accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the Make3D test set by model size.
 
 | Model         | delta1 |
 | ------------- | ------ |
@@ -68,13 +68,13 @@ Make3D is an external benchmark, so models are typically run with `predict` on i
 
 ## Pretrained Models
 
-The YOLO26 depth family is evaluated zero-shot on the Make3D benchmark. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) from v8.4.0, and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
+The YOLO26 depth family is evaluated zero-shot on the Make3D benchmark. These models auto-download on first use from the Ultralytics [v8.4.0 assets release](https://github.com/ultralytics/assets/releases/tag/v8.4.0), for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth), and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
 
 ## Citations and Acknowledgments
 
 If you use the Make3D dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -88,3 +88,17 @@ If you use the Make3D dataset in your research or development work, please cite 
         ```
 
 We would like to acknowledge the authors for creating and maintaining this valuable resource for the computer vision community.
+
+## FAQ
+
+### What is Make3D used for in YOLO26-Depth?
+
+Make3D is a zero-shot, out-of-distribution outdoor benchmark of 134 campus images with custom laser-scanner depth to roughly 70 m. The released YOLO26-Depth models are not trained on it, so it measures how well they generalize to unfamiliar outdoor scenes.
+
+### Why are the Make3D delta1 scores so low?
+
+Make3D is the hardest of the five evaluation benchmarks for every model because its scenes and depth statistics differ strongly from the training data. Absolute delta1 values around 0.3 are expected for this dataset, and the relative comparison between models is what matters.
+
+### Is there a dataset YAML for Make3D?
+
+No. Make3D is evaluated with a dedicated script using multi-scale and flip test-time augmentation and log-least-squares scale alignment. To run a model on Make3D images, use [predict mode](../../modes/predict.md) as shown in the [Usage](#usage) section.

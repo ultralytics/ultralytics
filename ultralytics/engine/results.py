@@ -819,9 +819,7 @@ class Results(SimpleClass, DataExportMixin):
             LOGGER.warning("Depth task does not support `save_crop`.")
             return
         boxes = self.obb if self.obb is not None else self.boxes
-        if boxes is None:
-            return
-        for d in boxes.cpu():  # one host transfer avoids per-box GPU syncs
+        for d in boxes.cpu() if boxes is not None else []:  # one host transfer avoids per-box GPU syncs
             save_one_box(
                 d.xyxyxyxy if self.obb is not None else d.xyxy,
                 self.orig_img.copy(),

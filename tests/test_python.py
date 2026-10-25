@@ -675,6 +675,21 @@ def test_track_second_association_low_conf_keeps_id(tracker_type):
     assert int(frame2[0, 4]) == tid, f"id switched on low-confidence frame: {tid} -> {int(frame2[0, 4])}\n{frame2}"
 
 
+def test_ocsort_direction_cost_spans_delta_t():
+    """OCM measures the direction to a detection from the observation delta_t frames back, like the track velocity."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.oc_sort import OCSORT
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    tracker = OCSORT(IterableSimpleNamespace(**YAML.load(ROOT / "cfg/trackers/ocsort.yaml")))
+    for x in range(100, 106):  # moves right 1 px per frame
+        tracker.update(Boxes(torch.tensor([[x, 100, x + 50, 200, 0.9, 0]]), (640, 640)))
+    tracker.frame_id += 1  # next box jitters 1 px back but is still ahead of the box delta_t=3 frames ago
+    det = tracker.init_track(Boxes(torch.tensor([[104, 100, 154, 200, 0.9, 0]]), (640, 640)).numpy())
+    cost = tracker._velocity_direction_cost(tracker.tracked_stracks, det)
+    assert cost[0, 0] < 0.5, f"forward-moving detection scored as moving against the track: {cost}"
+
+
 def test_tracktrack_new_lifecycle():
     """TrackTrack predicts New tracks and confirms them once their history reaches min_track_len."""
     from ultralytics.engine.results import Boxes

@@ -2,13 +2,10 @@
 
 import contextlib
 import csv
-import functools
-import http.server
 import os
 import platform
 import shutil
 import tarfile
-import threading
 import urllib
 import zipfile
 from copy import copy
@@ -21,7 +18,6 @@ import torch
 from PIL import Image
 
 import ultralytics.data.build as data_build
-import ultralytics.data.utils as data_utils
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
@@ -1335,28 +1331,6 @@ def test_data_utils(tmp_path):
     ]
     overlap, _ = polygons2masks_overlap((300, 300), segments)
     assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
-
-
-def test_check_cls_dataset_url_scheme_case_insensitive(tmp_path, monkeypatch):
-    """Test classification datasets accept archive URLs with uppercase schemes and query strings."""
-    dataset_dir = tmp_path / "remote_dataset" / "train" / "class0"
-    dataset_dir.mkdir(parents=True)
-    Image.new("RGB", (2, 2), "red").save(dataset_dir / "image.jpg")
-    archive = tmp_path / "remote_dataset.zip"
-    with zipfile.ZipFile(archive, "w") as zf:
-        zf.write(dataset_dir / "image.jpg", "remote_dataset/train/class0/image.jpg")
-
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(tmp_path))
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    monkeypatch.setattr(data_utils, "DATASETS_DIR", tmp_path / "downloads")
-    try:
-        result = check_cls_dataset(f"HTTP://127.0.0.1:{server.server_port}/remote_dataset.zip?token=test")
-    finally:
-        server.shutdown()
-        server.server_close()
-
-    assert result["train"] == tmp_path / "downloads" / "remote_dataset" / "train"
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):

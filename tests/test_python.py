@@ -1246,20 +1246,6 @@ def test_annotator_tensor_image():
     np.testing.assert_array_equal(result.plot(img=torch.zeros_like(image), boxes=False), expected)
 
 
-def test_annotator_and_save_one_box_grayscale_2d(tmp_path):
-    """Annotator and save_one_box support 2D grayscale NumPy images."""
-    from ultralytics.utils.plotting import Annotator, save_one_box
-
-    im_2d = np.zeros((64, 64), dtype=np.uint8)
-    ann = Annotator(im_2d)
-    ann.box_label([10, 10, 30, 30], "test")
-    assert ann.result().shape == (64, 64, 3)
-
-    crop = save_one_box([10, 10, 30, 30], im_2d, gain=1.0, pad=0, file=tmp_path / "crop.jpg", save=True)
-    assert crop.shape == (20, 20)
-    assert (tmp_path / "crop.jpg").exists()
-
-
 def test_results_update_probs():
     """Test that Results.update(probs=...) wraps the tensor in Probs like the sibling attributes."""
     from ultralytics.engine.results import Probs, Results

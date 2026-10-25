@@ -124,7 +124,7 @@ from ultralytics.utils import (
     is_jetson,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_MINIMUM_3_9,
+    IS_PYTHON_MINIMUM_3_10,
     IS_PYTHON_MINIMUM_3_13,
     check_data_portable,
     check_imgsz,
@@ -262,7 +262,7 @@ def export_formats():
             False,
             False,
             ["batch", "name", "quantize", "opset", "simplify", "fraction", "data"],
-            "base",
+            "qnn",
         ],
         [
             "Hailo",
@@ -364,10 +364,10 @@ EXPORT_ENVS = {
         "torch": ">=2.9,<2.12",
         "requirements": [
             "model-compression-toolkit>=2.4.1",
-            "edge-mdt-cl<1.1.0",
+            "edge-mdt-cl>=1.1.0",
             "edge-mdt-tpc>=1.2.0",
             "pydantic<2.12",
-            "imx500-converter[pt]>=3.17.3",
+            "imx500-converter[pt]>=3.18.2",
         ],
         "indexes": [],
         "env": {},
@@ -427,6 +427,15 @@ EXPORT_ENVS = {
         "indexes": [],
         "env": {},
         "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
+    },
+    "qnn": {
+        "python": "3.14",
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["onnxruntime-qnn"],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=qnn model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
 }
 
@@ -1641,7 +1650,7 @@ class Exporter:
             "Export only supported on Linux. "
             "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
-        assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
+        assert IS_PYTHON_MINIMUM_3_10 and not IS_PYTHON_MINIMUM_3_13, "IMX export requires Python>=3.10,<3.13."
 
         from ultralytics.utils.export.imx import torch2imx
 
@@ -1765,14 +1774,17 @@ class Exporter:
                 end_nodes = [
                     f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3, 4)
                 ]
-                if task == "segment":
-                    end_nodes.append(f"/model.{head_index}/proto/cv3/act/Mul")
             else:
                 end_nodes = [
                     f"/model.{head_index}/cv{branch}.{i}/cv{branch}.{i}.2/Conv" for i in scales for branch in (2, 3)
                 ]
         self.args.opset = 11
         f_onnx = Path(self.export_onnx())
+        if task == "segment":  # prototypes end at proto.cv3's last node, whose op depends on the model's activation
+            import onnx
+
+            proto = f"/model.{head_index}/proto/cv3/"
+            end_nodes.append([n.name for n in onnx.load(f_onnx).graph.node if n.name.startswith(proto)][-1])
         output_dir = self.file.parent / f"{self.file.stem}_hailo_model"
         if output_dir.exists():
             shutil.rmtree(output_dir)

@@ -25,7 +25,13 @@ from urllib.parse import unquote
 
 import cv2
 import numpy as np
-import torch
+
+try:
+    import torch
+except ImportError:  # torch 1.10-1.12 x86_64 wheels request an executable stack that glibc>=2.41 refuses
+    from ultralytics.utils.files import import_execstack
+
+    torch = import_execstack("torch", "torch/lib/*.so*")
 
 from ultralytics import __version__
 from ultralytics.utils.git import GitRepo
@@ -1278,7 +1284,7 @@ def set_sentry():
         release=__version__,
         environment="runpod" if is_runpod() else "production",
         before_send=before_send,
-        ignore_errors=[KeyboardInterrupt, FileNotFoundError],
+        ignore_errors=[KeyboardInterrupt, FileNotFoundError, "OutOfMemoryError"],  # torch OOM by name, no torch import
     )
     sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 

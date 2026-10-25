@@ -546,7 +546,9 @@ def test_export_ncnn_matrix(task, quantize, batch):
 
 
 @pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="IMX export requires Python>=3.9")
+@pytest.mark.skipif(
+    not checks.IS_PYTHON_MINIMUM_3_10 or checks.IS_PYTHON_MINIMUM_3_13, reason="IMX export requires Python>=3.10,<3.13"
+)
 @pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
@@ -662,6 +664,11 @@ def test_export_qnn(isolated_model):
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
     file = YOLO(isolated_model).export(format="qnn", imgsz=32)
     assert Path(file).is_file() and file.endswith("_qnn.onnx"), f"QNN export failed, no context binary found: {file}"
+    # ONNX Runtime's built-in QNN EP (onnxruntime-android-qnn) cannot load EPContext nodes with I/O name overrides
+    import onnx
+
+    ep_nodes = [n for n in onnx.load(file).graph.node if n.op_type == "EPContext"]
+    assert ep_nodes and not any(a.name == "io_name_overrides" for n in ep_nodes for a in n.attribute)
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     Path(file).unlink(missing_ok=True)  # cleanup
 

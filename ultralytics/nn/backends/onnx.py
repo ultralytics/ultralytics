@@ -352,7 +352,7 @@ class ONNXIMXBackend(ONNXBackend):
         Args:
             weight (str | Path): Path to the IMX model directory containing the .onnx file.
         """
-        check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl<1.1.0", "onnxruntime-extensions"))
+        check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl>=1.1.0", "onnxruntime-extensions"))
         check_requirements(("onnx", "onnxruntime"))
         import mct_quantizers as mctq
         import onnxruntime

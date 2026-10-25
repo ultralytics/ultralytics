@@ -862,7 +862,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         raise ValueError(f"Invalid classification dataset split '{split}'. Use 'train', 'val', or 'test'.")
 
     # Download (optional if dataset=https://file.zip is passed directly)
-    if str(dataset).startswith(("http:/", "https:/")):
+    if str(dataset).lower().startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
     elif not Path(dataset).is_dir() and str(dataset).lower().endswith(
         (".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")

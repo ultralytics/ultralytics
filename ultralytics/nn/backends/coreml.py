@@ -27,7 +27,7 @@ class CoreMLBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .mlpackage model file.
         """
-        check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
+        check_requirements("coremltools>=9.0")
         import coremltools as ct
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")

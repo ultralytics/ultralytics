@@ -12,10 +12,6 @@ keywords: Ultralytics, MNN, model export, ONNX to MNN, Alibaba MNN, mobile deplo
 
 <br>
 
-## ::: ultralytics.utils.export.mnn.import_mnn
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.export.mnn.onnx2mnn
 
 <br><br>

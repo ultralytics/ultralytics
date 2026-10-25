@@ -1154,7 +1154,9 @@ class Exporter:
         if self.metadata["head"] == "RTDETRDecoder":
             min_opset = 16
         elif self.metadata["head"] == "WorldDetect" or (
-            self.metadata["head"].startswith("YOLOE") and not self.model.model[-1].is_fused
+            self.metadata["head"].startswith("YOLOE")
+            and not self.model.model[-1].is_fused
+            and not hasattr(self.model.model[-1], "lrpc")
         ):
             min_opset = 12  # einsum
         assert opset >= min_opset, f"ONNX export requires opset>={min_opset} for this model, but got opset={opset}"

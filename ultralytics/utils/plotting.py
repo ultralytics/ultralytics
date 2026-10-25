@@ -837,15 +837,13 @@ def save_one_box(
     xyxy = ops.clip_boxes(xyxy, im.shape)
     grayscale = im.ndim == 2 or im.shape[2] == 1  # grayscale image
     crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2])]
-    if not BGR and not grayscale:
-        crop = crop[..., ::-1]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
         f = str(increment_path(file.with_suffix(".jpg")))
         # cv2.imwrite(f, crop)  # save BGR, https://github.com/ultralytics/yolov5/issues/7007 chroma subsampling issue
-        im_save = crop.reshape(crop.shape[:2]) if grayscale else crop[..., ::-1] if BGR else crop
+        im_save = crop.reshape(crop.shape[:2]) if grayscale else crop[..., ::-1]
         Image.fromarray(im_save).save(f, quality=95, subsampling=0)  # save RGB
-    return crop
+    return crop if BGR or grayscale else crop[..., ::-1]
 
 
 @threaded

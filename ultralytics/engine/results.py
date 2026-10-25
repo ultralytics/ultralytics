@@ -713,9 +713,7 @@ class Results(SimpleClass, DataExportMixin):
             d = self.depth.data
             d = d[d > 0]
             return f"depth {float(d.min()):.2f}-{float(d.max()):.2f}m, " if len(d) else "depth (no valid pixels), "
-        if self.semantic_mask is not None:
-            return ""
-        return "(no detections), "  # masks or keypoints without a box row
+        return ""
 
     def save_txt(self, txt_file: str | Path, save_conf: bool = False) -> str:
         """Save detection results to a text file.
@@ -821,7 +819,7 @@ class Results(SimpleClass, DataExportMixin):
             LOGGER.warning("Depth task does not support `save_crop`.")
             return
         boxes = self.obb if self.obb is not None else self.boxes
-        if not boxes:  # masks or keypoints without a box row have nothing to crop
+        if boxes is None:
             return
         for d in boxes.cpu():  # one host transfer avoids per-box GPU syncs
             save_one_box(

@@ -394,7 +394,7 @@ class LoadImagesAndVideos:
                 path = [p for row in rows for p in row]
             path = [p.strip() for p in path if p.strip()]
         files = []
-        for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
+        for p in path if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
             if parent and not (glob.glob(a, recursive=True) if "*" in a else os.path.exists(a)):
                 a = str((parent / p).absolute())  # resolve unmatched manifest entries relative to the manifest

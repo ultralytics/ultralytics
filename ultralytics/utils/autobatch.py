@@ -93,7 +93,7 @@ def autobatch(
     t = properties.total_memory / gb  # GiB total
     r = accelerator.memory_reserved(device) / gb  # GiB reserved
     a = accelerator.memory_allocated(device) / gb  # GiB allocated
-    f = t - (r + a)  # GiB free
+    f = t - r  # GiB free
     LOGGER.info(f"{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {a:.2f}G allocated, {f:.2f}G free")
 
     # Profile batch sizes
@@ -117,7 +117,7 @@ def autobatch(
         if xy:
             fit_x, fit_y = zip(*xy)
             p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree (linear) polynomial fit
-            b = int((round(f * fraction) - p[1]) / p[0])  # y intercept (optimal batch size)
+            b = int((t * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
             oom = next((i for i, y in enumerate(results) if not y and batch_sizes[i] > fit_x[0]), None)
             if oom is not None and b >= batch_sizes[oom]:  # first failure above a success is the memory ceiling
                 b = batch_sizes[oom - 1]  # select prior safe point
@@ -127,7 +127,7 @@ def autobatch(
             if dataset_size > 0:
                 b = min(b, dataset_size)
 
-            fraction = (np.polyval(p, b) + r + a) / t  # predicted fraction
+            fraction = np.polyval(p, b) / t  # predicted fraction
             LOGGER.info(f"{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅")
             return b
     except Exception as e:

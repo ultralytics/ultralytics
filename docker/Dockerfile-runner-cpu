@@ -30,7 +30,9 @@ RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
     # libgl1: libGL and libxcb for the GUI opencv-python CI installs from pyproject.toml (import cv2 fails without) \
     libgl1 \
     # libglib2.0-0: libglib and libgthread for GUI opencv-python (import cv2 fails without) \
-    libglib2.0-0 && \
+    libglib2.0-0 \
+    # tesseract-ocr-eng: English data for PyMuPDF's built-in Tesseract OCR of scanned PDFs (no text without) \
+    tesseract-ocr-eng && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

@@ -1616,7 +1616,6 @@ class Exporter:
                 quantize=self.args.quantize,
                 batch=self.args.batch,
                 dataset=rknn_dataset,
-                auto_hybrid=self.model.task == "depth",  # full INT8 collapses larger depth models
                 metadata=self.metadata,
                 prefix=prefix,
             )

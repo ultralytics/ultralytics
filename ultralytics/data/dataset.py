@@ -921,16 +921,7 @@ class SemanticDataset(YOLODataset):
             *args (Any): Additional positional arguments for the parent class.
             data (dict): Dataset configuration dictionary.
             **kwargs (Any): Additional keyword arguments for the parent class.
-
-        Raises:
-            NotImplementedError: If single_cls is True.
         """
-        if kwargs.get("single_cls"):
-            raise NotImplementedError(
-                "'single_cls=True' is not supported for semantic segmentation: it forces a single-channel "
-                "model but cannot collapse multi-class masks. Use a dataset with 'nc: 1' for binary "
-                "(foreground/background) segmentation instead."
-            )
         self.data = data
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
         self.label_lut, self.inverse_lut = self._build_label_luts()
@@ -1034,17 +1025,25 @@ class SemanticDataset(YOLODataset):
         return label, nm_f, nf_f, 0, nc_f, msg
 
     def verify_labels(self, labels: list[dict], cache_path: Path) -> None:
-        """Skip box and segment checks; semantic masks carry no box or segment annotations."""
+        """Sync mask paths with the surviving labels; semantic masks carry no box or segment annotations."""
+        self.mask_files = [lb["mask_file"] for lb in labels]
 
     def get_labels(self) -> list[dict]:
-        """Load semantic labels from cache or scan image-mask paths.
+        """Load semantic labels from cache or scan label paths.
 
         Returns:
-            (list[dict]): List of label dictionaries with mask file paths and image shapes.
+            (list[dict]): List of label dictionaries with image shapes.
+
+        Raises:
+            NotImplementedError: If single_cls is True.
         """
-        labels = super().get_labels()
-        self.mask_files = [lb["mask_file"] for lb in labels]
-        return labels
+        if self.single_cls:
+            raise NotImplementedError(
+                "'single_cls=True' is not supported for semantic segmentation: it forces a single-channel "
+                "model but cannot collapse multi-class masks. Use a dataset with 'nc: 1' for binary "
+                "(foreground/background) segmentation instead."
+            )
+        return super().get_labels()
 
     def load_image(self, i: int, rect_mode: bool = True) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
         """Load an image for semantic segmentation, scaling the short side to imgsz when augmenting with rect_mode."""
@@ -1131,10 +1130,8 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         super().__init__(*args, data=data, **kwargs)
 
-    # Rebind label scanning to YOLODataset's polygon .txt implementations; the MRO (SemanticDataset, YOLODataset)
-    # would otherwise resolve SemanticDataset's PNG-mask hooks and its get_labels, which syncs mask_files from
-    # label dicts that polygon labels do not have.
-    get_labels = YOLODataset.get_labels
+    # Rebind PNG-mask hooks to YOLODataset's polygon .txt implementations; the MRO (SemanticDataset, YOLODataset)
+    # would otherwise resolve SemanticDataset's, and its verify_labels syncs mask_files that polygon labels lack.
     get_label_files = YOLODataset.get_label_files
     get_cache_hash = YOLODataset.get_cache_hash
     scan_summary = YOLODataset.scan_summary

@@ -7,8 +7,8 @@ from torch import nn
 
 from . import LOGGER
 from .metrics import bbox_iou, probiou
-from .ops import xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
-from .torch_utils import TORCH_1_11
+from .ops import crop_mask, xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
+from .torch_utils import TORCH_1_11, autocast
 
 
 class TaskAlignedAssigner(nn.Module):
@@ -437,6 +437,60 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         d = (pd_kpts[b, a].float() - gt_kpts[..., :2]).pow(2).sum(-1)
         oks = ((-d / ((2 * self.sigmas).pow(2) * (area + self.eps) * 2)).exp() * vis).sum(-1) / vis.sum(-1).clamp(min=1)
         return torch.where(vis.any(-1), oks.to(iou.dtype), iou)
+
+
+class SegTaskAlignedAssigner(TaskAlignedAssigner):
+    """Task-aligned assigner for segmentation whose overlap is the mean of box IoU and predicted-mask IoU.
+
+    Positives, conflict resolution and the soft classification targets then all favor anchors with accurate masks, so
+    the score ranks detections by mask quality. Call it with mask coefficients ``pd_coef`` (b, h*w, nm), per-image
+    prototype-pixel scales ``mask_scale`` (b, 1), prototypes ``proto`` (b, nm, mh, mw) and binary ground-truth masks
+    ``gt_masks`` (b, max_num_obj, mh, mw). Predicted masks are binarized and cropped to their box as in validation.
+    """
+
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra):
+        """Compute the alignment metric, also passing the class scores and labels on to `pair_overlaps`."""
+        extra.update(scores=pd_scores, labels=gt_labels)
+        return super().get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra)
+
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, scores, labels, pd_coef, mask_scale, proto, gt_masks):
+        """Return (IoU + mask IoU) / 2 per pair; mask IoU only for each gt's 3 * topk best box-metric pairs, else 0."""
+        b, g, a = indices
+        iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
+        dense = iou.new_zeros(self.bs, self.n_max_boxes, pd_bboxes.shape[1])
+        # Box alignment metric of each pair; eps keeps zero-metric pairs selectable
+        dense[indices] = scores[b, a, labels[b, g, 0].long()].pow(self.alpha) * iou.pow(self.beta) + self.eps
+        top = dense.topk(min(3 * self.topk, dense.shape[-1]), dim=-1).indices
+        sel = torch.zeros_like(dense, dtype=torch.bool).scatter_(-1, top, True)[indices].nonzero().squeeze(1)
+        miou = torch.zeros_like(iou)
+        if len(sel):  # decode each selected anchor's mask once, packed into per-image slots
+            na, (mh, mw) = dense.shape[-1], proto.shape[-2:]
+            key, inv = (b[sel] * na + a[sel]).unique(return_inverse=True)
+            ub, ua = key // na, key % na
+            n = torch.bincount(ub, minlength=self.bs)
+            slot = torch.arange(len(key), device=key.device) - (n.cumsum(0) - n)[ub]
+            order = n.argsort(descending=True)  # images by anchor count, so each chunk pads only to its own largest
+            r, counts = order.argsort()[ub], n[order].tolist()
+            coef = pd_coef.new_zeros(self.bs, counts[0], pd_coef.shape[-1])
+            boxes = pd_bboxes.new_zeros(self.bs, counts[0], 4)
+            coef[r, slot], boxes[r, slot] = pd_coef[ub, ua], pd_bboxes[ub, ua] * mask_scale[ub]
+            dtype = torch.half if proto.device.type == "cuda" else torch.float
+            ious = iou.new_zeros(self.bs, gt_masks.shape[1], counts[0])  # gt_masks may exceed n_max_boxes
+            i = 0
+            while i < self.bs and counts[i]:
+                m = counts[i]
+                s = slice(i, i + max(1, (1 << 27) // (m * mh * mw)))  # ~128M mask pixels per chunk
+                o = order[s]
+                pm = (coef[s, :m] @ proto[o].flatten(2)) > 0
+                pm = crop_mask(pm.view(-1, mh, mw), boxes[s, :m].reshape(-1, 4)).view(pm.shape)
+                gm, pmt = gt_masks[o].flatten(2).to(dtype), pm.to(dtype).transpose(1, 2)
+                with autocast(False):  # intersections over <=2048-pixel blocks are exact FP16 integers, unlike BF16
+                    inter = sum((gm[..., k : k + 2048] @ pmt[:, k : k + 2048]).float() for k in range(0, mh * mw, 2048))
+                union = gm.sum(-1, dtype=torch.float)[..., None] + pm.sum(-1)[:, None] - inter
+                ious[s, :, :m] = inter / union.clamp(min=1)
+                i = s.stop
+            miou[sel] = ious[r[inv], g[sel], slot[inv]]
+        return (iou + miou) / 2
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):

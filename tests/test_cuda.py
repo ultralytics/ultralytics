@@ -23,7 +23,7 @@ if CUDA_IS_AVAILABLE:
     else:
         gpu_info = GPUInfo()
         gpu_info.print_status()
-        autodevice_fraction = __import__("os").environ.get("YOLO_AUTODEVICE_FRACTION_FREE", 0.3)
+        autodevice_fraction = float(__import__("os").environ.get("YOLO_AUTODEVICE_FRACTION_FREE", 0.3))
         if idle_gpus := gpu_info.select_idle_gpu(
             count=2,
             min_memory_fraction=autodevice_fraction,

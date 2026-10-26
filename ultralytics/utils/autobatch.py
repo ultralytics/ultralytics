@@ -93,7 +93,7 @@ def autobatch(
     t = properties.total_memory / gb  # GiB total
     r = accelerator.memory_reserved(device) / gb  # GiB reserved
     free = accelerator.mem_get_info(device)[0] / gb if hasattr(accelerator, "mem_get_info") else t - r
-    f = r + free  # GiB available to this process, other processes excluded (t - r before CUDA torch 1.10)
+    f = r + free  # GiB available to this process (total memory where mem_get_info is unavailable)
     LOGGER.info(f"{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {f:.2f}G available")
 
     # Profile batch sizes

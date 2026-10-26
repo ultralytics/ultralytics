@@ -1078,7 +1078,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                     mem = cuda_info["memory"] / 2**30  # (GB)
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
-                    if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
+                    if max_num_obj and accelerator is not None:  # simulate training loss memory (for AutoBatch)
                         anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
                         # Conservative detect-loss envelope: ~6 fp32-equivalents each for TaskAlignedAssigner
                         # metric/top-k state and the cls path (pred/target + two op temps of unreduced BCE:

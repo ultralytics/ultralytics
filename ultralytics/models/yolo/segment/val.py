@@ -223,9 +223,9 @@ class SegmentationValidator(DetectionValidator):
                 (str): Compressed RLE string.
             """
             x = np.asarray(counts, dtype=np.int64)
-            x[3:] = x[3:] - x[1:-2]  # delta-encode every count after the third against the count two before it
-            chunks = x[:, None] >> (np.arange(((h * w).bit_length() + 5) // 5) * 5)  # signed 5-bit groups
-            more = (chunks < -16) | (chunks > 15)  # another group follows
+            x[3:] -= x[1:-2]  # delta encoding starts at the fourth count
+            chunks = x[:, None] >> np.arange(0, (h * w).bit_length() + 1, 5)  # signed 5-bit groups
+            more = (chunks < -16) | (chunks > 15)
             keep = np.concatenate((np.ones((len(x), 1), dtype=bool), more[:, :-1]), axis=1)
             return (((chunks & 0x1F) | (more << 5)) + 48)[keep].astype(np.uint8).tobytes().decode()
 

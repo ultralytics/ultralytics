@@ -394,3 +394,20 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+def test_solution_float_region():
+    """Test SolutionAnnotator draw_region and queue_counts_display with float coordinates."""
+    from ultralytics.solutions.solutions import SolutionAnnotator
+
+    im = np.zeros((480, 640, 3), dtype=np.uint8)
+    ann = SolutionAnnotator(im)
+    float_pts = [(10.5, 200.5), (540.5, 200.5), (540.5, 180.5), (10.5, 180.5)]
+    ann.draw_region(float_pts)
+    ann.queue_counts_display("Queue: 1", points=float_pts)
+    assert ann.result() is not None
+
+    counter = solutions.ObjectCounter(region=float_pts)
+    with patch.object(counter, "display_output"):
+        result = counter.process(im)
+    assert result.plot_im is not None

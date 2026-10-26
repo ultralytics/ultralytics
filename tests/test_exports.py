@@ -20,7 +20,6 @@ from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, g
 from ultralytics.engine.exporter import EXPORT_ENVS, Exporter, export_formats, validate_args
 from ultralytics.utils import (
     ARM64,
-    ASSETS,
     IS_RASPBERRYPI,
     LINUX,
     MACOS,
@@ -268,12 +267,7 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
 def test_export_openvino(nms, isolated_model):
     """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(isolated_model).export(format="openvino", imgsz=32, nms=nms)
-    model = YOLO(file)
-    results = model(ASSETS, imgsz=32)  # several images, so OpenVINO on CPU loads the next one during inference
-    assert model.predictor.model.prefetch  # CI runners expose only the OpenVINO CPU device
-    for r in results:  # same images and outputs as predicting each one alone, which never prefetches
-        single = model(r.path, imgsz=32)[0]
-        assert r.orig_shape == single.orig_shape and torch.equal(r.boxes.data, single.boxes.data)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.slow

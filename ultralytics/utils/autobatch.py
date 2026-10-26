@@ -93,7 +93,8 @@ def autobatch(
     t = properties.total_memory / gb  # GiB total
     r = accelerator.memory_reserved(device) / gb  # GiB reserved
     a = accelerator.memory_allocated(device) / gb  # GiB allocated
-    f = t - r  # GiB free
+    free = accelerator.mem_get_info(device)[0] / gb if hasattr(accelerator, "mem_get_info") else t - r  # torch>=1.10
+    f = r + free  # GiB available to this process, other processes on the device excluded
     LOGGER.info(f"{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {a:.2f}G allocated, {f:.2f}G free")
 
     # Profile batch sizes
@@ -117,7 +118,7 @@ def autobatch(
         if xy:
             fit_x, fit_y = zip(*xy)
             p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree (linear) polynomial fit
-            b = int((t * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
+            b = int((f * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
             oom = next((i for i, y in enumerate(results) if not y and batch_sizes[i] > fit_x[0]), None)
             if oom is not None and b >= batch_sizes[oom]:  # first failure above a success is the memory ceiling
                 b = batch_sizes[oom - 1]  # select prior safe point

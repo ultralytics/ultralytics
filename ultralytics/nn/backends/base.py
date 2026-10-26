@@ -79,6 +79,7 @@ class BaseBackend(ABC):
         base_model (bool): Whether the loaded model is an Ultralytics `BaseModel`, and so implements the `augment` and
             `embed` forward arguments.
         metadata (dict): Model metadata dictionary containing export configuration.
+        prefetch (bool): Whether the predictor may load the next batch on a background thread during inference.
     """
 
     def __init__(self, weight: str | Path | torch.nn.Module, device: torch.device | str, fp16: bool = False):
@@ -102,6 +103,7 @@ class BaseBackend(ABC):
         self.base_model = False
         self.metadata = {}
         self.model = None
+        self.prefetch = False
         self.load_model(weight)
 
     @abstractmethod

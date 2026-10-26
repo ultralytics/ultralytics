@@ -74,7 +74,7 @@ class CoreMLBackend(BaseBackend):
                     for box, conf in y
                 ]
                 n = max(map(len, y))
-                return np.stack([np.pad(d, ((0, n - len(d)), (0, 0))) for d in y])
+                return np.stack([np.pad(d, ((0, n - len(d)), (0, 0))) for d in y]).astype(np.float32)  # MPS has no fp64
             arrays = [k for k, v in y[0].items() if isinstance(v, np.ndarray)]
             if arrays:
                 y = [np.concatenate([d[k] for d in y]) for k in arrays]

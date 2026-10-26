@@ -69,7 +69,7 @@ flowchart TD
 | [Projects](../train/projects.md)           | Model workspaces                | CRUD, clone                                                   |
 | [Models](../train/models.md)               | Trained checkpoints             | CRUD, predict, download, clone, training status               |
 | [Training](../train/cloud-training.md)     | Cloud GPU training jobs         | GPU availability, start, progress, cancel                     |
-| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel                                  |
+| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel, mobile link                     |
 | [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints   | Create, update, start/stop, predict, metrics, logs            |
 | [Agents](../agents.md)                     | Saved visual workflows          | List, save, delete                                            |
 | [Trash](../account/trash.md)               | Soft-deleted resources          | List, restore, permanently delete                             |
@@ -468,7 +468,11 @@ POST /api/datasets/{owner}/{dataset}/clone
 
 **Python SDK:** `client.datasets.clone(owner, dataset)`
 
-Copies an accessible dataset, with its images and labels, into your personal workspace or a team workspace.
+Copies an accessible dataset, with its images and labels, into your personal workspace or a team workspace. Optional
+`splits` (`train`, `val`, `test`) or `imageIds` (up to 1,000) clone only part of it, `version` clones a saved version
+instead of the live images, `annotations: false` copies images without labels, and `into` adds the images unlabeled to
+a dataset you own instead of creating a new one. `version` cannot be combined with `splits`, `imageIds`, `into`, or
+`annotations: false`.
 
 **Optional body (all fields optional):**
 
@@ -484,9 +488,9 @@ Copies an accessible dataset, with its images and labels, into your personal wor
 ```
 
 **Response (`201`):** `id`, `owner`, `dataset`, `name`, `imageCount`, `classCount`, and `region`. Datasets backed by a
-connected storage source return `409` because their files are not copied. Without `visibility`, the clone is private
-when the destination workspace's [default visibility](../account/settings.md#default-visibility) is Private and
-otherwise keeps the source's visibility.
+connected storage source, or an `into` dataset that is processing or connected, return `409`. Without `visibility`, the
+clone is private when the destination workspace's [default visibility](../account/settings.md#default-visibility) is
+Private and otherwise keeps the source's visibility.
 
 ### Download a Dataset Export
 
@@ -1368,9 +1372,9 @@ POST /api/projects/{owner}/{project}/clone
 **Python SDK:** `client.projects.clone(owner, project)`
 
 Clones an accessible project and its completed models. The optional body accepts `project`, `name`, `description`,
-`visibility`, `license`, and a destination `owner`. Without `visibility`, the clone is private when the destination
-workspace's [default visibility](../account/settings.md#default-visibility) is Private and otherwise keeps the source's
-visibility.
+`visibility`, `license`, a destination `owner`, and `models`, a list of model names to clone instead of every completed
+model. Without `visibility`, the clone is private when the destination workspace's
+[default visibility](../account/settings.md#default-visibility) is Private and otherwise keeps the source's visibility.
 
 ---
 
@@ -1817,6 +1821,18 @@ GET /api/models/{owner}/{project}/{model}/exports/{exportId}
 
 Returns the `export` object with `status`, `format`, `args`, `gpuType` (TensorRT only), timestamps, and — once complete —
 a `file` object containing `size`, `downloadUrl`, and `downloadFilename`.
+
+### Create Mobile Import Link
+
+```http
+POST /api/models/{owner}/{project}/{model}/exports/{exportId}/mobile
+```
+
+**Python SDK:** none yet; send the HTTP request directly.
+
+Returns `importUrl` and `expiresAt` for opening a completed CoreML, Core AI, or LiteRT export in the
+[Ultralytics YOLO app](../train/models.md#open-on-iphone-or-android). The link expires after 24 hours,
+and anyone with it can download the export until then. An incomplete or incompatible export returns `409`.
 
 ### Cancel or Delete Export
 
@@ -2888,7 +2904,7 @@ Very large image sets are best walked with the cursor returned as `nextCursor`:
 
 ```bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://platform.ultralytics.com/api/datasets/acme-vision/warehouse/images?limit=1000&includeTotal=false&cursor=LAST_IMAGE_ID"
+  "https://platform.ultralytics.com/api/datasets/acme-vision/warehouse/images?limit=1000&includeTotal=false&cursor=NEXT_CURSOR"
 ```
 
 Trash uses `page`, and deployment logs use the opaque `pageToken` returned as `nextPageToken`.
@@ -2932,7 +2948,7 @@ admin access to disconnect storage, or a higher plan or quota for exports and de
 
 Reading public datasets, projects, and models, including their images, signed image URLs, class statistics, embedding
 status, clustering layout, models trained on a dataset, and export list; checking training progress on a public model;
-downloading a public model's files; running inference on a public model; looking up a public user profile; listing
-deployments filtered to one public model; and searching Explore. `GET /api/training/gpu-availability` is fully public
-unless you request managed capacity. Everything else requires a key, and supplying one on a public endpoint also
-reveals your private resources.
+downloading a public model's files; creating a mobile import link for a public model's export; running inference on a
+public model; looking up a public user profile; listing deployments filtered to one public model; and searching Explore.
+`GET /api/training/gpu-availability` is fully public unless you request managed capacity. Everything else requires a
+key, and supplying one on a public endpoint also reveals your private resources.

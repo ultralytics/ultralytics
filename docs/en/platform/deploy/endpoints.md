@@ -338,7 +338,7 @@ reaches the end of its retention window.
 
 Each deployment is bound to a single API key from the workspace that owns the model. Include it in requests:
 
-```bash
+```http
 Authorization: Bearer YOUR_API_KEY
 ```
 

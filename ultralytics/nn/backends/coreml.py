@@ -80,7 +80,7 @@ class CoreMLBackend(BaseBackend):
                 y = [np.concatenate([d[k] for d in y]) for k in arrays]
             else:  # neuralnetwork classifiers emit only the label and a name-to-probability dict
                 probs = next(k for k, v in y[0].items() if isinstance(v, dict))
-                y = [np.array([[d[probs][n] for n in self.names.values()] for d in y])]
+                y = [np.array([[d[probs][n] for n in self.names.values()] for d in y], dtype=np.float32)]
         if len(y) == 2 and len(y[1].shape) != 4:  # segmentation model
             y = list(reversed(y))
         return y

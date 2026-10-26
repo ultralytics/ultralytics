@@ -37,7 +37,7 @@ def check_train_batch_size(
         RuntimeError: If no candidate batch size produces a usable profile.
 
     Notes:
-        If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
+        If 0.0 < batch < 1.0, it's used as the fraction of available GPU memory to use.
         Otherwise, a default fraction of 0.6 is used.
     """
     with autocast(enabled=amp, device=next(model.parameters()).device.type):
@@ -92,10 +92,9 @@ def autobatch(
     properties = accelerator.get_device_properties(device)  # device properties
     t = properties.total_memory / gb  # GiB total
     r = accelerator.memory_reserved(device) / gb  # GiB reserved
-    a = accelerator.memory_allocated(device) / gb  # GiB allocated
-    free = accelerator.mem_get_info(device)[0] / gb if hasattr(accelerator, "mem_get_info") else t - r  # torch>=1.10
-    f = r + free  # GiB available to this process, other processes on the device excluded
-    LOGGER.info(f"{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {a:.2f}G allocated, {f:.2f}G free")
+    free = accelerator.mem_get_info(device)[0] / gb if hasattr(accelerator, "mem_get_info") else t - r
+    f = r + free  # GiB available to this process, other processes excluded (t - r before CUDA torch 1.10)
+    LOGGER.info(f"{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {f:.2f}G available")
 
     # Profile batch sizes
     batch_sizes = [1, 2, 4, 8, 16] if t < 16 else [1, 2, 4, 8, 16, 32, 64]

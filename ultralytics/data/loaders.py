@@ -427,8 +427,10 @@ class LoadImagesAndVideos:
         self.cv2_flag = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)
         if any(videos):
             self._new_video(videos[0])  # new video
+            self._video_frames = [self.frames]
         else:
             self.cap = None
+            self._video_frames = []
         if self.nf == 0:
             raise FileNotFoundError(f"No images or videos found in {source_path}. {FORMATS_HELP_MSG}")
 
@@ -528,7 +530,17 @@ class LoadImagesAndVideos:
 
     def __len__(self) -> int:
         """Return the number of batches in the dataset."""
-        return math.ceil(self.nf / self.bs)  # number of batches
+        # Images batch together, but each video is flushed independently and contributes batches based on its frames.
+        while len(self._video_frames) < self.nf - self.ni:
+            path = self.files[self.ni + len(self._video_frames)]
+            cap = cv2.VideoCapture(path)
+            try:
+                if not cap.isOpened():
+                    raise FileNotFoundError(f"Failed to open video {path}")
+                self._video_frames.append(int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride))
+            finally:
+                cap.release()
+        return math.ceil(self.ni / self.bs) + sum(math.ceil(frames / self.bs) for frames in self._video_frames)
 
 
 class LoadPilAndNumpy:

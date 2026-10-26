@@ -921,7 +921,16 @@ class SemanticDataset(YOLODataset):
             *args (Any): Additional positional arguments for the parent class.
             data (dict): Dataset configuration dictionary.
             **kwargs (Any): Additional keyword arguments for the parent class.
+
+        Raises:
+            NotImplementedError: If single_cls is True.
         """
+        if kwargs.get("single_cls"):
+            raise NotImplementedError(
+                "'single_cls=True' is not supported for semantic segmentation: it forces a single-channel "
+                "model but cannot collapse multi-class masks. Use a dataset with 'nc: 1' for binary "
+                "(foreground/background) segmentation instead."
+            )
         self.data = data
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
         self.label_lut, self.inverse_lut = self._build_label_luts()
@@ -935,16 +944,7 @@ class SemanticDataset(YOLODataset):
 
         Args:
             include_class (list[int], optional): List of classes to include. If None, all classes are included.
-
-        Raises:
-            NotImplementedError: If single_cls is True.
         """
-        if self.single_cls:
-            raise NotImplementedError(
-                "'single_cls=True' is not supported for semantic segmentation: it forces a single-channel "
-                "model but cannot collapse multi-class masks. Use a dataset with 'nc: 1' for binary "
-                "(foreground/background) segmentation instead."
-            )
         self.include_class = None if include_class is None else np.asarray(include_class, dtype=np.int32).reshape(-1)
         if self.include_class is not None and int(self.data.get("nc", 0)) == 1:
             LOGGER.warning(

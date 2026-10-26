@@ -365,8 +365,8 @@ class BasePredictor:
             )
             dataset = self.dataset
             batches = ((batch, dataset) for batch in dataset)
-            if (  # overlap loading with GPU work; each batch carries a snapshot of the loader's mode, frame and fps
-                self.device.type == "cuda"
+            if (  # overlap loading with inference; each batch carries a snapshot of the loader's mode, frame and fps
+                (self.device.type == "cuda" or getattr(self.model, "prefetch", False))
                 and isinstance(dataset, LoadImagesAndVideos)
                 and (dataset.nf > dataset.ni or len(dataset) > 1)
             ):

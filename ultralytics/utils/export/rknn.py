@@ -33,7 +33,8 @@ def onnx2rknn(
         dataset (Path | str | None): Path to the generated RKNN Toolkit calibration image-list file, required when
             ``quantize=8``. Users should pass YOLO dataset YAMLs to ``export(data=...)``; ``export_rknn()`` converts
             them to this internal image-path list.
-        metadata (dict | None): Metadata saved as ``metadata.yaml``.
+        metadata (dict | None): Metadata saved as ``metadata.yaml``. A ``"depth"`` task builds INT8 with RKNN Toolkit
+            ``auto_hybrid``, which keeps high-error layers in floating point.
         prefix (str): Prefix for log messages.
         batch (int): Inference batch size applied by RKNN Toolkit after loading the batch-1 ONNX model.
 
@@ -81,7 +82,7 @@ def onnx2rknn(
     _check_rknn_return(rknn.load_onnx(model=onnx_file), "load_onnx")
     build_kwargs = {"do_quantization": use_int8}
     if use_int8:
-        build_kwargs["dataset"] = str(dataset)
+        build_kwargs.update(dataset=str(dataset), auto_hybrid=(metadata or {}).get("task") == "depth")
     _check_rknn_return(rknn.build(**build_kwargs, rknn_batch_size=batch), "build")
     _check_rknn_return(rknn.export_rknn(str(output_dir / f"{Path(onnx_file).stem}-{name}.rknn")), "export_rknn")
     if metadata:

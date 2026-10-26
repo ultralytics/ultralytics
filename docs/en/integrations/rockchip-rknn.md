@@ -74,7 +74,7 @@ For detailed instructions and best practices related to the installation process
 
 !!! note
 
-    FP16 export is supported for all tasks. INT8 export is currently only supported for detection models, with more task support coming in the future; INT8-only targets such as RV1103 and RV1106 therefore export detection models only.
+    FP16 export is supported for all tasks. INT8 export is supported for detection and depth models only, so INT8-only targets such as RV1103 and RV1106 export only those tasks. Depth INT8 builds keep high-error layers in FP16 (RKNN Toolkit `auto_hybrid`) and calibrate on depth dataset images that have paired depth maps. Choose calibration images that span the near and far depth range of the deployment scene, since depths beyond the calibrated range lose accuracy.
 
 The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the floating-point build path (`quantize=16`) for FP16-capable Rockchip targets. Use `quantize=8` to build an INT8-quantized RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; the FP16 default does not request FP32.
 
@@ -91,7 +91,7 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         # Export the model to RKNN format
         model.export(format="rknn", name="rk3588")  # creates 'yolo26n-obb_rknn_model'
 
-        # Export an INT8-quantized RKNN model with calibration data (detection models only)
+        # Export an INT8-quantized RKNN model with calibration data (detection and depth models)
         model = YOLO("yolo26n.pt")
         model.export(format="rknn", name="rk3588", quantize=8, data="coco8.yaml")  # creates 'yolo26n_rknn_model'
         ```
@@ -102,7 +102,7 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         # Export a YOLO26n-obb PyTorch model to RKNN format
         yolo export model=yolo26n-obb.pt format=rknn name=rk3588 # creates 'yolo26n-obb_rknn_model'
 
-        # Export an INT8-quantized RKNN model with calibration data (detection models only)
+        # Export an INT8-quantized RKNN model with calibration data (detection and depth models)
         yolo export model=yolo26n.pt format=rknn name=rk3588 quantize=8 data=coco8.yaml # creates 'yolo26n_rknn_model'
         ```
 
@@ -150,18 +150,18 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 
 ### Export Arguments
 
-| Argument   | Type                      | Default    | Description                                                                                                                                                                                                                                                                   |
-| ---------- | ------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`                     | `'rknn'`   | Target format for the exported model, defining compatibility with Rockchip deployment environments.                                                                                                                                                                           |
-| `imgsz`    | `int` or `tuple`          | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                             |
-| `batch`    | `int`                     | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                       |
-| `name`     | `str`                     | `'rk3588'` | Specifies the Rockchip target. `rk3588`, `rk3576`, `rk3566`, `rk3568`, `rk3562`, `rk2118`, and `rv1126b` support FP16 (`quantize=16` or unset) and INT8 (`quantize=8`); `rv1103`, `rv1106`, `rv1103b`, and `rv1106b` are INT8-only (`quantize=8` or unset).                   |
-| `quantize` | `int` or `str`            | `None`     | Quantization precision: unset or `16` builds FP16 for FP16-capable targets; unset auto-enables INT8 for INT8-only targets; `8` builds INT8, which is supported for detection models only. RKNN export has no separate FP32 mode. Replaces the deprecated `half`/`int8` flags. |
-| `simplify` | `bool`                    | `True`     | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                                                       |
-| `opset`    | `int`                     | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. Defaults to 19 if unset, and values above 19 are reduced to 19.                                                                                                                                             |
-| `data`     | `str`                     | `None`     | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics selects the default detection calibration dataset (`coco8.yaml`).                                                                                                                           |
-| `fraction` | `float`, `int`, or `list` | `1.0`      | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                                      |
-| `device`   | `str`                     | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                                     |
+| Argument   | Type                      | Default    | Description                                                                                                                                                                                                                                                         |
+| ---------- | ------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'rknn'`   | Target format for the exported model, defining compatibility with Rockchip deployment environments.                                                                                                                                                                 |
+| `imgsz`    | `int` or `tuple`          | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                   |
+| `batch`    | `int`                     | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                             |
+| `name`     | `str`                     | `'rk3588'` | Specifies the Rockchip target. `rk3588`, `rk3576`, `rk3566`, `rk3568`, `rk3562`, `rk2118`, and `rv1126b` support FP16 (`quantize=16` or unset) and INT8 (`quantize=8`); `rv1103`, `rv1106`, `rv1103b`, and `rv1106b` are INT8-only (`quantize=8` or unset).         |
+| `quantize` | `int` or `str`            | `None`     | Quantization precision: unset or `16` builds FP16 for FP16-capable targets; unset auto-enables INT8 for INT8-only targets; `8` builds INT8 for detection and depth models only. RKNN export has no separate FP32 mode. Replaces the deprecated `half`/`int8` flags. |
+| `simplify` | `bool`                    | `True`     | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                                             |
+| `opset`    | `int`                     | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. Defaults to 19 if unset, and values above 19 are reduced to 19.                                                                                                                                   |
+| `data`     | `str`                     | `None`     | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics uses the task's default dataset (`coco8.yaml` for detection, `depth8.yaml` for depth).                                                                                            |
+| `fraction` | `float`, `int`, or `list` | `1.0`      | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                            |
+| `device`   | `str`                     | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                           |
 
 !!! tip
 

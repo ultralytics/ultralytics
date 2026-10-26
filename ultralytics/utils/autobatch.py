@@ -92,8 +92,8 @@ def autobatch(
     properties = accelerator.get_device_properties(device)  # device properties
     t = properties.total_memory / gb  # GiB total
     r = accelerator.memory_reserved(device) / gb  # GiB reserved
-    free = accelerator.mem_get_info(device)[0] / gb if hasattr(accelerator, "mem_get_info") else t - r
-    f = r + free  # GiB available to this process (total memory where mem_get_info is unavailable)
+    # GiB available to this process (total memory where mem_get_info is unavailable)
+    f = r + accelerator.mem_get_info(device)[0] / gb if hasattr(accelerator, "mem_get_info") else t
     LOGGER.info(f"{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {f:.2f}G available")
 
     # Profile batch sizes

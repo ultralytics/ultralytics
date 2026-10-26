@@ -966,12 +966,12 @@ class Exporter:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
-        if model.task == "semantic" and fmt in {"qnn", "coreml", "ascend"}:
+        if model.task == "semantic" and self.args.format in {"qnn", "coreml", "ascend"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
             # forces consumers to dequantize and argmax ~8M floats at 640px (~20M at 1024px) on the CPU every frame
             # (measured erratic 123-1065 ms on Hexagon at 1024px). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
-            # indices) and a whole-graph CPU fallback is slower than GPU logits + consumer-side argmax. Python
-            # predict/val accept both forms.
+            # indices) and a whole-graph CPU fallback is slower than GPU logits + consumer-side argmax, nor to legacy
+            # mlmodel, whose NeuralNetwork ArgMax fails on the Neural Engine. Python predict/val accept both forms.
             model = ClassMapModel(model)
 
         y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)  # dry run

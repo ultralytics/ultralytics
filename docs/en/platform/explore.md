@@ -173,7 +173,7 @@ Use a public dataset for your training:
     - The clone dialog lets you review the destination, name, visibility, and license
     - Public datasets stay public by default unless the workspace's [default dataset visibility](account/settings.md#default-visibility) is Private
     - A copyleft source license is carried over and locked, so the clone keeps the terms it was published under
-    - The clone dialog blocks a URL already used in the target workspace until you choose another
+    - For a new dataset, the clone dialog blocks a URL already used in the target workspace until you choose another
     - You can modify classes, annotations, and splits
     - Changes don't affect the original dataset
     - Image files are reused rather than copied, but the clone still counts toward the destination workspace's storage quota

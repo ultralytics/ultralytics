@@ -63,7 +63,7 @@ Drag and drop or click to upload:
 
 ### Example Images
 
-The predict panel shows up to two example images from your model's linked dataset, preferring the `val` split, then
+The predict panel shows up to four example images from your model's linked dataset, preferring the `val` split, then
 `test`, then `train`. If no dataset is linked, default examples are used:
 
 | Image        | Content                    |
@@ -218,7 +218,7 @@ key, ready to copy and run.
 
 Include your API key in requests:
 
-```bash
+```http
 Authorization: Bearer YOUR_API_KEY
 ```
 

@@ -1082,8 +1082,9 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
                         # Conservative detect-loss envelope: ~6 fp32-equivalents each for TaskAlignedAssigner
                         # metric/top-k state and the cls path (pred/target + two op temps of unreduced BCE:
-                        # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
-                        mem += x.shape[0] * anchors * 6 * (max_num_obj + len(m.names)) * 4 / 2**30  # (GB)
+                        # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies), the
+                        # cls path counted for the 2x batch that training-time validation computes the loss on
+                        mem += x.shape[0] * anchors * 6 * (max_num_obj + 2 * len(m.names)) * 4 / 2**30  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
                 LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{s_in!s:>24s}{s_out!s:>24s}")

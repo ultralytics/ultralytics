@@ -121,10 +121,7 @@ def autobatch(
             oom = next((i for i, y in enumerate(results) if not y and batch_sizes[i] > fit_x[0]), None)
             if oom is not None and b >= batch_sizes[oom]:  # first failure above a success is the memory ceiling
                 b = batch_sizes[oom - 1]  # select prior safe point
-            if b < 1 or b > 1024:  # b outside of safe range
-                safe = fit_x[0] if b < 1 else batch_size  # below the smallest usable probe: never a larger default
-                LOGGER.warning(f"{prefix}batch={b} outside safe range, using batch-size {safe}.")
-                b = safe
+            b = min(max(b, fit_x[0]), 1024)  # clamp between the smallest usable probe and the 1024 safe maximum
             if dataset_size > 0:
                 b = min(b, dataset_size)
 

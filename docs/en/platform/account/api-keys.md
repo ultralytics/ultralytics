@@ -57,6 +57,8 @@ The same **Settings > API Keys** tab also stores keys for external model provide
 
 An Ultralytics key does not authenticate external model providers. Provider usage is billed through the provider account associated with the saved key. Use the key row's edit control to replace a provider key.
 
+The tab also holds the keys for [Roboflow](../integrations/roboflow.md) and [Weights & Biases](../integrations/weights-biases.md) imports. When the workspace owner connects either import with a key, Platform saves that key here, replacing any key saved before, and later imports in the workspace connect with it automatically. A key that any other team member enters is used for that import only. Delete the key row to stop using a saved key.
+
 ![Ultralytics Platform Add API Key dialog with Google Gemini selected as the provider](https://cdn.ul.run/i/d25887575ed998e955cea7ae69901f90.avif)
 
 ## Key Format

@@ -2463,7 +2463,7 @@ POST /api/integrations/roboflow/preview
 
 Resolves a Roboflow API key into an import plan: workspace details, `newDatasets` that would be imported, `importedDatasets` whose latest version is already imported, counts of
 already-imported (`skippedCount`), version-less, unsupported, and unresolved projects, `bytesTotal`, and your `storage`
-headroom. New datasets include their export `sizeBytes`; already-imported datasets include it when the export can still be sized. The Roboflow API key is read from the body and is not persisted.
+headroom. New datasets include their export `sizeBytes`; already-imported datasets include it when the export can still be sized. `apiKey` is optional: without it the workspace's saved Roboflow key is used, and without either the request returns `400`. A key the workspace owner sends is saved for the workspace once it resolves a Roboflow workspace.
 
 ```json
 {
@@ -2479,7 +2479,7 @@ POST /api/integrations/roboflow/import
 
 **Python SDK:** `client.datasets.import_roboflow(api_key=..., items=...)`
 
-Queues ingest jobs for up to 500 selected Roboflow project versions, using the items returned by the preview.
+Queues ingest jobs for up to 500 selected Roboflow project versions, using the items returned by the preview. `apiKey` is optional and falls back to the saved key like the preview, but is never saved.
 
 ```json
 {

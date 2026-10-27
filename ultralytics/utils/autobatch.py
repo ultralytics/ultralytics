@@ -105,10 +105,9 @@ def autobatch(
     ops = model
     if isinstance(model, (RTDETRDetectionModel, SemanticSegmentationModel)):  # profile the real loss, not the envelope
         max_num_obj = 0
-        n = getattr(model.model[-1], "num_denoising", 1)
 
-        def ops(x):  # n boxes per image fill the RT-DETR denoising queries, the zero image is the semantic mask
-            i = torch.arange(len(x), device=x.device).repeat_interleave(n)
+        def ops(x):  # num_denoising boxes per image fill the RT-DETR CDN queries, the zero image is the semantic mask
+            i = torch.arange(len(x), device=x.device).repeat_interleave(getattr(model.model[-1], "num_denoising", 1))
             labels = {"batch_idx": i, "cls": i[:, None] * 0, "bboxes": torch.full((len(i), 4), 0.5, device=x.device)}
             return model({"img": x, "semantic_mask": x[:, 0].int(), **labels})
 

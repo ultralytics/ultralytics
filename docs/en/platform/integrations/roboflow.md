@@ -13,7 +13,7 @@ The Roboflow integration imports the supported datasets you select from your Rob
 ## Import from Roboflow
 
 1. Go to **Settings > [Integrations](index.md)** and select **Roboflow** from the integration list.
-2. Paste your **Roboflow API Key** and click **Connect**.
+2. Paste your **Roboflow API Key** and click **Connect**. If the workspace has a [saved Roboflow key](../account/api-keys.md#provider-keys-for-agents-and-annotation), the preview opens with it automatically.
 3. Review the **Import from Roboflow** preview:
     - A table of datasets (name, task, images, size), with nothing selected by default; select the new datasets you want to import
     - Already-imported versions shown as dimmed, unselectable rows with an **Already imported** tooltip
@@ -44,7 +44,7 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 
 !!! note "Where to find your Roboflow API key"
 
-    Follow Roboflow's guide to [find your API key](https://docs.roboflow.com/reference/authentication/authentication/find-your-roboflow-api-key). Platform uses the key to run the preview and the import and then discards it — nothing is saved, and there is no connection to disconnect later.
+    Follow Roboflow's guide to [find your API key](https://docs.roboflow.com/reference/authentication/authentication/find-your-roboflow-api-key).
 
 !!! note "Unsupported projects are skipped"
 
@@ -62,7 +62,7 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 
 ### Does Platform store my Roboflow API key?
 
-No. The key is used to run the preview and the import, then discarded. There is no saved connection and nothing to disconnect later.
+Yes, when the workspace owner connects with it; see [saved provider keys](../account/api-keys.md#provider-keys-for-agents-and-annotation).
 
 ### Which Roboflow projects are imported?
 

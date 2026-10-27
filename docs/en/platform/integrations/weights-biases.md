@@ -16,7 +16,7 @@ To log new training runs to W&B, see the [YOLO experiment tracking guide](../../
 
 1. Switch to the Platform workspace that should receive the models.
 2. Go to **Settings > [Integrations](index.md)** and select **Weights & Biases**.
-3. Paste your [W&B API key](https://wandb.ai/authorize) and click **Connect**.
+3. Paste your [W&B API key](https://wandb.ai/authorize) and click **Connect**. If the workspace has a [saved W&B key](../account/api-keys.md#provider-keys-for-agents-and-annotation), Platform connects with it automatically.
 4. Review the projects with logged models from your W&B entity and teams. Model counts, tasks, and sizes load as you browse the table.
 5. Select the projects to import. Nothing is selected by default, and a project becomes selectable once its importable models have loaded.
 6. Click **Import N**, where N is the number of selected projects. Platform imports all eligible models from each selected project.
@@ -47,4 +47,4 @@ W&B imports are available on every plan and require the workspace editor [role](
 
 The preview disables importing when the selected checkpoints exceed the displayed storage headroom. Click **Connect** again to refresh storage usage; limits are checked again during upload. Projects that cannot be queued stay selected for a retry, and a notification reports failed model imports.
 
-Platform does not save the W&B API key as a connection. Enter it again when starting a new import session; there is no saved connection to disconnect.
+A key the workspace owner connects with is saved for the workspace; see [saved provider keys](../account/api-keys.md#provider-keys-for-agents-and-annotation).

@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Module defines the base classes and structures for object tracking in YOLO."""
 
+import threading
 from typing import Any
 
 
@@ -29,7 +30,8 @@ class BaseTrack:
     """Base class for object tracking, providing foundational attributes and methods.
 
     Attributes:
-        _count (int): Class-level counter for unique track IDs.
+        _local (threading.local): Per-thread counter for unique track IDs, so trackers running in different threads
+            do not share or reset each other's IDs.
         track_id (int): Unique identifier for the track.
         is_activated (bool): Flag indicating whether the track is currently active.
         state (TrackState): Current state of the track.
@@ -54,7 +56,7 @@ class BaseTrack:
         >>> print(track.state)  # Output: 2 (TrackState.Lost)
     """
 
-    _count = 0
+    _local = threading.local()
 
     def __init__(self):
         """Initialize a new track with a unique ID and foundational tracking attributes."""
@@ -72,9 +74,9 @@ class BaseTrack:
 
     @staticmethod
     def next_id() -> int:
-        """Increment and return the next unique global track ID for object tracking."""
-        BaseTrack._count += 1
-        return BaseTrack._count
+        """Increment and return the next unique track ID of the current thread for object tracking."""
+        BaseTrack._local.count = getattr(BaseTrack._local, "count", 0) + 1
+        return BaseTrack._local.count
 
     def activate(self, *args: Any) -> None:
         """Activate the track with provided arguments, initializing necessary attributes for tracking."""
@@ -98,5 +100,5 @@ class BaseTrack:
 
     @staticmethod
     def reset_id() -> None:
-        """Reset the global track ID counter to its initial value."""
-        BaseTrack._count = 0
+        """Reset the track ID counter of the current thread to its initial value."""
+        BaseTrack._local.count = 0

@@ -616,6 +616,36 @@ def test_youtube():
         LOGGER.error(f"YouTube Test Error: {e}")
 
 
+def test_track_ids_are_per_thread():
+    """Track IDs of trackers that run in different threads must not be shared or reset by one another."""
+    import threading
+
+    from ultralytics.trackers.basetrack import BaseTrack
+
+    a_started, b_done, ids = threading.Event(), threading.Event(), {}
+
+    def thread_a():  # a long segment: starts first and keeps tracking while thread B starts a new tracker
+        BaseTrack.reset_id()
+        ids["a"] = [BaseTrack.next_id(), BaseTrack.next_id()]
+        a_started.set()
+        b_done.wait()
+        ids["a"].append(BaseTrack.next_id())
+
+    def thread_b():
+        a_started.wait()
+        BaseTrack.reset_id()  # what BYTETracker.__init__ does
+        ids["b"] = [BaseTrack.next_id()]
+        b_done.set()
+
+    threads = [threading.Thread(target=thread_a), threading.Thread(target=thread_b)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert ids["a"] == [1, 2, 3]  # not [1, 2, 2]: thread B's reset must not restart the numbering of thread A
+    assert ids["b"] == [1]
+
+
 def test_track_second_association_indices():
     """Low-confidence detections matched in second association keep full detection-set indices."""
     from ultralytics.engine.results import Boxes

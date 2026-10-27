@@ -165,7 +165,7 @@ Every YOLOE example below runs from the [Python API](../usage/python.md). Text-p
 
 ### Train Usage
 
-Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names. The resulting checkpoint predicts your dataset's classes directly: its head no longer reads prompts, so `set_classes()` raises an error if the classes change. Prompt the original checkpoint for other classes.
+Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names. The resulting checkpoint predicts your dataset's classes directly: its head no longer reads prompts, so `set_classes()` raises an error if the classes change, and so do visual prompts. Prompt the original checkpoint for other classes.
 
 <p align="center">
   <br>
@@ -625,7 +625,7 @@ Labels like `object0` and `object1` mean the prediction came from a visual promp
 
 ### Why does set_classes() fail on a prompt-free checkpoint?
 
-Prompt-free checkpoints (`*-seg-pf.pt`) resolve classes through their own built-in vocabulary and reject external prompts with `AssertionError: Prompt-free model does not support setting classes. Please try with Text/Visual prompt models.` Load a `*-seg.pt` checkpoint when you need your own class list. See [Choosing a Prompting Mode](#choosing-a-prompting-mode).
+Prompt-free checkpoints (`*-seg-pf.pt`) resolve classes through their own built-in vocabulary and reject `set_classes()` with `AssertionError: Prompt-free model does not support setting classes. Please try with Text/Visual prompt models.` Visual prompts raise `AssertionError: Visual prompts need an unfused YOLOE model.` Load a `*-seg.pt` checkpoint when you need your own class list. See [Choosing a Prompting Mode](#choosing-a-prompting-mode).
 
 ### What does YOLOE download the first time I run a text prompt?
 

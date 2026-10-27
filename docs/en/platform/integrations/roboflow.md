@@ -23,7 +23,7 @@ The Roboflow integration imports the supported datasets you select from your Rob
 
 The preview stays open after an import. Started and already-imported datasets remain visible but cannot be selected, while datasets that could not be started stay selected for a retry. Click **Connect** again to refresh the preview and its storage usage; storage limits are checked again when importing.
 
-![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/674a1a61300f67e455cf5da7a178abfd.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/e0c09ece8166144e4135db09cbd89cf7.avif)<!-- screenshot -->
 
 Imported datasets take the workspace's [default dataset visibility](../account/settings.md#default-visibility) and appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
 

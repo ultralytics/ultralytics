@@ -23,7 +23,7 @@ To log new training runs to W&B, see the [YOLO experiment tracking guide](../../
 
 Imports appear in the background upload tracker and as in-flight rows in the destination project's models sidebar. Keep the browser tab open until uploads finish; you can navigate within Platform while they continue. The preview remains available afterward so you can select more projects without reconnecting.
 
-![Ultralytics Platform Settings Integrations Weights & Biases Import Preview](https://cdn.ul.run/i/04d4d2c502aab468324713c7f6cfbc3d.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Integrations Weights & Biases Import Preview](https://cdn.ul.run/i/c28677ea7ece5d8c885f8e45e437e386.avif)<!-- screenshot -->
 
 ## Eligible Checkpoints and Training Results
 

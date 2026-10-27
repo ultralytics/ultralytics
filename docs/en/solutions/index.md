@@ -84,7 +84,7 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](../refere
 
 ### Working with SolutionResults
 
-Except [`Similarity Search`](../guides/similarity-search.md), each Solution call returns a `SolutionResults` object.
+Except [`Similarity Search`](../guides/similarity-search.md) and [`OCR`](../guides/ocr.md), each Solution call returns a `SolutionResults` object. OCR returns an `engine.Results` object with recognized text in `result.texts`.
 
 - For object counting, the results include `in_count`, `out_count`, and `classwise_count`.
 

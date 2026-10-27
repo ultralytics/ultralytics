@@ -33,6 +33,7 @@ ocr = solutions.OCR(
 )
 im0 = cv2.imread("path/to/image.jpg")
 result = ocr(im0)
+cv2.imwrite("ocr.jpg", result.plot_im)
 
 for text in result.texts:
     print(text["text"], text["confidence"], text.get("track_id"))

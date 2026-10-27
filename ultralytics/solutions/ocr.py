@@ -137,11 +137,13 @@ class OCR(BaseSolution):
         for i in order:
             text = texts[i]
             points = np.array(text.get("polygon", text.get("box")), dtype=np.int32)
-            annotator.draw_region(points.tolist(), (0, 255, 0), self.line_width)
+            if self.CFG["show_boxes"]:
+                annotator.draw_region(points.tolist(), (0, 255, 0), self.line_width)
             if self.show_labels:
                 x1, y1 = points.min(0)
                 x2, y2 = points.max(0)
                 label = f"{text['track_id']} {text['text']}" if "track_id" in text else text["text"]
+                label += f" {text['confidence']:.2f}" if self.show_conf else ""
                 annotator.adaptive_label((int(x1), int(y1), int(x2), int(y2)), label)
         result.plot_im = annotator.im
         self.display_output(result.plot_im)

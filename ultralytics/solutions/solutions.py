@@ -180,7 +180,6 @@ class BaseSolution:
             self.track_ids = self.track_data.id.int().cpu().tolist()
             self.confs = self.track_data.conf.cpu().tolist()
         else:
-            self.LOGGER.warning("No tracks found.")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
         self.forget_tracks([track.track_id for track in self.model.predictor.trackers[0].removed_stracks_frame])
 
@@ -286,7 +285,7 @@ class BaseSolution:
             if hasattr(self.model, "predictor") and self.model.predictor and hasattr(self.model.predictor, "imgsz"):
                 input_h, input_w = self.model.predictor.imgsz
             else:
-                input_h, input_w = result.plot_im.shape[:2]
+                input_h, input_w = (result.orig_img if hasattr(result, "orig_img") else result.plot_im).shape[:2]
             LOGGER.info(
                 f"{self.frame_no}: {input_h}x{input_w} {solution_speed:.1f}ms,"
                 f" {', '.join([f'{v} {self.names[k]}' for k, v in counts.items()])}\n"

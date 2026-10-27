@@ -469,6 +469,7 @@ nav:
       - Object Counting: guides/object-counting.md
       - Object Counting in Regions: guides/region-counting.md
       - Object Cropping: guides/object-cropping.md
+      - OCR: guides/ocr.md
       - Parking Management: guides/parking-management.md
       - Queue Management: guides/queue-management.md
       - Security Alarm System: guides/security-alarm-system.md
@@ -803,6 +804,7 @@ nav:
           - object_blurrer: reference/solutions/object_blurrer.md
           - object_counter: reference/solutions/object_counter.md
           - object_cropper: reference/solutions/object_cropper.md
+          - ocr: reference/solutions/ocr.md
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - region_counter: reference/solutions/region_counter.md

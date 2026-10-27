@@ -55,6 +55,8 @@ class SolutionConfig:
         tracker (str): Path to tracking configuration YAML file (e.g., 'tracktrack.yaml').
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.
+        recognizer (str | Callable): PaddleOCR backend name or callable returning `(text, confidence)` from a BGR crop.
+        recognition_interval (int): Number of frames between recognition refreshes for an active track.
 
     Methods:
         update: Update the configuration with user-defined keyword arguments and raise error on invalid keys.
@@ -101,6 +103,8 @@ class SolutionConfig:
     tracker: str = "tracktrack.yaml"
     verbose: bool = True
     data: str = "images"
+    recognizer: Any = "paddleocr"
+    recognition_interval: int = 30
 
     def update(self, **kwargs: Any):
         """Update configuration parameters with new values provided as keyword arguments.

@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 import torch
 
-from tests import MODEL
+from tests import MODEL, SOURCE
 from ultralytics import solutions
 from ultralytics.utils import IS_RASPBERRYPI, TORCH_VERSION
 from ultralytics.utils.downloads import safe_download
@@ -394,3 +394,33 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+@pytest.mark.parametrize("model", [MODEL, "yolo26n-obb.pt", "yolo26n-seg.pt"])
+def test_ocr(model, solution_assets):
+    """Test callable recognition, geometry, serialization, and recognition caching with real YOLO outputs."""
+    calls = []
+    source = solution_assets("boats") if model == "yolo26n-obb.pt" else SOURCE
+    im = cv2.imread(str(source))
+    ocr = solutions.OCR(
+        model=model,
+        recognizer=lambda crop: calls.append(crop.shape) or ("text", 0.9),
+        recognition_interval=30,
+        verbose=False,
+    )
+    result = ocr(im)
+    assert result.texts and result.plot_im.shape == im.shape
+    assert all(text["confidence"] == 0.9 and text["detection_confidence"] for text in result.texts)
+    assert all("box" in text or "polygon" in text for text in result.texts)
+    assert "text_confidence" in result.to_json()
+    first_calls = len(calls)
+    result = ocr(im)
+    assert len(calls) == first_calls  # unchanged tracked text reuses valid cached recognition
+    ocr.forget_tracks(list(ocr.text_cache))
+    assert not ocr.text_cache
+
+
+def test_ocr_video(solution_assets):
+    """Test the existing video loop with OCR tracking and cached recognition."""
+    ocr = solutions.OCR(model=MODEL, recognizer=lambda crop: ("text", 0.9), verbose=False)
+    process_video(ocr, solution_assets("demo_video"))

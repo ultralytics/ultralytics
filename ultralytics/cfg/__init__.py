@@ -52,6 +52,7 @@ SOLUTION_MAP = {
     "region": "RegionCounter",
     "security": "SecurityAlarm",
     "parking": "ParkingManagement",
+    "ocr": "OCR",
     "help": None,
 }
 

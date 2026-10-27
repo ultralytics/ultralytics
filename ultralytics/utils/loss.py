@@ -656,19 +656,19 @@ class v8SegmentationLoss(v8DetectionLoss):
         # Normalize to mask size
         mxyxy = target_bboxes_normalized * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=proto.device)
 
-        for i, single_i in enumerate(zip(fg_mask, target_gt_idx, pred_masks, proto, mxyxy, marea)):
-            fg_mask_i, target_gt_idx_i, pred_masks_i, proto_i, mxyxy_i, marea_i = single_i
-            if fg_mask_i.any():
-                mask_idx = target_gt_idx_i[fg_mask_i]
+        # Foreground anchor indices of each image, found with two host syncs for the whole batch
+        fg_idx = fg_mask.nonzero(as_tuple=True)[1].split(fg_mask.sum(1).tolist())
+        for i, single_i in enumerate(zip(fg_idx, target_gt_idx, pred_masks, proto, mxyxy, marea)):
+            idx, target_gt_idx_i, pred_masks_i, proto_i, mxyxy_i, marea_i = single_i
+            if idx.numel():
+                mask_idx = target_gt_idx_i[idx]
                 if self.overlap:
                     gt_mask = masks[i] == (mask_idx + 1).view(-1, 1, 1)
                     gt_mask = gt_mask.float()
                 else:
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
 
-                loss += self.single_mask_loss(
-                    gt_mask, pred_masks_i[fg_mask_i], proto_i, mxyxy_i[fg_mask_i], marea_i[fg_mask_i]
-                )
+                loss += self.single_mask_loss(gt_mask, pred_masks_i[idx], proto_i, mxyxy_i[idx], marea_i[idx])
 
             # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
             else:

@@ -959,7 +959,7 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 
 !!! info "Changing Task Type"
 
-    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. [Depth](../../datasets/depth/index.md#depth-map-format) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back. A detect dataset also shows, exports, and trains [OBB](../../datasets/obb/index.md) annotations as their enclosing boxes. [Depth](../../datasets/depth/index.md#depth-map-format) is the exception: its ground truth is a paired file rather than an annotation, so a dataset can only switch to or from depth while it holds no images — re-import it instead.
 
 ### Custom Metadata
 
@@ -1094,7 +1094,7 @@ Ultralytics Platform supports YOLO labels, COCO JSON, [LabelMe](../integrations/
 
 ### Can I annotate the same dataset for multiple task types?
 
-Yes. Each image stores annotations for all 6 annotation task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+Yes. Each image stores annotations for all 6 annotation task types (detect, segment, semantic, classify, pose, OBB) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training (a detect dataset also uses OBB annotations as their enclosing boxes) — annotations for other tasks are preserved and reappear when you switch back.
 
 ### Are there limits on classes and annotations?
 

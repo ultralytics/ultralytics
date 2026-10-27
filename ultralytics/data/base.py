@@ -143,6 +143,8 @@ class BaseDataset(Dataset):
             fraction (float | int): Dataset ratio or image count to use.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
+            tiles (bool): Whether to expand detection images and labels into fixed tiles.
+            tile_size (int | tuple[int, int]): Native tile height and width in pixels.
         """
         super().__init__()
         self.img_path = img_path

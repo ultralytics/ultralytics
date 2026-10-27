@@ -327,7 +327,8 @@ class BasePredictor:
                 x1, y1, x2, y2 = window
                 tiles.append(im[y1:y2, x1:x2])
                 windows.append((i, window))
-        results = []
+        results, pixels = [], 0
+        start_times = [p.t for p in profilers]
         for start in range(0, len(tiles), self.args.batch):
             batch_tiles, batch_windows = (
                 tiles[start : start + self.args.batch],
@@ -340,6 +341,7 @@ class BasePredictor:
                 self.done_warmup = True
             with profilers[1]:
                 preds = self.inference(im, *args, **kwargs)
+            pixels += im.shape[0] * im.shape[2] * im.shape[3]
             batch = self.batch
             self.batch = ([batch[0][i] for i, _ in batch_windows], *batch[1:])
             try:
@@ -349,6 +351,12 @@ class BasePredictor:
                 self.batch = batch
         with profilers[2]:
             results = self.merge_tiles(results, windows, im0s)
+        for result in results:
+            result.speed = {
+                k: (p.t - t) * 1e3 / len(im0s)
+                for k, p, t in zip(("preprocess", "inference", "postprocess"), profilers, start_times)
+            }
+        self._tile_pixels = pixels / len(im0s)
         return results, im
 
     @smart_inference_mode()
@@ -449,12 +457,13 @@ class BasePredictor:
                     try:
                         for i in range(n):
                             self.seen += 1
-                            px += im.shape[2] * im.shape[3]
-                            self.results[i].speed = {
-                                "preprocess": profilers[0].dt * 1e3 / n,
-                                "inference": profilers[1].dt * 1e3 / n,
-                                "postprocess": profilers[2].dt * 1e3 / n,
-                            }
+                            px += self._tile_pixels if self.args.tiles else im.shape[2] * im.shape[3]
+                            if not self.args.tiles:
+                                self.results[i].speed = {
+                                    "preprocess": profilers[0].dt * 1e3 / n,
+                                    "inference": profilers[1].dt * 1e3 / n,
+                                    "postprocess": profilers[2].dt * 1e3 / n,
+                                }
                             if (
                                 self.args.verbose
                                 or self.args.save

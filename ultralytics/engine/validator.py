@@ -124,6 +124,8 @@ class BaseValidator:
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
 
         self.args = get_cfg(overrides=args)
+        if self.args.tiles and self.args.task != "detect":
+            raise ValueError(f"tiles is only supported for detection, not task='{self.args.task}'.")
         self.dataloader = dataloader
         self.stride = None
         self.data = None

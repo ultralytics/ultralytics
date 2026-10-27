@@ -444,7 +444,10 @@ class DetectionValidator(BaseValidator):
                     predictions.append(torch.cat((pred["bboxes"], pred["conf"][:, None], pred["cls"][:, None]), 1))
         with dt[3]:
             merged = nms.merge_tile_predictions(
-                predictions, windows, agnostic=self.args.agnostic_nms, max_det=self.args.max_det
+                predictions,
+                windows,
+                agnostic=self.args.single_cls or self.args.agnostic_nms,
+                max_det=self.args.max_det,
             )
         return [{"bboxes": merged[:, :4], "conf": merged[:, 4], "cls": merged[:, 5], "extra": merged[:, 6:]}]
 

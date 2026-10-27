@@ -22,6 +22,7 @@ def onnx2rknn(
     metadata: dict | None = None,
     prefix: str = "",
     batch: int = 1,
+    head: str | None = None,
 ) -> str:
     """Export an ONNX model to RKNN format for Rockchip NPUs with optional INT8 quantization.
 
@@ -33,10 +34,13 @@ def onnx2rknn(
         dataset (Path | str | None): Path to the generated RKNN Toolkit calibration image-list file, required when
             ``quantize=8``. Users should pass YOLO dataset YAMLs to ``export(data=...)``; ``export_rknn()`` converts
             them to this internal image-path list.
-        metadata (dict | None): Metadata saved as ``metadata.yaml``. A ``"depth"`` task builds INT8 with RKNN Toolkit
-            ``auto_hybrid``, which keeps high-error layers in floating point.
+        metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
         batch (int): Inference batch size applied by RKNN Toolkit after loading the batch-1 ONNX model.
+        head (str | None): ONNX node-name scope of the model head, e.g. ``"/model.23/"``. INT8 builds end the NPU
+            graph at the head's per-level output convolutions and save the remaining box decode as ``tail.onnx`` to run
+            on the host in floating point. INT8 builds for FP16-capable targets also use RKNN Toolkit ``auto_hybrid``
+            to keep high-error layers in floating point.
 
     Returns:
         (str): Path to the exported ``_rknn_model`` directory.
@@ -46,7 +50,8 @@ def onnx2rknn(
         RuntimeError: If an RKNN Toolkit API call fails.
     """
     use_int8 = quantize == 8
-    if name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not use_int8:
+    int8_only = name in {"rv1103", "rv1106", "rv1103b", "rv1106b"}
+    if int8_only and not use_int8:
         raise ValueError(
             f"Rockchip target '{name}' requires quantize=8. Use a target that supports floating-point builds "
             f"(e.g. rk2118, rk3562, rk3566, rk3568, rk3576, rk3588, rv1126b) or export with quantize=8."
@@ -75,14 +80,38 @@ def onnx2rknn(
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "tail.onnx").unlink(missing_ok=True)  # a stale INT8 tail would corrupt a re-exported model
 
     rknn = RKNN(verbose=False)
     config = {"mean_values": [[0, 0, 0]], "std_values": [[255, 255, 255]], "target_platform": name}
+    outputs = None
+    if use_int8:
+        if not int8_only:
+            config["auto_hybrid_cos_thresh"] = 0.999
+        if head:
+            import onnx
+
+            graph = onnx.load(onnx_file).graph
+            consumers = {}
+            for node in graph.node:
+                for x in node.input:
+                    consumers.setdefault(x, set()).add(node.op_type)
+            # Per-tensor INT8 cannot hold the decode's pixel-range anchor and stride math, so stop at the head convs
+            outputs = [
+                n.output[0]
+                for n in graph.node
+                if n.op_type == "Conv" and head in n.name and consumers.get(n.output[0]) == {"Reshape"}
+            ]
+            if outputs:
+                outputs += [x.name for x in graph.output if x.name != "output0"]  # e.g. segment prototypes
+                onnx.utils.extract_model(
+                    onnx_file, str(output_dir / "tail.onnx"), outputs, [x.name for x in graph.output]
+                )
     _check_rknn_return(rknn.config(**config), "config")
-    _check_rknn_return(rknn.load_onnx(model=onnx_file), "load_onnx")
+    _check_rknn_return(rknn.load_onnx(model=onnx_file, outputs=outputs or None), "load_onnx")
     build_kwargs = {"do_quantization": use_int8}
     if use_int8:
-        build_kwargs.update(dataset=str(dataset), auto_hybrid=(metadata or {}).get("task") == "depth")
+        build_kwargs.update(dataset=str(dataset), auto_hybrid=not int8_only)  # INT8-only NPUs have no FP16 layers
     _check_rknn_return(rknn.build(**build_kwargs, rknn_batch_size=batch), "build")
     _check_rknn_return(rknn.export_rknn(str(output_dir / f"{Path(onnx_file).stem}-{name}.rknn")), "export_rknn")
     if metadata:

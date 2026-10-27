@@ -219,7 +219,8 @@ def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
         args=SimpleNamespace(opset=None, quantize=8, name="rk3588", batch=8),
         im=torch.zeros(8, 3, 32, 32),
         file=tmp_path / "model.pt",
-        metadata={},
+        metadata={"head": "Detect"},
+        model=SimpleNamespace(model=[None]),
         get_int8_calibration_dataloader=lambda prefix: SimpleNamespace(dataset=SimpleNamespace(im_files=[image])),
     )
     exporter.export_onnx = lambda: calls.update(onnx_batch=len(exporter.im)) or tmp_path / "model.onnx"

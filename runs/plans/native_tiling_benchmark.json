@@ -1,0 +1,27 @@
+{
+  "scope": "native only; no SAHI comparison",
+  "checkpoint": "yolo26n.pt",
+  "dataset": "COCO8 val, 4 locally available images, 10 measured repetitions after 3 warmups",
+  "hardware": "NVIDIA RTX 6000D",
+  "settings": {
+    "tiles": true,
+    "tile_size": 320,
+    "imgsz": 320,
+    "batch": 2,
+    "verbose": false,
+    "device": "CUDA_VISIBLE_DEVICES=6",
+    "overlap": 0.2,
+    "merge_iou": 0.5
+  },
+  "samples": 40,
+  "latency_ms": {
+    "p50": 12.351132463663816,
+    "p95": 14.016329182777554,
+    "mean": 11.906191817251965
+  },
+  "peak_gpu_memory_mib": {
+    "allocated": 58.736328125,
+    "reserved": 92.0
+  },
+  "process_peak_rss_mib": 1595.69921875
+}

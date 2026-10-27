@@ -37,10 +37,10 @@ def onnx2rknn(
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
         batch (int): Inference batch size applied by RKNN Toolkit after loading the batch-1 ONNX model.
-        head (str | None): ONNX node-name scope of the model head, e.g. ``"/model.23/"``. INT8 builds end the NPU
-            graph at the head's per-level output convolutions and save the remaining box decode as ``tail.onnx`` to run
-            on the host in floating point. INT8 builds for FP16-capable targets also use RKNN Toolkit ``auto_hybrid``
-            to keep high-error layers in floating point.
+        head (str | None): ONNX node-name scope of the model head, e.g. ``"/model.23/"``. INT8 builds end the NPU graph
+            at the head's per-level output convolutions and save the remaining box decode as ``tail.onnx`` to run on the
+            host in floating point. INT8 builds for FP16-capable targets also use RKNN Toolkit ``auto_hybrid`` to keep
+            high-error layers in floating point.
 
     Returns:
         (str): Path to the exported ``_rknn_model`` directory.

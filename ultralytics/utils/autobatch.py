@@ -109,10 +109,11 @@ def autobatch(
         def ops(x):  # num_denoising boxes per image fill the RT-DETR CDN queries, the zero image is the semantic mask
             i = torch.arange(len(x), device=x.device).repeat_interleave(getattr(m.model[-1], "num_denoising", 1))
             labels = {"batch_idx": i, "cls": i[:, None] * 0, "bboxes": torch.full((len(i), 4), 0.5, device=x.device)}
+            x = torch.zeros_like(x)  # finite matcher costs and a valid semantic mask
             return m({"img": x, "semantic_mask": x[:, 0].int(), **labels})
 
     try:
-        img = [torch.zeros(b, ch, imgsz, imgsz) for b in batch_sizes]
+        img = [torch.empty(b, ch, imgsz, imgsz) for b in batch_sizes]
         results = profile_ops(img, ops, n=1, device=device, max_num_obj=max_num_obj)
 
         # Fit a solution

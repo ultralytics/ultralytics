@@ -300,6 +300,8 @@ def convert_coco(
             from faster_coco_eval.core.mask import decode, segmToRle
 
         dropped = False
+        empty_boxes = 0
+        duplicate_rows = 0
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
@@ -318,6 +320,7 @@ def convert_coco(
                 box[[0, 2]] /= w  # normalize x
                 box[[1, 3]] /= h  # normalize y
                 if box[2] <= 0 or box[3] <= 0:  # if w <= 0 or h <= 0
+                    empty_boxes += 1
                     continue
 
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
@@ -366,8 +369,19 @@ def convert_coco(
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
             with open(label_file, "a", encoding="utf-8") as file:
                 rows = keypoints if use_keypoints else segments if use_segments else bboxes
-                file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in dict.fromkeys(map(tuple, rows)))
+                unique_rows = list(dict.fromkeys(map(tuple, rows)))
+                duplicate_rows += len(rows) - len(unique_rows)
+                file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in unique_rows)
 
+        if empty_boxes:
+            LOGGER.warning(
+                f"{json_file}: {empty_boxes} annotations with a zero-area box were skipped during conversion."
+            )
+        if duplicate_rows:
+            LOGGER.warning(
+                f"{json_file}: {duplicate_rows} duplicated annotation rows were removed when writing labels, "
+                "e.g. repeated identical boxes for the same class."
+            )
         if dropped and not use_keypoints:  # segments are unused when keypoints own the output
             LOGGER.warning(
                 f"{json_file}: annotations without a usable polygon, because the segmentation is missing, "

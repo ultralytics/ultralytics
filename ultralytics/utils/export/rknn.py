@@ -80,7 +80,6 @@ def onnx2rknn(
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "tail.onnx").unlink(missing_ok=True)  # a stale INT8 tail would corrupt a re-exported model
 
     rknn = RKNN(verbose=False)
     config = {"mean_values": [[0, 0, 0]], "std_values": [[255, 255, 255]], "target_platform": name}
@@ -92,21 +91,17 @@ def onnx2rknn(
             import onnx
 
             graph = onnx.load(onnx_file).graph
-            consumers = {}
-            for node in graph.node:
-                for x in node.input:
-                    consumers.setdefault(x, set()).add(node.op_type)
-            # Per-tensor INT8 cannot hold the decode's pixel-range anchor and stride math, so stop at the head convs
+            ops = {"Reshape", "Concat"}  # head convs feed only these per-level ops, e.g. Concat in WorldDetect
+            ends = {x for n in graph.node if n.op_type in ops for x in n.input}
+            ends -= {x for n in graph.node if n.op_type not in ops for x in n.input}
+            # Per-tensor INT8 cannot hold the decode's pixel-range DFL, anchor and stride math, so stop at the head convs
             outputs = [
                 n.output[0]
                 for n in graph.node
-                if n.op_type == "Conv" and head in n.name and consumers.get(n.output[0]) == {"Reshape"}
+                if n.op_type == "Conv" and head in n.name and "/dfl/" not in n.name and n.output[0] in ends
             ]
             if outputs:
                 outputs += [x.name for x in graph.output if x.name != "output0"]  # e.g. segment prototypes
-                onnx.utils.extract_model(
-                    onnx_file, str(output_dir / "tail.onnx"), outputs, [x.name for x in graph.output]
-                )
     _check_rknn_return(rknn.config(**config), "config")
     _check_rknn_return(rknn.load_onnx(model=onnx_file, outputs=outputs or None), "load_onnx")
     build_kwargs = {"do_quantization": use_int8}
@@ -114,6 +109,9 @@ def onnx2rknn(
         build_kwargs.update(dataset=str(dataset), auto_hybrid=not int8_only)  # INT8-only NPUs have no FP16 layers
     _check_rknn_return(rknn.build(**build_kwargs, rknn_batch_size=batch), "build")
     _check_rknn_return(rknn.export_rknn(str(output_dir / f"{Path(onnx_file).stem}-{name}.rknn")), "export_rknn")
+    (output_dir / "tail.onnx").unlink(missing_ok=True)  # a stale INT8 tail would corrupt a re-exported model
+    if outputs:
+        onnx.utils.extract_model(onnx_file, str(output_dir / "tail.onnx"), outputs, [x.name for x in graph.output])
     if metadata:
         YAML.save(output_dir / "metadata.yaml", metadata)
     return str(output_dir)

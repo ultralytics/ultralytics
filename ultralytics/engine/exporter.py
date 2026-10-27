@@ -1577,17 +1577,15 @@ class Exporter:
         self.im = self.im[:1]  # RKNN Toolkit expands the batch after calibrating the batch-1 ONNX model
         f_onnx = self.export_onnx()
         output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
-        image_paths = []
-        if self.args.quantize == 8:
-            dataloader = self.get_int8_calibration_dataloader(prefix)
-            image_paths = getattr(dataloader.dataset, "im_files", None)
-            if image_paths is None and hasattr(dataloader.dataset, "samples"):
-                image_paths = [x[0] for x in dataloader.dataset.samples]
-            if not image_paths:
-                raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
+        rknn_dataset = None
         with tempfile.TemporaryDirectory() as tmp:
-            rknn_dataset = None
-            if image_paths:
+            if self.args.quantize == 8:
+                dataloader = self.get_int8_calibration_dataloader(prefix)
+                image_paths = getattr(dataloader.dataset, "im_files", None)
+                if image_paths is None and hasattr(dataloader.dataset, "samples"):
+                    image_paths = [x[0] for x in dataloader.dataset.samples]
+                if not image_paths:
+                    raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
                 # RKNN Toolkit splits dataset.txt lines on spaces, so link images under space-free names
                 links = [Path(tmp) / f"{i}{Path(x).suffix}" for i, x in enumerate(image_paths)]
                 for link, x in zip(links, image_paths):
@@ -1603,7 +1601,10 @@ class Exporter:
                 dataset=rknn_dataset,
                 metadata=self.metadata,
                 prefix=prefix,
-                head=None if self.metadata["head"] == "RTDETRDecoder" else f"/model.{len(self.model.model) - 1}/",
+                # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs to cut at
+                head=f"/model.{len(self.model.model) - 1}/"
+                if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder"
+                else None,
             )
 
     @try_export

@@ -135,8 +135,8 @@ def autobatch(
             if dataset_size > 0:
                 b = min(b, dataset_size)
 
-            fraction = np.polyval(p, b) / t  # predicted fraction
-            LOGGER.info(f"{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅")
+            fraction = np.polyval(p, b) / f  # predicted fraction of available memory
+            LOGGER.info(f"{prefix}Using batch-size {b} for {d} {f * fraction:.2f}G/{f:.2f}G ({fraction * 100:.0f}%) ✅")
             return b
     except Exception as e:
         LOGGER.warning(f"{prefix}error detected: {e},  using default batch-size {batch_size}.")

@@ -30,8 +30,8 @@ class BaseTrack:
     """Base class for object tracking, providing foundational attributes and methods.
 
     Attributes:
-        _local (threading.local): Per-thread counter for unique track IDs, so trackers running in different threads
-            do not share or reset each other's IDs.
+        _local (threading.local): Per-thread counter for unique track IDs, so trackers running in different threads do
+            not share or reset each other's IDs.
         track_id (int): Unique identifier for the track.
         is_activated (bool): Flag indicating whether the track is currently active.
         state (TrackState): Current state of the track.

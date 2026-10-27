@@ -212,6 +212,7 @@ class Results(SimpleClass, DataExportMixin):
         obb (OBB | None): Oriented bounding boxes.
         semantic_mask (SemanticMask | None): Semantic segmentation class map.
         depth (DepthMap | None): Per-pixel depth map.
+        texts (list[dict] | None): OCR records with text, geometry, confidences, detection indices, and track IDs.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
         path (str): Path to the input image file.
@@ -257,6 +258,7 @@ class Results(SimpleClass, DataExportMixin):
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
+        texts: list[dict[str, Any]] | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -273,6 +275,7 @@ class Results(SimpleClass, DataExportMixin):
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
+            texts (list[dict] | None): OCR text, geometry, confidence, detection index, and optional track ID records.
 
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:
@@ -290,6 +293,7 @@ class Results(SimpleClass, DataExportMixin):
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape) if semantic_mask is not None else None
         self.depth = DepthMap(depth, self.orig_shape) if depth is not None else None
+        self.texts = texts
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
@@ -339,6 +343,7 @@ class Results(SimpleClass, DataExportMixin):
         keypoints: torch.Tensor | None = None,
         semantic_mask: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
+        texts: list[dict[str, Any]] | None = None,
     ):
         """Update the Results object with new detection data.
 
@@ -355,6 +360,7 @@ class Results(SimpleClass, DataExportMixin):
             semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic
                 segmentation.
             depth (torch.Tensor | None): A tensor of shape (H, W) containing per-pixel depth values.
+            texts (list[dict] | None): OCR text records aligned to detections by `detection_index`.
 
         Examples:
             >>> results = model("image.jpg")
@@ -375,6 +381,8 @@ class Results(SimpleClass, DataExportMixin):
             self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape)
         if depth is not None:
             self.depth = DepthMap(depth, self.orig_shape)
+        if texts is not None:
+            self.texts = texts
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.
@@ -401,6 +409,15 @@ class Results(SimpleClass, DataExportMixin):
             if v is None:
                 continue
             setattr(r, k, getattr(v, fn)(*args, **kwargs))
+        if fn == "__getitem__" and self.texts is not None:
+            indices = range(len(self))[args[0]]
+            indices = [indices] if isinstance(indices, int) else list(indices)
+            index_map = {old: new for new, old in enumerate(indices)}
+            r.texts = [
+                {**deepcopy(text), "detection_index": index_map[text["detection_index"]]}
+                for text in self.texts
+                if text["detection_index"] in index_map
+            ]
         return r
 
     def cpu(self):
@@ -480,7 +497,9 @@ class Results(SimpleClass, DataExportMixin):
             >>> results = model("path/to/image.jpg")
             >>> new_result = results[0].new()
         """
-        result = Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
+        result = Results(
+            orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed, texts=deepcopy(self.texts)
+        )
         result.save_dir = self.save_dir
         return result
 
@@ -899,6 +918,7 @@ class Results(SimpleClass, DataExportMixin):
         if kpts is not None:
             kpts = kpts.cpu()  # ditto for the per-row keypoints sync below
         h, w = self.orig_shape if normalize else (1, 1)
+        texts = {text["detection_index"]: text for text in self.texts or []}
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls.item()), round(row.conf.item(), decimals)
             box = coords[i]
@@ -907,6 +927,8 @@ class Results(SimpleClass, DataExportMixin):
                 xy[f"x{j + 1}"] = round(b[0] / w, decimals)
                 xy[f"y{j + 1}"] = round(b[1] / h, decimals)
             result = {"name": self.names[class_id], "class": class_id, "confidence": conf, "box": xy}
+            if (text := texts.get(i)) is not None:
+                result.update(text=text["text"], text_confidence=round(text["confidence"], decimals))
             if data.is_track:
                 result["track_id"] = int(row.id.item())  # track ID
             if self.masks:

@@ -1118,6 +1118,31 @@ def test_results(model: str, tmp_path, solution_assets):
         print(r, len(r), r.path)  # print after methods
 
 
+def test_results_ocr_texts():
+    """Test OCR records survive indexing, tensor conversions, and JSON serialization with source alignment."""
+    from ultralytics.engine.results import Results
+
+    texts = [
+        {"text": "second", "confidence": 0.8, "detection_confidence": 0.9, "detection_index": 1},
+        {"text": "first", "confidence": 0.7, "detection_confidence": 0.95, "detection_index": 0},
+    ]
+    r = Results(
+        np.zeros((64, 64, 3), dtype=np.uint8),
+        path="image.jpg",
+        names={0: "text"},
+        boxes=torch.tensor([[0, 0, 20, 20, 0.95, 0], [30, 30, 60, 60, 0.9, 0]]),
+        texts=texts,
+    )
+    assert r[0].texts[0]["text"] == "first"
+    assert r[1].texts == [{**texts[0], "detection_index": 0}]
+    assert r.cpu().numpy().texts == texts
+    assert r.summary()[0]["text"] == "first"
+    assert r.summary()[0]["confidence"] == 0.95
+    assert r.summary()[0]["text_confidence"] == 0.7
+    assert "text" in r.to_json()
+    assert Results(r.orig_img, r.path, r.names, boxes=r.boxes.data[:0], texts=[]).summary() == []
+
+
 def test_results_plot_without_boxes():
     """Test that plotting a masks-only Results (boxes=None) does not raise an AttributeError."""
     from ultralytics.engine.results import Results

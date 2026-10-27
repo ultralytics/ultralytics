@@ -2436,3 +2436,73 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
+
+
+def test_tile_geometry_and_merge():
+    """Test native tile coverage, label clipping, and duplicate suppression."""
+    from ultralytics.data.utils import slice_label, tile_windows
+    from ultralytics.utils.nms import merge_tile_predictions
+
+    assert tile_windows((32, 48), 64) == [(0, 0, 48, 32)]
+    windows = tile_windows((100, 150), 64)
+    assert windows[-1] == (86, 36, 150, 100)
+    assert all(0 <= x1 < x2 <= 150 and 0 <= y1 < y2 <= 100 for x1, y1, x2, y2 in windows)
+    label = {
+        "shape": (100, 100),
+        "cls": np.array([[0.0], [1.0]], dtype=np.float32),
+        "bboxes": np.array([[0.5, 0.5, 0.4, 0.4], [0.01, 0.01, 0.02, 0.02]], dtype=np.float32),
+    }
+    tiled = slice_label(label, (50, 0, 100, 100))
+    assert tiled["bboxes"].shape == (1, 4) and tiled["cls"].item() == 0
+    np.testing.assert_allclose(tiled["bboxes"][0], [0.2, 0.5, 0.4, 0.4])
+
+    predictions = [torch.tensor([[x, 10, x + 20, 30, 0.9, 0]]) for x in (64.0, 32.0, 0.0)]
+    offsets = [(0, 0, 64, 64), (32, 0, 96, 64), (64, 0, 128, 64)]
+    merged = merge_tile_predictions(predictions, offsets)
+    assert merged.shape == (1, 6)
+    torch.testing.assert_close(merged[0, :4], torch.tensor([64.0, 10, 84, 30]))
+    adjacent = torch.tensor([[0.0, 0, 10, 10, 0.9, 0], [10.0, 0, 20, 10, 0.8, 0]])
+    assert len(merge_tile_predictions([adjacent], [(0, 0, 64, 64)])) == 2
+
+
+def test_tiled_dataset(tmp_path):
+    """Test YOLO dataset tiling retains negative samples and native tile contents."""
+    from ultralytics.data.dataset import YOLODataset
+
+    images, labels = tmp_path / "images", tmp_path / "labels"
+    images.mkdir(), labels.mkdir()
+    im = np.arange(128 * 192 * 3, dtype=np.uint8).reshape(128, 192, 3)
+    cv2.imwrite(str(images / "a.png"), im)
+    (labels / "a.txt").write_text("0 0.5 0.5 0.2 0.2\n", encoding="utf-8")
+    dataset = YOLODataset(
+        img_path=str(images), data={"names": {0: "object"}}, imgsz=64, augment=False, tiles=True, tile_size=64
+    )
+    assert len(dataset) == 12 and any(not len(label["cls"]) for label in dataset.labels)
+    sample = dataset[0]
+    assert sample["img"].shape == (3, 64, 64) and sample["ori_shape"] == (64, 64)
+    np.testing.assert_array_equal(sample["img"][0], im[:64, :64, 2])
+    with pytest.raises(ValueError, match="cache='ram'"):
+        YOLODataset(img_path=str(images), data={"names": {0: "object"}}, tiles=True, cache=True)
+
+
+def test_predict_tiles(tmp_path):
+    """Test public tiled prediction returns native full-image results."""
+    im = cv2.resize(cv2.imread(str(SOURCE)), (960, 640))
+    model = YOLO(MODEL)
+    for tiles in (True, "auto"):
+        result = model.predict(
+            im, tiles=tiles, tile_size=320, imgsz=320, batch=3, save=True, project=tmp_path, verbose=False
+        )[0]
+        assert result.orig_shape == (640, 960) and result.path.endswith("image0.jpg")
+        assert len(result.boxes) and result.boxes.xyxy.min() >= 0
+        assert (result.boxes.xyxy[:, [0, 2]] <= 960).all() and (result.boxes.xyxy[:, [1, 3]] <= 640).all()
+    with pytest.raises(ValueError, match="tiles supports detection"):
+        model.predict(torch.rand(1, 3, 64, 64), tiles=True, tile_size=64, imgsz=64)
+
+
+def test_train_val_tiles():
+    """Test tiled training and validation retain full-image metrics."""
+    model = YOLO(MODEL)
+    model.train(data="coco8.yaml", tiles=True, tile_size=256, imgsz=256, epochs=1, batch=2, workers=0, plots=False)
+    metrics = model.val(data="coco8.yaml", tiles=True, tile_size=320, imgsz=320, batch=2, workers=0, plots=False)
+    assert metrics.box.map >= 0 and metrics.box.nc == 80

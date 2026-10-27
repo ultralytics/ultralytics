@@ -418,6 +418,18 @@ def test_ocr(model, solution_assets):
     assert len(calls) == first_calls  # unchanged tracked text reuses valid cached recognition
     ocr.forget_tracks(list(ocr.text_cache))
     assert not ocr.text_cache
+    assert ocr(np.zeros_like(im)).texts == []
+    assert len(calls) == first_calls
+
+
+def test_ocr_reading_order():
+    """Test deterministic line grouping and left-to-right ordering."""
+    polygons = [
+        np.array([[20, 20], [40, 20], [40, 30], [20, 30]]),
+        np.array([[0, 0], [10, 0], [10, 10], [0, 10]]),
+        np.array([[20, 0], [30, 0], [30, 10], [20, 10]]),
+    ]
+    assert solutions.OCR.reading_order(polygons) == [1, 2, 0]
 
 
 def test_ocr_video(solution_assets):

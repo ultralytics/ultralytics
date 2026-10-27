@@ -38,7 +38,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages into the base image's system Python, which already holds ROCm PyTorch but ships only `python3`
 # The MIGraphX EP plugin pulls its migraphx-libs C library; libamdhip64.so.7 comes from the base image
-RUN ln -s /usr/bin/python3 /usr/local/bin/python && \
+RUN ln -sf /usr/bin/python3 /usr/local/bin/python && \
     python -m pip install --no-cache-dir uv && \
     uv pip install --system --no-cache -e "." albumentations faster-coco-eval && \
     uv pip install --system --no-cache "onnxruntime-ep-migraphx==1.0.0+rocm10.1.0" \

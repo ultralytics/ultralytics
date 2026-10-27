@@ -225,7 +225,7 @@ For the full list of export arguments, see the [ONNX integration](onnx.md#export
 
 !!! note "Compiled-program cache"
 
-    The MIGraphX EP compiles the graph on the first session, which dominates initial load time. Ultralytics caches the compiled program per model under the [Ultralytics config directory](../quickstart.md#ultralytics-settings) so later loads of the same model skip recompilation. The cache keeps the 8 most recently used models and evicts older ones, so it cannot grow without bound. Set `ORT_MIGRAPHX_CACHE_DIR` to override the location, and delete the cache directory to force recompilation after upgrading ROCm or MIGraphX.
+    The MIGraphX EP compiles the graph on the first session, which dominates initial load time. The EP caches the compiled program per model and input shape under the [Ultralytics config directory](../quickstart.md#ultralytics-settings) so later loads of the same model skip recompilation. Ultralytics keeps the 16 most recently compiled programs and evicts older ones, so the cache cannot grow without bound. Set `ORT_MIGRAPHX_CACHE_DIR` to override the location, and delete the cache directory to force recompilation after upgrading ROCm or MIGraphX.
 
 !!! note "Compile time"
 

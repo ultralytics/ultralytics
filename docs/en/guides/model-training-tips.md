@@ -49,13 +49,13 @@ Using the maximum batch size supported by your GPU, you can fully take advantage
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Gxl6Bbpcxs0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YYCfz5OeEow"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Use Batch Inference with Ultralytics YOLO26 | Speed Up Object Detection in Python 🎉
+  <strong>Watch:</strong> How to Speed Up Ultralytics YOLO26 Inference by 2× with Batch Processing | Python & GPU | MLOps 🚀
 </p>
 
 With respect to YOLO26, you can set the `batch` parameter in the [Train mode arguments](../modes/train.md) to match your GPU capacity. On a single accelerator, `batch=-1` profiles the model and picks a [batch size](https://www.ultralytics.com/glossary/batch-size) targeting roughly 60% memory utilization; a fraction such as `batch=0.70` targets a different share. Multi-GPU runs require an explicit global batch size that is a multiple of the device count. On CPU and Apple silicon, AutoBatch warns and falls back to `batch=16`.

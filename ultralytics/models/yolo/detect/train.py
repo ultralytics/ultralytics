@@ -90,13 +90,14 @@ class DetectionTrainer(BaseTrainer):
         assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size)
+        loader_batch = 1 if self.args.tiles and mode == "val" else batch_size
         shuffle = mode == "train"
         if getattr(dataset, "rect", False) and shuffle and not np.all(dataset.batch_shapes == dataset.batch_shapes[0]):
             LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
         return build_dataloader(
             dataset,
-            batch=batch_size,
+            batch=loader_batch,
             workers=self.args.workers if mode == "train" else self.args.workers * 2,
             shuffle=shuffle,
             rank=rank,

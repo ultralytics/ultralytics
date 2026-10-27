@@ -255,24 +255,34 @@ class BaseValidator:
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
-            # Preprocess
-            with dt[0]:
-                batch = self.preprocess(batch)
+            if self.args.tiles:
+                with autocast(self.training and self.args.quantize == 16, device=self.device.type):
+                    preds = self.predict_tiles(batch, model, augment, dt)
+                batch = {
+                    k: v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
+                    if isinstance(v, torch.Tensor)
+                    else v
+                    for k, v in batch.items()
+                }
+            else:
+                # Preprocess
+                with dt[0]:
+                    batch = self.preprocess(batch)
 
-            with autocast(self.training and self.args.quantize == 16, device=self.device.type):
-                # Inference
-                with dt[1]:
-                    preds = model(batch["img"], augment=augment)
+                with autocast(self.training and self.args.quantize == 16, device=self.device.type):
+                    # Inference
+                    with dt[1]:
+                        preds = model(batch["img"], augment=augment)
 
-                # Loss
-                with dt[2]:
-                    if self.training:
-                        for k, v in model.loss(batch, preds)[1].items():
-                            self.loss[k] += v
+                    # Loss
+                    with dt[2]:
+                        if self.training:
+                            for k, v in model.loss(batch, preds)[1].items():
+                                self.loss[k] += v
 
-            # Postprocess
-            with dt[3]:
-                preds = self.postprocess(preds)
+                # Postprocess
+                with dt[3]:
+                    preds = self.postprocess(preds)
 
             self.update_metrics(preds, batch)
             if self.args.plots and batch_i < 3 and RANK in {-1, 0}:

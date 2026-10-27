@@ -317,6 +317,40 @@ class BasePredictor:
                 LOGGER.warning(STREAM_WARNING)
         self.vid_writer = {}
 
+    def predict_tiles(self, im0s, profilers, *args, **kwargs):
+        """Run bounded tile inference and merge results for each original image."""
+        from ultralytics.data.utils import tile_windows
+
+        tiles, windows = [], []
+        for i, im in enumerate(im0s):
+            for window in tile_windows(im.shape[:2], self.args.tile_size):
+                x1, y1, x2, y2 = window
+                tiles.append(im[y1:y2, x1:x2])
+                windows.append((i, window))
+        results = []
+        for start in range(0, len(tiles), self.args.batch):
+            batch_tiles, batch_windows = (
+                tiles[start : start + self.args.batch],
+                windows[start : start + self.args.batch],
+            )
+            with profilers[0]:
+                im = self.preprocess(batch_tiles)
+            if not self.done_warmup:
+                self.model.warmup(im=im)
+                self.done_warmup = True
+            with profilers[1]:
+                preds = self.inference(im, *args, **kwargs)
+            batch = self.batch
+            self.batch = ([batch[0][i] for i, _ in batch_windows], *batch[1:])
+            try:
+                with profilers[2]:
+                    results.extend(self.postprocess(preds, im, batch_tiles))
+            finally:
+                self.batch = batch
+        with profilers[2]:
+            results = self.merge_tiles(results, windows, im0s)
+        return results, im
+
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
         """Stream inference on input source and save results to file.
@@ -350,6 +384,16 @@ class BasePredictor:
                 self.model.model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
+            if self.args.tiles and (
+                self.args.task != "detect"
+                or self.source_type.tensor
+                or self.args.embed
+                or self.args.visualize
+                or self.args.mode == "track"
+            ):
+                raise ValueError(
+                    "tiles supports detection image/video prediction without tensor, embed, visualize, or track."
+                )
 
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
@@ -377,24 +421,27 @@ class BasePredictor:
                     self.run_callbacks("on_predict_batch_start")
                     paths, im0s, s = self.batch
 
-                    # Preprocess
-                    with profilers[0]:
-                        im = self.preprocess(im0s)
+                    if self.args.tiles:
+                        self.results, im = self.predict_tiles(im0s, profilers, *args, **kwargs)
+                    else:
+                        # Preprocess
+                        with profilers[0]:
+                            im = self.preprocess(im0s)
 
-                    if not self.done_warmup:
-                        self.model.warmup(im=im)
-                        self.done_warmup = True
+                        if not self.done_warmup:
+                            self.model.warmup(im=im)
+                            self.done_warmup = True
 
-                    # Inference
-                    with profilers[1]:
-                        preds = self.inference(im, *args, **kwargs)
-                        if self.args.embed:
-                            yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embed tensors
-                            continue
+                        # Inference
+                        with profilers[1]:
+                            preds = self.inference(im, *args, **kwargs)
+                            if self.args.embed:
+                                yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embed tensors
+                                continue
 
-                    # Postprocess
-                    with profilers[2]:
-                        self.results = self.postprocess(preds, im, im0s)
+                        # Postprocess
+                        with profilers[2]:
+                            self.results = self.postprocess(preds, im, im0s)
                     self.run_callbacks("on_predict_postprocess_end")
 
                     # Visualize, save, write results

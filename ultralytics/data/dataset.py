@@ -341,7 +341,7 @@ class YOLODataset(BaseDataset):
             if self.format_class is SemanticFormat:  # masks rasterize from self.labels; only these read polygons
                 self.use_segments = bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
         else:
-            transforms = Compose([LetterBox(new_shape=self.imgsz, scaleup=False)])
+            transforms = Compose([] if hyp.tiles else [LetterBox(new_shape=self.imgsz, scaleup=False)])
         transforms.append(
             self.format_class(
                 bbox_format="xywh",

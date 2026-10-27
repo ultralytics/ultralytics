@@ -122,6 +122,8 @@ class BaseDataset(Dataset):
         classes: list[int] | None = None,
         fraction: float = 1.0,
         channels: int = 3,
+        tiles: bool = False,
+        tile_size: int | tuple[int, int] = 640,
     ):
         """Initialize BaseDataset with given configuration and options.
 
@@ -154,6 +156,17 @@ class BaseDataset(Dataset):
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
+        self.tiles = tiles
+        self.native = bool(getattr(hyp, "tiles", False)) and not augment
+        if tiles:
+            from .utils import slice_label, tile_windows
+
+            self.labels = [
+                slice_label(label, window)
+                for label in self.labels
+                for window in tile_windows(label["shape"], tile_size)
+            ]
+            self.im_files = [label["im_file"] for label in self.labels]
         self.ni = len(self.labels)  # number of images
         self.rect = rect
         self.batch_size = batch_size
@@ -173,6 +186,8 @@ class BaseDataset(Dataset):
         # existing user cache and forces a full recache, so keep this exact naming
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
+        if tiles and self.cache == "ram":
+            raise ValueError("cache='ram' is not supported with tiled training; use cache='disk' or cache=False.")
         if self.cache == "ram" and self.check_cache_ram():
             if hyp.deterministic:
                 LOGGER.warning(
@@ -292,8 +307,15 @@ class BaseDataset(Dataset):
                 im = imread(f, flags=self.cv2_flag)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
+            if window := self.labels[i].get("tile"):
+                x1, y1, x2, y2 = window
+                im = im[y1:y2, x1:x2]
 
             h0, w0 = im.shape[:2]  # orig hw
+            if self.native:
+                if im.ndim == 2:
+                    im = im[..., None]
+                return im, (h0, w0), im.shape[:2]
             shape = tuple(self.imgsz) if isinstance(self.imgsz, (tuple, list)) else (self.imgsz, self.imgsz)
             imgsz = max(shape)
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
@@ -329,9 +351,10 @@ class BaseDataset(Dataset):
         """Cache images to memory or disk for faster training."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         fcn, storage = (self.cache_images_to_disk, "Disk") if self.cache == "disk" else (self.load_image, "RAM")
+        indices = list({f: i for i, f in enumerate(self.im_files)}.values()) if self.tiles else range(self.ni)
         with ThreadPool(NUM_THREADS) as pool:
-            results = pool.imap(fcn, range(self.ni))
-            pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
+            results = pool.imap(fcn, indices)
+            pbar = TQDM(enumerate(results), total=len(indices), disable=LOCAL_RANK > 0)
             for i, x in pbar:
                 if self.cache == "disk":
                     b += self.npy_files[i].stat().st_size if self.npy_files[i].exists() else 0  # failed writes unlink

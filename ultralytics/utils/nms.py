@@ -169,6 +169,23 @@ def non_max_suppression(
     return (output, keepi) if return_idxs else output
 
 
+def merge_tile_predictions(predictions, windows, agnostic: bool = False, max_det: int = 300):
+    """Offset detection tensors from tile coordinates and merge them with full-image NMS."""
+    template = predictions[0]
+    pairs = [(x, window) for x, window in zip(predictions, windows) if len(x)]
+    if not pairs:
+        return template.new_zeros((0, 6))
+    predictions, windows = zip(*pairs)
+    preds = torch.cat(predictions)
+    offsets = torch.cat(
+        [x.new_tensor((x1, y1, x1, y1)).repeat(len(x), 1) for x, (x1, y1, _, _) in zip(predictions, windows)]
+    )
+    preds[:, :4] += offsets
+    class_offsets = preds[:, 5:6] * (0 if agnostic else max(preds[:, :4].max().item(), 1) + 1)
+    keep = TorchNMS.nms(preds[:, :4] + class_offsets, preds[:, 4], 0.5)
+    return preds[keep[:max_det]]
+
+
 class TorchNMS:
     """Ultralytics custom NMS implementation optimized for YOLO.
 

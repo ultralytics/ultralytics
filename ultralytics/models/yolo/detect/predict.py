@@ -130,3 +130,17 @@ class DetectionPredictor(BasePredictor):
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])
+
+    def merge_tiles(self, results, windows, orig_imgs):
+        """Merge tile results into full-image detection results."""
+        merged = []
+        for i, orig_img in enumerate(orig_imgs):
+            indices = [j for j, source_i in enumerate(windows) if source_i[0] == i]
+            preds = nms.merge_tile_predictions(
+                [results[j].boxes.data for j in indices],
+                [windows[j][1] for j in indices],
+                agnostic=self.args.agnostic_nms,
+                max_det=self.args.max_det,
+            )
+            merged.append(Results(orig_img, path=self.batch[0][i], names=self.model.names, boxes=preds))
+        return merged

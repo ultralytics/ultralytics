@@ -11,7 +11,8 @@ import torch
 import torch.distributed as dist
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
-from ultralytics.data.utils import get_split_fraction
+from ultralytics.data.augment import Compose, LetterBox
+from ultralytics.data.utils import get_split_fraction, slice_label, tile_windows
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
@@ -392,6 +393,61 @@ class DetectionValidator(BaseValidator):
         iou = box_iou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
+    def predict_tiles(self, batch, model, augment, dt):
+        """Run tiled inference with tile-local loss and full-image merged predictions."""
+        dataset = self.dataloader.dataset
+        if not hasattr(self, "tile_transforms"):
+            self.tile_transforms = Compose(
+                [LetterBox(new_shape=self.args.imgsz, scaleup=False), *dataset.transforms.transforms]
+            )
+        im = batch["img"][0].permute(1, 2, 0).cpu().numpy()
+        shape = tuple(batch["ori_shape"][0])
+        source_label = {
+            "shape": shape,
+            "cls": batch["cls"].cpu().numpy(),
+            "bboxes": batch["bboxes"].cpu().numpy(),
+            "segments": [],
+            "normalized": True,
+            "bbox_format": "xywh",
+            "im_file": batch["im_file"][0],
+        }
+        windows = tile_windows(shape, self.args.tile_size)
+        predictions = []
+        for start in range(0, len(windows), self.args.batch):
+            batch_windows = windows[start : start + self.args.batch]
+            samples = []
+            for x1, y1, x2, y2 in batch_windows:
+                label = slice_label(source_label, (x1, y1, x2, y2))
+                label["img"] = im[y1:y2, x1:x2]
+                label["ori_shape"] = label["resized_shape"] = (y2 - y1, x2 - x1)
+                label["ratio_pad"] = (1.0, 1.0)
+                samples.append(self.tile_transforms(dataset.update_labels_info(label)))
+            tile_batch = dataset.collate_fn(samples)
+            with dt[0]:
+                tile_batch = self.preprocess(tile_batch)
+            with dt[1]:
+                preds = model(tile_batch["img"], augment=augment)
+            with dt[2]:
+                if self.training:
+                    for k, v in model.loss(tile_batch, preds)[1].items():
+                        self.loss[k] += v
+            with dt[3]:
+                tile_preds = self.postprocess(preds)
+                for i, pred in enumerate(tile_preds):
+                    x1, y1, x2, y2 = batch_windows[i]
+                    pred["bboxes"] = ops.scale_boxes(
+                        tile_batch["img"].shape[2:],
+                        pred["bboxes"],
+                        (y2 - y1, x2 - x1),
+                        ratio_pad=tile_batch["ratio_pad"][i],
+                    )
+                    predictions.append(torch.cat((pred["bboxes"], pred["conf"][:, None], pred["cls"][:, None]), 1))
+        with dt[3]:
+            merged = nms.merge_tile_predictions(
+                predictions, windows, agnostic=self.args.agnostic_nms, max_det=self.args.max_det
+            )
+        return [{"bboxes": merged[:, :4], "conf": merged[:, 4], "cls": merged[:, 5], "extra": merged[:, 6:]}]
+
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.
 
@@ -424,7 +480,7 @@ class DetectionValidator(BaseValidator):
             dataset.update_labels(list(range(len(self.names))))
         return build_dataloader(
             dataset,
-            batch_size,
+            1 if self.args.tiles else batch_size,
             self.args.workers,
             shuffle=False,
             rank=-1,

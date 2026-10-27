@@ -264,6 +264,8 @@ def build_yolo_dataset(
         (Dataset): A DepthDataset, SemanticDataset, PolygonSemanticDataset, YOLOMultiModalDataset, or YOLODataset
             depending on cfg.task, the dataset configuration, and multi_modal.
     """
+    if cfg.tiles and cfg.task != "detect":
+        raise ValueError(f"tiles is only supported for detection, not task='{cfg.task}'.")
     pad = 0.0 if mode == "train" else 0.5
     rect = cfg.rect or rect
     if cfg.task == "depth":
@@ -299,6 +301,8 @@ def build_yolo_dataset(
         classes=cfg.classes,
         data=data,
         fraction=fraction,
+        tiles=bool(cfg.tiles) and mode == "train",
+        tile_size=cfg.tile_size,
     )
 
 

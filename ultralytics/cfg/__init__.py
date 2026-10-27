@@ -509,6 +509,12 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 if hard:
                     raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be a str.")
                 cfg[k] = str(v)
+            elif k == "tiles" and not isinstance(v, bool) and v != "auto":
+                raise ValueError(f"'{k}={v}' is invalid. Valid '{k}' values are True, False, or 'auto'.")
+            elif k == "tile_size":
+                values = v if isinstance(v, (list, tuple)) else (v,)
+                if len(values) not in {1, 2} or not all(type(x) is int and x > 0 for x in values):
+                    raise ValueError(f"'{k}={v}' is invalid. Use a positive int or a (height, width) pair.")
             elif k == "compile" and not isinstance(v, (bool, str)):  # False=off, True="default", or a mode string
                 if hard:
                     raise TypeError(

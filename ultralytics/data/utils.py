@@ -65,6 +65,45 @@ DATASET_KEY_TYPES = {  # dataset YAML keys and their permitted types
 DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
 
 
+def tile_windows(
+    shape: tuple[int, int], tile_size: int | tuple[int, int] | list[int]
+) -> list[tuple[int, int, int, int]]:
+    """Return fixed native-pixel tile windows covering an image shape."""
+    h, w = shape
+    th, tw = (tile_size, tile_size) if isinstance(tile_size, int) else tile_size
+    sy, sx = max(1, round(th * 0.8)), max(1, round(tw * 0.8))
+    ys = list(range(0, max(h - th, 0) + 1, sy))
+    xs = list(range(0, max(w - tw, 0) + 1, sx))
+    if h > th:
+        ys.append(max(0, h - th))
+    if w > tw:
+        xs.append(max(0, w - tw))
+    return [(x, y, min(x + tw, w), min(y + th, h)) for y in sorted(set(ys)) for x in sorted(set(xs))]
+
+
+def slice_label(label: dict, window: tuple[int, int, int, int]) -> dict:
+    """Clip one normalized detection label dictionary to a native-pixel tile window."""
+    from copy import deepcopy
+
+    from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
+
+    x1, y1, x2, y2 = window
+    w, h = x2 - x1, y2 - y1
+    boxes = xywh2xyxy(label["bboxes"]) * np.array(label["shape"][::-1] * 2, dtype=np.float32)
+    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    boxes[:, [0, 2]] = boxes[:, [0, 2]].clip(x1, x2) - x1
+    boxes[:, [1, 3]] = boxes[:, [1, 3]].clip(y1, y2) - y1
+    visible = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    keep = visible >= areas * 0.1
+    tiled = deepcopy(label)
+    tiled["cls"] = tiled["cls"][keep]
+    tiled["bboxes"] = xyxy2xywh(boxes[keep]) / np.array([w, h, w, h], dtype=np.float32)
+    tiled["segments"] = []
+    tiled["shape"] = (h, w)
+    tiled["tile"] = window
+    return tiled
+
+
 def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG_SCALE) -> None:
     """Save metric depth as a scaled uint16 PNG with zero reserved for invalid pixels.
 

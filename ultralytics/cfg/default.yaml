@@ -59,6 +59,8 @@ quantize: # (int|str, optional) precision: predict/val 16/fp16 or 32/fp32/None s
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
 nms: # (bool, optional) None: external NMS (default); True: embed NMS on export; False: NMS-free head if available
+tiles: False # (bool | str) enable native high-resolution tiling for detection; 'auto' uses fixed tiling
+tile_size: 640 # (int | list) native tile height and width in pixels
 
 # Predict settings -----------------------------------------------------------------------------------------------------
 source: # (str, optional) path/dir/URL/stream for images or videos; e.g. 'ultralytics/assets' or '0' for webcam

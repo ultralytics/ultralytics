@@ -340,7 +340,6 @@ with open("image.jpg", "rb") as f:
     ],
     "metadata": {
         "imageCount": 1,
-        "classNames": ["person", "bicycle", "car", "..."],
         "functionTimeAlive": 1284.51,
         "functionTimeCall": 0.018,
         "task": "detect",
@@ -370,7 +369,7 @@ with open("image.jpg", "rb") as f:
 | `images[].semantic_mask`        | object | Per-pixel class map (semantic models only)                          |
 | `images[].depth`                | object | Per-pixel depth map (depth models only)                             |
 | `images[].speed`                | object | Processing times in milliseconds                                    |
-| `metadata`                      | object | Image count, model class names, service timings, task, and versions |
+| `metadata`                      | object | Image count, service timings, task, and versions                   |
 
 ### Task-Specific Responses
 

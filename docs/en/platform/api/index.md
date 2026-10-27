@@ -1585,7 +1585,7 @@ quantization. Requests that exceed the service's input limits return `413`.
 
 Each entry in `images` carries `shape`, `speed`, `results`, and, for dense-prediction tasks, a `semantic_mask` or
 `depth` PNG payload (depth values are `pixel × max / divisor`, with divisor 255 for the default 8-bit map and 65535 when
-`bits` is 12 or 16). The `metadata` object reports image count, model class names, function timings, task, and service
+`bits` is 12 or 16). The `metadata` object reports image count, function timings, task, and service
 versions. Internal model paths are never returned.
 
 ```json
@@ -1606,7 +1606,6 @@ versions. Internal model paths are never returned.
     ],
     "metadata": {
         "imageCount": 1,
-        "classNames": ["person", "forklift"],
         "functionTimeAlive": 184.2,
         "functionTimeCall": 0.31,
         "task": "detect",

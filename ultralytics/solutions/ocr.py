@@ -84,8 +84,7 @@ class OCR(BaseSolution):
             if self._paddle is None:
                 self._init_paddle()
             output = self._paddle.predict(crop)[0]
-            text = output["rec_texts"][0] if output["rec_texts"] else ""
-            confidence = output["rec_scores"][0] if output["rec_scores"] else 0.0
+            text, confidence = output["rec_text"], output["rec_score"]
         if not isinstance(text, str) or not isinstance(confidence, (float, int, np.floating)):
             raise TypeError("recognizer must return a (text, confidence) tuple containing str and float values.")
         return text, float(confidence)

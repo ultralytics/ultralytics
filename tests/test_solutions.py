@@ -408,6 +408,7 @@ def test_ocr(model, solution_assets):
         recognition_interval=30,
         verbose=False,
     )
+    assert ocr.CFG["tracker"] == "bytetrack.yaml"  # first-frame detections must remain available for image OCR
     result = ocr(im)
     assert result.texts and result.plot_im.shape == im.shape
     assert all(text["confidence"] == 0.9 and text["detection_confidence"] for text in result.texts)

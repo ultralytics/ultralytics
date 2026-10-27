@@ -26,6 +26,7 @@ class OCR(BaseSolution):
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize OCR with a YOLO detector and a PaddleOCR backend or custom crop-recognition callable."""
+        kwargs["tracker"] = kwargs.get("tracker", "bytetrack.yaml")
         super().__init__(**kwargs)
         self.recognizer = self.CFG["recognizer"]
         if not callable(self.recognizer) and self.recognizer != "paddleocr":

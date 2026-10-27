@@ -97,9 +97,9 @@ stable tie-breakers. Coordinates always refer to the original image, not the det
 - **OBBs:** affine-rectified recognition crops using the detected corners.
 - **Segmentation polygons:** the minimum-area rotated rectangle is rectified for recognition; the original polygon is
   retained in `result.texts`.
-- **Tracking:** existing Ultralytics tracker configurations are reused. Recognition runs for a new track and refreshes
-  every `recognition_interval` frames (default `30`). Valid cached text is reused between refreshes and when the same
-  track returns after temporary occlusion.
+- **Tracking:** existing Ultralytics tracker configurations are reused. OCR defaults to `bytetrack.yaml` so first-frame
+  image detections remain available. Recognition runs for a new track and refreshes every `recognition_interval` frames
+  (default `30`). Valid cached text is reused between refreshes and when the same track returns after temporary occlusion.
 - **Changed text:** appears at the next scheduled refresh. Retired track IDs and their cached text are removed. A new
   track ID is not assumed to represent previous text.
 

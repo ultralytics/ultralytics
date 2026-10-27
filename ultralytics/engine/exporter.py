@@ -72,6 +72,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import tempfile
 import time
 from copy import deepcopy
 from datetime import datetime
@@ -766,8 +767,6 @@ class Exporter:
                 self.args.quantize = 8
             elif self.args.quantize is None:
                 self.args.quantize = 16
-            if self.args.quantize == 8 and model.task not in {"detect", "depth"}:
-                raise ValueError("Rockchip RKNN INT8 export is only supported for detection and depth models.")
         if fmt == "ascend":
             # No SoC allowlist: valid --soc_version values depend on which Ascend-cann-kernels-* packages are
             # installed, so a hardcoded list would reject valid targets. ATC reports an unknown SoC itself.
@@ -1177,25 +1176,6 @@ class Exporter:
             self.args.simplify = True  # fix OBB runtime error related to topk
 
         model = NMSModel(self.model, self.args) if self.args.nms else self.model
-        # Normalize coordinates by input size so RKNN's per-tensor INT8 scale preserves class scores.
-        if (
-            self.args.format == "rknn"
-            and self.args.quantize == 8
-            and self.model.task in {"detect", "segment", "pose", "obb"}
-            and not self.metadata["end2end"]
-            and self.metadata["head"] != "RTDETRDecoder"
-        ):
-            from ultralytics.utils.export.engine import _NormalizeCoords
-
-            model = _NormalizeCoords(
-                model,
-                int(self.im.shape[2]),
-                int(self.im.shape[3]),
-                self.model.task,
-                len(self.metadata["names"]),
-                self.metadata.get("kpt_shape"),
-            )
-
         with arange_patch(dynamic=bool(dynamic), quantize=self.args.quantize, fmt=self.args.format):
             torch2onnx(
                 model.cpu() if self.qat else model,
@@ -1598,17 +1578,20 @@ class Exporter:
         f_onnx = self.export_onnx()
         output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
         rknn_dataset = None
-        if self.args.quantize == 8:
-            dataloader = self.get_int8_calibration_dataloader(prefix)
-            image_paths = getattr(dataloader.dataset, "im_files", None)
-            if image_paths is None and hasattr(dataloader.dataset, "samples"):
-                image_paths = [x[0] for x in dataloader.dataset.samples]
-            if not image_paths:
-                raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
-            output_dir.mkdir(parents=True, exist_ok=True)
-            rknn_dataset = output_dir / "dataset.txt"
-            rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
-        try:
+        with tempfile.TemporaryDirectory() as tmp:
+            if self.args.quantize == 8:
+                dataloader = self.get_int8_calibration_dataloader(prefix)
+                image_paths = getattr(dataloader.dataset, "im_files", None)
+                if image_paths is None and hasattr(dataloader.dataset, "samples"):
+                    image_paths = [x[0] for x in dataloader.dataset.samples]
+                if not image_paths:
+                    raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
+                # RKNN Toolkit splits dataset.txt lines on spaces, so link images under space-free names
+                links = [Path(tmp) / f"{i}{Path(x).suffix}" for i, x in enumerate(image_paths)]
+                for link, x in zip(links, image_paths):
+                    link.symlink_to(Path(x).resolve())
+                rknn_dataset = Path(tmp) / "dataset.txt"
+                rknn_dataset.write_text("\n".join(map(str, links)) + "\n")
             return onnx2rknn(
                 onnx_file=f_onnx,
                 output_dir=output_dir,
@@ -1618,10 +1601,11 @@ class Exporter:
                 dataset=rknn_dataset,
                 metadata=self.metadata,
                 prefix=prefix,
+                # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs to cut at
+                head=f"/model.{len(self.model.model) - 1}/"
+                if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder"
+                else None,
             )
-        finally:
-            if self.args.quantize == 8:  # INT8 graphs hold normalized coordinates, so they are not reusable
-                Path(f_onnx).unlink(missing_ok=True)
 
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008

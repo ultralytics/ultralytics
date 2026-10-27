@@ -59,7 +59,7 @@ Each cloud storage connection has an **AI features** switch, on by default. Whil
 
 ### Which integrations need a connection and which work from an upload?
 
-On Premise, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Slack are live connections managed from **Settings > Integrations**. W&B and Roboflow use an API key for the import session without saving a connection. Labelbox, LabelMe, CVAT, and Label Studio need no connection at all: export from the tool and upload the file as a new dataset.
+On Premise, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Slack are live connections managed from **Settings > Integrations**. W&B and Roboflow imports use an API key, which is saved in [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation) when the workspace owner connects with it. Labelbox, LabelMe, CVAT, and Label Studio need no connection at all: export from the tool and upload the file as a new dataset.
 
 ### Do cloud storage datasets count against my Platform storage?
 

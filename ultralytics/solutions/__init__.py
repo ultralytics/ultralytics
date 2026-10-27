@@ -20,6 +20,7 @@ from .trackzone import TrackZone
 from .vision_eye import VisionEye
 
 __all__ = (
+    "OCR",
     "AIGym",
     "Analytics",
     "DistanceCalculation",
@@ -29,7 +30,6 @@ __all__ = (
     "ObjectBlurrer",
     "ObjectCounter",
     "ObjectCropper",
-    "OCR",
     "ParkingManagement",
     "ParkingPtsSelection",
     "QueueManager",

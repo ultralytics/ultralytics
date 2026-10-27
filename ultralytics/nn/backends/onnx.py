@@ -17,14 +17,16 @@ from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, check_requirements,
 
 from .base import BaseBackend
 
-# AMD wheel indexes for the MIGraphX EP plugin and its C library (ROCm 10 / MIGraphX 2.17 / onnxruntime 1.29)
+# AMD wheel indexes for the MIGraphX EP plugin and its C library (ROCm 10.1 / MIGraphX 2.18 / onnxruntime 1.29)
 ROCM_EXTRA_INDEX = (
     "--extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ "
     "--extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/"
 )
-# migraphx-libs is not a declared plugin dependency (ROCm/AMDMIGraphX#5235). Exact local-version pins keep the rolling
-# whl-next indexes on the validated stack and can only resolve from AMD's index (PyPI rejects local versions).
-ROCM_EP_PACKAGES = ["onnxruntime-ep-migraphx==1.0.0+rocm10.0.0", "migraphx-libs==2.17.0+rocm10.0.0"]
+# Exact local-version pins keep the rolling whl-next indexes on the validated stack and can only resolve from AMD's
+# index (PyPI rejects local versions). check_requirements ignores local versions, so an older plugin (also 1.0.0) is
+# caught by the migraphx-libs floor instead; the plugin pulls its matching migraphx-libs.
+ROCM_EP_PLUGIN = "onnxruntime-ep-migraphx==1.0.0+rocm10.1.0"
+ROCM_EP_PACKAGES = [ROCM_EP_PLUGIN, "migraphx-libs>=2.18.0"]
 MIGRAPHX_CACHE_MODELS = 8  # compiled programs kept in the MIGraphX cache, least recently used evicted first
 # Windows ML (onnxruntime-windowsml) on Windows 11 24H2 (build 26100) or newer, with wheels from Python 3.10
 WINML_SUPPORTED = WINDOWS and sys.getwindowsversion().build >= 26100 and sys.version_info >= (3, 10)
@@ -33,8 +35,7 @@ WINML_SUPPORTED = WINDOWS and sys.getwindowsversion().build >= 26100 and sys.ver
 def _register_migraphx_ep(onnxruntime) -> str:
     """Register the MIGraphX plugin EP once per process and return its name.
 
-    The plugin (`onnxruntime-ep-migraphx`) is not auto-registered. Its libs are preloaded with RTLD_GLOBAL to work
-    around a missing `libonnxruntime.so.1` soname link (ROCm/AMDMIGraphX#5235).
+    The plugin (`onnxruntime-ep-migraphx`) is not auto-registered.
 
     Args:
         onnxruntime (module): The imported onnxruntime module.
@@ -42,20 +43,10 @@ def _register_migraphx_ep(onnxruntime) -> str:
     Returns:
         (str): The registered execution provider name.
     """
-    import ctypes
-    import glob
-
-    import migraphx_libs
     import onnxruntime_ep_migraphx as ep
 
     name = ep.get_ep_name()
     if name not in onnxruntime.get_available_providers():  # not yet registered in this process
-        for pattern in (
-            Path(onnxruntime.__file__).parent / "capi" / "libonnxruntime.so.1*",
-            Path(migraphx_libs.__file__).parent / "libmigraphx_c.so.3*",
-        ):
-            if hits := sorted(glob.glob(str(pattern))):
-                ctypes.CDLL(hits[0], mode=ctypes.RTLD_GLOBAL)
         onnxruntime.register_execution_provider_library(name, ep.get_library_path())
     return name
 
@@ -75,8 +66,8 @@ def _migraphx_cache_root() -> Path:
 def _migraphx_cache_dir(weight: str | Path) -> Path:
     """Return a per-model cache subdirectory for the MIGraphX compiled program, evicting least recently used models.
 
-    The EP keys its cache by graph and input shapes (not weights), so hashing the model bytes isolates each model. Only
-    the MIGRAPHX_CACHE_MODELS most recently used models are kept, bounding the cache on disk.
+    The EP cache has no eviction, so each model gets a subdirectory keyed by its bytes. Only the MIGRAPHX_CACHE_MODELS
+    most recently used models are kept, bounding the cache on disk.
 
     Args:
         weight (str | Path): Path to the .onnx model file, hashed to key the cache.
@@ -116,8 +107,9 @@ def _load_migraphx_session(onnxruntime, weight: str | Path, index: int):
     # Disabling Winograd cuts cold-compile time with no accuracy change (ROCm/AMDMIGraphX#5234).
     os.environ.setdefault("MIGRAPHX_DISABLE_WINOGRAD", "1")
 
+    # Compile at session creation, not first run, so compile failures reach the caller's CPU fallback.
     # Cache the JIT-compiled program so repeat loads skip compilation.
-    options = {}
+    options = {"precompile_at_load": "1"}
     try:
         cache_dir = _migraphx_cache_dir(weight)
         if not any(cache_dir.iterdir()):
@@ -204,7 +196,7 @@ class ONNXBackend(BaseBackend):
             rocm = cuda and rocm_is_available()  # AMD GPUs run on the MIGraphX plugin EP
             check_requirements("onnx")
             if rocm and IS_PYTHON_MINIMUM_3_11 and not ARM64:  # MIGraphX EP wheels are Python>=3.11 x86_64 only
-                check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
+                check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX, constrain=(ROCM_EP_PLUGIN,))
             # Stock onnxruntime underlies the MIGraphX plugin and is the CPU fallback if the plugin is unavailable
             # Use Windows ML only when explicitly installed without another ONNX Runtime build.
             builds = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai")

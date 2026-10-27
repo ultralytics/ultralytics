@@ -2504,5 +2504,17 @@ def test_train_val_tiles():
     """Test tiled training and validation retain full-image metrics."""
     model = YOLO(MODEL)
     model.train(data="coco8.yaml", tiles=True, tile_size=256, imgsz=256, epochs=1, batch=2, workers=0, plots=False)
-    metrics = model.val(data="coco8.yaml", tiles=True, tile_size=320, imgsz=320, batch=2, workers=0, plots=False)
+    metrics = model.val(
+        data="coco8.yaml",
+        tiles=True,
+        tile_size=320,
+        imgsz=320,
+        batch=2,
+        workers=0,
+        plots=False,
+        save_json=True,
+        save_txt=True,
+    )
     assert metrics.box.map >= 0 and metrics.box.nc == 80
+    assert (metrics.save_dir / "predictions.json").is_file()
+    assert len(list((metrics.save_dir / "labels").glob("*.txt"))) == 4

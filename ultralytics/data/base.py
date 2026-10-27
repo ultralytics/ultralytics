@@ -481,6 +481,8 @@ class BaseDataset(Dataset):
             label["resized_shape"][0] / label["ori_shape"][0],
             label["resized_shape"][1] / label["ori_shape"][1],
         )  # for evaluation
+        if self.native:
+            label["ratio_pad"] = (label["ratio_pad"], (0.0, 0.0))
         if self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)

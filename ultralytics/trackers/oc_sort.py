@@ -316,16 +316,13 @@ class OCSORT(BYTETracker):
 
         # Pre-extract detection centers as (M, 2) array
         det_centers = np.array([OCSortTrack._xyxy_center(det.xyxy) for det in detections], dtype=np.float32)
-        # Measure from the oldest observation in the last delta_t frames, the span of the velocity, so one frame of box
-        # jitter cannot reverse the direction
-        window = range(self.frame_id - self.delta_t, self.frame_id)
+        window = range(self.frame_id - self.delta_t, self.frame_id)  # velocity span, so box jitter can't flip direction
 
         for i, track in enumerate(tracks):
             if track.velocity is None or track.last_observation[0] < 0:
                 continue
             prev = next((track.observations[f] for f in window if f in track.observations), track.last_observation)
-            track_center = OCSortTrack._xyxy_center(prev)
-            directions = det_centers - track_center  # (M, 2)
+            directions = det_centers - OCSortTrack._xyxy_center(prev)  # (M, 2)
             norms = np.linalg.norm(directions, axis=1)  # (M,)
             valid = norms > 1e-6
             if not valid.any():

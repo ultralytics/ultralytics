@@ -357,19 +357,19 @@ with open("image.jpg", "rb") as f:
 
 ### Response Fields
 
-| Field                           | Type   | Description                                                         |
-| ------------------------------- | ------ | ------------------------------------------------------------------- |
-| `images`                        | array  | List of processed images, one entry per processed video frame       |
-| `images[].shape`                | array  | Image dimensions [height, width]                                    |
-| `images[].results`              | array  | List of detections                                                  |
-| `images[].results[].class`      | int    | Class index (integer ID)                                            |
-| `images[].results[].name`       | string | Class name                                                          |
-| `images[].results[].confidence` | float  | Detection confidence (0-1)                                          |
-| `images[].results[].box`        | object | Bounding box coordinates                                            |
-| `images[].semantic_mask`        | object | Per-pixel class map (semantic models only)                          |
-| `images[].depth`                | object | Per-pixel depth map (depth models only)                             |
-| `images[].speed`                | object | Processing times in milliseconds                                    |
-| `metadata`                      | object | Image count, service timings, task, and versions                   |
+| Field                           | Type   | Description                                                   |
+| ------------------------------- | ------ | ------------------------------------------------------------- |
+| `images`                        | array  | List of processed images, one entry per processed video frame |
+| `images[].shape`                | array  | Image dimensions [height, width]                              |
+| `images[].results`              | array  | List of detections                                            |
+| `images[].results[].class`      | int    | Class index (integer ID)                                      |
+| `images[].results[].name`       | string | Class name                                                    |
+| `images[].results[].confidence` | float  | Detection confidence (0-1)                                    |
+| `images[].results[].box`        | object | Bounding box coordinates                                      |
+| `images[].semantic_mask`        | object | Per-pixel class map (semantic models only)                    |
+| `images[].depth`                | object | Per-pixel depth map (depth models only)                       |
+| `images[].speed`                | object | Processing times in milliseconds                              |
+| `metadata`                      | object | Image count, service timings, task, and versions              |
 
 ### Task-Specific Responses
 

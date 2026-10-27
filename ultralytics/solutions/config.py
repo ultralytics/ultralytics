@@ -52,7 +52,7 @@ class SolutionConfig:
             it, and only off CPU; elsewhere the artifact and runtime decide, though 16 rounds OpenVINO inputs. Replaces
             the deprecated half flag.
         imgsz (int): Input image size for inference.
-        tracker (str): Path to tracking configuration YAML file (e.g., 'tracktrack.yaml').
+        tracker (str | None): Path to tracking configuration YAML file, or None to use prediction without tracking.
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.
         recognizer (str | Callable): PaddleOCR backend name or callable returning `(text, confidence)` from a BGR crop.
@@ -100,7 +100,7 @@ class SolutionConfig:
     max_det: int = 300
     quantize: int | str | None = None
     imgsz: int = 640
-    tracker: str = "tracktrack.yaml"
+    tracker: str | None = "tracktrack.yaml"
     verbose: bool = True
     data: str = "images"
     recognizer: Any = "paddleocr"

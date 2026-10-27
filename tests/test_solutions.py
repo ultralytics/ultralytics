@@ -406,6 +406,7 @@ def test_ocr(model, solution_assets):
         model=model,
         recognizer=lambda crop: calls.append(crop.shape) or ("text", 0.9),
         recognition_interval=30,
+        tracker="bytetrack.yaml",
         verbose=False,
     )
     assert ocr.CFG["tracker"] == "bytetrack.yaml"  # first-frame detections must remain available for image OCR
@@ -433,7 +434,15 @@ def test_ocr_reading_order():
     assert solutions.OCR.reading_order(polygons) == [1, 2, 0]
 
 
+def test_ocr_predict_default():
+    """Test independent images use prediction rather than persistent tracker state."""
+    ocr = solutions.OCR(model=MODEL, recognizer=lambda crop: ("text", 0.9), verbose=False)
+    assert ocr.CFG["tracker"] is None
+    assert ocr(cv2.imread(str(SOURCE))).texts
+    assert ocr(cv2.imread(str(SOURCE))).texts
+
+
 def test_ocr_video(solution_assets):
     """Test the existing video loop with OCR tracking and cached recognition."""
-    ocr = solutions.OCR(model=MODEL, recognizer=lambda crop: ("text", 0.9), verbose=False)
+    ocr = solutions.OCR(model=MODEL, recognizer=lambda crop: ("text", 0.9), tracker="bytetrack.yaml", verbose=False)
     process_video(ocr, solution_assets("demo_video"))

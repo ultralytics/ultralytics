@@ -167,21 +167,28 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
+        track = self.CFG["tracker"] is not None
         with self.profilers[0]:
-            self.tracks = self.model.track(
-                source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
-            )[0]
+            if track:
+                self.tracks = self.model.track(
+                    source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
+                )[0]
+            else:
+                self.tracks = self.model.predict(
+                    source=im0, classes=self.classes, verbose=False, **self.track_add_args
+                )[0]
         is_obb = self.tracks.obb is not None
         self.track_data = self.tracks.obb if is_obb else self.tracks.boxes  # Extract tracks for OBB or object detection
 
-        if self.track_data and self.track_data.is_track:
+        if self.track_data and (not track or self.track_data.is_track):
             self.boxes = (self.track_data.xyxyxyxy if is_obb else self.track_data.xyxy).cpu()
             self.clss = self.track_data.cls.cpu().tolist()
-            self.track_ids = self.track_data.id.int().cpu().tolist()
+            self.track_ids = self.track_data.id.int().cpu().tolist() if track else []
             self.confs = self.track_data.conf.cpu().tolist()
         else:
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
-        self.forget_tracks([track.track_id for track in self.model.predictor.trackers[0].removed_stracks_frame])
+        if track:
+            self.forget_tracks([track.track_id for track in self.model.predictor.trackers[0].removed_stracks_frame])
 
     def forget_tracks(self, track_ids: list[int]) -> None:
         """Drop bookkeeping for IDs retired by the active tracker.

@@ -743,6 +743,7 @@ class SolutionAnnotator(Annotator):
             color (tuple[int, int, int]): Object centroid and line color.
             pin_color (tuple[int, int, int]): Visioneye point color.
         """
+        center_point = int(center_point[0]), int(center_point[1])
         center_bbox = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
         cv2.circle(self.im, center_point, self.tf * 2, pin_color, -1)
         cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)

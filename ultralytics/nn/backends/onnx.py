@@ -353,7 +353,12 @@ class ONNXIMXBackend(ONNXBackend):
             weight (str | Path): Path to the IMX model directory containing the .onnx file.
         """
         check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl>=1.1.0", "onnxruntime-extensions"))
-        check_requirements(("onnx", "onnxruntime"))
+        check_requirements(
+            (
+                "onnx",
+                ("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"),
+            )
+        )
         import mct_quantizers as mctq
         import onnxruntime
         from edgemdt_cl.pytorch.nms import nms_ort  # noqa - register custom NMS ops

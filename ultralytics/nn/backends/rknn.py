@@ -52,7 +52,9 @@ class RKNNBackend(BaseBackend):
 
         self.tail = None
         if (w.parent / "tail.onnx").is_file():
-            check_requirements("onnxruntime")
+            check_requirements(
+                [("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml")]
+            )
             import onnxruntime
 
             self.tail = onnxruntime.InferenceSession(str(w.parent / "tail.onnx"), providers=["CPUExecutionProvider"])

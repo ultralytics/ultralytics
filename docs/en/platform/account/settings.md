@@ -71,7 +71,7 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 
 ### Early Access
 
-Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile**, enable **Early access**, and click **Save changes** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
+Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile**, enable **Early access**, and click **Save changes** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images) and an early-access hosted model for [class-prompted annotation](../data/annotation.md#class-prompted-smart-annotation). [Agents](../agents.md) does not depend on it.
 
 ### Default Visibility
 

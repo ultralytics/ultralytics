@@ -237,7 +237,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: eight hosted open-source models, hosted text-prompted [SAM 3](https://platform.ultralytics.com/models/sam3) and [SAM 3.1](https://platform.ultralytics.com/models/sam3.1), and paid vision models from nine providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: eight hosted open-source models (one more with [Early access](../account/settings.md#early-access) on), hosted text-prompted [SAM 3](https://platform.ultralytics.com/models/sam3) and [SAM 3.1](https://platform.ultralytics.com/models/sam3.1), and paid vision models from nine providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
 
 ### SAM Smart Annotation
 
@@ -621,7 +621,7 @@ Yes. Use [Batch Annotation](#batch-annotation) from **More actions > Batch Annot
 
 ### Can I auto-annotate images with GPT, Claude, or Gemini models?
 
-Yes. On detection datasets with 1–200 classes, Smart annotation and [Batch Annotation](#batch-annotation) can run paid vision models such as Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, and Claude Fable 5.1 with your own provider key from [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation). Select the model under its provider in the model picker and click `Predict`; the provider bills your key for each prediction. The [class-prompted models](#class-prompted-smart-annotation) section lists every current model.
+Yes. On detection datasets with 1–200 classes, Smart annotation and [Batch Annotation](#batch-annotation) can run paid vision models such as Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, and Claude Fable 5.1 with your own provider key from [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation). Select the model under its provider in the model picker and click `Predict`; the provider bills your key for each prediction. The [class-prompted models](#class-prompted-smart-annotation) section lists every model available without Early access.
 
 ### Which class-prompted model should I use?
 

@@ -54,6 +54,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_2_0,
     TORCH_2_4,
+    TORCH_2_8,
     TORCH_2_13,
     EarlyStopping,
     ModelEMA,
@@ -291,11 +292,13 @@ class BaseTrainer:
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         elif device_type == "xpu" and not (hasattr(dist, "is_xccl_available") and dist.is_xccl_available()):
             raise RuntimeError("Multi-XPU training requires XCCL, which is not available in this PyTorch build.")
+        backend = {"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo")
         dist.init_process_group(
-            backend={"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo"),
+            backend=backend,
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
+            **({"device_id": self.device} if backend == "nccl" and TORCH_2_8 else {}),  # bind NCCL to this rank's GPU
         )
 
     def _build_train_pipeline(self):

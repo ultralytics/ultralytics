@@ -82,7 +82,7 @@ Cityscapes8 is sampled from Cityscapes, which is released under a [custom non-co
 
 If you use the Cityscapes dataset in your research or development, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

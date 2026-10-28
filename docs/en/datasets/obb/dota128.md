@@ -75,7 +75,7 @@ The example showcases the variety and complexity of the images in the DOTA128 da
 
 If you use the DOTA dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

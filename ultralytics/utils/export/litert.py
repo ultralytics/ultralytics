@@ -60,7 +60,7 @@ def torch2litert(
     """
     from ultralytics.utils.checks import check_requirements
 
-    check_requirements(("litert-torch>=0.9.0", "ai-edge-litert>=2.1.4"))
+    check_requirements(("litert-torch>=0.10.0", "ai-edge-litert>=2.3.0"))
     import litert_torch
 
     static_int8 = quantize == 8
@@ -99,7 +99,7 @@ def torch2litert(
     edge_model.export(tflite_file)
 
     if static_int8 or static_int16 or dynamic_int8:
-        check_requirements("ai-edge-quantizer>=0.6.0")
+        check_requirements("ai-edge-quantizer>=0.10.0")
         from ai_edge_quantizer import qtyping, quantizer, recipe
 
         qt = quantizer.Quantizer(str(tflite_file))

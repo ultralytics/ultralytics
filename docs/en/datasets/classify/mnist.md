@@ -99,7 +99,7 @@ The samples show the range of handwriting styles the dataset captures across the
 
 If you use the MNIST dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

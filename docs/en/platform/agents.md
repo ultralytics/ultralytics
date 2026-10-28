@@ -113,6 +113,12 @@ Reloading the page restores the run's progress and selected execution deployment
 
 ![Ultralytics Platform Agents completed image to YOLO to Output workflow with green checks, processed image counts, and detection results](https://cdn.ul.run/i/8146d518bbcc1e9bee36204c7b00e259.avif)
 
+## Manage Agents with the API
+
+The [Agents API](api/index.md#agents-api) lists, saves, and deletes agents from code, and the Python SDK exposes it as
+`client.agents` in `ultralytics-platform>=0.1.74`. A save returns the same block errors the canvas shows. Runs still
+start from the canvas: open a saved agent at `https://platform.ultralytics.com/agents?workflow={id}` and click **Run**.
+
 ## Troubleshooting
 
 - **The run exceeds the shared trial limits:** select a dedicated deployment, including an eligible free deployment, or reduce the image resolution, input count, and model/provider calls.

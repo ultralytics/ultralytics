@@ -151,7 +151,7 @@ The Ultralytics YOLO12 implementation, by default, _does not require_ FlashAtten
 
 If you use YOLO12 in your research, please cite the original work by [University at Buffalo](https://www.buffalo.edu/) and the [University of Chinese Academy of Sciences](https://english.ucas.ac.cn/):
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

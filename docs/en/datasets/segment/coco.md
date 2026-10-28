@@ -88,7 +88,7 @@ COCO-Seg contains the same diverse images, object categories, and complex scenes
 
 If you use the COCO-Seg dataset in your research or development work, please cite the original COCO paper and acknowledge the extension to COCO-Seg:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

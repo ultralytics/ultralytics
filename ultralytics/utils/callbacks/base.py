@@ -3,6 +3,7 @@
 
 from collections import defaultdict
 from copy import deepcopy
+from importlib import import_module
 
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 
@@ -174,34 +175,33 @@ def get_default_callbacks():
 def add_integration_callbacks(instance):
     """Add integration callbacks to the instance's callbacks dictionary.
 
-    This function loads and adds analytics callbacks to every instance. Trainer instances also receive Platform and
-    experiment logger callbacks for ClearML, Comet, DVC, MLflow, Ray Tune, TensorBoard, and Weights & Biases.
+    This function loads and adds analytics callbacks to every instance. Trainer instances also receive Platform
+    callbacks and the ClearML, Comet, DVC, MLflow, Ray Tune, TensorBoard, and Weights & Biases callbacks enabled in
+    settings at the time of the call.
 
     Args:
         instance (Trainer | Predictor | Validator | Exporter): The object instance to which callbacks will be added. The
             type of instance determines which callbacks are loaded.
 
     Examples:
-        >>> from ultralytics.engine.trainer import BaseTrainer
-        >>> trainer = BaseTrainer()
-        >>> add_integration_callbacks(trainer)
+        >>> from ultralytics.models.yolo.detect import DetectionPredictor
+        >>> predictor = DetectionPredictor()
+        >>> add_integration_callbacks(predictor)
     """
+    from ultralytics.utils import SETTINGS
     from ultralytics.utils.events import callbacks as events_cb
 
     callbacks_list = [events_cb]
 
     # Load training callbacks
     if "Trainer" in instance.__class__.__name__:
-        from .clearml import callbacks as clear_cb
-        from .comet import callbacks as comet_cb
-        from .dvc import callbacks as dvc_cb
-        from .mlflow import callbacks as mlflow_cb
         from .platform import callbacks as platform_cb
-        from .raytune import callbacks as tune_cb
-        from .tensorboard import callbacks as tb_cb
-        from .wb import callbacks as wb_cb
 
-        callbacks_list.extend([platform_cb, clear_cb, comet_cb, dvc_cb, mlflow_cb, tune_cb, tb_cb, wb_cb])
+        callbacks_list.append(platform_cb)
+        # Read settings per trainer so settings.update() between trainings in one process takes effect
+        for key in ("clearml", "comet", "dvc", "mlflow", "raytune", "tensorboard", "wandb"):
+            if SETTINGS[key] is True:
+                callbacks_list.append(import_module(f".{'wb' if key == 'wandb' else key}", __package__).callbacks)
 
     # Add the callbacks to the callbacks dictionary
     for callbacks in callbacks_list:

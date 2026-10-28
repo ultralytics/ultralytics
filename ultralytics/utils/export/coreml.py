@@ -99,13 +99,11 @@ def pipeline_coreml(
     if len(names) != nc:  # Hack fix for MLProgram NMS bug https://github.com/ultralytics/ultralytics/issues/22309
         names = {**names, **{i: str(i) for i in range(len(names), nc)}}
 
-    model = ct.models.MLModel(spec, weights_dir=weights_dir, skip_model_load=True)
-
     # Create NMS protobuf
     nms_spec = ct.proto.Model_pb2.Model()
     nms_spec.specificationVersion = spec.specificationVersion
     for i in range(len(outs)):
-        decoder_output = model._spec.description.output[i].SerializeToString()
+        decoder_output = spec.description.output[i].SerializeToString()
         nms_spec.description.input.add()
         nms_spec.description.input[i].ParseFromString(decoder_output)
         nms_spec.description.output.add()
@@ -147,11 +145,11 @@ def pipeline_coreml(
         ],
         output_features=output_names,
     )
-    pipeline.add_model(model)
+    pipeline.add_model(spec)
     pipeline.add_model(nms_model)
 
     # Correct datatypes
-    pipeline.spec.description.input[0].ParseFromString(model._spec.description.input[0].SerializeToString())
+    pipeline.spec.description.input[0].ParseFromString(spec.description.input[0].SerializeToString())
     pipeline.spec.description.output[0].ParseFromString(nms_model._spec.description.output[0].SerializeToString())
     pipeline.spec.description.output[1].ParseFromString(nms_model._spec.description.output[1].SerializeToString())
 
@@ -215,8 +213,7 @@ def torch2coreml(
         if isinstance(m, Detect):
             m._gather = types.MethodType(_coreml_gather, m)
     ts = torch.jit.trace(model.eval(), im, strict=False, check_trace=False)  # skip re-trace check, like other exports
-    fp16 = quantize == 16
-    weight_int8 = quantize in {8, "w8a16"}
+    bits, mode = (8, "kmeans") if quantize in {8, "w8a16"} else (16, "linear") if quantize == 16 else (32, None)
 
     # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
     # internally based on the model conversion and output type.
@@ -230,9 +227,10 @@ def torch2coreml(
     }
     if not mlmodel:
         # ML Program conversion defaults to FP16. Pin FP32 unless FP16/INT8 was requested.
+        from ultralytics.engine.exporter import NMSModel
         from ultralytics.nn.modules.head import RTDETRDecoder
 
-        if not (fp16 or weight_int8):
+        if bits == 32:
             convert_kwargs["compute_precision"] = ct.precision.FLOAT32
         elif any(isinstance(m, RTDETRDecoder) for m in model.modules()):
             # RT-DETR decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32.
@@ -240,8 +238,16 @@ def torch2coreml(
             convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
                 op_selector=lambda op: op.op_type not in fp32_ops
             )
+        elif isinstance(model, NMSModel) and not model.obb:
+            # NMSModel's class-offset boxes lose their geometry in fp16 and duplicates survive NMS: pin its own box math
+            # (single-level torch scopes, unlike the wrapped model's ops) and torchvision NMS to fp32.
+            from coremltools.converters.mil.mil.scope import ScopeSource
+
+            nms_ops = [["div"], ["mul"], ["add"], ["cat"], ["torchvision::nms"]]
+            convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
+                op_selector=lambda op: op.scopes[ScopeSource.TORCHSCRIPT_MODULE_TYPE] not in nms_ops
+            )
     ct_model = ct.convert(ts, **convert_kwargs)
-    bits, mode = (8, "kmeans") if weight_int8 else (16, "linear") if fp16 else (32, None)
     if bits < 32:
         if "kmeans" in mode:
             check_requirements("scikit-learn")  # scikit-learn package required for k-means quantization

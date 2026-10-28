@@ -113,7 +113,7 @@ The dataset spans varied locations, lighting conditions, and object densities, g
 
 If you utilize the Carparts Segmentation dataset in your research or development efforts, please cite the original source:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

@@ -65,16 +65,18 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
     split_path = Path(f"{source_path}_split")
     train_path, val_path = split_path / "train", split_path / "val"
 
-    # Create directory structure
+    # Create directory structure. Never delete an existing split: check_cls_dataset re-runs this for every train, val,
+    # export and DDP rank, so a rmtree would wipe cache=disk *.npy and *.cache files and race concurrent readers
     split_path.mkdir(exist_ok=True)
     train_path.mkdir(exist_ok=True)
     val_path.mkdir(exist_ok=True)
 
     # Process class directories
     class_dirs = [d for d in source_path.iterdir() if d.is_dir()]
-    total_images = sum(len([f for f in d.glob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]) for d in class_dirs)
-    stats = f"{len(class_dirs)} classes, {total_images} images"
-    LOGGER.info(f"Splitting {source_path} ({stats}) into {train_ratio:.0%} train, {1 - train_ratio:.0%} val...")
+    LOGGER.info(
+        f"Splitting {source_path} ({len(class_dirs)} classes) into {train_ratio:.0%} train, {1 - train_ratio:.0%} val..."
+    )
+    total_images = 0
 
     for class_dir in class_dirs:
         # Create class directories
@@ -82,17 +84,19 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         (val_path / class_dir.name).mkdir(exist_ok=True)
 
         # Split and copy files
-        image_files = [f for f in class_dir.glob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]
-        random.shuffle(image_files)
+        image_files = sorted(f for f in class_dir.rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS)
+        total_images += len(image_files)
+        random.Random(0).shuffle(image_files)  # deterministic, so re-splitting never mixes train and val images
         split_idx = int(len(image_files) * train_ratio)
 
-        for img in image_files[:split_idx]:
-            shutil.copy2(img, train_path / class_dir.name / img.name)
+        for i, img in enumerate(image_files):
+            target, previous = (train_path, val_path) if i < split_idx else (val_path, train_path)
+            relative = Path(class_dir.name, img.relative_to(class_dir))
+            (previous / relative).unlink(missing_ok=True)  # a changed ratio or image set reassigns this image
+            (target / relative).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(img, target / relative)
 
-        for img in image_files[split_idx:]:
-            shutil.copy2(img, val_path / class_dir.name / img.name)
-
-    LOGGER.info(f"Split complete in {split_path} ✅")
+    LOGGER.info(f"Split complete in {split_path} ({total_images} images) ✅")
     return split_path
 
 
@@ -119,8 +123,7 @@ def autosplit(
     path = Path(path)  # images dir
     files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
     n = len(files)  # number of files
-    random.seed(0)  # for reproducibility
-    indices = random.choices([0, 1, 2], weights=weights, k=n)  # assign each image to a split
+    indices = random.Random(0).choices([0, 1, 2], weights=weights, k=n)  # assign each image reproducibly
 
     txt = ["autosplit_train.txt", "autosplit_val.txt", "autosplit_test.txt"]  # 3 txt files
     for x in txt:

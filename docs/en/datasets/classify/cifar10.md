@@ -90,7 +90,7 @@ The samples show the diversity of the objects in the CIFAR-10 dataset, underlini
 
 If you use the CIFAR-10 dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

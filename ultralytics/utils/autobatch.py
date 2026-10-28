@@ -37,7 +37,7 @@ def check_train_batch_size(
         RuntimeError: If no candidate batch size produces a usable profile.
 
     Notes:
-        If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
+        If 0.0 < batch < 1.0, it's used as the fraction of available GPU memory to use.
         Otherwise, a default fraction of 0.6 is used.
     """
     with autocast(enabled=amp, device=next(model.parameters()).device.type):
@@ -92,9 +92,9 @@ def autobatch(
     properties = accelerator.get_device_properties(device)  # device properties
     t = properties.total_memory / gb  # GiB total
     r = accelerator.memory_reserved(device) / gb  # GiB reserved
-    a = accelerator.memory_allocated(device) / gb  # GiB allocated
-    f = t - (r + a)  # GiB free
-    LOGGER.info(f"{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {a:.2f}G allocated, {f:.2f}G free")
+    # GiB available to this process (total memory where mem_get_info is unavailable)
+    f = r + accelerator.mem_get_info(device)[0] / gb if hasattr(accelerator, "mem_get_info") else t
+    LOGGER.info(f"{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {f:.2f}G available")
 
     # Profile batch sizes
     batch_sizes = [1, 2, 4, 8, 16] if t < 16 else [1, 2, 4, 8, 16, 32, 64]
@@ -117,17 +117,15 @@ def autobatch(
         if xy:
             fit_x, fit_y = zip(*xy)
             p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree (linear) polynomial fit
-            b = int((round(f * fraction) - p[1]) / p[0])  # y intercept (optimal batch size)
+            b = int((f * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
             oom = next((i for i, y in enumerate(results) if not y and batch_sizes[i] > fit_x[0]), None)
             if oom is not None and b >= batch_sizes[oom]:  # first failure above a success is the memory ceiling
                 b = batch_sizes[oom - 1]  # select prior safe point
-            if b < 1 or b > 1024:  # b outside of safe range
-                LOGGER.warning(f"{prefix}batch={b} outside safe range, using default batch-size {batch_size}.")
-                b = batch_size
+            b = min(max(b, fit_x[0]), 1024)  # clamp between the smallest usable probe and the 1024 safe maximum
             if dataset_size > 0:
                 b = min(b, dataset_size)
 
-            fraction = (np.polyval(p, b) + r + a) / t  # predicted fraction
+            fraction = np.polyval(p, b) / t  # predicted fraction
             LOGGER.info(f"{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅")
             return b
     except Exception as e:

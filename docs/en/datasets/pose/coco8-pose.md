@@ -73,7 +73,7 @@ Here are some examples of images from the COCO8-Pose dataset, along with their c
 
 If you use the COCO dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

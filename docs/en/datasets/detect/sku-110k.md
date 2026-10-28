@@ -109,7 +109,7 @@ The dense arrangement of products makes SKU-110K particularly valuable for devel
 
 If you use the SKU-110K dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

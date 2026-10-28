@@ -166,24 +166,27 @@ class BaseBackend(ABC):
         import zipfile
 
         p = Path(file)
+        suffix = p.suffix.lower()
         try:
-            if p.suffix == ".engine":  # 4-byte little-endian length then that many bytes of JSON
+            if suffix == ".engine":  # 4-byte little-endian length then that many bytes of JSON
                 return BaseBackend.engine_header(p)[1]
-            if p.suffix in {".tflite", ".torchscript"}:  # metadata appended to or saved inside the model zip
+            if suffix in {".tflite", ".torchscript"}:  # metadata appended to or saved inside the model zip
                 with zipfile.ZipFile(p) as z:
                     names = z.namelist()
                     if "metadata.json" in names:  # litert-torch and single-file tflite exports
                         return json.loads(z.read("metadata.json"))
                     name = next((n for n in names if n.endswith("extra/config.txt")), None)  # torch.jit extra file
                     return json.loads(z.read(name)) if name else ast.literal_eval(z.read(names[0]).decode())
-            if p.suffix == ".onnx" or p.name.endswith("_imx_model"):  # IMX packages its ONNX in a directory
+            if suffix == ".onnx" or p.name.lower().endswith(
+                ("_imx_model", "_xilinx_model")
+            ):  # ONNX packaged in a directory
                 return _read_proto_map(next(p.glob("*.onnx")) if p.is_dir() else p, (14,))  # metadata_props
-            if p.suffix in {".mlpackage", ".mlmodel"}:  # description.metadata.userDefined
+            if suffix in {".mlpackage", ".mlmodel"}:  # description.metadata.userDefined
                 return _read_proto_map(next(p.rglob("*.mlmodel")) if p.is_dir() else p, (2, 100, 100))
-            if p.suffix == ".aimodel":  # Core AI keeps it in the asset's own metadata.json
+            if suffix == ".aimodel":  # Core AI keeps it in the asset's own metadata.json
                 return json.loads((p / "metadata.json").read_text()).get("creatorDefinedMetadata", {})
             sidecar = (p if p.is_dir() else p.parent) / "metadata.yaml"  # openvino, ncnn, paddle, saved_model, ...
-            if p.suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
+            if suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
                 sidecar = next(p.resolve().parent.rglob(f"{p.stem}_saved_model*/metadata.yaml"), sidecar)
             return YAML.load(sidecar) if sidecar.exists() else {}
         except Exception:  # a third-party, truncated or metadata-less artifact

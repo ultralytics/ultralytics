@@ -91,7 +91,7 @@ The example showcases the variety and complexity of the images in the COCO-Pose 
 
 If you use the COCO-Pose dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

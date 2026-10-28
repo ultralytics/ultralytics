@@ -160,7 +160,7 @@ Note that the example below is for YOLO11 [Detect](../tasks/detect.md) models fo
 
 If you use YOLO11 or any other software from this repository in your work, please cite it using the following format:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

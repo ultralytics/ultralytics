@@ -52,7 +52,7 @@ CoreML integrates directly with Apple's [Vision framework](https://developer.app
 ## Measured Performance
 
 End-to-end single-image inference for the standardized `v8.3.0` YOLO26n INT8 CoreML assets on an
-[iPhone 17 Pro](https://support.apple.com/en-us/125090) with 12 GB memory and iOS 26.5.2. Its A19 Pro has a 6-core CPU
+[iPhone 17 Pro](https://support.apple.com/en-us/125090) with 12 GB memory and iOS 27.0.1. Its A19 Pro has a 6-core CPU
 (2 Performance and 4 Efficiency cores), 6-core GPU with Neural Accelerators, and 16-core Neural Engine. Each cell
 shows the **total time** (preprocessing + inference + postprocessing, excluding
 annotation) with the per-stage split beneath it. On iOS, Vision performs input scaling inside the inference request,
@@ -60,15 +60,18 @@ so preprocessing is reported as 0 and its cost is included in inference.
 
 | Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>Core ML `.cpuOnly`<br>(ms)</sup> | CPU + ANE preferred<br><sup>Core ML `.cpuAndNeuralEngine`<br>(ms)</sup> |
 | ------------- | -------- | --------------------------- | -------------------------------------------- | ----------------------------------------------------------------------- |
-| YOLO26n       | Detect   | 640                         | 9.2<br><sup>0.0 / 9.2 / 0.0</sup>            | **3.2**<br><sup>0.0 / 3.2 / 0.0</sup>                                   |
-| YOLO26n-seg   | Segment  | 640                         | 12.6<br><sup>0.0 / 12.0 / 0.5</sup>          | **4.8**<br><sup>0.0 / 4.2 / 0.6</sup>                                   |
-| YOLO26n-sem   | Semantic | 640                         | 9.7<br><sup>0.0 / 9.2 / 0.5</sup>            | **4.6**<br><sup>0.0 / 4.2 / 0.5</sup>                                   |
-| YOLO26n-depth | Depth    | 640                         | 25.0<br><sup>0.0 / 24.1 / 0.9</sup>          | **5.3**<br><sup>0.0 / 4.5 / 0.9</sup>                                   |
-| YOLO26n-cls   | Classify | 224                         | 2.2<br><sup>0.0 / 2.2 / 0.0</sup>            | **1.9**<br><sup>0.0 / 1.9 / 0.0</sup>                                   |
-| YOLO26n-pose  | Pose     | 640                         | 11.9<br><sup>0.0 / 11.9 / 0.0</sup>          | **3.9**<br><sup>0.0 / 3.9 / 0.0</sup>                                   |
-| YOLO26n-obb   | OBB      | 640                         | 10.6<br><sup>0.0 / 10.6 / 0.0</sup>          | **3.4**<br><sup>0.0 / 3.4 / 0.0</sup>                                   |
+| YOLO26n       | Detect   | 640                         | 8.8<br><sup>0.0 / 8.8 / 0.0</sup>            | **3.7**<br><sup>0.0 / 3.7 / 0.0</sup>                                   |
+| YOLO26n-seg   | Segment  | 640                         | 12.3<br><sup>0.0 / 11.7 / 0.6</sup>          | **4.9**<br><sup>0.0 / 4.3 / 0.6</sup>                                   |
+| YOLO26n-sem   | Semantic | 640                         | 9.3<br><sup>0.0 / 9.0 / 0.3</sup>            | **4.4**<br><sup>0.0 / 4.1 / 0.3</sup>                                   |
+| YOLO26n-depth | Depth    | 640                         | 26.0<br><sup>0.0 / 25.1 / 1.0</sup>          | **5.5**<br><sup>0.0 / 4.7 / 0.9</sup>                                   |
+| YOLO26n-cls   | Classify | 224                         | 4.1<br><sup>0.0 / 4.1 / 0.0</sup>            | **2.0**<br><sup>0.0 / 1.9 / 0.0</sup>                                   |
+| YOLO26n-pose  | Pose     | 640                         | 12.0<br><sup>0.0 / 12.0 / 0.0</sup>          | **4.0**<br><sup>0.0 / 4.0 / 0.0</sup>                                   |
+| YOLO26n-obb   | OBB      | 640                         | 10.7<br><sup>0.0 / 10.7 / 0.0</sup>          | **3.9**<br><sup>0.0 / 3.9 / 0.0</sup>                                   |
 
 - The exact `v8.3.0` release assets declare 224×224 inputs for classification and 640×640 for every other task.
+- On iOS 27.0.1, `.cpuOnly` inference of the `l` and `x` depth, pose, and OBB models crashes inside Core ML's CPU kernels
+  (`EXC_BAD_ACCESS` in `libBNNS`); the same models run with `.cpuAndNeuralEngine`, and every other task and size runs
+  on the CPU.
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code). CPU/accelerator order alternated between tasks in one sequential sweep. CPU rows request Core ML `.cpuOnly`; CPU + ANE preferred rows request `.cpuAndNeuralEngine`, with final operation placement controlled by Core ML. Sustained real-time camera operation runs higher because it includes the capture and scaling pipeline plus thermal settling. A historical pre-standard camera sweep measured 11.3 ms/frame for YOLO26n detect and 16.5 ms/frame for YOLO26n Depth on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
 - Compare the Android CPU/GPU results in the [LiteRT integration](litert.md#measured-performance) and Snapdragon NPU results in the [Qualcomm QNN integration](qnn.md#measured-performance).
 

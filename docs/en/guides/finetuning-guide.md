@@ -25,15 +25,15 @@ A pretrained model has already learned general visual features - edge detection,
 
 !!! tip "Fine-tuning requires no extra code"
 
-    When a `.pt` file is loaded with `YOLO("yolo26n.pt")`, the pretrained weights are stored in the model. Calling `.train(data="custom.yaml")` after that automatically transfers all compatible weights to the new model architecture, reinitializes any layers that don't match (such as the detection head when the number of classes differs), and begins training. No manual weight loading, layer manipulation, or custom transfer learning code is required.
+    When a `.pt` file is loaded with `YOLO("yolo26n.pt")`, the pretrained weights are stored in the model. Calling `.train(data="custom.yaml")` after that automatically transfers all compatible weights to the new model architecture, reinitializes any layers that don't match (such as the final classification layer when the number of classes differs), and begins training. No manual weight loading, layer manipulation, or custom transfer learning code is required.
 
 ### How Pretrained Weight Transfer Works
 
 When a pretrained model is fine-tuned on a dataset with a different number of classes (for example, COCO's 80 classes to 5 custom classes), Ultralytics performs shape-aware weight transfer:
 
 1. **Backbone and neck transfer fully** - these layers extract general visual features and their shapes are independent of the number of classes.
-2. **Detection head is partially reinitialized** - the classification output layers (`cv3`, `one2one_cv3`) have shapes tied to the class count (80 vs 5). Compatible rows whose class names match are remapped before unmatched rows are initialized. Box regression layers (`cv2`, `one2one_cv2`) in the head have fixed shapes regardless of class count, so they transfer normally.
-3. **The vast majority of weights transfer** when changing class count. For example, fine-tuning YOLO26n from COCO (80 classes) onto a 5-class dataset transfers 606 of 708 weight tensors, plus any compatible classification rows matched by name.
+2. **Detection head is partially reinitialized** - only the final convolution of each classification branch (`cv3`, `one2one_cv3`) has a shape tied to the class count (80 vs 5); the branch's hidden layers transfer when both models share a scale. Compatible rows whose class names match are remapped before unmatched rows are initialized. Box regression layers (`cv2`, `one2one_cv2`) in the head have fixed shapes regardless of class count, so they transfer normally.
+3. **The vast majority of weights transfer** when changing class count. For example, fine-tuning YOLO26n from COCO (80 classes) onto a 5-class dataset transfers 696 of 708 weight tensors, plus any compatible classification rows matched by name.
 
 For datasets with the same number of classes as the pretrained model (for example, fine-tuning COCO-pretrained weights on another 80-class dataset), 100% of weights transfer including the detection head.
 
@@ -103,7 +103,7 @@ For most fine-tuning tasks, the default setting works well without any manual tu
 
 !!! warning "Auto optimizer overrides manual lr0"
 
-    When `optimizer=auto`, the `lr0` and `momentum` values are ignored. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD, lr0=0.005`.
+    When `optimizer=auto`, the `lr0` value is ignored. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD, lr0=0.005`.
 
 ## Freezing Layers
 
@@ -220,7 +220,7 @@ There is no fixed minimum - results depend on the complexity of the task, the nu
 
 ### How do I fine-tune YOLO26 on a custom dataset?
 
-Load a pretrained `.pt` file and call `.train()` with the path to a custom `data.yaml`. Ultralytics automatically handles [weight transfer](https://www.ultralytics.com/glossary/transfer-learning), detection head reinitialization, and optimizer selection. See the [Basic Fine-Tuning](#basic-fine-tuning-example) section for the complete code example.
+Load a pretrained `.pt` file and call `.train()` with the path to a custom `data.yaml`. Ultralytics automatically handles [weight transfer](https://www.ultralytics.com/glossary/transfer-learning), classification layer reinitialization, and optimizer selection. See the [Basic Fine-Tuning](#basic-fine-tuning-example) section for the complete code example.
 
 ### Why is my fine-tuned YOLO model not detecting anything?
 

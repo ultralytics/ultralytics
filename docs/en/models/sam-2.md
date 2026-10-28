@@ -408,7 +408,7 @@ Despite its strengths, SAM 2 has certain limitations:
 
 If SAM 2 is a crucial part of your research or development work, please cite it using the following reference:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

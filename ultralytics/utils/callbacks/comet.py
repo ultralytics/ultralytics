@@ -9,12 +9,11 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, env_bool, ops
+from ultralytics.utils import LOGGER, RANK, TESTS_RUNNING, env_bool, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["comet"] is True  # verify integration is enabled
     import comet_ml
 
     assert hasattr(comet_ml, "__version__")  # verify package is not directory
@@ -342,10 +341,11 @@ def _create_prediction_metadata_map(model_predictions) -> dict:
 
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
     """Log the confusion matrix to Comet experiment."""
-    conf_mat = trainer.validator.confusion_matrix.matrix
-    names = [*list(trainer.data["names"].values()), "background"]
+    if (cm := trainer.validator.confusion_matrix) is None:  # e.g. depth has no confusion matrix
+        return
+    names = [*cm.names.values(), "background"][: len(cm.matrix)]
     experiment.log_confusion_matrix(
-        matrix=conf_mat, labels=names, max_categories=len(names), epoch=curr_epoch, step=curr_step
+        matrix=cm.matrix.T, labels=names, max_categories=len(names), epoch=curr_epoch, step=curr_step
     )
 
 
@@ -469,7 +469,7 @@ def _log_plots(experiment, trainer) -> None:
         ]
 
     if plot_filenames is not None:
-        _log_images(experiment, plot_filenames, None)
+        _log_images(experiment, [f for f in plot_filenames if f.exists()], None)
 
     confusion_matrix_filenames = [trainer.save_dir / f"{plots}.png" for plots in CONFUSION_MATRIX_PLOT_NAMES]
     _log_images(experiment, confusion_matrix_filenames, None)
@@ -513,6 +513,8 @@ def _log_table(experiment, table_path) -> None:
 
 def on_pretrain_routine_start(trainer) -> None:
     """Create or resume a CometML experiment at the start of a YOLO pre-training routine."""
+    global _comet_image_prediction_count
+    _comet_image_prediction_count = 0
     _resume_or_create_experiment(trainer.args)
 
 
@@ -574,7 +576,7 @@ def on_fit_epoch_end(trainer) -> None:
 
 
 def on_train_end(trainer) -> None:
-    """Log the final model, plots, confusion matrix, image predictions, results table, and args, then end the run."""
+    """Log the final model, plots, confusion matrix, image predictions, results table, and args."""
     experiment = comet_ml.get_running_experiment()
     if not experiment:
         return
@@ -601,11 +603,6 @@ def on_train_end(trainer) -> None:
     if args_path.exists():
         _log_asset(experiment, args_path)
 
-    experiment.end()
-
-    global _comet_image_prediction_count
-    _comet_image_prediction_count = 0
-
 
 callbacks = (
     {
@@ -613,6 +610,7 @@ callbacks = (
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
+        "teardown": lambda trainer: (experiment := comet_ml.get_running_experiment()) and experiment.end(),
     }
     if comet_ml
     else {}

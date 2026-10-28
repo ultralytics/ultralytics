@@ -60,7 +60,7 @@ def auto_annotate(
             sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)
             segments = sam_results[0].masks.xyn
 
-            with open(f"{Path(output_dir) / Path(result.path).stem}.txt", "w", encoding="utf-8") as f:
+            with open(f"{Path(output_dir) / det_model.predictor.txt_path.name}.txt", "w", encoding="utf-8") as f:
                 for i, s in enumerate(segments):
                     if len(s) >= 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                         segment = map(str, s.reshape(-1).tolist())

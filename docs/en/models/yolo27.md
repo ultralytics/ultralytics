@@ -25,8 +25,8 @@ sizes — N, S, M and L — and supports [object detection](../tasks/detect.md),
 [pose estimation](../tasks/pose.md) and [oriented object detection](../tasks/obb.md). The two-design split applies
 to detection; all other tasks use the CNN architecture.
 
-Across its four detection scales, YOLO27 reaches **42.3-60.4 mAP on COCO** at **0.62-2.32 ms latency on an NVIDIA
-RTX PRO 6000** — and up to **61.2 mAP** with YOLO27l at a larger 800-pixel input. YOLO27l is the **first Ultralytics
+Across its four detection scales, YOLO27 reaches **42.6-60.5 mAP on COCO** at **0.44-1.86 ms latency on an NVIDIA
+RTX PRO 6000** — and up to **61.4 mAP** with YOLO27l at a larger 800-pixel input. YOLO27l is the **first Ultralytics
 model to surpass 60 mAP on COCO**, while the compact YOLO27n/s improve on YOLO26n/s accuracy at essentially the same
 speed.
 
@@ -89,7 +89,7 @@ The following guidance is for choosing a model once YOLO27 is released. For proj
   [Raspberry Pi](../guides/raspberry-pi.md) for device-specific deployment.
 - **YOLO27m** — the accuracy-speed sweet spot on GPUs: improves on YOLO26m accuracy at comparable latency,
   making it the default choice for production [GPU deployment](../guides/model-deployment-options.md).
-- **YOLO27l** — accuracy-critical applications: the first Ultralytics model above 60 mAP on COCO, reaching 61.2 mAP
+- **YOLO27l** — accuracy-critical applications: the first Ultralytics model above 60 mAP on COCO, reaching 61.4 mAP
   at a larger input size while staying real-time on GPU.
 
 To compare against other families, see [all Ultralytics models](index.md). To measure the accuracy-speed trade-off
@@ -123,7 +123,9 @@ predict for multi-object tracking across video frames.
 
 ## Performance Metrics
 
-Detection accuracy is reported on the COCO validation set. See [YOLO Performance Metrics](../guides/yolo-performance-metrics.md) for explanations of mAP, precision, and recall. Inference speed is measured on an NVIDIA RTX PRO 6000
+Detection accuracy is reported on the COCO validation set. See [YOLO Performance Metrics](../guides/yolo-performance-metrics.md) for explanations of mAP, precision, and recall. For accuracy beyond COCO, see
+[Ultralytics Benchmark](../datasets/detect/ultralytics-benchmark.md), which measures macro mAP50-95 across 37
+real-world detection datasets spanning medical imaging, remote sensing, industrial, retail, and more. Inference speed is measured on an NVIDIA RTX PRO 6000
 ([TensorRT](../integrations/tensorrt.md) 11, FP16) for GPU and an AMD EPYC 9655 ([ONNX Runtime](../integrations/onnx.md), FP32) for CPU. After release, accuracy numbers can be reproduced
 with `yolo val model=yolo27n.pt data=coco.yaml`.
 
@@ -139,10 +141,10 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         | Model   | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ------- | --------------------------- | -------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
-        | YOLO27n | 640                         | 42.3                       | **16.1 ± 1.6**                       | **0.62 ± 0.00**                                     | **3.0**                  | **7.2**                 |
-        | YOLO27s | 640                         | 49.6                       | 33.2 ± 0.1                           | 0.79 ± 0.00                                         | 11.8                     | 28.2                    |
-        | YOLO27m | 640                         | 55.8                       | 67.2 ± 0.3                           | 1.39 ± 0.00                                         | 22.8                     | 65.0                    |
-        | YOLO27l | 640                         | **60.4**                   | 149.6 ± 1.4                          | 2.32 ± 0.00                                         | 72.3                     | 165.3                   |
+        | YOLO27n | 640                         | 42.6                       | 16.1 ± 1.6                           | 0.44 ± 0.00                                         | 3.0                      | 7.2                     |
+        | YOLO27s | 640                         | 50.1                       | 33.2 ± 0.1                           | 0.64 ± 0.00                                         | 11.8                     | 28.2                    |
+        | YOLO27m | 640                         | 56.1                       | 74.8 ± 0.5                           | 1.01 ± 0.00                                         | 22.8                     | 65.0                    |
+        | YOLO27l | 640                         | **60.5**                   | 149.6 ± 1.4                          | 1.86 ± 0.00                                         | 72.3                     | 165.3                   |
 
     === "Segmentation (COCO)"
 
@@ -150,10 +152,10 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         | Model       | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ----------- | --------------------------- | -------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
-        | YOLO27n-seg | 640                         | 41.8                       | 35.4                        | **22.0 ± 2.2**                       | **0.73 ± 0.00**                                     | **3.0**                  | **11.2**                |
-        | YOLO27s-seg | 640                         | 50.0                       | 42.5                        | 45.8 ± 0.1                           | 0.96 ± 0.00                                         | 11.6                     | 43.1                    |
-        | YOLO27m-seg | 640                         | 53.2                       | 45.0                        | 109.3 ± 0.9                          | 1.46 ± 0.00                                         | 25.4                     | 139.6                   |
-        | YOLO27l-seg | 640                         | **57.7**                   | **47.9**                    | 248.3 ± 1.3                          | 2.86 ± 0.00                                         | 67.5                     | 361.9                   |
+        | YOLO27n-seg | 640                         | 42.3                       | 36.4                        | 22.0 ± 2.2                           | 0.51 ± 0.00                                         | 3.0                      | 11.2                    |
+        | YOLO27s-seg | 640                         | 50.0                       | 42.5                        | 45.8 ± 0.1                           | 0.75 ± 0.00                                         | 11.6                     | 43.1                    |
+        | YOLO27m-seg | 640                         | 55.5                       | 47.3                        | 107.7 ± 0.2                          | 1.21 ± 0.00                                         | 26.9                     | 111.9                   |
+        | YOLO27l-seg | 640                         | 59.3                       | 50.1                        | 202.0 ± 0.7                          | 2.11 ± 0.00                                         | 75.2                     | 214.8                   |
 
     === "Semantic Segmentation (Cityscapes)"
 
@@ -161,21 +163,21 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         | Model       | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ----------- | --------------------------- | ------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
-        | YOLO27n-sem | 1024 &times; 2048           | 78.8               | **95.6 ± 3.0**                       | **0.89 ± 0.00**                                     | **2.0**                  | **34.0**                |
-        | YOLO27s-sem | 1024 &times; 2048           | 81.2               | 169.6 ± 0.9                          | 1.43 ± 0.00                                         | 7.8                      | 131.5                   |
-        | YOLO27m-sem | 1024 &times; 2048           | 82.4               | 336.9 ± 2.8                          | 2.71 ± 0.00                                         | 16.1                     | 385.4                   |
-        | YOLO27l-sem | 1024 &times; 2048           | **83.8**           | 787.1 ± 2.2                          | 6.43 ± 0.00                                         | 44.8                     | 1085.8                  |
+        | YOLO27n-sem | 1024 &times; 2048           | 78.8               | 95.6 ± 3.0                           | 0.70 ± 0.00                                         | 2.0                      | 34.0                    |
+        | YOLO27s-sem | 1024 &times; 2048           | 81.2               | 169.6 ± 0.9                          | 1.21 ± 0.00                                         | 7.8                      | 131.5                   |
+        | YOLO27m-sem | 1024 &times; 2048           | 82.4               | 336.9 ± 2.8                          | 2.18 ± 0.00                                         | 16.1                     | 385.4                   |
+        | YOLO27l-sem | 1024 &times; 2048           | 83.8               | 787.1 ± 2.2                          | 5.56 ± 0.00                                         | 44.8                     | 1085.8                  |
 
     === "Depth Estimation (NYU Depth V2)"
 
         See [Depth Estimation Docs](../tasks/depth.md) for usage examples with these models pretrained on a broad multi-dataset mix and evaluated on [NYU Depth V2](../datasets/depth/nyu-depth-v2.md).
 
-        | Model         | size<br><sup>(pixels)</sup> | delta1<sup>NYU</sup> | delta1<sup>KITTI-580</sup> | delta1<sup>bench mean</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ------------- | --------------------------- | -------------------- | -------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
-        | YOLO27n-depth | 768                         | 0.8314               | **0.8256**                 | 0.7238                      | **47.2 ± 4.0**                       | **0.79 ± 0.00**                                     | **5.4**                  | **49.3**                |
-        | YOLO27s-depth | 768                         | 0.8682               | 0.7835                     | 0.7454                      | 72.1 ± 0.5                           | 0.97 ± 0.00                                         | 13.0                     | 77.3                    |
-        | YOLO27m-depth | 768                         | 0.8652               | 0.7746                     | 0.7476                      | 120.2 ± 0.4                          | 1.34 ± 0.00                                         | 23.4                     | 143.6                   |
-        | YOLO27l-depth | 768                         | **0.8711**           | 0.8041                     | **0.7527**                  | 253.7 ± 0.5                          | 2.65 ± 0.00                                         | 59.3                     | 341.8                   |
+        | Model         | size<br><sup>(pixels)</sup> | delta1<sup>NYU\*</sup> | delta1<sup>KITTI-580\*</sup> | delta1<sup>bench mean</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------------- | --------------------------- | ---------------------- | ---------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
+        | YOLO27n-depth | 768                         | 0.8314                 | 0.8256                       | 0.7238                      | 47.2 ± 4.0                           | 0.79 ± 0.00                                         | 5.4                      | 49.3                    |
+        | YOLO27s-depth | 768                         | 0.8682                 | 0.7835                       | 0.7454                      | 72.1 ± 0.5                           | 0.97 ± 0.00                                         | 13.0                     | 77.3                    |
+        | YOLO27m-depth | 768                         | 0.8652                 | 0.7746                       | 0.7476                      | 120.2 ± 0.4                          | 1.34 ± 0.00                                         | 23.4                     | 143.6                   |
+        | YOLO27l-depth | 768                         | 0.8711                 | 0.8041                       | 0.7527                      | 253.7 ± 0.5                          | 2.65 ± 0.00                                         | 59.3                     | 341.8                   |
 
     === "Classification (ImageNet)"
 
@@ -183,10 +185,10 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         | Model       | size<br><sup>(pixels)</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B) at 224</sup> |
         | ----------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ------------------------------ |
-        | YOLO27n-cls | 224                         | **1.9 ± 0.0**                        | **0.28 ± 0.00**                                     | **2.9**                  | **0.5**                        |
-        | YOLO27s-cls | 224                         | 3.1 ± 0.1                            | 0.31 ± 0.00                                         | 6.9                      | 1.7                            |
-        | YOLO27m-cls | 224                         | 6.0 ± 0.6                            | 0.39 ± 0.00                                         | 12.4                     | 6.1                            |
-        | YOLO27l-cls | 224                         | 16.7 ± 0.1                           | 0.69 ± 0.00                                         | 32.8                     | 18.5                           |
+        | YOLO27n-cls | 224                         | 1.9 ± 0.0                            | 0.18 ± 0.00                                         | 2.9                      | 0.5                            |
+        | YOLO27s-cls | 224                         | 3.1 ± 0.1                            | 0.22 ± 0.00                                         | 6.9                      | 1.7                            |
+        | YOLO27m-cls | 224                         | 6.0 ± 0.6                            | 0.29 ± 0.00                                         | 12.4                     | 6.1                            |
+        | YOLO27l-cls | 224                         | 16.7 ± 0.1                           | 0.56 ± 0.00                                         | 32.8                     | 18.5                           |
 
     === "Pose (COCO)"
 
@@ -194,10 +196,10 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         | Model        | size<br><sup>(pixels)</sup> | mAP<sup>pose<br>50-95</sup> | mAP<sup>pose<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ------------ | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
-        | YOLO27n-pose | 640                         | 58.0                        | 84.1                     | **19.6 ± 0.1**                       | **0.67 ± 0.00**                                     | **3.1**                  | **9.2**                 |
-        | YOLO27s-pose | 640                         | 64.3                        | 87.0                     | 36.6 ± 0.2                           | 0.80 ± 0.00                                         | 11.2                     | 31.1                    |
-        | YOLO27m-pose | 640                         | 69.0                        | 89.9                     | 76.6 ± 0.2                           | 1.29 ± 0.00                                         | 22.8                     | 86.2                    |
-        | YOLO27l-pose | 640                         | **72.2**                    | **91.3**                 | 181.1 ± 0.7                          | 2.45 ± 0.00                                         | 61.7                     | 242.3                   |
+        | YOLO27n-pose | 640                         | 60.3                        | 85.0                     | 19.6 ± 0.1                           | 0.48 ± 0.00                                         | 3.1                      | 9.2                     |
+        | YOLO27s-pose | 640                         | 66.7                        | 88.6                     | 36.6 ± 0.2                           | 0.69 ± 0.00                                         | 11.2                     | 31.1                    |
+        | YOLO27m-pose | 640                         | 73.3                        | 91.0                     | 85.8 ± 0.9                           | 1.14 ± 0.01                                         | 24.6                     | 64.0                    |
+        | YOLO27l-pose | 640                         | 76.1                        | 92.4                     | 203.9 ± 4.0                          | 2.26 ± 0.01                                         | 74.2                     | 165.8                   |
 
     === "OBB (DOTAv1)"
 
@@ -205,10 +207,10 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         | Model       | size<br><sup>(pixels)</sup> | mAP<sup>test<br>50-95</sup> | mAP<sup>test<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ----------- | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
-        | YOLO27n-obb | 1024                        | 54.0                        | 80.3                     | **42.6 ± 0.2**                       | **0.83 ± 0.00**                                     | **3.0**                  | **19.7**                |
-        | YOLO27s-obb | 1024                        | 55.8                        | 81.6                     | 88.2 ± 0.6                           | 1.30 ± 0.00                                         | 10.9                     | 76.6                    |
-        | YOLO27m-obb | 1024                        | 55.9                        | 82.6                     | 188.0 ± 0.7                          | 1.92 ± 0.00                                         | 22.8                     | 221.7                   |
-        | YOLO27l-obb | 1024                        | **57.2**                    | **82.7**                 | 455.8 ± 1.1                          | 4.33 ± 0.00                                         | 68.7                     | 622.6                   |
+        | YOLO27n-obb | 1024                        | 54.0                        | 80.3                     | 42.6 ± 0.2                           | 0.56 ± 0.00                                         | 3.0                      | 19.7                    |
+        | YOLO27s-obb | 1024                        | 55.8                        | 81.6                     | 88.2 ± 0.6                           | 0.97 ± 0.00                                         | 10.9                     | 76.6                    |
+        | YOLO27m-obb | 1024                        | 55.9                        | 82.6                     | 188.0 ± 0.7                          | 1.68 ± 0.00                                         | 22.8                     | 221.7                   |
+        | YOLO27l-obb | 1024                        | 57.2                        | 82.7                     | 455.8 ± 1.1                          | 3.84 ± 0.00                                         | 68.7                     | 622.6                   |
 
 _Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. For detection, speed measurements select the NMS-free head with `nms=False`; N/S accuracy depends on the selected head. Pretrained checkpoints retain the full training architecture and may show higher counts._
 
@@ -287,8 +289,8 @@ of detection-head computation, and the training improvements above keep the accu
 
 ### What accuracy and inference speed does YOLO27l achieve on COCO?
 
-YOLO27l is the first Ultralytics model to surpass 60 mAP on COCO, reaching 60.4 mAP at a 640-pixel input (2.3 ms on
-an NVIDIA RTX PRO 6000) and 61.2 mAP at an 800-pixel input (2.9 ms). It combines the UltraViT backbone, multi-scale
+YOLO27l is the first Ultralytics model to surpass 60 mAP on COCO, reaching 60.5 mAP at a 640-pixel input (1.9 ms on
+an NVIDIA RTX PRO 6000) and 61.4 mAP at an 800-pixel input (2.4 ms). It combines the UltraViT backbone, multi-scale
 feature fusion, and a query-based detector that produces final detections directly, without NMS.
 
 ### When will YOLO27 be available?

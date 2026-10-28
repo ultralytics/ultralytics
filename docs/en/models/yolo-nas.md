@@ -46,6 +46,12 @@ Each model variant is designed to offer a balance between [Mean Average Precisio
 
 Ultralytics has made YOLO-NAS models easy to integrate into your Python applications via our `ultralytics` Python package. The package provides a user-friendly Python API to streamline the process.
 
+YOLO-NAS models need the `super-gradients` package, which requires a Python 3.10 environment:
+
+```bash
+pip install ultralytics super-gradients "setuptools<81"
+```
+
 The following examples show how to use YOLO-NAS models with the `ultralytics` package for inference and validation:
 
 ### Inference and Validation Examples
@@ -108,7 +114,7 @@ Below is a detailed overview of each model, including links to their pretrained 
 
 If you employ YOLO-NAS in your research or development work, please cite SuperGradients:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

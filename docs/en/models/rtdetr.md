@@ -133,7 +133,7 @@ RT-DETR is particularly well-suited for applications requiring both high accurac
 
 If you use Baidu's RT-DETR in your research or development work, please cite the [original paper](https://arxiv.org/abs/2304.08069):
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -150,7 +150,7 @@ If you use Baidu's RT-DETR in your research or development work, please cite the
 
 For RTDETRv2, you can cite the [2024 paper](https://arxiv.org/abs/2407.17140):
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

@@ -165,7 +165,7 @@ The dataset's richness offers invaluable insights into object detection challeng
 
 If you use DOTA in your work, please cite the relevant research papers:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

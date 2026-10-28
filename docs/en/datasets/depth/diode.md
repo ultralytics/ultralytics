@@ -75,7 +75,7 @@ The YOLO26 depth family is trained on the broad multi-dataset depth pretraining 
 
 If you use the DIODE dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

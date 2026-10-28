@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER
@@ -49,6 +50,12 @@ class RKNNBackend(BaseBackend):
         if ret != 0:
             raise RuntimeError(f"Failed to init RKNN runtime: {ret}")
 
+        self.tail = None
+        if (w.parent / "tail.onnx").is_file():
+            check_requirements("onnxruntime")
+            import onnxruntime
+
+            self.tail = onnxruntime.InferenceSession(str(w.parent / "tail.onnx"), providers=["CPUExecutionProvider"])
         self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor) -> list:
@@ -60,21 +67,12 @@ class RKNNBackend(BaseBackend):
         Returns:
             (list): Model predictions as a list of output arrays.
         """
-        h, w = im.shape[1:3]
         im = (im.cpu().numpy() * 255).astype("uint8")
         y = self.model.inference(inputs=[im])
-        # INT8 exports use input-relative coordinates so a single per-tensor scale preserves class scores.
-        if (
-            self.metadata.get("args", {}).get("quantize") == 8
-            and self.task in {"detect", "segment", "pose", "obb"}
-            and not self.end2end
-        ):
-            kpt_start = 4 + len(self.names)  # pose keypoints follow the box (4) and class-score (nc) channels
-            for x in y:
-                if x.ndim == 3:
-                    x[:, [0, 2]] *= w
-                    x[:, [1, 3]] *= h
-                    if self.task == "pose":
-                        x[:, kpt_start::3] *= w
-                        x[:, kpt_start + 1 :: 3] *= h
+        if self.tail:  # INT8 exports decode head outputs on the host in floating point with a batch-1 tail graph
+            feeds = [
+                {t.name: v[i : i + 1].astype(np.float32) for t, v in zip(self.tail.get_inputs(), y)}
+                for i in range(len(im))
+            ]
+            y = [np.concatenate(x) for x in zip(*(self.tail.run(None, f) for f in feeds))]
         return y

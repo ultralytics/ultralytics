@@ -91,7 +91,7 @@ The example showcases the variety and complexity of the images in the COCO128 da
 
 If you use the COCO dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

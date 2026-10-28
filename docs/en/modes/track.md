@@ -7,7 +7,7 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 
 # Multi-Object Tracking with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.ul.run/i/6e908e05328f03661dc48ce86a4db3fc.avif" alt="YOLO multi-object tracking with trajectory paths">
+<img width="1024" src="https://cdn.ul.run/i/f30f62b4f5592a70ec688ae46cce61b1.avif" alt="YOLO multi-object tracking with trajectory paths">
 
 Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
 
@@ -475,13 +475,13 @@ With Segment and Pose models, TrackTrack skips loose-NMS detection recovery so m
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/leOPZhE0ckg"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/hPXsZ_fVz6M"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Build Interactive Object Tracking with Ultralytics YOLO | Click to Crop & Display ⚡
+  <strong>Watch:</strong> How to Build Interactive Object Tracking with Ultralytics YOLO26: Build it in Minutes | Python!
 </p>
 
 ### Persisting Tracks Loop

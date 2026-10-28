@@ -251,14 +251,14 @@ Below are code examples for using each source type:
 
     === "CSV"
 
-        Run inference on a collection of images, URLs, videos, and directories listed in a CSV file.
+        Run inference on a collection of images, videos, and directories listed in a CSV file.
         ```python
         from ultralytics import YOLO
 
         # Load a pretrained YOLO26n model
         model = YOLO("yolo26n.pt")
 
-        # Define a path to a CSV file with images, URLs, videos and directories
+        # Define a path to a CSV file with images, videos and directories
         source = "path/to/file.csv"
 
         # Run inference on the source
@@ -400,9 +400,9 @@ Below are code examples for using each source type:
 
 ### Fixed shape vs minimum rectangle (`rect`)
 
-By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or a dynamic-shape export such as dynamic ONNX). Otherwise, images are padded to the **full** `imgsz` target.
+By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or a dynamic-shape export such as dynamic ONNX). Otherwise, images are padded to the **full** `imgsz` target. Depth and RT-DETR models ignore `rect` and stretch every image to the full `imgsz` without padding.
 
-Use **`rect=False`** to always pad to the full `imgsz` target. This is recommended when you need a fixed input size to match exported models (ONNX, TensorRT, etc.).
+Use **`rect=False`** to always use the full `imgsz` target. This is recommended when you need a fixed input size to match exported models (ONNX, TensorRT, etc.).
 
 **Integer vs tuple `imgsz`**
 
@@ -534,7 +534,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 Which fields below populate depends on your model's task — [compare detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB](../tasks/index.md) if you haven't picked one yet. Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
 task-specific prediction data is stored in the fields below. YOLO coordinate and confidence tensors are
-`torch.float32`; probability tensors are `torch.float32` unless FP16 inference (`quantize=16`) is used, then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
+`torch.float32`; probability tensors are `torch.float32` unless the model runs in FP16 (`quantize=16` with a PyTorch or TorchScript model off CPU, or an ONNX model with FP16 inputs), then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
 Instance masks are `torch.uint8` binary tensors, while semantic masks use the smallest practical integer dtype for class
 IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 

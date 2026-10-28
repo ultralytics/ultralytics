@@ -89,7 +89,7 @@ The samples show the diversity and complexity of the objects in the Caltech-256 
 
 If you use the Caltech-256 dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

@@ -33,7 +33,7 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 1. **[Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo):** Start by forking the relevant Ultralytics repository (e.g., [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)) to your GitHub account.
 2. **[Create a branch](https://docs.github.com/en/desktop/making-changes-in-a-branch/managing-branches-in-github-desktop):** Create a new branch in your forked repository with a clear, descriptive name reflecting your changes (e.g., `fix-issue-123`, `add-feature-xyz`).
 3. **Make your changes:** Implement your improvements or fixes. Ensure your code adheres to the project's style guidelines and doesn't introduce new errors or warnings.
-4. **Test your changes:** Before submitting, test your changes locally to confirm they work as expected and don't cause [regressions](https://en.wikipedia.org/wiki/Software_regression). Add tests if you're introducing new functionality.
+4. **Test your changes:** Before submitting, test your changes locally to confirm they work as expected and don't cause [regressions](https://en.wikipedia.org/wiki/Software_regression). Existing tests cover most changes, so new tests are often unnecessary; when one helps, prefer a few lines in an existing test file over mocked tests.
 5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
 6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
 
@@ -209,13 +209,11 @@ When contributing code to Ultralytics projects, keep these best practices in min
 - **Simplify when possible:** Look for opportunities to simplify the code or remove unnecessary parts.
 - **Consider compatibility:** Before making changes, consider whether they might break existing code using Ultralytics.
 - **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
-- **Add appropriate tests:** Include [tests](../guides/model-testing.md) for new features to ensure they work as expected.
 
 ## Reviewing Pull Requests
 
 Reviewing pull requests is another valuable way to contribute. When reviewing PRs:
 
-- **Check for unit tests:** Verify that the PR includes tests for new features or changes.
 - **Review documentation updates:** Ensure [documentation](../index.md) is updated to reflect changes.
 - **Evaluate performance impact:** Consider how changes might affect [performance](../guides/yolo-performance-metrics.md).
 - **Verify CI tests:** Confirm all [Continuous Integration tests](CI.md) are passing.

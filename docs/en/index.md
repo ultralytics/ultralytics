@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 <br><br>
 </div>
 
-<p align="center">
+<p align="center" translate="no">
 <a href="https://docs.ultralytics.com/zh">中文</a> ·
 <a href="https://docs.ultralytics.com/ko">한국어</a> ·
 <a href="https://docs.ultralytics.com/ja">日本語</a> ·

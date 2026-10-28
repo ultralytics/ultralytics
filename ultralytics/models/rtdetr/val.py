@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
-
 import torch
 
 from ultralytics.data import YOLODataset
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr, ops
+from ultralytics.utils.checks import check_imgsz
 
 __all__ = ("RTDETRValidator",)  # tuple or list
 
@@ -69,9 +67,7 @@ class RTDETRValidator(DetectionValidator):
 
     Methods:
         build_dataset: Build an RTDETR Dataset for validation.
-        scale_preds: Return predictions unchanged since they are already in model input pixel space.
         postprocess: Apply confidence thresholding to prediction outputs.
-        pred_to_json: Serialize predictions to COCO JSON format.
 
     Examples:
         Initialize and run RT-DETR validation
@@ -113,10 +109,6 @@ class RTDETRValidator(DetectionValidator):
             else get_split_fraction(self.args.fraction, self.args.split or "val"),
         )
 
-    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Return predictions unchanged as RT-DETR handles scaling in postprocessing and `pred_to_json`."""
-        return predn
-
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
     ) -> list[dict[str, torch.Tensor]]:
@@ -139,38 +131,14 @@ class RTDETRValidator(DetectionValidator):
             preds = preds[0]
 
         bboxes, scores, labels = preds.split((4, 1, 1), dim=-1)
-        bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
+        shape = check_imgsz(self.args.imgsz, stride=1, min_dim=2)
+        bboxes = ops.xywh2xyxy(bboxes) * bboxes.new_tensor(shape)[[1, 0, 1, 0]]
         scores, labels = scores.squeeze(-1), labels.squeeze(-1)
+        if self.args.classes is not None:
+            scores = scores.masked_fill(~(labels[..., None] == labels.new_tensor(self.args.classes)).any(-1), 0)
         masks = [(score > self.args.conf).nonzero().squeeze(1)[: self.args.max_det] for score in scores]
 
         return [
             {"bboxes": bbox[m], "conf": score[m], "cls": label[m]}
             for bbox, score, label, m in zip(bboxes, scores, labels, masks)
         ]
-
-    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
-        """Serialize RT-DETR predictions to COCO JSON format.
-
-        Args:
-            predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys with
-                bounding box coordinates, confidence scores, and class predictions.
-            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
-        """
-        path = Path(pbatch["im_file"])
-        stem = path.stem
-        image_id = int(stem) if stem.isnumeric() else stem
-        box = predn["bboxes"].clone()
-        box[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
-        box[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
-        box = ops.xyxy2xywh(box)  # xywh
-        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-        for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
-            self.jdict.append(
-                {
-                    "image_id": image_id,
-                    "file_name": path.name,
-                    "category_id": self.class_map[int(c)],
-                    "bbox": [round(x, 3) for x in b],
-                    "score": round(s, 5),
-                }
-            )

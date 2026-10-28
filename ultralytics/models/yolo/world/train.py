@@ -9,6 +9,7 @@ from typing import Any
 import torch
 
 from ultralytics.data import build_yolo_dataset
+from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
@@ -20,7 +21,7 @@ def on_pretrain_routine_end(trainer) -> None:
     """Set the EMA model classes from the validation dataset names at the end of the pretrain routine."""
     # Set on all ranks: validation runs on every rank, but txt_feats/nc are not DDP buffers so they don't sync
     names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
-    trainer.ema.ema.set_classes(names, cache_clip_model=False)
+    trainer.ema.ema.set_classes(names)
 
 
 class WorldTrainer(DetectionTrainer):
@@ -114,6 +115,8 @@ class WorldTrainer(DetectionTrainer):
             self.set_text_embeddings([dataset], batch)  # cache text embeddings to accelerate training
         return dataset
 
+    set_class_weights = BaseTrainer.set_class_weights  # cls channels are prompt positions, not dataset classes
+
     def set_text_embeddings(self, datasets: list[Any], batch: int | None) -> None:
         """Set text embeddings for datasets to accelerate training by caching category names.
 
@@ -159,7 +162,7 @@ class WorldTrainer(DetectionTrainer):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")
         assert self.model is not None
-        txt_feats = unwrap_model(self.model).get_text_pe(texts, batch, cache_clip_model=False)
+        txt_feats = unwrap_model(self.model).get_text_pe(texts, batch)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)
         return txt_map

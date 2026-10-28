@@ -27,7 +27,7 @@ class CoreMLBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .mlpackage model file.
         """
-        check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
+        check_requirements("coremltools>=9.0")
         import coremltools as ct
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")
@@ -59,10 +59,12 @@ class CoreMLBackend(BaseBackend):
         im = im.cpu().numpy()
         h, w = im.shape[1:3]
 
-        if self.dynamic:
-            y = list(self.model.predict({self.input_name: im.transpose(0, 3, 1, 2)}).values())
+        if self.dynamic:  # the batch dim is capped at the export batch, so predict larger batches in chunks
+            im = im.transpose(0, 3, 1, 2)
+            y = [self.model.predict({self.input_name: im[i : i + self.batch]}) for i in range(0, len(im), self.batch)]
+            y = [np.concatenate([d[k] for d in y]) for k in y[0]]
         else:  # static exports take one image per request: predict the batch as a list and stack the outputs
-            y = self.model.predict([{self.input_name: Image.fromarray((x * 255).astype("uint8"))} for x in im])
+            y = self.model.predict([{self.input_name: Image.fromarray(np.uint8(x.squeeze() * 255))} for x in im])
             if "confidence" in y[0]:  # NMS included: zero-pad per image, return (B, n, 6) before the swap below
                 from ultralytics.utils.ops import xywh2xyxy
 
@@ -72,13 +74,13 @@ class CoreMLBackend(BaseBackend):
                     for box, conf in y
                 ]
                 n = max(map(len, y))
-                return np.stack([np.pad(d, ((0, n - len(d)), (0, 0))) for d in y])
+                return np.stack([np.pad(d, ((0, n - len(d)), (0, 0))) for d in y]).astype(np.float32)  # MPS has no fp64
             arrays = [k for k, v in y[0].items() if isinstance(v, np.ndarray)]
             if arrays:
                 y = [np.concatenate([d[k] for d in y]) for k in arrays]
             else:  # neuralnetwork classifiers emit only the label and a name-to-probability dict
                 probs = next(k for k, v in y[0].items() if isinstance(v, dict))
-                y = [np.array([[d[probs][n] for n in self.names.values()] for d in y])]
+                y = [np.array([[d[probs][n] for n in self.names.values()] for d in y], dtype=np.float32)]
         if len(y) == 2 and len(y[1].shape) != 4:  # segmentation model
             y = list(reversed(y))
         return y

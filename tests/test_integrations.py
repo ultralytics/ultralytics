@@ -137,19 +137,20 @@ def test_faster_coco_eval():
     validator = DetectionValidator(args=args)
     validator()
     validator.is_coco = True
-    download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "coco8/annotations")
     _ = validator.eval_json(validator.stats)
 
     args = {"model": "yolo26n-seg.pt", "data": "coco8-seg.yaml", "save_json": True, "imgsz": 64}
     validator = SegmentationValidator(args=args)
     validator()
     validator.is_coco = True
-    download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "coco8-seg/annotations")
+    validator.data["path"] = DATASETS_DIR
+    download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "annotations")
     _ = validator.eval_json(validator.stats)
 
     args = {"model": "yolo26n-pose.pt", "data": "coco8-pose.yaml", "save_json": True, "imgsz": 64}
     validator = PoseValidator(args=args)
     validator()
     validator.is_coco = True
-    download(f"{ASSETS_URL}/person_keypoints_val2017.json", dir=DATASETS_DIR / "coco8-pose/annotations")
+    validator.data["path"] = DATASETS_DIR
+    download(f"{ASSETS_URL}/person_keypoints_val2017.json", dir=DATASETS_DIR / "annotations")
     _ = validator.eval_json(validator.stats)

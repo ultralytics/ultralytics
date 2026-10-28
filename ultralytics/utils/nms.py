@@ -225,7 +225,7 @@ class TorchNMS:
         if use_triu:
             ious = ious.triu_(diagonal=1)
             # NOTE: no if-else on len(boxes), keeping this path exportable
-            pick = torch.nonzero((ious >= iou_threshold).sum(0) <= 0).squeeze_(-1)
+            pick = torch.nonzero((ious > iou_threshold).sum(0) <= 0).squeeze_(-1)
         else:
             n = boxes.shape[0]
             row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
@@ -234,7 +234,7 @@ class TorchNMS:
             ious = ious * upper_mask
             # Zeroing these scores ensures the additional indices would not affect the final results
             scores_ = scores[sorted_idx]
-            scores_[~((ious >= iou_threshold).sum(0) <= 0)] = 0
+            scores_[~((ious > iou_threshold).sum(0) <= 0)] = 0
             scores[sorted_idx] = scores_  # update original tensor for NMSModel
             # NOTE: return indices with fixed length to avoid TFLite reshape error
             pick = torch.topk(scores_, scores_.shape[0]).indices

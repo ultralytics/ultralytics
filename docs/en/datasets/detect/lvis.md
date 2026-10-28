@@ -102,7 +102,7 @@ The LVIS dataset contains diverse images with many object categories in complex 
 
 If you use the LVIS dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

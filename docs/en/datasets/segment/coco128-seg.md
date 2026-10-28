@@ -77,7 +77,7 @@ Here are some examples of images from the COCO128-Seg dataset, along with their 
 
 If you use the COCO dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

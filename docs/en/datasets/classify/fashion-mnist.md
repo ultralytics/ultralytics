@@ -90,7 +90,7 @@ The samples show the variety of clothing categories in the Fashion-MNIST dataset
 
 If you use the Fashion-MNIST dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

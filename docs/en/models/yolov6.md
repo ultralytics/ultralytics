@@ -91,7 +91,7 @@ This table provides a detailed overview of the YOLOv6 model variants, highlighti
 
 We would like to acknowledge the authors for their significant contributions in the field of real-time object detection:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

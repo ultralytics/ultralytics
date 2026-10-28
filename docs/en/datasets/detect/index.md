@@ -20,7 +20,7 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
     --8<-- "ultralytics/cfg/datasets/coco8.yaml"
     ```
 
-Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a UTF-8 `*.txt` file, with or without a byte-order mark, listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
 
 !!! example "Image paths as a `*.txt` file"
 
@@ -321,6 +321,7 @@ Here is a list of the supported datasets and a brief description for each. Most 
 - [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 - [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
 - [TT100K](tt100k.md): Explore the Tsinghua-Tencent 100K (TT100K) traffic sign dataset with 16,817 street-view images across 221 sign categories for robust detection and classification.
+- [Ultralytics Benchmark](ultralytics-benchmark.md): A first-party benchmark suite of 37 curated detection datasets across medical, aerial, industrial, retail, and other domains, with a fixed protocol for measuring real-world model generalization.
 - [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.

@@ -1,21 +1,15 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import numpy as np
-
 from ultralytics.utils import LOGGER
 
 
-def onnx_calibration_reader(dataset, transform_fn, input_name: str = "images", batch: int = 0):
+def onnx_calibration_reader(dataset, transform_fn, input_name: str = "images"):
     """Create an ONNX Runtime calibration data reader from an Ultralytics calibration dataloader.
-
-    `batch` is the graph's static batch dimension (0 for dynamic-batch models): calibration datasets smaller than the
-    export batch yield undersized batches that static graphs reject, so samples are tiled up to exactly `batch`.
 
     Args:
         dataset (Iterable): Calibration dataloader yielding batch dicts.
         transform_fn (Callable): Function converting a batch dict to a float32 NCHW numpy array.
         input_name (str): Name of the ONNX graph input to feed.
-        batch (int): Static batch dimension of the graph, or 0 for dynamic-batch models.
 
     Returns:
         (onnxruntime.quantization.CalibrationDataReader): Calibration data reader over `dataset`.
@@ -29,12 +23,8 @@ def onnx_calibration_reader(dataset, transform_fn, input_name: str = "images", b
 
         def get_next(self):
             """Return the next calibration sample, or None when exhausted."""
-            if (b := next(self.iterator, None)) is None:
-                return None
-            im = transform_fn(b)
-            if batch and im.shape[0] != batch:  # tile up to the static batch dimension
-                im = np.tile(im, (-(-batch // im.shape[0]), 1, 1, 1))[:batch]
-            return {input_name: im}
+            b = next(self.iterator, None)
+            return None if b is None else {input_name: transform_fn(b)}
 
         def rewind(self):
             """Reset the iterator for an additional calibration pass."""
@@ -49,7 +39,6 @@ def onnx_int8_quantize(
     dataset,
     transform_fn,
     input_name: str = "images",
-    batch: int = 0,
     prefix: str = "",
 ) -> str:
     """Quantize an ONNX model to INT8 using ONNX Runtime static quantization.
@@ -60,7 +49,6 @@ def onnx_int8_quantize(
         dataset (Iterable): Calibration dataloader yielding batch dicts.
         transform_fn (Callable): Function converting a batch dict to a float32 NCHW numpy array.
         input_name (str): Name of the ONNX graph input to feed.
-        batch (int): Static batch dimension of the graph, or 0 for dynamic-batch models.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -80,7 +68,7 @@ def onnx_int8_quantize(
     quantize_static(
         onnx_file,
         output_file,
-        onnx_calibration_reader(dataset, transform_fn, input_name, batch),
+        onnx_calibration_reader(dataset, transform_fn, input_name),
         nodes_to_exclude=exclude,
     )
     return str(output_file)

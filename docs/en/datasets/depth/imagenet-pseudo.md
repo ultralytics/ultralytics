@@ -82,7 +82,7 @@ Pretrained YOLO26-Depth models auto-download from the Ultralytics [v8.4.0 assets
 
 If you use the ImageNet dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

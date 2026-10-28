@@ -49,7 +49,7 @@ TFLite models offer a wide range of key features that enable on-device machine l
     (SM8850) has an 8-core Qualcomm Oryon CPU (2 Prime cores up to 4.6 GHz and 6 Performance cores up to 3.62 GHz),
     Adreno GPU, and Hexagon NPU. These tables compare the legacy onnx2tf INT8 TFLite assets with candidate
     litert-torch exports evaluated during the migration. The release assets were subsequently overwritten with the
-    standardized exports, so these numbers do **not** describe the current `v0.6.6` asset bytes. See the
+    standardized exports, so these numbers do **not** describe the current `v0.7.0` asset bytes. See the
     [LiteRT performance tables](litert.md#measured-performance) for current measurements.
 
 Both formats ran in the same back-to-back GPU sweep at the input sizes shown. Each cell is the total time

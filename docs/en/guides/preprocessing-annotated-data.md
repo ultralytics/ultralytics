@@ -74,7 +74,7 @@ Keep these points in mind when splitting:
 - **Better use of data**: Every annotated image yields multiple training variations.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/8da4cad7272d62a9ac02b9d8b8a083f8.avif" alt="Examples of data augmentation techniques including flips, rotations, scaling, and color adjustments applied to a sample image">
+  <img width="100%" src="https://cdn.ul.run/i/ca62db2ad59d7eff0804e6ea495b2f9b.avif" alt="Examples of data augmentation techniques including flips, rotations, scaling, and color adjustments applied to a sample image">
 </p>
 
 With YOLO26, augmentation strength is controlled through [training arguments](../usage/cfg.md#augmentation-settings) passed to `model.train()` or the equivalent CLI flags, **not** by editing the dataset YAML, which defines dataset metadata such as paths, class names, and splits. The one exception is `flip_idx`: [pose datasets](../datasets/pose/index.md) declare it in the dataset YAML to map left/right keypoint pairs, and YOLO disables `fliplr` and `flipud` entirely when it is missing. The built-in augmentations include:

@@ -57,7 +57,7 @@ For those looking to implement object detection in their projects, YOLOv4 remain
 
 We would like to acknowledge the YOLOv4 authors for their significant contributions in the field of real-time object detection:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

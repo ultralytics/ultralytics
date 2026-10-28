@@ -123,7 +123,7 @@ The diversity seen in the Roboflow 100 benchmark represents a significant advanc
 
 If you use the Roboflow 100 dataset in your research or development work, please cite the original paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -165,7 +165,7 @@ This variety makes RF100 an excellent resource for assessing the [generalizabili
 
 When using the Roboflow 100 dataset, please cite the original paper to give credit to the creators. Here is the recommended BibTeX citation:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

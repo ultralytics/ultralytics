@@ -40,7 +40,7 @@ YOLO26 OBB models pretrained on the [DOTAv1](https://github.com/ultralytics/ultr
 
 {% include "macros/yolo-obb-perf.md" %}
 
-- **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce with `yolo obb val data=DOTAv1.yaml device=0 split=test nms=False` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
+- **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce with `yolo obb val data=DOTAv1.yaml device=0 split=test nms=False save_json=True` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
 - **Speed** averaged over DOTAv1 val images with ONNX on CPU and TensorRT10 on an NVIDIA T4 GPU. <br>Reproduce with `yolo obb val data=DOTAv1.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
@@ -172,6 +172,8 @@ Use a trained YOLO26n-obb model to run predictions on images.
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
+Pass `save_crop=True` to save a rotation-aligned crop of each OBB at its box size, as `ObjectCropper` also does.
+
 ### Results Output
 
 Oriented bounding box detection returns one `Results` object per image. The primary prediction field is `result.obb`,
@@ -185,7 +187,7 @@ which contains rotated boxes, class IDs, and confidence scores for each detected
 | `result.obb.xyxyxyxy` | `torch.float32` | `(N,4,2)` | Four corner points.                      |
 | `result.obb.conf`     | `torch.float32` | `(N,)`    | Confidence scores.                       |
 
-Labels are canonicalized to the long-edge convention but predictions are not, so `result.obb.xywhr` may report `w` smaller than `h` with the rotation measured from the short edge. Both forms describe the same rectangle, so `result.obb.xyxyxyxy` is correct either way. Convert the corners back when downstream code needs the long-edge form, keeping in mind that rewriting the box parameters may cyclically shift the corner order:
+Labels are canonicalized to the long-edge convention but predictions are not, so `result.obb.xywhr` may report `w` smaller than `h` with the rotation measured from the short edge. Both forms describe the same rectangle, so `result.obb.xyxyxyxy` is correct either way. When tracking, each track keeps the half-turn form (θ or θ ± π) nearest its previous angle, so track angles do not flip by π between frames and may leave `[-π/4, 3π/4)`. Convert the corners back when downstream code needs the long-edge form, keeping in mind that rewriting the box parameters may cyclically shift the corner order:
 
 ```python
 from ultralytics.utils.ops import xyxyxyxy2xywhr

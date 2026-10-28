@@ -38,7 +38,7 @@ Ultralytics publishes [YOLO26](../../models/yolo26.md) detection and [segmentati
 | [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 32.2                       | 40.1                    | 25.0                     | 88.0                    |
 | [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 35.8                       | 44.1                    | 56.1                     | 196.3                   |
 
-Segmentation models use masks generated for Objects365v1 and report both box and mask accuracy:
+Segmentation models (`yolo26n-objv1-seg.pt` through `yolo26x-objv1-seg.pt`) use masks generated for Objects365v1 and report both box and mask accuracy:
 
 | Model                                                              | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | ------------------------------------------------------------------ | --------------------------- | -------------------------- | --------------------------- | ------------------------ | ----------------------- |
@@ -158,7 +158,7 @@ The Objects365 dataset contains diverse, high-resolution images with dense bound
 
 If you use the Objects365 dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

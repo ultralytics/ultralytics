@@ -37,6 +37,7 @@ Usage - formats:
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
+                         yolo26n_xilinx_model       # AMD Xilinx
 """
 
 from __future__ import annotations
@@ -117,6 +118,7 @@ class BasePredictor:
         callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
+        scale_fill (bool): Whether pre_transform stretches images to imgsz instead of letterboxing them.
 
     Methods:
         preprocess: Prepare input image before inference.
@@ -132,6 +134,8 @@ class BasePredictor:
         run_callbacks: Execute registered callbacks for an event.
         add_callback: Register a new callback function.
     """
+
+    scale_fill = False
 
     def __init__(
         self,
@@ -192,10 +196,9 @@ class BasePredictor:
             # For a single image, add a batch dimension without the copy required by np.stack().
             im = torch.from_numpy(im[0]).unsqueeze(0) if len(im) == 1 else torch.from_numpy(np.stack(im))
             im = im.to(self.device)  # transfer as uint8, then reorder on device
-            im = im.permute(0, 3, 1, 2)  # BHWC to BCHW, (n, 3, h, w)
+            im = im.permute(0, 3, 1, 2).contiguous()  # BHWC to BCHW, (n, 3, h, w), dense first for a faster flip
             if im.shape[1] == 3:
                 im = im.flip(1)  # BGR to RGB
-            im = im.contiguous()
             im = (im.half() if self.model.fp16 else im.float()).div_(255)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
         else:
             im = im.to(self.device)
@@ -232,7 +235,9 @@ class BasePredictor:
             self.imgsz,
             auto=same_shapes
             and self.args.rect
+            and not self.scale_fill
             and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
+            scale_fill=self.scale_fill,
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -350,7 +355,8 @@ class BasePredictor:
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-            self.seen, self.speed, self.pixels, self.windows, self.batch = 0, None, None, [], None
+            self.seen, self.speed, self.pixels, self.windows, self.batch, self._bases = 0, None, None, [], None, set()
+            self._sources = {}  # output base of each video path, stream slot, or batch image
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -359,8 +365,8 @@ class BasePredictor:
             )
             dataset = self.dataset
             batches = ((batch, dataset) for batch in dataset)
-            if (  # overlap loading with GPU work; each batch carries a snapshot of the loader's mode, frame and fps
-                self.device.type == "cuda"
+            if (  # overlap loading with inference; each batch carries a snapshot of the loader's mode, frame and fps
+                (self.device.type == "cuda" or getattr(self.model, "prefetch", False))
                 and isinstance(dataset, LoadImagesAndVideos)
                 and (dataset.nf > dataset.ni or len(dataset) > 1)
             ):
@@ -491,11 +497,22 @@ class BasePredictor:
         if self.source_type.stream or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
             string += f"{i}: "
             frame = self.dataset.count
+        elif self.source_type.screenshot:
+            frame = self.dataset.frame
         else:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # None if frame undetermined
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
+        key = p if self.dataset.mode == "video" else i  # a video keeps one base across its frames, a stream per slot
+        if self.dataset.mode == "image" or key not in self._sources:
+            base, k = p.stem, 1
+            while base in self._bases:  # same-stem sources (bus.jpg + bus.png, a/clip.mp4 + b/clip.mp4) get -2, -3...
+                k += 1
+                base = f"{p.stem}-{k}"
+            self._bases.add(base)
+            self._sources[key] = base
+        base = self._sources[key]
+        self.txt_path = self.save_dir / "labels" / (base + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -512,13 +529,14 @@ class BasePredictor:
 
         # Save results
         if self.args.save_txt:
+            Path(f"{self.txt_path}.txt").unlink(missing_ok=True)  # replace, not append to, a previous run's labels
             result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
         if self.args.save_crop:
-            result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
+            result.save_crop(save_dir=self.save_dir / "crops", file_name=f"{self.txt_path.name}.jpg")
         if self.args.show:
             self.show(str(p))
         if self.args.save:
-            self.save_predicted_images(self.save_dir / p.name, frame)
+            self.save_predicted_images(self.save_dir / (base + p.suffix), frame)
 
         return string
 
@@ -534,6 +552,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
+            fps = max(1, fps / self.args.vid_stride)  # skipped frames must not shorten the saved video
             frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
@@ -542,7 +561,7 @@ class BasePredictor:
                 self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
-                    fps=fps,  # integer required, floats produce error in MP4 codec
+                    fps=fps,  # float keeps fractional rates, e.g. 29.97 or 30 / vid_stride
                     frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 

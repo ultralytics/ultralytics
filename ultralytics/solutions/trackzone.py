@@ -73,7 +73,7 @@ class TrackZone(BaseSolution):
         self.extract_tracks(masked_frame)
 
         # Draw the region boundary
-        cv2.polylines(im0, [self.region], isClosed=True, color=(255, 255, 255), thickness=self.line_width * 2)
+        cv2.polylines(annotator.im, [self.region], isClosed=True, color=(255, 255, 255), thickness=self.line_width * 2)
 
         # Iterate over boxes, track ids, classes indexes list and draw bounding boxes
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):

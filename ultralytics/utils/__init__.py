@@ -11,7 +11,9 @@ import os
 import platform
 import re
 import socket
+import stat
 import sys
+import tempfile
 import threading
 import time
 import warnings
@@ -23,7 +25,13 @@ from urllib.parse import unquote
 
 import cv2
 import numpy as np
-import torch
+
+try:
+    import torch
+except ImportError:  # torch 1.10-1.12 x86_64 wheels request an executable stack that glibc>=2.41 refuses
+    from ultralytics.utils.files import import_execstack
+
+    torch = import_execstack("torch", "torch/lib/*.so*")
 
 from ultralytics import __version__
 from ultralytics.utils.git import GitRepo
@@ -665,7 +673,7 @@ class YAML:
             ValueError: If the file contains a YAML syntax error or is not a YAML mapping.
         """
         instance = cls._get_instance()
-        assert str(file).endswith((".yaml", ".yml")), f"Not a YAML file: {file}"
+        assert str(file).lower().endswith((".yaml", ".yml")), f"Not a YAML file: {file}"
 
         # Read file content
         with open(file, errors="ignore", encoding="utf-8") as f:
@@ -986,21 +994,18 @@ def get_user_config_dir(sub_dir="Ultralytics"):
         p.mkdir(parents=True, exist_ok=True)
         return p
 
-    # Fallbacks for Docker, GCP/AWS functions where only /tmp is writable
-    for alt in [Path("/tmp") / sub_dir, Path.cwd() / sub_dir]:
-        if alt.exists():
-            return alt
-        if is_dir_writeable(alt.parent):
-            alt.mkdir(parents=True, exist_ok=True)
-            LOGGER.warning(
-                f"user config directory '{p}' is not writable, using '{alt}'. Set YOLO_CONFIG_DIR to override."
-            )
-            return alt
-
-    # Last fallback → CWD
-    p = Path.cwd() / sub_dir
-    p.mkdir(parents=True, exist_ok=True)
-    return p
+    # Fallback for Docker, GCP/AWS functions where only /tmp is writable, private to the current user
+    alt = Path(tempfile.gettempdir()) / (sub_dir if WINDOWS else f"{sub_dir}-{os.getuid()}")
+    try:
+        alt.mkdir(mode=0o777 if WINDOWS else 0o700)  # a Windows 0o700 DACL locks out non-elevated runs
+    except OSError:
+        with contextlib.suppress(OSError):  # own private dir only, never a symlink; Windows %TEMP% is per-user
+            info = alt.lstat()
+            if stat.S_ISDIR(info.st_mode) and (WINDOWS or (info.st_uid, info.st_mode & 0o777) == (os.getuid(), 0o700)):
+                return alt
+        alt = Path(tempfile.mkdtemp(prefix=f"{sub_dir}-"))  # otherwise a new private dir for this process
+    LOGGER.warning(f"user config directory '{p}' is not writable, using '{alt}'. Set YOLO_CONFIG_DIR to override.")
+    return alt
 
 
 # Define constants (required below)
@@ -1279,7 +1284,7 @@ def set_sentry():
         release=__version__,
         environment="runpod" if is_runpod() else "production",
         before_send=before_send,
-        ignore_errors=[KeyboardInterrupt, FileNotFoundError],
+        ignore_errors=[KeyboardInterrupt, FileNotFoundError, "OutOfMemoryError"],  # torch OOM by name, no torch import
     )
     sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 
@@ -1491,9 +1496,7 @@ class SettingsManager(JSONDict):
             KeyError: If a key is not a valid Ultralytics setting.
             TypeError: If a value does not match the type of the setting's default.
         """
-        for arg in args:
-            if isinstance(arg, dict):
-                kwargs.update(arg)
+        kwargs = dict(*args, **kwargs)  # every form dict.update() accepts
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
@@ -1502,7 +1505,7 @@ class SettingsManager(JSONDict):
                 raise TypeError(
                     f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
                 )
-        super().update(*args, **kwargs)
+        super().update(kwargs)
 
     def reset(self):
         """Reset the settings to default and save them."""

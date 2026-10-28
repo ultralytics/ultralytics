@@ -98,6 +98,9 @@ class OpenVINOBackend(BaseBackend):
             f"Using OpenVINO LATENCY mode for batch={self.batch} inference on "
             f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
         )
+        # Sync CPU inference leaves the main thread waiting, so the predictor can load the next batch meanwhile. Not
+        # AUTO, whose EXECUTION_DEVICES can report CPU while an accelerator is still compiling
+        self.prefetch = device_name == "CPU"
         self.ov = ov
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:

@@ -131,9 +131,8 @@ class RegionCounter(BaseSolution):
         # Display region counts
         for region in self.counting_regions:
             poly = region["polygon"]
-            pts = list(map(tuple, np.array(poly.exterior.coords, dtype=np.int32)))
             (x1, y1), (x2, y2) = [(int(poly.centroid.x), int(poly.centroid.y))] * 2
-            annotator.draw_region(pts, region["region_color"], self.line_width * 2)
+            annotator.draw_region(poly.exterior.coords, region["region_color"], self.line_width * 2)
             annotator.adaptive_label(
                 [x1, y1, x2, y2],
                 label=str(region["counts"]),

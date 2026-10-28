@@ -118,8 +118,6 @@ The NVIDIA ARM64 image uses NVIDIA PyTorch 26.08 with CUDA 13.4 and TensorRT 11.
 
 The Conda Dockerfile is available for [local builds](conda-quickstart.md#ultralytics-conda-docker-image); automated publishing of `latest-conda` is disabled, so that registry tag does not contain these updates.
 
-Use `latest-python-export` for LiteRT exports. The GPU `latest-export` image keeps PyTorch 2.14 and omits LiteRT because its current dependency requires PyTorch below 2.14.
-
 The Python, CPU, Jupyter, and CPU runner images use Python 3.14. The Python export image uses the `latest-python-3.13` base, built from the same `Dockerfile-python` with `--build-arg PYTHON_VERSION=3.13`, because TensorFlow, CoreML, and PaddlePaddle do not support Python 3.14 yet.
 
 Tags beginning with `latest` track the most recently published main-branch build. Versioned tags replace the `latest` prefix with an Ultralytics release, such as `VERSION`, `VERSION-cpu`, or `VERSION-jetson-jetpack6`. Use a versioned tag for a reproducible environment.

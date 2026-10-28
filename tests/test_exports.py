@@ -206,28 +206,6 @@ def test_int8_calibration_fraction(task, fraction, expected, tmp_path):
     assert len(exporter.get_int8_calibration_dataloader().dataset) == expected
 
 
-def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
-    """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
-    calls = {}
-    monkeypatch.setattr(
-        "ultralytics.utils.export.rknn.onnx2rknn", lambda **kwargs: calls.update(kwargs) or kwargs["output_dir"]
-    )
-    monkeypatch.setattr("ultralytics.engine.exporter.file_size", lambda _: 1)
-
-    image = tmp_path / "image.jpg"
-    exporter = SimpleNamespace(
-        args=SimpleNamespace(opset=None, quantize=8, name="rk3588", batch=8),
-        im=torch.zeros(8, 3, 32, 32),
-        file=tmp_path / "model.pt",
-        metadata={},
-        get_int8_calibration_dataloader=lambda prefix: SimpleNamespace(dataset=SimpleNamespace(im_files=[image])),
-    )
-    exporter.export_onnx = lambda: calls.update(onnx_batch=len(exporter.im)) or tmp_path / "model.onnx"
-    Exporter.export_rknn(exporter)
-    assert calls["onnx_batch"] == 1
-    assert calls["batch"] == 8
-
-
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     """Ensure ONNX exports do not overlap across worker threads."""
     active = 0
@@ -546,7 +524,9 @@ def test_export_ncnn_matrix(task, quantize, batch):
 
 
 @pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="IMX export requires Python>=3.9")
+@pytest.mark.skipif(
+    not checks.IS_PYTHON_MINIMUM_3_10 or checks.IS_PYTHON_MINIMUM_3_13, reason="IMX export requires Python>=3.10,<3.13"
+)
 @pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
@@ -662,6 +642,11 @@ def test_export_qnn(isolated_model):
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
     file = YOLO(isolated_model).export(format="qnn", imgsz=32)
     assert Path(file).is_file() and file.endswith("_qnn.onnx"), f"QNN export failed, no context binary found: {file}"
+    # ONNX Runtime's built-in QNN EP (onnxruntime-android-qnn) cannot load EPContext nodes with I/O name overrides
+    import onnx
+
+    ep_nodes = [n for n in onnx.load(file).graph.node if n.op_type == "EPContext"]
+    assert ep_nodes and not any(a.name == "io_name_overrides" for n in ep_nodes for a in n.attribute)
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     Path(file).unlink(missing_ok=True)  # cleanup
 

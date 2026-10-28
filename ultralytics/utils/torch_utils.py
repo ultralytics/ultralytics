@@ -1026,7 +1026,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
 
     Returns:
         (list): Profile results for each input and operation pair, each either a list of [parameters, GFLOPs, memory
-            (GB), forward time (ms), backward time (ms), input shape, output shape] or None if profiling failed.
+            (GiB), forward time (ms), backward time (ms), input shape, output shape] or None if profiling failed.
 
     Examples:
         >>> from ultralytics.utils.torch_utils import profile_ops
@@ -1043,7 +1043,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
     results = []
     device = select_device(device, verbose=False)
     LOGGER.info(
-        f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
+        f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GiB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
         f"{'input':>24s}{'output':>24s}"
     )
     gc.collect()  # attempt to free unused memory
@@ -1075,21 +1075,16 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         except Exception:  # no backward method
                             # print(e)  # for debug
                             t[2] = float("nan")
-                    mem += cuda_info["memory"] / 1e9  # (GB)
+                    mem = cuda_info["memory"] / 2**30  # (GiB)
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
-                    if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
-                        with cuda_memory_usage(device) as cuda_info:
-                            anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
-                            # Conservative detect-loss envelope: ~6 fp32-equivalents each for TaskAlignedAssigner
-                            # metric/top-k state and the cls path (pred/target + two op temps of unreduced BCE:
-                            # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
-                            sim = (
-                                torch.randn(x.shape[0], 6 * max_num_obj, anchors, device=device, dtype=torch.float32),
-                                torch.randn(x.shape[0], anchors, 6 * len(m.names), device=device, dtype=torch.float32),
-                            )
-                        del sim
-                        mem += cuda_info["memory"] / 1e9  # (GB)
+                    if max_num_obj and accelerator is not None:  # simulate training loss memory (for AutoBatch)
+                        anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
+                        # Conservative detect-loss envelope: ~6 fp32-equivalents each for TaskAlignedAssigner
+                        # metric/top-k state and the cls path (pred/target + two op temps of unreduced BCE:
+                        # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
+                        # cls path doubled: training-time validation runs the loss at up to 2x batch
+                        mem += x.shape[0] * anchors * 6 * (max_num_obj + 2 * len(m.names)) * 4 / 2**30  # (GiB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
                 LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{s_in!s:>24s}{s_out!s:>24s}")

@@ -127,7 +127,7 @@ This technique is especially valuable for small datasets like COCO8-Multispectra
 
 If you use the COCO dataset in your research or development, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

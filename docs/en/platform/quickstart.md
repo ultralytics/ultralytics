@@ -38,7 +38,7 @@ flowchart TD
 
 [Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google or GitHub accounts, or with your email address.
 
-![Ultralytics Platform Signup](https://cdn.ul.run/i/d1aa583f9f69a3bf49d503774779cb98.avif)<!-- screenshot -->
+![Ultralytics Platform Signup](https://cdn.ul.run/i/1683ea5d0337eeb6e9099ac434afaedb.avif)<!-- screenshot -->
 
 ### Region Selection
 
@@ -46,7 +46,7 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 region and recommends the closest one. This choice determines where your datasets, models, and managed training data are
 stored. Dedicated endpoint regions are selected separately when you deploy a model.
 
-![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.ul.run/i/d6b29d932b4dde9df4aab770f18fe1ae.avif)<!-- screenshot -->
+![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.ul.run/i/2c511d640b7de911f7a421724af49780.avif)<!-- screenshot -->
 
 {% include "macros/platform-data-regions.md" %}
 
@@ -75,7 +75,7 @@ The onboarding flow guides you through three steps:
 2. **Data Region** - Select US, EU, or AP with a visual world map showing latency
 3. **Complete** - Review your selections, optionally apply a promo code, and finish signup to claim your welcome credits
 
-![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/1bd588a6adfb2c7c1b335dd3b21c684d.avif)<!-- screenshot -->
+![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/99ffff96be666b6e19eb4ba525d6b554.avif)<!-- screenshot -->
 
 ??? tip "Update Later"
 
@@ -85,7 +85,7 @@ The onboarding flow guides you through three steps:
 
 After signing in, you will be directed to the Home page of [Ultralytics Platform](https://platform.ultralytics.com), which provides a welcome card with workspace stats, an overview video, quick access to datasets, projects, and storage, and a recent activity feed.
 
-![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.ul.run/i/493d7d7962fba5fc226e802bf7d9469d.avif)<!-- screenshot -->
+![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.ul.run/i/319bf74b155700ff1366bf7a5dbd727d.avif)<!-- screenshot -->
 
 ### Sidebar Navigation
 
@@ -206,7 +206,7 @@ flowchart TD
 
 After upload, the platform automatically processes your data:
 
-1. Images larger than 4096px are resized (preserving aspect ratio; TIFF originals are stored as uploaded)
+1. Images larger than 4096px are resized (preserving aspect ratio; most TIFF originals are stored as uploaded)
 2. 256px thumbnails are generated for fast browsing
 3. YOLO, COCO, LabelMe, and Ultralytics or Labelbox NDJSON labels are parsed and validated
 4. Statistics are computed (class distribution, heatmaps, dimensions)
@@ -269,17 +269,18 @@ From your project, click `New Model` to open the **Train New Model** dialog. You
 
 ### Monitor Training
 
-Once training starts, open the model's `Train` tab to monitor progress in real time through three subtabs:
+Once training starts, open the model's `Train` tab to monitor progress in real time:
 
-| Subtab      | Content                                                 |
-| ----------- | ------------------------------------------------------- |
-| **Charts**  | Training/validation loss curves, mAP, precision, recall |
-| **Console** | Live training log output                                |
-| **System**  | GPU utilization, memory usage, hardware metrics         |
+| Subtab         | Content                                                 |
+| -------------- | ------------------------------------------------------- |
+| **Metrics**    | Training/validation loss curves, mAP, precision, recall |
+| **Validation** | Recorded validation results, when available             |
+| **Console**    | Live training log output                                |
+| **System**     | GPU utilization, memory usage, hardware metrics         |
 
-![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/533d461f043d83d7dad2b7483a56a3f5.avif)<!-- screenshot -->
+![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/13e91f2728627c825f8efcd8fe7916b4.avif)<!-- screenshot -->
 
-Metrics are streamed in real-time via SSE (Server-Sent Events). Once validation artifacts exist, the Charts subtab splits into **Training** and **Validation** views, with the confusion matrix, PR curves, and F1 curves under Validation.
+Metrics are streamed in real-time via SSE (Server-Sent Events). The **Validation** subtab appears when validation results are available, including the confusion matrix, PR curves, and F1 curves produced by the run.
 
 !!! tip "Cancel Training"
 
@@ -295,7 +296,7 @@ After training completes, test your model directly in the browser:
 2. Upload an image, drag and drop, capture one from your webcam, or click an example image (auto-inference on drop)
 3. View task-appropriate prediction overlays, per-stage timings (preprocess, inference, postprocess, network), and the raw JSON response
 
-![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/0cdeafceca5ccaea1e11bfbebe0e4a21.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/7f20a14a7e6f05a1c43c42229d0e3745.avif)<!-- screenshot -->
 
 Adjust inference parameters:
 
@@ -340,7 +341,7 @@ Under **API Docs**, the `Predict` tab shows example code in Python, JavaScript, 
 
 !!! tip "Auto-Inference"
 
-    The Predict tab runs inference automatically when you drop an image — no need to click a button — and re-runs it whenever you change confidence, IoU, or image size. Example images (bus.jpg, zidane.jpg) are preloaded for instant testing.
+    The Predict tab runs inference automatically when you drop an image — no need to click a button — and re-runs it whenever you change confidence, IoU, or image size. Example images are preloaded for instant testing.
 
 Read more about [inference](deploy/inference.md).
 

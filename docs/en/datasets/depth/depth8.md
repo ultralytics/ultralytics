@@ -75,7 +75,7 @@ Depth8 is sampled from SUN RGB-D — see the full [SUN RGB-D dataset page](sunrg
 
 If you use the SUN RGB-D dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

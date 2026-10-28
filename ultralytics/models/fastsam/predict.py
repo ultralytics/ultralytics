@@ -132,21 +132,17 @@ class FastSAMPredictor(SegmentationPredictor):
             if texts is not None:
                 if isinstance(texts, str):
                     texts = [texts]
-                crop_ims, filter_idx = [], []
+                crop_ims, keep = [], []
                 for i, b in enumerate(result.boxes.xyxy.tolist()):
                     x1, y1, x2, y2 = (int(x) for x in b)
                     if (masks[i].sum() if TORCH_1_10 else masks[i].sum(0).sum()) <= 100:  # torch 1.9 bug workaround
-                        filter_idx.append(i)
                         continue
+                    keep.append(i)
                     crop = result.orig_img[y1:y2, x1:x2] * masks[i, y1:y2, x1:x2, None].cpu().numpy()
                     crop_ims.append(Image.fromarray(crop[:, :, ::-1]))
-                similarity = self._clip_inference(crop_ims, texts)
-                text_idx = torch.argmax(similarity, dim=-1)  # (M, )
-                if len(filter_idx):
-                    # Remap text_idx to its original index before filtering (supports multiple text prompts)
-                    ori_idxs = torch.tensor([i for i in range(len(result)) if i not in filter_idx], device=self.device)
-                    text_idx = ori_idxs[text_idx]
-                idx[text_idx] = True
+                if crop_ims:  # the area filter can leave no masks to score
+                    similarity = self._clip_inference(crop_ims, texts)  # (M, N)
+                    idx[torch.tensor(keep, device=self.device)[similarity.argmax(-1)]] = True  # best mask per text
 
             prompt_results.append(result[idx])
 

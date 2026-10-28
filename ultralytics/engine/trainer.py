@@ -881,7 +881,7 @@ class BaseTrainer:
 
         cfg, weights = self.model, None
         ckpt = None
-        if str(self.model).endswith(".pt"):
+        if str(self.model).lower().endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
         if isinstance(self.args.pretrained, (str, Path)) and not self.resume:
@@ -1183,7 +1183,7 @@ class BaseTrainer:
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.optimizer, self.args.lr0 = name, lr  # resume rebuilds this choice from train_args
-            self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
+            self.args.warmup_bias_lr = 0.0  # start bias warmup at zero
 
         use_muon = name == "MuSGD"
         for module_name, module in unwrap_model(model).named_modules():

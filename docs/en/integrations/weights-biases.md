@@ -22,6 +22,8 @@ keywords: YOLO26, Weights & Biases, model training, experiment tracking, Ultraly
 
 This guide showcases Ultralytics YOLO26 integration with Weights & Biases for enhanced experiment tracking, best-model artifacts, and visualization of model performance. It also includes instructions for setting up the integration, training, and visualizing results using Weights & Biases' interactive features.
 
+Already have YOLO checkpoints logged in W&B? [Import their projects into Ultralytics Platform](../platform/integrations/weights-biases.md) from **Settings > Integrations > Weights & Biases**.
+
 ## Weights & Biases
 
 <p align="center">
@@ -103,7 +105,7 @@ Before diving into the usage instructions for YOLO26 model training with Weights
         yolo train data=coco8.yaml epochs=5 project=ultralytics name=yolo26n
         ```
 
-Runs that Ultralytics creates chart training metrics against `epoch`. If you start a run with `wandb.init()` before training, Ultralytics logs into that run, with an `epoch` value in every row, and leaves it open so you can keep logging to it and call `wandb.finish()` yourself.
+Runs that Ultralytics creates chart training metrics against `epoch`. If you start a run with `wandb.init()` before training, Ultralytics logs into that run, with an `epoch` value in every row, and leaves it open so you can keep logging to it and call `wandb.finish()` yourself. Training arguments are added to that run's config, and any key you or a W&B sweep already set keeps its value.
 
 ### W&B Arguments
 

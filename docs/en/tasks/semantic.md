@@ -7,7 +7,7 @@ model_name: yolo26n-sem
 
 # Semantic Segmentation with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.ul.run/i/30702b4e25c1ef422e4638fedd8795c0.avif" alt="Semantic segmentation examples">
+<img width="1024" src="https://cdn.ul.run/i/600e47d05ee9fb678bb0d761f6bbbd48.avif" alt="Semantic segmentation of a city street into road, sidewalk, car, person, bicycle, vegetation, building, and sky classes">
 
 [Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) assigns a class label to every pixel in an image, producing a dense class map that covers the entire scene. Unlike [instance segmentation](segment.md), which separates individual objects, semantic segmentation groups all pixels of the same class together regardless of how many distinct objects are present.
 
@@ -116,6 +116,8 @@ Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossa
         yolo semantic val model=yolo26n-sem.pt data=cityscapes.yaml    # val official model
         yolo semantic val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
+
+Set `save_json=True` to also save each prediction as a single-channel PNG class mask at the original image size in the `results/` folder of the validation run. Masks keep each image's path relative to the common parent directory of all validation images, so `images/val/a/1.png` and `images/val/b/1.png` are saved as `results/a/1.png` and `results/b/1.png`. When the dataset YAML defines `label_mapping`, masks use the original label IDs, for example Cityscapes `labelIds`.
 
 ## Predict
 

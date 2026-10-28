@@ -143,6 +143,11 @@ class BaseTrainer:
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
+            if any(isinstance(t, A.Lambda) for t in self.args.augmentations):  # to_dict() can't store user functions
+                raise TypeError(
+                    "A.Lambda augmentations can't be saved in checkpoints. Subclass A.ImageOnlyTransform or "
+                    "A.DualTransform in an importable module instead."
+                )
             self.args.augmentations = [A.to_dict(t) for t in self.args.augmentations]  # YAML/pickle-safe, DDP-safe
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
@@ -265,8 +270,8 @@ class BaseTrainer:
                 self._do_train()
         finally:
             unset_deterministic()  # never leave deterministic state on, including the DDP parent and failed runs
-        if not self.ddp:
-            self.run_callbacks("teardown")
+            if not self.ddp:
+                self.run_callbacks("teardown")
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -308,12 +313,12 @@ class BaseTrainer:
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
         final_batch_size = len(self.train_loader.sampler) % self.train_loader.batch_size or self.train_loader.batch_size
-        imgsz = self.args.imgsz
-        min_imgsz = min(imgsz) if isinstance(imgsz, (list, tuple)) else imgsz  # s3d uses rectangular [h, w] imgsz
+        imgsz = min(self.args.imgsz) if isinstance(self.args.imgsz, (list, tuple)) else self.args.imgsz  # s3d [h, w]
+        min_imgsz = max(self.stride, int(imgsz * (1 - self.args.multi_scale))) // self.stride * self.stride
         if min_imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
             raise ValueError(
-                f"final batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
-                f"change batch or use imgsz >= {2 * self.stride}"
+                f"final batch=1 training at imgsz={min_imgsz} gives BatchNorm a single value per channel; "
+                f"change batch, or use imgsz and multi_scale that keep every size >= {2 * self.stride}"
             )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
@@ -324,6 +329,8 @@ class BaseTrainer:
         )
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
+        if not self.args.time:  # time mode re-estimates epochs after the first epoch
+            self.accumulate = min(self.accumulate, len(self.train_loader) * self.epochs)
         if self.optimizer is None:
             iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
             self.optimizer = self.build_optimizer(
@@ -480,6 +487,7 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = self._get_warmup_iterations(nb)
         last_opt_step = -1
+        acc0 = self.accumulate  # nominal (already capped) accumulate; warmup below ramps up to it, never past it
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
@@ -525,9 +533,9 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_start")
                 # Warmup
                 ni = i + nb * epoch
-                if ni < nw:
+                if nw and ni <= nw:  # ni == nw lands accumulate, lr and momentum exactly on their targets
                     xi = [0, nw]  # x interp
-                    self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
+                    self.accumulate = max(1, int(np.interp(ni, xi, [1, acc0]).round()))
                     for x in self.optimizer.param_groups:
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x["lr"] = float(
@@ -602,6 +610,7 @@ class BaseTrainer:
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)
                     last_opt_step = -1
+                    acc0 = self.accumulate  # the rebuild recomputed the nominal for the reduced batch size
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
                 if ni - last_opt_step >= self.accumulate:
@@ -668,6 +677,8 @@ class BaseTrainer:
 
             # NaN recovery
             if self._handle_nan_recovery(epoch):
+                last_opt_step = -1  # redo the epoch with normal step cadence, like the OOM restart
+                self.optimizer.zero_grad()  # drop the corrupted pass's gradients, including NaNs still in .grad
                 continue
 
             self.nan_recovery_attempts = 0
@@ -811,6 +822,7 @@ class BaseTrainer:
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
+                "stopper": {"best_fitness": self.stopper.best_fitness, "best_epoch": self.stopper.best_epoch},
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
@@ -891,7 +903,7 @@ class BaseTrainer:
 
         cfg, weights = self.model, None
         ckpt = None
-        if str(self.model).endswith(".pt"):
+        if str(self.model).lower().endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
         if isinstance(self.args.pretrained, (str, Path)) and not self.resume:
@@ -1079,7 +1091,7 @@ class BaseTrainer:
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):
-        """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
+        """Load optimizer, scaler, EMA, best_fitness, and early stopping state from checkpoint."""
         if ckpt.get("optimizer") is not None:
             for saved, group in zip(ckpt["optimizer"]["param_groups"], self.optimizer.param_groups):
                 saved["fused"] = group.get("fused")  # runtime device, not the checkpoint, picks the kernel
@@ -1093,6 +1105,7 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
+        self.stopper.__dict__.update(ckpt.get("stopper") or {})  # older checkpoints keep a fresh stopper
 
     def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss by loading last checkpoint.
@@ -1190,13 +1203,13 @@ class BaseTrainer:
         if name == "auto":
             LOGGER.info(
                 f"{colorstr('optimizer:')} 'optimizer=auto' found, "
-                f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
-                f"determining best 'optimizer', 'lr0' and 'momentum' automatically... "
+                f"ignoring 'lr0={self.args.lr0}' and determining best 'optimizer' and 'lr0' automatically... "
             )
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
-            self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
+            self.args.optimizer, self.args.lr0 = name, lr  # resume rebuilds this choice from train_args
+            self.args.warmup_bias_lr = 0.0  # start bias warmup at zero
 
         use_muon = name == "MuSGD"
         for module_name, module in unwrap_model(model).named_modules():

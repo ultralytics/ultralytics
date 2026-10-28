@@ -319,7 +319,7 @@ class Annotator:
             if self.pil or im.device.type == "cpu":
                 im, input_is_tensor = im.cpu().numpy(), False
         if not input_is_pil:
-            if im.shape[2] == 1:  # handle grayscale
+            if im.ndim == 2 or im.shape[2] == 1:  # handle grayscale
                 im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
             elif im.shape[2] == 2:  # handle 2-channel images
                 im = np.ascontiguousarray(np.dstack((im, np.zeros_like(im[..., :1]))))
@@ -653,7 +653,7 @@ class Annotator:
         """
         self._to_numpy()
         if self.pil:
-            w, h = self.font.getsize(text)
+            h = max(self.font.getsize(line)[1] for line in text.split("\n"))  # measure per line, raqm rejects newlines
             if anchor == "bottom":  # start y from font bottom
                 xy[1] += 1 - h
             for line in text.split("\n"):
@@ -803,9 +803,9 @@ def save_one_box(
     bounding box.
 
     Args:
-        xyxy (torch.Tensor | list): A tensor or list representing the bounding box in xyxy format.
-        im (np.ndarray): The input BGR image with shape (H, W, C).
-        file (Path, optional): The path where the cropped image will be saved.
+        xyxy (torch.Tensor | list): A bounding box in xyxy format, or (4, 2) OBB corners for a rotation-aligned crop.
+        im (np.ndarray): The input BGR image with shape (H, W, C) or (H, W).
+        file (Path, optional): Output path, saved as JPEG with an incremented name if the JPEG path already exists.
         gain (float, optional): A multiplicative factor to increase the size of the bounding box.
         pad (int, optional): The number of pixels to add to the width and height of the bounding box.
         square (bool, optional): If True, the bounding box will be transformed into a square.
@@ -823,23 +823,27 @@ def save_one_box(
         >>> im = cv2.imread("image.jpg")
         >>> cropped_im = save_one_box(xyxy, im, file=Path("cropped.jpg"), square=True)
     """
-    if not isinstance(xyxy, torch.Tensor):
-        xyxy = torch.as_tensor(xyxy)  # list, tuple, or ndarray
+    xyxy = torch.as_tensor(xyxy, dtype=torch.float32)  # float so integer boxes keep fractional centers and gain/pad
+    if xyxy.shape[-2:] == (4, 2):  # OBB corners: warp the box upright at its size, then crop the whole warp below
+        p = xyxy.reshape(4, 2).cpu().numpy()
+        w, h = (max(round(float(np.linalg.norm(p[0] - p[i]))), 1) for i in (3, 1))
+        M = cv2.getAffineTransform(p[:3], np.float32([[w, h], [w, 0], [0, 0]]))
+        im, xyxy = cv2.warpAffine(im, M, (w, h)).reshape(h, w, -1), torch.tensor([0.0, 0.0, w, h])
     b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
     xyxy = ops.xywh2xyxy(b).long()
     xyxy = ops.clip_boxes(xyxy, im.shape)
-    grayscale = im.shape[2] == 1  # grayscale image
-    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR or grayscale else -1)]
+    grayscale = im.ndim == 2 or im.shape[2] == 1  # grayscale image
+    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2])]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
-        f = str(increment_path(file).with_suffix(".jpg"))
+        f = str(increment_path(file.with_suffix(".jpg")))
         # cv2.imwrite(f, crop)  # save BGR, https://github.com/ultralytics/yolov5/issues/7007 chroma subsampling issue
-        im_save = crop.squeeze(-1) if grayscale else crop[..., ::-1] if BGR else crop
+        im_save = crop.reshape(crop.shape[:2]) if grayscale else crop[..., ::-1]
         Image.fromarray(im_save).save(f, quality=95, subsampling=0)  # save RGB
-    return crop
+    return crop if BGR or grayscale else crop[..., ::-1]
 
 
 @threaded
@@ -1033,9 +1037,12 @@ def plot_images(
             if mh != h or mw != w:
                 mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
             im = np.asarray(annotator.im).copy()
-            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
+            # The mosaic deviates from the Annotator BGR-buffer convention (it holds RGB), so convert the patch
+            # to BGR for the overlay, then back to RGB for the mosaic.
+            sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
+            sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
             sub_annotator.semantic_mask(mask, alpha=0.4)
-            im[y : y + h, x : x + w] = sub_annotator.im
+            im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
             annotator.fromarray(im)
 
         # Plot depth maps

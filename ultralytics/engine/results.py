@@ -663,12 +663,13 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Pose results
         if self.keypoints is not None:
+            ids = pred_boxes.id.tolist()[::-1] if pred_boxes and pred_boxes.is_track else None
             for i, k in enumerate(reversed(self.keypoints.cpu().numpy().data)):  # one host transfer, no per-kpt syncs
                 annotator.kpts(
                     k,
                     radius=kpt_radius,
                     kpt_line=kpt_line,
-                    kpt_color=colors(i, True) if color_mode == "instance" else None,
+                    kpt_color=colors(ids[i] if ids else i, True) if color_mode == "instance" else None,
                 )
 
         # Show results
@@ -759,7 +760,7 @@ class Results(SimpleClass, DataExportMixin):
             return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in self.probs.top5)}, "
         if boxes:
             counts = torch.as_tensor(boxes.cls, dtype=torch.int64).bincount()  # no-op for torch, converts numpy()
-            return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+            return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts.tolist()) if n > 0)
         if self.boxes3d is not None and len(self.boxes3d) > 0:
             from collections import Counter
 
@@ -769,9 +770,6 @@ class Results(SimpleClass, DataExportMixin):
             d = self.depth.data
             d = d[d > 0]
             return f"depth {float(d.min()):.2f}-{float(d.max()):.2f}m, " if len(d) else "depth (no valid pixels), "
-        if self.semantic_mask is not None:
-            return ""
-
         return ""
 
     def save_txt(self, txt_file: str | Path, save_conf: bool = False) -> str:
@@ -862,16 +860,14 @@ class Results(SimpleClass, DataExportMixin):
             ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
 
         Notes:
-            - This method does not support Semantic Segmentation, Depth, Classify, or Oriented Bounding Box (OBB) tasks.
+            - This method does not support Semantic Segmentation, Depth, or Classify tasks.
             - Crops are saved as 'save_dir/class_name/file_name.jpg'.
+            - OBB crops follow the box rotation and fill areas outside the source image with black.
             - The method will create necessary subdirectories if they don't exist.
             - Original image is copied before cropping to avoid modifying the original.
         """
         if self.probs is not None:
             LOGGER.warning("Classify task does not support `save_crop`.")
-            return
-        if self.obb is not None:
-            LOGGER.warning("OBB task does not support `save_crop`.")
             return
         if self.semantic_mask is not None:
             LOGGER.warning("Semantic Segmentation task does not support `save_crop`.")
@@ -879,9 +875,10 @@ class Results(SimpleClass, DataExportMixin):
         if self.depth is not None:
             LOGGER.warning("Depth task does not support `save_crop`.")
             return
-        for d in self.boxes.cpu():  # one host transfer avoids per-box GPU syncs in the loop below
+        boxes = self.obb if self.obb is not None else self.boxes
+        for d in boxes.cpu() if boxes is not None else []:  # one host transfer avoids per-box GPU syncs
             save_one_box(
-                d.xyxy,
+                d.xyxyxyxy if self.obb is not None else d.xyxy,
                 self.orig_img.copy(),
                 file=Path(save_dir) / self.names[int(d.cls.item())] / Path(file_name).with_suffix(".jpg"),
                 BGR=True,
@@ -893,8 +890,8 @@ class Results(SimpleClass, DataExportMixin):
         This method creates a list of detection dictionaries, each containing information about a single detection or
         classification result. For classification tasks, it returns the top 5 classes and their
         confidences. For detection tasks, it includes class information, bounding box coordinates, and
-        optionally mask segments and keypoints. For semantic segmentation, it returns the per-class pixel ratio, and
-        for depth estimation it returns an empty list.
+        optionally mask segments and keypoints. For semantic segmentation, it returns the per-class pixel ratio. Depth
+        estimation, and any result with neither boxes nor oriented boxes, returns an empty list.
 
         Args:
             normalize (bool): Whether to normalize bounding box coordinates by image dimensions.
@@ -949,15 +946,12 @@ class Results(SimpleClass, DataExportMixin):
                 )
             return results
 
-        if self.depth is not None:
-            # Depth is a dense per-pixel map, not a per-instance result; excluded from summary.
-            return results
-
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
-        if data:
-            data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
-            coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
+        if not data:  # depth maps and results without boxes have no per-instance rows
+            return results
+        data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
+        coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
         kpts = self.keypoints
         if kpts is not None:
             kpts = kpts.cpu()  # ditto for the per-row keypoints sync below

@@ -111,7 +111,7 @@ The image below shows a mosaiced training batch from the VOC dataset. Mosaicing 
 
 If you use the VOC dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

@@ -74,7 +74,7 @@ Available YOLO26 export formats are in the table below. You can export to any fo
 
 !!! note "Automatic installation of export dependencies"
 
-    Most formats need packages that are not installed with `ultralytics`. When one is missing, export installs it at runtime with `uv` or `pip`, and on Linux with `apt` for system packages such as the Edge TPU compiler or Java for IMX. To keep the environment fixed, for example in a container image, CI job, or production service, set `YOLO_AUTOINSTALL=False`. Export then still checks for the missing packages and reports them, but leaves the environment unchanged and fails until they are installed.
+    Most formats need packages that are not installed with `ultralytics`. When one is missing, export installs it at runtime with `uv` or `pip`, and on Linux with `apt` for system packages such as Java for IMX. The Edge TPU compiler is downloaded without `apt` or `sudo`. To keep the environment fixed, for example in a container image, CI job, or production service, set `YOLO_AUTOINSTALL=False`. Export then still checks for the missing packages and reports them, but leaves the environment unchanged and fails until they are installed.
 
     ```bash
     export YOLO_AUTOINSTALL=False
@@ -120,6 +120,7 @@ Not every export format supports every precision. Explicit `quantize` requests e
 | Qualcomm QNN  | ❌                | ❌                | ❌         | ✅ auto           | QNN HTP export is fixed to INT8 weights with 16-bit activations.                                                                                                                                                                                        |
 | Hailo         | ❌                | ❌                | ✅ auto    | ❌                | Hailo export requires INT8; it is auto-enabled when unset.                                                                                                                                                                                              |
 | Huawei Ascend | ❌                | ✅ auto           | ❌         | ❌                | Ascend AI Core convolutions accept only FP16/INT8 inputs, so ATC compiles FP16; it is auto-enabled when unset.                                                                                                                                          |
+| AMD Xilinx    | ❌                | ❌                | ✅ auto    | ❌                | AMD Xilinx export requires Vitis AI INT8 (`VINT8`); it is auto-enabled when unset.                                                                                                                                                                      |
 
 For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior. The LiteRT `"w8a32"` (dynamic INT8) scheme needs no calibration data.
 
@@ -240,7 +241,7 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         yolo export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml # export ONNX model with INT8 quantization
         ```
 
-INT8 quantization can be applied to formats such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter. See [Quantization Options](#quantization-options) for accepted `quantize` values and supported formats.
+INT8 quantization can be applied to formats such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [Rockchip RKNN](../integrations/rockchip-rknn.md), and [AMD Xilinx](../integrations/xilinx.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter. See [Quantization Options](#quantization-options) for accepted `quantize` values and supported formats.
 
 ### Why is dynamic input size important when exporting models?
 
@@ -279,7 +280,7 @@ Understanding and configuring export arguments is crucial for optimizing model p
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
 - **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or the mixed weight/activation schemes `"w8a16"` and `"w8a32"` (LiteRT dynamic INT8) on supported formats. See [Quantization Options](#quantization-options).
 - **`dynamic:`** Accepts variable input sizes on formats that support dynamic shapes, such as ONNX, OpenVINO, and TensorRT.
-- **`nms:`** Selects raw outputs for external NMS (`None`), embedded NMS (`True`), or the NMS-free head (`False`).
+- **`nms:`** Selects raw outputs for external NMS (`None`; YOLO26 keeps its NMS-free head on Axelera), embedded NMS (`True`), or the NMS-free head (`False`).
 - **`device:`** Device used to trace the model during export, such as `cpu` or `0` for the first CUDA GPU; FP16 TorchScript requires a GPU.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.
@@ -290,7 +291,7 @@ When you export a YOLO model to formats like ONNX or TensorRT, the output tensor
 
 For **YOLO26 detection models** (e.g., `yolo26n.pt`) exported with `nms=False`, supported formats produce NMS-free output shaped like `(batch_size, max_detections, 6)` with `[x1, y1, x2, y2, confidence, class_id]` values. With the default `max_det=300`, this is commonly `(batch_size, 300, 6)`. Some constrained formats automatically fall back to the traditional output layout when end-to-end operators are unsupported.
 
-By default (`nms=None`), detection models including YOLO26 export raw one-to-many predictions: the output is typically a single tensor shaped like `(batch_size, 4 + num_classes, num_predictions)` where the channels represent box coordinates plus per-class scores, and `num_predictions` depends on the export input resolution (and can be dynamic). The [End-to-End Detection guide](../guides/end2end-detection.md) covers which formats keep the end-to-end output.
+By default (`nms=None`), detection models including YOLO26 export raw one-to-many predictions (YOLO26 keeps its NMS-free head on [Axelera](../integrations/axelera.md#supported-tasks)). The output is typically a single tensor shaped like `(batch_size, 4 + num_classes, num_predictions)` where the channels represent box coordinates plus per-class scores, and `num_predictions` depends on the export input resolution (and can be dynamic). The [End-to-End Detection guide](../guides/end2end-detection.md) covers which formats keep the end-to-end output.
 
 For **segmentation models** (e.g., `yolo26n-seg.pt`), you'll typically get two outputs: the first tensor shaped like `(batch_size, 4 + num_classes + mask_dim, num_predictions)` (boxes, class scores, and mask coefficients), and the second tensor shaped like `(batch_size, mask_dim, proto_h, proto_w)` containing mask prototypes used with the coefficients to generate instance masks. Sizes depend on the export input resolution (and can be dynamic).
 

@@ -7,8 +7,8 @@ from torch import nn
 
 from . import LOGGER
 from .metrics import bbox_iou, probiou
-from .ops import xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
-from .torch_utils import TORCH_1_11
+from .ops import crop_mask, xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
+from .torch_utils import TORCH_1_11, autocast
 
 
 class TaskAlignedAssigner(nn.Module):
@@ -61,7 +61,7 @@ class TaskAlignedAssigner(nn.Module):
         self._oom_warned = False
 
     @torch.no_grad()
-    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra):
         """Compute the task-aligned assignment.
 
         Args:
@@ -71,6 +71,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             target_labels (torch.Tensor): Target labels with shape (bs, num_total_anchors).
@@ -97,7 +98,7 @@ class TaskAlignedAssigner(nn.Module):
             )
 
         try:
-            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra)
         except RuntimeError as e:
             if "out of memory" not in str(e).lower():
                 raise
@@ -128,6 +129,7 @@ class TaskAlignedAssigner(nn.Module):
                     gt_labels[i : i + 1, : self.n_max_boxes],
                     gt_bboxes[i : i + 1, : self.n_max_boxes],
                     mask_gt[i : i + 1, : self.n_max_boxes],
+                    **{k: v[i : i + 1] for k, v in extra.items()},
                 )
                 if results is None:
                     results = tuple(x.new_empty((bs, *x.shape[1:])) for x in result)
@@ -137,7 +139,7 @@ class TaskAlignedAssigner(nn.Module):
             self.bs, self.n_max_boxes = bs, n_max_boxes
         return results
 
-    def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+    def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra):
         """Compute the task-aligned assignment.
 
         Args:
@@ -147,6 +149,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             target_labels (torch.Tensor): Target labels with shape (bs, num_total_anchors).
@@ -156,7 +159,7 @@ class TaskAlignedAssigner(nn.Module):
             target_gt_idx (torch.Tensor): Target ground truth indices with shape (bs, num_total_anchors).
         """
         mask_pos, align_metric, overlaps = self.get_pos_mask(
-            pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
+            pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt, **extra
         )
 
         target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(
@@ -177,7 +180,7 @@ class TaskAlignedAssigner(nn.Module):
 
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
 
-    def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
+    def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt, **extra):
         """Get positive mask for each ground truth box.
 
         Args:
@@ -187,6 +190,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             anc_points (torch.Tensor): Anchor points with shape (num_total_anchors, 2).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             mask_pos (torch.Tensor): Positive mask with shape (bs, max_num_obj, h*w).
@@ -195,7 +199,9 @@ class TaskAlignedAssigner(nn.Module):
         """
         mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
         # Get anchor_align metric, (b, max_num_obj, h*w)
-        align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
+        align_metric, overlaps = self.get_box_metrics(
+            pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt, **extra
+        )
         # Get topk_metric mask, (b, max_num_obj, h*w)
         mask_topk = self.select_topk_candidates(align_metric, topk_mask=mask_gt.expand(-1, -1, self.topk).bool())
         # Merge all mask to a final mask, (b, max_num_obj, h*w)
@@ -203,7 +209,7 @@ class TaskAlignedAssigner(nn.Module):
 
         return mask_pos, align_metric, overlaps
 
-    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra):
         """Compute alignment metric given predicted and ground truth bounding boxes.
 
         Args:
@@ -212,6 +218,7 @@ class TaskAlignedAssigner(nn.Module):
             gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
             gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, h*w).
+            **extra (torch.Tensor): Batch-first tensors passed through to `pair_overlaps`.
 
         Returns:
             align_metric (torch.Tensor): Alignment metric combining classification and localization with shape (bs,
@@ -224,7 +231,7 @@ class TaskAlignedAssigner(nn.Module):
         shape = self.bs, self.n_max_boxes, na
         indices = mask_gt.nonzero(as_tuple=True)
         bbox_scores = pd_scores[indices[0], indices[2], gt_labels[indices[0], indices[1], 0].long()]
-        overlap_values = self.iou_calculation(gt_bboxes[indices[:2]], pd_bboxes[indices[0], indices[2]])
+        overlap_values = self.pair_overlaps(indices, gt_bboxes, pd_bboxes, **extra)
         align_values = bbox_scores.pow(self.alpha) * overlap_values.pow(self.beta)
 
         overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)
@@ -232,6 +239,10 @@ class TaskAlignedAssigner(nn.Module):
         overlaps[indices] = overlap_values
         align_metric[indices] = align_values
         return align_metric, overlaps
+
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes):
+        """Return the overlap of each candidate (batch, gt, anchor) pair in `indices`, shape (N,)."""
+        return self.iou_calculation(gt_bboxes[indices[:2]], pd_bboxes[indices[0], indices[2]])
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
         """Calculate CIoU for horizontal bounding boxes, clamped to be non-negative.
@@ -377,9 +388,109 @@ class TaskAlignedAssigner(nn.Module):
             topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
             topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
             mask_pos *= topk_idx
-        # Each anchor now serves at most one gt, so the column max is both its foreground flag and its gt index
-        fg_mask, target_gt_idx = mask_pos.max(-2)  # (b, h*w)
+        # Column max gives fg flag + gt idx; NPU aclnnMaxDim lacks INT8 through CANN 9.1.1; cast 0/1 mask to int64
+        fg_mask, target_gt_idx = (mask_pos.to(torch.int64) if mask_pos.device.type == "npu" else mask_pos).max(-2)
         return target_gt_idx, fg_mask, mask_pos
+
+
+class PoseTaskAlignedAssigner(TaskAlignedAssigner):
+    """Task-aligned assigner for pose whose overlap is keypoint OKS, with an FCOS-style pyramid-level gate.
+
+    Positives, conflict resolution and the soft classification targets then all favor anchors with accurate keypoints,
+    so the score ranks detections by pose quality. OKS carries no scale prior, so each ground truth is only a candidate
+    for anchors whose stride s satisfies ``lo * s <= sqrt(box area) <= hi * s`` (the finest and coarsest levels stay
+    open below and above). Call it with ``pd_kpts`` (b, h*w, K, 2) and ``gt_kpts`` (b, max_num_obj, K, 3) in pixels and
+    ``anc_strides`` (h*w,); ground truths without visible keypoints keep the box IoU.
+    """
+
+    level_range = (2.0, 12.0)  # (lo, hi) ground-truth size range per stride, in strides
+
+    def __init__(self, sigmas: torch.Tensor, **kwargs):
+        """Initialize with the per-keypoint OKS sigmas (K,) and the TaskAlignedAssigner arguments."""
+        super().__init__(**kwargs)
+        self.sigmas = sigmas
+
+    def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, anc_strides, **extra):
+        """Assign like TaskAlignedAssigner, gating candidates by the per-anchor strides ``anc_strides`` (h*w,)."""
+        self.anc_strides = anc_strides
+        return super().forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt, **extra)
+
+    def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
+        """Select anchors inside each ground-truth box on the pyramid levels that fit its size.
+
+        A ground truth that the gate would leave without candidates (e.g. a thin box narrower than the coarse strides)
+        keeps its ungated candidates.
+        """
+        mask = super().select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt, eps)
+        side = (gt_bboxes[..., 2:] - gt_bboxes[..., :2]).prod(-1, keepdim=True).clamp(min=0).sqrt()  # (b, n, 1)
+        s, (lo, hi) = self.anc_strides, self.level_range
+        gated = mask & ((side >= lo * s) | (s == s.min())) & ((side <= hi * s) | (s == s.max()))
+        return torch.where(gated.any(-1, keepdim=True), gated, mask)
+
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, pd_kpts, gt_kpts):
+        """Return the OKS of each candidate pair, or the box IoU for ground truths without visible keypoints."""
+        b, g, a = indices
+        iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
+        gt_kpts = gt_kpts[b, g]  # (P, K, 3)
+        vis = gt_kpts[..., 2] > 0
+        area = (gt_bboxes[b, g, 2:] - gt_bboxes[b, g, :2]).prod(-1, keepdim=True) * 0.53  # as in PoseValidator
+        d = (pd_kpts[b, a].float() - gt_kpts[..., :2]).pow(2).sum(-1)
+        oks = ((-d / ((2 * self.sigmas).pow(2) * (area + self.eps) * 2)).exp() * vis).sum(-1) / vis.sum(-1).clamp(min=1)
+        return torch.where(vis.any(-1), oks.to(iou.dtype), iou)
+
+
+class SegTaskAlignedAssigner(TaskAlignedAssigner):
+    """Task-aligned assigner for segmentation whose overlap is the mean of box IoU and predicted-mask IoU.
+
+    Positives, conflict resolution and the soft classification targets then all favor anchors with accurate masks, so
+    the score ranks detections by mask quality. Call it with mask coefficients ``pd_coef`` (b, h*w, nm), per-image
+    prototype-pixel scales ``mask_scale`` (b, 1), prototypes ``proto`` (b, nm, mh, mw) and binary ground-truth masks
+    ``gt_masks`` (b, max_num_obj, mh, mw). Predicted masks are binarized and cropped to their box as in validation.
+    """
+
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra):
+        """Compute the alignment metric, also passing the class scores and labels on to `pair_overlaps`."""
+        extra.update(scores=pd_scores, labels=gt_labels)
+        return super().get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, **extra)
+
+    def pair_overlaps(self, indices, gt_bboxes, pd_bboxes, scores, labels, pd_coef, mask_scale, proto, gt_masks):
+        """Return (IoU + mask IoU) / 2 per pair; mask IoU only for each gt's 3 * topk best box-metric pairs, else 0."""
+        b, g, a = indices
+        iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
+        dense = iou.new_zeros(self.bs, self.n_max_boxes, pd_bboxes.shape[1])
+        # Box alignment metric of each pair; eps keeps zero-metric pairs selectable
+        dense[indices] = scores[b, a, labels[b, g, 0].long()].pow(self.alpha) * iou.pow(self.beta) + self.eps
+        top = dense.topk(min(3 * self.topk, dense.shape[-1]), dim=-1).indices
+        sel = torch.zeros_like(dense, dtype=torch.bool).scatter_(-1, top, True)[indices].nonzero().squeeze(1)
+        miou = torch.zeros_like(iou)
+        if len(sel):  # decode each selected anchor's mask once, packed into per-image slots
+            na, (mh, mw) = dense.shape[-1], proto.shape[-2:]
+            key, inv = (b[sel] * na + a[sel]).unique(return_inverse=True)
+            ub, ua = key // na, key % na
+            n = torch.bincount(ub, minlength=self.bs)
+            slot = torch.arange(len(key), device=key.device) - (n.cumsum(0) - n)[ub]
+            order = n.argsort(descending=True)  # images by anchor count, so each chunk pads only to its own largest
+            r, counts = order.argsort()[ub], n[order].tolist()
+            coef = pd_coef.new_zeros(self.bs, counts[0], pd_coef.shape[-1])
+            boxes = pd_bboxes.new_zeros(self.bs, counts[0], 4)
+            coef[r, slot], boxes[r, slot] = pd_coef[ub, ua], pd_bboxes[ub, ua] * mask_scale[ub]
+            dtype = torch.half if proto.device.type == "cuda" else torch.float
+            ious = iou.new_zeros(self.bs, gt_masks.shape[1], counts[0])  # gt_masks may exceed n_max_boxes
+            i = 0
+            while i < self.bs and counts[i]:
+                m = counts[i]
+                s = slice(i, i + max(1, (1 << 27) // (m * mh * mw)))  # ~128M mask pixels per chunk
+                o = order[s]
+                pm = (coef[s, :m] @ proto[o].flatten(2)) > 0
+                pm = crop_mask(pm.view(-1, mh, mw), boxes[s, :m].reshape(-1, 4)).view(pm.shape)
+                gm, pmt = gt_masks[o].flatten(2).to(dtype), pm.to(dtype).transpose(1, 2)
+                with autocast(False):  # intersections over <=2048-pixel blocks are exact FP16 integers, unlike BF16
+                    inter = sum((gm[..., k : k + 2048] @ pmt[:, k : k + 2048]).float() for k in range(0, mh * mw, 2048))
+                union = gm.sum(-1, dtype=torch.float)[..., None] + pm.sum(-1)[:, None] - inter
+                ious[s, :, :m] = inter / union.clamp(min=1)
+                i = s.stop
+            miou[sel] = ious[r[inv], g[sel], slot[inv]]
+        return (iou + miou) / 2
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):

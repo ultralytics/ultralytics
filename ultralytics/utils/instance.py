@@ -429,6 +429,8 @@ class Instances:
             y2 = self.bboxes[:, 3].copy()
             self.bboxes[:, 1] = h - y2
             self.bboxes[:, 3] = h - y1
+        elif self._bboxes.format == "ltwh":
+            self.bboxes[:, 1] = h - self.bboxes[:, 1] - self.bboxes[:, 3]
         else:
             self.bboxes[:, 1] = h - self.bboxes[:, 1]
         if self.segments is not None and len(self.segments):
@@ -456,6 +458,8 @@ class Instances:
             x2 = self.bboxes[:, 2].copy()
             self.bboxes[:, 0] = w - x2
             self.bboxes[:, 2] = w - x1
+        elif self._bboxes.format == "ltwh":
+            self.bboxes[:, 0] = w - self.bboxes[:, 0] - self.bboxes[:, 2]
         else:
             self.bboxes[:, 0] = w - self.bboxes[:, 0]
         if self.segments is not None and len(self.segments):

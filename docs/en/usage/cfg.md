@@ -98,8 +98,8 @@ Training settings for YOLO models include hyperparameters and configurations tha
     The `batch` argument offers three configuration options:
 
     - **Fixed Batch Size**: Specify the number of images per batch with an integer (e.g., `batch=16`).
-    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` for automatic adjustment to approximately 60% CUDA memory utilization.
-    - **Auto Mode with Utilization Fraction**: Set a fraction (e.g., `batch=0.70`) to adjust based on a specified GPU memory usage.
+    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` for automatic adjustment to approximately 60% of the CUDA memory available to training.
+    - **Auto Mode with Utilization Fraction**: Set a fraction (e.g., `batch=0.70`) to adjust based on a specified fraction of available GPU memory.
     - **No Fit Found**: If no candidate batch size produces a usable profile, AutoBatch raises a clear `RuntimeError` instead of silently falling back to an unrelated default.
 
 [Train Guide](../modes/train.md){ .md-button }
@@ -202,7 +202,7 @@ Adjust these based on your dataset and hardware. Learn more in [Train Settings](
 
 ### How do I set the learning rate for training a YOLO model?
 
-The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for [Adam optimizer](https://www.ultralytics.com/glossary/adam-optimizer). Monitor metrics and adjust as needed. Use cosine learning rate schedulers (`cos_lr`) or warmup (`warmup_epochs`, `warmup_momentum`). Details are in the [Train Guide](../modes/train.md).
+The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for [Adam optimizer](https://www.ultralytics.com/glossary/adam-optimizer), and set `optimizer` explicitly since the default `auto` ignores `lr0`. Monitor metrics and adjust as needed. Use cosine learning rate schedulers (`cos_lr`) or warmup (`warmup_epochs`, `warmup_momentum`). Details are in the [Train Guide](../modes/train.md).
 
 ### What are the default inference settings for YOLO models?
 

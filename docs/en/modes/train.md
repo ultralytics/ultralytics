@@ -136,7 +136,7 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
 
-AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the [AMD integration guide](../integrations/amd.md) for installation and the current MIGraphX, DirectML, and Ryzen AI NPU support status.
+AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the [AMD integration guide](../integrations/amd.md) for ROCm installation, multi-GPU training, AMP notes, and [MIGraphX inference](../integrations/amd.md#export-and-inference-with-migraphx) of exported models.
 
 Intel GPU training uses `device=xpu:0`, or multiple XPU IDs with a PyTorch build that provides XCCL.
 
@@ -276,7 +276,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         yolo train resume model=path/to/last.pt
         ```
 
-By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session.
+By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session. A run that streams to [Ultralytics Platform](../platform/train/cloud-training.md#resume-remote-training) continues the same Platform model when resumed.
 
 Remember that checkpoints are saved at the end of every epoch by default, or at fixed intervals using the `save_period` argument, so you must complete at least 1 epoch to resume a training run.
 
@@ -292,7 +292,7 @@ It is **recommended for longer YOLO26 training runs and larger datasets**, where
 
 Only 2D linear weights and 4D convolutional filters (reshaped to 2D) receive the Muon style update together with SGD, while all other parameters, such as batch normalization weights and bias terms, remain on standard SGD.
 
-When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**.
+When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**. In `auto` mode, the trainer also selects the learning rate, so a user-provided `lr0` is ignored. To control these settings manually, select an optimizer explicitly, for example `optimizer=AdamW lr0=0.001`.
 
 Example usage:
 
@@ -309,8 +309,8 @@ See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-sel
     The `batch` argument can be configured in three ways:
 
     - **Fixed [Batch Size](https://www.ultralytics.com/glossary/batch-size)**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly.
-    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
-    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
+    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% of the CUDA memory available to training.
+    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of available GPU memory.
     - **OOM Auto-Retry**: If a CUDA out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-GPU training; multi-GPU (DDP) training will raise the error immediately.
     - **No Fit Found**: If no candidate batch size produces a usable profile, AutoBatch raises a clear `RuntimeError` instead of silently falling back to an unrelated default.
 
@@ -480,7 +480,7 @@ The `cls_pw` argument controls class weighting power based on inverse class freq
 - `cls_pw=1.0`: Applies full inverse frequency weighting
 - Values between `0.0` and `1.0`: Provide partial weighting for moderate imbalance
 
-The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0.
+The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0. Classes without training labels, such as those excluded by `classes=`, get a weight of 1.0.
 
 !!! example "Training on Imbalanced Dataset"
 

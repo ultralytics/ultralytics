@@ -28,6 +28,9 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.torch_utils import unwrap_model
 
+# Predictor arguments applied at model or tracker setup, so changing one rebuilds the predictor and its trackers
+PREDICTOR_SETUP_KEYS = ("device", "dnn", "data", "nms", "compile", "channels_last", "quantize", "tracker")
+
 
 class Model(torch.nn.Module):
     """A base class for implementing YOLO models, unifying APIs across different model types.
@@ -129,7 +132,7 @@ class Model(torch.nn.Module):
 
         # Load or create new YOLO model
         __import__("os").environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # to avoid deterministic warnings
-        if str(model).endswith((".yaml", ".yml")):
+        if str(model).lower().endswith((".yaml", ".yml")):
             self._new(model, task=task, verbose=verbose)
         else:
             self._load(model, task=task)
@@ -246,7 +249,7 @@ class Model(torch.nn.Module):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26n -> yolo26n.pt
 
-        if str(weights).rpartition(".")[-1] == "pt":
+        if str(weights).rpartition(".")[-1].lower() == "pt":
             self.model, self.ckpt = load_checkpoint(weights)
             self.task = self.model.task
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
@@ -276,7 +279,7 @@ class Model(torch.nn.Module):
             >>> model = Model("yolo26n.onnx")
             >>> model._check_is_pytorch_model()  # Raises TypeError
         """
-        pt_str = isinstance(self.model, (str, Path)) and str(self.model).rpartition(".")[-1] == "pt"
+        pt_str = isinstance(self.model, (str, Path)) and str(self.model).rpartition(".")[-1].lower() == "pt"
         pt_module = isinstance(self.model, torch.nn.Module)
         if not (pt_module or pt_str):
             raise TypeError(
@@ -522,7 +525,8 @@ class Model(torch.nn.Module):
             - If 'source' is not provided, it defaults to the ASSETS directory (or a sample image for OBB) with a
               warning.
             - The method sets up a new predictor if not already present and updates its arguments with each call,
-              rebuilding it when device, channels_last, nms, or quantize changes.
+              rebuilding it when an argument applied at model or tracker setup changes or a different `predictor` class
+              is passed.
             - For SAM-type models, 'prompts' can be passed as a keyword argument.
         """
         if source is None:
@@ -537,12 +541,12 @@ class Model(torch.nn.Module):
         kwargs = _handle_deprecation(kwargs)
         prompts = kwargs.pop("prompts", None)  # for SAM-type models
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
+        args["quantize"] = QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)  # unset quantize is FP32
 
-        setup_keys = ("device", "dnn", "data", "nms", "compile", "channels_last", "quantize")  # applied at model setup
         if (
             not self.predictor
-            or any(getattr(self.predictor.args, k) != args[k] for k in ("device", "channels_last", "nms") if k in args)
-            or self.predictor.args.quantize != QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
+            or (predictor and type(self.predictor) is not predictor)
+            or any(getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args)
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
@@ -552,7 +556,7 @@ class Model(torch.nn.Module):
             base_args = {
                 **DEFAULT_CFG_DICT,
                 **self.overrides,
-                **{k: getattr(self.predictor.args, k) for k in setup_keys},
+                **{k: getattr(self.predictor.args, k) for k in PREDICTOR_SETUP_KEYS},
             }
             self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
             if self.predictor.args.show:
@@ -643,11 +647,11 @@ class Model(torch.nn.Module):
         return validator.metrics
 
     def calibrate(self, data: str | Path, **kwargs: Any):
-        """Fit scale-only depth calibration on a small labeled set (depth task only).
+        """Select the depth scale calibration on a small labeled set (depth task only).
 
         Runs a validation pass, then fits the global log-affine ``d' = exp(a·log d + b)`` against
         ground-truth depth via :func:`fit_calibration_selective` — the same "calibrate only if it
-        helps" policy as trainer auto-calibration (identity / scale-only chosen by held-out δ1) —
+        helps" policy as trainer auto-calibration (identity / current / scale-only chosen by held-out δ1) —
         which writes ``(a, b)`` into the head's ``cal_a``/``cal_b`` buffers. No gradient training
         and the decoder weights are untouched, so it cannot degrade the relative depth structure.
         Call ``model.save(...)`` afterwards to persist the calibration.
@@ -657,7 +661,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Extra validation arguments (e.g. ``imgsz``, ``batch``, ``device``, ``split``).
 
         Returns:
-            (tuple | None): The fitted ``(a, b)``, or ``None`` if fewer than 2 images had valid depth pixels.
+            (tuple | None): The selected ``(a, b)``, or ``None`` if fewer than 2 images had valid depth pixels.
 
         Raises:
             TypeError: If the model is not a PyTorch model.
@@ -703,7 +707,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
                 - imgsz (int | list[int]): Image size for benchmarking.
                 - quantize (int | str): Requested precision: 16 (FP16), 8 (INT8), or 32/None (FP32) where
-                  supported; only 16 changes the native PyTorch row.
+                  supported; only 16 changes the native PyTorch row, and only off CPU.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
 
         Returns:

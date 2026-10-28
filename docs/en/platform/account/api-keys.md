@@ -27,7 +27,7 @@ Create a new API key:
 3. Enter a name for the key (e.g., "Training Server")
 4. Click **Create Key**
 
-![Ultralytics Platform Settings API Keys Tab Create API Key Dialog](https://cdn.ul.run/i/f06be245e628d7129554260107ae1bf7.avif)<!-- screenshot -->
+![Ultralytics Platform Settings API Keys Tab Create API Key Dialog](https://cdn.ul.run/i/44264db05b4663de74af579ccaaa610d.avif)<!-- screenshot -->
 
 ### Key Name
 
@@ -41,7 +41,7 @@ Give your key a descriptive name:
 
 After creation, the key is displayed in a confirmation dialog:
 
-![Ultralytics Platform Settings API Keys Tab API Key Created Copy Dialog](https://cdn.ul.run/i/9d54f61a64e1d9887f622d64834d7d2e.avif)<!-- screenshot -->
+![Ultralytics Platform Settings API Keys Tab API Key Created Copy Dialog](https://cdn.ul.run/i/0061648d44959da04b8f607c42b723eb.avif)<!-- screenshot -->
 
 !!! tip "Copy Your Key"
 
@@ -49,13 +49,15 @@ After creation, the key is displayed in a confirmation dialog:
 
 ## Provider Keys for Agents and Annotation
 
-The same **Settings > API Keys** tab also stores keys for external model providers used by [Agents](../agents.md) and by the paid models in [class-prompted annotation](../data/annotation.md#class-prompted-smart-annotation); annotation reads the key saved in the dataset's workspace. Only the workspace owner can add, replace, or remove these keys; team members can see which providers are connected. Ask the owner to connect a missing provider. To connect a provider as the owner:
+The same **Settings > API Keys** tab also stores keys for external model providers used by [Agents](../agents.md) and by the paid models in [class-prompted annotation](../data/annotation.md#class-prompted-smart-annotation) and [Generate Similar Images](../data/datasets.md#paid-image-generation-models); annotation and image generation read the key saved in the dataset's workspace. Only the workspace owner can add, replace, or remove these keys; team members can see which providers are connected. Ask the owner to connect a missing provider. To connect a provider as the owner:
 
 1. Click **Add Key**.
-2. Select the provider matching your workflow's language or vision-language model, or the annotation model you want to run.
+2. Select the provider matching your workflow's language or vision-language model, or the annotation or image generation model you want to run.
 3. Paste that provider's API key into **API Key**, then click **Save Key**. The dialog's **Get an API key** link opens the provider's key page.
 
 An Ultralytics key does not authenticate external model providers. Provider usage is billed through the provider account associated with the saved key. Use the key row's edit control to replace a provider key.
+
+The tab also holds the keys for [Roboflow](../integrations/roboflow.md) and [Weights & Biases](../integrations/weights-biases.md) imports. When the workspace owner connects either import with a key, Platform saves that key here, replacing any key saved before, and later imports in the workspace connect with it automatically. A key that any other team member enters is used for that import only. Delete the key row to stop using a saved key.
 
 ![Ultralytics Platform Add API Key dialog with Google Gemini selected as the provider](https://cdn.ul.run/i/d25887575ed998e955cea7ae69901f90.avif)
 

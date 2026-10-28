@@ -89,7 +89,7 @@ The samples show the variety of categories and the natural, centered framing typ
 
 If you use the Caltech-101 dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

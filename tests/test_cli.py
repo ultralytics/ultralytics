@@ -154,6 +154,9 @@ def test_fastsam(
     for s in (source, Image.open(source)):
         everything_results = sam_model(s, device="cpu", retina_masks=True, imgsz=160, conf=0.4, iou=0.9)
 
+        prompted = sam_model.predictor.prompt(everything_results, points=[[400, 500], [400, 400]], labels=[0, 1])[0]
+        assert not prompted.masks.data[:, 500, 400].any()  # negative points must exclude masks regardless of order
+
         # Remove small regions
         _new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
 
@@ -163,6 +166,8 @@ def test_fastsam(
 
 def test_mobilesam() -> None:
     """Test MobileSAM segmentation with point and box prompts using Ultralytics."""
+    import numpy as np
+
     from ultralytics import SAM
 
     # Load the model
@@ -179,6 +184,14 @@ def test_mobilesam() -> None:
 
     # Predict a segment based on a box prompt
     model.predict(source, bboxes=[439, 437, 524, 709], save=True)
+
+    # A box prompt applies to every image of a directory source, not only the first
+    assert [len(r.masks) for r in model(ASSETS, bboxes=[439, 437, 524, 709])] == [1, 1]
+
+    # Mask-refinement logits must retain negative background and fractional foreground values.
+    mask = np.array([[-2.5, 0.25], [1.5, -0.75]], dtype=np.float32)
+    prepared = model.predictor._prepare_prompts((1024, 1024), (2, 2), masks=mask)[-1]
+    assert prepared[0, 0, ::512, ::512].cpu().tolist() == mask.tolist()
 
     # Predict all
     # model(source)
@@ -199,6 +212,7 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
     "solution",
     ["count", "blur", "workout", "heatmap", "isegment", "visioneye", "speed", "queue", "analytics", "trackzone"],
 )
-def test_solutions(solution: str) -> None:
+def test_solutions(solution: str, solution_assets) -> None:
     """Test yolo solutions command-line modes."""
-    run(f"yolo solutions {solution} verbose=False")
+    source = solution_assets("pose_video" if solution == "workout" else "demo_video")
+    run(f"yolo solutions {solution} verbose=False source={source}")

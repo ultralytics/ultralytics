@@ -286,7 +286,7 @@ Additionally, you can try FastSAM through the CASIA-LMC-Lab [Colab demo](https:/
 
 We would like to acknowledge the FastSAM authors for their significant contributions in the field of real-time instance segmentation:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

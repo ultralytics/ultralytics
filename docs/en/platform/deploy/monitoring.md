@@ -10,41 +10,34 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track endpoint requests, latency, errors, and logs. Ready dedicated endpoints on a current runtime also provide live prediction statistics and temporary examples that you can inspect and save to datasets.
 
-![Ultralytics Platform Deployments Tab Overview Cards And World Map](https://cdn.ul.run/i/f13ad8c9a1b981b5b3863a9ba602b345.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/61603cb9902cf112660c2a5d2fb5bc44.avif)<!-- screenshot -->
 
 ## Deployments Tab
 
 The **Deployments** tab on your profile serves as the monitoring dashboard for all your deployments. It combines the world map, overview metrics, and deployment management in one view. See [Dedicated Endpoints](endpoints.md) for creating and managing deployments.
 
 ```mermaid
-graph TB
-    subgraph "Deployments Tab"
-        Map[World Map]:::proc --- Cards[Overview Cards]:::proc
-        Cards --- List[Deployments List]:::decide
+flowchart TD
+    subgraph tab["Deployments tab"]
+        direction TB
+        A[Overview cards] ~~~ B[World map]
+        B ~~~ C[Deployments list]
     end
-    subgraph "Deployment Page"
-        Metrics[Metrics Cards]:::out
-        Overview[Overview Tab: Endpoint and Health Check]:::out
-        Monitoring[Monitoring Tab]:::out
-        Predict[Predict Tab]:::out
-        Logs[Logs Tab]:::out
+    subgraph page["Deployment page"]
+        direction TB
+        D[Metrics cards] ~~~ E[Overview]
+        D ~~~ F[Monitoring]
+        E ~~~ G[Predict]
+        F ~~~ H[Logs]
     end
-    List --> Metrics
-    List --> Overview
-    List --> Monitoring
-    List --> Predict
-    List --> Logs
-
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+    tab -->|open| page
 ```
 
 ### Overview Cards
 
 Four summary cards at the top of the page show:
 
-![Ultralytics Platform Deployments Tab Four Overview Cards](https://cdn.ul.run/i/b315ed2fb56e0d934b78014fb46030e1.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab Four Overview Cards](https://cdn.ul.run/i/f999401a804be9a8051aaf324a0ccdac.avif)<!-- screenshot -->
 
 | Metric                     | Description                                                                           |
 | -------------------------- | ------------------------------------------------------------------------------------- |
@@ -71,7 +64,7 @@ The interactive world map shows:
 
 Click any region to open the `New Deployment` dialog. The map is hidden on small screens.
 
-![Ultralytics Platform Deployments Tab World Map With Deployed Regions](https://cdn.ul.run/i/a52b2daa4483953d8aa9877af53ee6a8.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab World Map With Deployed Regions](https://cdn.ul.run/i/0e9a45316feeddf2f7a6097cdcd3bd1d.avif)<!-- screenshot -->
 
 ### Deployments List
 
@@ -97,9 +90,9 @@ Each deployment page shows real-time metrics above its `Overview`, `Monitoring`,
 | -------------------------- | -------------------------------------------------------------------- |
 | **HTTP Requests (24h)**    | Request count, including prediction, monitoring, and health requests |
 | **HTTP Error Rate (24h)**  | Share of 4xx and 5xx responses                                       |
-| **HTTP P95 Latency (24h)** | Average of hourly 95th-percentile latencies                          |
+| **HTTP P95 Latency (24h)** | 95th percentile of the 15-minute P95 latencies                       |
 
-Each card shows a sparkline and refreshes automatically, next to a card linking to the deployed model. Metrics are
+Each card shows a sparkline and refreshes every minute, next to a card linking to the deployed model. Metrics are
 collected only for deployments in the **Ready** state. On the Deployments tab, metrics are fetched for the 20 most
 recent deployments.
 
@@ -117,7 +110,7 @@ Health checks auto-retry while unhealthy and stop once the endpoint responds. Op
 health check, and the re-ping button triggers another one, which doubles as a way to warm a scaled-to-zero endpoint before
 sending traffic.
 
-![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/20d4da9bf7a27469cdf9d93a85530034.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/38a6788a1948765e4e3120de79812717.avif)<!-- screenshot -->
 
 !!! info "Cold Start Tolerance"
 
@@ -125,13 +118,13 @@ sending traffic.
 
 ## Monitoring Tab
 
-Open the deployment page of a **Ready** dedicated endpoint and select the **Monitoring** tab. Send an image through its **Predict** tab or endpoint API to populate **Temporary Examples** and **Prediction Statistics**. Before the first processed image, the tab shows **No images processed**.
+Open the deployment page of a **Ready** dedicated endpoint and select the **Monitoring** tab. Send an image through its **Predict** tab or endpoint API, or keep a [background camera](inference.md#background-camera) running, to populate **Temporary Examples** and **Prediction Statistics**. Before the first processed image, the tab shows **No images processed**.
 
 !!! note "Endpoint Eligibility"
 
     Monitoring is available on every **Ready** dedicated endpoint, including default-size endpoints on the Free plan. Existing endpoints are not automatically updated with every runtime release, so an older endpoint may show **Monitoring unavailable** until its runtime is updated.
 
-![Ultralytics Platform Deployment Monitoring Temporary Examples And Statistics](https://cdn.ul.run/i/a3d9495d8a8fdc14eacafe2dc631b3ba.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Temporary Examples And Statistics](https://cdn.ul.run/i/a8466113958764047eb0b1ad9fc6989a.avif)<!-- screenshot -->
 
 !!! warning "Temporary Data"
 
@@ -146,7 +139,7 @@ The gallery contains recent processed images with prediction overlays. Open an i
 - **Replacement:** Older examples are replaced when either limit is reached. An example may become unavailable while you are viewing it.
 - **Storage:** Temporary examples remain in endpoint memory. Saving them to a dataset uses normal workspace storage and processing limits.
 
-![Ultralytics Platform Deployment Monitoring Prediction Viewer](https://cdn.ul.run/i/b701a3d589f966da4f00b3693c6ea030.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Prediction Viewer](https://cdn.ul.run/i/0792c980f50b10ef67a09a4fd7e3bbc3.avif)<!-- screenshot -->
 
 ### Save Examples to a Dataset
 
@@ -157,9 +150,9 @@ Workspace members with content editing permission can save examples to a dataset
 3. Choose an existing dataset with the same task as the deployed model. Connected-source datasets are excluded; create a compatible dataset first if none is available.
 4. Click the **Save** button, which shows the selected image count, then open the dataset to follow processing.
 
-Selected images and predictions are copied through the standard dataset upload and ingestion workflow. Normal quota, class mapping, and duplicate handling apply. Saving leaves the temporary examples in the gallery; successfully ingested dataset images survive endpoint restarts and deletion. Review predicted labels before using them for training.
+Selected images and predictions are copied through the standard dataset upload and ingestion workflow. Normal quota, class mapping, and duplicate handling apply. Saving leaves the temporary examples in the gallery; successfully ingested dataset images survive endpoint restarts and deletion. Review predicted labels before using them for training. Each saved image records `deploymentId`, `deploymentName`, `deploymentRegion`, and `deploymentRegionName` in its [custom metadata](../data/datasets.md#fullscreen-viewer), which dataset search matches; names are recorded as they were at save time, and an image skipped as a duplicate keeps its existing metadata.
 
-![Ultralytics Platform Deployment Monitoring Save Examples To Dataset](https://cdn.ul.run/i/18c1c9cd8decb4e3c115d6e02fdf49fe.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Save Examples To Dataset](https://cdn.ul.run/i/6206b03431d60b029528150ddbdaba58.avif)<!-- screenshot -->
 
 To remove temporary examples, use an image's hover trash control or select examples and click the bulk trash button, then confirm **Delete**. Deleting examples leaves aggregate prediction statistics and images already saved to datasets unchanged.
 
@@ -184,9 +177,9 @@ Available charts depend on the task and collected predictions:
 | **Prediction Dimensions** | Prediction width and height relative to the input image, when box dimensions are available                      |
 | **Prediction Locations**  | Spatial heatmap of predictions, when location data is available                                                 |
 
-![Ultralytics Platform Deployment Monitoring Prediction Statistics](https://cdn.ul.run/i/cb3decac9b9a31e4f7d3d1cb6377e7f3.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Prediction Statistics](https://cdn.ul.run/i/dd749ddde22b94239967d3dce40ad1c1.avif)<!-- screenshot -->
 
-![Ultralytics Platform Deployment Monitoring Confidence And Spatial Statistics](https://cdn.ul.run/i/f9cb24a8692f568f96617c6026c90b8e.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Confidence And Spatial Statistics](https://cdn.ul.run/i/a0c947af96b544fd7bc478323c12422b.avif)<!-- screenshot -->
 
 !!! tip "Interpreting Statistics"
 
@@ -198,7 +191,7 @@ Monitoring refreshes automatically while its panel is open and visible, and paus
 
 Each deployment page includes a `Logs` tab for viewing recent log entries:
 
-![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.ul.run/i/87447dfe15d51c112e12956a72f5fd06.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.ul.run/i/ad6dfa8794a177c51b61e489df5dc1db.avif)<!-- screenshot -->
 
 ### Log Entries
 
@@ -335,10 +328,10 @@ utilization, and instance count.
 | `sparkline` | bool   | Return the compact dashboard summary instead of the full payload |
 | `view`      | string | `overview` returns only request, error, and P95 latency metrics  |
 
-With `sparkline=true`, the response is a compact summary — 24 hourly request counts plus total requests, error rate, and
-average latency. With `view=overview`, `summary` holds `totalRequests`, `errorRate`, and `p95LatencyMs`, and
-`timeSeries` holds `requests`, `errors`, and `latencyP95`; the stat cards on the deployment page use this view and
-refresh automatically.
+With `sparkline=true`, the response is a compact summary — hourly request counts for the last 24 hours (hours without
+requests are omitted) plus total requests, error rate, and `avgLatencyMs`, the average of the hourly P95 latencies. With
+`view=overview`, `summary` holds `totalRequests`, `errorRate`, and `p95LatencyMs`, and `timeSeries` holds `requests`,
+`errors`, and `latencyP95`; the stat cards on the deployment page use this view and refresh automatically.
 
 ### Deployment Logs
 

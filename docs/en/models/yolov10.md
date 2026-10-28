@@ -237,7 +237,7 @@ YOLOv10 set a new standard in real-time object detection at its release by addre
 
 We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the [Ultralytics](https://www.ultralytics.com) framework:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

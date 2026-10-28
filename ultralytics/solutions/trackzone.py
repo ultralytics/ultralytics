@@ -67,7 +67,7 @@ class TrackZone(BaseSolution):
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         if self.mask is None:  # Create a mask for the region
-            self.mask = np.zeros_like(im0[:, :, 0])
+            self.mask = np.zeros(im0.shape[:2], dtype=np.uint8)
             cv2.fillPoly(self.mask, [self.region], 255)
         masked_frame = cv2.bitwise_and(im0, im0, mask=self.mask)
         self.extract_tracks(masked_frame)

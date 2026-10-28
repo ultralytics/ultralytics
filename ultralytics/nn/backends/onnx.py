@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-import contextlib
+import hashlib
 import os
+import shutil
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -24,7 +26,7 @@ ROCM_EXTRA_INDEX = (
 # check_requirements ignores local versions, so the migraphx-libs pin catches an older plugin build (also 1.0.0).
 ROCM_EP_PLUGIN = "onnxruntime-ep-migraphx==1.0.0+rocm10.1.0"
 ROCM_EP_PACKAGES = [ROCM_EP_PLUGIN, "migraphx-libs==2.18.0+rocm10.1.0"]
-MIGRAPHX_CACHE_FILES = 16  # compiled programs kept in the default MIGraphX cache, least recently used evicted first
+MIGRAPHX_CACHE_MODELS = 8  # compiled programs kept in the MIGraphX cache, least recently used evicted first
 # Windows ML (onnxruntime-windowsml) on Windows 11 24H2 (build 26100) or newer, with wheels from Python 3.10
 WINML_SUPPORTED = WINDOWS and sys.getwindowsversion().build >= 26100 and sys.version_info >= (3, 10)
 
@@ -48,7 +50,40 @@ def _register_migraphx_ep(onnxruntime) -> str:
     return name
 
 
-@ThreadingLocked()  # plugin registration is check-then-register and fails if repeated
+@lru_cache(maxsize=1)
+def _migraphx_cache_root() -> Path:
+    """Resolve the MIGraphX compiled-program cache root once per process.
+
+    Cached so per-model ORT_MIGRAPHX_CACHE_DIR overwrites don't nest each cache under the last.
+
+    Returns:
+        (Path): Cache root from ORT_MIGRAPHX_CACHE_DIR if set, else under USER_CONFIG_DIR.
+    """
+    return Path(os.environ.get("ORT_MIGRAPHX_CACHE_DIR") or USER_CONFIG_DIR / "migraphx_cache")
+
+
+def _migraphx_cache_dir(weight: str | Path) -> Path:
+    """Return a per-model cache subdirectory for the MIGraphX compiled program, evicting least recently used models.
+
+    The EP keys its cache by graph and input shapes (not weights), so hashing the model bytes isolates each model. Only
+    the MIGRAPHX_CACHE_MODELS most recently used models are kept, bounding the cache on disk.
+
+    Args:
+        weight (str | Path): Path to the .onnx model file, hashed to key the cache.
+
+    Returns:
+        (Path): Per-model cache subdirectory under the resolved cache root.
+    """
+    cache_dir = _migraphx_cache_root() / hashlib.sha256(Path(weight).read_bytes()).hexdigest()[:16]
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    os.utime(cache_dir)  # mark as most recently used
+    dirs = sorted(cache_dir.parent.glob("[0-9a-f]" * 16), key=lambda d: d.stat().st_mtime, reverse=True)  # ours only
+    for d in dirs[MIGRAPHX_CACHE_MODELS:]:
+        shutil.rmtree(d, ignore_errors=True)
+    return cache_dir
+
+
+@ThreadingLocked()  # ORT_MIGRAPHX_CACHE_DIR is process-global until the session is built
 def _load_migraphx_session(onnxruntime, weight: str | Path, index: int):
     """Create an InferenceSession on the MIGraphX plugin EP for GPU `index`.
 
@@ -73,29 +108,22 @@ def _load_migraphx_session(onnxruntime, weight: str | Path, index: int):
 
     # Compile at session creation, not first run, so compile failures reach the caller's CPU fallback.
     options = {"precompile_at_load": "1"}
-    # The EP prefers ORT_MIGRAPHX_CACHE_DIR over cache_dir, fails the session on a missing directory and never evicts.
-    env_dir = os.environ.get("ORT_MIGRAPHX_CACHE_DIR")
-    cache = Path(env_dir or USER_CONFIG_DIR / "migraphx_cache")
+    # Cache the compiled program so repeat loads skip compilation.
     try:
-        cache.mkdir(parents=True, exist_ok=True)
-        options["cache_dir"] = str(cache)
+        cache_dir = _migraphx_cache_dir(weight)
+        if not any(cache_dir.iterdir()):
+            LOGGER.info("MIGraphX is compiling the model; this runs once per model and the result is cached...")
+        # The EP reads ORT_MIGRAPHX_CACHE_DIR ahead of the cache_dir option, so set both.
+        os.environ["ORT_MIGRAPHX_CACHE_DIR"] = options["cache_dir"] = str(cache_dir)
     except OSError as e:
-        os.environ.pop("ORT_MIGRAPHX_CACHE_DIR", None)  # an unusable directory would fail the session
+        os.environ.pop("ORT_MIGRAPHX_CACHE_DIR", None)  # never leave the EP on another model's cached programs
         LOGGER.warning(f"MIGraphX cache disabled ({e}); recompiling each session init.")
 
-    LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {ep} (compiles a new model once, then caches it)")
+    LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {ep}")
     session_options = onnxruntime.SessionOptions()
     session_options.add_provider_for_devices(devices[index : index + 1], options)
     # Disable ORT's silent CPU retry so a MIGraphX failure raises to ONNXBackend's own CPU fallback
-    session = onnxruntime.InferenceSession(weight, session_options, enable_fallback=0)
-    # Prune after loading, so a newly compiled program counts toward the limit. Only the default directory is pruned:
-    # ORT_MIGRAPHX_CACHE_DIR may be shared with other ONNX Runtime apps.
-    if "cache_dir" in options and not env_dir:
-        # Loading reads the .mxr, so access time orders by use (daily under relatime, compile order under noatime)
-        with contextlib.suppress(OSError):  # best effort: another process may be pruning the same directory
-            for f in sorted(cache.glob("*.mxr"), key=os.path.getatime, reverse=True)[MIGRAPHX_CACHE_FILES:]:
-                f.unlink(missing_ok=True)
-    return session
+    return onnxruntime.InferenceSession(weight, session_options, enable_fallback=0)
 
 
 # ONNX Runtime output type string -> (torch dtype, numpy dtype) for IO binding.

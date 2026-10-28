@@ -115,8 +115,8 @@ def test_proj_center_loss_present():
 def test_proj_center_loss_is_pixel_scaled():
     """A 2-pixel projected-center error must cost ~1.5 (SmoothL1 past its 1 px knee), not ~1e-3.
 
-    The offset is letterbox-normalized, so scoring it raw put every few-pixel error deep in SmoothL1's quadratic
-    regime and the head stalled at ~5 px on data it should memorize.
+    The offset is letterbox-normalized, so scoring it raw put every few-pixel error deep in SmoothL1's quadratic regime
+    and the head stalled at ~5 px on data it should memorize.
     """
     import torch
 
@@ -1592,8 +1592,8 @@ def test_unreadable_label_cache_falls_back_to_parsing():
 def test_label_cache_invalidates_when_calib_changes(tmp_path):
     """Editing a calib file must invalidate the label cache, which stores the parsed calibration.
 
-    The cache was accepted on version and label count alone, so a dataset shipped with corrected calib files but its
-    old `.cache` still trained on the old baseline without any warning.
+    The cache was accepted on version and label count alone, so a dataset shipped with corrected calib files but its old
+    `.cache` still trained on the old baseline without any warning.
     """
     import shutil
 

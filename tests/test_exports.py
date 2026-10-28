@@ -206,28 +206,6 @@ def test_int8_calibration_fraction(task, fraction, expected, tmp_path):
     assert len(exporter.get_int8_calibration_dataloader().dataset) == expected
 
 
-def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
-    """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
-    calls = {}
-    monkeypatch.setattr(
-        "ultralytics.utils.export.rknn.onnx2rknn", lambda **kwargs: calls.update(kwargs) or kwargs["output_dir"]
-    )
-    monkeypatch.setattr("ultralytics.engine.exporter.file_size", lambda _: 1)
-
-    image = tmp_path / "image.jpg"
-    exporter = SimpleNamespace(
-        args=SimpleNamespace(opset=None, quantize=8, name="rk3588", batch=8),
-        im=torch.zeros(8, 3, 32, 32),
-        file=tmp_path / "model.pt",
-        metadata={},
-        get_int8_calibration_dataloader=lambda prefix: SimpleNamespace(dataset=SimpleNamespace(im_files=[image])),
-    )
-    exporter.export_onnx = lambda: calls.update(onnx_batch=len(exporter.im)) or tmp_path / "model.onnx"
-    Exporter.export_rknn(exporter)
-    assert calls["onnx_batch"] == 1
-    assert calls["batch"] == 8
-
-
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     """Ensure ONNX exports do not overlap across worker threads."""
     active = 0

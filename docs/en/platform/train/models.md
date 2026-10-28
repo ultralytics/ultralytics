@@ -324,7 +324,7 @@ Run CoreML, Core AI, and LiteRT exports on your phone in the free Ultralytics YO
 
 ![Ultralytics Platform CoreML Export Dialog iPhone App Box](https://cdn.ul.run/i/b3497c87adac56039a1b6dfce091cbe6.avif)<!-- screenshot -->
 
-![Ultralytics Platform Open on iPhone QR Code Dialog](https://cdn.ul.run/i/5622a65ab3a499177cf63bc982b0731d.avif)<!-- screenshot -->
+![Ultralytics Platform Open on iPhone QR Code Dialog](https://cdn.ul.run/i/245ff114f2630ec0e27d2fe54aa0221e.avif)<!-- screenshot -->
 
 QR codes expire after 24 hours; click **Refresh code** to create a new one. Anyone with the code can download the export until it expires. Without the app, scanning the code with the phone's camera opens a page with App Store and Google Play links.
 

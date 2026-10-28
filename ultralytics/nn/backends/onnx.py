@@ -266,10 +266,7 @@ class ONNXBackend(BaseBackend):
                     ) from e
                 LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
                 if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
-                    LOGGER.warning(
-                        "CUDA requested but CUDAExecutionProvider not available. Using CPU... "
-                        "Missing CUDA libraries can be installed with: pip install 'onnxruntime-gpu[cuda]'"
-                    )
+                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
                     self.device = torch.device("cpu")
                     cuda = False
             self.output_names = [x.name for x in self.session.get_outputs()]

@@ -2223,7 +2223,8 @@ class StereoCostVolume(nn.Module):
         disp01 = (prob * idx).sum(1, keepdim=True) / max(L - 1, 1)
 
         feat = self.refine(cost)
-        return torch.cat([F.adaptive_avg_pool2d(disp01, feat.shape[-2:]), feat], 1)
+        k = [int(a) // int(b) for a, b in zip(disp01.shape[-2:], feat.shape[-2:])]  # exact: stride-aligned imgsz
+        return torch.cat([F.avg_pool2d(disp01, k), feat], 1)  # not adaptive: torch<1.9 cannot export it to ONNX
 
     def to_disparity(self, disp01: torch.Tensor) -> torch.Tensor:
         """Map the emitted [0, 1] disparity channel back to width-normalized disparity (px / width)."""

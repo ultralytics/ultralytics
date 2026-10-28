@@ -193,10 +193,13 @@ class Stereo3DDetHead(Detect):
             cost_vol = x[self.nl]
             x = list(x[: self.nl])
             cv_disparity = cost_vol[:, :1]  # StereoCostVolume soft-argmin readout, [0,1] over its grid
+            # Fixed kernel: grids divide exactly on stride-aligned imgsz; torch<1.9 cannot export adaptive pools to ONNX
             cost_vols = [
                 cost_vol
                 if f.shape[-2:] == cost_vol.shape[-2:]
-                else nn.functional.adaptive_avg_pool2d(cost_vol, f.shape[-2:])
+                else nn.functional.avg_pool2d(
+                    cost_vol, [int(a) // int(b) for a, b in zip(cost_vol.shape[-2:], f.shape[-2:])]
+                )
                 for f in x
             ]
 

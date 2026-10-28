@@ -45,7 +45,7 @@ If your dataset already has Ultralytics YOLO polygon labels (one `.txt` per imag
 This path is selected automatically when the dataset YAML **omits** `masks_dir` **and** no `masks/` folder exists next to your images at the dataset root — remove or rename any leftover `masks/` folder, or the loader falls back to PNG-mask mode and looks for masks there instead. Behavior:
 
 - Polygons are converted to a per-image semantic mask at load time, sorted by area so smaller objects override larger ones in overlap regions.
-- **Multi-class** (`N > 1` in `names`): an extra `background` class is appended after your declared classes for pixels not covered by any polygon. The model is built with `N + 1` output channels and the last channel is background.
+- **Multi-class** (`N > 1` in `names`): an extra `background` class is appended after your declared classes for pixels not covered by any polygon. The model is built with `N + 1` output channels and the last channel is background. Filtering with `classes=[...]` keeps this background class, so training learns the selected classes against background.
 - **Single-class** (`N == 1` in `names`): still trained as 1 class. The mask is binary, with your declared class shown as `1` and pixels not covered by any polygon as `0`. No extra background class is added to `names`.
 - Pixels added by augmentation padding (e.g. random crop) still use `255` as the ignore label.
 

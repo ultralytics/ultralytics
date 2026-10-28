@@ -65,7 +65,7 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 5. Open the terminal named in the dialog, copy the command, paste it, and press Enter.
 6. Keep the Integrations page open until the progress indicator shows **Connected**.
 
-![Ultralytics Platform On Premise Integration Setup](https://cdn.ul.run/i/5d1026274327754bda12a9275bffcdc9.avif)<!-- screenshot -->
+![Ultralytics Platform On Premise Integration Setup](https://cdn.ul.run/i/961fbf1749ab8ff0e2c11ead3f4ceefa.avif)<!-- screenshot -->
 
 The page tracks the six setup steps live — running the command, downloading the worker files, downloading the Docker
 image, building the worker, starting it, and confirming the connection — so you can watch progress without reading the
@@ -219,9 +219,9 @@ available.
 
 - **No rescan.** A dataset is indexed once when you create it. If the source files change afterwards, Platform does not
   notice — create a new dataset to pick up the changes.
-- **Platform-copy features are unavailable.** On Premise datasets exclude the features that need Platform-owned copies of
-  your images: auto-annotation, [clustering analysis](../data/datasets.md#clustering), dataset cloning, and immutable
-  [version snapshots](../data/datasets.md#versions-tab).
+- **AI features are unavailable.** On Premise images never leave your host, so smart annotation, auto-annotation,
+  similar-image search, [clustering analysis](../data/datasets.md#clustering), cloud training, and image generation are
+  unavailable, as are dataset cloning and immutable [version snapshots](../data/datasets.md#versions-tab).
 - **Training does not move.** If the worker process stops mid-run, the run fails rather than restarting elsewhere.
 - **Model files stay on the host.** Deleting or trashing a model in Platform removes it from Platform, not from your
   models folder — clean that folder up yourself when a run is no longer needed.

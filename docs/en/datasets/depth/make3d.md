@@ -74,7 +74,7 @@ The YOLO26 depth family is evaluated zero-shot on the Make3D benchmark. These mo
 
 If you use the Make3D dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

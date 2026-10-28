@@ -7,7 +7,7 @@ keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeli
 
 # Annotation Editor
 
-[Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models or, on detection datasets with 1–200 classes, class-prompted models: hosted open-source models or paid provider models.
+[Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models or, on detection datasets with 1–200 classes, [class-prompted models](https://platform.ultralytics.com/models): hosted open-source models or paid provider models.
 
 ![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/5ba36616a9363a036217c9b058daf35c.avif)<!-- screenshot -->
 
@@ -126,7 +126,7 @@ flowchart TD
 
 Pose annotation uses `Draw` with a skeleton template; its `Smart` mode offers YOLO pose models only, with no SAM picker or auto-apply toggle. Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
 
-Smart annotation is not currently available for [connected datasets](../integrations/index.md) backed by cloud or On Premise storage, or for datasets with more than three image channels.
+Smart annotation needs [AI features](../integrations/index.md#ai-features) on for cloud storage datasets, and is unavailable for On Premise datasets and datasets with more than three image channels.
 
 The editor remembers your mode, model, and auto-apply choice for each dataset in your browser.
 
@@ -237,7 +237,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: six hosted open-source models, hosted text-prompted SAM 3 and SAM 3.1, and paid vision models from nine providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: eight hosted open-source models, hosted text-prompted [SAM 3](https://platform.ultralytics.com/models/sam3) and [SAM 3.1](https://platform.ultralytics.com/models/sam3.1), and paid vision models from nine providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
 
 ### SAM Smart Annotation
 
@@ -337,20 +337,20 @@ On a detection dataset with 1–200 classes, select a class-prompted model and c
 
 Hosted models run on Ultralytics Platform with no provider key; Moondream 3.1 is the default:
 
-| Model                                            | Picker project     | Parameters |
-| ------------------------------------------------ | ------------------ | ---------- |
-| **Moondream 3.1**                                | Open-source models | 9B         |
-| **Gemma 4 26B**                                  | Open-source models | 26B        |
-| **Qwen3.8 27B**                                  | Open-source models | 27B        |
-| **Nemotron 3 Nano Omni**                         | Open-source models | 30B        |
-| [**YOLOE-26x**](../../models/yoloe.md)           | Open-source models | 0.09B      |
-| **Florence-2 Large**                             | Open-source models | 0.78B      |
-| **OWLv2 Large**                                  | Open-source models | 0.44B      |
-| **Grounding DINO Base**                          | Open-source models | 0.23B      |
-| [**SAM 3 Text**](../../models/sam-3.md)          | Meta               | 0.86B      |
-| [**SAM 3.1 Text**](../../models/sam-3.md#sam-31) | Meta               | 0.87B      |
+| Model                                                                            | Picker project     | Parameters |
+| -------------------------------------------------------------------------------- | ------------------ | ---------- |
+| [**Moondream 3.1**](https://platform.ultralytics.com/models/moondream)           | Open-source models | 9B         |
+| [**Gemma 4 26B**](https://platform.ultralytics.com/models/gemma)                 | Open-source models | 26B        |
+| [**Qwen3.8 27B**](https://platform.ultralytics.com/models/qwen)                  | Open-source models | 27B        |
+| [**Nemotron 3 Nano Omni**](https://platform.ultralytics.com/models/nemotron)     | Open-source models | 30B        |
+| [**YOLOE-26x**](../../models/yoloe.md)                                           | Open-source models | 0.09B      |
+| [**Florence-2 Large**](https://platform.ultralytics.com/models/florence2)        | Open-source models | 0.78B      |
+| [**OWLv2 Large**](https://platform.ultralytics.com/models/owlv2)                 | Open-source models | 0.44B      |
+| [**Grounding DINO Base**](https://platform.ultralytics.com/models/groundingdino) | Open-source models | 0.23B      |
+| [**SAM 3 Text**](../../models/sam-3.md)                                          | Meta               | 0.86B      |
+| [**SAM 3.1 Text**](../../models/sam-3.md#sam-31)                                 | Meta               | 0.87B      |
 
-Paid vision models from OpenAI (including GPT-6 Astra and GPT-6.1 Sol), Anthropic (including Claude Fable 5.1 and Claude Opus 5.5), Google (including Gemini 4 Argon), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo appear under each provider's project in the picker, by API name:
+Paid vision models from OpenAI (including GPT-6 Astra and GPT-6.1 Sol), Anthropic (including Claude Fable 5.1 and Claude Opus 5.5), Google (including Gemini 4 Argon), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, and MiniMax appear under each provider's project in the picker, by API name:
 
 <platform-annotation-models></platform-annotation-models>
 
@@ -404,7 +404,7 @@ Right-click an annotation to open a context menu with:
 | Hide Annotation(s)   |                        |
 | Delete Annotation(s) | `Delete` / `Backspace` |
 
-Right-clicking a polygon vertex or edge adds **Remove Point** or **Add Point**, and right-clicking a pose keypoint adds **Hide Point** and **Reset Visibility**. The menu also offers [**Blur faces**](datasets.md#blur-faces) when available, and on detect, segment, and OBB datasets with smart annotation available, **Annotate similar**: YOLOE-26x takes every label of the selected classes on the image (at most 200) as visual prompts and previews the matches with confidence and IoU sliders, and **Apply** adds them to this image at no cost, skipping duplicates of existing labels.
+Right-clicking a polygon vertex or edge adds **Remove Point** or **Add Point**, and right-clicking a pose keypoint adds **Hide Point** and **Reset Visibility**. The menu also offers [**Blur faces**](datasets.md#blur-faces) when available, and on detect, segment, and OBB datasets with smart annotation available, **Annotate similar**: YOLOE-26x takes every label of the selected classes on the image (at most 200) as visual prompts and previews the matches with confidence and IoU sliders, and **Apply** adds them to this image at no cost, skipping duplicates of existing labels. Right-clicking the image outside any annotation also offers **Annotate similar**, with every annotation of the dataset task on the image as the examples (at most 200); it stays disabled until the image has one.
 
 ## Visibility Controls
 
@@ -613,7 +613,7 @@ Yes, but for best results:
 
 ### Which tasks support SAM smart annotation?
 
-SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. On pose datasets, `Smart` mode runs [YOLO smart annotation](#yolo-smart-annotation) only, and classification uses manual annotation only. Smart annotation is also unavailable on connected cloud and On Premise datasets and on datasets with more than three image channels.
+SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. On pose datasets, `Smart` mode runs [YOLO smart annotation](#yolo-smart-annotation) only, and classification uses manual annotation only. On cloud storage datasets it needs [AI features](../integrations/index.md#ai-features) on, and it is unavailable on On Premise datasets and on datasets with more than three image channels.
 
 ### Can I annotate a whole dataset at once?
 
@@ -625,7 +625,7 @@ Yes. On detection datasets with 1–200 classes, Smart annotation and [Batch Ann
 
 ### Which class-prompted model should I use?
 
-In an October 2026 Ultralytics Platform benchmark of every class-prompted model on 108 images from 36 detection datasets spanning medical, aerial, industrial, retail, and everyday scenes, Gemini 4 Argon (`gemini-4-argon`) was the most accurate, ahead of GPT-6.1 Sol, Gemini 3.8 Flash, Claude Opus 5.5, and GPT-6 Astra. Claude Haiku 5.5 (`claude-haiku-5-5`) and Gemini 3.5 Flash-Lite (`gemini-3.5-flash-lite`) were the most accurate low-cost models, and Gemma 4 26B was the most accurate hosted model, ahead of Qwen3.8 27B, with no provider key needed. Accuracy depends heavily on the domain: models that find nearly every object in everyday photos miss many objects in PCB, X-ray, retail, and traffic images and in some medical datasets, so run a few predictions on your own images before starting [Batch Annotation](#batch-annotation).
+The [VLM Leaderboard](https://www.ultralytics.com/benchmarks/vlm) ranks class-prompted models by mAP50 and compares their cost and speed on 360 images from 36 real-world detection datasets spanning medical, aerial, industrial, retail, and everyday scenes. In its October 2026 results, frontier paid models such as Gemini 4 Argon (`gemini-4-argon`), Claude Opus 5.5, and GPT-6 Astra were the most accurate; Claude Haiku 5.5 (`claude-haiku-5-5`) and Gemini 3.5 Flash-Lite (`gemini-3.5-flash-lite`) were the most accurate low-cost models; and Qwen3.8 27B and Gemma 4 26B were the most accurate hosted models, with no provider key needed. Accuracy depends heavily on the domain: models that find nearly every object in everyday photos miss many objects in PCB, X-ray, retail, and traffic images and in some medical datasets, so run a few predictions on your own images before starting [Batch Annotation](#batch-annotation).
 
 ### Can I create custom skeleton templates for pose annotation?
 

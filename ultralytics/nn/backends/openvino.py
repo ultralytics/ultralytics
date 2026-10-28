@@ -42,9 +42,9 @@ class OpenVINOBackend(BaseBackend):
         device_name = fallback_device
 
         if isinstance(self.device, str) and self.device.startswith("intel"):
-            device_name = self.device.split(":")[1].upper()
+            device_name = self.device.partition(":")[2].upper() or fallback_device
             self.device = torch.device("cpu")
-            if not any(d == device_name or d.startswith(f"{device_name}.") for d in core.available_devices):
+            if not any(d == device_name or d.startswith(f"{device_name}.") for d in [*core.available_devices, "AUTO"]):
                 LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using '{fallback_device}' instead.")
                 device_name = fallback_device
 
@@ -98,6 +98,9 @@ class OpenVINOBackend(BaseBackend):
             f"Using OpenVINO LATENCY mode for batch={self.batch} inference on "
             f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
         )
+        # Sync CPU inference leaves the main thread waiting, so the predictor can load the next batch meanwhile. Not
+        # AUTO, whose EXECUTION_DEVICES can report CPU while an accelerator is still compiling
+        self.prefetch = device_name == "CPU"
         self.ov = ov
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:

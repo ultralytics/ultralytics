@@ -469,7 +469,7 @@ def _log_plots(experiment, trainer) -> None:
         ]
 
     if plot_filenames is not None:
-        _log_images(experiment, plot_filenames, None)
+        _log_images(experiment, [f for f in plot_filenames if f.exists()], None)
 
     confusion_matrix_filenames = [trainer.save_dir / f"{plots}.png" for plots in CONFUSION_MATRIX_PLOT_NAMES]
     _log_images(experiment, confusion_matrix_filenames, None)
@@ -513,6 +513,8 @@ def _log_table(experiment, table_path) -> None:
 
 def on_pretrain_routine_start(trainer) -> None:
     """Create or resume a CometML experiment at the start of a YOLO pre-training routine."""
+    global _comet_image_prediction_count
+    _comet_image_prediction_count = 0
     _resume_or_create_experiment(trainer.args)
 
 
@@ -574,7 +576,7 @@ def on_fit_epoch_end(trainer) -> None:
 
 
 def on_train_end(trainer) -> None:
-    """Log the final model, plots, confusion matrix, image predictions, results table, and args, then end the run."""
+    """Log the final model, plots, confusion matrix, image predictions, results table, and args."""
     experiment = comet_ml.get_running_experiment()
     if not experiment:
         return
@@ -601,11 +603,6 @@ def on_train_end(trainer) -> None:
     if args_path.exists():
         _log_asset(experiment, args_path)
 
-    experiment.end()
-
-    global _comet_image_prediction_count
-    _comet_image_prediction_count = 0
-
 
 callbacks = (
     {
@@ -613,6 +610,7 @@ callbacks = (
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_train_end": on_train_end,
+        "teardown": lambda trainer: (experiment := comet_ml.get_running_experiment()) and experiment.end(),
     }
     if comet_ml
     else {}

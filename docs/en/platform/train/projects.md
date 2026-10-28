@@ -95,14 +95,14 @@ The controls row above the models list provides:
 
 - **Search** to filter models by name
 - **Status filter**: All, Completed, Untrained, Running, Starting, or Failed
-- **Group by**: None or Task — grouping applies in Compact and Table modes
+- **Group by**: None or Task (default), in every view mode
 - **Sort by**: Created, Name, or Size, each ascending or descending
 
 ### Models Sidebar
 
 The resizable sidebar lists all models in the project:
 
-- **Checkboxes** to select which models appear in charts and the comparison table
+- **Checkboxes** to select which models appear in charts and the comparison table; charts leave out models hidden by the search, the status filter, or a collapsed task group
 - **Drag and drop** `.pt` files directly onto the sidebar to upload models ([model upload details](models.md#upload-model))
 - **Training progress** shown for running models (epoch count and progress bar)
 - **Model color** picker, used consistently across every chart
@@ -139,7 +139,7 @@ Clone a public project to your own account:
 
 1. Visit the public project page
 2. Click **Clone Project**
-3. The project and its completed models are copied to your workspace; you choose the clone's visibility in the clone dialog
+3. The project and its completed models are copied to your workspace (only the selected ones when you select some in the model list); you choose the clone's visibility in the clone dialog
 
 !!! info "Clone Behavior"
 
@@ -186,6 +186,8 @@ Switch to table view for side-by-side comparison of training arguments and final
 3. Use the **Diff** button to show only the columns where values differ across models
 
 ## Upload Models
+
+You can also [import models from W&B](../integrations/weights-biases.md) into automatically created or existing projects.
 
 Upload existing `.pt` model files:
 

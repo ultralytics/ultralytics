@@ -241,8 +241,9 @@ are deleted automatically.
 ## API Keys Tab
 
 The `API Keys` tab lets you create and manage API keys for remote training and inference, and stores provider keys for
-Agents, class-prompted annotation, and paid image generation. Only the workspace owner can create, view, or revoke
-keys — a workspace key acts as the owner. See [API Keys](api-keys.md) for full documentation.
+Agents, class-prompted annotation, paid image generation, and Roboflow and W&B imports. Only the workspace owner can
+view Ultralytics API keys or add, replace, or revoke any key — a workspace key acts as the owner. See
+[API Keys](api-keys.md) for full documentation.
 
 ## Plans Tab
 
@@ -390,6 +391,7 @@ active workspace.
 
 **Imports**
 
+- **Weights & Biases** — select W&B projects and [import their YOLO checkpoints](../integrations/weights-biases.md) using a W&B API key.
 - **Roboflow** — preview and import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
 - **Labelbox** — upload a [Labelbox](../integrations/labelbox.md) NDJSON export directly, with no key to connect.
 - **LabelMe** — upload a zipped folder of LabelMe JSON annotations and their images directly, with no conversion or key. See the [LabelMe guide](../integrations/labelme.md).

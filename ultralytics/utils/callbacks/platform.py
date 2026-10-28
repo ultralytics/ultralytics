@@ -120,6 +120,8 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         if event != "console_output" or not _api_key:
             detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
             LOGGER.warning(f"{PREFIX}Failed to send {event}: {detail}")
+        if event == "training_started" and model_id and isinstance(error, APIError) and error.status_code == 404:
+            return {}  # {} marks a missing model, seen only by the resume lookup in on_pretrain_routine_start
         return None
 
 
@@ -354,7 +356,7 @@ def on_pretrain_routine_start(trainer):
 
     # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
     response = _send("training_started", data, project, name, model_id=model_id, retry=4)
-    if model_id and (not response or response.get("cancelled")):  # recorded model is gone or ended, track a new one
+    if model_id and (response == {} or (response and response.get("cancelled"))):  # model gone or ended, track as new
         response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
         record.write_text(response["modelId"])
@@ -459,9 +461,7 @@ def on_train_end(trainer):
         LOGGER.info(f"{PREFIX}Uploading partial results for cancelled training")
 
     # Stop console capture
-    if ctx["console_logger"]:
-        ctx["console_logger"].stop_capture()
-        ctx["console_logger"] = None
+    ctx["console_logger"].stop_capture()
 
     # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None
@@ -535,4 +535,5 @@ callbacks = {
     "on_fit_epoch_end": on_fit_epoch_end,
     "on_model_save": on_model_save,
     "on_train_end": on_train_end,
+    "teardown": lambda trainer: (ctx := getattr(trainer, "platform", None)) and ctx["console_logger"].stop_capture(),
 }

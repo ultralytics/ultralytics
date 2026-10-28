@@ -891,6 +891,8 @@ class BaseTrainer:
             weights, _ = load_checkpoint(self.args.pretrained)
         elif self.args.pretrained is False and not self.resume:
             weights = None
+        elif self.resume:  # load_checkpoint() returns the student, rebuild a distillation run from its wrapper
+            weights = ckpt.get("ema") or ckpt.get("model")
 
         # rebuild DistillationModel from resuming checkpoint
         if isinstance(weights, DistillationModel):

@@ -193,6 +193,15 @@ def test_cfg_rejects_fuzzed_values():
     assert get_cfg(overrides={"end2end": False, "nms": True}).nms is True
 
 
+@pytest.mark.parametrize(
+    ("fraction", "split"),
+    [(0.5, "val"), (0.5, "test"), ([0.5], "val"), ([0.5, 0.25], "test")],
+)
+def test_get_split_fraction_defaults_to_full_non_train_splits(fraction, split):
+    """Test scalar and incomplete list fractions default to the full validation and test splits."""
+    assert get_split_fraction(fraction, split) == 1.0
+
+
 def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:

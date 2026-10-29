@@ -1848,8 +1848,9 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
-def test_random_perspective_mosaic_corners():
-    """Perspective on a Mosaic-sized canvas must not turn corner objects into image-sized boxes."""
+@pytest.mark.parametrize("with_segments", [False, True])
+def test_random_perspective_mosaic_corners(with_segments):
+    """Perspective on a Mosaic-sized canvas must drop objects crossing the plane and keep visible ones in front."""
     import random
 
     from ultralytics.data.augment import RandomPerspective
@@ -1859,10 +1860,15 @@ def test_random_perspective_mosaic_corners():
     corners = np.array(
         [[20, 20, 60, 60], [1220, 20, 1260, 60], [20, 1220, 60, 1260], [1220, 1220, 1260, 1260]], np.float32
     )
-    random.seed(22)  # this seed puts a canvas corner behind the plane (w < 0)
-    instances = Instances(corners, np.zeros((0, 1000, 2), np.float32), bbox_format="xyxy", normalized=False)
-    labels = rp({"img": np.zeros((1280, 1280, 3), np.uint8), "cls": np.zeros((4, 1)), "instances": instances})
+    segments = (
+        corners[:, [0, 1, 2, 1, 2, 3, 0, 3]].reshape(-1, 4, 2) if with_segments else np.zeros((0, 1000, 2), np.float32)
+    )
+    random.seed(22)  # one corner of the bottom-left object falls behind the plane (w < 0), top-right stays on screen
+    instances = Instances(corners, segments, bbox_format="xyxy", normalized=False)
+    cls = np.arange(4, dtype=np.float32).reshape(4, 1)
+    labels = rp({"img": np.zeros((1280, 1280, 3), np.uint8), "cls": cls, "instances": instances})
     boxes = labels["instances"].bboxes
+    assert labels["cls"].ravel().tolist() == [1], labels["cls"].ravel().tolist()
     assert (boxes[:, 2:] - boxes[:, :2] < 320).all(), boxes.tolist()
 
 

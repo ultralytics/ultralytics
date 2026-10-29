@@ -227,6 +227,8 @@ Remove a project you no longer need:
 1. Open the **More actions** menu in the header and select **Delete Project**
 2. Confirm deletion
 
+To delete several projects at once, select their rows in the table view of the **Projects** tab on your profile (or on a team profile where you are an Editor or above) and click **Delete (N)**, choose it from the right-click menu, or press `Cmd/Ctrl+Delete`.
+
 !!! warning "Cascading Delete"
 
     Deleting a project also deletes all models inside it. This action moves items to [Trash](../account/trash.md) where they can be restored within 30 days.

@@ -16,7 +16,6 @@ import subprocess
 import sys
 import time
 from importlib import metadata
-from importlib.util import find_spec
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -629,7 +628,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                use_uv = (not ARM64 or find_spec("pip") is None) and check_uv()
+                use_uv = check_uv()
                 LOGGER.info(attempt_install(packages, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")

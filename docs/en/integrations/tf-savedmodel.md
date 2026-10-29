@@ -70,6 +70,10 @@ To install the required package, run:
 
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
+!!! note "Platform support"
+
+    TF SavedModel export is not supported on macOS with Python 3.13 or later.
+
 ### Usage
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
@@ -145,8 +149,8 @@ The TF SavedModel format supports the [Export](../modes/export.md), [Predict](..
 | ---------- | ------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`   | `str`                     | `'saved_model'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
 | `imgsz`    | `int` or `tuple`          | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
-| `quantize` | `int` or `str`            | `None`          | Quantization precision: `8` (INT8/PTQ; needs calibration `data`/`fraction`) or `32`/unset (FP32). FP16 is not supported for SavedModel export. Replaces the deprecated `int8` flag.                                                                              |
-| `opset`    | `int`                     | `None`          | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                 |
+| `quantize` | `int` or `str`            | `None`          | Quantization precision: `8` keeps the SavedModel FP32 and adds INT8 `.tflite` files beside it (calibrated with `data`/`fraction`), or `32`/unset (FP32). FP16 is not supported for SavedModel export. Replaces the deprecated `int8` flag.                       |
+| `opset`    | `int`                     | `None`          | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses opset `18` (lower on PyTorch < 2.4), capped at the installed `onnx` version. RT-DETR uses `19`.                                                                               |
 | `nms`      | `bool`, optional          | `None`          | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                                                                                      |
 | `batch`    | `int`                     | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`     | `str`                     | `None`          | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |

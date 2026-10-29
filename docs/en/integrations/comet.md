@@ -151,7 +151,7 @@ Comet offers the flexibility to customize its logging behavior by setting enviro
 | `COMET_MAX_IMAGE_PREDICTIONS`       | `100`          | Total number of validation image predictions to log per run.                                              |
 | `COMET_EVAL_BATCH_LOGGING_INTERVAL` | `1`            | Log image predictions every Nth validation batch.                                                         |
 | `COMET_EVAL_LOG_IMAGE_PREDICTIONS`  | `true`         | Toggle image prediction logging on (`true`) or off (`false`).                                             |
-| `COMET_EVAL_LOG_CONFUSION_MATRIX`   | `false`        | Log a confusion matrix on every validation epoch. A final matrix is always logged at end of training.     |
+| `COMET_EVAL_LOG_CONFUSION_MATRIX`   | `false`        | Log a confusion matrix at each `save_period` checkpoint. A final matrix is always logged after training.  |
 | `COMET_MAX_CONFIDENCE_SCORE`        | `100.0`        | Multiplier applied to detection confidence scores before logging (Comet's UI expects a percentage scale). |
 | `COMET_MODE` _(deprecated)_         | `online`       | Legacy alias of `COMET_START_ONLINE` (`"online"` ↔ `1`, `"offline"` ↔ `0`). Emits a deprecation warning.  |
 
@@ -185,14 +185,14 @@ import os
 os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
 ```
 
-### Disabling Confusion Matrix Logging
+### Per-Epoch Confusion Matrix Logging
 
-In some cases, you may not want to log the confusion matrix from your validation set after every [epoch](https://www.ultralytics.com/glossary/epoch). You can disable this feature by setting the `COMET_EVAL_LOG_CONFUSION_MATRIX` environment variable to "false." The confusion matrix will only be logged once, after the training is completed.
+By default, the confusion matrix from your validation set is logged once, after the training is completed. To also log it at every checkpoint saved by `save_period` (`save_period=1` saves every [epoch](https://www.ultralytics.com/glossary/epoch)), set the `COMET_EVAL_LOG_CONFUSION_MATRIX` environment variable to "true."
 
 ```python
 import os
 
-os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
+os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "true"
 ```
 
 ### Online and Offline Mode
@@ -324,12 +324,12 @@ Comet allows for extensive customization of its logging behavior using environme
     os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
     ```
 
-- **Disable confusion matrix logging**:
+- **Log the confusion matrix at every `save_period` checkpoint**:
 
     ```python
     import os
 
-    os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
+    os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "true"
     ```
 
 - **Set the Comet project name**:

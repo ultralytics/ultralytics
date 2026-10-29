@@ -1,5 +1,5 @@
 ---
-title: Hand Keypoints Pose Estimation Dataset
+title: Hand Keypoints Pose Dataset
 comments: true
 creator:
     name: Rion Dsilva

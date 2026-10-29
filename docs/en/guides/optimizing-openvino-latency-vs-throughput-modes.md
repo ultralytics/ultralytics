@@ -1,6 +1,6 @@
 ---
 comments: true
-title: OpenVINO Latency vs Throughput Optimization for YOLO
+title: OpenVINO Latency vs Throughput Optimization
 description: Discover how to enhance Ultralytics YOLO model performance using Intel's OpenVINO toolkit. Boost latency and throughput efficiently.
 keywords: Ultralytics YOLO, OpenVINO optimization, deep learning, model inference, throughput optimization, latency optimization, AI deployment, Intel's OpenVINO, performance tuning
 ---

@@ -31,6 +31,16 @@ Ultralytics stores persistent, per-machine settings in a JSON file in the user c
 
 ## Settings Reference
 
+For a bare model filename such as `YOLO("yolo26n.pt")`, Ultralytics first checks the current working directory, then `weights_dir`. If neither contains the weights, it downloads them to the current working directory. To download missing weights into `weights_dir`, pass the full model path:
+
+```python
+from pathlib import Path
+
+from ultralytics import YOLO, settings
+
+model = YOLO(Path(settings["weights_dir"]).resolve() / "yolo26n.pt")
+```
+
 | Name               | Example Value         | Data Type | Description                                                                                                                                  |
 | ------------------ | --------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `settings_version` | `'0.0.8'`             | `str`     | Settings schema version, distinct from the `ultralytics` package version                                                                     |

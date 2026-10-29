@@ -42,7 +42,7 @@ Our [Information Security Management System (ISMS)](https://handbook.ultralytics
 - **ISO/IEC 27001:2022**: Certified ISMS.
 - **SOC 2 Type I**: Independent attestation of the design of our security controls.
 - **Penetration testing**: Independent third-party testing of Ultralytics Platform.
-- **HIPAA**: Completed a HIPAA Security Rule self-assessment (HIPAA has no official certification). A Business Associate Agreement (BAA) may be available to eligible Enterprise customers.
+- **HIPAA**: Completed a HIPAA Security Rule self-assessment (HIPAA has no official certification). A Business Associate Agreement (BAA) is available to eligible Enterprise customers, and electronic protected health information (ePHI) should only be uploaded to Ultralytics Platform under an executed BAA.
 - **Privacy**: GDPR and CCPA programs, with a Data Processing Agreement (DPA) available.
 
 Certificates, audit reports, and policies are available through the [Ultralytics Trust Center](https://trust.ultralytics.com), with some documents shared on request. See [Trust and Security](https://www.ultralytics.com/security) for an overview.

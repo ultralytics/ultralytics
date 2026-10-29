@@ -71,6 +71,7 @@ For organizations with advanced needs:
 - SSO / SAML authentication
 - [On Premise](../integrations/on-premise.md) data and compute
 - Custom SLAs on top of [ISO/IEC 27001:2022 and SOC 2 Type I compliance](https://www.ultralytics.com/security)
+- HIPAA Business Associate Agreement (BAA) for eligible customers
 - Dedicated onboarding and support
 
 Enterprise plans are provisioned by the Ultralytics team. Click **Request Enterprise Demo** on the Enterprise card in

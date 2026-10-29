@@ -345,7 +345,6 @@ Some export formats have architecture or task restrictions:
 !!! note "Additional Export Rules"
 
     - Classification, semantic segmentation, and depth exports do not include NMS. CoreML embeds NMS only for detect, segment, and pose, and MNN only for detect and pose.
-    - RKNN INT8 export requires a detection model. The RV1103, RV1106, RV1103B, and RV1106B targets are INT8-only, so they are available for detection models only.
     - CoreML exports with batch sizes greater than `1` use `dynamic=true`.
     - Unsupported format/model combinations are disabled in the export dialog before you launch.
     - Only one export per format can run at a time for a given model.

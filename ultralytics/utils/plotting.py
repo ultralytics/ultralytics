@@ -300,8 +300,8 @@ class Annotator:
         Args:
             im (np.ndarray | Image.Image | torch.Tensor): Image to annotate. Arrays and tensors are HWC BGR uint8;
                 grayscale is expanded to 3 channels, 2-channel images are zero-padded, and extra channels are dropped.
-            line_width (float, optional): Line width, rounded to whole pixels. Defaults to ~0.3% of the mean image
-                dimension, at least 2.
+            line_width (float, optional): Nonzero widths are rounded to whole pixels, with a minimum of 1. None or 0
+                selects automatic sizing (~0.3% of the mean image dimension), with a minimum of 2.
             font_size (int, optional): Font size for PIL text. Defaults to ~3.5% of the mean image dimension, at least
                 12.
             font (str): Font file name used for PIL text.

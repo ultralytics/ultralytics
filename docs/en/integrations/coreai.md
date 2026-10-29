@@ -179,7 +179,7 @@ Core AI is not currently a replacement for the production Core ML path:
 - **No iOS Simulator runtime:** The iOS Simulator SDK does not include Core AI.
 - **Application migration required:** A `.aimodel` cannot be substituted for an `.mlpackage`; model loading, preprocessing, inference calls, metadata handling, and output decoding need a Core AI implementation outside the Ultralytics SDKs, which provide one.
 - **Limited production evidence:** Performance, power use, first-run specialization time, accuracy, and compression need validation across the supported YOLO task and device matrix.
-- **No NMS pipeline:** Core ML can package an NMS stage for older YOLO detection models. Core AI exports raw one-to-many predictions by default; use `nms=False` for YOLO26's NMS-free head. Embedded NMS (`nms=True`) and `dynamic=True` are not supported. `coreai-torch` has no lowering for `torchvision::nms`, so NMS stays on the host.
+- **No NMS pipeline:** Core ML can package an NMS stage for YOLO detect, segment and pose models. Core AI exports raw one-to-many predictions by default; use `nms=False` for YOLO26's NMS-free head. Embedded NMS (`nms=True`) and `dynamic=True` are not supported. `coreai-torch` has no lowering for `torchvision::nms`, so NMS stays on the host.
 - **Fixed input size:** The exported graph is traced at one `imgsz` and has no dynamic shapes, so predict at the size it was exported with.
 - **FP16 assets can abort on load:** Some FP16 `.aimodel` assets fail to load their Apple Neural Engine program and MPSGraph raises a failed assertion, which ends the process rather than falling back. This happens inside Apple's runtime, before any Ultralytics code runs, and the same asset loads with a CPU-only specialization. Fall back to FP32 if an asset does this; the FP16 SDK assets checked on an iPhone 17 Pro (every nano model, detect at every size, and the largest model of each task) loaded without an abort.
 
@@ -191,7 +191,7 @@ Use **Core ML today** when you need:
 - The default path of the Ultralytics iOS or Flutter SDK
 - Vision framework image handling
 - Tested FP16 and INT8 YOLO deployment
-- Embedded NMS for compatible legacy detection models
+- Embedded NMS for detect, segment and pose models
 
 Evaluate **Core AI** when you can require iOS 27 or macOS 27 and need:
 

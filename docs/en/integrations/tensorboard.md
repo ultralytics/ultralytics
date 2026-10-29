@@ -174,7 +174,6 @@ Using TensorBoard with YOLO26 provides several visualization tools essential for
 
 - **Real-Time Metrics Tracking:** Track key metrics such as loss, accuracy, precision, and recall live.
 - **Model Graph Visualization:** Understand and debug the model architecture by visualizing computational graphs.
-- **Embedding Visualization:** Project embeddings to lower-dimensional spaces for better insight.
 
 These tools enable you to make informed adjustments to enhance your YOLO26 model's performance. For more details on TensorBoard features, check out the TensorFlow [TensorBoard guide](https://www.tensorflow.org/tensorboard/get_started).
 

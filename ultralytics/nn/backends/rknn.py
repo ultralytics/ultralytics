@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements, is_rockchip
+from ultralytics.utils.checks import ONNXRUNTIME_BUILDS, check_requirements, is_rockchip
 
 from .base import BaseBackend
 
@@ -52,9 +52,7 @@ class RKNNBackend(BaseBackend):
 
         self.tail = None
         if (w.parent / "tail.onnx").is_file():
-            check_requirements(
-                [("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml")]
-            )
+            check_requirements([ONNXRUNTIME_BUILDS])
             import onnxruntime
 
             self.tail = onnxruntime.InferenceSession(str(w.parent / "tail.onnx"), providers=["CPUExecutionProvider"])

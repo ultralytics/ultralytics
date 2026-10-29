@@ -10,7 +10,7 @@ import sysconfig
 from pathlib import Path
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import ONNXRUNTIME_BUILDS, check_requirements
 
 
 def onnx2xilinx(
@@ -42,12 +42,7 @@ def onnx2xilinx(
         (str): Path to the exported AMD Xilinx model directory.
     """
     # Quark imports onnxruntime but only declares it in its cli extra
-    check_requirements(
-        [
-            "amd-quark>=0.13.0,<0.14.0",
-            ("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"),
-        ]
-    )
+    check_requirements(["amd-quark>=0.13.0,<0.14.0", ONNXRUNTIME_BUILDS])
     import onnx
 
     from ultralytics.utils.export.onnx import onnx_calibration_reader

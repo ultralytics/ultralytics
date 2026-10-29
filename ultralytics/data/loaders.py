@@ -458,8 +458,7 @@ class LoadImagesAndVideos:
                 if not self.cap or not self.cap.isOpened():
                     self._new_video(path)
 
-                success = self.cap.grab()
-                if success:
+                if self.cap.grab():
                     success, im0 = self.cap.retrieve()
                     for _ in range(self.vid_stride - 1):  # read frames 0, vid_stride, 2 * vid_stride, ...
                         self.cap.grab()

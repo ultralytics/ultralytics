@@ -731,7 +731,7 @@ class SolutionAnnotator(Annotator):
     def visioneye(
         self,
         box: list[float],
-        center_point: tuple[int, int],
+        center_point: tuple[float, float],
         color: tuple[int, int, int] = (235, 219, 11),
         pin_color: tuple[int, int, int] = (255, 0, 255),
     ):
@@ -739,7 +739,8 @@ class SolutionAnnotator(Annotator):
 
         Args:
             box (list[float]): Bounding box coordinates in format [x1, y1, x2, y2].
-            center_point (tuple[int, int]): Center point for vision eye view.
+            center_point (tuple[float, float]): Center point for vision eye view; fractional coordinates are truncated
+                to integers for drawing.
             color (tuple[int, int, int]): Object centroid and line color.
             pin_color (tuple[int, int, int]): Visioneye point color.
         """

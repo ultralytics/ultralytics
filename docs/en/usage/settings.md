@@ -31,21 +31,11 @@ Ultralytics stores persistent, per-machine settings in a JSON file in the user c
 
 ## Settings Reference
 
-For a bare model filename such as `YOLO("yolo26n.pt")`, Ultralytics first checks the current working directory, then `weights_dir`. If neither contains the weights, it downloads them to the current working directory. To download missing weights into `weights_dir`, pass the full model path:
-
-```python
-from pathlib import Path
-
-from ultralytics import YOLO, settings
-
-model = YOLO(Path(settings["weights_dir"]).resolve() / "yolo26n.pt")
-```
-
 | Name               | Example Value         | Data Type | Description                                                                                                                                  |
 | ------------------ | --------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `settings_version` | `'0.0.8'`             | `str`     | Settings schema version, distinct from the `ultralytics` package version                                                                     |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | Directory where datasets are stored                                                                                                          |
-| `weights_dir`      | `'/path/to/weights'`  | `str`     | Fallback lookup directory for model weights; not the default download destination                                                            |
+| `weights_dir`      | `'/path/to/weights'`  | `str`     | Download directory for URL and Platform (`ul://`) model weights, and fallback lookup for bare model names                                    |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                                                   |
 | `uuid`             | `'a1b2c3d4'`          | `str`     | Anonymized machine identifier (SHA-256 hash) used for analytics                                                                              |
 | `sync`             | `True`                | `bool`    | Send anonymized analytics and crash reports to Ultralytics, see [Privacy](../help/privacy.md)                                                |
@@ -60,3 +50,5 @@ model = YOLO(Path(settings["weights_dir"]).resolve() / "yolo26n.pt")
 | `wandb`            | `False`               | `bool`    | Enable [Weights & Biases](../integrations/weights-biases.md) logging                                                                         |
 | `vscode_msg`       | `True`                | `bool`    | Show a prompt to install the [Ultralytics-Snippets](../integrations/vscode.md) extension when a VS Code terminal is detected                 |
 | `openvino_msg`     | `True`                | `bool`    | On Intel CPUs, show a tip suggesting [OpenVINO](../integrations/openvino.md) export for faster inference                                     |
+
+A bare model name such as `YOLO("yolo26n.pt")` loads from the current working directory, then from `weights_dir`; if neither has it, the weights download to the current working directory. To download them into `weights_dir` instead, pass the full path, e.g. `YOLO(Path(settings["weights_dir"]) / "yolo26n.pt")`.

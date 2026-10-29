@@ -1235,12 +1235,14 @@ class RandomPerspective(BaseTransform):
         scale = params["scale"]
         # Drop objects behind the projection plane (w <= 0), e.g. Mosaic canvas corners, as they flip into huge boxes
         # Segments rebuild their boxes from their own points, so test those; otherwise test the box corners
-        pts = (
-            instances.segments
-            if len(instances.segments)
-            else instances.bboxes[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(-1, 4, 2)
-        )
-        in_front = (pts @ M[2, :2] + M[2, 2] > 0).all(1)
+        # Affine transforms keep w = 1, so only perspective needs the check
+        if self.perspective:
+            pts = (
+                instances.segments
+                if len(instances.segments)
+                else instances.bboxes[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(-1, 4, 2)
+            )
+            in_front = (pts @ M[2, :2] + M[2, 2] > 0).all(1)
 
         bboxes = self.apply_bboxes(instances.bboxes, M)
 
@@ -1262,7 +1264,8 @@ class RandomPerspective(BaseTransform):
         i = self.box_candidates(
             box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if len(segments) else 0.10
         )
-        i &= in_front
+        if self.perspective:
+            i &= in_front
         labels["instances"] = new_instances[i]
         labels["cls"] = cls[i]
         return labels

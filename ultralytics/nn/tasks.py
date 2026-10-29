@@ -1759,20 +1759,10 @@ class _SafeLoad:
                 import torchvision.transforms.transforms as tvt
                 from torchvision.transforms.functional import InterpolationMode
 
-                from ultralytics.data.augment import ClassifyLetterBox
+                from ultralytics.data.augment import ClassifyLetterBox  # docs custom classify transforms letterbox
 
-                for obj in (
-                    tvt.Compose,
-                    tvt.Normalize,
-                    tvt.Resize,
-                    tvt.CenterCrop,
-                    tvt.ToTensor,
-                    InterpolationMode,
-                    # Docs custom-transforms letterbox: T.Compose([np.asarray, ClassifyLetterBox, T.ToPILImage()])
-                    tvt.ToPILImage,
-                    ClassifyLetterBox,
-                    np.asarray,
-                ):
+                tfs = (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, tvt.ToPILImage)
+                for obj in (*tfs, InterpolationMode, ClassifyLetterBox, np.asarray):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
             if "ultralytics.nn.text_model.CLIP" in needed:
                 import clip

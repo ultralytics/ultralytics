@@ -127,6 +127,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_10,
     IS_PYTHON_MINIMUM_3_13,
+    ONNXRUNTIME_BUILDS,
     check_data_portable,
     check_imgsz,
     check_python,
@@ -1138,8 +1139,7 @@ class Exporter:
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
             ort = "onnxruntime-gpu[cuda]" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
-            builds = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
-            requirements += [(ort, *builds)]
+            requirements += [(ort, *ONNXRUNTIME_BUILDS)]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)

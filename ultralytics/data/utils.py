@@ -395,9 +395,8 @@ def verify_image_mask(args: tuple) -> tuple:
     """Verify that an image and its semantic mask exist, are readable, match in shape, and hold valid class ids.
 
     Args:
-        args (tuple): Tuple of (im_file, mask_file, prefix, invalid). If mask_file is missing, masks with the same stem
-            and another image extension are tried. invalid is a 256-entry uint8 lookup table that is nonzero for raw
-            mask ids that map to neither a dataset class nor the 255 ignore label.
+        args (tuple): Tuple of (im_file, mask_file, prefix, invalid), where invalid is a 256-entry uint8 lookup table
+            that is nonzero for raw mask ids that map to neither a dataset class nor the 255 ignore label.
 
     Returns:
         (tuple): Tuple of (im_file, mask_file, shape, mode, nm, nf, nc, msg), where the first four are None for rejected
@@ -410,12 +409,6 @@ def verify_image_mask(args: tuple) -> tuple:
     try:
         msg, shape = check_image(im_file)
         msg = f"{prefix}{msg}" if msg else ""
-        if not os.path.isfile(mask_file):
-            for ext in IMG_FORMATS:  # check other suffixes
-                alt_mask_file = mask_file.rsplit(".", 1)[0] + f".{ext}"
-                if os.path.isfile(alt_mask_file):
-                    mask_file = alt_mask_file
-                    break
         if os.path.isfile(mask_file):
             with Image.open(mask_file) as im:
                 mode = im.mode  # recorded so load_mask reads each mask once

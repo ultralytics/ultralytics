@@ -977,12 +977,16 @@ class SemanticDataset(YOLODataset):
         return forward, inverse
 
     def get_label_files(self) -> list[str]:
-        """Return the mask PNG paths paired with the dataset's images.
+        """Return the mask paths paired with the dataset's images, preferring PNG over other image formats.
 
         Returns:
             (list[str]): List of mask file paths.
         """
-        self.mask_files = img2label_paths(self.im_files, label_dir=self.data.get("masks_dir", "masks"), suffix=".png")
+        masks = img2label_paths(self.im_files, label_dir=self.data.get("masks_dir", "masks"), suffix=".png")
+        self.mask_files = [
+            m if os.path.isfile(m) else next((f for x in sorted(IMG_FORMATS) if os.path.isfile(f := m[:-3] + x)), m)
+            for m in masks
+        ]
         return self.mask_files
 
     def get_cache_hash(self) -> str:

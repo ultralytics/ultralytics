@@ -458,14 +458,10 @@ class LoadImagesAndVideos:
                 if not self.cap or not self.cap.isOpened():
                     self._new_video(path)
 
-                success = False
-                for _ in range(self.vid_stride):
-                    success = self.cap.grab()
-                    if not success:
-                        break  # end of video or failure
-
-                if success:
+                if self.cap.grab():
                     success, im0 = self.cap.retrieve()
+                    for _ in range(self.vid_stride - 1):  # read frames 0, vid_stride, 2 * vid_stride, ...
+                        self.cap.grab()
                     if success and im0 is not None:
                         if self.cv2_flag == cv2.IMREAD_GRAYSCALE:
                             im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
@@ -524,7 +520,7 @@ class LoadImagesAndVideos:
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)  # keep the float, int() turns 29.97 into 29 and stretches the video
         if not self.cap.isOpened():
             raise FileNotFoundError(f"Failed to open video {path}")
-        self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
+        self.frames = math.ceil(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
 
     def __len__(self) -> int:
         """Return the number of batches in the dataset."""

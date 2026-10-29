@@ -268,6 +268,8 @@ To enable this feature, use the `dynamic=True` flag during export:
 
 Dynamic input sizing is particularly useful for applications where input dimensions may vary, such as video processing or when handling images from different sources.
 
+A dynamic export loaded with `YOLO()` predicts and validates at its export `imgsz` (the longer side of a non-square export), as a PyTorch model uses its training `imgsz`. Pass `imgsz` to run it at another size.
+
 ### Why do exported model predictions differ from PyTorch on non-square images?
 
 PyTorch models and dynamic exports use [minimum-rectangle padding](../modes/predict.md#fixed-shape-vs-minimum-rectangle-rect) by default, while static exports pad to the full `imgsz`, so detections near the confidence threshold can differ. Use `rect=False` for native inference to match a static export, or export with `dynamic=True` where supported.

@@ -289,7 +289,7 @@ class Annotator:
     def __init__(
         self,
         im,
-        line_width: float | None = None,
+        line_width: int | None = None,
         font_size: int | None = None,
         font: str = "Arial.ttf",
         pil: bool = False,
@@ -300,8 +300,7 @@ class Annotator:
         Args:
             im (np.ndarray | Image.Image | torch.Tensor): Image to annotate. Arrays and tensors are HWC BGR uint8;
                 grayscale is expanded to 3 channels, 2-channel images are zero-padded, and extra channels are dropped.
-            line_width (float, optional): Nonzero widths are rounded to whole pixels, with a minimum of 1. None or 0
-                selects automatic sizing (~0.3% of the mean image dimension), with a minimum of 2.
+            line_width (int, optional): Line width. Defaults to ~0.3% of the mean image dimension, at least 2.
             font_size (int, optional): Font size for PIL text. Defaults to ~3.5% of the mean image dimension, at least
                 12.
             font (str): Font file name used for PIL text.
@@ -312,11 +311,7 @@ class Annotator:
         input_is_pil = isinstance(im, Image.Image)
         input_is_tensor = isinstance(im, torch.Tensor)
         self.pil = pil or non_ascii or input_is_pil
-        self.lw = (
-            max(round(line_width), 1)
-            if line_width
-            else max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
-        )
+        self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if input_is_tensor:
             assert im.ndim == 3 and im.shape[2] == 3 and im.dtype == torch.uint8, (
                 f"Expected HWC uint8 tensor image with 3 channels, but got shape {tuple(im.shape)} and dtype {im.dtype}."

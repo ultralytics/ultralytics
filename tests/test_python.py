@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 import pytest
 import torch
-from PIL import Image, ImageDraw
+from PIL import Image
 
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
@@ -1128,25 +1128,6 @@ def test_results_plot_without_boxes():
     assert r.boxes is None
     for color_mode in ("class", "instance"):
         assert r.plot(color_mode=color_mode).shape == orig_img.shape
-
-
-@pytest.mark.parametrize("pil", (False, True))
-@pytest.mark.parametrize("line_width, expected_width", ((0.1, 1), (2.0, 2), (2.5, 2), (3.5, 4), (None, 2), (0, 2)))
-def test_results_plot_fractional_line_width(pil, line_width, expected_width):
-    """Test rendered thickness after rounding, including minimum and automatic widths."""
-    from ultralytics.engine.results import Results
-    from ultralytics.utils.plotting import colors
-
-    boxes = torch.tensor([[10, 10, 50, 50, 0.9, 0]], dtype=torch.float32)
-    r = Results(np.zeros((64, 64, 3), dtype=np.uint8), path="im.jpg", names={0: "a"}, boxes=boxes)
-    actual = r.plot(line_width=line_width, pil=pil, labels=False, conf=False)
-    if pil:
-        expected = Image.fromarray(r.orig_img.copy())
-        ImageDraw.Draw(expected).rectangle((10, 10, 50, 50), width=expected_width, outline=colors(0))
-    else:
-        expected = r.orig_img.copy()
-        cv2.rectangle(expected, (10, 10), (50, 50), colors(0, True), expected_width, cv2.LINE_AA)
-    np.testing.assert_array_equal(np.asarray(actual), np.asarray(expected))
 
 
 def test_results_plot_instance_keypoints_track_color():

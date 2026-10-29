@@ -55,13 +55,11 @@ def auto_annotate(
     )
 
     for result in det_results:
-        if class_ids := result.boxes.cls.int().tolist():  # Extract class IDs from detection results
-            boxes = result.boxes.xyxy  # Boxes object for bbox outputs
-            sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)
-            segments = sam_results[0].masks.xyn
-
-            with open(f"{Path(output_dir) / det_model.predictor.txt_path.name}.txt", "w", encoding="utf-8") as f:
-                for i, s in enumerate(segments):
+        with open(f"{Path(output_dir) / det_model.predictor.txt_path.name}.txt", "w", encoding="utf-8") as f:
+            if class_ids := result.boxes.cls.int().tolist():  # Extract class IDs from detection results
+                boxes = result.boxes.xyxy  # Boxes object for bbox outputs
+                sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)
+                for i, s in enumerate(sam_results[0].masks.xyn):
                     if len(s) >= 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                         segment = map(str, s.reshape(-1).tolist())
                         f.write(f"{class_ids[i]} " + " ".join(segment) + "\n")

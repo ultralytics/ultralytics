@@ -1848,6 +1848,24 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
+def test_random_perspective_mosaic_corners():
+    """Perspective on a Mosaic-sized canvas must not turn corner objects into image-sized boxes."""
+    import random
+
+    from ultralytics.data.augment import RandomPerspective
+    from ultralytics.utils.instance import Instances
+
+    rp = RandomPerspective(degrees=0, translate=0, scale=0, shear=0, perspective=0.001, size=(640, 640))
+    corners = np.array(
+        [[20, 20, 60, 60], [1220, 20, 1260, 60], [20, 1220, 60, 1260], [1220, 1220, 1260, 1260]], np.float32
+    )
+    random.seed(22)  # this seed puts a canvas corner behind the plane (w < 0)
+    instances = Instances(corners, np.zeros((0, 1000, 2), np.float32), bbox_format="xyxy", normalized=False)
+    labels = rp({"img": np.zeros((1280, 1280, 3), np.uint8), "cls": np.zeros((4, 1)), "instances": instances})
+    boxes = labels["instances"].bboxes
+    assert (boxes[:, 2:] - boxes[:, :2] < 320).all(), boxes.tolist()
+
+
 def test_scale_coords_nonuniform_letterbox():
     """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
     from ultralytics.data.augment import LetterBox

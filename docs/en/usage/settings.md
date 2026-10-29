@@ -45,7 +45,7 @@ model = YOLO(Path(settings["weights_dir"]).resolve() / "yolo26n.pt")
 | ------------------ | --------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `settings_version` | `'0.0.8'`             | `str`     | Settings schema version, distinct from the `ultralytics` package version                                                                     |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | Directory where datasets are stored                                                                                                          |
-| `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                                                     |
+| `weights_dir`      | `'/path/to/weights'`  | `str`     | Fallback lookup directory for model weights; not the default download destination                                                            |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                                                   |
 | `uuid`             | `'a1b2c3d4'`          | `str`     | Anonymized machine identifier (SHA-256 hash) used for analytics                                                                              |
 | `sync`             | `True`                | `bool`    | Send anonymized analytics and crash reports to Ultralytics, see [Privacy](../help/privacy.md)                                                |

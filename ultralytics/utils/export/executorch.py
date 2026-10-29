@@ -71,7 +71,7 @@ def torch2executorch(
     ).to_executorch()
     output_dir = Path(output_dir)
     if output_dir.exists():
-        shutil.rmtree(output_dir)  # a re-export would keep the <stem>.pte of exports before 8.4.38
+        shutil.rmtree(output_dir)  # a re-export would keep an older export's <stem>.pte
     output_dir.mkdir(parents=True)
     (output_dir / "model.pte").write_bytes(et_program.buffer)
 

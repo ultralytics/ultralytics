@@ -138,8 +138,9 @@ def test_build_yolo_dataset_hyp_isolated():
 
 
 @pytest.mark.parametrize("task", ["detect", "segment"])
-def test_yolo_dataset_label_encoding(tmp_path, task):
-    """Test that UTF-8 label signatures do not discard images from detection or segmentation datasets."""
+@pytest.mark.parametrize("source", ["directory", "list", "image"])
+def test_yolo_dataset_label_encoding(tmp_path, task, source):
+    """Test label encodings and individual image paths in detection and segmentation datasets."""
     from ultralytics.data.dataset import YOLODataset
 
     for directory in ("images", "labels"):
@@ -148,10 +149,10 @@ def test_yolo_dataset_label_encoding(tmp_path, task):
     for name, codec in (("plain", "utf-8"), ("bom", "utf-8-sig")):
         Image.new("RGB", (32, 32)).save(tmp_path / "images" / f"{name}.png")
         (tmp_path / "labels" / f"{name}.txt").write_text(label, encoding=codec)
-    dataset = YOLODataset(
-        img_path=str(tmp_path / "images"), data={"names": {0: "object"}}, task=task, imgsz=32, augment=False
-    )
-    assert len(dataset) == 2
+    images = sorted(str(p) for p in (tmp_path / "images").glob("*.png"))
+    img_path = str(tmp_path / "images") if source == "directory" else images if source == "list" else images[0]
+    dataset = YOLODataset(img_path=img_path, data={"names": {0: "object"}}, task=task, imgsz=32, augment=False)
+    assert len(dataset) == (1 if source == "image" else 2)
     for sample in dataset:
         assert sample["cls"].tolist() == [[0.0]]
         assert sample["bboxes"].tolist() == [[0.5, 0.5, 0.5, 0.5]]

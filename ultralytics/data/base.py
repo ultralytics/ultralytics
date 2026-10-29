@@ -208,7 +208,9 @@ class BaseDataset(Dataset):
                 if p.is_dir():  # dir
                     f += glob.glob(str(Path(glob.escape(p)) / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
-                elif p.is_file():  # file
+                elif p.is_file() and p.suffix[1:].lower() in IMG_FORMATS:
+                    f.append(str(p))
+                elif p.is_file():  # text file
                     with open(p, encoding="utf-8-sig") as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep

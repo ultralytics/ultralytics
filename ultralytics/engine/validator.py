@@ -42,7 +42,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 
-from ultralytics.cfg import get_cfg, get_save_dir
+from ultralytics.cfg import cfg2dict, get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
@@ -125,7 +125,7 @@ class BaseValidator:
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
 
         self.args = get_cfg(overrides=args)
-        self.imgsz_given = isinstance(args, dict) and "imgsz" in args  # else a dynamic export uses its export size
+        self.imgsz_given = "imgsz" in cfg2dict(args or {})  # else a dynamic export uses its export size
         self.dataloader = dataloader
         self.stride = None
         self.data = None

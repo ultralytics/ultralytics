@@ -550,9 +550,10 @@ class Model(torch.nn.Module):
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
-            if "imgsz" not in args and getattr(self.predictor.model, "dynamic", False):
+            if "imgsz" not in self.overrides and getattr(self.predictor.model, "dynamic", False):
                 # A dynamic export defaults to its export size, as a .pt model defaults to its training size
-                self.overrides["imgsz"] = self.predictor.args.imgsz = self.predictor.model.imgsz
+                self.overrides["imgsz"] = self.predictor.model.imgsz
+                self.predictor.args.imgsz = args.get("imgsz", self.overrides["imgsz"])
         else:  # only update args if predictor is already setup
             save_keys = ("project", "name", "save_dir", "exist_ok")
             prev_save_args = tuple(getattr(self.predictor.args, k, None) for k in save_keys)

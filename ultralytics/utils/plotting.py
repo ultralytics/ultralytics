@@ -927,7 +927,7 @@ def plot_images(
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs**0.5)  # number of subplots (square)
     if np.max(images[0]) <= 1:
-        images *= 255  # de-normalise (optional)
+        images = images[:bs] * 255  # de-normalise a copy, the train/val batch is shared
 
     # Build Image
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init

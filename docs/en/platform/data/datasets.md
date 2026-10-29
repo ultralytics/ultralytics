@@ -995,6 +995,8 @@ Delete a dataset you no longer need:
 
 The same menu holds **Information**, which opens the metadata dialog described in [Custom Metadata](#custom-metadata), and **Refresh**, which re-reads the dataset from the server.
 
+To delete several datasets at once, select their rows in the table view of the **Datasets** tab on your profile (or on a team profile where you are an Editor or above) and click **Delete (N)**, choose it from the right-click menu, or press `Cmd/Ctrl+Delete`.
+
 !!! note "Trash and Restore"
 
     Deleted datasets are moved to Trash — not permanently deleted. You can restore them within 30 days from [`Settings > Trash`](../account/trash.md).

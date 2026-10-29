@@ -105,7 +105,7 @@ Not every export format supports every precision. Explicit `quantize` requests e
 | TensorRT      | ✅                | ✅                | ✅         | ❌                | INT8 needs representative calibration data.                                                                                                                                                                                                             |
 | CoreML        | ✅¹               | ✅                | ✅         | ✅                | CoreML INT8 is weight quantization; W8A16 uses INT8 weights with FP16 activations. ¹Unset NMS ML Programs default to FP16, and segment/pose `nms=True` exports are always FP16.                                                                         |
 | Core AI       | ✅                | ✅                | ❌         | ❌                | FP32 by default or an FP16 `.aimodel` asset with `quantize=16`; no INT8 path.                                                                                                                                                                           |
-| TF SavedModel | ✅                | ❌                | ✅         | ❌                | INT8 export uses TensorFlow calibration.                                                                                                                                                                                                                |
+| TF SavedModel | ✅                | ❌                | ✅         | ❌                | INT8 goes to `.tflite` files beside an FP32 SavedModel.                                                                                                                                                                                                 |
 | TF GraphDef   | ✅                | ❌                | ❌         | ❌                | No export-time precision conversion.                                                                                                                                                                                                                    |
 | Edge TPU      | ❌                | ❌                | ✅ auto    | ❌                | Edge TPU requires INT8; it is auto-enabled when unset.                                                                                                                                                                                                  |
 | LiteRT        | ✅                | ❌                | ✅         | ✅                | Static INT8 (`8`) and `"w8a16"` (int8 weights + **int16** activations) use calibration data; also supports `"w8a32"` dynamic INT8 (no calibration). `quantize=16` is not a separate export; an FP32 model runs in FP16 at runtime via the GPU delegate. |
@@ -267,6 +267,8 @@ To enable this feature, use the `dynamic=True` flag during export:
         ```
 
 Dynamic input sizing is particularly useful for applications where input dimensions may vary, such as video processing or when handling images from different sources.
+
+A dynamic export loaded with `YOLO()` predicts and validates at its export `imgsz` (the longer side of a non-square export), as a PyTorch model uses its training `imgsz`. Pass `imgsz` to run it at another size.
 
 ### Why do exported model predictions differ from PyTorch on non-square images?
 

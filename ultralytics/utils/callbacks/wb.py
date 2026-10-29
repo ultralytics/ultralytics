@@ -170,14 +170,14 @@ def on_train_end(trainer):
         art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=["best"])
-    # Check if we actually have plots to save
-    if trainer.args.plots and hasattr(trainer.validator.metrics, "curves_results"):
-        for curve_name, curve_values in zip(trainer.validator.metrics.curves, trainer.validator.metrics.curves_results):
-            x, y, x_title, y_title = curve_values
+    # Curve rows exist only for classes with val labels, in ap_class_index order
+    metrics = trainer.validator.metrics
+    if trainer.args.plots and metrics.curves and len(metrics.ap_class_index):
+        for curve_name, (x, y, x_title, y_title) in zip(metrics.curves, metrics.curves_results):
             _plot_curve(
                 x,
                 y,
-                names=list(trainer.validator.metrics.names.values()),
+                names=[metrics.names[c] for c in metrics.ap_class_index],
                 id=f"curves/{curve_name}",
                 title=curve_name,
                 x_title=x_title,

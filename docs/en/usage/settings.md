@@ -35,7 +35,7 @@ Ultralytics stores persistent, per-machine settings in a JSON file in the user c
 | ------------------ | --------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `settings_version` | `'0.0.8'`             | `str`     | Settings schema version, distinct from the `ultralytics` package version                                                                     |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | Directory where datasets are stored                                                                                                          |
-| `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                                                     |
+| `weights_dir`      | `'/path/to/weights'`  | `str`     | Download directory for URL and Platform (`ul://`) model weights, and fallback lookup for bare model names                                    |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                                                   |
 | `uuid`             | `'a1b2c3d4'`          | `str`     | Anonymized machine identifier (SHA-256 hash) used for analytics                                                                              |
 | `sync`             | `True`                | `bool`    | Send anonymized analytics and crash reports to Ultralytics, see [Privacy](../help/privacy.md)                                                |
@@ -50,3 +50,5 @@ Ultralytics stores persistent, per-machine settings in a JSON file in the user c
 | `wandb`            | `False`               | `bool`    | Enable [Weights & Biases](../integrations/weights-biases.md) logging                                                                         |
 | `vscode_msg`       | `True`                | `bool`    | Show a prompt to install the [Ultralytics-Snippets](../integrations/vscode.md) extension when a VS Code terminal is detected                 |
 | `openvino_msg`     | `True`                | `bool`    | On Intel CPUs, show a tip suggesting [OpenVINO](../integrations/openvino.md) export for faster inference                                     |
+
+A bare model name such as `YOLO("yolo26n.pt")` loads from the current working directory, then from `weights_dir`; if neither has it, the weights download to the current working directory. To download them into `weights_dir` instead, pass the full path, e.g. `YOLO(Path(settings["weights_dir"]) / "yolo26n.pt")`.

@@ -47,7 +47,7 @@ The exporter performs these stages automatically:
 5. Compiles the optimized graph for the selected Hailo accelerator.
 6. Saves the HEF with Ultralytics metadata and removes the intermediate ONNX file.
 
-YOLOv8 and YOLO11 detection models use HailoRT YOLO NMS in the compiled pipeline. YOLO26 compiles raw detection-head tensors: Ultralytics applies NMS to the default one-to-many outputs, or decodes NMS-free one-to-one outputs with `nms=False`. YOLOv8/YOLO11 segmentation, pose, and OBB compile the raw head tensors, which Ultralytics decodes at inference, and YOLOv8/YOLO11/YOLO26 classification runs softmax on chip so the HEF returns class probabilities directly. For YOLO26 semantic segmentation the exporter follows the accelerator: Hailo-8/8L (DFC v3.x) return classifier logits for host upsampling and reduction, while Hailo-10H/15 (DFC v5.x) compile multi-class ArgMax heads on chip and return a compact class map. Single-class heads use the host-logit path on every target because they require a threshold instead of ArgMax. YOLO26 depth models compile the dense logit conv in `a16` and rebuild the metric depth map on the host (the clamp/exp and learned log-affine calibration that follow the head), so the quantizer keeps its widest range on the raw logit. Users do not need to find ONNX end nodes, write a Hailo model script (`.alls`), or create an NMS JSON manually.
+YOLOv8 and YOLO11 detection models use HailoRT YOLO NMS in the compiled pipeline. YOLO26 compiles raw detection-head tensors: Ultralytics applies NMS to the default one-to-many outputs, or decodes NMS-free one-to-one outputs with `nms=False`. YOLOv8/YOLO11 segmentation, pose, and OBB compile the raw head tensors, which Ultralytics decodes at inference, and YOLOv8/YOLO11/YOLO26 classification runs softmax on chip so the HEF returns class probabilities directly. For YOLO26 semantic segmentation the exporter follows the accelerator: Hailo-8/8L (DFC v3.x) return classifier logits for host upsampling and reduction, while Hailo-10H/15 (DFC v5.x) compile multi-class ArgMax heads on chip and return a compact class map. Single-class heads use the host-logit path on every target because they require a threshold instead of ArgMax. YOLO26 depth models compile the dense logit conv in `a16_w16` and rebuild the metric depth map on the host (the clamp/exp and learned log-affine calibration that follow the head), so the quantizer keeps its widest range on the raw logit. Users do not need to find ONNX end nodes, write a Hailo model script (`.alls`), or create an NMS JSON manually.
 
 ## Installation
 
@@ -111,7 +111,7 @@ The Hailo ecosystem covers a broad range of computer vision workloads, but the U
 | Object detection          |         ✅          | YOLOv8, YOLO11, YOLO26   | Standard Ultralytics `Detect` heads, including custom models                                 |
 | Instance segmentation     |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-seg is not currently supported  |
 | Semantic segmentation     |         ✅          | YOLO26                   | Hailo-8/8L and single-class heads return logits; Hailo-10H/15 bakes multi-class maps         |
-| Depth estimation          |         ✅          | YOLO26                   | Dense logit compiled in `a16`; Ultralytics rebuilds the metric depth map at inference        |
+| Depth estimation          |         ✅          | YOLO26                   | Dense logit compiled in `a16_w16`; Ultralytics rebuilds metric depth at inference            |
 | Image classification      |         ✅          | YOLOv8, YOLO11, YOLO26   | Softmax runs on chip; the HEF returns class probabilities directly                           |
 | Pose estimation           |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-pose is not currently supported |
 | Oriented object detection |         ✅          | YOLOv8, YOLO11           | Raw head tensors decoded by Ultralytics at inference; YOLO26-OBB is not currently supported  |
@@ -172,7 +172,7 @@ Hailo HEF export uses INT8 quantization to map the YOLO network efficiently onto
 
 !!! note
 
-    Hailo hardware and the Dataflow Compiler support INT4, INT8, and INT16 precisions. The Ultralytics `format="hailo"` path compiles in INT8, applying 16-bit activations (`a16`) where a task needs the wider range.
+    Hailo hardware and the Dataflow Compiler support INT4, INT8, and INT16 precisions. The Ultralytics `format="hailo"` path compiles in INT8, applying 16-bit activations and weights (`a16_w16`) to the output layers where a task needs the wider range.
 
 When `data` is omitted, Ultralytics uses a task-specific lightweight calibration dataset, such as COCO128 for detection, cityscapes8 for semantic segmentation, or depth8 for depth estimation. The dense depth head is especially sensitive to the calibration domain: calibrating a depth model with unrelated detection images flattens the predicted map, and larger in-domain sets improve fidelity. For a custom computer vision model, point `data` to its dataset YAML so the compiler observes representative images from the actual deployment domain:
 

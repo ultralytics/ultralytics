@@ -1238,6 +1238,9 @@ class RandomPerspective(BaseTransform):
 
         segments = instances.segments
         keypoints = instances.keypoints
+        # Drop objects crossing the projection plane (w = 0), e.g. at Mosaic canvas corners, as they flip into huge boxes
+        pts = segments if len(segments) else instances.bboxes[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(-1, 4, 2)
+        w = pts @ M[2, :2] + M[2, 2]  # projective divisor
         # Update bboxes if there are segments.
         if len(segments):
             bboxes, segments = self.apply_segments(segments, M, params["size"])
@@ -1251,7 +1254,7 @@ class RandomPerspective(BaseTransform):
         # Filter instances
         instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
         # Make the bboxes have the same scale with new_bboxes
-        i = self.box_candidates(
+        i = (w.min(1) * w.max(1) > 0) & self.box_candidates(
             box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if len(segments) else 0.10
         )
         labels["instances"] = new_instances[i]

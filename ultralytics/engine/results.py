@@ -487,7 +487,7 @@ class Results(SimpleClass, DataExportMixin):
     def plot(
         self,
         conf: bool = True,
-        line_width: float | None = None,
+        line_width: int | None = None,
         font_size: float | None = None,
         font: str = "Arial.ttf",
         pil: bool = False,
@@ -508,7 +508,7 @@ class Results(SimpleClass, DataExportMixin):
 
         Args:
             conf (bool): Whether to plot detection confidence scores.
-            line_width (float | None): Line width of bounding boxes. If None, scaled to image size.
+            line_width (int | None): Line width of bounding boxes. If None, scaled to image size.
             font_size (float | None): Font size for text. If None, scaled to image size.
             font (str): Font to use for text.
             pil (bool): Whether to return the image as a PIL Image.

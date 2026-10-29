@@ -46,7 +46,7 @@ IMX500 export supports four of the seven Ultralytics tasks, and only for **YOLOv
 
 Export an Ultralytics YOLO11 model to IMX500 format and run inference with the exported model.
 
-The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on the Raspberry Pi AI Camera (IMX500).
+The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Ultralytics inference and validation run the exported `model_imx.onnx` on the host CPU.
 
 !!! note
 
@@ -215,7 +215,7 @@ The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-The export process will create an ONNX model for quantization validation, along with a directory named `<model-name>_imx_model`. This directory will include the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
+The export process will create a directory named `<model-name>_imx_model`. This directory contains `model_imx.onnx` for quantization validation and the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
 
 !!! example "Folder Structure"
 

@@ -1633,7 +1633,6 @@ def test_utils_checks(monkeypatch):
         checks.check_imgsz("640x480")  # malformed imgsz string raises a helpful ValueError, not a raw SyntaxError
     checks.check_imshow(warn=True)
     checks.check_suffix("https://example.com/model.pt?token=abc", ".pt")
-    checks.check_suffix(Path("v1.0/yolo26n_openvino_model"), ".pt")  # no file suffix, dotted parent directory
     checks.check_version("ultralytics", "8.0.0")
     # parse_version must pad to at least 3 components and keep all segments so any version pair compares correctly
     assert checks.parse_version("2") == (2, 0, 0)

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import random
 import shutil
 from pathlib import Path
@@ -121,7 +120,7 @@ def autosplit(
         Split with custom weights and annotated images only
         >>> autosplit(path="path/to/images", weights=(0.8, 0.15, 0.05), annotated_only=True)
     """
-    path = Path(path)  # images dir
+    path = Path(path).absolute()  # images dir, absolute so label lookups match the loader
     files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
     n = len(files)  # number of files
     indices = random.Random(0).choices([0, 1, 2], weights=weights, k=n)  # assign each image reproducibly
@@ -133,11 +132,7 @@ def autosplit(
 
     LOGGER.info(f"Autosplitting images from {path}" + ", using *.txt labeled images only" * annotated_only)
     for i, img in TQDM(zip(indices, files), total=n):
-        if (
-            not annotated_only
-            or Path(img2label_paths([img])[0]).exists()
-            or (img.parts[0] == "images" and Path(img2label_paths([os.path.join(".", img)])[0]).exists())
-        ):  # check label
+        if not annotated_only or Path(img2label_paths([img])[0]).exists():  # check label
             with open(path.parent / txt[i], "a", encoding="utf-8") as f:
                 f.write(f"./{img.relative_to(path.parent).as_posix()}" + "\n")  # add image to txt file
 

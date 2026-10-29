@@ -372,7 +372,7 @@ class SolutionAnnotator(Annotator):
 
         # Draw small circles at the corner points
         for point in reg_pts:
-            cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle
+            cv2.circle(self.im, (int(point[0]), int(point[1])), thickness * 2, color, -1)  # -1 fills the circle
 
     def queue_counts_display(
         self,
@@ -391,8 +391,8 @@ class SolutionAnnotator(Annotator):
         """
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
-        center_x = sum(x_values) // len(points)
-        center_y = sum(y_values) // len(points)
+        center_x = int(sum(x_values) // len(points))
+        center_y = int(sum(y_values) // len(points))
 
         text_size = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]
         text_width = text_size[0]
@@ -866,9 +866,4 @@ class SolutionResults:
         Returns:
             (str): A string representation listing non-null attributes.
         """
-        attrs = {
-            k: v
-            for k, v in self.__dict__.items()
-            if k != "plot_im" and v not in [None, {}, 0, 0.0, False]  # Exclude `plot_im` explicitly
-        }
-        return ", ".join(f"{k}={v}" for k, v in attrs.items())
+        return ", ".join(f"{k}={v}" for k, v in self.__dict__.items() if k != "plot_im" and v)

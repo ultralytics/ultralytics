@@ -32,7 +32,7 @@ Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) model
 ONNX models can be used to transition between different frameworks seamlessly. For instance, a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model trained in PyTorch can be exported to ONNX format and then easily imported into TensorFlow.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/d82cf8e015f11e3e1f7ea679b043ef00.avif" alt="ONNX model portability across deep learning frameworks">
+  <img width="100%" src="https://cdn.ul.run/i/3d77aaacb115081597b87f6d3a6af615.avif" alt="ONNX model portability across deep learning frameworks">
 </p>
 
 Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https://onnxruntime.ai/) is a versatile cross-platform accelerator for machine learning models that is compatible with frameworks like PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), scikit-learn, etc.
@@ -195,6 +195,21 @@ When exporting your YOLO26 model to ONNX format, you can customize the process u
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
+### INT8 Quantization
+
+For checkpoints not trained with [quantization-aware training](../modes/export.md#quantization-aware-training), `quantize=8` applies ONNX Runtime static quantization to `Conv`, `Gemm`, and `MatMul` nodes only. All other nodes stay in float, including the ops that assemble `output0`: box coordinates (pixels) and class scores (0 to 1) share that tensor, so a single INT8 scale for it would round every class score to zero. Exclude the same nodes if you run `quantize_static` on an exported FP32 model yourself:
+
+```python
+import onnx
+from onnxruntime.quantization import quantize_static
+
+model = "yolo26n.onnx"
+exclude = [n.name for n in onnx.load(model).graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
+quantize_static(model, "yolo26n_int8.onnx", calibration_reader, nodes_to_exclude=exclude)
+```
+
+Here `calibration_reader` is an `onnxruntime.quantization.CalibrationDataReader` that yields `{"images": array}` for each calibration image, preprocessed as for inference: letterboxed to the export size, RGB, NCHW, `float32` in 0-1.
+
 ## Deploying Exported YOLO26 ONNX Models
 
 Once you've successfully exported your Ultralytics YOLO26 models to ONNX format, the next step is deploying these models in various environments. For detailed instructions on deploying your ONNX models, take a look at the following resources:
@@ -206,6 +221,21 @@ Once you've successfully exported your Ultralytics YOLO26 models to ONNX format,
 - **[ONNX Tutorials on GitHub](https://github.com/onnx/tutorials)**: A collection of comprehensive tutorials that cover various aspects of using and implementing ONNX models in different scenarios.
 
 - **[Triton Inference Server](../guides/triton-inference-server.md)**: Learn how to deploy your ONNX models with NVIDIA's Triton Inference Server for high-performance, scalable deployments.
+
+## Windows ML Inference
+
+On Windows 11 24H2 (build 26100) or newer with Python 3.10+, you can install `onnxruntime-windowsml` in a separate environment to let [Windows ML select execution providers](https://learn.microsoft.com/en-us/windows/ai/new-windows-ml/select-execution-providers) for your hardware. Install it instead of other ONNX Runtime builds, then use the same exported `.onnx` model with `YOLO("model.onnx")`. The backend preserves the PyTorch thread count and supplied session options, including an explicit provider policy. Without a supplied policy, Windows ML selects hardware for maximum performance, even when the PyTorch device is `cpu`. Measure prediction latency on your device before choosing this runtime; it is optional and is not installed by default.
+
+On integrated GPUs that share power with the CPU, idle PyTorch threads in preprocessing and postprocessing can slow Windows ML inference. Call `torch.set_num_threads(1)` before predicting to reduce this. It applies to the whole process, so other PyTorch models in that process also run on one thread.
+
+```python
+import torch
+
+from ultralytics import YOLO
+
+torch.set_num_threads(1)  # optional, measure on your device
+results = YOLO("yolo26n.onnx")("https://ultralytics.com/images/bus.jpg")
+```
 
 ## AMD GPU Inference with MIGraphX
 

@@ -54,6 +54,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_2_0,
     TORCH_2_4,
+    TORCH_2_8,
     TORCH_2_13,
     EarlyStopping,
     ModelEMA,
@@ -262,8 +263,8 @@ class BaseTrainer:
                 self._do_train()
         finally:
             unset_deterministic()  # never leave deterministic state on, including the DDP parent and failed runs
-        if not self.ddp:
-            self.run_callbacks("teardown")
+            if not self.ddp:
+                self.run_callbacks("teardown")
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -291,11 +292,13 @@ class BaseTrainer:
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         elif device_type == "xpu" and not (hasattr(dist, "is_xccl_available") and dist.is_xccl_available()):
             raise RuntimeError("Multi-XPU training requires XCCL, which is not available in this PyTorch build.")
+        backend = {"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo")
         dist.init_process_group(
-            backend={"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo"),
+            backend=backend,
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
+            **({"device_id": self.device} if backend == "nccl" and TORCH_2_8 else {}),  # bind NCCL to this rank's GPU
         )
 
     def _build_train_pipeline(self):
@@ -320,6 +323,8 @@ class BaseTrainer:
         )
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
+        if not self.args.time:  # time mode re-estimates epochs after the first epoch
+            self.accumulate = min(self.accumulate, len(self.train_loader) * self.epochs)
         if self.optimizer is None:
             iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
             self.optimizer = self.build_optimizer(
@@ -472,6 +477,7 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = self._get_warmup_iterations(nb)
         last_opt_step = -1
+        acc0 = self.accumulate  # nominal (already capped) accumulate; warmup below ramps up to it, never past it
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
@@ -516,9 +522,9 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_start")
                 # Warmup
                 ni = i + nb * epoch
-                if ni < nw:
+                if nw and ni <= nw:  # ni == nw lands accumulate, lr and momentum exactly on their targets
                     xi = [0, nw]  # x interp
-                    self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
+                    self.accumulate = max(1, int(np.interp(ni, xi, [1, acc0]).round()))
                     for x in self.optimizer.param_groups:
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x["lr"] = float(
@@ -593,6 +599,7 @@ class BaseTrainer:
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)
                     last_opt_step = -1
+                    acc0 = self.accumulate  # the rebuild recomputed the nominal for the reduced batch size
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
                 if ni - last_opt_step >= self.accumulate:
@@ -877,7 +884,7 @@ class BaseTrainer:
 
         cfg, weights = self.model, None
         ckpt = None
-        if str(self.model).endswith(".pt"):
+        if str(self.model).lower().endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
         if isinstance(self.args.pretrained, (str, Path)) and not self.resume:
@@ -1179,7 +1186,7 @@ class BaseTrainer:
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.optimizer, self.args.lr0 = name, lr  # resume rebuilds this choice from train_args
-            self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
+            self.args.warmup_bias_lr = 0.0  # start bias warmup at zero
 
         use_muon = name == "MuSGD"
         for module_name, module in unwrap_model(model).named_modules():

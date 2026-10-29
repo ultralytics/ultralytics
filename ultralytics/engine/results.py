@@ -713,8 +713,7 @@ class Results(SimpleClass, DataExportMixin):
             d = self.depth.data
             d = d[d > 0]
             return f"depth {float(d.min()):.2f}-{float(d.max()):.2f}m, " if len(d) else "depth (no valid pixels), "
-        if self.semantic_mask is not None:
-            return ""
+        return ""
 
     def save_txt(self, txt_file: str | Path, save_conf: bool = False) -> str:
         """Save detection results to a text file.
@@ -819,7 +818,8 @@ class Results(SimpleClass, DataExportMixin):
         if self.depth is not None:
             LOGGER.warning("Depth task does not support `save_crop`.")
             return
-        for d in (self.obb if self.obb is not None else self.boxes).cpu():  # one host transfer avoids per-box GPU syncs
+        boxes = self.obb if self.obb is not None else self.boxes
+        for d in boxes.cpu() if boxes is not None else []:  # one host transfer avoids per-box GPU syncs
             save_one_box(
                 d.xyxyxyxy if self.obb is not None else d.xyxy,
                 self.orig_img.copy(),
@@ -833,8 +833,8 @@ class Results(SimpleClass, DataExportMixin):
         This method creates a list of detection dictionaries, each containing information about a single detection or
         classification result. For classification tasks, it returns the top 5 classes and their
         confidences. For detection tasks, it includes class information, bounding box coordinates, and
-        optionally mask segments and keypoints. For semantic segmentation, it returns the per-class pixel ratio, and
-        for depth estimation it returns an empty list.
+        optionally mask segments and keypoints. For semantic segmentation, it returns the per-class pixel ratio. Depth
+        estimation, and any result with neither boxes nor oriented boxes, returns an empty list.
 
         Args:
             normalize (bool): Whether to normalize bounding box coordinates by image dimensions.
@@ -889,15 +889,12 @@ class Results(SimpleClass, DataExportMixin):
                 )
             return results
 
-        if self.depth is not None:
-            # Depth is a dense per-pixel map, not a per-instance result; excluded from summary.
-            return results
-
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
-        if data:
-            data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
-            coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
+        if not data:  # depth maps and results without boxes have no per-instance rows
+            return results
+        data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
+        coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
         kpts = self.keypoints
         if kpts is not None:
             kpts = kpts.cpu()  # ditto for the per-row keypoints sync below

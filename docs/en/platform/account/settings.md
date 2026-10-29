@@ -18,8 +18,8 @@ extra-wide screens a sidebar next to the tabs lists your five most recent traini
 
 ## Profile Tab
 
-The `Profile` tab contains your profile information, social links, data region, connected accounts, and account
-management options.
+The `Profile` tab contains your profile information, email, social links, default visibility, data region, connected
+accounts, and account management options.
 
 ### Profile Information
 
@@ -66,11 +66,22 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 
 1. Go to **Settings > Profile**
 2. Update fields (display name, company, use case, bio, and social links)
-3. Click **Save profile** below the Social profiles card. The button is enabled once you have unsaved changes.
+3. Click **Save changes** on the bar that appears at the bottom of the screen once you have unsaved changes, or
+   **Discard** to revert them.
 
 ### Early Access
 
-Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile** and enable **Early access** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
+Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile**, enable **Early access**, and click **Save changes** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
+
+### Default Visibility
+
+The **Default Visibility** switches set whether new projects and new datasets in the current workspace start as Public
+or Private; click **Save changes** to apply them. Each workspace has its own defaults, and in a team workspace only
+owners and admins can change them. Until they are changed, new projects and datasets start Private in Enterprise
+workspaces and Public otherwise. You can still choose the visibility of each new project or dataset when you create it,
+except [On Premise](../integrations/on-premise.md) datasets, which are always private. Clones start private when the
+default is Private and otherwise keep the source's visibility, which you can change in the clone dialog. [Roboflow
+imports](../integrations/roboflow.md) and the projects that remote training creates use the default directly.
 
 ### Social Links
 
@@ -90,31 +101,20 @@ Connect your professional profiles:
 
 Social links appear on your public profile page.
 
-### Emails
+### Email
 
-Manage email addresses linked to your account in the `Profile` tab. The Emails card appears on personal accounts only —
-team workspaces have no separate email list.
+The **Email** card on the `Profile` tab of your personal workspace shows your sign-in email with a **Verified** or
+**Unverified** badge, plus a **Company** badge for a verified work address. Team workspaces have no email card.
 
-![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/3e2708ac6f049cf9e30d3f807f6166b2.avif)<!-- screenshot -->
-
-| Action             | Description                                                                |
-| ------------------ | -------------------------------------------------------------------------- |
-| **Add**            | Add a new email address, which immediately sends a 6-digit code            |
-| **Verify**         | Enter the 6-digit code sent to the address (use **Resend** to get another) |
-| **Set as primary** | Set a verified email as your primary address                               |
-| **Remove**         | Remove a non-primary email address                                         |
-
-Each address is labeled with **Primary**, **Verified** or **Unverified**, and **Company** badges.
-
-!!! note "Primary Email"
-
-    Your primary email is used for notifications and account recovery. Only verified emails can be set as primary.
+To change it, enter the new address under **Change email address**, click **Send code**, then enter the 6-digit code
+sent to that address and click **Verify** (**Resend** sends another). The new address replaces the old one for sign-in,
+notifications, and account recovery.
 
 !!! tip "Company Email Bonus"
 
-    Verifying a company or work email address (not gmail.com, outlook.com, and similar consumer domains) adds the
-    remaining $20 of the $25 signup credit to your balance. The bonus is granted once per account. See
-    [Billing](billing.md#free-plan).
+    Changing your email to a verified company or work address (not gmail.com, outlook.com, and similar consumer
+    domains) adds the remaining $20 of the $25 signup credit to your balance. The bonus is granted once per account.
+    See [Billing](billing.md#free-plan).
 
 ### Data Region
 
@@ -241,8 +241,9 @@ are deleted automatically.
 ## API Keys Tab
 
 The `API Keys` tab lets you create and manage API keys for remote training and inference, and stores provider keys for
-Agents and class-prompted annotation. Only the workspace owner can create, view, or revoke keys — a workspace key acts
-as the owner. See [API Keys](api-keys.md) for full documentation.
+Agents, class-prompted annotation, paid image generation, and Roboflow and W&B imports. Only the workspace owner can
+view Ultralytics API keys or add, replace, or revoke any key — a workspace key acts as the owner. See
+[API Keys](api-keys.md) for full documentation.
 
 ## Plans Tab
 
@@ -390,6 +391,7 @@ active workspace.
 
 **Imports**
 
+- **Weights & Biases** — select W&B projects and [import their YOLO checkpoints](../integrations/weights-biases.md) using a W&B API key.
 - **Roboflow** — preview and import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
 - **Labelbox** — upload a [Labelbox](../integrations/labelbox.md) NDJSON export directly, with no key to connect.
 - **LabelMe** — upload a zipped folder of LabelMe JSON annotations and their images directly, with no conversion or key. See the [LabelMe guide](../integrations/labelme.md).
@@ -439,11 +441,9 @@ Feedback is private and sent directly to the Ultralytics team to help prioritize
 
 ### How do I change my email?
 
-Manage your email addresses directly on the platform:
-
-1. Go to **Settings > Profile**
-2. Scroll to the **Emails** section
-3. Add a new email, enter the 6-digit code sent to it, then click **Set as primary**
+1. In your personal workspace, go to **Settings > Profile**
+2. In the **Email** card, enter the new address and click **Send code**
+3. Enter the 6-digit code sent to it and click **Verify**
 
 ### How do I change my password?
 

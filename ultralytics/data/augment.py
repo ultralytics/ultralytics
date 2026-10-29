@@ -1522,9 +1522,9 @@ class RandomHSV(BaseTransform):
             lut_val = np.clip(x * (r[2] + 1), 0, 255).astype(dtype)
             lut_sat[0] = 0  # prevent pure white changing color, introduced in 8.3.79
 
-            hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
-            im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
-            cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
+            im_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            lut = np.stack((lut_hue, lut_sat, lut_val), -1).reshape(1, 256, 3)  # single 3-channel LUT
+            cv2.cvtColor(cv2.LUT(im_hsv, lut), cv2.COLOR_HSV2BGR, dst=img)  # no return needed
         return labels
 
 
@@ -1675,8 +1675,9 @@ class RandomFlip(BaseTransform):
 class LetterBox(BaseTransform):
     """Resize image and padding for detection, instance segmentation, pose.
 
-    This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates corresponding
-    labels and bounding boxes.
+    This class resizes and pads images to a specified shape while preserving aspect ratio. Each resized side is kept at
+    least 1 pixel, so very thin images (e.g. 1x3000) stay valid. It also updates corresponding labels and bounding
+    boxes.
 
     Attributes:
         new_shape (int | tuple[int, int]): Target shape (height, width) for resizing, or an int for a square target.
@@ -1794,7 +1795,7 @@ class LetterBox(BaseTransform):
 
         # Compute padding
         ratio = r, r  # width, height ratios
-        new_unpad = round(shape[1] * r), round(shape[0] * r)
+        new_unpad = max(round(shape[1] * r), 1), max(round(shape[0] * r), 1)  # keep thin images at least 1 pixel
         dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
         if self.auto:  # minimum rectangle
             dw, dh = np.mod(dw, self.stride), np.mod(dh, self.stride)  # wh padding
@@ -1837,8 +1838,8 @@ class LetterBox(BaseTransform):
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=self.interpolation)
-            if img.ndim == 2:
-                img = img[..., None]
+        if img.ndim == 2:  # single-channel input (e.g. SAM mask prompts), needs a channel dim for unpack and pad below
+            img = img[..., None]
 
         h, w, c = img.shape
         top, bottom = params["top"], params["bottom"]
@@ -2191,9 +2192,6 @@ class Albumentations(BaseTransform):
                 if self.contains_spatial
                 else A.Compose(T)
             )
-            if hasattr(self.transform, "set_random_seed"):
-                # Required for deterministic transforms in albumentations>=1.4.21
-                self.transform.set_random_seed(torch.initial_seed())
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError:  # package not installed, skip
             pass
@@ -2236,6 +2234,9 @@ class Albumentations(BaseTransform):
         """
         if self.transform is None or random.random() >= self.p:
             return labels
+        if hasattr(self.transform, "set_random_seed") and self.transform.seed != torch.initial_seed():
+            # albumentations>=1.4.21 has its own RNG; seed it from this process so each DataLoader worker differs
+            self.transform.set_random_seed(torch.initial_seed())
 
         im = labels["img"]
         if im.shape[2] not in {1, 3}:  # Albumentations supports grayscale and color images only

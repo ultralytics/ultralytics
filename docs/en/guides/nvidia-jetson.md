@@ -15,13 +15,13 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/BPYkGt3odNk"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/TBEPfu2IMXE"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to use Ultralytics YOLO26 on NVIDIA Jetson Devices
+  <strong>Watch:</strong> Unlock Faster Inference with Ultralytics YOLO26 on NVIDIA Jetson Devices 🚀
 </p>
 
 <img width="1024" src="https://cdn.ul.run/i/139ebce373930a635f74f71401d829b0.avif" alt="NVIDIA Jetson Ecosystem">
@@ -357,7 +357,7 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
 
 !!! warning "TensorRT and DLA compatibility"
 
-    NVIDIA lists TensorRT 10.7 as the last release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html); TensorRT 11.0, 11.1, and 11.2 do not support DLA. Use a DLA-capable TensorRT release supported by your JetPack version. TensorRT 11.2.1 does not support JetPack, including GPU-only exports.
+    NVIDIA lists TensorRT 10.7 as the last release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html); TensorRT 11.x does not support DLA. Use a DLA-capable TensorRT release supported by your JetPack version. TensorRT 11.2.1 does not support JetPack, including GPU-only exports.
 
 The following Jetson devices are equipped with DLA hardware:
 
@@ -1007,9 +1007,9 @@ Use `procrank` to profile per-process RAM usage and `sudo cat /sys/kernel/debug/
 
 ### Why does my TensorRT INT8 export disable NMS-free inference on JetPack 6?
 
-TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents building NMS-free (`nms=False`) INT8 engines. When Ultralytics detects this combination, it automatically selects the one-to-many head to ensure the export succeeds.
+TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents building INT8 engines with NMS-free (`nms=False`) or embedded NMS (`nms=True`) outputs. When Ultralytics detects this combination, it selects the one-to-many head for NMS-free exports and stops `nms=True` exports with an error.
 
-To restore NMS-free INT8 exports, upgrade TensorRT to a newer version (e.g., 10.7.0+):
+To restore these INT8 exports, upgrade TensorRT to a newer version (e.g., 10.7.0+):
 
 ```bash
 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb
@@ -1018,4 +1018,4 @@ sudo apt-get update
 sudo apt-get install -y tensorrt
 ```
 
-After upgrading, re-run your export. For more details, see [GitHub issue #23841](https://github.com/ultralytics/ultralytics/issues/23841).
+After upgrading, re-run your export. For more details, see [GitHub issue #23841](https://github.com/ultralytics/ultralytics/issues/23841) and [issue #26655](https://github.com/ultralytics/ultralytics/issues/26655).

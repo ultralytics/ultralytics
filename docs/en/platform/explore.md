@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 [Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/11d4848264006e44b186cf661be3a8fe.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/0ef70bb4ebae864538173f1176c2e674.avif)<!-- screenshot -->
 
 ```mermaid
 flowchart TD
@@ -55,7 +55,7 @@ The Explore page uses a tabbed interface with `Datasets`, `Images`, and `Project
 Each tab has its own search bar. Results update as you type and the query is kept in the URL as `?q=`, so a search is
 easy to bookmark or share.
 
-![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/b266166107bf17a96f8fffccb23739db.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/3dd1531ea3532850784aa8a2f9e12b50.avif)<!-- screenshot -->
 
 | Tab          | Matched Fields                                           |
 | ------------ | -------------------------------------------------------- |
@@ -65,27 +65,31 @@ easy to bookmark or share.
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
 search, and their cards show the matching images. On the Images tab, describe a scene such as `cats on a sofa`, then
-click an image to view it full size with its source dataset and license.
+click an image to open a side panel with its annotations, source dataset, class counts, and license, followed by up to
+24 similar images, including ones from the same dataset, when you are signed in; click one to open it in the panel. On
+narrow screens such as phones, the image opens full size instead.
 
 ### Sort and Filter
 
 The dropdown in the toolbar holds sort options on the Datasets and Projects tabs and filters on all three tabs:
 
-| Sort Option             | Description                                                            |
-| ----------------------- | ---------------------------------------------------------------------- |
-| **Stars**               | Community star count (descending)                                      |
-| **Created**             | Creation date, newest (default) or oldest first                        |
-| **Name**                | Alphabetical, ascending or descending                                  |
-| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first |
+| Sort Option             | Description                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------ |
+| **Relevance**           | Datasets tab default: best search matches first, newest first without a search |
+| **Stars**               | Community star count (descending)                                              |
+| **Created**             | Creation date, newest or oldest first; newest is the Projects tab default      |
+| **Name**                | Alphabetical, ascending or descending                                          |
+| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first         |
 
-| Filter         | Tabs                       | Availability   | Description                                                                                      |
-| -------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| **Task type**  | Datasets, Images           | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
-| **My starred** | Datasets, Images           | Signed in only | Show only datasets you have starred, or images from them                                         |
-| **License**    | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
+| Filter          | Tabs                       | Availability   | Description                                                                                      |
+| --------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| **Task**        | Datasets, Images           | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
+| **My starred**  | Datasets, Images, Projects | Signed in only | Show only datasets or projects you have starred, or images from those datasets                   |
+| **Image count** | Datasets                   | Everyone       | Show only datasets with **Under 1K**, **1K – 10K**, **10K – 100K**, or **100K+** images          |
+| **License**     | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
 
-Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `starred`, `license`, and `plicense`), so
-the browser back button restores the previous result list.
+Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `starred`, `imageCount`,
+`license`, and `plicense`), so the browser back button restores the previous result list.
 
 !!! note "Sorting by Stars"
 
@@ -108,7 +112,7 @@ column headers, keeps the filters in the dropdown, and adds its own pagination c
 
 Each item displays:
 
-![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/a906448f7286289231d8c4293ee70818.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/7b5e6ec948e6d55caa8b222e7ff5bd2e.avif)<!-- screenshot -->
 
 === "Project Cards"
 
@@ -162,14 +166,14 @@ Use a public dataset for your training:
 3. Review the destination workspace, name, visibility, and license
 4. Click `Clone Dataset` to confirm
 
-![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/bb2f4453c198890520300dba49160fbc.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/61c009c013d2a84cc83418a37d427318.avif)<!-- screenshot -->
 
 !!! note "Cloned Dataset Properties"
 
     - The clone dialog lets you review the destination, name, visibility, and license
-    - Public datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private
+    - Public datasets stay public by default unless the workspace's [default dataset visibility](account/settings.md#default-visibility) is Private
     - A copyleft source license is carried over and locked, so the clone keeps the terms it was published under
-    - The clone dialog blocks a URL already used in the target workspace until you choose another
+    - For a new dataset, the clone dialog blocks a URL already used in the target workspace until you choose another
     - You can modify classes, annotations, and splits
     - Changes don't affect the original dataset
     - Image files are reused rather than copied, but the clone still counts toward the destination workspace's storage quota
@@ -253,7 +257,7 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 | **Datasets**  | Public datasets (default tab)                     |
 | **Projects**  | Public projects with models                       |
 
-The Datasets and Projects tabs use the same search, sort, and view controls as the Explore page.
+The Datasets and Projects tabs use the same search, sort, and view controls as the Explore page, without the **Relevance** sort.
 
 ### Follow Users
 

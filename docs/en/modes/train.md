@@ -276,7 +276,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         yolo train resume model=path/to/last.pt
         ```
 
-By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session.
+By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session. A run that streams to [Ultralytics Platform](../platform/train/cloud-training.md#resume-remote-training) continues the same Platform model when resumed.
 
 Remember that checkpoints are saved at the end of every epoch by default, or at fixed intervals using the `save_period` argument, so you must complete at least 1 epoch to resume a training run.
 
@@ -309,8 +309,8 @@ See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-sel
     The `batch` argument can be configured in three ways:
 
     - **Fixed [Batch Size](https://www.ultralytics.com/glossary/batch-size)**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly.
-    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
-    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
+    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% of the CUDA memory available to training.
+    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of available GPU memory.
     - **OOM Auto-Retry**: If a CUDA out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-GPU training; multi-GPU (DDP) training will raise the error immediately.
     - **No Fit Found**: If no candidate batch size produces a usable profile, AutoBatch raises a clear `RuntimeError` instead of silently falling back to an unrelated default.
 
@@ -480,7 +480,7 @@ The `cls_pw` argument controls class weighting power based on inverse class freq
 - `cls_pw=1.0`: Applies full inverse frequency weighting
 - Values between `0.0` and `1.0`: Provide partial weighting for moderate imbalance
 
-The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0.
+The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0. Classes without training labels, such as those excluded by `classes=`, get a weight of 1.0.
 
 !!! example "Training on Imbalanced Dataset"
 

@@ -318,8 +318,10 @@ class AutoBackend(nn.Module):
             (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
         """
         nms = self.metadata.get("args", {}).get("nms")
-        if nms and self.format not in {"coreml", "imx"} and im.shape[0] > self.batch:
-            # NMSModel graphs only process their export batch per call; clone chunks as backends reuse outputs
+        dynamic = self.metadata.get("dynamic")
+        fixed = not dynamic and (nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"})
+        if self.format not in {"coreml", "imx"} and im.shape[0] > self.batch and (nms or (fixed and dynamic is False)):
+            # Static and NMS graphs use the export batch; clone reused outputs and pad short tails below.
             ys = []
             for x in im.split(self.batch):
                 y = self.forward(x)
@@ -329,9 +331,6 @@ class AutoBackend(nn.Module):
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
         if self.backend.fp16 and im.dtype != torch.float16:
             im = im.half()
-        fixed = not self.metadata.get("dynamic") and (
-            nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"}
-        )
         if (pad := self.batch - im.shape[0] if fixed else 0) > 0:  # static-batch exports reject short batches
             im = torch.cat((im, im.new_zeros(pad, *im.shape[1:])))
 
@@ -377,7 +376,7 @@ class AutoBackend(nn.Module):
         if not self.end2end:
             import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
         if self.format in {"pt", "torchscript", "onnx", "engine", "saved_model", "pb", "triton"} and (
-            self.device.type != "cpu" or self.format == "triton"
+            self.device.type != "cpu" or self.format in {"triton", "torchscript"}
         ):
             im = (
                 im
@@ -410,7 +409,7 @@ class AutoBackend(nn.Module):
         sf = export_formats()["Suffix"]
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)
-        name = Path(p).name
+        name = Path(p).name.lower()
         # The suffix ending last wins, then the longest, i.e. 'best.pt.onnx' -> onnx, 'best_qnn.onnx' -> qnn
         matches = [
             (name.rfind(s) + len(s), len(s), f)

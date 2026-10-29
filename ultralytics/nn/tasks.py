@@ -95,6 +95,7 @@ from ultralytics.utils.loss import (
     DepthLoss26,
     E2ELoss,
     PoseLoss26,
+    SegmentLoss26,
     SemanticSegmentationLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
@@ -418,17 +419,25 @@ class BaseModel(torch.nn.Module):
 
         valid = idx >= 0
         state_dict = self.state_dict()
-        # Exact class-logit conv weight/bias keys from the detection head(s) — restricting to these avoids
-        # class-ordering tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
-        cls_keys = {
-            f"{name}.{attr}.{i}.{len(seq) - 1}.{p}"
-            for name, m in self.named_modules()
-            if isinstance(m, Detect)
-            for attr in ("cv3", "one2one_cv3")
-            for i, seq in enumerate(getattr(m, attr, ()))
-            if getattr(seq[-1], "out_channels", None) == tgt_nc
-            for p in ("weight", "bias")
-        }
+
+        # Only remap class-logit convs, never other tensors that happen to share the class dimension.
+        cls_keys = set()
+        for name, m in self.named_modules():
+            if isinstance(m, Detect):
+                branches = {
+                    f"{attr}.{i}": seq
+                    for attr in ("cv3", "one2one_cv3")
+                    for i, seq in enumerate(getattr(m, attr, None) or ())
+                }
+                branches["proto.semseg"] = getattr(getattr(m, "proto", None), "semseg", None)
+            elif isinstance(m, SemanticSegment):
+                branches = {"classifier": m.classifier, "aux_head": m.aux_head}
+            else:
+                continue
+            for prefix, seq in branches.items():
+                if seq is not None and getattr(seq[-1], "out_channels", None) == tgt_nc:
+                    cls_keys.update(f"{name}.{prefix}.{len(seq) - 1}.{p}" for p in ("weight", "bias"))
+
         remapped = 0
         for k in cls_keys & csd.keys():
             v_src, v_tgt = csd[k], state_dict[k]
@@ -705,11 +714,8 @@ class SegmentationModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
-        return (
-            E2ELoss(self, v8SegmentationLoss)
-            if getattr(self.model[-1], "one2one_cv2", None) is not None
-            else v8SegmentationLoss(self)
-        )
+        loss = SegmentLoss26 if isinstance(self.model[-1], Segment26) else v8SegmentationLoss
+        return E2ELoss(self, loss) if getattr(self.model[-1], "one2one_cv2", None) is not None else loss(self)
 
 
 class SemanticSegmentationModel(BaseModel):
@@ -1153,7 +1159,7 @@ class WorldModel(DetectionModel):
         self.clip_model = None  # CLIP model placeholder
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
-    def set_classes(self, text, batch=80, cache_clip_model=True):
+    def set_classes(self, text, batch=80, cache_clip_model=False):
         """Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
@@ -1164,7 +1170,7 @@ class WorldModel(DetectionModel):
         self.txt_feats = self.get_text_pe(text, batch=batch, cache_clip_model=cache_clip_model)
         self.model[-1].nc = len(text)
 
-    def get_text_pe(self, text, batch=80, cache_clip_model=True):
+    def get_text_pe(self, text, batch=80, cache_clip_model=False):
         """Get text prompt embeddings using the CLIP model.
 
         Args:
@@ -1416,7 +1422,12 @@ class YOLOEModel(DetectionModel):
             "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
         )
         assert embeddings.ndim == 3
-        self.names = check_class_names(names)  # validate before any state is written
+        names = check_class_names(names)  # validate before any state is written
+        if self.model[-1].is_fused:  # validators drop "/" synonyms
+            assert {i: n.split("/", 1)[0] for i, n in names.items()} == {
+                i: n.split("/", 1)[0] for i, n in self.names.items()
+            }, "Class embeddings are fused; use an unfused YOLOE model to change classes."
+        self.names = names
         self.pe = embeddings
         self.model[-1].nc = len(names)
 
@@ -1651,6 +1662,7 @@ def temporary_modules(modules=None, attributes=None):
 
     missing = object()
     previous = []  # (module, attribute, prior value) so exiting restores e.g. pathlib.WindowsPath
+    previous_modules = []  # (module path, prior value) so existing aliases survive the context
     with _temporary_modules_lock:
         try:
             # Set attributes in sys.modules under their old name
@@ -1663,14 +1675,17 @@ def temporary_modules(modules=None, attributes=None):
 
             # Set modules in sys.modules under their old name
             for old, new in modules.items():
+                previous_modules.append((old, sys.modules.get(old, missing)))
                 sys.modules[old] = import_module(new)
 
             yield
         finally:
-            # Remove the temporary module paths and attributes
-            for old in modules:
-                if old in sys.modules:
-                    del sys.modules[old]
+            # Restore the temporary module paths and attributes
+            for old, value in reversed(previous_modules):
+                if value is missing:
+                    sys.modules.pop(old, None)
+                else:
+                    sys.modules[old] = value
             for module, attr, value in previous:
                 if value is missing:
                     delattr(module, attr)
@@ -1726,18 +1741,17 @@ class _SafeLoad:
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
+            class_modules = {"ultralytics.nn.distill_model", "ultralytics.utils.loss", "ultralytics.utils.tal"}
             for name in needed:
                 module, _, attr = name.rpartition(".")
                 if name not in cls._registry and (
                     module in {"torch.nn.modules", "ultralytics.nn.modules", "ultralytics.nn.tasks"}
                     or module.rpartition(".")[0] in {"torch.nn.modules", "ultralytics.nn.modules"}
-                    or module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
+                    or module in class_modules
                 ):
                     obj = getattr(importlib.import_module(module), attr, None)
                     if isinstance(obj, type) and (
-                        obj.__module__ == module
-                        if module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
-                        else issubclass(obj, nn.Module)
+                        obj.__module__ == module if module in class_modules else issubclass(obj, nn.Module)
                     ):
                         cls._registry[name] = obj
             if any(name.startswith("torchvision.transforms.") for name in needed):

@@ -49,13 +49,13 @@ Using the maximum batch size supported by your GPU, you can fully take advantage
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Gxl6Bbpcxs0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YYCfz5OeEow"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Use Batch Inference with Ultralytics YOLO26 | Speed Up Object Detection in Python 🎉
+  <strong>Watch:</strong> How to Speed Up Ultralytics YOLO26 Inference by 2× with Batch Processing | Python & GPU | MLOps 🚀
 </p>
 
 With respect to YOLO26, you can set the `batch` parameter in the [Train mode arguments](../modes/train.md) to match your GPU capacity. On a single accelerator, `batch=-1` profiles the model and picks a [batch size](https://www.ultralytics.com/glossary/batch-size) targeting roughly 60% memory utilization; a fraction such as `batch=0.70` targets a different share. Multi-GPU runs require an explicit global batch size that is a multiple of the device count. On CPU and Apple silicon, AutoBatch warns and falls back to `batch=16`.
@@ -125,7 +125,7 @@ Early stopping is a valuable technique for optimizing model training. By monitor
 The process involves setting a patience parameter that determines how many epochs to wait for an improvement in validation metrics before stopping training. If the model's performance does not improve within these epochs, training is stopped to avoid wasting time and resources.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/a4a45c9d1d0409cc45ba1416184559dc.avif" alt="Early stopping to prevent model overfitting">
+  <img width="100%" src="https://cdn.ul.run/i/2aa9d437292e93473dba7042813f242b.avif" alt="Early stopping to prevent model overfitting">
 </p>
 
 For YOLO26, you can enable early stopping by setting the patience parameter in your training configuration. For example, `patience=5` means training will stop if there's no improvement in validation metrics for 5 consecutive epochs. Using this method ensures the training process remains efficient and achieves optimal performance without excessive computation.

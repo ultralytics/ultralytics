@@ -47,10 +47,10 @@ from pathlib import Path
 import numpy as np
 import torch.cuda
 
-from ultralytics import RTDETR, YOLO, YOLOWorld
+from ultralytics import RTDETR, YOLO, YOLOE, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
+from ultralytics.data.utils import check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.engine.exporter import export_formats
-from ultralytics.nn.modules import Segment26
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -87,7 +87,7 @@ def benchmark(
         imgsz (int | list[int]): Square image size for the benchmark.
         quantize (int | str | None): Requested precision: 16 (FP16), 8 (INT8), or None/32 (FP32). Exported rows apply it
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
-            PyTorch row is not exported and only 16 affects it, selecting FP16 inference. Each format then runs
+            PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
         device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps'.
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
@@ -107,7 +107,7 @@ def benchmark(
     """
     from ultralytics.cfg import _handle_deprecation
 
-    kwargs = _handle_deprecation(kwargs)
+    quantize = _handle_deprecation(kwargs).pop("quantize", quantize)  # updates kwargs in place, half/int8 -> quantize
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
@@ -125,6 +125,13 @@ def benchmark(
         model = YOLO(model)
     data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
     key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
+    if isinstance(model, (YOLOE, YOLOWorld)) and not hasattr(model.model.model[-1], "lrpc"):
+        data = convert_ndjson_to_yolo_if_needed(data, split="val")
+        names = [name.split("/", 1)[0] for name in check_det_dataset(data)["names"].values()]
+        # exports bake the current vocabulary, while validation re-prompts YOLOE always and YOLO-World on new names
+        if isinstance(model, YOLOE) or list(model.names.values()) != names:
+            model = deepcopy(model, {id(model.predictor): None, id(model.trainer): None})
+            model.set_classes(names, model.get_text_pe(names)) if isinstance(model, YOLOE) else model.set_classes(names)
 
     y = []
     t0 = time.time()
@@ -190,9 +197,6 @@ def benchmark(
                 assert LINUX and not (ARM64 and IS_DOCKER), (
                     "export is only supported on Linux and is not supported on ARM64 Docker."
                 )
-                assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
-                    "Axelera export does not currently support YOLO26 segmentation models"
-                )
             if export_format == "xilinx":
                 assert LINUX, "AMD Xilinx export only supported on Linux"
                 assert find_spec("quark"), "AMD Xilinx benchmark requires amd-quark"
@@ -211,7 +215,7 @@ def benchmark(
             # Export
             if export_format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
-                exported_model = deepcopy(model)  # PyTorch format
+                exported_model = deepcopy(model, {id(model.predictor): None, id(model.trainer): None})  # PyTorch format
             else:
                 export_data = data if "data" in valid_args else None
                 filename = model.export(
@@ -419,8 +423,8 @@ class ProfileModels:
         for path in self.paths:
             path = Path(path)
             if path.is_dir():
-                extensions = ["*.pt", "*.onnx", "*.yaml"]
-                files.extend([file for ext in extensions for file in glob.glob(str(path / ext))])
+                extensions = ["*.onnx", "*.yaml", "*.pt"]  # one file per stem, so a model's own ONNX export is skipped
+                files.extend({Path(f).stem: f for ext in extensions for f in glob.glob(str(path / ext))}.values())
             elif path.suffix in {".pt", ".yaml", ".yml"}:  # add non-existing
                 files.append(str(path))
             else:

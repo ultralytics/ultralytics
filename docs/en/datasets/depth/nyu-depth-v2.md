@@ -82,7 +82,7 @@ The YOLO26 depth family is evaluated zero-shot on the NYU Depth V2 benchmark. Th
 
 If you use the NYU Depth V2 dataset in your research or development work, please cite the following paper:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

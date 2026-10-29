@@ -19,10 +19,10 @@ You do not need a Slack API key, webhook, or technical setup. Before you start, 
 2. Review the setup summary and click **Continue to Slack**.
 3. Choose a channel and click **Allow**. Platform requests permission to post only to that channel. If Slack shows
    **Request approval**, send the request and ask your Slack workspace admin to approve the app.
-4. After returning to Platform, choose the alerts you want and click **Save alerts**. **Training complete**,
-   **Training failed**, **Annotation complete**, and **Annotation failed** are selected initially.
+4. After returning to Platform, **Training complete**, **Training failed**, **Annotation complete**, and **Annotation
+   failed** are already selected and saved. To post fewer results, uncheck alerts and click **Save changes**.
 
-![Ultralytics Platform Slack Integration Setup](https://cdn.ul.run/i/ce5e5eeb0108e7ed538b2503cd256505.avif)<!-- screenshot -->
+![Ultralytics Platform Slack Integration Setup](https://cdn.ul.run/i/72e5eb9f873627492733e3cf131502e9.avif)<!-- screenshot -->
 
 Platform posts a confirmation in the selected channel as soon as the connection succeeds, and the integration then shows which Slack workspace and channel it is connected to. Workspace admins manage the connection and alert choices for the whole workspace from the [Integrations tab](../account/settings.md#integrations-tab).
 
@@ -51,7 +51,7 @@ Use a **Slack** block in [Agents](../agents.md#send-conditional-slack-alerts) to
 
 ## Change or Disconnect Slack
 
-To change which results are posted, check or uncheck alerts and click **Save alerts**. At least one alert must remain selected.
+To change which results are posted, check or uncheck alerts and click **Save changes**. At least one alert must remain selected.
 
 To use a different channel, click **Change channel**, choose the new channel in Slack, and click **Allow**. Your alert selection is kept, and Platform posts a confirmation in the new channel.
 

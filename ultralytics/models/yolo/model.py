@@ -33,9 +33,9 @@ class YOLO(Model):
     """YOLO (You Only Look Once) object detection model.
 
     This class provides a unified interface for YOLO models, automatically switching to specialized model types
-    (YOLOWorld or YOLOE) based on the model filename. It supports various computer vision tasks including object
-    detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and
-    oriented bounding box detection.
+    (YOLOWorld or YOLOE) based on the loaded model, or on the filename for YAML builds. It supports various computer
+    vision tasks including object detection, instance segmentation, semantic segmentation, depth estimation,
+    classification, pose estimation, and oriented bounding box detection.
 
     Attributes:
         model: The loaded YOLO model instance.
@@ -61,7 +61,7 @@ class YOLO(Model):
         """Initialize a YOLO model.
 
         This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
-        YOLOE) based on the model filename.
+        YOLOE) based on the loaded model, or on the filename for YAML builds.
 
         Args:
             model (str | Path | Model): Model name or path to model file, e.g. 'yolo26n.pt', 'yolo26n.yaml', or an
@@ -71,11 +71,11 @@ class YOLO(Model):
             verbose (bool): Display model info on load.
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
-        if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+        if "-world" in path.stem and path.suffix.lower() in {".yaml", ".yml"}:  # if YOLOWorld YAML
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
-        elif "yoloe" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOE PyTorch model
+        elif "yoloe" in path.stem and path.suffix.lower() in {".yaml", ".yml"}:  # if YOLOE YAML
             new_instance = YOLOE(path, task=task, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
@@ -91,8 +91,8 @@ class YOLO(Model):
                 new_instance = RTDETR(self)
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
-            elif isinstance(self.model, WorldModel):  # e.g. `ul://…/yolov8l-worldv2`, no suffix for the filename test
-                new_instance = YOLOWorld(self)
+            elif isinstance(self.model, (WorldModel, YOLOEModel)):  # route checkpoints by model, not filename
+                new_instance = (YOLOWorld if isinstance(self.model, WorldModel) else YOLOE)(self)
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
 
@@ -206,7 +206,7 @@ class YOLOWorld(Model):
             classes (list[str]): A list of categories, e.g. ["person"].
         """
         self.model.set_classes(classes)
-        self.model.names = [c for c in classes if c != " "]  # drop the background class without mutating `classes`
+        self.model.names = list(classes)
 
         self.predictor = None
 
@@ -240,20 +240,21 @@ class YOLOE(Model):
         >>> model = YOLOE("yoloe-11s-seg.pt")
 
         Predict with visual prompts, whose 'cls' holds one class index per box
-        >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
         >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
-        >>> results = model.predict("image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
+        >>> results = model.predict("image.jpg", visual_prompts=prompts)
 
         Re-parameterize into a prompt-free model, which no longer accepts prompts
         >>> names = ["person", "car", "dog"]
         >>> model.set_vocab(model.get_vocab(names), names)
     """
 
-    def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False) -> None:
+    def __init__(
+        self, model: str | Path | Model = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False
+    ) -> None:
         """Initialize YOLOE model with a pre-trained model file.
 
         Args:
-            model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.
+            model (str | Path | Model): Path to a pre-trained model file (*.pt or *.yaml), or an initialized Model.
             task (str, optional): Task type for the model. Auto-detected if None.
             verbose (bool): If True, prints additional information during initialization.
         """
@@ -472,7 +473,7 @@ class YOLOE(Model):
         stream: bool = False,
         visual_prompts: dict[str, np.ndarray | list[np.ndarray]] | None = None,
         refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        predictor: type | None = None,
         **kwargs,
     ):
         """Run prediction on images, videos, directories, streams, etc.
@@ -486,7 +487,8 @@ class YOLOE(Model):
                 for the model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one
                 array per image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (type): Predictor class for visual prompt predictions. Defaults to YOLOEVPDetectPredictor.
+            predictor (type, optional): Visual-prompt predictor class. Defaults to the predictor matching the model
+                task.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -496,9 +498,8 @@ class YOLOE(Model):
             >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> results = model.predict("path/to/image.jpg")
             >>> # With visual prompts, whose 'cls' holds one class index per box
-            >>> from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
             >>> prompts = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
-            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts, predictor=YOLOEVPSegPredictor)
+            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
@@ -536,6 +537,9 @@ class YOLOE(Model):
             num_cls = max(per_image)
             overrides = {"verbose": refer_image is None, **self.overrides, **_handle_deprecation(kwargs)}
             overrides.update(task=self.model.task, mode="predict", save=False, batch=1)
+            predictor = predictor or (
+                yolo.yoloe.YOLOEVPSegPredictor if self.model.task == "segment" else yolo.yoloe.YOLOEVPDetectPredictor
+            )
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
             else:  # setup_model below applies this call's setup args, with unset quantize as FP32 like Model.predict

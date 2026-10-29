@@ -64,7 +64,7 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 !!! warning "Task Mismatch"
 
-    A task mismatch warning appears when the selected model cannot train the dataset task, and **Start Training** remains disabled until you choose a compatible model. A segment dataset accepts segment or semantic models; other dataset tasks require the matching model task. See the [task guides](../../tasks/index.md).
+    A task mismatch warning appears when the selected model cannot train the dataset task, and **Start Training** remains disabled until you choose a compatible model. A segment dataset accepts detect, segment, semantic, or OBB models; other dataset tasks require the matching model task. Ultralytics derives boxes for detect models and minimum-area rotated boxes for OBB models from the polygon labels. See the [task guides](../../tasks/index.md).
 
 ### Step 3: Configure Parameters
 
@@ -181,7 +181,7 @@ Training jobs progress through the following statuses:
 | **Failed**    | Training failed (see console logs for details)                 |
 | **Cancelled** | Training was cancelled by the user                             |
 
-A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View full console logs** and **Retry Training** actions. Runs that stop reporting activity for 4 hours are automatically marked failed, and their compute is released.
+A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with a **View full console logs** action, plus **Diagnose with AI** and **Retry Training** (Editor role or higher). Runs that stop reporting activity for 4 hours are automatically marked failed, and their compute is released.
 
 To receive the completed and failed results without keeping this page open, connect [Slack alerts](../integrations/slack.md).
 
@@ -189,15 +189,15 @@ To receive the completed and failed results without keeping this page open, conn
 
     New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
-![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/848ddc1fe38abc8bb4affb9261148b6b.avif)<!-- screenshot -->
+![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/81d957c08a1df12d2e03cc25b20e39ad.avif)<!-- screenshot -->
 
 ## Monitor Training
 
 View real-time training progress on the model page's **Train** tab:
 
-### Charts Subtab
+### Metrics Subtab
 
-![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/b0ee2230c2e011ca4910789562abba8a.avif)<!-- screenshot -->
+![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/3d712c5c0b2a99a86a906bf3aebefced.avif)<!-- screenshot -->
 
 Charts are grouped by metric family, and the groups that appear depend on what the run reports:
 
@@ -208,6 +208,8 @@ Charts are grouped by metric family, and the groups that appear depend on what t
 | **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                                                    |
 
 Each group can be collapsed, individual charts can be hidden or shown from the group menu, and charts can be dragged and resized — the layout is remembered for next time.
+
+The **Validation** subtab shows [validation results](models.md#validation-plots) when available.
 
 ### Console Subtab
 
@@ -284,6 +286,16 @@ Use the `project` and `name` parameters to stream metrics:
     ```
 
 The **Local Training** tab in the training dialog shows a pre-configured command with your API key, selected parameters, and advanced arguments included.
+
+### Resume Remote Training
+
+Resume an interrupted remote run from its last checkpoint as usual (see [Resuming Interrupted Trainings](../../modes/train.md#resuming-interrupted-trainings)):
+
+```bash
+yolo train resume model=path/to/last.pt
+```
+
+The resumed run continues the same Platform model, so its epochs, console output, and final weights land on the original model instead of a new one. The model ID is stored in `platform_model_id.txt` in the run directory. If that model was deleted, or has already completed, failed, or been cancelled, the resumed run is tracked as a new model. Platform marks a remote run failed after 4 hours without activity, so resume within that window to continue the original model.
 
 ### Using Platform Datasets
 
@@ -429,7 +441,7 @@ Before starting a cloud job, the training dialog shows your current credit balan
 | Out of memory        | Reduce batch size or use larger GPU  |
 | Poor accuracy        | Increase epochs, check data quality  |
 | Training slow        | Consider faster GPU                  |
-| Task mismatch error  | Ensure model and dataset tasks match |
+| Task mismatch error  | Use a model task the dataset accepts |
 
 ## Training Parameters Reference
 
@@ -616,7 +628,7 @@ arguments you submitted, so with `auto` it can still list your `lr0`.
 
 ### Can I retry a failed run?
 
-Yes. A failed model shows an error banner with a **Retry Training** action that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
+Yes. A failed model shows an error banner with a **Retry Training** action (Editor role or higher) that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. **Diagnose with AI**, next to it, asks [Ask AI](autotrain.md) to find the error behind the failure and suggest the smallest fix before you retry. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
 
 ### Can I train from a dataset page?
 

@@ -112,7 +112,7 @@ The dataset spans varied locations, environments, and package densities, so mode
 
 If you integrate the Package Segmentation dataset into your research or development initiatives, please cite the source appropriately:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 

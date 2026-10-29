@@ -608,8 +608,7 @@ class MaxSigmoidAttnBlock(nn.Module):
         embed = self.ec(x) if self.ec is not None else x
         embed = embed.view(bs, self.nh, self.hc, h, w)
 
-        aw = torch.einsum("bmchw,bnmc->bmhwn", embed, guide)
-        aw = aw.max(dim=-1)[0]
+        aw = (embed.flatten(3).transpose(2, 3) @ guide.permute(0, 2, 3, 1)).max(dim=-1)[0].view(bs, self.nh, h, w)
         aw = aw / (self.hc**0.5)
         aw = aw + self.bias[None, :, None, None]
         aw = aw.sigmoid() * self.scale
@@ -773,7 +772,7 @@ class ContrastiveHead(nn.Module):
         """
         x = F.normalize(x, dim=1, p=2)
         w = F.normalize(w, dim=-1, p=2)
-        x = torch.einsum("bchw,bkc->bkhw", x, w)
+        x = (w @ x.flatten(2)).view(-1, w.shape[1], *x.shape[2:])
         return x * self.logit_scale.exp() + self.bias
 
 
@@ -822,7 +821,7 @@ class BNContrastiveHead(nn.Module):
         x = self.norm(x)
         w = F.normalize(w, dim=-1, p=2)
 
-        x = torch.einsum("bchw,bkc->bkhw", x, w)
+        x = (w @ x.flatten(2)).view(-1, w.shape[1], *x.shape[2:])
         return x * self.logit_scale.exp() + self.bias
 
 

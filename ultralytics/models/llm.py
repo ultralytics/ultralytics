@@ -7,9 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import cv2
-import numpy as np
-from PIL import Image
 
+from ultralytics.data.loaders import LoadPilAndNumpy
 from ultralytics.utils.checks import check_requirements
 
 
@@ -184,16 +183,9 @@ class LLM:
     @staticmethod
     def _image_url(source: Any) -> str:
         """Convert an image URL, path, or array to an OpenAI image URL."""
-        if isinstance(source, str) and source.startswith(("http://", "https://", "data:image/")):
+        if isinstance(source, str) and source.lower().startswith(("http://", "https://", "data:image/")):
             return source
-        if isinstance(source, (str, Path)):
-            image = cv2.imread(str(source))
-        else:
-            image = (
-                cv2.cvtColor(np.asarray(source.convert("RGB")), cv2.COLOR_RGB2BGR)
-                if isinstance(source, Image.Image)
-                else np.asarray(source)
-            )
+        image = cv2.imread(str(source)) if isinstance(source, (str, Path)) else LoadPilAndNumpy._single_check(source)
         if image is None:
             raise ValueError(f"Unable to read image source {source!r}.")
         success, buffer = cv2.imencode(".jpg", image)

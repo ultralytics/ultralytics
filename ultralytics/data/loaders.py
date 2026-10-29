@@ -8,9 +8,10 @@ import math
 import os
 import time
 import urllib
+from codecs import BOM_UTF8
 from dataclasses import dataclass
 from functools import partial
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from threading import Thread
@@ -111,7 +112,15 @@ class LoadStreams:
         self.vid_stride = vid_stride  # video frame-rate stride
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
-        sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
+        if os.path.isfile(sources):
+            with open(sources, "rb") as f:
+                encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
+                with TextIOWrapper(f, encoding=encoding) as reader:
+                    sources = reader.read().rsplit()
+            if not sources:
+                raise FileNotFoundError(f"No streams found in {f.name}. {FORMATS_HELP_MSG}")
+        else:
+            sources = [sources]
         n = len(sources)
         self.bs = n
         self.fps = [0] * n  # frames per second
@@ -139,11 +148,11 @@ class LoadStreams:
                     raise ConnectionError(f"{st}Failed to open {s}")
                 w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
                 h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
-                fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
+                fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0, nan or a 90 kHz RTP clock rate
                 self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
                     "inf"
                 )  # infinite stream fallback
-                self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
+                self.fps[i] = fps if 0 < fps < 1000 else 30  # 30 FPS fallback
 
                 success, im = self.caps[i].read()  # guarantee first frame
                 if not success or im is None:
@@ -336,7 +345,7 @@ class LoadImagesAndVideos:
         fps (float): Frames per second of the current video as reported by OpenCV.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
-        cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
+        cv2_flag (int): OpenCV flag for image reading (grayscale, color/BGR, or unchanged for other channel counts).
 
     Methods:
         __init__: Initialize the LoadImagesAndVideos object.
@@ -371,9 +380,13 @@ class LoadImagesAndVideos:
         """
         source_path = path
         parent = None
-        if isinstance(path, (str, Path)) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
-            parent, content = Path(path).parent, Path(path).read_text()
-            if Path(path).suffix == ".txt":
+        if isinstance(path, (str, Path)) and Path(path).suffix.lower() in {".txt", ".csv"}:  # txt/csv file with sources
+            parent = Path(path).parent
+            with open(path, "rb") as f:
+                encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
+                with TextIOWrapper(f, encoding=encoding) as reader:
+                    content = reader.read()
+            if Path(path).suffix.lower() == ".txt":
                 path = content.splitlines()
             else:
                 rows = list(csv.reader(content.splitlines()))
@@ -381,7 +394,7 @@ class LoadImagesAndVideos:
                 path = [p for row in rows for p in row]
             path = [p.strip() for p in path if p.strip()]
         files = []
-        for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
+        for p in path if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
             if parent and not (glob.glob(a, recursive=True) if "*" in a else os.path.exists(a)):
                 a = str((parent / p).absolute())  # resolve unmatched manifest entries relative to the manifest
@@ -411,7 +424,7 @@ class LoadImagesAndVideos:
         self.mode = "video" if ni == 0 else "image"  # default to video if no images
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
+        self.cv2_flag = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)
         if any(videos):
             self._new_video(videos[0])  # new video
         else:
@@ -574,10 +587,13 @@ class LoadPilAndNumpy:
             raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
         pil = isinstance(im, Image.Image)
         if pil:
+            im = ImageOps.exif_transpose(im)
             if im.mode.startswith("I;16"):  # convert() clips 16-bit values at 255, scale them like cv2 does
                 im = Image.fromarray((np.asarray(im) >> 8).astype(np.uint8))
             flag = "L" if channels == 1 else "RGB"
             im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
+        elif im.dtype == np.uint16:  # e.g. cv2.IMREAD_UNCHANGED frames, scaled to 8 bits like imread and PIL I;16
+            im = (im >> 8).astype(np.uint8)
         im = np.atleast_3d(im)
         # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
         # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check, and
@@ -597,6 +613,7 @@ class LoadPilAndNumpy:
                 return cv2.cvtColor(im[..., 0], cv2.COLOR_GRAY2BGR)
             return np.repeat(im, channels, axis=2)
         if channels == 1:
+            im = im.astype(np.float32, copy=False) if im.dtype.kind == "f" else im
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
         return cv2.cvtColor(im, cv2.COLOR_BGRA2BGR) if u8 and c == 4 else np.ascontiguousarray(im[..., :3])
 
@@ -707,10 +724,10 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            if str(im).startswith("http"):  # requests follows HTTP 308 redirects that urllib lacks pre-3.11
+            if str(im).lower().startswith(("https://", "http://")):  # requests: urllib pre-3.11 lacks 308 redirects
                 import requests  # scoped as slow import
 
-                im = BytesIO(requests.get(im).content)
+                im = BytesIO(requests.get(im, timeout=30).content)
             im = Image.open(im)
             filename = im.filename
             im = ImageOps.exif_transpose(im)

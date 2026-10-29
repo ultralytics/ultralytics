@@ -1,29 +1,31 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Import every dataset from your Roboflow workspace into Ultralytics Platform with a single API key.
+description: Import datasets from your Roboflow workspace into Ultralytics Platform with a single API key.
 keywords: Ultralytics Platform, Roboflow, Roboflow import, dataset import, integrations, YOLO, computer vision
 title: Roboflow Dataset Import - Ultralytics Platform
 ---
 
 # Roboflow Integration
 
-The Roboflow integration imports every supported dataset in your Roboflow workspace into [Ultralytics Platform](https://platform.ultralytics.com) at its latest version. Re-run it any time to pull in datasets you've added since your last import.
+The Roboflow integration imports the supported datasets you select from your Roboflow workspace into [Ultralytics Platform](https://platform.ultralytics.com) at their latest version. Re-run it any time to pull in datasets you've added since your last import.
 
 ## Import from Roboflow
 
 1. Go to **Settings > [Integrations](index.md)** and select **Roboflow** from the integration list.
-2. Paste your **Roboflow API Key** and click **Import**.
-3. Review the **Import from Roboflow** preview dialog, which lists:
-    - **New datasets** that will be imported
-    - **Already imported** datasets that will be skipped
-    - Any datasets with a **missing version**, **unsupported tasks**, or that **couldn't be sized**
-    - Storage required, checked against your remaining storage
-4. Click **Import** to start.
+2. Paste your **Roboflow API Key** and click **Connect**. If the workspace has a [saved Roboflow key](../account/api-keys.md#provider-keys-for-agents-and-annotation), the preview opens with it automatically.
+3. Review the **Import from Roboflow** preview:
+    - A table of datasets (name, task, images, size), with nothing selected by default; select the new datasets you want to import
+    - Already-imported versions shown as dimmed, unselectable rows with an **Already imported** tooltip
+    - Counts of unsupported tasks and datasets that couldn't be sized
+    - The size of your selection against your storage
+4. Click **Import N** to import the N selected datasets; it stays disabled until the selection fits your storage.
 
-![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/820fce23e76ce128342fc6863f2188f0.avif)<!-- screenshot -->
+The preview stays open after an import. Started and already-imported datasets remain visible but cannot be selected, while datasets that could not be started stay selected for a retry. Click **Connect** again to refresh the preview and its storage usage; storage limits are checked again when importing.
 
-Imported datasets appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
+![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/e0c09ece8166144e4135db09cbd89cf7.avif)<!-- screenshot -->
+
+Imported datasets take the workspace's [default dataset visibility](../account/settings.md#default-visibility) and appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
 
 Any workspace editor can run the import. The preview is the slow step: Roboflow generates each new dataset's export archive before it can report a size, so a workspace with many fresh versions can take a minute or more to preview. If a very large workspace times out, run it again — Roboflow keeps generating the exports it already started, so the next preview has less to wait for.
 
@@ -42,11 +44,11 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 
 !!! note "Where to find your Roboflow API key"
 
-    Follow Roboflow's guide to [find your API key](https://docs.roboflow.com/reference/authentication/authentication/find-your-roboflow-api-key). Platform uses the key to run the preview and the import and then discards it — nothing is saved, and there is no connection to disconnect later.
+    Follow Roboflow's guide to [find your API key](https://docs.roboflow.com/reference/authentication/authentication/find-your-roboflow-api-key).
 
 !!! note "Unsupported projects are skipped"
 
-    Projects with unsupported task types (such as multi-label classification and semantic segmentation) and projects that don't yet have a generated version are skipped and reported in the preview. A dataset whose export size Roboflow can't report in time is also left out and shown as **Couldn't size — retry later**.
+    Projects with unsupported task types (such as multi-label classification and semantic segmentation) and projects that don't yet have a generated version are skipped; the preview counts the unsupported ones. A dataset whose export size Roboflow can't report in time is also left out and counted under **couldn't be sized, retry later**.
 
 !!! tip "Re-run to sync new datasets"
 
@@ -60,11 +62,11 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 
 ### Does Platform store my Roboflow API key?
 
-No. The key is used to run the preview and the import, then discarded. There is no saved connection and nothing to disconnect later.
+Yes, when the workspace owner connects with it; see [saved provider keys](../account/api-keys.md#provider-keys-for-agents-and-annotation).
 
 ### Which Roboflow projects are imported?
 
-Object detection, instance segmentation, single-label classification, and keypoint detection projects that have at least one generated version. Multi-label classification and semantic segmentation projects, and projects without a version, are skipped and listed in the preview.
+Object detection, instance segmentation, single-label classification, and keypoint detection projects that have at least one generated version. Multi-label classification and semantic segmentation projects, and projects without a version, are skipped. Select the new datasets you want to import in the preview.
 
 ### How do I pick up new datasets after the first import?
 
@@ -72,7 +74,7 @@ Run the import again. Datasets that are already imported, including ones sitting
 
 ### What if a dataset import fails?
 
-Open the dataset to see why it failed, then run the import again. The preview counts the failed dataset as new, and the import retries it in place rather than creating a second copy.
+Open the dataset to see why it failed, then run the import again. The preview lists the failed dataset among the new ones, and the import retries it in place rather than creating a second copy.
 
 ### Why does the preview take a long time?
 

@@ -120,7 +120,7 @@ def autosplit(
         Split with custom weights and annotated images only
         >>> autosplit(path="path/to/images", weights=(0.8, 0.15, 0.05), annotated_only=True)
     """
-    path = Path(path)  # images dir
+    path = Path(path).absolute()  # images dir, absolute so label lookups match the loader
     files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
     n = len(files)  # number of files
     indices = random.Random(0).choices([0, 1, 2], weights=weights, k=n)  # assign each image reproducibly

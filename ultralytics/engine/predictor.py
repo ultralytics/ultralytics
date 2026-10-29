@@ -477,7 +477,7 @@ class BasePredictor:
 
         self.device = self.model.device  # update device
         if self.device.type == "cpu" and self.model.format in {"onnx", "openvino"}:
-            torch.set_num_threads(2)  # torch only runs pre/postprocess here; idle OpenMP threads spin on runtime cores
+            torch.set_num_threads(min(2, torch.get_num_threads()))  # pre/postprocess only; idle OpenMP threads spin
         self.model.eval()
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 

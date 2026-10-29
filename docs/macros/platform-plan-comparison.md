@@ -13,6 +13,7 @@
 | **Teams**                                                  | -          | Up to 5 members | Custom size |
 | **SSO / SAML**                                             | -          | -               | Yes         |
 | **On Premise Data & Compute**                              | -          | -               | Yes         |
+| **HIPAA BAA (eligible customers)**                         | -          | -               | Yes         |
 | **Enterprise License**                                     | -          | -               | Yes         |
 | **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise  |
 

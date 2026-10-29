@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import inspect
 from collections.abc import Iterator
 from pathlib import Path
@@ -13,6 +14,7 @@ from PIL import Image
 
 from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
+from ultralytics.nn.backends.base import BaseBackend
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
@@ -259,6 +261,8 @@ class Model(torch.nn.Module):
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
+            if imgsz := BaseBackend.read_metadata(weights).get("imgsz"):  # default to export imgsz like .pt train imgsz
+                self.overrides["imgsz"] = max(ast.literal_eval(str(imgsz)))
         self.overrides["model"] = model_uri if str(model_uri).startswith("ul://") else weights
         self.overrides["task"] = self.task
         self.model_name = weights
@@ -550,10 +554,6 @@ class Model(torch.nn.Module):
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
-            if "imgsz" not in self.overrides and getattr(self.predictor.model, "dynamic", False):
-                # A dynamic export defaults to its export size, as a .pt model defaults to its training size
-                self.overrides["imgsz"] = self.predictor.model.imgsz
-                self.predictor.args.imgsz = args.get("imgsz", self.overrides["imgsz"])
         else:  # only update args if predictor is already setup
             save_keys = ("project", "name", "save_dir", "exist_ok")
             prev_save_args = tuple(getattr(self.predictor.args, k, None) for k in save_keys)

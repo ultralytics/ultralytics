@@ -42,7 +42,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 
-from ultralytics.cfg import cfg2dict, get_cfg, get_save_dir
+from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
@@ -67,7 +67,6 @@ class BaseValidator:
 
     Attributes:
         args (SimpleNamespace): Configuration for the validator.
-        imgsz_given (bool): Whether the caller passed imgsz; if not, a dynamic export validates at its export size.
         dataloader (DataLoader): DataLoader to use for validation.
         model (nn.Module): Model to validate.
         data (dict): Data dictionary containing dataset information.
@@ -125,7 +124,6 @@ class BaseValidator:
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
 
         self.args = get_cfg(overrides=args)
-        self.imgsz_given = "imgsz" in cfg2dict(args or {})  # else a dynamic export uses its export size
         self.dataloader = dataloader
         self.stride = None
         self.data = None
@@ -207,7 +205,7 @@ class BaseValidator:
                 LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
                 augment = False
             imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2)
-            if fmt != "pt" and hasattr(model, "imgsz") and not (getattr(model, "dynamic", False) and self.imgsz_given):
+            if fmt != "pt" and hasattr(model, "imgsz") and not getattr(model, "dynamic", False):
                 self.args.imgsz = imgsz = model.imgsz  # reuse the full input shape from export metadata
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1

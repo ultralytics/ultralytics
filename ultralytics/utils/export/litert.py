@@ -9,7 +9,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.nn.modules import Detect
+from ultralytics.nn.modules import OBB, Detect
 from ultralytics.utils import LOGGER
 from ultralytics.utils.export.engine import _NormalizeCoords
 
@@ -25,6 +25,30 @@ def _litert_gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
     b, n = x.shape[:2]
     offset = torch.arange(b, device=x.device, dtype=index.dtype)[..., None] * n
     return x.flatten(0, 1).index_select(0, (index + offset).flatten()).view(b, index.shape[1], *x.shape[2:])
+
+
+def _litert_exp(x: torch.Tensor) -> torch.Tensor:
+    """Compute exp(x) as (sigmoid(x/2) / sigmoid(-x/2))**2, exactly; halving keeps both sigmoids normal in FP16."""
+    r = torch.sigmoid(x / 2) / torch.sigmoid(-x / 2)
+    return r * r
+
+
+def _litert_obb_decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, angle: torch.Tensor) -> torch.Tensor:
+    """Decode rotated boxes like dist2rbox, without the SIN and COS (or FLOOR) that MediaTek NPUs lack.
+
+    Taylor series of the quarter angle, doubled twice, are accurate to ~1e-5 for |angle| <= 2pi, which covers OBB's
+    [-pi/4, 3pi/4] and the raw OBB26 angle (trained near zero; the angle loss wraps at pi).
+    """
+    h = angle / 4
+    h2 = h * h
+    sin = h * (1 + h2 * (-1 / 6 + h2 * (1 / 120 + h2 * (-1 / 5040 + h2 * (1 / 362880)))))
+    cos = 1 + h2 * (-1 / 2 + h2 * (1 / 24 + h2 * (-1 / 720 + h2 * (1 / 40320 + h2 * (-1 / 3628800)))))
+    for _ in range(2):  # no constant-minus-tensor SUB: the Exynos INT8 compiler rejects it
+        sin, cos = 2 * sin * cos, cos * cos - sin * sin
+    lt, rb = bboxes.split(2, dim=1)
+    xf, yf = ((rb - lt) / 2).split(1, dim=1)
+    xy = torch.cat([xf * cos - yf * sin, xf * sin + yf * cos], dim=1) + anchors
+    return torch.cat([xy, lt + rb], dim=1)
 
 
 def torch2litert(
@@ -89,11 +113,20 @@ def torch2litert(
         if isinstance(m, Detect):
             m._grouped_topk = _litert_grouped_topk
             m._gather = types.MethodType(_litert_gather, m)
+        if isinstance(m, OBB):  # OBB and OBB26: polynomial sin/cos keep the rotated decode on MediaTek NPUs
+            m.decode_bboxes = types.MethodType(_litert_obb_decode_bboxes, m)
 
     # Lower index_select to tfl.gather: the default lowering emits GATHER_ND, which GPU delegates do not implement
     litert_torch.fx_infra.decomp.add_pre_lower_decomp(
         torch.ops.aten.index_select.default, lambda x, dim, index: torch.ops.tfl.gather(x, index.int(), dim)
     )
+    # Lower exp exactly to LOGISTIC/DIV/MUL for MediaTek NPUs, which have no EXP (depth head); static INT8/INT16 keep
+    # EXP, where the quantized sigmoid ratio is lossier and the depth decoder does not fully compile on MediaTek anyway
+    exp = torch.ops.aten.exp.default
+    if static_int8 or static_int16:
+        litert_torch.fx_infra.decomp.remove_pre_lower_decomp(exp)
+    else:
+        litert_torch.fx_infra.decomp.add_pre_lower_decomp(exp, _litert_exp)
     edge_model = litert_torch.convert(model.eval(), (im,))  # export wrappers default to training mode
     tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")
     edge_model.export(tflite_file)

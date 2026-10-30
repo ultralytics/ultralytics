@@ -50,10 +50,6 @@ Because both images and text land in the same vector space, retrieval is zero-sh
 
 The `SearchApp` class launches the full Flask interface. On first run it downloads a sample image set, builds the embedding index, and serves a page where you can type a query and view ranked results.
 
-??? note "Image Path Warning"
-
-    If you're using your own images, make sure to provide an absolute path to the image directory. Otherwise, the images may not appear on the webpage due to Flask's file serving limitations.
-
 === "Python"
 
     ```python

@@ -194,7 +194,7 @@ class SearchApp:
         self.app = Flask(
             __name__,
             template_folder="templates",
-            static_folder=Path(data).resolve(),  # Absolute path to serve images
+            static_folder=self.searcher.data_dir.resolve(),  # Absolute path to serve images
             static_url_path="/images",  # URL prefix for images
         )
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])

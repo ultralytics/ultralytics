@@ -103,12 +103,14 @@ Validate trained YOLO26n-pose model [accuracy](https://www.ultralytics.com/gloss
         metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps  # a list containing mAP50-95 for each category
+        metrics.box.maps  # mAP50-95 per class; classes absent from the val set hold the overall mAP
+        metrics.box.ap_class_index  # class indices that were actually evaluated
         metrics.box.image_metrics  # per-image metrics dictionary for box with precision, recall, F1, TP, FP, and FN
         metrics.pose.map  # map50-95(P)
         metrics.pose.map50  # map50(P)
         metrics.pose.map75  # map75(P)
-        metrics.pose.maps  # a list containing mAP50-95(P) for each category
+        metrics.pose.maps  # mAP50-95(P) per class; classes absent from the val set hold the overall mAP(P)
+        metrics.pose.ap_class_index  # class indices that were actually evaluated
         metrics.pose.image_metrics  # per-image metrics dictionary for pose with precision, recall, F1, TP, FP, and FN
         ```
 

@@ -126,7 +126,8 @@ Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossa
         metrics.box.map  # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
-        metrics.box.maps  # a list containing mAP50-95(B) for each category
+        metrics.box.maps  # mAP50-95(B) per class; classes absent from the val set hold the overall mAP(B)
+        metrics.box.ap_class_index  # class indices that were actually evaluated
         metrics.box.image_metrics  # per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
         ```
 

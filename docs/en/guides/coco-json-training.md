@@ -128,7 +128,7 @@ Parsed labels are saved to a `.cache` file next to the JSON (e.g. `instances_tra
 
 !!! note "The cache key is file metadata, not contents"
 
-    `get_hash()` hashes each path with its file size and modification time rather than its contents, so editing the JSON re-parses it on the next run. The image directory is hashed as a folder, not per file: adding or removing images triggers a rebuild, but replacing an image in place does not. Delete the `.cache` file if a tool rewrites the JSON and restores its original modification time.
+    `get_hash()` hashes each path with its file size and modification time rather than its contents, so editing the JSON re-parses it on the next run. The image directory counts only as a folder: adding or removing an image directly inside it triggers a rebuild, but replacing an image in place, or adding or removing one in a subfolder (a `file_name` such as `sub/img.jpg`), does not. Delete the `.cache` file after those changes, or if a tool rewrites the JSON and restores its original modification time.
 
 ## Connecting the Dataset to the Training Pipeline
 

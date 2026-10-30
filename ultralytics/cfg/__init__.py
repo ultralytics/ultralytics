@@ -912,8 +912,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
             )
             if solution_name == "speed" and "fps" not in overrides and 0 < fps < 1000:  # skip 0 and 90 kHz clock rates
                 solution.fps = fps
-            if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1280, h=720
-                w, h = 1280, 720
+            if solution_name == "analytics":  # output frames are the chart canvas, not the source video
+                w, h = solution.canvas.get_width_height()
             save_dir = get_save_dir(SimpleNamespace(task="solutions", name="exp", exist_ok=False, project=None))
             save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory i.e. runs/solutions/exp
             vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))

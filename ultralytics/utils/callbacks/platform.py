@@ -249,11 +249,11 @@ def _get_environment_info():
 
 
 def _get_project_name(trainer):
-    """Get slugified project and name from trainer args."""
+    """Get slugified project and raw run name from trainer args; Platform derives the model slug from the name."""
     raw = str(trainer.args.project)
     parts = raw.split("/", 1)
     project = f"{parts[0]}/{slugify(parts[1].replace('/', '-'))}" if len(parts) == 2 else slugify(raw)
-    return project, slugify(str(trainer.args.name or "train"))
+    return project, str(trainer.args.name or "train")
 
 
 def _get_training_gpus(trainer):

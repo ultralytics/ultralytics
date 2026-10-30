@@ -701,6 +701,7 @@ class Annotator:
 
     def save(self, filename: str = "image.jpg"):
         """Save the annotated image to 'filename'."""
+        Path(filename).parent.mkdir(parents=True, exist_ok=True)
         cv2.imwrite(filename, self.result())
 
     @staticmethod

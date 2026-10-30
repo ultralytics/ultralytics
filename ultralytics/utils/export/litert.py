@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import types
 import zipfile
 from pathlib import Path
@@ -34,17 +35,20 @@ def _litert_exp(x: torch.Tensor) -> torch.Tensor:
 
 
 def _litert_obb_decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, angle: torch.Tensor) -> torch.Tensor:
-    """Decode rotated boxes like dist2rbox, without the SIN and COS (or FLOOR) that MediaTek NPUs lack.
+    """Decode rotated boxes like dist2rbox, without the SIN, COS, FLOOR or ROUND that MediaTek NPUs lack.
 
-    Taylor series of the quarter angle, doubled twice, are accurate to ~1e-5 for |angle| <= 2pi, which covers OBB's
-    [-pi/4, 3pi/4] and the raw OBB26 angle (trained near zero; the angle loss wraps at pi).
+    The raw OBB26 angle is unbounded, so an int8 QUANTIZE/DEQUANTIZE pair rounds angle / 2pi to reduce it to [-pi, pi]
+    (for |angle| < 800); half-angle Taylor series and the double-angle identities then give sin and cos to ~1e-5.
     """
-    h = angle / 4
+    q = torch.ops.quantized_decomposed  # registered by litert_torch
+    turns = q.dequantize_per_tensor(
+        q.quantize_per_tensor(angle / (2 * math.pi), 1.0, 0, -128, 127, torch.int8), 1.0, 0, -128, 127, torch.int8
+    )
+    h = (angle - (2 * math.pi) * turns) / 2  # [-pi/2, pi/2]
     h2 = h * h
     sin = h * (1 + h2 * (-1 / 6 + h2 * (1 / 120 + h2 * (-1 / 5040 + h2 * (1 / 362880)))))
     cos = 1 + h2 * (-1 / 2 + h2 * (1 / 24 + h2 * (-1 / 720 + h2 * (1 / 40320 + h2 * (-1 / 3628800)))))
-    for _ in range(2):  # no constant-minus-tensor SUB: the Exynos INT8 compiler rejects it
-        sin, cos = 2 * sin * cos, cos * cos - sin * sin
+    sin, cos = 2 * sin * cos, cos * cos - sin * sin  # not 1 - 2sin^2: the Exynos INT8 compiler rejects const - tensor
     lt, rb = bboxes.split(2, dim=1)
     xf, yf = ((rb - lt) / 2).split(1, dim=1)
     xy = torch.cat([xf * cos - yf * sin, xf * sin + yf * cos], dim=1) + anchors
@@ -109,24 +113,26 @@ def torch2litert(
             model, int(im.shape[2]), int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape")
         )
 
+    # MediaTek NPUs have no EXP, SIN or COS (depth and OBB decode), so float-activation exports replace them with exact
+    # or polynomial forms; static INT8/INT16 keep them, as calibration requantizes the forms' intermediates (the int8
+    # rounding pair's angle turns, the sigmoid ratio) and the quantized depth decoder doesn't fully compile on MediaTek
+    npu_math = not (static_int8 or static_int16)
     for m in model.modules():  # int32 indices and a gather_nd-free gather keep the head on the GPU delegate
         if isinstance(m, Detect):
             m._grouped_topk = _litert_grouped_topk
             m._gather = types.MethodType(_litert_gather, m)
-        if isinstance(m, OBB):  # OBB and OBB26: polynomial sin/cos keep the rotated decode on MediaTek NPUs
+        if isinstance(m, OBB) and npu_math:  # OBB and OBB26
             m.decode_bboxes = types.MethodType(_litert_obb_decode_bboxes, m)
 
     # Lower index_select to tfl.gather: the default lowering emits GATHER_ND, which GPU delegates do not implement
     litert_torch.fx_infra.decomp.add_pre_lower_decomp(
         torch.ops.aten.index_select.default, lambda x, dim, index: torch.ops.tfl.gather(x, index.int(), dim)
     )
-    # Lower exp exactly to LOGISTIC/DIV/MUL for MediaTek NPUs, which have no EXP (depth head); static INT8/INT16 keep
-    # EXP, where the quantized sigmoid ratio is lossier and the depth decoder does not fully compile on MediaTek anyway
-    exp = torch.ops.aten.exp.default
-    if static_int8 or static_int16:
-        litert_torch.fx_infra.decomp.remove_pre_lower_decomp(exp)
-    else:
+    exp = torch.ops.aten.exp.default  # registry is process-global, so reset it for every export
+    if npu_math:
         litert_torch.fx_infra.decomp.add_pre_lower_decomp(exp, _litert_exp)
+    else:
+        litert_torch.fx_infra.decomp.remove_pre_lower_decomp(exp)
     edge_model = litert_torch.convert(model.eval(), (im,))  # export wrappers default to training mode
     tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")
     edge_model.export(tflite_file)

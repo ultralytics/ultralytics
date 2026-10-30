@@ -723,8 +723,7 @@ class Exporter:
             # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
             memo[id(getattr(model, "clip_model", None))] = None
         model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
-        # Distillation checkpoints export their student; foreign modules such as YOLO-NAS have no layer list
-        head = getattr(getattr(model, "student_model", model), "model", [model])[-1]
+        head = getattr(model, "model", [model])[-1]  # foreign modules such as YOLO-NAS have no layer list
         if not getattr(model, "names", None):  # missing, None or empty on legacy and foreign checkpoints
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)

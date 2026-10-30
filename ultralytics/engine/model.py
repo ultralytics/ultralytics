@@ -446,8 +446,7 @@ class Model(torch.nn.Module):
             >>> # Model is now fused and ready for optimized inference
         """
         self._check_is_pytorch_model()
-        # DistillationModel fuses to its student, so adopt the return
-        self.model = self.model.fuse(verbose=verbose, imgsz=imgsz)
+        self.model.fuse(verbose=verbose, imgsz=imgsz)
         self.predictor = None
         return self
 

@@ -2045,6 +2045,9 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
                 f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
             )
         )
+    if hasattr(candidate, "student_model"):  # mid-run distillation checkpoint: load its student
+        candidate._remove_feature_hooks()
+        candidate = candidate.student_model
     model = candidate.float()  # FP32 model
     if ckpt.get("modelopt"):  # QAT checkpoint: re-apply the fake-quantization it learned
         restore_qat(model, ckpt["modelopt"])

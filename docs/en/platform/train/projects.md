@@ -51,7 +51,7 @@ The project page has two main areas:
 | **Models Sidebar** | Resizable list of all models in the project, with checkboxes for chart selection |
 | **Main Panel**     | Charts dashboard or comparison table (toggle between views)                      |
 
-A controls row above both areas holds the model search box, **Compare with AI** (Editor role or higher, once the project has two or more completed models), the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
+A controls row above both areas holds the model search box, **Compare with AI** (Editor role or higher, once the project has two or more completed models), the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle. On desktop, the controls row and models sidebar stay in view while the charts or table scroll.
 
 ![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/4ebc844d81876e0499e28cf106859b4a.avif)<!-- screenshot -->
 
@@ -226,6 +226,8 @@ Remove a project you no longer need:
 
 1. Open the **More actions** menu in the header and select **Delete Project**
 2. Confirm deletion
+
+To delete several projects at once, select their rows in the table view of the **Projects** tab on your profile (or on a team profile where you are an Editor or above) and click **Delete (N)**, choose it from the right-click menu, or press `Cmd/Ctrl+Delete`.
 
 !!! warning "Cascading Delete"
 

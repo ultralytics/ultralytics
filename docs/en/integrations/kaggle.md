@@ -60,16 +60,7 @@ If you encounter conflicts with existing packages, force an upgrade:
 !pip install --upgrade --force-reinstall ultralytics
 ```
 
-#### Method 2: Use --no-deps and Install Dependencies Separately
-
-If conflicts persist, install without dependencies first, then manually install required packages:
-
-```bash
-!pip install --no-deps ultralytics
-!pip install torch torchvision numpy opencv-python matplotlib pillow pyyaml requests psutil polars ultralytics-thop
-```
-
-#### Method 3: Restart Kernel After Installation
+#### Method 2: Restart Kernel After Installation
 
 Sometimes, you need to restart the kernel after installation to resolve import issues:
 
@@ -78,7 +69,7 @@ Sometimes, you need to restart the kernel after installation to resolve import i
 # Then click "Restart Kernel" from the notebook menu
 ```
 
-#### Method 4: Use Specific Package Versions
+#### Method 3: Use Specific Package Versions
 
 If you encounter specific version conflicts, you can pin compatible versions:
 
@@ -96,7 +87,6 @@ If you encounter specific version conflicts, you can pin compatible versions:
 **Error: "ERROR: pip's dependency resolver does not currently take into account..."**
 
 - Solution: This is usually a warning and can be safely ignored. The installation typically succeeds despite the message
-- Alternatively, use Method 2 above to install without dependency resolution
 
 **Error: "ModuleNotFoundError" after installation**
 
@@ -119,29 +109,13 @@ This will display system information and verify that all dependencies are correc
 
 Training YOLO26 models on Kaggle is simple and efficient, thanks to the platform's access to powerful GPUs.
 
-To get started, access the [Kaggle YOLO26 Notebook](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
+To get started, open the [Ultralytics YOLO26 tutorial notebook in Kaggle](https://kaggle.com/kernels/welcome?src=https://github.com/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
 
 ![What is the kaggle integration with respect to YOLO26?](https://cdn.ul.run/i/e3bbf4bdda816e4786a2889511f4af6e.avif)
 
-Once you sign in to your Kaggle account, you can click on the option to copy and edit the code, select a GPU under the accelerator settings, and run the notebook's cells to begin training your model. For a detailed understanding of the model training process and best practices, refer to our [YOLO26 Model Training guide](../modes/train.md).
+Once you sign in to your Kaggle account, the notebook opens as your own editable copy: select a GPU under the accelerator settings, and run the notebook's cells to begin training your model. For a detailed understanding of the model training process and best practices, refer to our [YOLO26 Model Training guide](../modes/train.md).
 
 ![Using kaggle for machine learning model training with a GPU](https://cdn.ul.run/i/6e652dd890706d036eab3713886b6e19.avif)
-
-On the [official YOLO26 Kaggle notebook page](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook), clicking the three dots in the upper right-hand corner reveals additional options.
-
-![Overview of Options From the Official YOLO26 Kaggle Notebook Page](https://cdn.ul.run/i/b10a3289b765c74ef993f1273a361546.avif)
-
-These options include:
-
-- **View Versions**: Browse through different versions of the notebook to see changes over time and revert to previous versions if needed.
-- **Copy API Command**: Get an API command to programmatically interact with the notebook, which is useful for automation and integration into workflows.
-- **Open in Google Notebooks**: Open the notebook in Google's hosted notebook environment.
-- **Open in Colab**: Launch the notebook in [Google Colab](./google-colab.md) for further editing and execution.
-- **Follow Comments**: Subscribe to the comments section to get updates and engage with the community.
-- **Download Code**: Download the entire notebook as a Jupyter (.ipynb) file for offline use or version control in your local environment.
-- **Add to Collection**: Save the notebook to a collection within your Kaggle account for easy access and organization.
-- **Bookmark**: Bookmark the notebook for quick access in the future.
-- **Embed Notebook**: Get an embed link to include the notebook in blogs, websites, or documentation.
 
 ### Common Issues While Working with Kaggle
 
@@ -205,7 +179,7 @@ If you encounter dependency conflicts, try `!pip install --upgrade --force-reins
 
 ### How do I train a YOLO26 model on Kaggle?
 
-Training a YOLO26 model on Kaggle is straightforward. First, access the [Kaggle YOLO26 Notebook](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO26 Model Training guide](../modes/train.md).
+Training a YOLO26 model on Kaggle is straightforward. First, open the [Ultralytics YOLO26 tutorial notebook in Kaggle](https://kaggle.com/kernels/welcome?src=https://github.com/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb). Sign in to your Kaggle account and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO26 Model Training guide](../modes/train.md).
 
 ### What are the benefits of using Kaggle for YOLO26 model training?
 
@@ -224,7 +198,7 @@ Common issues include:
 
 - **Access to GPUs**: Ensure you activate a GPU in your notebook settings. Kaggle allows up to 30 hours of GPU usage per week.
 - **Internet Not Enabled**: Make sure to enable internet in the Settings panel before installing packages.
-- **Dependency Conflicts**: Use `!pip install --upgrade --force-reinstall ultralytics` or install without dependencies using `!pip install --no-deps ultralytics`.
+- **Dependency Conflicts**: Use `!pip install --upgrade --force-reinstall ultralytics`.
 - **Dataset Licenses**: Check the license of each dataset to understand usage restrictions.
 - **Saving and Committing Notebooks**: Click "Save Version" to save your notebook's state and access output files from the Output tab.
 - **Collaboration**: Kaggle supports asynchronous collaboration; multiple users cannot edit a notebook simultaneously.

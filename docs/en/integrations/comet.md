@@ -101,7 +101,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 After running the training code, Comet will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLO26 model's training](../modes/train.md) process.
 
-Comet automatically logs the following data with no additional configuration: metrics such as mAP and loss, hyperparameters, model checkpoints, interactive confusion matrix, and image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions.
+Once Comet is installed and configured, its callback is enabled by default and logs metrics such as mAP and loss, hyperparameters, model checkpoints, and an interactive confusion matrix. Image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions from the validation set are logged for detect and segment training with `save_json=True`. Run `yolo settings comet=False` to disable the integration.
 
 ## Understanding Your Model's Performance with Comet Visualizations
 
@@ -151,7 +151,7 @@ Comet offers the flexibility to customize its logging behavior by setting enviro
 | `COMET_MAX_IMAGE_PREDICTIONS`       | `100`          | Total number of validation image predictions to log per run.                                              |
 | `COMET_EVAL_BATCH_LOGGING_INTERVAL` | `1`            | Log image predictions every Nth validation batch.                                                         |
 | `COMET_EVAL_LOG_IMAGE_PREDICTIONS`  | `true`         | Toggle image prediction logging on (`true`) or off (`false`).                                             |
-| `COMET_EVAL_LOG_CONFUSION_MATRIX`   | `false`        | Log a confusion matrix on every validation epoch. A final matrix is always logged at end of training.     |
+| `COMET_EVAL_LOG_CONFUSION_MATRIX`   | `false`        | Log a confusion matrix at each `save_period` checkpoint. A final matrix is always logged after training.  |
 | `COMET_MAX_CONFIDENCE_SCORE`        | `100.0`        | Multiplier applied to detection confidence scores before logging (Comet's UI expects a percentage scale). |
 | `COMET_MODE` _(deprecated)_         | `online`       | Legacy alias of `COMET_START_ONLINE` (`"online"` ↔ `1`, `"offline"` ↔ `0`). Emits a deprecation warning.  |
 
@@ -159,7 +159,7 @@ For the boolean toggles (`COMET_EVAL_LOG_IMAGE_PREDICTIONS` and `COMET_EVAL_LOG_
 
 ### Logging Image Predictions
 
-You can control the number of image predictions that Comet logs during your experiments. By default, Comet logs 100 image predictions from the validation set. However, you can change this number to better suit your requirements. For example, to log 200 image predictions, use the following code:
+You can control the number of image predictions that Comet logs during your experiments. With `save_json=True`, Comet logs up to 100 image predictions from the validation set. However, you can change this number to better suit your requirements. For example, to log 200 image predictions, use the following code:
 
 ```python
 import os
@@ -167,13 +167,15 @@ import os
 os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
 ```
 
-To disable image prediction logging entirely (for example, to reduce upload volume on slow connections), set `COMET_EVAL_LOG_IMAGE_PREDICTIONS` to `"false"`:
+To disable annotated image prediction logging (for example, to reduce upload volume on slow connections), set `COMET_EVAL_LOG_IMAGE_PREDICTIONS` to `"false"`:
 
 ```python
 import os
 
 os.environ["COMET_EVAL_LOG_IMAGE_PREDICTIONS"] = "false"
 ```
+
+The `train_batch*.jpg` and `val_batch*.jpg` plot images are still logged at the end of training.
 
 ### Batch Logging Interval
 
@@ -185,14 +187,14 @@ import os
 os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
 ```
 
-### Disabling Confusion Matrix Logging
+### Per-Epoch Confusion Matrix Logging
 
-In some cases, you may not want to log the confusion matrix from your validation set after every [epoch](https://www.ultralytics.com/glossary/epoch). You can disable this feature by setting the `COMET_EVAL_LOG_CONFUSION_MATRIX` environment variable to "false." The confusion matrix will only be logged once, after the training is completed.
+By default, the confusion matrix from your validation set is logged once, after the training is completed. To also log it at every checkpoint saved by `save_period` (`save_period=1` saves every [epoch](https://www.ultralytics.com/glossary/epoch)), set the `COMET_EVAL_LOG_CONFUSION_MATRIX` environment variable to "true."
 
 ```python
 import os
 
-os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
+os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "true"
 ```
 
 ### Online and Offline Mode
@@ -324,12 +326,12 @@ Comet allows for extensive customization of its logging behavior using environme
     os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
     ```
 
-- **Disable confusion matrix logging**:
+- **Log the confusion matrix at every `save_period` checkpoint**:
 
     ```python
     import os
 
-    os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
+    os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "true"
     ```
 
 - **Set the Comet project name**:

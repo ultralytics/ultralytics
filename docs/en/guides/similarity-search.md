@@ -50,10 +50,6 @@ Because both images and text land in the same vector space, retrieval is zero-sh
 
 The `SearchApp` class launches the full Flask interface. On first run it downloads a sample image set, builds the embedding index, and serves a page where you can type a query and view ranked results.
 
-??? note "Image Path Warning"
-
-    If you're using your own images, make sure to provide an absolute path to the image directory. Otherwise, the images may not appear on the webpage due to Flask's file serving limitations.
-
 === "Python"
 
     ```python
@@ -71,7 +67,7 @@ The `SearchApp` class launches the full Flask interface. On first run it downloa
 
 The `VisualAISearch` class performs all the backend operations without the web layer:
 
-- Loads or builds an embedding index from local images.
+- Builds an embedding index from local images each time it starts.
 - Extracts image and text [embeddings](https://developers.openai.com/api/docs/guides/embeddings) using CLIP.
 - Performs similarity search using cosine similarity.
 

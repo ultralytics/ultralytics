@@ -76,6 +76,14 @@ Then, you can import the needed packages.
     === "Python"
 
         ```python
+        import glob
+        import os
+        import shutil
+
+        import yaml
+        from IPython.display import display
+        from PIL import Image
+
         import ultralytics
 
         ultralytics.checks()
@@ -192,7 +200,7 @@ Next, we need to modify the .yaml file for the data set. This is the setup we wi
 ```yaml
 path: /path/to/dataset/directory # root directory for dataset
 train: train/images # train images subdirectory
-val: train/images # validation images subdirectory
+val: val/images # validation images subdirectory
 test: test/images # test images subdirectory
 
 # Classes
@@ -214,7 +222,7 @@ Run the following script to delete the current contents of `config.yaml` and rep
             data = {
                 "path": f"{work_dir}/trash_ICRA19/dataset",
                 "train": "train/images",
-                "val": "train/images",
+                "val": "val/images",
                 "test": "test/images",
                 "names": {0: "plastic", 1: "bio", 2: "rov"},
             }

@@ -887,9 +887,11 @@ class BaseTrainer:
         if str(self.model).lower().endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
-        if isinstance(self.args.pretrained, (str, Path)) and not self.resume:
+        if self.resume:  # load_checkpoint() returns the student, rebuild a distillation run from its wrapper
+            weights = ckpt.get("ema") or ckpt.get("model")
+        elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)
-        elif self.args.pretrained is False and not self.resume:
+        elif self.args.pretrained is False:
             weights = None
 
         # rebuild DistillationModel from resuming checkpoint

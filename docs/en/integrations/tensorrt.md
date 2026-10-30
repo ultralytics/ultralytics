@@ -161,7 +161,7 @@ The TensorRT format supports the [Export](../modes/export.md), [Predict](../mode
 | `quantize`  | `int` or `str`            | `None`     | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. A checkpoint trained with `quantize=8` always exports INT8 from the ranges it carries, without calibration. Replaces the deprecated `half`/`int8` flags.                                            |
 | `dynamic`   | `bool`                    | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                                                                             |
 | `simplify`  | `bool`                    | `True`     | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                                                                                                    |
-| `opset`     | `int`                     | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                                                                    |
+| `opset`     | `int`                     | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses opset `18` (lower on PyTorch < 2.4), capped at the installed `onnx` version.                                                                                                                                                     |
 | `workspace` | `float` or `None`         | `None`     | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance; use `None` for auto-allocation by TensorRT up to device maximum.                                                                                                                                         |
 | `nms`       | `bool`, optional          | `None`     | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                                                                                                                                         |
 | `batch`     | `int`                     | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                                                             |
@@ -454,7 +454,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 #### Evaluation methods
 
-Expand sections below for information on how these models were exported and tested.
+The tables above were measured with `yolov8n` models on `ultralytics` 8.2. Expand sections below for the same export, predict and validation configurations with current arguments.
 
 ??? example "Export configurations"
 

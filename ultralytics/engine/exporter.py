@@ -127,6 +127,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_10,
     IS_PYTHON_MINIMUM_3_13,
+    ONNXRUNTIME_BUILDS,
     check_data_portable,
     check_imgsz,
     check_python,
@@ -722,8 +723,7 @@ class Exporter:
             # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
             memo[id(getattr(model, "clip_model", None))] = None
         model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
-        # Distillation checkpoints export their student; foreign modules such as YOLO-NAS have no layer list
-        head = getattr(getattr(model, "student_model", model), "model", [model])[-1]
+        head = getattr(model, "model", [model])[-1]  # foreign modules such as YOLO-NAS have no layer list
         if not getattr(model, "names", None):  # missing, None or empty on legacy and foreign checkpoints
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)
@@ -1138,8 +1138,7 @@ class Exporter:
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
             ort = "onnxruntime-gpu[cuda]" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
-            builds = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
-            requirements += [(ort, *builds)]
+            requirements += [(ort, *ONNXRUNTIME_BUILDS)]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)

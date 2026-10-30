@@ -71,7 +71,8 @@ Validate a trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary
         metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps  # a list containing mAP50-95 for each category
+        metrics.box.maps  # mAP50-95 per class; classes absent from the val set hold the overall mAP
+        metrics.box.ap_class_index  # class indices that were actually evaluated
         metrics.box.image_metrics  # per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
         ```
 
@@ -240,7 +241,8 @@ metrics = model.val()  # assumes `model` has been loaded
 print(metrics.box.map)  # mAP50-95
 print(metrics.box.map50)  # mAP50
 print(metrics.box.map75)  # mAP75
-print(metrics.box.maps)  # list of mAP50-95 for each category
+print(metrics.box.maps)  # mAP50-95 per class; classes absent from the val set hold the overall mAP
+print(metrics.box.ap_class_index)  # class indices that were actually evaluated
 print(metrics.box.image_metrics)  # per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
 ```
 

@@ -88,7 +88,7 @@ Upon running the usage code snippet above, you can expect the following output:
 - An informational message about the script code being stored, indicating that the code execution is being tracked by ClearML.
 - A URL link to the ClearML results page where you can monitor the training progress and view detailed logs.
 - Download progress for the YOLO26 model and the specified dataset, followed by a summary of the model architecture and training configuration.
-- Initialization messages for various training components like TensorBoard, Automatic [Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision) (AMP), and dataset preparation.
+- Initialization messages for various training components like Automatic [Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision) (AMP) and dataset preparation.
 - Finally, the training process starts, with progress updates as the model trains on the specified dataset. For an in-depth understanding of the performance metrics used during training, read [our guide on performance metrics](../guides/yolo-performance-metrics.md).
 
 ### Viewing the ClearML Results Page

@@ -15,6 +15,7 @@ from PIL import Image
 from ultralytics.data.utils import exif_size, img2label_paths
 from ultralytics.utils import TQDM
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.instance import Instances
 from ultralytics.utils.patches import imread_unicode
 
 
@@ -216,10 +217,9 @@ def crop_and_save(
         if len(label) or allow_background_images:
             cv2.imwrite(str(Path(im_dir) / f"{new_name}.jpg"), patch_im)
         if len(label):
-            label[:, 1::2] -= x_start
-            label[:, 2::2] -= y_start
-            label[:, 1::2] /= pw
-            label[:, 2::2] /= ph
+            instances = Instances(np.zeros((len(label), 4)), label[:, 1:].reshape(-1, 4, 2) - (x_start, y_start))
+            instances.clip(pw, ph, preserve_obb=True)  # objects kept by IoF can extend past the window
+            label[:, 1:] = (instances.segments / (pw, ph)).clip(0, 1).reshape(-1, 8)
 
             with open(Path(lb_dir) / f"{new_name}.txt", "w", encoding="utf-8") as f:
                 for lb in label:

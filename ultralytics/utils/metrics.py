@@ -1731,7 +1731,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             self.matrix = torch.zeros((self.cm_nc, self.cm_nc), device=preds.device, dtype=torch.float32)
 
         valid = (targets != 255) & (preds >= 0) & (preds < self.cm_nc) & (targets >= 0) & (targets < self.cm_nc)
-        idx = (self.cm_nc * targets[valid] + preds[valid]).long()
+        idx = self.cm_nc * targets[valid].long() + preds[valid]
         for i in idx.split(1 << 24):  # float32 counts are exact up to 2**24 per chunk; bincount is very slow on MPS
             hist = torch.zeros(self.cm_nc**2, device=i.device, dtype=self.matrix.dtype)
             self.matrix += hist.scatter_add_(0, i, torch.ones_like(i, dtype=hist.dtype)).view_as(self.matrix)

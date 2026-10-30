@@ -1694,7 +1694,7 @@ def temporary_modules(modules=None, attributes=None):
 
 
 class _SafeLoad:
-    """Opt-in restricted checkpoint loading that reconstructs only known model classes and builds models without eval.
+    """Opt-in restricted checkpoint loading that reconstructs only known model classes.
 
     Loading uses `weights_only=True` plus an allow-list of known classes. Enabled per-process by the
     `ULTRALYTICS_SAFE_LOAD` env flag, or per-call by `torch_safe_load(..., safe_only=True)`. Default loading (flag off)
@@ -1709,20 +1709,10 @@ class _SafeLoad:
     _lock = (
         threading.Lock()
     )  # add_safe_globals rebinds a process-global set; held across _build(), so no load may run at import
-    _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
     @classmethod
-    def restricted(cls):
-        """Return whether model construction should use the no-eval, known-layer path (env flag or in-progress load)."""
-        return cls.SUPPORTED and (SAFE_LOAD or getattr(cls._local, "active", False))
-
-    @classmethod
-    @contextlib.contextmanager
-    def loading(cls, weight):
-        """Prepare a `weights_only=True` load by registering the globals a checkpoint needs and marking the thread.
-
-        Marking the thread restricted means a checkpoint that reaches model construction (parse_model) also uses the
-        no-eval, known-layer path.
+    def register(cls, weight):
+        """Prepare a `weights_only=True` load by registering the globals a checkpoint needs.
 
         Globals are registered with `add_safe_globals` for the life of the process, never scoped per load: the
         `safe_globals()` context manager removes its entries from a process-global set on exit, so with concurrent
@@ -1759,7 +1749,10 @@ class _SafeLoad:
                 import torchvision.transforms.transforms as tvt
                 from torchvision.transforms.functional import InterpolationMode
 
-                for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
+                from ultralytics.data.augment import ClassifyLetterBox  # docs custom classify transforms letterbox
+
+                tfs = (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, tvt.ToPILImage)
+                for obj in (*tfs, InterpolationMode, ClassifyLetterBox, np.asarray):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
             if "ultralytics.nn.text_model.CLIP" in needed:
                 import clip
@@ -1782,11 +1775,6 @@ class _SafeLoad:
                 entries.append(type(np.dtype(np.float64)))  # Built dynamically, absent from the checkpoint global scan.
             if entries:
                 torch.serialization.add_safe_globals(entries)
-        cls._local.active = True
-        try:
-            yield
-        finally:
-            cls._local.active = False
 
     @staticmethod
     def activation(act):
@@ -1824,7 +1812,7 @@ class _SafeLoad:
             return klass(*args, **kwargs)
         except Exception as e:
             raise TypeError(
-                emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")
+                emojis(f"ERROR ❌️ unsupported activation '{act}', expected a torch.nn module e.g. 'nn.SiLU()'.")
             ) from e
 
     @classmethod
@@ -1920,8 +1908,8 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                with _SafeLoad.loading(file):  # weights_only load against the known-class allow-list
-                    return torch_load(file, map_location="cpu", weights_only=True)
+                _SafeLoad.register(file)  # weights_only load against the known-class allow-list
+                return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
     # weights_only=True raises on a TorchScript archive; the default path returns a ScriptModule instead.
@@ -2042,6 +2030,9 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
                 f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
             )
         )
+    if hasattr(candidate, "student_model"):  # mid-run distillation checkpoint: load its student
+        candidate._remove_feature_hooks()
+        candidate = candidate.student_model
     model = candidate.float()  # FP32 model
     if ckpt.get("modelopt"):  # QAT checkpoint: re-apply the fake-quantization it learned
         restore_qat(model, ckpt["modelopt"])
@@ -2093,12 +2084,9 @@ def parse_model(d, ch, verbose=True):
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
-    restricted = _SafeLoad.restricted()
     default_act = Conv.default_act  # restore before returning: Conv.default_act is process-wide state
     if act:
-        # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under restricted loading, resolve the
-        # spec without eval() (see _SafeLoad.activation).
-        Conv.default_act = _SafeLoad.activation(act) if restricted else eval(act)
+        Conv.default_act = _SafeLoad.activation(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 
@@ -2171,9 +2159,8 @@ def parse_model(d, ch, verbose=True):
             if m.startswith("torchvision.ops.")
             else globals()[m]
         )  # get module
-        if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
-            # Under restricted loading, only known model layers may be named here.
-            raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer under restricted loading."))
+        if not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
+            raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer."))
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):

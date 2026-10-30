@@ -203,7 +203,7 @@ jobs:
         run: |
           uv pip uninstall onnxruntime
           uv pip install onnxruntime-windowsml
-          python -c "import torch; import onnxruntime as ort; from importlib.metadata import version; from ultralytics import YOLO; from ultralytics.nn.backends.onnx import ONNXBackend; path = YOLO('yolo26n.pt').export(format='onnx', imgsz=32); threads = torch.get_num_threads(); YOLO(path)(imgsz=32); options = ort.SessionOptions(); options.intra_op_num_threads = 1; backend = ONNXBackend(path, torch.device('cpu'), session_options=options); assert backend.session_options is options and options.has_providers() and backend.session.get_session_options().intra_op_num_threads == 1; assert torch.get_num_threads() == threads; print(version('onnxruntime-windowsml'))"
+          python -c "import torch; import onnxruntime as ort; from importlib.metadata import version; from ultralytics import YOLO; from ultralytics.nn.backends.onnx import ONNXBackend; path = YOLO('yolo26n.pt').export(format='onnx', imgsz=32); YOLO(path)(imgsz=32); threads = torch.get_num_threads(); options = ort.SessionOptions(); options.intra_op_num_threads = 1; backend = ONNXBackend(path, torch.device('cpu'), session_options=options); assert backend.session_options is options and options.has_providers() and backend.session.get_session_options().intra_op_num_threads == 1; assert torch.get_num_threads() == threads; print(version('onnxruntime-windowsml'))"
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
         continue-on-error: true
@@ -225,7 +225,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
-        python: ["3.13"]
+        python: ["3.14"]
         torch: [latest]
         include:
           # Legacy PyTorch shards keep NumPy <2 only where the older torch builds actually need it.
@@ -318,6 +318,14 @@ jobs:
             python: "3.14"
             torch: "2.13.0"
             torchvision: "0.28.0"
+          - os: ubuntu-latest
+            python: "3.14"
+            torch: "2.14.0"
+            torchvision: "0.29.0"
+          - os: ubuntu-latest
+            python: "3.14"
+            torch: "2.15.0"
+            torchvision: "0.29.2"
     steps:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main

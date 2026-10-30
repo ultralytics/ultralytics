@@ -139,7 +139,7 @@ The ExecuTorch format supports the [Export](../modes/export.md), [Predict](../mo
         yolo val model=yolo26n_executorch_model data=coco8.yaml
         ```
 
-    ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference.
+ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference.
 
 ### Export Arguments
 
@@ -181,7 +181,7 @@ Example iOS integration (Objective-C/C++):
 
 ```objc
 // iOS uses C++ APIs for model loading and inference
-// See https://pytorch.org/executorch/stable/using-executorch-ios.html for complete examples
+// See https://docs.pytorch.org/executorch/stable/using-executorch-ios.html for complete examples
 
 #include <executorch/extension/module/module.h>
 
@@ -224,7 +224,7 @@ val inputEValue = EValue.from(inputTensor)
 
 // Run inference
 val outputs = module.forward(inputEValue)
-val scores = outputs[0].toTensor().dataAsFloatArray
+val predictions = outputs[0].toTensor().dataAsFloatArray
 ```
 
 ### Embedded Linux

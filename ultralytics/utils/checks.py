@@ -70,7 +70,7 @@ def normalize_platform_uri(uri):
         (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
     """
     s = str(uri)
-    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
+    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.lower().startswith(f"{PLATFORM_URL}/".lower()) else uri
 
 
 def resolve_platform_uri(uri, hard=True):
@@ -623,13 +623,12 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     if pkgs:
         packages = [*pkgs, *constrain]
         if install and AUTOINSTALL:  # check environment variable
-            # Note uv fails on arm64 macOS and Raspberry Pi runners
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                use_uv = not ARM64 and check_uv()  # uv fails on ARM64
+                use_uv = check_uv()
                 LOGGER.info(attempt_install(packages, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
@@ -709,8 +708,8 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
         if isinstance(suffix, str):
             suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            if s := clean_url(f).rpartition(".")[-1].lower().strip():  # file suffix
-                assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
+            if s := Path(clean_url(f)).suffix.lower().strip():  # file suffix
+                assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}, not {s}"
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
@@ -799,7 +798,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
             downloads.safe_download(url=url, file=local_file, unzip=False)
         return str(local_file)
     elif download and file.lower().startswith(REMOTE_FILE_PREFIXES):  # download
-        if file.startswith("gs://"):
+        if file.lower().startswith("gs://"):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split authentication query strings
@@ -1220,3 +1219,5 @@ IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)
+
+ONNXRUNTIME_BUILDS = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"

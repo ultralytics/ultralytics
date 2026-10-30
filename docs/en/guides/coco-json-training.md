@@ -126,9 +126,9 @@ class COCODataset(YOLODataset):
 
 Parsed labels are saved to a `.cache` file next to the JSON (e.g. `instances_train.cache`). On subsequent training runs, the cache is loaded directly, skipping JSON parsing.
 
-!!! warning "The cache key is the JSON's file size, not its contents"
+!!! note "The cache key is file metadata, not contents"
 
-    `get_hash()` hashes file sizes and paths rather than file contents, so a re-run re-parses the JSON only when the JSON's byte count changes. Adding or removing images may also shift the image directory's own size and trigger a rebuild, but do not rely on it — the hash never inspects individual image files, so swapping one image for another can leave the size unchanged. An edit that preserves the byte count — nudging a coordinate, flipping `iscrowd`, swapping two equal-length class names — leaves the stale cache in place and trains on the old annotations with no warning, and replacing an image in place is invisible for the same reason. Delete the `.cache` file after editing annotations or images in place.
+    `get_hash()` hashes each path with its file size and modification time rather than its contents, so editing the JSON re-parses it on the next run. The image directory counts only as a folder: adding or removing an image directly inside it triggers a rebuild, but replacing an image in place, or adding or removing one in a subfolder (a `file_name` such as `sub/img.jpg`), does not. Delete the `.cache` file after those changes, or if a tool rewrites the JSON and restores its original modification time.
 
 ## Connecting the Dataset to the Training Pipeline
 
@@ -372,4 +372,4 @@ Categories are sorted by `id` and mapped to sequential indices starting from 0. 
 
 ### Is there a performance overhead compared to pre-converted labels?
 
-The COCO JSON is parsed once on the first training run. Parsed labels are saved to a `.cache` file, so subsequent runs load instantly without re-parsing. Training speed is identical to standard YOLO training since annotations are held in memory. The cache is keyed on the JSON's file size, so delete the `.cache` file after any edit that leaves the file the same length.
+The COCO JSON is parsed once on the first training run. Parsed labels are saved to a `.cache` file, so subsequent runs load instantly without re-parsing. Training speed is identical to standard YOLO training since annotations are held in memory. The cache is keyed on the JSON's size and modification time, so editing the JSON re-parses it automatically.

@@ -6,7 +6,7 @@ keywords: Sony, IMX500, IMX 500, AITRIOS, MCT, model export, quantization, pruni
 
 # Sony IMX500 Export for Ultralytics YOLO11
 
-This guide covers exporting and deploying Ultralytics YOLO11 models to Raspberry Pi AI Cameras that feature the Sony IMX500 sensor.
+This guide covers exporting and deploying Ultralytics YOLOv8n and YOLO11n models to Raspberry Pi AI Cameras that feature the Sony IMX500 sensor.
 
 Deploying computer vision models on devices with limited computational power, such as [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/), can be tricky. Using a model format optimized for faster performance makes a huge difference.
 
@@ -46,7 +46,7 @@ IMX500 export supports four of the seven Ultralytics tasks, and only for **YOLOv
 
 Export an Ultralytics YOLO11 model to IMX500 format and run inference with the exported model.
 
-The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on the Raspberry Pi AI Camera (IMX500).
+The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Ultralytics inference and validation run the exported `model_imx.onnx` on the host CPU.
 
 !!! note
 
@@ -209,13 +209,9 @@ The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/
 | `nms`      | `bool`, optional          | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). IMX requires `nms=True` for detect, segment and pose and selects it automatically.                                                                 |
 | `device`   | `str`                     | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                      |
 
-!!! tip
-
-    If you are exporting on a GPU with CUDA support, please pass the argument `device=0` for faster export.
-
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-The export process will create an ONNX model for quantization validation, along with a directory named `<model-name>_imx_model`. This directory will include the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
+The export process will create a directory named `<model-name>_imx_model`. This directory contains `model_imx.onnx` for quantization validation and the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
 
 !!! example "Folder Structure"
 

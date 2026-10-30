@@ -626,8 +626,7 @@ class Results(SimpleClass, DataExportMixin):
 
         # Save results
         if save:
-            p = Path(self.path) if self.path else None
-            annotator.save(filename or (f"results_{p.stem}{p.suffix or '.jpg'}" if p else "results.jpg"))
+            annotator.save(filename or f"results_{Path(self.path or 'image').stem}.jpg")
 
         return annotator.result(pil)
 
@@ -674,8 +673,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> # Directory will be created automatically if it does not exist
             >>> result.save("path/to/annotated_image.jpg")
         """
-        p = Path(self.path) if self.path else None
-        filename = filename or (f"results_{p.stem}{p.suffix or '.jpg'}" if p else "results.jpg")
+        filename = filename or f"results_{Path(self.path or 'image').stem}.jpg"
         self.plot(*args, save=True, filename=filename, **kwargs)
         return filename
 

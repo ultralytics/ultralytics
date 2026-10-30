@@ -2403,6 +2403,28 @@ def test_verify_image_label_whitespace_lines(tmp_path):
     assert (nf, nc) == (1, 0) and out.shape == (2, 5) and len(segments) == 2  # both polygons parsed
 
 
+@pytest.mark.parametrize("ndim", [2, 3])
+@pytest.mark.parametrize("box_index", [1, 2, 3, 4])
+@pytest.mark.parametrize("value", [1.02, float("inf")])
+def test_verify_pose_label_box_bounds(tmp_path, ndim, box_index, value):
+    """Reject unnormalized pose boxes while retaining coordinate tolerance and visibility flags."""
+    from ultralytics.data.utils import verify_image_label
+
+    im, lb = tmp_path / "a.png", tmp_path / "a.txt"
+    Image.new("RGB", (32, 48)).save(im)
+    row = [0, 1.005, 0.5, 0.2, 0.2, 0.5, 0.5] + ([2] if ndim == 3 else [])
+    args = (str(im), str(lb), "", True, 1, 1, ndim, False)
+    lb.write_text(" ".join(map(str, row)), encoding="utf-8")
+    valid = verify_image_label(args)
+    assert valid[8] == 0 and valid[1].shape == (1, 5) and valid[4].shape == (1, 1, 3)
+
+    row[box_index] = value
+    lb.write_text(" ".join(map(str, row)), encoding="utf-8")
+    rejected = verify_image_label(args)
+    assert rejected[0] is None and rejected[8] == 1
+    assert "non-normalized or out of bounds coordinates" in rejected[9]
+
+
 def test_load_yolo_dota_whitespace_lines(tmp_path):
     """Test whitespace-only lines in DOTA label files no longer crash the loader."""
     from ultralytics.data.split_dota import load_yolo_dota

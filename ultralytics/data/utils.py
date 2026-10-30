@@ -465,7 +465,7 @@ def verify_image_label(args: tuple) -> tuple | list:
             if nl := len(lb):
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
-                    points = lb[:, 5:].reshape(-1, ndim)[:, :2]
+                    points = np.concatenate((lb[:, 1:5].reshape(-1, 2), lb[:, 5:].reshape(-1, ndim)[:, :2]))
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     points = lb[:, 1:]

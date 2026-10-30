@@ -1827,7 +1827,7 @@ class _SafeLoad:
             return klass(*args, **kwargs)
         except Exception as e:
             raise TypeError(
-                emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")
+                emojis(f"ERROR ❌️ unsupported activation '{act}', expected a torch.nn module e.g. 'nn.SiLU()'.")
             ) from e
 
     @classmethod
@@ -2099,12 +2099,9 @@ def parse_model(d, ch, verbose=True):
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
-    restricted = _SafeLoad.restricted()
     default_act = Conv.default_act  # restore before returning: Conv.default_act is process-wide state
     if act:
-        # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under restricted loading, resolve the
-        # spec without eval() (see _SafeLoad.activation).
-        Conv.default_act = _SafeLoad.activation(act) if restricted else eval(act)
+        Conv.default_act = _SafeLoad.activation(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 
@@ -2177,9 +2174,8 @@ def parse_model(d, ch, verbose=True):
             if m.startswith("torchvision.ops.")
             else globals()[m]
         )  # get module
-        if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
-            # Under restricted loading, only known model layers may be named here.
-            raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer under restricted loading."))
+        if not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
+            raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer."))
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):

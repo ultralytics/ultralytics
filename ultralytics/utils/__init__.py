@@ -1425,7 +1425,7 @@ class SettingsManager(JSONDict):
             "datasets_dir": str(datasets_root / "datasets"),  # Datasets directory
             "weights_dir": str(root / "weights"),  # Model weights directory
             "runs_dir": str(root / "runs"),  # Experiment runs directory
-            "uuid": hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # SHA-256 anonymized UUID hash
+            "uuid": hashlib.sha256(f"{uuid.getnode()}{platform.node()}".encode()).hexdigest(),  # MAC + host (Colab)
             "sync": True,  # Enable synchronization
             "api_key": "",  # Ultralytics API Key
             "openai_api_key": "",  # OpenAI API Key

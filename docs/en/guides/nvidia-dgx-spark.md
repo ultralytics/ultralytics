@@ -336,7 +336,7 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
 
 ## YOLO26 TensorRT Precision on DGX Spark
 
-At batch size 1, TensorRT FP16 is the fastest precision for YOLO26 on DGX Spark. INT8 is slower than FP16 for YOLO26n and YOLO26s, about equal for YOLO26m, and loses 1.1 to 1.8 mAP. The YOLO11 table above shows the same pattern: TensorRT (INT8) is slower than TensorRT (FP16) for all five models.
+At batch size 1 on DGX Spark, TensorRT INT8 is slower than FP16 for YOLO26n and YOLO26s, and about equal for YOLO26m (within 2% in both validation and `trtexec` GPU compute time). INT8 also loses 1.1 to 1.8 mAP, so FP16 is the better choice for these models. The YOLO11 table above shows the same pattern: TensorRT (INT8) is slower than TensorRT (FP16) for all five models.
 
 | Model   | Format          | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
 | ------- | --------------- | ----------------- | ----------- | ---------------------- |
@@ -374,7 +374,7 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
 
 3. **Use TensorRT FP16**
 
-    At batch size 1, FP16 gives the lowest latency on DGX Spark. INT8 is not faster for YOLO26 on GB10 and loses accuracy, see [YOLO26 TensorRT Precision on DGX Spark](#yolo26-tensorrt-precision-on-dgx-spark):
+    At batch size 1 on DGX Spark, INT8 is not faster than FP16 for YOLO26 and loses accuracy, see [YOLO26 TensorRT Precision on DGX Spark](#yolo26-tensorrt-precision-on-dgx-spark):
 
     ```bash
     yolo export model=yolo26n.pt format=engine quantize=16 # FP16

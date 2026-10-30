@@ -985,10 +985,10 @@ def collect_system_info():
 def check_amp(model):
     """Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
 
-    An untrained YOLO26n built from its YAML runs one FP32 forward pass in train mode on a random batch, and every Conv2d
-    is recomputed under AMP from its own FP32 input. Comparing layer by layer keeps the tolerance independent of model
-    depth and weights, so no pretrained weights are downloaded. If the checks fail, it means there are anomalies with AMP
-    on the system that may cause NaN losses or zero-mAP results, so AMP will be disabled during training.
+    An untrained YOLO26n built from its YAML runs one FP32 forward pass in train mode on a random batch, and every
+    Conv2d is recomputed under AMP from its own FP32 input. Comparing layer by layer keeps the tolerance independent of
+    model depth and weights, so no pretrained weights are downloaded. If the checks fail, it means there are anomalies
+    with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be disabled during training.
 
     Args:
         model (torch.nn.Module): A YOLO model instance, whose device is checked.

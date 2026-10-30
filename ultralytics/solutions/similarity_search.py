@@ -25,17 +25,15 @@ class VisualAISearch:
 
     Attributes:
         device (torch.device): Computation device selected from the `device` argument.
-        index_path (str): Path to the numpy file storing image embeddings.
-        data_path_npy (str): Path to the numpy file storing image file names.
         data_dir (Path): Path object for the image directory.
         model: Loaded CLIP model.
         index (np.ndarray): L2-normalized image embeddings used for cosine similarity search.
-        image_paths (list[str] | np.ndarray): Image file names, aligned with the rows of `index`.
+        image_paths (list[str]): Image file names, aligned with the rows of `index`.
 
     Methods:
         extract_image_feature: Extract CLIP embedding from an image.
         extract_text_feature: Extract CLIP embedding from text.
-        load_or_build_index: Load existing embeddings or build them from images.
+        load_or_build_index: Build the embedding index from the images in the data directory.
         search: Perform semantic search for similar images.
 
     Examples:
@@ -57,8 +55,6 @@ class VisualAISearch:
         assert TORCH_2_4, f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})"
         from ultralytics.nn.text_model import build_text_model
 
-        self.index_path = "embeddings.npy"
-        self.data_path_npy = "paths.npy"
         self.data_dir = Path(data)
         self.device = select_device(device)
 
@@ -72,10 +68,6 @@ class VisualAISearch:
             self.data_dir = Path("images")
 
         self.model = build_text_model("clip:ViT-B/32", device=self.device)
-
-        self.index = None
-        self.image_paths = []
-
         self.load_or_build_index()
 
     def extract_image_feature(self, path: Path) -> np.ndarray:
@@ -99,25 +91,16 @@ class VisualAISearch:
         return x / np.maximum(np.linalg.norm(x, axis=1, keepdims=True), 1e-12)
 
     def load_or_build_index(self) -> None:
-        """Load existing image embeddings or build them from the image directory.
+        """Build the image embedding index from the image directory.
 
-        Checks if the embeddings and image paths exist on disk. If found, loads them directly. Otherwise, builds the
-        index by extracting features from all images in the data directory, L2-normalizes them, and saves both the
-        embeddings and image paths for future use.
+        Extracts CLIP features from all images in the data directory and L2-normalizes them.
 
         Raises:
             RuntimeError: If no image embeddings could be generated from the data directory.
         """
-        # Check if the embeddings and corresponding image paths already exist
-        if Path(self.index_path).exists() and Path(self.data_path_npy).exists():
-            LOGGER.info("Loading existing embeddings...")
-            self.index = np.load(self.index_path)  # Load the L2-normalized embeddings from disk
-            self.image_paths = np.load(self.data_path_npy)  # Load the saved image path list
-            return  # Exit the function as the index is successfully loaded
-
-        # If the embeddings don't exist, start building them from scratch
         LOGGER.info("Building embeddings from images...")
         vectors = []  # List to store feature vectors of images
+        self.image_paths = []
 
         # Iterate over all image files in the data directory
         for file in self.data_dir.iterdir():
@@ -137,8 +120,6 @@ class VisualAISearch:
 
         vectors = np.vstack(vectors).astype("float32")  # Stack all vectors into a NumPy array and convert to float32
         self.index = self._normalize(vectors)  # L2-normalize so inner product equals cosine similarity
-        np.save(self.index_path, self.index)  # Save the embeddings to disk
-        np.save(self.data_path_npy, np.array(self.image_paths))  # Save the list of image paths to disk
 
         LOGGER.info(f"Indexed {len(self.image_paths)} images.")
 

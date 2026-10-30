@@ -71,7 +71,7 @@ The `SearchApp` class launches the full Flask interface. On first run it downloa
 
 The `VisualAISearch` class performs all the backend operations without the web layer:
 
-- Loads or builds an embedding index from local images.
+- Builds an embedding index from local images each time it starts.
 - Extracts image and text [embeddings](https://developers.openai.com/api/docs/guides/embeddings) using CLIP.
 - Performs similarity search using cosine similarity.
 

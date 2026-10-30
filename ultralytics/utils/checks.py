@@ -70,7 +70,7 @@ def normalize_platform_uri(uri):
         (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
     """
     s = str(uri)
-    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
+    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.lower().startswith(f"{PLATFORM_URL}/".lower()) else uri
 
 
 def resolve_platform_uri(uri, hard=True):
@@ -798,7 +798,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
             downloads.safe_download(url=url, file=local_file, unzip=False)
         return str(local_file)
     elif download and file.lower().startswith(REMOTE_FILE_PREFIXES):  # download
-        if file.startswith("gs://"):
+        if file.lower().startswith("gs://"):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split authentication query strings

@@ -910,6 +910,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
             w, h, fps = (
                 round(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
             )
+            if solution_name == "speed" and "fps" not in overrides and 0 < fps < 1000:  # skip 0 and 90 kHz clock rates
+                solution.fps = fps
             if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1280, h=720
                 w, h = 1280, 720
             save_dir = get_save_dir(SimpleNamespace(task="solutions", name="exp", exist_ok=False, project=None))

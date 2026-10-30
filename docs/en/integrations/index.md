@@ -93,7 +93,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [NCNN](ncnn.md): Developed by [Tencent](https://www.tencent.com/), NCNN is an efficient [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.
 
-- [Neural Magic](neural-magic.md): Historical guide to Quantization Aware Training (QAT) and pruning with SparseML, whose community libraries are deprecated.
+- [Neural Magic](neural-magic.md): Historical guide to sparse CPU inference with the DeepSparse engine, whose community libraries are deprecated.
 
 - [ONNX](onnx.md): An open-source format created by [Microsoft](https://www.microsoft.com/) for facilitating the transfer of AI models between various frameworks, enhancing the versatility and deployment flexibility of Ultralytics models.
 
@@ -107,7 +107,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an advanced edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
 
-- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](../models/yolo26.md) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
+- [SONY IMX500](sony-imx500.md): Optimize and deploy Ultralytics YOLOv8n and YOLO11n models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
 - [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 

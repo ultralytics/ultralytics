@@ -983,11 +983,11 @@ def collect_system_info():
 
 
 def check_amp(model):
-    """Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
+    """Check the PyTorch Automatic Mixed Precision (AMP) functionality on a YOLO model's device.
 
     An untrained YOLO26n built from its YAML runs one FP32 forward pass in train mode on a random batch, and every
-    Conv2d is recomputed under AMP from its own FP32 input. Comparing layer by layer keeps the tolerance independent of
-    model depth and weights, so no pretrained weights are downloaded. If the checks fail, it means there are anomalies
+    Conv2d and Attention layer is recomputed under AMP from its own FP32 input. Comparing layer by layer keeps the
+    tolerance independent of model depth and weights, so no pretrained weights are downloaded. If the checks fail, it means there are anomalies
     with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be disabled during training.
 
     Args:
@@ -1002,6 +1002,7 @@ def check_amp(model):
         >>> model = YOLO("yolo26n.pt").model.cuda()
         >>> check_amp(model)
     """
+    from ultralytics.nn.modules import Attention
     from ultralytics.nn.tasks import DetectionModel
     from ultralytics.utils.torch_utils import autocast
 
@@ -1023,22 +1024,22 @@ def check_amp(model):
             )
             return False
 
-    close = []  # per-conv agreement of AMP with FP32
+    close = []  # per-layer agreement of AMP with FP32
 
-    def amp_allclose(conv, inputs, output):
-        """Recompute a conv under AMP from its FP32 input and record whether it matches the FP32 output."""
+    def compare_amp(layer, inputs, output):
+        """Recompute a layer under AMP from its FP32 input and record whether it matches the FP32 output."""
         with autocast(enabled=True, device=device.type):
-            y = conv._conv_forward(inputs[0], conv.weight, conv.bias)
+            y = layer.forward(inputs[0])  # forward() skips this layer's own hook
         close.append(bool((output - y.float()).norm() <= 0.05 * output.norm()))  # False for NaN or inf
 
     LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
     # Untrained models underflow FP16 in eval mode; train-mode BatchNorm keeps activations in range as in AMP training
     m = DetectionModel("yolo26n.yaml", verbose=False).to(device)  # built in train mode
-    for conv in m.modules():
-        if isinstance(conv, torch.nn.Conv2d):
-            conv.register_forward_hook(amp_allclose)
+    for layer in m.modules():
+        if isinstance(layer, (torch.nn.Conv2d, Attention)):  # convolutions and attention matmuls
+            layer.register_forward_hook(compare_amp)
     with torch.no_grad():
-        m(torch.rand(2, 3, 256, 256, device=device))
+        m(torch.rand(8, 3, 256, 256, device=device))  # batch 8, as GTX 16xx AMP faults appeared only at batch >= 7
     if all(close):
         LOGGER.info(f"{prefix}checks passed ✅")
         return True

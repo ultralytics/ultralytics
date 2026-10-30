@@ -100,9 +100,9 @@ To make the most of your Google Colab experience when working with YOLO26 models
 
 If you'd like to dive deeper into Google Colab, here are a few resources to guide you.
 
-- **[Training Custom Datasets with Ultralytics YOLOv8 in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab)**: Learn how to train custom datasets with Ultralytics YOLO on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
+- **[Training Custom Datasets with Ultralytics YOLO in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab)**: Learn how to train custom datasets with Ultralytics YOLO on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
 
-- **[Image Segmentation with Ultralytics YOLO11 on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab)**: Explore how to perform image segmentation tasks using YOLO11 in the Google Colab environment, with practical examples using datasets like the Roboflow Carparts Segmentation Dataset.
+- **[Image Segmentation with Ultralytics YOLO on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab)**: Explore how to perform image segmentation tasks using Ultralytics YOLO in the Google Colab environment, with practical examples using datasets like the Roboflow Carparts Segmentation Dataset.
 
 - **[Curated Notebooks](https://developers.google.com/colab)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
 

@@ -909,7 +909,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
             # extract width, height and fps of the video file, create save directory and initialize video writer
             w, h = (round(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT))
             fps = cap.get(cv2.CAP_PROP_FPS)
-            if solution_name == "speed" and "fps" not in overrides and 0 < fps < 1000:  # skip 0 and 90 kHz clock rates
+            fps = fps if 0 < fps < 1000 else 30  # 30 FPS fallback for 0, nan and 90 kHz RTP clock rates
+            if solution_name == "speed" and "fps" not in overrides:
                 solution.fps = fps
             if solution_name == "analytics":  # output frames are the chart canvas, not the source video
                 w, h = solution.canvas.get_width_height()

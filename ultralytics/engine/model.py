@@ -263,7 +263,7 @@ class Model(torch.nn.Module):
             self.ckpt_path = weights
             if imgsz := BaseBackend.read_metadata(weights).get("imgsz"):  # default to export imgsz like .pt train imgsz
                 self.overrides["imgsz"] = max(ast.literal_eval(str(imgsz)))
-        self.overrides["model"] = model_uri if str(model_uri).startswith("ul://") else weights
+        self.overrides["model"] = model_uri if str(model_uri).lower().startswith("ul://") else weights
         self.overrides["task"] = self.task
         self.model_name = weights
 

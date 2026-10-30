@@ -1118,6 +1118,19 @@ def test_results(model: str, tmp_path, solution_assets):
         print(r, len(r), r.path)  # print after methods
 
 
+def test_results_save_default_filename(tmp_path, monkeypatch):
+    """Test Results.save() and Results.plot(save=True) with missing or extensionless paths and directory creation."""
+    from ultralytics.engine.results import Results
+
+    monkeypatch.chdir(tmp_path)
+    img = np.zeros((16, 16, 3), dtype=np.uint8)
+    assert Path(Results(img, path=None, names={}).save()).name == "results.jpg"
+    assert Path(Results(img, path="0", names={}).save()).name == "results_0.jpg"
+    assert Path("results.jpg").exists() and Path("results_0.jpg").exists()
+    Results(img, path="test.png", names={}).plot(save=True, filename="sub/out.jpg")
+    assert Path("sub/out.jpg").exists()
+
+
 def test_results_plot_without_boxes():
     """Test that plotting a masks-only Results (boxes=None) does not raise an AttributeError."""
     from ultralytics.engine.results import Results

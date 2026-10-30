@@ -342,10 +342,10 @@ class ONNXBackend(BaseBackend):
 
 
 class ONNXIMXBackend(ONNXBackend):
-    """ONNX IMX inference backend for NXP i.MX processors.
+    """ONNX IMX inference backend for Sony IMX500 exports.
 
-    Extends `ONNXBackend` with support for quantized models targeting NXP i.MX edge devices. Uses MCT (Model Compression
-    Toolkit) quantizers and custom NMS operations for optimized inference.
+    Extends `ONNXBackend` to run the exported ONNX model on the host CPU with the MCT (Model Compression Toolkit)
+    quantizers and custom NMS operations it needs.
     """
 
     def load_model(self, weight: str | Path) -> None:

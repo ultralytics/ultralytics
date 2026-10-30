@@ -49,7 +49,7 @@ The pipeline has six stages:
 1. **Compression-aware training** — train with a SpongeKit config (`amba_config`) so SpongeTorch applies unstructured pruning progressively during training. Where post-training quantization (PTQ) accuracy is not acceptable, SpongeTorch also supports quantization-aware training (QAT), but that path is not yet wired into this Ultralytics integration and is planned for a future release.
 2. **ONNX export** — export the compressed checkpoint with the same `amba_config`, preserving the compression structure in the ONNX graph.
 3. **Compilation** — compile the ONNX model to an AmbaPB checkpoint with the SDK compilation tools, which apply PTQ for the CVflow engine.
-4. **Host validation** — run the compiled `*.ambapb.ckpt.onnx` model through Ultralytics `predict`/`val` via the AmbaPB backend to verify accuracy before deployment.
+4. **Host validation** — run the compiled `*.ambapb.ckpt.onnx` model through the fork's `predict`/`val` via the AmbaPB backend to verify accuracy before deployment.
 5. **Cavalry conversion** — convert the validated AmbaPB checkpoint into a Cavalry binary with the SDK tools.
 6. **Run on device** — run the Cavalry binary on the device with Ambarella's SDK runtime library.
 
@@ -77,7 +77,7 @@ Install [this Ultralytics fork](https://github.com/Ambarella-Inc/ultralytics/tre
         pip install /path/to/spongetorch-*.whl
         ```
 
-The AutoBackend locates `cvflowbackend` through the SDK compilation tools' `tv2` command (`tv2 -libpath cvflowbackend`), so the SDK compilation tools must be installed and on your `PATH` before running inference or validation with compiled models.
+The fork's AutoBackend locates `cvflowbackend` through the SDK compilation tools' `tv2` command (`tv2 -libpath cvflowbackend`), so the SDK compilation tools must be installed and on your `PATH` before running inference or validation with compiled models.
 
 ### SpongeKit Configuration File
 
@@ -206,11 +206,11 @@ PTQ applies INT8 quantization using calibration images (prepared as described in
 
 !!! note
 
-    For Ultralytics to recognize the compiled model, its filename must end with `.ambapb.ckpt.onnx` or `.ambapb.fastckpt.onnx`.
+    For the fork to recognize the compiled model, its filename must end with `.ambapb.ckpt.onnx` or `.ambapb.fastckpt.onnx`.
 
 ## Run Inference with the Compiled Model
 
-The compiled AmbaPB model loads directly through the Ultralytics API — [AutoBackend](../reference/nn/autobackend.md) detects the `.ambapb` suffix and routes inference through `cvflowbackend`, executing the model as it will run on the AI engine:
+The compiled AmbaPB model loads directly through the fork's Ultralytics API — its [AutoBackend](https://github.com/Ambarella-Inc/ultralytics/blob/amba_v8.4.46/ultralytics/nn/autobackend.py) detects the `.ambapb` suffix and routes inference through `cvflowbackend`, executing the model as it will run on the AI engine:
 
 !!! example "Usage"
 

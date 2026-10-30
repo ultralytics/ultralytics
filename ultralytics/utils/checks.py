@@ -1000,7 +1000,7 @@ def check_amp(model):
     Examples:
         >>> from ultralytics import YOLO
         >>> from ultralytics.utils.checks import check_amp
-        >>> model = YOLO("yolo26n.pt").model.cuda()
+        >>> model = YOLO("yolo26n.yaml").model.cuda()  # any model, only its device is used
         >>> check_amp(model)
     """
     from ultralytics.nn.modules import Attention

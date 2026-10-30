@@ -715,6 +715,9 @@ class BaseTrainer:
         """Calculate optimal batch size based on model, dataset and device memory constraints."""
         with override_configs(self.args, overrides={"cache": False}) as self.args:
             dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
+        max_num_obj = max((len(lb["cls"]) for lb in getattr(dataset, "labels", ())), default=0) * 4  # 4 for mosaic
+        dataset_size = len(dataset)
+        del dataset  # free memory before profiling
         # Stride-aligned to match the true multi-scale max size; pyramid heads require stride-multiple inputs
         max_imgsz = math.ceil(self.args.imgsz * (1 + self.args.multi_scale) / self.stride) * self.stride
         return check_train_batch_size(
@@ -722,8 +725,8 @@ class BaseTrainer:
             imgsz=max_imgsz,
             amp=torch.bfloat16 if self.args.amp == "bf16" else self.amp,
             batch=self.batch_size,
-            max_num_obj=max((len(lb["cls"]) for lb in getattr(dataset, "labels", ())), default=0) * 4,  # 4 for mosaic
-            dataset_size=len(dataset),
+            max_num_obj=max_num_obj,
+            dataset_size=dataset_size,
         )  # returns batch size
 
     def _get_memory(self, fraction=False):

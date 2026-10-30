@@ -83,7 +83,7 @@ Adjust the model, data, [epochs](https://www.ultralytics.com/glossary/epoch), an
 
 ### Monitoring Experiments with DVCLive
 
-DVCLive enhances the training process by enabling the tracking and visualization of key metrics. When installed, Ultralytics YOLO26 automatically integrates with DVCLive for experiment tracking, which you can later analyze for performance insights. For a comprehensive understanding of the specific performance metrics used during training, be sure to explore [our detailed guide on performance metrics](../guides/yolo-performance-metrics.md).
+DVCLive enhances the training process by enabling the tracking and visualization of key metrics. Once DVCLive is installed, its callback is enabled by default. It logs the training arguments, per-epoch losses, validation metrics and learning rates, the training and validation plots, a confusion matrix, and `best.pt` as a model artifact. Run `yolo settings dvc=False` to disable the integration. For a comprehensive understanding of the specific performance metrics used during training, be sure to explore [our detailed guide on performance metrics](../guides/yolo-performance-metrics.md).
 
 ### Analyzing Results
 

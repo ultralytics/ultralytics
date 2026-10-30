@@ -29,16 +29,16 @@ The reCamera series is purpose-built for edge AI applications, tailored to meet 
 
 Please follow the [reCamera Getting Started](https://wiki.seeedstudio.com/recamera_basic_getting_start/) page and select your device (such as reCamera 2002 Series, Gimbal, or HQ POE) to open its Quick Start Guide for initial onboarding of the device such as connecting the device to a network and accessing the [Node-RED](https://nodered.org/) web UI for quick previewing of detection results.
 
-## Inference Using Pre-installed YOLO26 Models
+## Inference Using Pre-installed YOLO11 Models
 
-reCamera comes pre-installed with four Ultralytics YOLO26 models and you can simply choose your desired model within the Node-RED dashboard.
+reCamera comes pre-installed with four Ultralytics YOLO11 models and you can simply choose your desired model within the Node-RED dashboard.
 
-- [Detection (YOLO26n)](../tasks/detect.md)
-- [Segmentation (YOLO26n-seg)](../tasks/segment.md)
-- [Classification (YOLO26n-cls)](../tasks/classify.md)
-- [Pose Estimation (YOLO26n-pose)](../tasks/pose.md)
+- [Detection (YOLO11n)](../tasks/detect.md)
+- [Segmentation (YOLO11n-seg)](../tasks/segment.md)
+- [Classification (YOLO11n-cls)](../tasks/classify.md)
+- [Pose Estimation (YOLO11n-pose)](../tasks/pose.md)
 
-Step 1: If you have connected reCamera to a network, enter the IP address of reCamera on a web browser to open the Node-RED dashboard. If you have connected the reCamera to a PC via USB, you can enter `192.168.42.1`. Here you will see YOLO26n detection model is loaded by default.
+Step 1: If you have connected reCamera to a network, enter the IP address of reCamera on a web browser to open the Node-RED dashboard. If you have connected the reCamera to a PC via USB, you can enter `192.168.42.1`. Here you will see YOLO11n detection model is loaded by default.
 
 ![reCamera YOLO11n demo](https://cdn.ul.run/i/04fbba83a473ebe9538308d17fa3fc7e.avif)
 
@@ -48,7 +48,7 @@ Step 3: Click the `model` node and click `On Device`.
 
 ![Node-RED model selection](https://cdn.ul.run/i/e207e928c1dc69c1ece32721f08614f0.avif)
 
-Step 4: Choose one of the four different pre-installed YOLO26n models and click `Done`. For example, here we will select `YOLO26n Pose`
+Step 4: Choose one of the four different pre-installed YOLO11n models and click `Done`. For example, here we will select `YOLO11n Pose`
 
 <p align="center">
   <img width="50%" src="https://cdn.ul.run/i/5b3ac5675170e20a6d860d1ec5581444.avif" alt="Node-RED YOLO11n-pose select">
@@ -58,7 +58,7 @@ Step 5: Click `Deploy` and when it finishes deploying, click `Dashboard`.
 
 ![reCamera Node-RED deploy](https://cdn.ul.run/i/bc8081618ab44cbc14ea45fda4b02e4c.avif)
 
-Now you will be able to see YOLO26n pose estimation model in action!
+Now you will be able to see YOLO11n pose estimation model in action!
 
 ![reCamera YOLO11n-pose demo](https://cdn.ul.run/i/8c716ae65dee6871454e0066e0ae0a41.avif)
 
@@ -117,15 +117,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### Export ONNX to MLIR and cvimodel
 
-After obtaining an ONNX model, refer to [Convert and Quantize AI Models](https://wiki.seeedstudio.com/recamera_model_conversion/) page to convert the ONNX model to MLIR and then to cvimodel.
-
-!!! note
-
-    We're actively working on adding reCamera support directly into the Ultralytics package, and it will be available soon. In the meantime, check out our blog on [Integrating Ultralytics YOLO Models with Seeed Studio's reCamera](https://www.ultralytics.com/blog/integrating-ultralytics-yolo-models-on-seeed-studios-recamera) for more insights.
-
-## Benchmarks
-
-Coming soon.
+After obtaining an ONNX model, refer to [Convert and Quantize AI Models](https://wiki.seeedstudio.com/recamera_model_conversion/) page to convert the ONNX model to MLIR and then to cvimodel. For more insights, see our blog on [Integrating Ultralytics YOLO Models with Seeed Studio's reCamera](https://www.ultralytics.com/blog/integrating-ultralytics-yolo-models-on-seeed-studios-recamera).
 
 ## Real-World Applications of reCamera
 
@@ -154,7 +146,7 @@ To set up your reCamera for the first time, follow these steps:
 1. Connect the reCamera to a power source
 2. Connect it to your network using the [reCamera Getting Started](https://wiki.seeedstudio.com/recamera_basic_getting_start/) page (select your device to open its Quick Start Guide)
 3. Access the Node-RED web UI by entering the device's IP address in a web browser (or use `192.168.42.1` if connected via USB)
-4. Start using the pre-installed YOLO26 models immediately through the dashboard interface
+4. Start using the pre-installed YOLO11 models immediately through the dashboard interface
 
 ### Can I use my custom-trained YOLO26 models with reCamera?
 
@@ -175,6 +167,6 @@ Unlike traditional IP cameras that require external hardware for processing, reC
 - Offers 1 TOPS of computing power for real-time edge AI applications
 - Features a modular design allowing for component upgrades and customization
 - Supports advanced video technologies like H.264/H.265 compression, HDR imaging, and 3D noise reduction
-- Comes pre-installed with Ultralytics YOLO26 models for immediate use
+- Comes pre-installed with Ultralytics YOLO11 models for immediate use
 
 These features make reCamera a standalone solution for edge AI applications without requiring additional external processing hardware.

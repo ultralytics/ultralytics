@@ -101,7 +101,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 After running the training code, Comet will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLO26 model's training](../modes/train.md) process.
 
-Comet automatically logs the following data with no additional configuration: metrics such as mAP and loss, hyperparameters, model checkpoints, interactive confusion matrix, and image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions.
+Once Comet is installed and configured, its callback is enabled by default and logs metrics such as mAP and loss, hyperparameters, model checkpoints, and an interactive confusion matrix. Image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions from the validation set are logged for detect and segment training with `save_json=True`, as in the example above. Run `yolo settings comet=False` to disable the integration.
 
 ## Understanding Your Model's Performance with Comet Visualizations
 
@@ -159,7 +159,7 @@ For the boolean toggles (`COMET_EVAL_LOG_IMAGE_PREDICTIONS` and `COMET_EVAL_LOG_
 
 ### Logging Image Predictions
 
-You can control the number of image predictions that Comet logs during your experiments. By default, Comet logs 100 image predictions from the validation set. However, you can change this number to better suit your requirements. For example, to log 200 image predictions, use the following code:
+You can control the number of image predictions that Comet logs during your experiments. With `save_json=True`, Comet logs up to 100 image predictions from the validation set. However, you can change this number to better suit your requirements. For example, to log 200 image predictions, use the following code:
 
 ```python
 import os
@@ -167,13 +167,15 @@ import os
 os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
 ```
 
-To disable image prediction logging entirely (for example, to reduce upload volume on slow connections), set `COMET_EVAL_LOG_IMAGE_PREDICTIONS` to `"false"`:
+To disable annotated image prediction logging (for example, to reduce upload volume on slow connections), set `COMET_EVAL_LOG_IMAGE_PREDICTIONS` to `"false"`:
 
 ```python
 import os
 
 os.environ["COMET_EVAL_LOG_IMAGE_PREDICTIONS"] = "false"
 ```
+
+The `train_batch*.jpg` and `val_batch*.jpg` plot images are still logged at the end of training.
 
 ### Batch Logging Interval
 

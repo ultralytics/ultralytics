@@ -63,7 +63,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Deployment Integrations
 
-- [Ambarella](ambarella.md): Train, compress, and export Ultralytics YOLO models for Ambarella CVflow® SoCs such as the CV72 using SpongeTorch compression-aware training and the offline CVflow toolchain.
+- [Ambarella](ambarella.md): Train, compress, and export Ultralytics YOLO models for Ambarella CVflow® SoCs such as the CV72 with Ambarella's Ultralytics fork, using SpongeTorch compression-aware training and the offline CVflow toolchain.
 
 - [AMD](amd.md): Export Ultralytics YOLO to ONNX and run GPU-accelerated inference on AMD Instinct and Radeon GPUs through the ONNX Runtime MIGraphX execution provider on ROCm, with native PyTorch ROCm training also supported.
 
@@ -91,7 +91,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [NCNN](ncnn.md): Developed by [Tencent](https://www.tencent.com/), NCNN is an efficient [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.
 
-- [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
+- [Neural Magic](neural-magic.md): Historical guide to Quantization Aware Training (QAT) and pruning with SparseML, whose community libraries are deprecated.
 
 - [ONNX](onnx.md): An open-source format created by [Microsoft](https://www.microsoft.com/) for facilitating the transfer of AI models between various frameworks, enhancing the versatility and deployment flexibility of Ultralytics models.
 
@@ -150,10 +150,6 @@ Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feat
 ### Can I track the performance of my Ultralytics models using MLFlow?
 
 Yes, you can. Integrating [MLFlow](https://mlflow.org/) with Ultralytics models allows you to track experiments, improve reproducibility, and streamline the entire ML lifecycle. Detailed instructions for setting up this integration can be found on the [MLFlow](mlflow.md) integration page. This integration is particularly useful for monitoring model metrics, comparing different training runs, and managing the ML workflow efficiently. MLFlow provides a centralized platform to log parameters, metrics, and artifacts, making it easier to understand model behavior and make data-driven improvements.
-
-### What are the benefits of using Neural Magic for YOLO26 model optimization?
-
-[Neural Magic](neural-magic.md) optimizes YOLO26 models by leveraging techniques like Quantization Aware Training (QAT) and pruning, resulting in highly efficient, smaller models that perform better on resource-limited hardware. Check out the [Neural Magic](neural-magic.md) integration page to learn how to implement these optimizations for superior performance and leaner models. This is especially beneficial for deployment on edge devices where computational resources are constrained. Neural Magic's DeepSparse engine can deliver up to 6x faster inference on CPUs, making it possible to run complex models without specialized hardware.
 
 ### How do I deploy Ultralytics YOLO models with Gradio for interactive demos?
 

@@ -32,7 +32,7 @@ Ensure MLflow is installed. If not, install it using pip:
 pip install mlflow
 ```
 
-Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mlflow` key. See the [settings](../usage/settings.md) page for more info.
+MLflow logging is enabled by default through the `mlflow` key in Ultralytics [settings](../usage/settings.md). If you turned it off, re-enable it:
 
 !!! example "Update Ultralytics MLflow Settings"
 
@@ -94,7 +94,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     export MLFLOW_TRACKING_URI=http://127.0.0.1:5000
     ```
 
-4. **Keep the MLflow Run Active After Training**: By default, Ultralytics ends the MLflow run automatically when training finishes, with status `FAILED` if training raised an error before the run was closed. To keep the run open (for example, to log additional metrics or artifacts from the same notebook), set `MLFLOW_KEEP_RUN_ACTIVE` to `True` before training:
+4. **Keep the MLflow Run Active After Training**: By default, Ultralytics ends the MLflow run it started when training finishes, with status `FAILED` if training raised an error before the run was closed. A run you started yourself before training is reused and left open. To keep the run open (for example, to log additional metrics or artifacts from the same notebook), set `MLFLOW_KEEP_RUN_ACTIVE` to `True` before training:
 
     ```bash
     export MLFLOW_KEEP_RUN_ACTIVE=True
@@ -136,7 +136,7 @@ To set up MLflow logging with Ultralytics YOLO, you first need to ensure MLflow 
 pip install mlflow
 ```
 
-Next, enable MLflow logging in Ultralytics settings. This can be controlled using the `mlflow` key. For more information, see the [settings guide](../usage/settings.md).
+MLflow logging is enabled by default through the `mlflow` key in Ultralytics [settings](../usage/settings.md). If you turned it off, re-enable it:
 
 !!! example "Update Ultralytics MLflow Settings"
 
@@ -208,7 +208,7 @@ Set the `MLFLOW_KEEP_RUN_ACTIVE` environment variable to `True` before training:
 export MLFLOW_KEEP_RUN_ACTIVE=True
 ```
 
-By default this is `False`, so Ultralytics calls `mlflow.end_run()` once training completes. With `MLFLOW_KEEP_RUN_ACTIVE=True` the run stays open so you can log extra metrics, parameters, or artifacts from the same Python session — close it yourself with `mlflow.end_run()` when finished. The values `1`, `true`, `yes`, `on`, `y`, and `t` enable this behavior (case-insensitive).
+By default this is `False`, so Ultralytics calls `mlflow.end_run()` on the run it started once training completes. With `MLFLOW_KEEP_RUN_ACTIVE=True` the run stays open so you can log extra metrics, parameters, or artifacts from the same Python session — close it yourself with `mlflow.end_run()` when finished. The values `1`, `true`, `yes`, `on`, `y`, and `t` enable this behavior (case-insensitive).
 
 ### What are the benefits of integrating MLflow with Ultralytics YOLO for experiment tracking?
 

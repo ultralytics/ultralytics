@@ -16,7 +16,6 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
@@ -42,7 +41,6 @@ class DetectionTrainer(BaseTrainer):
         progress_string: Return a formatted string of training progress.
         plot_training_samples: Plot training samples with their annotations.
         plot_training_labels: Plot the class and bounding box label distributions of the training dataset.
-        auto_batch: Calculate optimal batch size based on model memory requirements.
 
     Examples:
         >>> from ultralytics.models.yolo.detect import DetectionTrainer
@@ -241,16 +239,3 @@ class DetectionTrainer(BaseTrainer):
         boxes = np.concatenate([lb["bboxes"] for lb in self.train_loader.dataset.labels], 0)
         cls = np.concatenate([lb["cls"] for lb in self.train_loader.dataset.labels], 0)
         plot_labels(boxes, cls.squeeze(), names=self.data["names"], save_dir=self.save_dir, on_plot=self.on_plot)
-
-    def auto_batch(self):
-        """Get optimal batch size by calculating memory occupation of model.
-
-        Returns:
-            (int): Optimal batch size.
-        """
-        with override_configs(self.args, overrides={"cache": False}) as self.args:
-            train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
-        max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
-        n = len(train_dataset)
-        del train_dataset  # free memory
-        return super().auto_batch(max_num_obj, dataset_size=n)

@@ -711,8 +711,14 @@ class BaseTrainer:
             if hasattr(loader, "close"):
                 loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
 
-    def auto_batch(self, max_num_obj=0, dataset_size=0):
-        """Calculate optimal batch size based on model and device memory constraints."""
+    def auto_batch(self):
+        """Calculate optimal batch size based on model, dataset and device memory constraints."""
+        with override_configs(self.args, overrides={"cache": False}):
+            dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
+        dataset_size = len(dataset)
+        dataset = getattr(dataset, "datasets", [dataset])  # concatenated datasets keep labels per subset
+        max_num_obj = max((len(lb["cls"]) for d in dataset for lb in getattr(d, "labels", ())), default=0) * 4  # mosaic
+        del dataset  # free memory before profiling
         # Stride-aligned to match the true multi-scale max size; pyramid heads require stride-multiple inputs
         max_imgsz = math.ceil(self.args.imgsz * (1 + self.args.multi_scale) / self.stride) * self.stride
         return check_train_batch_size(

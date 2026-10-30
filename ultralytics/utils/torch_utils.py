@@ -1069,12 +1069,8 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         t[0] = time_sync(device)
                         y = m(x)
                         t[1] = time_sync(device)
-                        try:
-                            sum(yi.sum() for yi in tree_flatten(y)[0] if isinstance(yi, torch.Tensor)).backward()
-                            t[2] = time_sync(device)
-                        except Exception:  # no backward method
-                            # print(e)  # for debug
-                            t[2] = float("nan")
+                        sum(yi.sum() for yi in tree_flatten(y)[0] if isinstance(yi, torch.Tensor)).backward()
+                        t[2] = time_sync(device)
                     mem = cuda_info["memory"] / 2**30  # (GiB)
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward

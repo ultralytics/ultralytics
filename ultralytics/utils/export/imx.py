@@ -7,7 +7,7 @@ import subprocess
 import sys
 import types
 from pathlib import Path
-from shutil import which
+from shutil import rmtree, which
 
 import numpy as np
 import torch
@@ -345,8 +345,10 @@ def torch2imx(
             task=model.task,
         )
 
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = Path(output_dir).resolve()  # rmtree refuses a symlinked directory
+    if output_dir.exists():
+        rmtree(output_dir)  # a re-export would keep an older export's <stem>_imx.onnx
+    output_dir.mkdir(parents=True)
     onnx_model = output_dir / "model_imx.onnx"
 
     with onnx_export_patch():

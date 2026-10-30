@@ -3,6 +3,7 @@
 import os
 import platform
 import re
+import shlex
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -218,7 +219,7 @@ def _get_environment_info():
         "pythonExecutable": sys.executable,
         "cpuCount": os.cpu_count() or 0,
         "cpu": get_cpu_info(),
-        "command": " ".join(sys.argv),
+        "command": shlex.join(sys.argv),
         "totalRamGb": round(memory.total / (1 << 30), 1),  # Total RAM in GB
         "totalDiskGb": round(disk_usage.total / (1 << 30), 1),  # Total disk in GB
     }

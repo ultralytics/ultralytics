@@ -25,7 +25,6 @@ import torch
 
 from ultralytics.utils import (
     ARM64,
-    ASSETS,
     ASSETS_URL,
     AUTOINSTALL,
     GIT,
@@ -986,14 +985,16 @@ def collect_system_info():
 def check_amp(model):
     """Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
 
-    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
-    results, so AMP will be disabled during training.
+    An untrained YOLO26n built from its YAML runs one FP32 forward pass in train mode on a random batch, and every Conv2d
+    is recomputed under AMP from its own FP32 input. Comparing layer by layer keeps the tolerance independent of model
+    depth and weights, so no pretrained weights are downloaded. If the checks fail, it means there are anomalies with AMP
+    on the system that may cause NaN losses or zero-mAP results, so AMP will be disabled during training.
 
     Args:
-        model (torch.nn.Module): A YOLO model instance.
+        model (torch.nn.Module): A YOLO model instance, whose device is checked.
 
     Returns:
-        (bool): Returns True if the AMP functionality works correctly with YOLO model, else False.
+        (bool): Returns True if the AMP functionality works correctly on the model's device, else False.
 
     Examples:
         >>> from ultralytics import YOLO
@@ -1001,6 +1002,7 @@ def check_amp(model):
         >>> model = YOLO("yolo26n.pt").model.cuda()
         >>> check_amp(model)
     """
+    from ultralytics.nn.tasks import DetectionModel
     from ultralytics.utils.torch_utils import autocast
 
     device = next(model.parameters()).device  # get model device
@@ -1021,42 +1023,30 @@ def check_amp(model):
             )
             return False
 
-    def amp_allclose(m, im):
-        """All close FP32 vs AMP results."""
-        batch = [im] * 8
-        imgsz = max(256, int(model.stride.max() * 4))  # max stride P5-32 and P6-64
-        a = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # FP32 inference
+    close = []  # per-conv agreement of AMP with FP32
+
+    def amp_allclose(conv, inputs, output):
+        """Recompute a conv under AMP from its FP32 input and record whether it matches the FP32 output."""
         with autocast(enabled=True, device=device.type):
-            b = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # AMP inference
-        del m
-        return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
+            y = conv._conv_forward(inputs[0], conv.weight, conv.bias)
+        close.append(bool((output - y.float()).norm() <= 0.05 * output.norm()))  # False for NaN or inf
 
-    im = ASSETS / "bus.jpg"  # image to check
     LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
-    warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
-    try:
-        from ultralytics import YOLO
-        from ultralytics.utils import WEIGHTS_DIR
-
-        amp_weights = WEIGHTS_DIR / "yolo26n.pt"
-        if not amp_weights.is_file():
-            LOGGER.info(f"{prefix}downloading yolo26n.pt for AMP checks (one-time, not used for training)...")
-        assert amp_allclose(YOLO(amp_weights), im)
+    # Untrained models underflow FP16 in eval mode; train-mode BatchNorm keeps activations in range as in AMP training
+    m = DetectionModel("yolo26n.yaml", verbose=False).to(device)  # built in train mode
+    for conv in m.modules():
+        if isinstance(conv, torch.nn.Conv2d):
+            conv.register_forward_hook(amp_allclose)
+    with torch.no_grad():
+        m(torch.rand(2, 3, 256, 256, device=device))
+    if all(close):
         LOGGER.info(f"{prefix}checks passed ✅")
-    except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO26n for AMP checks. {warning_msg}")
-    except (AttributeError, ModuleNotFoundError):
-        LOGGER.warning(
-            f"{prefix}checks skipped. "
-            f"Unable to load YOLO26n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
-        )
-    except AssertionError:
-        LOGGER.error(
-            f"{prefix}checks failed. Anomalies were detected with AMP on your system that may lead to "
-            f"NaN losses or zero-mAP results, so AMP will be disabled during training."
-        )
-        return False
-    return True
+        return True
+    LOGGER.error(
+        f"{prefix}checks failed. Anomalies were detected with AMP on your system that may lead to "
+        f"NaN losses or zero-mAP results, so AMP will be disabled during training."
+    )
+    return False
 
 
 def check_multiple_install():

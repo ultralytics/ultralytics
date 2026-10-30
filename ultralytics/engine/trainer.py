@@ -715,9 +715,9 @@ class BaseTrainer:
         """Calculate optimal batch size based on model, dataset and device memory constraints."""
         with override_configs(self.args, overrides={"cache": False}):
             dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
-        subsets = getattr(dataset, "datasets", [dataset])  # concatenated datasets keep labels per subset
-        max_num_obj = max((len(lb["cls"]) for d in subsets for lb in getattr(d, "labels", ())), default=0) * 4  # mosaic
         dataset_size = len(dataset)
+        dataset = getattr(dataset, "datasets", [dataset])  # concatenated datasets keep labels per subset
+        max_num_obj = max((len(lb["cls"]) for d in dataset for lb in getattr(d, "labels", ())), default=0) * 4  # mosaic
         del dataset  # free memory before profiling
         # Stride-aligned to match the true multi-scale max size; pyramid heads require stride-multiple inputs
         max_imgsz = math.ceil(self.args.imgsz * (1 + self.args.multi_scale) / self.stride) * self.stride

@@ -94,7 +94,7 @@ To understand your model's performance in detail, you can access specific evalua
 
         # Per-class metrics
         print("Class indices evaluated:", results.box.ap_class_index)
-        print("Per-class mAP50-95:", results.box.maps)
+        print("Per-class mAP50-95:", results.box.maps)  # classes absent from the val set hold the overall mAP
 
         # Per-image precision, recall, F1, TP, FP, and FN
         print("Per-image metrics:", results.box.image_metrics)

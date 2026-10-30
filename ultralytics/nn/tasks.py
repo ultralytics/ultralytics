@@ -1694,7 +1694,7 @@ def temporary_modules(modules=None, attributes=None):
 
 
 class _SafeLoad:
-    """Opt-in restricted checkpoint loading that reconstructs only known model classes and builds models without eval.
+    """Opt-in restricted checkpoint loading that reconstructs only known model classes.
 
     Loading uses `weights_only=True` plus an allow-list of known classes. Enabled per-process by the
     `ULTRALYTICS_SAFE_LOAD` env flag, or per-call by `torch_safe_load(..., safe_only=True)`. Default loading (flag off)
@@ -1709,20 +1709,10 @@ class _SafeLoad:
     _lock = (
         threading.Lock()
     )  # add_safe_globals rebinds a process-global set; held across _build(), so no load may run at import
-    _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
     @classmethod
-    def restricted(cls):
-        """Return whether model construction should use the no-eval, known-layer path (env flag or in-progress load)."""
-        return cls.SUPPORTED and (SAFE_LOAD or getattr(cls._local, "active", False))
-
-    @classmethod
-    @contextlib.contextmanager
-    def loading(cls, weight):
-        """Prepare a `weights_only=True` load by registering the globals a checkpoint needs and marking the thread.
-
-        Marking the thread restricted means a checkpoint that reaches model construction (parse_model) also uses the
-        no-eval, known-layer path.
+    def register(cls, weight):
+        """Prepare a `weights_only=True` load by registering the globals a checkpoint needs.
 
         Globals are registered with `add_safe_globals` for the life of the process, never scoped per load: the
         `safe_globals()` context manager removes its entries from a process-global set on exit, so with concurrent
@@ -1785,11 +1775,6 @@ class _SafeLoad:
                 entries.append(type(np.dtype(np.float64)))  # Built dynamically, absent from the checkpoint global scan.
             if entries:
                 torch.serialization.add_safe_globals(entries)
-        cls._local.active = True
-        try:
-            yield
-        finally:
-            cls._local.active = False
 
     @staticmethod
     def activation(act):
@@ -1923,8 +1908,8 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                with _SafeLoad.loading(file):  # weights_only load against the known-class allow-list
-                    return torch_load(file, map_location="cpu", weights_only=True)
+                _SafeLoad.register(file)  # weights_only load against the known-class allow-list
+                return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
     # weights_only=True raises on a TorchScript archive; the default path returns a ScriptModule instead.

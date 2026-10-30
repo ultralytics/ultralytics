@@ -101,7 +101,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 After running the training code, Comet will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLO26 model's training](../modes/train.md) process.
 
-Once Comet is installed and configured, its callback is enabled by default and logs metrics such as mAP and loss, hyperparameters, model checkpoints, and an interactive confusion matrix. Image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions from the validation set are logged for detect and segment training with `save_json=True`, as in the example above. Run `yolo settings comet=False` to disable the integration.
+Once Comet is installed and configured, its callback is enabled by default and logs metrics such as mAP and loss, hyperparameters, model checkpoints, and an interactive confusion matrix. Image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions from the validation set are logged for detect and segment training with `save_json=True`. Run `yolo settings comet=False` to disable the integration.
 
 ## Understanding Your Model's Performance with Comet Visualizations
 

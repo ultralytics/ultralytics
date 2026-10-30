@@ -186,7 +186,7 @@ The replacement LiteRT format supports the [Export](../modes/export.md), [Predic
 
 ### Export Arguments
 
-The deprecated `tflite` format runs the LiteRT exporter, so it takes the [LiteRT export arguments](litert.md#export-arguments). For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+See the [LiteRT export arguments](litert.md#export-arguments). For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Deploying Exported YOLO26 TFLite Models
 

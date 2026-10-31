@@ -1,7 +1,7 @@
 ---
 title: YOLO Results in Terminal via Sixel
 comments: true
-description: Display YOLO inference results directly in a VSCode terminal with the sixel protocol on Linux and macOS, ideal for remote SSH sessions and headless machines without a GUI.
+description: Display Ultralytics YOLO inference results directly in a VSCode terminal with the sixel protocol on Linux and macOS, ideal for remote SSH and headless machines.
 keywords: YOLO, inference results, VSCode terminal, sixel, display images in terminal, remote SSH, headless server, no GUI, Linux, macOS, iTerm2, image visualization, Ultralytics
 ---
 
@@ -19,13 +19,13 @@ When connecting to a remote machine over SSH, visualizing image results normally
 
 !!! warning "Linux and macOS only"
 
-    Only compatible with Linux and macOS. Check the [VSCode repository](https://github.com/microsoft/vscode), check [Issue status](https://github.com/microsoft/vscode/issues/198622), or [documentation](https://code.visualstudio.com/docs) for updates about Windows support to view images in terminal with `sixel`.
+    Only compatible with Linux and macOS. Check the [VSCode repository](https://github.com/microsoft/vscode), the [Windows support issue](https://github.com/microsoft/vscode/issues/198622), or the [VSCode documentation](https://code.visualstudio.com/docs) for updates about Windows support for viewing images in the terminal with `sixel`.
 
-The VSCode compatible protocols for viewing images using the integrated terminal are [`sixel`](https://en.wikipedia.org/wiki/Sixel) and [`iTerm`](https://iterm2.com/documentation-images.html). This guide will demonstrate use of the `sixel` protocol.
+The VSCode-compatible protocols for viewing images in the integrated terminal are [`sixel`](https://en.wikipedia.org/wiki/Sixel) and [`iTerm`](https://iterm2.com/documentation-images.html). This guide demonstrates the `sixel` protocol.
 
 ## Process
 
-1. First, you must enable settings `terminal.integrated.enableImages` and `terminal.integrated.gpuAcceleration` in VSCode.
+1. First, enable the settings `terminal.integrated.enableImages` and `terminal.integrated.gpuAcceleration` in VSCode.
 
     ```yaml
     "terminal.integrated.gpuAcceleration": "auto" # "auto" is default, can also use "on"
@@ -42,7 +42,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     pip install sixel
     ```
 
-3. Load a model and execute inference, then plot the results and store in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
+3. Load a model and execute inference, then plot the results and store them in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
 
     ```{ .py .annotate }
     from ultralytics import YOLO
@@ -57,7 +57,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     plot = results[0].plot()  # (1)!
     ```
 
-    1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
+    1. See [plot method parameters](../modes/predict.md#plot-method-parameters) for the available arguments.
 
 4. Now, use [OpenCV](https://www.ultralytics.com/glossary/opencv) to convert the `np.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
 
@@ -133,7 +133,7 @@ w.draw(mem_file)
 
 1. It's possible to use other image extensions as well.
 2. Only the object at index `1` that is returned is needed.
-3. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
+3. See [plot method parameters](../modes/predict.md#plot-method-parameters) for the available arguments.
 
 !!! tip "Clearing the image"
 
@@ -185,7 +185,7 @@ For further details, visit the [predict mode](../modes/predict.md) page.
 
 ### Why does the sixel protocol only work on Linux and macOS?
 
-The sixel protocol is currently only supported on Linux and macOS because these platforms have native terminal capabilities compatible with sixel graphics. Windows support for terminal graphics using sixel is still under development. For updates on Windows compatibility, check the [VSCode Issue status](https://github.com/microsoft/vscode/issues/198622) and [documentation](https://code.visualstudio.com/docs).
+The sixel protocol is currently only supported on Linux and macOS because these platforms have native terminal capabilities compatible with sixel graphics. Windows support for terminal graphics using sixel is still under development. For updates on Windows compatibility, check the [VSCode Windows support issue](https://github.com/microsoft/vscode/issues/198622) and the VSCode documentation.
 
 ### What if I encounter issues displaying images in the VSCode terminal?
 

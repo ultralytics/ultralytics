@@ -162,7 +162,7 @@ The result is a dynamic visualization that builds up over time, revealing traffi
 
 ## Conclusion
 
-The Ultralytics YOLO26 Heatmap solution turns object tracking results into an intuitive activity overlay with a few lines of code. To go further, combine it with [object counting](object-counting.md), explore the other [Ultralytics Solutions](../solutions/index.md), or read about the underlying [tracking mode](../modes/track.md).
+The Ultralytics YOLO26 Heatmap solution turns object tracking results into an intuitive activity overlay with a few lines of code. To go further, combine it with [object counting](object-counting.md), explore the other [Ultralytics Solutions](../solutions/index.md), read about the underlying [tracking mode](../modes/track.md), or work through the [Counting, Heatmaps, and Speed Estimation lesson](https://academy.ultralytics.com/courses/yolo-in-production/counting-heatmaps-and-speed) in Ultralytics Academy.
 
 ## FAQ
 
@@ -199,6 +199,6 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-### What makes Ultralytics YOLO26 heatmaps different from other data visualization tools like those from [OpenCV](https://www.ultralytics.com/glossary/opencv) or Matplotlib?
+### What makes Ultralytics YOLO26 heatmaps different from other data visualization tools like those from OpenCV or Matplotlib?
 
-Ultralytics YOLO26 heatmaps integrate [object detection](https://www.ultralytics.com/glossary/object-detection), tracking, intensity accumulation, and overlay rendering into a single call, while generic tools like OpenCV or Matplotlib require you to build that pipeline yourself. The solution processes video streams in real time and supports persistent tracking and customizable colormaps out of the box. For details on the underlying model, see the [YOLO26 model page](../models/yolo26.md).
+Ultralytics YOLO26 heatmaps integrate [object detection](https://www.ultralytics.com/glossary/object-detection), tracking, intensity accumulation, and overlay rendering into a single call, while generic tools like [OpenCV](https://www.ultralytics.com/glossary/opencv) or Matplotlib require you to build that pipeline yourself. The solution processes video streams in real time and supports persistent tracking and customizable colormaps out of the box. For details on the underlying model, see the [YOLO26 model page](../models/yolo26.md).

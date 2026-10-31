@@ -1,13 +1,13 @@
 ---
 title: YOLO26 Deployment Options Compared
 comments: true
-description: Learn about YOLO26's diverse deployment options to maximize your model's performance. Explore PyTorch, TensorRT, OpenVINO, LiteRT, and more!
+description: Compare YOLO26 deployment and export formats, from PyTorch, ONNX, TensorRT, and OpenVINO to CoreML, LiteRT, and edge NPUs, by speed and compatibility.
 keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, LiteRT, ONNX, CoreML, edge AI, NPU, model deployment
 ---
 
 # Comparative Analysis of YOLO26 Deployment Options
 
-YOLO26 supports more than 20 deployment options, each tuned for a different runtime, hardware target, or platform — from PyTorch and [ONNX](../integrations/onnx.md) to [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and dedicated edge-NPU formats. Picking the right one balances inference speed, hardware constraints, and ease of integration. This guide compares every option so you can choose the best fit for your application, then move on to [model deployment best practices](./model-deployment-practices.md) to deploy it reliably.
+YOLO26 supports more than 20 [model deployment](https://www.ultralytics.com/glossary/model-deployment) options, each tuned for a different runtime, hardware target, or platform — from PyTorch and [ONNX](../integrations/onnx.md) to [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and dedicated edge-NPU formats. Picking the right one balances inference speed, hardware constraints, and ease of integration. This guide compares every option so you can choose the best fit for your application, then move on to [model deployment best practices](./model-deployment-practices.md) to deploy it reliably.
 
 <p align="center">
   <br>
@@ -24,9 +24,9 @@ Deployment is the stage in the [computer vision project workflow](./steps-of-a-c
 
 ## How to Select the Right Deployment Option for Your YOLO26 Model
 
-When it's time to deploy your YOLO26 model, selecting a suitable export format is very important. As outlined in the [Ultralytics YOLO26 export documentation](../modes/export.md#usage-examples), the `model.export()` function converts your trained model into a variety of formats tailored to diverse environments and performance requirements.
+When it's time to deploy your YOLO26 model, choosing the right export format matters. As outlined in the [Ultralytics YOLO26 export documentation](../modes/export.md#usage-examples), the `model.export()` function converts your trained model into a variety of formats tailored to diverse environments and performance requirements.
 
-The ideal format depends on your model's intended operational context and hardware.
+The ideal format depends on your model's intended operational context and hardware. For chip-specific advice, see [making Ultralytics YOLO models faster on your favorite chip](https://www.ultralytics.com/blog/how-to-make-yolo-models-fast-on-your-favorite-chip).
 
 !!! tip "Skip the manual export"
 
@@ -56,8 +56,11 @@ Here is a short description of each format and when to reach for it. For the ful
 - **[Axelera AI](../integrations/axelera.md)** (`axelera`): Compiles for Axelera's Metis AIPU (up to 856 TOPS) over PCIe or M.2 for high-throughput edge inference.
 - **[DEEPX](../integrations/deepx.md)** (`deepx`): Targets DEEPX NPU hardware with INT8 quantization for embedded edge inference.
 - **[Qualcomm QNN](../integrations/qnn.md)** (`qnn`): On-device inference on Snapdragon Hexagon NPU, Adreno GPU, and CPU through the Qualcomm AI stack.
+- **[Hailo](../integrations/hailo.md)** (`hailo`): Compiles detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models to Hailo HEF for INT8 inference on Hailo NPUs; see its compatibility table for validated models and targets.
+- **[Huawei Ascend](../integrations/ascend.md)** (`ascend`): Compiles to the `.om` offline format with the CANN ATC compiler for FP16 inference on Ascend AI Processors.
+- **[AMD Xilinx](../integrations/xilinx.md)** (`xilinx`): Quantizes with AMD Quark for Versal AI Edge Series Gen 2 NPUs, which the Vitis AI Execution Provider compiles to a `.rai` model.
 
-The [Hailo integration](../integrations/hailo.md) exports YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to Hailo HEF; see its compatibility table for validated models and targets. The [Ambarella integration](../integrations/ambarella.md) follows an ONNX-first workflow and compiles ONNX exports to the AmbaPB format with Ambarella's CVflow toolchain for CVflow® SoCs such as the CV72, optionally using SpongeTorch compression-aware training. The [Huawei Ascend integration](../integrations/ascend.md) compiles ONNX exports to the `.om` offline format with the CANN ATC compiler for FP16 inference on Ascend AI Processors. The [AMD Xilinx integration](../integrations/xilinx.md) quantizes ONNX exports with AMD Quark for Versal AI Edge Series Gen 2 NPUs, which the Vitis AI Execution Provider compiles to a `.rai` model.
+The [Ambarella integration](../integrations/ambarella.md) has no dedicated export format: it follows an ONNX-first workflow and compiles ONNX exports to the AmbaPB format with Ambarella's CVflow toolchain for CVflow® SoCs such as the CV72, optionally using SpongeTorch compression-aware training.
 
 ## Deployment Options Compared
 
@@ -70,14 +73,14 @@ The following table summarizes the deployment options for YOLO26 models across t
 | ONNX              | Variable depending on runtime                   | High across different frameworks                                                                       | Broad ecosystem, supported by many orgs       | Flexibility across ML frameworks            | Regular updates for new operations             | Ensure secure conversion and deployment practices | Various hardware optimizations      |
 | OpenVINO          | Optimized for Intel hardware                    | Best within Intel ecosystem                                                                            | Solid in computer vision domain               | IoT and edge with Intel hardware            | Regular updates for Intel hardware             | Robust features for sensitive applications        | Tailored for Intel hardware         |
 | TensorRT          | Top-tier on NVIDIA GPUs                         | Best for NVIDIA hardware                                                                               | Strong network through NVIDIA                 | Real-time video and image inference         | Frequent updates for new GPUs                  | Emphasis on security                              | Designed for NVIDIA GPUs            |
-| CoreML            | Optimized for on-device Apple hardware          | Exclusive to Apple ecosystem                                                                           | Strong Apple and developer support            | On-device ML on Apple products              | Regular Apple updates                          | Focus on privacy and security                     | Apple neural engine and GPU         |
+| CoreML            | Optimized for on-device Apple hardware          | Exclusive to Apple ecosystem                                                                           | Strong Apple and developer support            | On-device ML on Apple products              | Regular Apple updates                          | Focus on privacy and security                     | Apple Neural Engine and GPU         |
 | Core AI           | Optimized for Apple silicon                     | iOS 27 and macOS 27; export on Apple silicon macOS 26+ or x86_64 Linux (glibc 2.34+), Python 3.11-3.14 | Apple framework; opt-in in iOS/Flutter SDKs   | On-device ML on next-gen Apple platforms    | Tied to Apple OS releases; currently beta      | On-device inference keeps data local              | Apple Neural Engine, GPU, and CPU   |
 | TF SavedModel     | Scalable in server environments                 | Wide compatibility in TensorFlow ecosystem                                                             | Large support due to TensorFlow popularity    | Serving models at scale                     | Regular updates by Google and community        | Robust features for enterprise                    | Various hardware accelerations      |
 | TF GraphDef       | Stable for static computation graphs            | Integrates well with TensorFlow infrastructure                                                         | Resources for optimizing static graphs        | Scenarios requiring static graphs           | Updates alongside TensorFlow core              | Established TensorFlow security practices         | TensorFlow acceleration options     |
 | TF Edge TPU       | Optimized for Google's Edge TPU hardware        | Exclusive to Edge TPU devices                                                                          | Growing with Google and third-party resources | IoT devices requiring real-time processing  | Improvements for new Edge TPU hardware         | Google's robust IoT security                      | Custom-designed for Google Coral    |
 | LiteRT            | Speed and efficiency on mobile/embedded/web     | Mobile, embedded, edge, and browser support                                                            | Robust community, Google backed               | On-device apps across Android, iOS, and web | Latest on-device runtime features              | Secure on-device and in-browser inference         | GPU, DSP, and WebGPU acceleration   |
 | PaddlePaddle      | Competitive, easy to use and scalable           | Baidu ecosystem, wide application support                                                              | Rapidly growing, especially in China          | Chinese market and language processing      | Focus on Chinese AI applications               | Emphasizes data privacy and security              | Including Baidu's Kunlun chips      |
-| MNN               | High-performance for mobile devices             | Mobile and embedded ARM systems and X86-64 CPU                                                         | Mobile/embedded ML community                  | Mobile systems efficiency                   | High performance maintenance on mobile devices | On-device security advantages                     | ARM CPUs and GPUs optimizations     |
+| MNN               | High-performance for mobile devices             | Mobile and embedded ARM systems and x86-64 CPU                                                         | Mobile/embedded ML community                  | Mobile systems efficiency                   | High performance maintenance on mobile devices | On-device security advantages                     | ARM CPUs and GPUs optimizations     |
 | NCNN              | Optimized for mobile ARM-based devices          | Mobile and embedded ARM systems                                                                        | Niche but active mobile/embedded ML community | Android and ARM systems efficiency          | High performance maintenance on ARM            | On-device security advantages                     | ARM CPUs and GPUs optimizations     |
 | Sony IMX500       | On-sensor inference at very low power           | Sony IMX500 sensor, Raspberry Pi AI Camera                                                             | Sony AITRIOS ecosystem                        | On-camera edge AI                           | Sony SDK and MCT toolchain updates             | Data stays on the sensor                          | Sony IMX500 on-chip accelerator     |
 | Rockchip RKNN     | Optimized for Rockchip NPUs                     | Rockchip SoC boards (e.g. RK3588)                                                                      | Rockchip developer community                  | Embedded SBC and edge devices               | Rockchip RKNN-Toolkit updates                  | On-device local inference                         | Rockchip NPU                        |
@@ -93,7 +96,7 @@ This comparison gives you a high-level overview. For deployment, weigh the speci
 
 ## Conclusion
 
-YOLO26's wide range of export formats lets you tailor a model to almost any environment, from a cloud GPU server to an on-sensor edge camera. Once you have picked a format, follow [model deployment best practices](./model-deployment-practices.md) for optimization, troubleshooting, and security, and lean on the [Ultralytics community](https://github.com/orgs/ultralytics/discussions) when you hit a snag.
+YOLO26's wide range of export formats lets you tailor a model to almost any environment, from a cloud GPU server to an on-sensor edge camera. Once you have picked a format, follow [model deployment best practices](./model-deployment-practices.md) for optimization, troubleshooting, and security, and lean on the [Ultralytics community](https://github.com/orgs/ultralytics/discussions) when you hit a snag. For a guided walkthrough, see the [Choose a Deployment Target lesson](https://academy.ultralytics.com/courses/yolo-in-production/choose-a-deployment-target) in Ultralytics Academy.
 
 ## FAQ
 
@@ -111,12 +114,12 @@ Each format has unique advantages. For a detailed walkthrough, see our [export p
 
 ### How do I improve the inference speed of my YOLO26 model on an Intel CPU?
 
-To enhance inference speed on Intel CPUs, you can deploy your YOLO26 model using Intel's OpenVINO toolkit. OpenVINO offers significant performance boosts by optimizing models to leverage Intel hardware efficiently.
+To enhance inference speed on Intel CPUs, you can deploy your YOLO26 model using Intel's OpenVINO toolkit. OpenVINO optimizes models for Intel CPUs, integrated GPUs, and NPUs.
 
 1. Convert your YOLO26 model to the OpenVINO format using the `model.export()` function.
 2. Follow the detailed setup guide in the [Intel OpenVINO Export documentation](../integrations/openvino.md).
 
-For more insights, check out our [blog post](https://www.ultralytics.com/blog/achieve-faster-inference-speeds-ultralytics-yolov8-openvino).
+For a YOLO26 example on recent Intel hardware, read about [accelerating Ultralytics YOLO26 with OpenVINO on Intel Core Ultra Series 3](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake).
 
 ### Can I deploy YOLO26 models on mobile devices?
 
@@ -148,7 +151,7 @@ For more details on deploying models to mobile, refer to our [LiteRT integration
 
 When choosing a deployment format for YOLO26, consider the following factors:
 
-- **Performance**: Some formats like TensorRT provide exceptional speeds on NVIDIA GPUs, while OpenVINO is optimized for Intel hardware.
+- **Performance**: Some formats like TensorRT provide the highest speeds on NVIDIA GPUs, while OpenVINO is optimized for Intel hardware.
 - **Compatibility**: ONNX offers broad compatibility across different platforms.
 - **Ease of Integration**: Formats like CoreML or LiteRT are tailored for specific ecosystems like iOS and Android, respectively.
 - **Community Support**: Formats like [PyTorch](https://www.ultralytics.com/glossary/pytorch) and TensorFlow have extensive community resources and support.
@@ -157,7 +160,7 @@ For a comparative analysis, refer to our [export formats documentation](../modes
 
 ### How can I deploy YOLO26 models in a web application?
 
-To deploy YOLO26 models in a web application, you can use [LiteRT.js](https://developers.google.com/edge/litert/web), LiteRT's web runtime, which allows for running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models directly in the browser and Node.js. This approach eliminates the need for backend infrastructure and provides real-time performance.
+To deploy YOLO26 models in a web application, you can use [LiteRT.js](https://developers.google.com/edge/litert/web), LiteRT's web runtime, which allows for running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models directly in the browser and Node.js. This approach removes the need for a backend inference server and can run in real time on capable devices.
 
 1. Export the YOLO26 model to the LiteRT format.
 2. Integrate the exported model into your web application using LiteRT.js.

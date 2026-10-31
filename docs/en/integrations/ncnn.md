@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Optimize YOLO26 models for mobile and embedded devices by exporting to NCNN format. Enhance performance in resource-constrained environments.
+description: Export Ultralytics YOLO26 models to Tencent NCNN for fast inference on mobile, embedded, and edge devices, with FP16 weights and Vulkan GPU acceleration.
 keywords: Ultralytics, YOLO26, NCNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, Vulkan, GPU acceleration
 ---
 
@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO26, NCNN, model export, machine learning, deployment,
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on devices with limited computational power, such as mobile or embedded systems, requires careful format selection. Using an optimized format ensures that even resource-constrained devices can handle advanced computer vision tasks efficiently.
 
-Exporting to NCNN format allows you to optimize your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for lightweight device-based applications. This guide covers how to convert your models to NCNN format for improved performance on mobile and embedded devices.
+Exporting to NCNN format allows you to optimize your [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) models for lightweight device-based applications. This guide covers how to convert your models to NCNN format for improved performance on mobile and embedded devices.
 
 ## Why Export to NCNN?
 
@@ -16,9 +16,9 @@ Exporting to NCNN format allows you to optimize your [Ultralytics YOLO26](https:
   <img width="100%" src="https://cdn.ul.run/i/5b5b6ed9bafb015dab714e5b4b3111d7.avif" alt="NCNN high-performance neural network inference framework">
 </p>
 
-The [NCNN](https://github.com/Tencent/ncnn) framework, developed by Tencent, is a high-performance [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference computing framework optimized specifically for mobile platforms, including mobile phones, embedded devices, and IoT devices. NCNN is compatible with a wide range of platforms, including Linux, Android, iOS, and macOS.
+The [NCNN](https://github.com/Tencent/ncnn) framework, developed by Tencent, is a high-performance [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework optimized specifically for mobile platforms, including mobile phones, embedded devices, and IoT devices. NCNN is compatible with a wide range of platforms, including Linux, Android, iOS, and macOS.
 
-NCNN is known for its fast processing speed on mobile CPUs and enables rapid deployment of [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models to mobile platforms, making it an excellent choice for building AI-powered applications.
+NCNN is known for its fast processing speed on mobile CPUs and enables rapid deployment of [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models to mobile platforms for AI-powered applications.
 
 ## Key Features of NCNN Models
 
@@ -26,21 +26,21 @@ NCNN models provide several key features that enable on-device [machine learning
 
 - **Efficient and High-Performance**: NCNN models are lightweight and optimized for mobile and embedded devices like Raspberry Pi with limited resources, while maintaining high [accuracy](https://www.ultralytics.com/glossary/accuracy) on computer vision tasks.
 
-- **Quantization**: NCNN supports quantization, a technique that reduces the [precision](https://www.ultralytics.com/glossary/precision) of model weights and activations to improve performance and reduce memory footprint.
+- **Quantization**: NCNN supports [quantization](https://www.ultralytics.com/glossary/model-quantization), a technique that reduces the numerical precision of model weights and activations to improve performance and reduce memory footprint.
 
-- **Compatibility**: NCNN models are compatible with popular deep learning frameworks including [TensorFlow](https://www.tensorflow.org/), [Caffe](https://caffe.berkeleyvision.org/), and [ONNX](https://onnx.ai/), allowing developers to leverage existing models and workflows.
+- **Compatibility**: NCNN models are compatible with popular deep learning frameworks including [TensorFlow](https://www.tensorflow.org/), [Caffe](https://caffe.berkeleyvision.org/), and [ONNX](https://onnx.ai/), allowing developers to reuse existing models and workflows.
 
-- **Ease of Use**: NCNN provides user-friendly tools for converting models between formats, ensuring smooth interoperability across different development environments.
+- **Ease of Use**: NCNN provides tools for converting models between formats, which helps interoperability across development environments.
 
 - **Vulkan GPU Acceleration**: NCNN supports Vulkan for GPU-accelerated inference across multiple vendors including AMD, Intel, and other non-NVIDIA GPUs, enabling high-performance deployment on a wider range of hardware.
 
 ## Deployment Options with NCNN
 
-NCNN models are compatible with a variety of deployment platforms:
+NCNN models are compatible with a variety of [deployment](https://www.ultralytics.com/glossary/model-deployment) platforms:
 
-- **Mobile Deployment**: Optimized for Android and iOS, enabling seamless integration into mobile applications for efficient on-device inference.
+- **Mobile Deployment**: Optimized for Android and iOS, for efficient on-device inference inside mobile applications.
 
-- **Embedded Systems and IoT Devices**: Ideal for resource-constrained devices like Raspberry Pi and NVIDIA Jetson. If standard inference on a Raspberry Pi with the [Ultralytics Guide](../guides/raspberry-pi.md) is insufficient, NCNN can provide significant performance improvements.
+- **Embedded Systems and IoT Devices**: Suited to resource-constrained devices like Raspberry Pi and [NVIDIA Jetson](../guides/nvidia-jetson.md). If standard PyTorch inference on a Raspberry Pi, as described in the [Raspberry Pi guide](../guides/raspberry-pi.md), is too slow, NCNN can provide significant performance improvements.
 
 - **Desktop and Server Deployment**: Supports deployment across Linux, Windows, and macOS for development, training, and evaluation workflows.
 
@@ -50,7 +50,7 @@ NCNN supports GPU acceleration through Vulkan, enabling high-performance inferen
 
 - **Cross-Vendor GPU Support**: Unlike CUDA, which is limited to NVIDIA GPUs, Vulkan works across multiple GPU vendors.
 - **Multi-GPU Systems**: Select a specific Vulkan device in systems with multiple GPUs using `device="vulkan:0"`, `device="vulkan:1"`, etc.
-- **Edge and Desktop Deployments**: Leverage GPU acceleration on devices where CUDA is not available.
+- **Edge and Desktop Deployments**: Use GPU acceleration on devices where CUDA is not available.
 
 To use Vulkan acceleration, specify the Vulkan device when running inference:
 
@@ -109,7 +109,7 @@ For detailed instructions and best practices, see the [Ultralytics Installation 
 
 ### Usage
 
-All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
+All [Ultralytics YOLO26 models](../models/index.md) support export out of the box, so you can integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
 The NCNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
 
@@ -202,9 +202,9 @@ After exporting your Ultralytics YOLO26 models to NCNN format, you can deploy th
 
 ## Summary
 
-This guide covered exporting Ultralytics YOLO26 models to NCNN format for improved efficiency and speed on resource-constrained devices.
+This guide covered exporting Ultralytics YOLO26 models to NCNN format for improved efficiency and speed on resource-constrained devices. For another walkthrough, see the blog post on [exporting Ultralytics YOLO11 models to NCNN](https://www.ultralytics.com/blog/exporting-ultralytics-yolo11-models-to-ncnn-model-format).
 
-For additional details, refer to the [official NCNN documentation](https://ncnn.readthedocs.io/en/latest/index.html). For other export options, visit our [integration guide page](index.md).
+For additional details, refer to the [official NCNN documentation](https://ncnn.readthedocs.io/en/latest/index.html). For other export options, visit the [integrations overview](index.md).
 
 ## FAQ
 
@@ -239,7 +239,7 @@ Exporting your Ultralytics YOLO26 models to NCNN offers several benefits:
 - **Efficiency**: NCNN models are optimized for mobile and embedded devices, ensuring high performance even with limited computational resources.
 - **Quantization**: NCNN supports techniques like quantization that improve model speed and reduce memory usage.
 - **Broad Compatibility**: You can deploy NCNN models on multiple platforms, including Android, iOS, Linux, and macOS.
-- **Vulkan GPU Acceleration**: Leverage GPU acceleration on AMD, Intel, and other non-NVIDIA GPUs via Vulkan for faster inference.
+- **Vulkan GPU Acceleration**: Use GPU acceleration on AMD, Intel, and other non-NVIDIA GPUs via Vulkan for faster inference.
 
 For more details, see the [Why Export to NCNN?](#why-export-to-ncnn) section.
 
@@ -253,9 +253,9 @@ NCNN, developed by Tencent, is specifically optimized for mobile platforms. Key 
 
 For more information, see the [Key Features of NCNN Models](#key-features-of-ncnn-models) section.
 
-### What platforms are supported for NCNN [model deployment](https://www.ultralytics.com/glossary/model-deployment)?
+### What platforms are supported for NCNN model deployment?
 
-NCNN is versatile and supports various platforms:
+NCNN supports various platforms:
 
 - **Mobile**: Android, iOS.
 - **Embedded Systems and IoT Devices**: Devices like Raspberry Pi and NVIDIA Jetson.

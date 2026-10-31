@@ -1,13 +1,13 @@
 ---
 title: YOLO26 ExecuTorch for Mobile & Edge
 comments: true
-description: Export YOLO26 models to ExecuTorch format for efficient on-device inference on mobile and edge devices. Optimize your AI models for iOS, Android, and embedded systems.
+description: Export Ultralytics YOLO26 to the ExecuTorch .pte format for on-device inference on iOS, Android, and embedded Linux, with XNNPACK CPU acceleration.
 keywords: Ultralytics, YOLO26, ExecuTorch, model export, PyTorch, edge AI, mobile deployment, on-device inference, XNNPACK, embedded systems
 ---
 
 # Deploy YOLO26 on Mobile & Edge with ExecuTorch
 
-Deploying computer vision models on edge devices like smartphones, tablets, and embedded systems requires an optimized runtime that balances performance with resource constraints. ExecuTorch, PyTorch's solution for edge computing, enables efficient on-device inference for [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge devices like smartphones, tablets, and embedded systems requires an optimized runtime that balances performance with resource constraints. ExecuTorch, PyTorch's solution for [edge computing](https://www.ultralytics.com/glossary/edge-computing), enables efficient on-device inference for [Ultralytics YOLO](../models/index.md) models.
 
 This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, enabling you to deploy your models on mobile and edge devices with optimized performance.
 
@@ -21,13 +21,13 @@ This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, 
 
 ## Key features of ExecuTorch
 
-ExecuTorch provides several powerful features for deploying Ultralytics YOLO models on edge devices:
+ExecuTorch provides several features for deploying Ultralytics YOLO models on edge devices:
 
 - **Portable Model Format**: ExecuTorch uses the `.pte` (PyTorch ExecuTorch) format, which is optimized for size and loading speed on resource-constrained devices.
 
-- **XNNPACK Backend**: Default integration with XNNPACK provides highly optimized inference on mobile CPUs, delivering excellent performance without requiring specialized hardware.
+- **XNNPACK Backend**: Default integration with XNNPACK provides highly optimized inference on mobile CPUs, delivering strong performance without requiring specialized hardware.
 
-- **Quantization Ready**: The ExecuTorch ecosystem supports quantization techniques to reduce model size and improve inference speed; Ultralytics currently exports FP32 models via the XNNPACK backend.
+- **Quantization Ready**: The ExecuTorch ecosystem supports [quantization](https://www.ultralytics.com/glossary/model-quantization) techniques to reduce model size and improve inference speed; Ultralytics currently exports FP32 models via the XNNPACK backend.
 
 - **Memory Efficiency**: Optimized memory management reduces runtime memory footprint, making it suitable for devices with limited RAM.
 
@@ -72,7 +72,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-Exporting YOLO26 models to ExecuTorch is straightforward:
+Exporting YOLO26 models to ExecuTorch takes a single command.
 
 The ExecuTorch format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
 
@@ -256,7 +256,7 @@ For more details on integrating ExecuTorch into your applications, visit the [Ex
 
 To reduce model size for deployment:
 
-- **Use Smaller Models**: Start with YOLO26n (nano) for the smallest footprint
+- **Use Smaller Models**: Start with [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) (nano) for the smallest footprint
 - **Lower Input Resolution**: Use smaller image sizes (e.g., `imgsz=320` or `imgsz=416`)
 - **Quantization**: Apply ExecuTorch quantization techniques outside Ultralytics (Ultralytics ExecuTorch export is FP32 only)
 
@@ -309,12 +309,12 @@ For more troubleshooting help, visit the [Ultralytics GitHub Issues](https://git
 
 ## Summary
 
-Exporting YOLO26 models to ExecuTorch format enables efficient deployment on mobile and edge devices. With PyTorch-native integration, cross-platform support, and optimized performance, ExecuTorch is an excellent choice for edge AI applications.
+Exporting YOLO26 models to ExecuTorch format enables efficient deployment on mobile and edge devices. With PyTorch-native integration, cross-platform support, and optimized performance, ExecuTorch is a strong choice for [edge AI](https://www.ultralytics.com/glossary/edge-ai) applications. For a walkthrough, see [Deploy Ultralytics YOLO Models Using the ExecuTorch Integration](https://www.ultralytics.com/blog/deploy-ultralytics-yolo-models-using-the-executorch-integration).
 
 Key takeaways:
 
-- ExecuTorch provides PyTorch-native edge deployment with excellent performance
-- Export is simple with `format='executorch'` parameter
+- ExecuTorch provides PyTorch-native edge deployment with strong performance
+- Export with the `format='executorch'` argument
 - Models are optimized for mobile CPUs via XNNPACK backend
 - Supports iOS, Android, and embedded Linux platforms
 - Requires Python 3.10-3.14 and PyTorch >= 2.9.0
@@ -362,7 +362,7 @@ ExecuTorch supports:
 
 ### How does ExecuTorch compare to LiteRT for mobile deployment?
 
-Both ExecuTorch and [LiteRT](litert.md) are excellent for mobile deployment:
+Both ExecuTorch and [LiteRT](litert.md) are well suited to mobile deployment:
 
 - **ExecuTorch**: Better PyTorch integration, native PyTorch workflow, growing ecosystem
 - **LiteRT**: More mature, wider hardware support, more deployment examples, and runs the same model on Android, iOS, and the browser
@@ -371,7 +371,7 @@ Choose ExecuTorch if you're already using PyTorch and want a native deployment p
 
 ### Can I use ExecuTorch models with GPU acceleration?
 
-Yes! ExecuTorch supports hardware acceleration through various backends:
+Yes. ExecuTorch supports hardware acceleration through various backends:
 
 - **Mobile GPU**: Via Vulkan, Metal, or OpenCL delegates
 - **NPU/DSP**: Via platform-specific delegates

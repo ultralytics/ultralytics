@@ -7,7 +7,7 @@ keywords: COCO JSON training, train YOLO on COCO JSON, COCO JSON without convers
 
 # How to Train YOLO on COCO JSON Without Converting
 
-[Annotations](https://www.ultralytics.com/glossary/data-labeling) in [COCO JSON](https://cocodataset.org/#format-data) format can be used directly for [Ultralytics YOLO](https://www.ultralytics.com) training without converting to `.txt` files first. This works by subclassing [`YOLODataset`](../reference/data/dataset.md#ultralytics.data.dataset.YOLODataset) to parse COCO JSON on the fly and wiring it into the training pipeline through a custom trainer.
+[Annotations](https://www.ultralytics.com/glossary/data-annotation) in [COCO JSON](https://cocodataset.org/#format-data) format can be used directly for [Ultralytics YOLO](https://www.ultralytics.com/yolo) training without converting to `.txt` files first. This works by subclassing [`YOLODataset`](../reference/data/dataset.md#ultralytics.data.dataset.YOLODataset) to parse COCO JSON on the fly and wiring it into the training pipeline through a [custom trainer](custom-trainer.md).
 
 ## Why Train Directly on COCO JSON
 
@@ -346,7 +346,7 @@ model = YOLO("yolo26n.pt")
 model.train(data="dataset.yaml", epochs=100, imgsz=640, trainer=COCOTrainer)
 ```
 
-You now have a minimal dataset and trainer that train Ultralytics YOLO directly on COCO JSON, with annotations staying the single source of truth and no intermediate `.txt` files. Extend the `cache_labels()` method with `segments` or `keypoints` to cover segmentation and pose, and see the [Model Training Tips](model-training-tips.md) guide for [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) tuning recommendations.
+You now have a minimal dataset and trainer that train Ultralytics YOLO directly on COCO JSON, with annotations staying the single source of truth and no intermediate `.txt` files. Extend the `cache_labels()` method with `segments` or `keypoints` to cover segmentation and pose, and see the [Model Training Tips](model-training-tips.md) guide for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) recommendations.
 
 ## FAQ
 

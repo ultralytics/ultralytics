@@ -8,16 +8,16 @@ license:
     name: AGPL-3.0
     url: https://www.ultralytics.com/license
 description: "Explore the Ultralytics Tiger-Pose dataset: 263 images (210 train / 53 val) with 12 keypoints per tiger, ideal for testing pose estimation pipelines."
-keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO26, training data, machine learning, neural networks
+keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, animal pose estimation, keypoints, YOLO26, training data, machine learning
 ---
 
 # Tiger-Pose Dataset
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com) introduces the Tiger-Pose dataset, a versatile collection designed for pose estimation tasks. This dataset comprises 263 images sourced from a [YouTube video](https://youtu.be/Gc6K5eKrTNQ), with 210 images allocated for training and 53 for validation. It serves as an excellent resource for testing and troubleshooting pose estimation algorithms.
+The [Ultralytics](https://www.ultralytics.com) Tiger-Pose dataset is a small [pose estimation](../../tasks/pose.md) dataset annotated with 12 [keypoints](https://www.ultralytics.com/glossary/keypoints) per tiger. It comprises 263 images sourced from a [YouTube video](https://youtu.be/Gc6K5eKrTNQ), with 210 images allocated for training and 53 for validation, and is well suited to testing and troubleshooting pose estimation algorithms.
 
-Despite its manageable training split of 210 images, the Tiger-Pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a valuable preliminary step before working with larger datasets for [pose estimation](../../tasks/pose.md).
+Despite its manageable training split of 210 images, the Tiger-Pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a useful first step before working with larger pose estimation datasets.
 
 Once your pipeline trains cleanly on this small set, swap in your own animal or object keypoints and scale up training on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/tiger-pose) without leaving the browser.
 
@@ -41,7 +41,7 @@ Once your pipeline trains cleanly on this small set, swap in your own animal or 
 
 ## Dataset YAML
 
-A YAML file serves as the means to specify the configuration details of a dataset. It encompasses crucial data such as file paths, class definitions, and other pertinent information. Specifically, for the `tiger-pose.yaml` file, you can check [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml).
+A YAML file defines the dataset configuration, including file paths, class definitions, and keypoint settings. For the `tiger-pose.yaml` file, see the [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml).
 
 !!! example "ultralytics/cfg/datasets/tiger-pose.yaml"
 
@@ -51,7 +51,7 @@ A YAML file serves as the means to specify the configuration details of a datase
 
 ## Usage
 
-To train a YOLO26n-pose model on the Tiger-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) model on the Tiger-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 

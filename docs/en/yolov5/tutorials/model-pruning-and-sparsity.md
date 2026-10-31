@@ -1,27 +1,27 @@
 ---
 comments: true
-description: Learn how to prune YOLOv5 models for improved performance. Follow this step-by-step guide to optimize your YOLOv5 models effectively.
+description: Prune Ultralytics YOLOv5 models to 30% sparsity with the prune() helper, compare mAP and speed against the baseline, and fine-tune to recover accuracy.
 keywords: YOLOv5 pruning, model pruning, YOLOv5 optimization, YOLOv5 guide, machine learning pruning, model sparsity, neural network optimization
 ---
 
 # Model Pruning and Sparsity in YOLOv5
 
-📚 This guide explains how to apply **pruning** to YOLOv5 🚀 models to create more efficient networks while maintaining performance.
+This guide explains how to apply **pruning** to [YOLOv5](../../models/yolov5.md) models to create more efficient networks while maintaining performance.
 
 ## What is Model Pruning?
 
-[Model pruning](https://www.ultralytics.com/glossary/model-pruning) is a technique used to reduce the size and complexity of neural networks by removing less important parameters (weights and connections). This process creates a more efficient model with several benefits:
+[Model pruning](https://www.ultralytics.com/glossary/model-pruning) is a technique used to reduce the size and complexity of [neural networks](https://www.ultralytics.com/glossary/neural-network-nn) by removing less important parameters (weights and connections). This process creates a more efficient model with several benefits:
 
 - Reduced model size for easier deployment on resource-constrained devices
 - Faster inference speeds with minimal impact on accuracy
 - Lower memory usage and energy consumption
 - Improved overall efficiency for real-time applications
 
-Pruning works by identifying and removing parameters that contribute minimally to the model's performance, resulting in a more lightweight model with similar accuracy.
+Pruning works by identifying and removing parameters that contribute minimally to the model's performance, resulting in a more lightweight model with similar accuracy. For a broader overview, see [pruning and quantization in computer vision](https://www.ultralytics.com/blog/pruning-and-quantization-in-computer-vision-a-quick-guide).
 
 ## Before You Start
 
-Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+Clone the repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
 git clone https://github.com/ultralytics/yolov5 # clone
@@ -31,7 +31,7 @@ pip install -r requirements.txt # install
 
 ## Test Baseline Performance
 
-Before pruning, establish a baseline performance to compare against. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset, i.e. `runs/train/exp/weights/best.pt`. For details on all available models, see the README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+Before pruning, establish a baseline performance to compare against. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate P5 model. Other options are `yolov5n.pt`, `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset, e.g. `runs/train/exp/weights/best.pt`. For details on all available models, see the README [pretrained checkpoints table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
@@ -113,21 +113,21 @@ From the results, we can observe:
 - **Minimal performance impact**: mAP dropped slightly from 0.507 to 0.489 (only 3.6% reduction)
 - **Model size unchanged**: Zeroed weights are still stored densely, so file size only shrinks with sparse-aware formats or compression
 
-This demonstrates that pruning can significantly reduce model complexity with only a minor impact on performance, making it an effective optimization technique for deployment in resource-constrained environments.
+This shows that 30% of the convolution weights can be removed with only a minor impact on accuracy. Turning that sparsity into faster inference or smaller files requires a sparsity-aware runtime, structured pruning, or compression.
 
 ## Fine-tuning Pruned Models
 
 For best results, pruned models should be fine-tuned after pruning to recover accuracy. This can be done by:
 
 1. Applying pruning with a desired sparsity level
-2. Training the pruned model for a few epochs with a lower learning rate
+2. Training the pruned model for a few epochs with a lower [learning rate](https://www.ultralytics.com/glossary/learning-rate)
 3. Evaluating the fine-tuned pruned model against the baseline
 
 This process helps the remaining parameters adapt to compensate for the removed connections, often recovering most or all of the original accuracy.
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)

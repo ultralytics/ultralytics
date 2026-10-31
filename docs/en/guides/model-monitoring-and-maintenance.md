@@ -1,13 +1,13 @@
 ---
 title: CV Model Monitoring & Maintenance
 comments: true
-description: Understand the key practices for monitoring, maintaining, and documenting computer vision models to guarantee accuracy, spot anomalies, and mitigate data drift.
+description: Monitor, maintain, and document deployed computer vision models. Detect data drift and anomalies, set up alerts, retrain on new data, and track changes.
 keywords: Computer Vision Models, AI Model Monitoring, Data Drift Detection, Anomaly Detection in AI, Model Maintenance
 ---
 
 # Maintaining Your Computer Vision Models After Deployment
 
-Monitoring and maintaining a computer vision model means continuously tracking its predictions for [data drift](https://www.ultralytics.com/glossary/data-drift) and accuracy drops, retraining it on fresh data when performance degrades, and documenting every change so the work stays reproducible. This is the final stage of a [computer vision project](./steps-of-a-cv-project.md) — after you've [gathered requirements](./defining-project-goals.md), [annotated data](./data-collection-and-annotation.md), [trained the model](./model-training-tips.md), and [deployed](./model-deployment-practices.md) it — and it's what keeps the model fulfilling your [project's objectives](./defining-project-goals.md) once it's running in production.
+Monitoring and maintaining a computer vision model means continuously tracking its predictions for [data drift](https://www.ultralytics.com/glossary/data-drift) and accuracy drops, retraining it on fresh data when performance degrades, and documenting every change so the work stays reproducible. This is the final stage of a [computer vision project](./steps-of-a-cv-project.md) — after you've [gathered requirements](./defining-project-goals.md), [annotated data](./data-collection-and-annotation.md), [trained the model](./model-training-tips.md), and [deployed](./model-deployment-practices.md) it — and it's what keeps the model fulfilling your project's objectives once it's running in production.
 
 <p align="center">
   <br>
@@ -20,11 +20,11 @@ Monitoring and maintaining a computer vision model means continuously tracking i
   <strong>Watch:</strong> How to Maintain Computer Vision Models after Deployment | Data Drift Detection
 </p>
 
-In this guide, we'll take a closer look at how you can maintain your computer vision models after deployment. We'll explore how model monitoring can help you catch problems early on, how to keep your model accurate and up-to-date, and why documentation is important for troubleshooting.
+In this guide, we'll take a closer look at how you can maintain your computer vision models after deployment. We'll explore how model monitoring can help you catch problems early on, how to keep your model accurate and up to date, and why documentation is important for troubleshooting.
 
 ## Model Monitoring
 
-Keeping a close eye on your deployed computer vision models is essential. Without proper monitoring, models can lose accuracy. A common issue is data distribution shift or [data drift](https://www.ultralytics.com/glossary/data-drift), where the data the model encounters changes from what it was trained on. When the model has to make predictions on data it doesn't recognize, it can lead to misinterpretations and poor performance. Outliers, or unusual data points, can also throw off the model's accuracy.
+Keeping a close eye on your deployed computer vision models is essential. Without proper monitoring, models can lose accuracy. A common issue is data distribution shift or data drift, where the data the model encounters changes from what it was trained on. When the model has to make predictions on data it doesn't recognize, it can lead to misinterpretations and poor performance. Outliers, or unusual data points, can also throw off the model's accuracy.
 
 Regular model monitoring helps developers track the [model's performance](./model-evaluation-insights.md), spot anomalies, and quickly address problems like data drift. It also helps manage resources by indicating when updates are needed, avoiding expensive overhauls, and keeping the model relevant.
 
@@ -48,11 +48,11 @@ The [Ultralytics Platform](../platform/index.md) provides built-in [model monito
 - **Logs**: Severity-filtered request logs (from DEBUG to CRITICAL) for diagnosing failed requests and latency spikes.
 - **Global view**: An interactive world map and overview cards that summarize every deployment across regions in a single view.
 
-Because monitoring is exposed through standard endpoint URLs and a `/health` check, you can also fold these signals into your existing observability setup when you need deeper analysis. For setup details, see the [deployment monitoring guide](../platform/deploy/monitoring.md).
+Because monitoring is exposed through standard endpoint URLs and a `/health` check, you can also fold these signals into your existing observability setup when you need deeper analysis. For setup details, see the [deployment monitoring guide](../platform/deploy/monitoring.md) or the overview of [monitoring deployed YOLO models in Ultralytics Platform](https://www.ultralytics.com/blog/ultralytics-platform-monitoring-keep-vision-ai-deployments-on-track).
 
 ### Anomaly Detection and Alert Systems
 
-An anomaly is any data point or pattern that deviates quite a bit from what is expected. With respect to [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, anomalies can be images that are very different from the ones the model was trained on. These unexpected images can be signs of issues like changes in data distribution, outliers, or behaviors that might reduce model performance. Setting up alert systems to detect these anomalies is an important part of model monitoring.
+An anomaly is any data point or pattern that deviates significantly from what is expected. With respect to [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, anomalies can be images that are very different from the ones the model was trained on. These unexpected images can be signs of issues like changes in data distribution, outliers, or behaviors that might reduce model performance. Setting up alert systems to detect these anomalies is an important part of model monitoring.
 
 By setting standard performance levels and limits for key metrics, you can catch problems early. When performance goes outside these limits, alerts are triggered, prompting quick fixes. Regularly updating and retraining models with new data keeps them relevant and accurate as the data changes.
 
@@ -66,7 +66,7 @@ When you are setting up your alert systems, keep these best practices in mind:
 
 ### Data Drift Detection
 
-Data drift detection is a concept that helps identify when the statistical properties of the input data change over time, which can degrade model performance. Before you decide to retrain or adjust your models, this technique helps spot that there is an issue. Data drift deals with changes in the overall data landscape over time, while [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) focuses on identifying rare or unexpected data points that may require immediate attention.
+Data drift detection identifies when the statistical properties of the input data change over time, which can degrade model performance. Before you decide to retrain or adjust your models, this technique helps spot that there is an issue. Data drift deals with changes in the overall data landscape over time, while [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) focuses on identifying rare or unexpected data points that may require immediate attention.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/3fc6868a7bf10726a97f3f64ecab4f1d.avif" alt="Data drift detection monitoring pipeline">
@@ -90,7 +90,7 @@ Once a model is deployed, while monitoring, you may notice changes in data patte
   <img width="100%" src="https://cdn.ul.run/i/1ba75e939cf4a420129f826b122750aa.avif" alt="Model accuracy decaying over time compared with a regularly retrained model">
 </p>
 
-For example, if the data is changing gradually over time, incremental learning is a good approach. Incremental learning involves updating the model with new data without completely retraining it from scratch, saving computational resources and time. However, if the data has changed drastically, a periodic full retraining might be a better option to ensure the model does not [overfit](https://www.ultralytics.com/glossary/overfitting) on the new data while losing track of older patterns.
+For example, if the data is changing gradually over time, [incremental learning](https://www.ultralytics.com/glossary/continual-learning) is a good approach. Incremental learning involves updating the model with new data without completely retraining it from scratch, saving computational resources and time. However, if the data has changed drastically, a periodic full retraining might be a better option to ensure the model does not [overfit](https://www.ultralytics.com/glossary/overfitting) on the new data while losing track of older patterns.
 
 Regardless of the method, validation and testing are a must after updates. It is important to validate the model on a separate [test dataset](./model-testing.md) to check for performance improvements or degradation.
 
@@ -120,7 +120,7 @@ These are some of the key elements that should be included in project documentat
 
 ## Conclusion
 
-Monitoring, maintaining, and documenting your model is what keeps a computer vision project successful long after deployment: continuous monitoring catches issues early, regular retraining adapts the model to new data and drift, and clear documentation makes every future update easier. Treat it as an ongoing loop and revisit the [stages of your computer vision project](./steps-of-a-cv-project.md) as your data and requirements evolve.
+Monitoring, maintaining, and documenting your model is what keeps a computer vision project successful long after deployment: continuous monitoring catches issues early, regular retraining adapts the model to new data and drift, and clear documentation makes every future update easier. Treat it as an ongoing loop and revisit the [stages of your computer vision project](./steps-of-a-cv-project.md) as your data and requirements evolve. For hands-on practice, work through the [Observability and Drift lesson](https://academy.ultralytics.com/courses/yolo-in-production/observability-and-drift) in Ultralytics Academy.
 
 ## FAQ
 

@@ -7,9 +7,9 @@ keywords: fine-tune YOLO, finetune YOLO custom dataset, YOLO transfer learning, 
 
 # How to Fine-Tune YOLO on a Custom Dataset
 
-[Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) adapts a pretrained model to recognize new classes by starting from learned weights rather than random initialization. Instead of training from scratch for hundreds of epochs, fine-tuning leverages pretrained [COCO](../datasets/detect/coco.md) features and converges on custom data in a fraction of the time.
+[Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) adapts a pretrained model to recognize new classes by starting from learned weights rather than random initialization. Instead of training from scratch for hundreds of epochs, fine-tuning reuses pretrained [COCO](../datasets/detect/coco.md) features and converges on custom data in a fraction of the time.
 
-This guide covers fine-tuning [YOLO26](../models/yolo26.md) on custom datasets, from basic usage to advanced techniques like [layer freezing](#freezing-layers) and [two-stage training](#two-stage-fine-tuning).
+This guide covers fine-tuning [YOLO26](../models/yolo26.md) on custom datasets, from basic usage to advanced techniques like [layer freezing](#freezing-layers) and [two-stage training](#two-stage-fine-tuning). For a beginner-friendly lesson on the same workflow, see [First Fine-Tune and the Iteration Loop](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/first-fine-tune-and-iterate) in Ultralytics Academy.
 
 ## Fine-Tuning vs Training from Scratch
 
@@ -87,14 +87,14 @@ The `cls_remap` setting enables this name-based transfer by default. Training pr
 
 ### Choosing a Model Size
 
-Larger models have more capacity but also more parameters to update, which can increase the risk of overfitting when training data is limited. Starting with a smaller model (YOLO26n or YOLO26s) and scaling up only if validation metrics plateau is a practical approach. The optimal model size depends on the complexity of the task, the number of classes, the diversity of the dataset, and the hardware available for deployment. See the full [YOLO26 model page](../models/yolo26.md) for available sizes and performance benchmarks.
+Larger models have more capacity but also more parameters to update, which can increase the risk of overfitting when training data is limited. Starting with a smaller model ([YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) or [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)) and scaling up only if validation metrics plateau is a practical approach. The optimal model size depends on the complexity of the task, the number of classes, the diversity of the dataset, and the hardware available for deployment. See the [YOLO26 performance metrics](../models/yolo26.md#performance-metrics) for available sizes and benchmarks.
 
 ## Optimizer and Learning Rate Selection
 
 The default `optimizer=auto` setting selects the optimizer and learning rate based on the total number of training iterations:
 
 - **10,000 iterations or fewer** (small datasets or few epochs): AdamW with a low, auto-calculated learning rate
-- **More than 10,000 iterations** (large datasets): [MuSGD](../reference/optim/muon.md) (a hybrid Muon+SGD optimizer) with lr=0.01
+- **More than 10,000 iterations** (large datasets): [MuSGD](../reference/optim/muon.md) (a [hybrid Muon+SGD optimizer](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd)) with lr=0.01
 
 For most fine-tuning tasks, the default setting works well without any manual tuning. Consider setting the optimizer explicitly when:
 
@@ -151,7 +151,7 @@ The right freeze depth depends on how similar the target domain is to the pretra
 | Very small dataset            | `freeze=23`             | Only the detection head trains, minimizing overfitting risk |
 | Domain far from COCO          | `freeze=None`           | Backbone features may not transfer well and need retraining |
 
-Freeze depth can also be treated as a hyperparameter - trying a few values (0, 5, 10) and comparing validation mAP is a practical way to find the best setting for a specific dataset.
+Freeze depth can also be treated as a [hyperparameter](hyperparameter-tuning.md) - trying a few values (0, 5, 10) and comparing validation mAP is a practical way to find the best setting for a specific dataset.
 
 ## Key Hyperparameters for Fine-Tuning
 
@@ -206,7 +206,7 @@ This approach is particularly useful when the target domain differs significantl
 
 ### Performance degrades on original classes after fine-tuning
 
-This is known as catastrophic forgetting - the model loses previously learned knowledge when fine-tuned exclusively on new data. Forgetting is mostly unavoidable without including original dataset images alongside new data. To mitigate this:
+This is known as [catastrophic forgetting](https://www.ultralytics.com/glossary/catastrophic-forgetting) - the model loses previously learned knowledge when fine-tuned exclusively on new data. Forgetting is mostly unavoidable without including original dataset images alongside new data. To mitigate this:
 
 - **Merge datasets**: include examples of the original classes alongside the new classes during fine-tuning. This is the only reliable way to prevent forgetting.
 - **Freeze backbone and neck**: freezing both the backbone and neck so only the detection head trains helps for short fine-tuning runs with a very low learning rate.

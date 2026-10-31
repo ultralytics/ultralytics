@@ -3,7 +3,7 @@ comments: true
 license:
     name: CC-BY-NC-SA-3.0
     url: https://creativecommons.org/licenses/by-nc-sa/3.0/
-description: Explore the KITTI depth dataset for monocular depth estimation. Learn about its structure, the Eigen evaluation benchmark, usage, and pretrained YOLO26-Depth models.
+description: KITTI depth pairs 55K driving images with LiDAR ground truth up to 80 m. Learn its structure, the KITTI Eigen benchmark, and YOLO26-Depth training and results.
 keywords: KITTI dataset, depth estimation, monocular depth, autonomous driving, LiDAR depth, Eigen split, YOLO26-Depth, outdoor depth, Ultralytics
 ---
 
@@ -14,7 +14,7 @@ The [KITTI](https://www.cvlibs.net/datasets/kitti/) dataset is a real-world outd
 ## Key Features
 
 - Real outdoor driving scenes with depths spanning up to roughly 80 m, far beyond the typical indoor range.
-- Depth ground truth obtained from a Velodyne HDL-64 LiDAR and densified with the [Sparsity Invariant CNNs](https://arxiv.org/abs/1708.06500) approach of Uhrig et al. 2017.
+- Depth ground truth obtained from a Velodyne HDL-64 LiDAR and densified with the Sparsity Invariant CNNs approach of Uhrig et al. 2017.
 - Sparse supervision: only about 16–20% of pixels per image carry a valid depth value; invalid pixels are masked out of the loss and metrics.
 - Stereo image pairs (left `image_02` and right `image_03`) provide additional viewpoints for training.
 - Depth values are stored as uint16 PNGs with 256 units per meter (`depth_scale: 256`), following the [Ultralytics depth dataset format](index.md).
@@ -26,7 +26,7 @@ The KITTI depth data used by Ultralytics is split into two subsets:
 1. **Training split**: 55,198 images (left `image_02` and right `image_03`). All 28 KITTI Eigen test drives are excluded from training to keep evaluation fair.
 2. **Evaluation split**: the KITTI Eigen test split — its 652 left-camera frames that have improved ground truth. Evaluation uses an 80 m depth cap and median (scale-only) alignment between predictions and ground truth.
 
-The depth range reaches approximately 80 m, and the dataset YAML (`depth-kitti.yaml`) sets `max_depth: 80` accordingly. On first use, the YAML automatically downloads the improved ground truth (~14 GB) and the matching raw drives (~175 GB) and converts them to the [Ultralytics depth dataset format](index.md).
+The depth range reaches approximately 80 m, and the dataset YAML (`depth-kitti.yaml`) sets `max_depth: 80` accordingly. On first use, the YAML automatically downloads the improved ground truth (~14 GB) and the matching raw drives (~175 GB) and converts them to the Ultralytics depth dataset format.
 
 ## Role in YOLO26-Depth
 
@@ -40,11 +40,11 @@ KITTI Eigen `delta1` accuracy by model size (higher is better):
 
 | Model         | KITTI Eigen δ1 |
 | ------------- | -------------- |
-| YOLO26n-Depth | 0.878          |
-| YOLO26s-Depth | 0.879          |
-| YOLO26m-Depth | 0.913          |
-| YOLO26l-Depth | 0.926          |
-| YOLO26x-Depth | 0.932          |
+| YOLO26n-depth | 0.878          |
+| YOLO26s-depth | 0.879          |
+| YOLO26m-depth | 0.913          |
+| YOLO26l-depth | 0.926          |
+| YOLO26x-depth | 0.932          |
 
 Measured on the 652-frame canonical split with `imgsz=768` and `rect=False`. They are not directly comparable to published KITTI numbers: val stretches each image to a square `imgsz` and nearest-resamples the sparse ground truth onto it, where the reference evaluators instead resize the prediction back to the native ground-truth resolution; `DepthMetrics` masks ground truth against `max_depth` where the improved-ground-truth protocol masks `gt > 0` and caps only the prediction; and the released weights were trained with the previous split, which placed 72 of these test frames in the training set.
 
@@ -60,7 +60,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-Depth model on the KITTI dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch), you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-depth model on the KITTI dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch), you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -87,11 +87,11 @@ To train a YOLO26n-Depth model on the KITTI dataset for 100 [epochs](https://www
 
 Pretrained YOLO26-Depth models auto-download from the Ultralytics [v8.4.0 assets release](https://github.com/ultralytics/assets/releases/tag/v8.4.0) when first referenced by name:
 
-- [YOLO26n-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth)
-- [YOLO26s-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-depth)
-- [YOLO26m-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-depth)
-- [YOLO26l-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-depth)
-- [YOLO26x-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth)
+- [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth)
+- [YOLO26s-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-depth)
+- [YOLO26m-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-depth)
+- [YOLO26l-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-depth)
+- [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth)
 
 ## Citations and Acknowledgments
 

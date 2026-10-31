@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how to set up and use MLflow logging with Ultralytics YOLO for enhanced experiment tracking, model reproducibility, and performance improvements.
+description: Log Ultralytics YOLO training metrics, parameters, and model artifacts to MLflow for experiment tracking, run comparison, and reproducible results.
 keywords: MLflow, Ultralytics YOLO, machine learning, experiment tracking, metrics logging, parameter logging, artifact logging
 ---
 
@@ -10,9 +10,9 @@ keywords: MLflow, Ultralytics YOLO, machine learning, experiment tracking, metri
 
 ## Introduction
 
-Experiment logging is a crucial aspect of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows that enables tracking of various metrics, parameters, and artifacts. It helps to enhance model reproducibility, debug issues, and improve model performance. [Ultralytics](https://www.ultralytics.com) YOLO, known for its real-time [object detection](https://www.ultralytics.com/glossary/object-detection) capabilities, now offers integration with [MLflow](https://mlflow.org/), an open-source platform for complete machine learning lifecycle management.
+[Experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking) is an essential part of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows: it records metrics, parameters, and artifacts so you can reproduce results, debug issues, and improve model performance. [Ultralytics](https://www.ultralytics.com) YOLO, known for its real-time [object detection](https://www.ultralytics.com/glossary/object-detection) capabilities, integrates with [MLflow](https://mlflow.org/), an open-source platform for managing the complete machine learning lifecycle.
 
-This documentation page is a comprehensive guide to setting up and utilizing the MLflow logging capabilities for your Ultralytics YOLO project.
+This guide shows how to set up and use MLflow logging in your Ultralytics YOLO project.
 
 ## What is MLflow?
 
@@ -20,7 +20,7 @@ This documentation page is a comprehensive guide to setting up and utilizing the
 
 ## Features
 
-- **Metrics Logging**: Logs learning rates, training losses, and validation metrics at the end of each epoch.
+- **Metrics Logging**: Logs [learning rates](https://www.ultralytics.com/glossary/learning-rate), training losses, and validation metrics at the end of each epoch.
 - **Parameter Logging**: Logs all the parameters used in the training.
 - **Artifacts Logging**: Logs model artifacts, including weights and configuration files, at the end of the training.
 
@@ -72,7 +72,7 @@ MLflow logging is enabled by default through the `mlflow` key in Ultralytics [se
     export MLFLOW_EXPERIMENT_NAME=YOUR_EXPERIMENT_NAME
     ```
 
-    Or use the `project=<project>` argument when training a YOLO model, i.e. `yolo train project=my_project`.
+    Or use the `project=<project>` argument when training a YOLO model, e.g. `yolo train project=my_project`.
 
 2. **Set a Run Name**: Similar to setting a project name, you can set the run name via an environment variable:
 
@@ -80,7 +80,7 @@ MLflow logging is enabled by default through the `mlflow` key in Ultralytics [se
     export MLFLOW_RUN=YOUR_RUN_NAME
     ```
 
-    Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
+    Or use the `name=<name>` argument when training a YOLO model, e.g. `yolo train project=my_project name=my_name`.
 
 3. **Start Local MLflow Server**: Without `MLFLOW_TRACKING_URI`, runs are logged to MLflow's default local store in the directory where you train (`mlflow.db` on MLflow 3.7 and later unless the directory already holds an `mlruns/` history, `mlruns/` on earlier versions). To view them, run this from the same directory:
 
@@ -112,7 +112,7 @@ The logging is taken care of by the `on_pretrain_routine_end`, `on_train_epoch_e
 
 2. **View Experiment**: To view your logs, navigate to your MLflow server (usually `http://127.0.0.1:5000`) and select your experiment and run. <img width="1024" src="https://cdn.ul.run/i/166d68691afdb81a0d2253ce3d025dc0.avif" alt="MLflow experiment tracking interface for YOLO">
 
-3. **View Run**: Runs are individual models inside an experiment. Click on a Run and see the Run details, including uploaded artifacts and model weights. <img width="1024" src="https://cdn.ul.run/i/ef67fdce533e1a7fd330a9df33115325.avif" alt="MLflow run details with YOLO artifacts">
+3. **View Run**: Runs are individual models inside an experiment. Click a run to see its details, including uploaded artifacts and model weights. <img width="1024" src="https://cdn.ul.run/i/ef67fdce533e1a7fd330a9df33115325.avif" alt="MLflow run details with YOLO artifacts">
 
 ## Disabling MLflow
 
@@ -124,7 +124,7 @@ yolo settings mlflow=False
 
 ## Conclusion
 
-MLflow logging integration with Ultralytics YOLO offers a streamlined way to keep track of your [machine learning experiments](https://www.ultralytics.com/blog/log-ultralytics-yolo-experiments-using-mlflow-integration). It empowers you to monitor performance metrics and manage artifacts effectively, thus aiding in robust model development and deployment. For further details please visit the MLflow [official documentation](https://mlflow.org/docs/latest/index.html).
+MLflow logging integration with Ultralytics YOLO offers a simple way to keep track of your machine learning experiments. It lets you monitor performance metrics and manage artifacts throughout model development and deployment. For a walkthrough, read the blog post on [logging Ultralytics YOLO experiments with MLflow](https://www.ultralytics.com/blog/log-ultralytics-yolo-experiments-using-mlflow-integration). For further details, visit the MLflow [official documentation](https://mlflow.org/docs/latest/index.html).
 
 ## FAQ
 
@@ -176,7 +176,7 @@ Ultralytics YOLO with MLflow supports logging various metrics, parameters, and a
 - **Parameter Logging**: Logs all parameters used in the training process.
 - **Artifacts Logging**: Saves model artifacts like weights and configuration files after training.
 
-For more detailed information, visit the [Ultralytics YOLO tracking documentation](#features).
+For more detailed information, see the [Features](#features) section above.
 
 ### Can I disable MLflow logging once it is enabled?
 
@@ -214,10 +214,10 @@ By default this is `False`, so Ultralytics calls `mlflow.end_run()` on the run i
 
 Integrating MLflow with Ultralytics YOLO offers several benefits for managing your machine learning experiments:
 
-- **Enhanced Experiment Tracking**: Easily track and compare different runs and their outcomes.
+- **Enhanced Experiment Tracking**: Track and compare different runs and their outcomes.
 - **Improved Model Reproducibility**: Ensure that your experiments are reproducible by logging all parameters and artifacts.
 - **Performance Monitoring**: Visualize performance metrics over time to make data-driven decisions for model improvements.
 - **Streamlined Workflow**: Automate the logging process to focus more on model development rather than manual tracking.
 - **Collaborative Development**: Share experiment results with team members for better collaboration and knowledge sharing.
 
-For an in-depth look at setting up and leveraging MLflow with Ultralytics YOLO, explore the [MLflow Integration for Ultralytics YOLO](#introduction) documentation.
+For an in-depth look at setting up and using MLflow with Ultralytics YOLO, start from the [Introduction](#introduction) of this guide.

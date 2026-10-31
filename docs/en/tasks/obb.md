@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover how to detect objects with rotation for higher precision using YOLO26 OBB models. Learn, train, validate, and export OBB models effortlessly.
+description: Oriented bounding box (OBB) detection with Ultralytics YOLO26. Explore DOTAv1-pretrained models, then train, validate, predict, and export OBB models.
 keywords: Oriented Bounding Boxes, OBB, Object Detection, YOLO26, Ultralytics, DOTAv1, Model Training, Model Export, AI, Machine Learning
 model_name: yolo26n-obb
 ---
@@ -9,9 +9,9 @@ model_name: yolo26n-obb
 
 <img width="1024" src="https://cdn.ul.run/i/5358256c7e6abec4c69ca11be99143ba.avif" alt="Ultralytics YOLO oriented bounding box detection of boats in aerial imagery">
 
-Oriented object detection goes a step further than standard object detection by introducing an extra angle to locate objects more accurately in an image.
+Oriented object detection goes a step further than standard [object detection](https://www.ultralytics.com/glossary/object-detection) by introducing an extra angle to locate objects more accurately in an image.
 
-The output of an oriented object detector is a set of rotated bounding boxes that precisely enclose the objects in the image, along with class labels and confidence scores for each box. Oriented bounding boxes are particularly useful when objects appear at various angles, such as in aerial imagery, where traditional axis-aligned bounding boxes may include unnecessary background. Typical uses are ship and vehicle detection from satellites and drones, building and infrastructure analysis for urban planning, crop monitoring, and solar panel or wind turbine inspection.
+The output of an oriented object detector is a set of rotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) that precisely enclose the objects in the image, along with class labels and confidence scores for each box. Oriented bounding boxes are particularly useful when objects appear at various angles, such as in aerial imagery, where traditional axis-aligned bounding boxes may include unnecessary background. Typical uses are ship and vehicle detection from satellites and drones, building and infrastructure analysis for urban planning, crop monitoring, and solar panel or wind turbine inspection. For a primer on the task, read [what is oriented bounding box (OBB) detection?](https://www.ultralytics.com/blog/what-is-oriented-bounding-box-obb-detection-a-quick-guide)
 
 <p align="center">
   <br>
@@ -26,7 +26,7 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 
 !!! tip
 
-    YOLO26 OBB models use the `-obb` suffix, i.e., `yolo26n-obb.pt`, and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
+    YOLO26 OBB models use the `-obb` suffix, e.g., `yolo26n-obb.pt`, and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
 
 |                                Ships Detection using OBB                                 |                                Vehicle Detection using OBB                                 |
 | :--------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------: |
@@ -34,7 +34,7 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 OBB models pretrained on the [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml) dataset are shown below.
+YOLO26 OBB models pretrained on the [DOTAv1](../datasets/obb/dota-v2.md) dataset are shown below.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -48,7 +48,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train [YOLO26n-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-obb) on the [DOTA8](https://platform.ultralytics.com/ultralytics/datasets/dota8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! note
 
@@ -94,7 +94,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
   <strong>Watch:</strong> How to Train Ultralytics YOLO-OBB (Oriented Bounding Boxes) Models on DOTA Dataset using Ultralytics Platform
 </p>
 
-See full `train` mode details in the [Train](../modes/train.md) page. OBB models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
+See full `train` mode details in the [Train](../modes/train.md) page. OBB models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md). For a guided exercise, see the Ultralytics Academy lesson [Oriented Bounding Boxes for Rotated Objects](https://academy.ultralytics.com/courses/beyond-detection/oriented-bounding-boxes).
 
 ### Dataset format
 
@@ -104,11 +104,11 @@ OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb
 class_index x1 y1 x2 y2 x3 y3 x4 y4
 ```
 
-Internally, YOLO processes losses and outputs in the `xywhr` format, which represents the [bounding box](https://www.ultralytics.com/glossary/bounding-box)'s center point (xy), width, height, and rotation.
+Internally, YOLO processes losses and outputs in the `xywhr` format, which represents the bounding box's center point (xy), width, height, and rotation.
 
 ## Val
 
-Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the DOTA8 dataset. Pass `data` explicitly so validation uses the intended dataset YAML.
+Validate trained YOLO26n-obb model accuracy, measured as [mean average precision (mAP)](https://www.ultralytics.com/glossary/mean-average-precision-map), on the DOTA8 dataset. Pass `data` explicitly so validation uses the intended dataset YAML.
 
 !!! example
 
@@ -224,7 +224,7 @@ Export a YOLO26n-obb model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx # export custom model
         ```
 
-Available YOLO26-obb export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-obb.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26-obb export formats are in the table below. You can export to any format using the `format` argument, e.g., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, e.g., `yolo predict model=yolo26n-obb.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 

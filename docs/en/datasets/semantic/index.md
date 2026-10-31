@@ -144,13 +144,13 @@ names:
     1: car
 ```
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides a polygon annotation tool for the semantic task, plus SAM-assisted Smart annotation — annotate directly in the browser and export or train on the resulting polygon-labeled dataset without setting up this layout by hand.
+[Ultralytics Platform](https://platform.ultralytics.com) provides a polygon annotation tool for the semantic task, plus SAM-assisted smart annotation — annotate directly in the browser and export or train on the resulting polygon-labeled dataset without setting up this layout by hand.
 
 ## FAQ
 
 ### What is the difference between semantic segmentation masks and instance segmentation labels?
 
-Semantic segmentation masks are dense pixel maps. Each pixel stores a class ID, and there is one mask image per training image. Instance segmentation labels in Ultralytics YOLO use text files with polygon coordinates, one row per object instance.
+Semantic segmentation masks are dense pixel maps. Each pixel stores a class ID, and there is one mask image per training image. Instance segmentation labels in Ultralytics YOLO use text files with polygon coordinates, one row per object instance. To decide which task fits your project, see [semantic vs instance segmentation](https://www.ultralytics.com/blog/semantic-vs-instance-segmentation).
 
 ### What pixel value is ignored during training?
 

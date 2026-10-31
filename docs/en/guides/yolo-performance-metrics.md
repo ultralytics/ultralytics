@@ -1,7 +1,7 @@
 ---
 title: YOLO Performance Metrics
 comments: true
-description: Explore essential YOLO26 performance metrics like mAP, IoU, F1 Score, Precision, and Recall. Learn how to calculate and interpret them for model evaluation.
+description: Understand YOLO26 performance metrics such as mAP, IoU, F1 score, precision, and recall, and learn how to compute and interpret them with val mode.
 keywords: YOLO26 performance metrics, mAP, IoU, F1 Score, Precision, Recall, object detection, Ultralytics
 ---
 
@@ -9,7 +9,7 @@ keywords: YOLO26 performance metrics, mAP, IoU, F1 Score, Precision, Recall, obj
 
 ## Introduction
 
-Performance metrics are key tools to evaluate the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of [object detection](https://www.ultralytics.com/glossary/object-detection) models. They shed light on how effectively a model can identify and localize objects within images. Additionally, they help in understanding the model's handling of false positives and false negatives. These insights are crucial for evaluating and enhancing the model's performance. In this guide, we will explore various performance metrics associated with YOLO26, their significance, and how to interpret them.
+Performance metrics are key tools to evaluate the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of [object detection](https://www.ultralytics.com/glossary/object-detection) models. They shed light on how effectively a model can identify and localize objects within images. Additionally, they help in understanding the model's handling of false positives and false negatives. These insights are crucial for evaluating and enhancing the model's performance. This guide explores the performance metrics associated with YOLO26, their significance, and how to interpret them. For a beginner-friendly introduction, see the Ultralytics Academy lesson [Reading Detection Metrics Honestly](https://academy.ultralytics.com/courses/computer-vision-foundations/reading-detection-metrics).
 
 <p align="center">
   <br>
@@ -19,12 +19,12 @@ Performance metrics are key tools to evaluate the [accuracy](https://www.ultraly
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLO26 Performance Metrics | MAP, F1 Score, <a href="https://www.ultralytics.com/glossary/precision">Precision</a>, IoU & Accuracy
+  <strong>Watch:</strong> Ultralytics YOLO26 Performance Metrics | mAP, F1 Score, Precision, IoU & Accuracy
 </p>
 
 ## Object Detection Metrics
 
-Let's start by discussing some metrics that are not only important to YOLO26 but are broadly applicable across different object detection models.
+The following metrics are important for YOLO26 and broadly applicable across different object detection models.
 
 - **[Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU):** IoU is a measure that quantifies the overlap between a predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) and a ground truth bounding box. It plays a fundamental role in evaluating the accuracy of object localization.
 
@@ -32,23 +32,23 @@ Let's start by discussing some metrics that are not only important to YOLO26 but
 
 - **[Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP):** mAP extends the concept of AP by calculating the average AP values across multiple object classes. This is useful in multi-class object detection scenarios to provide a comprehensive evaluation of the model's performance.
 
-- **Precision and Recall:** Precision quantifies the proportion of true positives among all positive predictions, assessing the model's capability to avoid false positives. On the other hand, Recall calculates the proportion of true positives among all actual positives, measuring the model's ability to detect all instances of a class.
+- **Precision and Recall:** [Precision](https://www.ultralytics.com/glossary/precision) quantifies the proportion of true positives among all positive predictions, assessing the model's capability to avoid false positives. [Recall](https://www.ultralytics.com/glossary/recall) calculates the proportion of true positives among all actual positives, measuring the model's ability to detect all instances of a class.
 
-- **F1 Score:** The F1 Score is the harmonic mean of precision and recall, providing a balanced assessment of a model's performance while considering both false positives and false negatives.
+- **F1 Score:** The [F1 Score](https://www.ultralytics.com/glossary/f1-score) is the harmonic mean of precision and recall, providing a balanced assessment of a model's performance while considering both false positives and false negatives.
 
 ## How to Calculate Metrics for YOLO26 Model
 
-Now, we can explore [YOLO26's Validation mode](../modes/val.md) that can be used to compute the above discussed evaluation metrics.
+[YOLO26's Validation mode](../modes/val.md) computes the evaluation metrics described above.
 
-Using the validation mode is simple. Once you have a trained model, you can invoke the model.val() function. This function will then process the validation dataset and return a variety of performance metrics. But what do these metrics mean? And how should you interpret them?
+Using the validation mode is simple. Once you have a trained model, call the `model.val()` function. This function will then process the validation dataset and return a variety of performance metrics. But what do these metrics mean? And how should you interpret them?
 
 ### Interpreting the Output
 
-Let's break down the output of the model.val() function and understand each segment of the output.
+The sections below break down each segment of the `model.val()` output.
 
 #### Class-wise Metrics
 
-One of the sections of the output is the class-wise breakdown of performance metrics. This granular information is useful when you are trying to understand how well the model is doing for each specific class, especially in datasets with a diverse range of object categories. For each class in the dataset the following is provided:
+One of the sections of the output is the class-wise breakdown of performance metrics. This granular information is useful when you are trying to understand how well the model is doing for each specific class, especially in datasets with a diverse range of object categories. For each class in the dataset, the following is provided:
 
 - **Class**: This denotes the name of the object class, such as "person", "car", or "dog".
 
@@ -71,15 +71,15 @@ The speed of inference can be as critical as accuracy, especially in real-time o
 
 #### COCO Metrics Evaluation
 
-For users validating on the COCO dataset, additional metrics are calculated using the COCO evaluation script. These metrics give insights into precision and recall at different IoU thresholds and for objects of different sizes.
+For users validating on the [COCO dataset](../datasets/detect/coco.md), additional metrics are calculated using the COCO evaluation script. These metrics give insights into precision and recall at different IoU thresholds and for objects of different sizes.
 
 #### Visual Outputs
 
-The model.val() function, apart from producing numeric metrics, also yields visual outputs that can provide a more intuitive understanding of the model's performance. Here's a breakdown of the visual outputs you can expect:
+The `model.val()` function, apart from producing numeric metrics, also yields visual outputs that can provide a more intuitive understanding of the model's performance. Here's a breakdown of the visual outputs you can expect:
 
-- **F1 Score Curve (`BoxF1_curve.png`)**: This curve represents the [F1 score](https://www.ultralytics.com/glossary/f1-score) across various thresholds. Interpreting this curve can offer insights into the model's balance between false positives and false negatives over different thresholds.
+- **F1 Score Curve (`BoxF1_curve.png`)**: This curve represents the F1 score across various thresholds. Interpreting this curve can offer insights into the model's balance between false positives and false negatives over different thresholds.
 
-- **Precision-Recall Curve (`BoxPR_curve.png`)**: An integral visualization for any classification problem, this curve showcases the trade-offs between precision and [recall](https://www.ultralytics.com/glossary/recall) at varied thresholds. It becomes especially significant when dealing with imbalanced classes.
+- **Precision-Recall Curve (`BoxPR_curve.png`)**: An integral visualization for any classification problem, this curve showcases the trade-offs between precision and recall at varied thresholds. It becomes especially significant when dealing with imbalanced classes.
 
 - **Precision Curve (`BoxP_curve.png`)**: A graphical representation of precision values at different thresholds. This curve helps in understanding how precision varies as the threshold changes.
 
@@ -97,11 +97,11 @@ For the [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), an
 
 #### Results Storage
 
-For future reference, the results are saved to a directory, typically named runs/detect/val.
+For future reference, the results are saved to a directory, typically named `runs/detect/val`.
 
 ## Choosing the Right Metrics
 
-Choosing the right metrics to evaluate often depends on the specific application.
+Choosing the right metrics to evaluate often depends on the specific application, as the guide on [when accuracy, precision, and recall each matter](https://www.ultralytics.com/blog/accuracy-precision-recall) explains.
 
 - **mAP:** Suitable for a broad assessment of model performance.
 
@@ -113,11 +113,11 @@ Choosing the right metrics to evaluate often depends on the specific application
 
 - **F1 Score:** Useful when a balance between precision and recall is needed.
 
-For real-time applications, speed metrics like FPS (Frames Per Second) and latency are crucial to ensure timely results.
+For real-time applications, speed metrics like [FPS (Frames Per Second)](https://www.ultralytics.com/blog/understanding-the-role-of-fps-in-computer-vision) and [latency](https://www.ultralytics.com/glossary/inference-latency) are crucial to ensure timely results.
 
 ## Interpretation of Results
 
-It's important to understand the metrics. Here's what some of the commonly observed lower scores might suggest:
+Here's what some commonly observed low scores might suggest:
 
 - **Low mAP:** Indicates the model may need general refinements.
 
@@ -137,7 +137,7 @@ Real-world examples can help clarify how these metrics work in practice.
 
 ### Case 1
 
-- **Situation:** mAP and F1 Score are suboptimal, but while Recall is good, Precision isn't.
+- **Situation:** mAP and F1 Score are suboptimal; Recall is good, but Precision isn't.
 
 - **Interpretation & Action:** There might be too many incorrect detections. Tightening confidence thresholds could reduce these, though it might also slightly decrease recall.
 
@@ -151,11 +151,11 @@ Real-world examples can help clarify how these metrics work in practice.
 
 - **Situation:** Some classes have a much lower AP than others, even with a decent overall mAP.
 
-- **Interpretation & Action:** These classes might be more challenging for the model. Using more data for these classes or adjusting class weights during training could be beneficial.
+- **Interpretation & Action:** These classes might be more challenging for the model. Using more data for these classes or [adjusting class weights](../modes/train.md#how-do-i-train-a-model-on-an-imbalanced-dataset) with the `cls_pw` training argument could be beneficial.
 
 ## Connect and Collaborate
 
-Tapping into a community of enthusiasts and experts can amplify your journey with YOLO26. Here are some avenues that can facilitate learning, troubleshooting, and networking.
+The YOLO26 community can help with learning, troubleshooting, and networking through the following channels.
 
 ### Engage with the Broader Community
 
@@ -167,13 +167,13 @@ Tapping into a community of enthusiasts and experts can amplify your journey wit
 
 - **Ultralytics YOLO26 Docs:** The [official documentation](../index.md) provides a comprehensive overview of YOLO26, along with guides on installation, usage, and troubleshooting.
 
-Using these resources will not only guide you through any challenges but also keep you updated with the latest trends and best practices in the YOLO26 community.
+These resources can help you resolve problems and stay current with best practices in the YOLO26 community.
 
 ## Conclusion
 
 In this guide, we've taken a close look at the essential performance metrics for YOLO26. These metrics are key to understanding how well a model is performing and are vital for anyone aiming to fine-tune their models. They offer the necessary insights for improvements and to make sure the model works effectively in real-life situations.
 
-Remember, the YOLO26 and Ultralytics community is an invaluable asset. Engaging with fellow developers and experts can open doors to insights and solutions not found in standard documentation. As you journey through object detection, keep the spirit of learning alive, experiment with new strategies, and share your findings. By doing so, you contribute to the community's collective wisdom and ensure its growth.
+The YOLO26 and Ultralytics community is also a useful resource: engaging with other developers and experts can surface solutions not covered in the documentation, and sharing your findings helps others working on object detection.
 
 ## FAQ
 
@@ -194,11 +194,11 @@ The F1 Score is important for evaluating YOLO26 models because it provides a har
 Ultralytics YOLO26 offers multiple advantages for real-time object detection:
 
 - **Speed and Efficiency**: Optimized for high-speed inference, suitable for applications requiring low latency.
-- **High Accuracy**: Advanced algorithm ensures high mAP and IoU scores, balancing precision and recall.
+- **High Accuracy**: Achieves high mAP across model sizes while balancing precision and recall.
 - **Flexibility**: Supports various tasks including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md).
-- **Ease of Use**: User-friendly interfaces, extensive documentation, and seamless integration with tools like Ultralytics Platform ([Platform Quickstart](../platform/quickstart.md)).
+- **Ease of Use**: User-friendly interfaces, extensive documentation, and integration with tools like [Ultralytics Platform](../platform/quickstart.md).
 
-This makes YOLO26 ideal for diverse applications from autonomous vehicles to [smart city solutions](queue-management.md).
+This makes YOLO26 well suited to diverse applications, from autonomous vehicles to [smart city solutions](queue-management.md).
 
 ### How can validation metrics from YOLO26 help improve model performance?
 

@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO26, Raspberry Pi, setup, guide, benchmarks, computer 
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLO26
 
-[Raspberry Pi](https://www.raspberrypi.com/) is a small, affordable computer that runs [Ultralytics YOLO26](../models/yolo26.md) for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) at the edge — no GPU required. This guide walks you through deploying YOLO26 on Raspberry Pi 4 and 5: flashing the OS, installing Ultralytics, exporting to [NCNN](../integrations/ncnn.md) for the fastest [inference](../modes/predict.md) on ARM, and running predictions on a live camera feed. It also includes performance benchmarks across eight export formats so you can pick the best speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) trade-off for your hardware.
+[Raspberry Pi](https://www.raspberrypi.com/) is a small, affordable computer that runs [Ultralytics YOLO26](../models/yolo26.md) for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) at the [edge](https://www.ultralytics.com/glossary/edge-ai) — no GPU required. This guide walks you through deploying YOLO26 on Raspberry Pi 4 and 5: flashing the OS, installing Ultralytics, exporting to [NCNN](../integrations/ncnn.md) for the fastest [inference](../modes/predict.md) on ARM, and running predictions on a live camera feed. It also includes performance benchmarks across eight export formats so you can pick the best speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) trade-off for your hardware.
 
 Jump to [setting up Ultralytics](#set-up-ultralytics), [exporting to NCNN and running inference](#use-ncnn-on-raspberry-pi), [benchmarks](#raspberry-pi-5-yolo26-benchmarks), or [camera inference](#use-raspberry-pi-camera).
 
@@ -28,7 +28,7 @@ Jump to [setting up Ultralytics](#set-up-ultralytics), [exporting to NCNN and ru
 
 ## What is Raspberry Pi?
 
-Raspberry Pi is a small, affordable, single-board computer. It has become popular for a wide range of projects and applications, from hobbyist home automation to industrial uses. Raspberry Pi boards are capable of running a variety of operating systems, and they offer GPIO (General Purpose Input/Output) pins that allow for easy integration with sensors, actuators, and other hardware components. They come in different models with varying specifications, but they all share the same basic design philosophy of being low-cost, compact, and versatile.
+Raspberry Pi is a small, affordable, single-board computer. It has become popular for a wide range of projects and applications, from hobbyist home automation to industrial uses. Raspberry Pi boards are capable of running a variety of operating systems, and they offer GPIO (General Purpose Input/Output) pins that allow for easy integration with sensors, actuators, and other hardware components. They come in different models with varying specifications, but they all share the same basic design philosophy of being low-cost, compact, and versatile. See the [Ultralytics Raspberry Pi partner page](https://www.ultralytics.com/partners/raspberry-pi) for more on running Ultralytics YOLO on Raspberry Pi hardware.
 
 ## Raspberry Pi Series Comparison
 
@@ -48,7 +48,7 @@ Raspberry Pi is a small, affordable, single-board computer. It has become popula
 
 ## Flash Raspberry Pi OS to Raspberry Pi
 
-The first thing to do after getting your hands on a Raspberry Pi is to flash a micro-SD card with Raspberry Pi OS, insert into the device and boot into the OS. Follow along with detailed [Getting Started Documentation by Raspberry Pi](https://www.raspberrypi.com/documentation/computers/getting-started.html) to prepare your device for first use.
+The first thing to do after getting your hands on a Raspberry Pi is to flash a micro-SD card with Raspberry Pi OS, insert it into the device, and boot into the OS. Follow the detailed [Getting Started Documentation by Raspberry Pi](https://www.raspberrypi.com/documentation/computers/getting-started.html) to prepare your device for first use.
 
 ## Set Up Ultralytics
 
@@ -61,7 +61,7 @@ You can set up the Ultralytics package on Raspberry Pi in two ways for your next
 
 The fastest way to get started with Ultralytics YOLO26 on Raspberry Pi is to run with a pre-built Docker image for Raspberry Pi.
 
-Execute the below command to pull the Docker container and run on Raspberry Pi. This is based on the official [Python](https://hub.docker.com/_/python) `3.13-slim-trixie` image, which runs Debian 13 with Python 3.13.
+Run the command below to pull the Docker container and run it on Raspberry Pi. This is based on the official [Python](https://hub.docker.com/_/python) `3.13-slim-trixie` image, which runs Debian 13 with Python 3.13.
 
 ```bash
 t=ultralytics/ultralytics:latest-arm64
@@ -98,7 +98,7 @@ Here we will install the Ultralytics package on the Raspberry Pi. Export depende
 
 ## Use NCNN on Raspberry Pi
 
-Out of all the model [export formats](../modes/export.md) supported by Ultralytics, [NCNN](../integrations/ncnn.md) delivers the best inference performance on Raspberry Pi devices because it is highly optimized for mobile/embedded platforms such as ARM architecture. Convert your YOLO26n PyTorch model to NCNN, then run inference with the exported model:
+Out of all the model [export formats](../modes/export.md) supported by Ultralytics, [NCNN](../integrations/ncnn.md) delivers the best inference performance on Raspberry Pi devices because it is highly optimized for mobile and embedded platforms such as ARM. Convert your [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) PyTorch model to NCNN, then run inference with the exported model:
 
 !!! example
 
@@ -136,7 +136,7 @@ Out of all the model [export formats](../modes/export.md) supported by Ultralyti
 
 ## YOLO26 Performance Improvements over YOLO11
 
-YOLO26 is specifically designed to run on hardware-constrained devices such as the Raspberry Pi 5. Compared to YOLO11n, YOLO26n achieves a ~15% increase in FPS (6.79 → 7.79) while also delivering higher mAP (40.1 vs 39.5) at 640 input size with ONNX-exported models on the Raspberry Pi 5. The table and chart below showcase this comparison.
+YOLO26 is specifically designed to run on hardware-constrained devices such as the Raspberry Pi 5. Compared to YOLO11n, YOLO26n achieves a ~15% increase in FPS (6.79 → 7.79) while also delivering higher [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) (40.1 vs 39.5) at 640 input size with ONNX-exported models on the Raspberry Pi 5. The table and chart below showcase this comparison.
 
 <figure style="text-align: center;">
     <img width="800" src="https://cdn.ul.run/i/b2c28f4a5cfa8bc9cb64ce4d7daabaa8.avif" alt="YOLO26 benchmarks on RPi 5">
@@ -169,11 +169,11 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
 
 ## Raspberry Pi 5 YOLO26 Benchmarks
 
-YOLO26 [benchmarks](../modes/benchmark.md) were run by the Ultralytics team on eight different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, LiteRT, MNN, NCNN, ExecuTorch. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO26 [benchmarks](../modes/benchmark.md) were run by the Ultralytics team on eight different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX, OpenVINO, LiteRT, MNN, NCNN, ExecuTorch. Benchmarks were run on a Raspberry Pi 5 at FP32 precision with the default input image size of 640.
 
 ### Comparison Chart
 
-We have only included benchmarks for YOLO26n and YOLO26s models because other model sizes are too big to run on the Raspberry Pis and do not offer decent performance.
+Only YOLO26n and YOLO26s are included because larger model sizes run too slowly on Raspberry Pi to be practical.
 
 <figure style="text-align: center;">
     <img width="800" src="https://cdn.ul.run/i/66e238f32755a6739f7a75f1ad67b629.avif" alt="YOLO26 benchmarks on RPi 5">
@@ -182,7 +182,7 @@ We have only included benchmarks for YOLO26n and YOLO26s models because other mo
 
 ### Detailed Comparison Table
 
-The below table represents the benchmark results for two different models (YOLO26n, YOLO26s) across eight different formats (PyTorch, TorchScript, ONNX, OpenVINO, LiteRT, MNN, NCNN, ExecuTorch), running on a Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The table below shows the benchmark results for two different models (YOLO26n, YOLO26s) across eight different formats (PyTorch, TorchScript, ONNX, OpenVINO, LiteRT, MNN, NCNN, ExecuTorch), running on a Raspberry Pi 5, giving the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
@@ -251,7 +251,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
 
 ## Use Raspberry Pi Camera
 
-When using Raspberry Pi for Computer Vision projects, it can be essential to grab real-time video feeds to perform inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry Pi camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3/) to grab the video feeds and perform inference using YOLO26 models.
+Computer vision projects on Raspberry Pi often need real-time video feeds for inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry Pi camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3/) to grab the video feeds and perform inference using YOLO26 models.
 
 !!! tip
 
@@ -271,7 +271,7 @@ rpicam-hello
 
 !!! tip
 
-    Learn more about [`rpicam-hello` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-hello)
+    Learn more about [`rpicam-hello` usage in the official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-hello).
 
 ### Inference with Camera
 
@@ -281,7 +281,7 @@ There are two methods of using the Raspberry Pi Camera to run inference on YOLO2
 
     === "Method 1"
 
-        We can use `picamera2` which comes pre-installed with Raspberry Pi OS to access the camera and run inference on YOLO26 models.
+        Use `picamera2`, which comes pre-installed with Raspberry Pi OS, to access the camera and run inference on YOLO26 models.
 
         !!! example
 
@@ -327,13 +327,13 @@ There are two methods of using the Raspberry Pi Camera to run inference on YOLO2
 
     === "Method 2"
 
-        We need to initiate a TCP stream with `rpicam-vid` from the connected camera so that we can use this stream URL as an input when we are inferencing later. Execute the following command to start the TCP stream.
+        Start a TCP stream with `rpicam-vid` from the connected camera, then use the stream URL as the inference source. Run the following command to start the TCP stream.
 
         ```bash
         rpicam-vid -n -t 0 --inline --listen -o tcp://127.0.0.1:8888
         ```
 
-        Learn more about [`rpicam-vid` usage on official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-vid)
+        Learn more about [`rpicam-vid` usage in the official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-vid).
 
         !!! example
 
@@ -357,15 +357,15 @@ There are two methods of using the Raspberry Pi Camera to run inference on YOLO2
 
 !!! tip
 
-    Check our document on [Inference Sources](../modes/predict.md#inference-sources) if you want to change the image/video input type
+    See [Inference Sources](../modes/predict.md#inference-sources) to change the image or video input type.
 
 ## Best Practices when using Raspberry Pi
 
-There are a couple of best practices to follow in order to enable maximum performance on Raspberry Pis running YOLO26.
+Follow these best practices to get maximum performance from YOLO26 on Raspberry Pi.
 
 1. Use an SSD
 
-    When using Raspberry Pi for 24x7 continued usage, it is recommended to use an SSD for the system because an SD card will not be able to withstand continuous writes and might get broken. With the onboard PCIe connector on the Raspberry Pi 5, now you can connect SSDs using an adapter such as the [NVMe Base for Raspberry Pi 5](https://shop.pimoroni.com/products/nvme-base).
+    For continuous 24/7 operation, use an SSD for the system because an SD card may wear out or fail under continuous writes. With the onboard PCIe connector on the Raspberry Pi 5, you can connect SSDs using an adapter such as the [NVMe Base for Raspberry Pi 5](https://shop.pimoroni.com/products/nvme-base).
 
 2. Flash without GUI
 
@@ -401,7 +401,7 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 ## Next Steps
 
-You have successfully set up YOLO26 on your Raspberry Pi. To go further, explore [Predict mode](../modes/predict.md) for more inference options, [Export mode](../modes/export.md) for additional deployment formats, or the [NVIDIA Jetson guide](nvidia-jetson.md) if you need more compute at the edge. For the complete documentation, visit the [Ultralytics YOLO26 Docs](../index.md).
+You have successfully set up YOLO26 on your Raspberry Pi. To go further, explore [Predict mode](../modes/predict.md) for more inference options, [Export mode](../modes/export.md) for additional deployment formats, the [Coral Edge TPU guide](coral-edge-tpu-on-raspberry-pi.md) to add a USB accelerator, or the [NVIDIA Jetson guide](nvidia-jetson.md) if you need more compute at the edge. For the complete documentation, visit the [Ultralytics YOLO26 Docs](../index.md).
 
 ## Acknowledgments and Citations
 
@@ -434,7 +434,7 @@ For detailed instructions, refer to the [Start without Docker](#start-without-do
 
 ### Why should I use Ultralytics YOLO26's NCNN format on Raspberry Pi for AI tasks?
 
-Ultralytics YOLO26's NCNN format is highly optimized for mobile and embedded platforms, making it ideal for running AI tasks on Raspberry Pi devices. NCNN maximizes inference performance by leveraging ARM architecture, providing faster and more efficient processing compared to other formats. For more details on supported export formats, see the [model export options](model-deployment-options.md).
+NCNN is highly optimized for mobile and embedded platforms, making it a strong choice for running YOLO26 on Raspberry Pi devices. Its ARM-optimized kernels deliver faster inference on the Pi than the other export formats in the [benchmarks above](#raspberry-pi-5-yolo26-benchmarks). For more details on supported export formats, see the [model export options](model-deployment-options.md).
 
 ### How can I convert a YOLO26 model to NCNN format for use on Raspberry Pi?
 

@@ -9,7 +9,7 @@ keywords: parking management, YOLO26, Ultralytics, vehicle detection, real-time 
 
 ## What Is a Parking Management System?
 
-A parking management system built with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) detects vehicles in real time to track which parking spaces are occupied or available, then reports live lot occupancy. It pairs YOLO26 [object detection](https://www.ultralytics.com/glossary/object-detection) with a JSON-defined parking layout so you can monitor a whole lot from a single video stream or camera feed.
+A parking management system built with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) detects vehicles in real time to track which parking spaces are occupied or available, then reports live lot occupancy. It pairs YOLO26 [object detection](https://www.ultralytics.com/glossary/object-detection) with a JSON-defined parking layout so you can monitor a whole lot from a single video stream or camera feed. For background on smart parking use cases, see [YOLOv8 for smarter parking management systems](https://www.ultralytics.com/blog/ultralytics-yolov8-for-smarter-parking-management-systems).
 
 <p align="center">
   <br>
@@ -28,7 +28,7 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
 - **Safety and Security**: Improves the safety of people and vehicles through continuous surveillance.
 - **Reduced Emissions**: Manages traffic flow to minimize idle time and emissions in parking lots.
 
-## Real World Applications
+## Real-World Applications
 
 |                                           Parking Management System                                            |                                              Parking Management System                                              |
 | :------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------: |
@@ -39,7 +39,7 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
 
 ??? note "Points selection is now easy"
 
-    Choosing parking points is a critical and complex task in parking management systems. Ultralytics streamlines this process by providing a tool "Parking slots annotator" that lets you define parking lot areas, which can be utilized later for additional processing.
+    Defining parking spots by hand is tedious and error-prone. The Ultralytics parking slots annotator (`ParkingPtsSelection`) lets you draw parking areas on a frame and save them for the parking management solution to use.
 
 **Step-1:** Capture a frame from the video or camera stream where you want to manage the parking lot.
 
@@ -49,13 +49,13 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
 
     ??? note "Additional step for installing `tkinter`"
 
-        Generally, `tkinter` comes pre-packaged with Python. However, if it did not, you can install it using the highlighted steps:
+        Generally, `tkinter` comes pre-packaged with Python. If it is missing, install it with the steps below:
 
         - **Linux**: (Debian/Ubuntu): `sudo apt install python3-tk`
         - **Fedora**: `sudo dnf install python3-tkinter`
         - **Arch**: `sudo pacman -S tk`
         - **Windows**: Reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation
-        - **MacOS**: Reinstall Python from [https://www.python.org/downloads/macos/](https://www.python.org/downloads/macos/) or `brew install python-tk`
+        - **macOS**: Reinstall Python from [https://www.python.org/downloads/macos/](https://www.python.org/downloads/macos/) or `brew install python-tk`
 
     === "Python"
 
@@ -156,7 +156,7 @@ Defining parking spaces is straightforward with Ultralytics YOLO26:
 
 1. Capture a frame from a video or camera stream.
 2. Use the provided code to launch a GUI for selecting an image and drawing polygons to define parking spaces.
-3. Save the labeled data in JSON format for further processing. For comprehensive instructions, check the selection of points section above.
+3. Save the labeled data in JSON format for further processing. For step-by-step instructions, see the [parking management code workflow](#parking-management-system-code-workflow).
 
 ### How do I customize the ParkingManagement solution for my parking lot?
 
@@ -164,7 +164,7 @@ The most lot-specific setting is `json_file`: point it at the parking-region JSO
 
 ### What are some real-world applications of Ultralytics YOLO26 in parking lot management?
 
-Ultralytics YOLO26 is utilized in various real-world applications for parking lot management, including:
+Ultralytics YOLO26 is used in various real-world applications for parking lot management, including:
 
 - **Parking Space Detection**: Accurately identifying available and occupied spaces.
 - **Surveillance**: Enhancing security through real-time monitoring.

@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn to implement K-Fold Cross Validation for object detection datasets using Ultralytics YOLO. Improve your model's reliability and robustness.
+description: Implement K-Fold Cross Validation for object detection datasets with Ultralytics YOLO, scikit-learn, and pandas, then train a YOLO model on each fold.
 keywords: Ultralytics, YOLO, K-Fold Cross Validation, object detection, sklearn, pandas, PyYAML, machine learning, dataset split
 ---
 
@@ -8,15 +8,13 @@ keywords: Ultralytics, YOLO, K-Fold Cross Validation, object detection, sklearn,
 
 ## Introduction
 
-This comprehensive guide illustrates the implementation of K-Fold Cross Validation for [object detection](https://www.ultralytics.com/glossary/object-detection) datasets within the Ultralytics ecosystem. We'll leverage the YOLO detection format and key Python libraries such as sklearn, pandas, and PyYAML to guide you through the necessary setup, the process of generating feature vectors, and the execution of a K-Fold dataset split.
+This guide shows how to implement [K-Fold Cross Validation](https://www.ultralytics.com/glossary/cross-validation) for [object detection](https://www.ultralytics.com/glossary/object-detection) datasets in the Ultralytics ecosystem. It uses the YOLO detection format and Python libraries such as scikit-learn, pandas, and PyYAML to walk through the setup, generating feature vectors, and running a K-Fold dataset split.
 
 <p align="center">
   <img width="800" src="https://cdn.ul.run/i/24679d9b2406fea3afbf6a4bd0f175fa.avif" alt="K-fold cross validation data splitting">
 </p>
 
-Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial aims to help you comprehend and apply K-Fold Cross Validation to bolster the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project. K-Fold Cross Validation delivers the most value when your dataset is small, noisy, or highly variable; for large, diverse datasets, a well-constructed train/val/test split is usually sufficient.
-
-Let's get started.
+Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial helps you understand and apply K-Fold Cross Validation to improve the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project. K-Fold Cross Validation delivers the most value when your dataset is small, noisy, or highly variable; for large, diverse datasets, a well-constructed train/val/test split is usually sufficient.
 
 ## Setup
 
@@ -45,7 +43,7 @@ Let's get started.
 
 - This tutorial operates with `k=5` folds. However, you should determine the best number of folds for your specific dataset.
 
-1. Initiate a new Python virtual environment (`venv`) for your project and activate it. Use `pip` (or your preferred package manager) to install:
+1. Create a new Python virtual environment (`venv`) for your project and activate it. Use `pip` (or your preferred package manager) to install:
     - The Ultralytics library: `pip install -U ultralytics`. Alternatively, you can clone the official [repo](https://github.com/ultralytics/ultralytics).
     - Scikit-learn, pandas, and PyYAML: `pip install -U scikit-learn pandas pyyaml`.
 
@@ -56,7 +54,7 @@ Let's get started.
 
 1. Start by creating a new `example.py` Python file for the steps below.
 
-2. Load the configured training and validation images through the package dataset owner, leaving the test split untouched.
+2. Load the training and validation images listed in your dataset YAML with the Ultralytics `YOLODataset` class, leaving the test split untouched.
 
     ```python
     from pathlib import Path
@@ -91,7 +89,7 @@ Let's get started.
     labels_df = pd.DataFrame(0.0, columns=cls_idx, index=images)
     ```
 
-5. Count the instances of each class-label present in the annotation files.
+5. Count the instances of each class label present in the annotation files.
 
     ```python
     from collections import Counter
@@ -118,7 +116,7 @@ Let's get started.
     'fffe28b31f2a70d4_jpg.rf.7ea16bd637ba0711c53b540...'  0.0  6.0  0.0  0.0  0.0  0.0
     ```
 
-The rows use absolute image paths, and the columns correspond to class-label indices. Missing labels remain all-zero background rows. This data structure enables the application of [K-Fold Cross Validation](https://www.ultralytics.com/glossary/cross-validation) to an object detection dataset.
+The rows use absolute image paths, and the columns correspond to class-label indices. Missing labels remain all-zero background rows. This data structure enables the application of K-Fold Cross Validation to an object detection dataset.
 
 ## K-Fold Dataset Split
 
@@ -212,7 +210,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
     model = YOLO(weights_path, task="detect")
     ```
 
-2. Next, iterate over the dataset YAML files to run training. The results will be saved to a directory specified by the `project` and `name` arguments. By default, this directory is 'runs/detect/train#' where # is an integer index.
+2. Next, iterate over the dataset YAML files to run training. The results will be saved to a directory specified by the `project` and `name` arguments. By default, this directory is `runs/detect/train#`, where `#` is an integer index.
 
     ```python
     results = {}
@@ -229,7 +227,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
         )  # include any additional train arguments
     ```
 
-3. You can also use [Ultralytics data.split.autosplit](../reference/data/split.md) function for automatic dataset splitting:
+3. You can also use the Ultralytics [autosplit function](../reference/data/split.md) for automatic dataset splitting:
 
     ```python
     from ultralytics.data.split import autosplit
@@ -242,7 +240,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 
 In this guide, we have explored the process of using K-Fold cross-validation for training the YOLO object detection model. We learned how to split the training and validation pool into K partitions and use the generated ratio table to inspect class balance after random splitting.
 
-We also explored the procedure for creating report DataFrames to visualize the data splits and label distributions across these splits, providing us a clear insight into the structure of our training and validation sets.
+We also explored the procedure for creating report DataFrames to visualize the data splits and label distributions across these splits, giving a clear view of the structure of our training and validation sets.
 
 Optionally, we saved our records for future reference, which could be particularly useful in large-scale projects or when troubleshooting model performance.
 
@@ -282,11 +280,11 @@ The workflow in this guide targets the YOLO detection format, but the same appro
 | `pose`     | Split by subject or sequence so the same person or animal never appears on both sides of a fold.                                                                           |
 | `obb`      | Split at the image level, keeping tiles or crops from the same scene together — especially important for aerial imagery.                                                   |
 
-Whatever the task, keep near-duplicate and related samples out of opposing folds: that kind of leakage inflates validation metrics well beyond what the model will achieve in production.
+Whatever the task, keep near-duplicate and related samples out of opposing folds: that kind of [leakage](https://www.ultralytics.com/glossary/data-leakage) inflates validation metrics well beyond what the model will achieve in production. The [Splits that Tell the Truth lesson](https://academy.ultralytics.com/courses/computer-vision-foundations/splits-that-tell-the-truth) in Ultralytics Academy covers this in more depth.
 
 ### Why should I use Ultralytics YOLO for object detection?
 
-Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Additionally, it integrates seamlessly with tools like [Ultralytics Platform](../platform/index.md) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
+Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Additionally, it integrates with tools like [Ultralytics Platform](../platform/index.md) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
 
 ### How can I ensure my annotations are in the correct format for Ultralytics YOLO?
 

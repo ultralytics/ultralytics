@@ -52,7 +52,7 @@ speed.
 - **Dual-scale detection**
   Standard detectors predict objects on three feature maps — fine, medium, and coarse. YOLO27 N and S drop the
   medium one and predict only on a fine map (for small objects) and a coarse map (for large objects), with a fixed
-  scaling on the fused features keeping the two scales balanced. This removes a large chunk of detection-head
+  scaling on the fused features keeping the two scales balanced. This removes a substantial share of detection-head
   computation, making the models faster while training as reliably as the full three-scale design.
 
 - **Stronger small-object detection**
@@ -72,8 +72,10 @@ speed.
   decoder that refines a fixed set of object queries
   and directly outputs the final detections — no
   [non-maximum suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) post-processing needed. YOLO27m pairs this
-  decoder with the proven YOLO26-style convolutional backbone, while YOLO27l keeps the same FPN/PAN neck and swaps
-  in an UltraViT backbone that uses self-attention in its deepest stage to capture global context.
+  decoder with the YOLO26-style convolutional backbone, while YOLO27l keeps the same
+  [FPN](https://www.ultralytics.com/glossary/feature-pyramid-network-fpn)/PAN neck and swaps in an UltraViT backbone
+  that uses [self-attention](https://www.ultralytics.com/glossary/self-attention) in its deepest stage to capture
+  global context.
 
 - **One simple interface**
   Both architectures are used through the same [`YOLO` Python interface](../usage/python.md). The right training, validation, prediction, and export
@@ -111,8 +113,8 @@ The following table previews planned task and mode support across the four YOLO2
 | YOLO27-pose  | `yolo27n-pose.pt` `yolo27s-pose.pt` `yolo27m-pose.pt` `yolo27l-pose.pt`     | [Pose/Keypoints](../tasks/pose.md)            | ✅       | ✅         | ✅        | ✅     |
 | YOLO27-obb   | `yolo27n-obb.pt` `yolo27s-obb.pt` `yolo27m-obb.pt` `yolo27l-obb.pt`         | [Oriented Detection](../tasks/obb.md)         | ✅       | ✅         | ✅        | ✅     |
 
-YOLO27 Detect, Segment, Pose, and OBB models also work with [Track mode](../modes/track.md), which runs on top of
-predict for multi-object tracking across video frames.
+YOLO27 Detect, Segment, Pose, and OBB models will also work with [Track mode](../modes/track.md), which runs on top
+of predict for multi-object tracking across video frames.
 
 !!! note "Two architecture paths"
 
@@ -219,12 +221,12 @@ _Params and FLOPs values are for the fused model after Conv/BatchNorm folding an
 ## Usage Examples
 
 This section provides simple YOLO27 training and inference examples. For full documentation on these and other
-[modes](../modes/index.md), see the [Predict](../modes/predict.md), [Train](../modes/train.md),
-[Val](../modes/val.md), and [Export](../modes/export.md) docs pages. For custom datasets, see [Tips for Best Training Results](../guides/model-training-tips.md) and the [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md).
+[modes](../modes/index.md), see the [Train](../modes/train.md), [Val](../modes/val.md),
+[Predict](../modes/predict.md), and [Export](../modes/export.md) docs pages. For custom datasets, see [Tips for Best Training Results](../guides/model-training-tips.md) and the [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md).
 
-Note that the example below is for YOLO27 [Detect](../tasks/detect.md) models for [object
-detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks, see the
-[Segment](../tasks/segment.md) and [Classify](../tasks/classify.md) docs.
+The example below is for YOLO27 [Detect](../tasks/detect.md) models for [object
+detection](https://www.ultralytics.com/glossary/object-detection). For the other supported tasks, see the
+[task documentation](../tasks/index.md).
 
 !!! example "Training and inference (after release)"
 
@@ -295,7 +297,7 @@ feature fusion, and a query-based detector that produces final detections direct
 
 ### When will YOLO27 be available?
 
-YOLO27 is undergoing final R&D, with a launch anticipated later this year. No launch date has been set. Model weights and implementation code are not publicly available yet.
+YOLO27 is undergoing final R&D, with a launch anticipated later this year. No launch date has been set. Model weights and implementation code are not publicly available yet. For the preview announcement, see the [YOLO Vision 2026 highlights](https://www.ultralytics.com/blog/key-highlights-from-ultralytics-yolo-vision-2026).
 
 ### How do I get started with YOLO27?
 

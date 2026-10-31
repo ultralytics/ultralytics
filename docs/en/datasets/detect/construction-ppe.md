@@ -25,7 +25,7 @@ The Ultralytics Construction-PPE dataset is an [object detection](https://www.ul
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Detect Personal Protective Equipment with Ultralytics YOLO26 | Workplace Safety Monitoring 🦺
+  <strong>Watch:</strong> How to Detect Personal Protective Equipment with Ultralytics YOLO26 | Workplace Safety Monitoring
 </p>
 
 ## Dataset Structure
@@ -38,7 +38,7 @@ The Construction-PPE dataset contains 1,416 images split into three predefined s
 | Validation | 143    | Yes         |
 | Test       | 141    | Yes         |
 
-Every image is annotated in the [Ultralytics YOLO](../detect/index.md#what-is-the-ultralytics-yolo-dataset-format-and-how-to-structure-it) format, ensuring compatibility with state-of-the-art [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) pipelines.
+Every image is annotated in the [Ultralytics YOLO](index.md#ultralytics-yolo-format) format, so it works directly with Ultralytics [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) pipelines.
 
 The dataset provides **11 classes** covering worn gear, missing gear, and people:
 
@@ -52,15 +52,15 @@ Pairing worn and missing labels lets a model both detect properly worn gear **an
 
 Construction is one of the most hazardous industries, and the challenge is usually enforcement rather than a lack of regulation. Health-and-safety teams are stretched thin and cannot watch every corner of a busy, ever-changing site in real time.
 
-Computer-vision-based PPE detection helps close that gap. By automatically checking whether workers wear the required helmets, vests, and other gear, it enforces safety rules consistently across sites and surfaces leading indicators of risk — revealing compliance trends before incidents occur. PPE detection can also flag unauthorized site intruders, who are typically the first to appear without proper safety gear.
+Computer-vision-based [PPE detection](https://www.ultralytics.com/blog/computer-vision-workplace-safety-ppe) helps close that gap. By automatically checking whether workers wear the required helmets, vests, and other gear, it enforces safety rules consistently across sites and surfaces leading indicators of risk — revealing compliance trends before incidents occur. PPE detection can also flag unauthorized site intruders, who are typically the first to appear without proper safety gear.
 
 ## Applications
 
 Construction-PPE powers a variety of safety-focused computer vision applications:
 
-- **Automated compliance monitoring**: Train AI models to instantly check if workers are wearing required safety gear like helmets, vests, or gloves, reducing risks on site.
+- **Automated compliance monitoring**: Train AI models to automatically check whether workers are wearing required safety gear like helmets, vests, or gloves, reducing risks on site.
 - **Workplace safety analytics**: Track PPE usage over time, spot frequent violations, and generate insights to improve safety culture.
-- **Smart surveillance systems**: Connect detection models with cameras to send real-time alerts when PPE is missing, preventing accidents before they happen.
+- **Smart surveillance systems**: Connect detection models with cameras to send real-time alerts when PPE is missing, helping prevent accidents.
 - **Robotics and autonomous systems**: Enable drones or robots to perform PPE checks across large sites, supporting faster and safer inspections.
 - **Research and education**: Provide a real-world dataset for students and researchers exploring workplace safety and human-object interactions.
 
@@ -68,7 +68,7 @@ To label, train, and deploy a PPE detection model without managing local infrast
 
 ## Dataset YAML
 
-The Construction-PPE dataset includes a YAML configuration file that defines the train, validation, and test image paths along with the full list of object classes. You can access the `construction-ppe.yaml` file directly in the Ultralytics repository here: [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/construction-ppe.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/construction-ppe.yaml)
+The Construction-PPE dataset includes a YAML configuration file that defines the train, validation, and test image paths along with the full list of object classes. You can access the `construction-ppe.yaml` file directly in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/construction-ppe.yaml).
 
 !!! example "ultralytics/cfg/datasets/construction-ppe.yaml"
 
@@ -78,7 +78,7 @@ The Construction-PPE dataset includes a YAML configuration file that defines the
 
 ## Usage
 
-You can train a YOLO26n model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly. For more options and advanced configurations, see the [Training guide](../../modes/train.md).
+You can train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly. For more options and advanced configurations, see the [Training guide](../../modes/train.md).
 
 !!! example "Train Example"
 
@@ -174,7 +174,7 @@ To train a YOLO26 model using the Construction-PPE dataset, you can use the foll
 
 ### Is this dataset suitable for real-world applications?
 
-Yes. Images are curated from real construction sites under diverse conditions, which makes the dataset highly effective for building deployable workplace safety monitoring systems.
+Yes. Images are curated from real construction sites under diverse conditions, which makes the dataset well suited to building deployable workplace safety monitoring systems.
 
 ### What are the benefits of using the Construction-PPE dataset in AI projects?
 

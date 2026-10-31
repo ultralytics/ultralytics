@@ -7,7 +7,7 @@ keywords: region counting, zone counting, object counting in regions, RegionCoun
 
 # Object Counting in Regions with Ultralytics YOLO26
 
-The [RegionCounter solution](../reference/solutions/region_counter.md) in [Ultralytics YOLO26](../models/yolo26.md) tracks objects across video frames and, on every frame, counts the objects whose bounding-box center falls inside each region you define. Each region is drawn on the frame with its own live count, so you can monitor several zones, such as store aisles, road lanes, or production areas, with a single Python call or CLI command.
+The [RegionCounter solution](../reference/solutions/region_counter.md) in [Ultralytics YOLO26](../models/yolo26.md) tracks objects across video frames and, on every frame, counts the objects whose [bounding-box](https://www.ultralytics.com/glossary/bounding-box) center falls inside each region you define. Each region is drawn on the frame with its own live count, so you can monitor several zones, such as store aisles, road lanes, or production areas, with a single Python call or CLI command.
 
 <p align="center">
   <br>
@@ -26,7 +26,7 @@ The [RegionCounter solution](../reference/solutions/region_counter.md) in [Ultra
 - **Tracking built in:** The solution runs YOLO26 detection and [object tracking](../modes/track.md) internally, so there is no separate tracking pipeline to wire up.
 - **Counts you can read programmatically:** Every processed frame returns a results object with a dictionary of region counts, ready for dashboards, alerts, or logging.
 
-## Real World Applications
+## Real-World Applications
 
 |                                                                     Retail                                                                     |                                                          Market Streets                                                           |
 | :--------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------: |
@@ -131,7 +131,7 @@ Each call also returns a results object whose `plot_im` attribute holds the anno
 
 ## Conclusion
 
-The Ultralytics YOLO26 RegionCounter solution monitors live object counts in as many named zones as you need with a few lines of code. To go further, count boundary crossings with [object counting](object-counting.md), follow objects inside a single zone with [TrackZone](trackzone.md), or explore the other [Ultralytics Solutions](../solutions/index.md).
+The Ultralytics YOLO26 RegionCounter solution monitors live object counts in as many named zones as you need with a few lines of code. To go further, count boundary crossings with [object counting](object-counting.md), follow objects inside a single zone with [TrackZone](trackzone.md), or explore the other [Ultralytics Solutions](../solutions/index.md). For more use cases, read [region-based object counting with Ultralytics YOLO11](https://www.ultralytics.com/blog/region-based-object-counting-using-ultralytics-yolo11).
 
 ## FAQ
 

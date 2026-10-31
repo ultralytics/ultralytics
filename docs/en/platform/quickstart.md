@@ -1,7 +1,7 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Get started with Ultralytics Platform in minutes. Learn to create an account, upload datasets, train YOLO models, and deploy to production.
+description: Ultralytics Platform quickstart. Create an account, upload a dataset, train a YOLO model on cloud GPUs, test it in the browser, and deploy an endpoint.
 keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model training, cloud deployment, machine learning
 ---
 
@@ -36,7 +36,7 @@ flowchart TD
 
 ## Get Started
 
-[Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google or GitHub accounts, or with your email address.
+You can sign up and log in with a Google or GitHub account, or with your email address.
 
 ![Ultralytics Platform Signup](https://cdn.ul.run/i/1683ea5d0337eeb6e9099ac434afaedb.avif)<!-- screenshot -->
 
@@ -83,7 +83,7 @@ The onboarding flow guides you through three steps:
 
 ## Home Dashboard
 
-After signing in, you will be directed to the Home page of [Ultralytics Platform](https://platform.ultralytics.com), which provides a welcome card with workspace stats, an overview video, quick access to datasets, projects, and storage, and a recent activity feed.
+After signing in, you will be directed to the Home page of Ultralytics Platform, which provides a welcome card with workspace stats, an overview video, quick access to datasets, projects, and storage, and a recent activity feed.
 
 ![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.ul.run/i/319bf74b155700ff1366bf7a5dbd727d.avif)<!-- screenshot -->
 
@@ -230,9 +230,9 @@ After upload, the platform automatically processes your data:
         └── labels/
     ```
 
-    For full syntax across tasks, see [detect](../datasets/detect/index.md#ultralytics-yolo-format), [segment](../datasets/segment/index.md#ultralytics-yolo-format), [pose](../datasets/pose/index.md#ultralytics-yolo-format), [OBB](../datasets/obb/index.md#yolo-obb-format), and [classify](../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks) dataset guides.
+    For full syntax across tasks, see the [detect](../datasets/detect/index.md#ultralytics-yolo-format), [segment](../datasets/segment/index.md#ultralytics-yolo-format), [semantic](../datasets/semantic/index.md#png-mask-format), [depth](../datasets/depth/index.md#depth-map-format), [classify](../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks), [pose](../datasets/pose/index.md#ultralytics-yolo-format), and [OBB](../datasets/obb/index.md#yolo-obb-format) dataset guides.
 
-Read more about [datasets](data/datasets.md) and supported formats for [detect](../datasets/detect/index.md), [segment](../datasets/segment/index.md), [pose](../datasets/pose/index.md), [OBB](../datasets/obb/index.md), and [classify](../datasets/classify/index.md).
+Read more about [datasets](data/datasets.md) and supported formats for [detect](../datasets/detect/index.md), [segment](../datasets/segment/index.md), [semantic](../datasets/semantic/index.md), [depth](../datasets/depth/index.md), [classify](../datasets/classify/index.md), [pose](../datasets/pose/index.md), and [OBB](../datasets/obb/index.md).
 
 ## Create Your First Project
 
@@ -252,7 +252,7 @@ From your project, click `New Model` to open the **Train New Model** dialog. You
 
 ### Training Configuration
 
-1. **Base Model**: Select official Ultralytics weights or one of your own trained models. The dialog warns if the selected model cannot train the dataset task.
+1. **Base Model**: Select official Ultralytics weights (such as [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26)) or one of your own trained models. The dialog warns if the selected model cannot train the dataset task.
 2. **Dataset**: Choose a ready dataset with at least one train image, at least one validation or test image, and at least one labeled image
 3. **Parameters**: Set **Epochs** (default 100), **Batch Size** (blank means auto), **Image Size** (default 640), and an optional run **Name**. Expand **Advanced Settings** to edit any other Ultralytics training argument in a YAML editor.
 4. **Select GPU**: On the **Cloud Training** tab, choose compute based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell, $2.09/hr), which handles every YOLO26 variant. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
@@ -280,7 +280,7 @@ Once training starts, open the model's `Train` tab to monitor progress in real t
 
 ![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/13e91f2728627c825f8efcd8fe7916b4.avif)<!-- screenshot -->
 
-Metrics are streamed in real-time via SSE (Server-Sent Events). The **Validation** subtab appears when validation results are available, including the confusion matrix, PR curves, and F1 curves produced by the run.
+Metrics stream in real time via Server-Sent Events (SSE). The **Validation** subtab appears when validation results are available, including the [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), PR curves, and F1 curves produced by the run.
 
 !!! tip "Cancel Training"
 
@@ -413,6 +413,7 @@ If you need more help:
 
 - **AI Chat**: Click the floating chat widget on any page for instant help
 - **Documentation**: Browse these docs for detailed guides on [datasets](data/datasets.md), [annotation](data/annotation.md), [training](train/cloud-training.md), [deployment](deploy/endpoints.md), and [billing](account/billing.md)
+- **Ultralytics Academy**: Take the free [Build with Ultralytics Platform](https://academy.ultralytics.com/courses/build-with-ultralytics-platform) course for a guided walkthrough from data to deployment
 - **Discord**: Join our [Discord community](https://discord.com/invite/ultralytics) for discussions
 - **GitHub**: Report issues on [GitHub](https://github.com/ultralytics/ultralytics/issues)
 - **REST API and Python SDK**: See the [API reference](api/index.md), install the [`ultralytics-platform`](https://pypi.org/project/ultralytics-platform/) client, or try the [interactive API docs](https://platform.ultralytics.com/api/docs) for programmatic access to all Platform features

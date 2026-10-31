@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Deploy YOLO models to dedicated endpoints in 42 global regions with configurable resources and monitoring on Ultralytics Platform.
+description: Deploy Ultralytics YOLO models to dedicated, single-tenant endpoints in 42 global regions with configurable CPU and memory, scale-to-zero, and monitoring.
 keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling, global regions
 ---
 
 # Dedicated Endpoints
 
-[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 42 global regions. Each endpoint is a single-tenant service with a unique endpoint URL and independent monitoring. The default resource size scales to zero when idle; custom sizes keep a warm instance and are billed for uptime.
+[Ultralytics Platform](https://platform.ultralytics.com) deploys YOLO models to dedicated endpoints in 42 global regions. Each endpoint is a single-tenant service with a unique endpoint URL and independent monitoring. The default resource size scales to zero when idle; custom sizes keep a warm instance and are billed for uptime. To weigh this option against [shared inference](inference.md), see [dedicated vs. shared inference endpoints](https://www.ultralytics.com/blog/dedicated-inference-endpoints-vs-shared-inference-for-deployment).
 
 ![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.ul.run/i/6685f2d9d5c34b9d72f61263dcb6ad81.avif)<!-- screenshot -->
 
@@ -15,7 +15,7 @@ keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling
 
 ### From the Deploy Tab
 
-Deploy a model from its `Deploy` tab:
+For a guided walkthrough, see the [Deploy and Call an Endpoint](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/deploy-a-model) lesson in Ultralytics Academy. To deploy a model from its `Deploy` tab:
 
 1. Navigate to your model
 2. Click the **Deploy** tab

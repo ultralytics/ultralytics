@@ -7,7 +7,7 @@ keywords: YOLO26, RKNN, model export, Ultralytics, Rockchip, INT8 quantization, 
 
 # Rockchip RKNN Export for Ultralytics YOLO26 Models
 
-When deploying computer vision models on embedded devices, especially those powered by Rockchip processors, having a compatible model format is essential. Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to RKNN format ensures optimized performance and compatibility with Rockchip's hardware. This guide will walk you through converting your YOLO26 models to RKNN format, including floating-point and INT8 quantized exports, enabling efficient deployment on Rockchip platforms.
+When deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on embedded devices, especially those powered by Rockchip processors, having a compatible model format is essential. Exporting [Ultralytics YOLO26](../models/yolo26.md) models to RKNN format provides optimized performance and compatibility with Rockchip's hardware. This guide walks you through converting your YOLO26 models to RKNN format, including floating-point and INT8 quantized exports, for efficient deployment on Rockchip platforms.
 
 <p align="center">
   <img width="50%" src="https://cdn.ul.run/i/3c3fcbb470dabcabbe1b5c926fee152a.avif" alt="Rockchip RKNN export for NPU deployment">
@@ -19,7 +19,7 @@ When deploying computer vision models on embedded devices, especially those powe
 
 ## What is Rockchip?
 
-Renowned for delivering versatile and power-efficient solutions, Rockchip designs advanced System-on-Chips (SoCs) that power a wide range of consumer electronics, industrial applications, and AI technologies. With ARM-based architecture, built-in Neural Processing Units (NPUs), and high-resolution multimedia support, Rockchip SoCs enable cutting-edge performance for devices like tablets, smart TVs, IoT systems, and [edge AI applications](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai). Companies like Radxa, ASUS, Pine64, Orange Pi, Odroid, Khadas, and Banana Pi offer a variety of products based on Rockchip SoCs, further extending their reach and impact across diverse markets.
+Rockchip designs power-efficient System-on-Chips (SoCs) used in a wide range of consumer electronics, industrial applications, and AI products. With ARM-based architecture, built-in [Neural Processing Units (NPUs)](https://www.ultralytics.com/glossary/neural-processing-unit-npu), and high-resolution multimedia support, Rockchip SoCs power devices like tablets, smart TVs, IoT systems, and [edge AI applications](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai). Companies like Radxa, ASUS, Pine64, Orange Pi, Odroid, Khadas, and Banana Pi offer a variety of products based on Rockchip SoCs.
 
 ## RKNN Toolkit
 
@@ -30,13 +30,13 @@ The [RKNN Toolkit](https://github.com/airockchip/rknn-toolkit2) is a set of tool
 RKNN models offer several advantages for deployment on Rockchip platforms:
 
 - **Optimized for NPU**: RKNN models are specifically optimized to run on Rockchip's NPUs, ensuring maximum performance and efficiency.
-- **Low Latency**: The RKNN format minimizes inference latency, which is critical for real-time applications on edge devices.
+- **Low Latency**: The RKNN format minimizes [inference latency](https://www.ultralytics.com/glossary/inference-latency), which is critical for real-time applications on edge devices.
 - **Platform-Specific Customization**: RKNN models can be tailored to specific Rockchip platforms, enabling better utilization of hardware resources.
 - **Power Efficiency**: By leveraging dedicated NPU hardware, RKNN models consume less power than CPU or GPU-based processing, extending battery life for portable devices.
 
 ## Flash OS to Rockchip hardware
 
-The first step after getting your hands on a Rockchip-based device is to flash an OS so that the hardware can boot into a working environment. In this guide we will point to getting started guides of the two devices that we tested which are Radxa Rock 5B and Radxa Zero 3W.
+The first step after getting a Rockchip-based device is to flash an OS so that the hardware can boot into a working environment. The getting started guides for the two tested devices, Radxa Rock 5B and Radxa Zero 3W, are linked below.
 
 - [Radxa Rock 5B Getting Started Guide](https://docs.radxa.com/en/rock5/rock5b)
 - [Radxa Zero 3W Getting Started Guide](https://docs.radxa.com/en/zero/zero3)
@@ -76,7 +76,7 @@ For detailed instructions and best practices related to the installation process
 
     FP16 and INT8 export are supported for all tasks. INT8 builds for FP16-capable targets keep high-error layers in FP16 (RKNN Toolkit `auto_hybrid`); INT8-only targets such as RV1103 and RV1106 skip this step. For detection, segmentation, pose, and OBB models, the INT8 `.rknn` file ends at the head's output convolutions and outputs raw per-level head tensors, and the box decode runs on the host CPU in floating point from the `tail.onnx` file in the exported directory. Ultralytics runs `tail.onnx` with [ONNX Runtime](https://onnxruntime.ai/) (installed automatically when missing); custom runtimes must run `tail.onnx` or implement the same decode. Re-export INT8 detection, segmentation, pose, and OBB models exported with earlier Ultralytics versions, since their outputs hold input-normalized coordinates that current releases no longer rescale. INT8 accuracy for all tasks has been validated with the rknn-toolkit2 simulator but not yet on Rockchip hardware. Depth INT8 builds calibrate on depth dataset images that have paired depth maps. Choose calibration images that span the near and far depth range of the deployment scene, since depths beyond the calibrated range lose accuracy.
 
-The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the floating-point build path (`quantize=16`) for FP16-capable Rockchip targets. Use `quantize=8` to build an INT8-quantized RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; the FP16 default does not request FP32.
+The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the floating-point build path (`quantize=16`) for FP16-capable Rockchip targets. Use `quantize=8` to build an [INT8-quantized](https://www.ultralytics.com/glossary/model-quantization) RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; the FP16 default does not request FP32.
 
 !!! example "Export"
 
@@ -165,7 +165,7 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 
 !!! tip
 
-    Please make sure to use an x86 Linux machine when exporting to RKNN.
+    Use an x86 Linux machine when exporting to RKNN.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -192,7 +192,7 @@ Once installed, run inference and validation on your Rockchip device exactly as 
 
     If you encounter a log message indicating that the RKNN runtime version does not match the RKNN Toolkit version and the inference fails, please replace `/usr/lib/librknnrt.so` with official [librknnrt.so file](https://github.com/airockchip/rknn-toolkit2/blob/master/rknpu2/runtime/Linux/librknn_api/aarch64/librknnrt.so).
 
-    ![RKNN export screenshot](https://cdn.ul.run/i/90077c647a22b3a29612d2701c6f2108.avif)
+    ![RKNN log warning that the model toolkit version does not match the librknnrt runtime version](https://cdn.ul.run/i/90077c647a22b3a29612d2701c6f2108.avif)
 
 ## Real-World Applications
 
@@ -227,23 +227,23 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
     !!! note
 
-        Validation for the above benchmarks was done using the COCO128 dataset. Inference time does not include pre/post-processing. The INT8 rows will be refreshed once the current INT8 export path (host-side decode and `auto_hybrid`) is validated on Rockchip hardware.
+        Validation for the above benchmarks was done using the [COCO128](https://platform.ultralytics.com/ultralytics/datasets/coco128) dataset. Inference time does not include pre/post-processing. The INT8 rows will be refreshed once the current INT8 export path (host-side decode and `auto_hybrid`) is validated on Rockchip hardware.
 
 ## Summary
 
-In this guide, you've learned how to export Ultralytics YOLO26 models to RKNN format to enhance their deployment on Rockchip platforms. You were also introduced to the RKNN Toolkit and the specific advantages of using RKNN models for edge AI applications.
+In this guide, you've learned how to export Ultralytics YOLO26 models to RKNN format for deployment on Rockchip platforms. You were also introduced to the RKNN Toolkit and the specific advantages of using RKNN models for edge AI applications.
 
-The combination of [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) and Rockchip's NPU technology provides an efficient solution for running advanced computer vision tasks on embedded devices. This approach enables real-time [object detection](https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025) and other vision AI applications with minimal power consumption and high performance.
+The combination of [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) and Rockchip's NPU technology provides an efficient solution for running advanced computer vision tasks on embedded devices. This approach enables real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and other vision AI applications with low power consumption.
 
-For further details on usage, visit the [RKNN official documentation](https://github.com/airockchip/rknn-toolkit2).
+For further details on usage, visit the [RKNN official documentation](https://github.com/airockchip/rknn-toolkit2). For a deployment walkthrough, see [deploying Ultralytics YOLO11 on Rockchip for edge AI](https://www.ultralytics.com/blog/deploy-ultralytics-yolo11-on-rockship-for-efficient-edge-ai).
 
-Also, if you'd like to know more about other Ultralytics YOLO26 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+To learn about other Ultralytics YOLO26 integrations, visit the [integrations overview](index.md).
 
 ## FAQ
 
 ### How do I export my Ultralytics YOLO model to RKNN format?
 
-You can easily export your Ultralytics YOLO model to RKNN format using the `export()` method in the Ultralytics Python package or via the command-line interface (CLI). Ensure you are using an x86-based Linux PC for the export process, as ARM64 devices like Rockchip are not supported for this operation. You can specify the target Rockchip platform using the `name` argument, such as `rk3588`, `rk3566`, or others. This process generates an optimized RKNN model ready for deployment on your Rockchip device, taking advantage of its Neural Processing Unit (NPU) for accelerated inference.
+You can export your Ultralytics YOLO model to RKNN format using the `export()` method in the Ultralytics Python package or via the command-line interface (CLI). Ensure you are using an x86-based Linux PC for the export process, as ARM64 devices like Rockchip are not supported for this operation. You can specify the target Rockchip platform using the `name` argument, such as `rk3588`, `rk3566`, or others. This process generates an optimized RKNN model ready for deployment on your Rockchip device, taking advantage of its Neural Processing Unit (NPU) for accelerated inference.
 
 !!! example
 
@@ -267,11 +267,11 @@ You can easily export your Ultralytics YOLO model to RKNN format using the `expo
 
 ### What are the benefits of using RKNN models on Rockchip devices?
 
-RKNN models are specifically designed to leverage the hardware acceleration capabilities of Rockchip's Neural Processing Units (NPUs). This optimization results in significantly faster inference speeds and reduced latency compared to running generic model formats like ONNX or LiteRT on the same hardware. Using RKNN models allows for more efficient use of the device's resources, leading to lower power consumption and better overall performance, especially critical for real-time applications on edge devices. By converting your Ultralytics YOLO models to RKNN, you can achieve optimal performance on devices powered by Rockchip SoCs like the RK3588, RK3566, and others.
+RKNN models are specifically designed to leverage the hardware acceleration capabilities of Rockchip's Neural Processing Units (NPUs). This optimization results in faster inference and reduced latency compared to running generic model formats like ONNX or LiteRT on the same hardware. Using RKNN models allows for more efficient use of the device's resources, leading to lower power consumption and better overall performance, especially critical for real-time applications on edge devices. By converting your Ultralytics YOLO models to RKNN, you can achieve optimal performance on devices powered by Rockchip SoCs like the RK3588, RK3566, and others.
 
 ### Can I deploy RKNN models on devices from other manufacturers like NVIDIA or Google?
 
-RKNN models are specifically optimized for Rockchip platforms and their integrated NPUs. While you can technically run an RKNN model on other platforms using software emulation, you will not benefit from the hardware acceleration provided by Rockchip devices. For optimal performance on other platforms, it's recommended to export your Ultralytics YOLO models to formats specifically designed for those platforms, such as TensorRT for NVIDIA GPUs or [Edge TPU](edge-tpu.md) for Google's Coral devices. Ultralytics supports exporting to a wide range of formats, ensuring compatibility with various hardware accelerators.
+RKNN models are specifically optimized for Rockchip platforms and their integrated NPUs. While you can technically run an RKNN model on other platforms using software emulation, you will not benefit from the hardware acceleration provided by Rockchip devices. For optimal performance on other platforms, it's recommended to export your Ultralytics YOLO models to formats specifically designed for those platforms, such as [TensorRT](tensorrt.md) for NVIDIA GPUs or [Edge TPU](edge-tpu.md) for Google's Coral devices. Ultralytics supports exporting to a wide range of formats, ensuring compatibility with various hardware accelerators.
 
 ### What Rockchip platforms are supported for RKNN model deployment?
 
@@ -279,4 +279,4 @@ The Ultralytics YOLO export to RKNN format supports Rockchip platforms with floa
 
 ### How does the performance of RKNN models compare to other formats on Rockchip devices?
 
-RKNN models generally outperform other formats like ONNX or LiteRT on Rockchip devices due to their optimization for Rockchip's NPUs. For instance, benchmarks on the Radxa Rock 5B (RK3588) show that [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) in RKNN format achieves an inference time of 58.5 ms/image in FP16 and 41.2 ms/image in INT8, significantly faster than other formats. This performance advantage is consistent across various YOLO26 model sizes, as demonstrated in the [benchmarks section](#benchmarks). By leveraging the dedicated NPU hardware, RKNN models minimize latency and maximize throughput, making them ideal for real-time applications on Rockchip-based edge devices.
+RKNN models generally outperform other formats like ONNX or LiteRT on Rockchip devices due to their optimization for Rockchip's NPUs. For instance, benchmarks on the Radxa Rock 5B (RK3588) show that [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) in RKNN format achieves an inference time of 58.5 ms/image in FP16 and 41.2 ms/image in INT8. Results for all YOLO26 model sizes are listed in the [benchmarks section](#benchmarks). By running on the dedicated NPU hardware, RKNN models minimize latency and maximize throughput for real-time applications on Rockchip-based edge devices.

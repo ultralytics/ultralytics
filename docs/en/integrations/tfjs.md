@@ -1,7 +1,7 @@
 ---
 title: TensorFlow.js (TF.js) Export (Deprecated)
 comments: true
-description: Historical guide to legacy YOLO TensorFlow.js export. format="tfjs" now exports a LiteRT model; use LiteRT for new exports.
+description: Legacy guide to YOLO TensorFlow.js export, deprecated in Ultralytics 8.4.83. format="tfjs" now exports LiteRT; use LiteRT for browser and edge deployment.
 keywords: YOLO26, TensorFlow.js, TF.js, model export, machine learning, object detection, browser ML, Node.js, Ultralytics, YOLO, export models
 ---
 
@@ -9,9 +9,9 @@ keywords: YOLO26, TensorFlow.js, TF.js, model export, machine learning, object d
 
 !!! warning "Deprecated — replaced by LiteRT"
 
-    As of **Ultralytics 8.4.83**, the `tfjs` (TensorFlow.js) export format has been removed and replaced by the unified **[Google LiteRT](litert.md)** format. LiteRT runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) (with WebGPU acceleration) — covering the in-browser and Node.js use cases TF.js handled, alongside mobile, embedded, and edge, from a single `.tflite` model.
+    As of **Ultralytics 8.4.83**, the `tfjs` (TensorFlow.js) export format has been deprecated and replaced by the unified **Google LiteRT** format. LiteRT runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) (with WebGPU acceleration) — covering the in-browser and Node.js use cases TF.js handled, alongside mobile, embedded, and edge, from a single `.tflite` model.
 
-    `format="tfjs"` still works but emits a deprecation warning and exports a LiteRT model instead. **Use [`format="litert"`](litert.md)** going forward; for current export instructions and the browser deployment path, see the **[LiteRT export guide](litert.md)**.
+    `format="tfjs"` still works but emits a deprecation warning and exports a LiteRT model instead. **Use `format="litert"`** going forward; for current export instructions and the browser deployment path, see the **[LiteRT export guide](litert.md)**.
 
 Deploying [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models directly in the browser or on Node.js can be tricky. You'll need to make sure your model format is optimized for faster performance so that the model can be used to run interactive applications locally on the user's device. The TensorFlow.js, or TF.js, model format is designed to use minimal power while delivering fast performance.
 
@@ -23,11 +23,11 @@ Exporting your machine learning models to TensorFlow.js, developed by the Tensor
   <img width="100%" src="https://cdn.ul.run/i/deb6049be0dd044a4eb34b7c680977f0.avif" alt="TensorFlow.js browser ML inference architecture">
 </p>
 
-Running models locally also reduces latency and provides a more responsive user experience. [TensorFlow.js](https://www.tensorflow.org/js) also comes with offline capabilities, allowing users to use your application even without an internet connection. TF.js is designed for efficient execution of complex models on devices with limited resources as it is engineered for scalability, with GPU acceleration support.
+Running models locally also reduces [latency](https://www.ultralytics.com/glossary/inference-latency) and provides a more responsive user experience. [TensorFlow.js](https://www.tensorflow.org/js) also comes with offline capabilities, allowing users to use your application even without an internet connection. TF.js is designed for efficient execution of complex models on devices with limited resources as it is engineered for scalability, with GPU acceleration support.
 
 ## Key Features of TF.js
 
-Here are the key features that make TF.js a powerful tool for developers:
+Here are the key features that make TF.js useful for developers:
 
 - **Cross-Platform Support:** TensorFlow.js can be used in both browser and Node.js environments, providing flexibility in deployment across different platforms. It lets developers build and deploy applications more easily.
 
@@ -66,9 +66,9 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
+All [Ultralytics YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes locally and runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web). See the [LiteRT export guide](litert.md) for the current browser and on-device deployment path.
+The `tfjs` argument now exports a LiteRT `.tflite` model, which supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes locally and runs in the browser via LiteRT.js. See the [LiteRT export guide](litert.md) for the current browser and on-device deployment path.
 
 !!! example "Export"
 
@@ -93,7 +93,7 @@ The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which sup
 
 !!! note "Predict and Validate"
 
-    The exported LiteRT `.tflite` model loads directly with `yolo predict` and `yolo val`, and runs in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web). See the [LiteRT export guide](litert.md).
+    The exported LiteRT `.tflite` model loads directly with `yolo predict` and `yolo val`, and runs in the browser via LiteRT.js.
 
 ### Export Arguments
 
@@ -101,23 +101,23 @@ See the [LiteRT export arguments](litert.md#export-arguments). For more details 
 
 ## Deploying Exported YOLO26 TensorFlow.js Models
 
-Now that you have exported your YOLO26 model, the next step is to deploy it. The export produces a [LiteRT](litert.md) `.tflite` model that runs on-device and in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) — see the [LiteRT export guide](litert.md) for the current path.
+Now that you have exported your YOLO26 model, the next step is to deploy it. The export produces a LiteRT `.tflite` model that runs on-device and in the browser via LiteRT.js, as described in the LiteRT export guide linked above.
 
 For reference, the legacy TensorFlow.js runtime resources are below:
 
-- **[Chrome Extension](https://www.tensorflow.org/js/tutorials/deployment/web_ml_in_chrome)**: Here's the developer documentation for how to deploy your TF.js models to a Chrome extension.
+- **[Chrome Extension](https://www.tensorflow.org/js/tutorials/deployment/web_ml_in_chrome)**: Developer documentation for deploying your TF.js models to a Chrome extension.
 
-- **[Run TensorFlow.js in Node.js](https://www.tensorflow.org/js/guide/nodejs)**: A TensorFlow blog post on running TensorFlow.js in Node.js directly.
+- **[Run TensorFlow.js in Node.js](https://www.tensorflow.org/js/guide/nodejs)**: A TensorFlow guide on running TensorFlow.js in Node.js directly.
 
-- **[Deploying TensorFlow.js - Node Project on Cloud Platform](https://www.tensorflow.org/js/guide/node_in_cloud)**: A TensorFlow blog post on deploying a TensorFlow.js model on a Cloud Platform.
+- **[Deploying TensorFlow.js - Node Project on Cloud Platform](https://www.tensorflow.org/js/guide/node_in_cloud)**: A TensorFlow guide on deploying a TensorFlow.js Node project on a cloud platform.
 
 ## Summary
 
-This guide preserves the legacy TF.js deployment context. Use [LiteRT](litert.md) for new exports.
+This guide preserves the legacy TF.js deployment context. Use LiteRT for new exports; for a walkthrough, see [LiteRT export for YOLO edge, mobile, and browser inference](https://www.ultralytics.com/blog/export-ultralytics-yolo-with-litert-for-edge-and-browser-deployment).
 
 For further details on usage, visit the [TensorFlow.js official documentation](https://www.tensorflow.org/js/guide).
 
-For more information on integrating Ultralytics YOLO26 with other platforms and frameworks, don't forget to check out our [integration guide page](index.md). It's packed with great resources to help you make the most of YOLO26 in your projects.
+For more information on integrating Ultralytics YOLO26 with other platforms and frameworks, see the [integrations overview](index.md).
 
 ## FAQ
 

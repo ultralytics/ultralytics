@@ -1,7 +1,7 @@
 ---
 title: YOLO FAQ Common Questions & Solutions
 comments: true
-description: Explore common questions and solutions related to Ultralytics YOLO, from hardware requirements to model fine-tuning and real-time detection.
+description: Answers to common Ultralytics YOLO questions, from installation and system requirements to training, pretrained YOLO26 models, deployment, and tuning.
 keywords: Ultralytics, YOLO, FAQ, object detection, hardware requirements, fine-tuning, ONNX, TensorFlow, real-time detection, model accuracy
 ---
 
@@ -13,12 +13,13 @@ This FAQ section addresses common questions and issues users might encounter whi
 
 ### What is Ultralytics and what does it offer?
 
-Ultralytics is a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) AI company specializing in state-of-the-art object detection and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) models, with a focus on the YOLO (You Only Look Once) family. Their offerings include:
+Ultralytics is a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) AI company specializing in state-of-the-art object detection and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) models, with a focus on the YOLO (You Only Look Once) family. Its offerings include:
 
 - Open-source implementations of [YOLO26](../models/yolo26.md) (latest) and [YOLO11](../models/yolo11.md) (previous generation)
 - A wide range of [pretrained models](../models/index.md) for various computer vision tasks
-- A comprehensive [Python package](../usage/python.md) for seamless integration of YOLO models into projects
+- A comprehensive [Python package](../usage/python.md) for integrating YOLO models into projects
 - Versatile [tools](../modes/index.md) for training, testing, and deploying models
+- [Ultralytics Platform](../platform/index.md) for annotating data, training models in the cloud, and deploying them
 - [Extensive documentation](../index.md) and a supportive community
 
 ### Is YOLO27 available yet?
@@ -82,15 +83,15 @@ For a more in-depth guide, including data preparation and advanced training opti
 
 ### What pretrained models are available in Ultralytics?
 
-Ultralytics offers a diverse range of pretrained models for various tasks:
+Ultralytics offers a diverse range of [pretrained YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) for various tasks:
 
-- Object Detection: YOLO26n, YOLO26s, YOLO26m, YOLO26l, YOLO26x
-- [Instance Segmentation](https://www.ultralytics.com/glossary/instance-segmentation): YOLO26n-seg, YOLO26s-seg, YOLO26m-seg, YOLO26l-seg, YOLO26x-seg
+- [Object Detection](../tasks/detect.md): YOLO26n, YOLO26s, YOLO26m, YOLO26l, YOLO26x
+- [Instance Segmentation](../tasks/segment.md): YOLO26n-seg, YOLO26s-seg, YOLO26m-seg, YOLO26l-seg, YOLO26x-seg
 - [Semantic Segmentation](../tasks/semantic.md): YOLO26n-sem, YOLO26s-sem, YOLO26m-sem, YOLO26l-sem, YOLO26x-sem
 - [Depth Estimation](../tasks/depth.md): YOLO26n-depth, YOLO26s-depth, YOLO26m-depth, YOLO26l-depth, YOLO26x-depth
-- Classification: YOLO26n-cls, YOLO26s-cls, YOLO26m-cls, YOLO26l-cls, YOLO26x-cls
-- Pose Estimation: YOLO26n-pose, YOLO26s-pose, YOLO26m-pose, YOLO26l-pose, YOLO26x-pose
-- Oriented Detection (OBB): YOLO26n-obb, YOLO26s-obb, YOLO26m-obb, YOLO26l-obb, YOLO26x-obb
+- [Classification](../tasks/classify.md): YOLO26n-cls, YOLO26s-cls, YOLO26m-cls, YOLO26l-cls, YOLO26x-cls
+- [Pose Estimation](../tasks/pose.md): YOLO26n-pose, YOLO26s-pose, YOLO26m-pose, YOLO26l-pose, YOLO26x-pose
+- [Oriented Detection (OBB)](../tasks/obb.md): YOLO26n-obb, YOLO26s-obb, YOLO26m-obb, YOLO26l-obb, YOLO26x-obb
 
 These models vary in size and complexity, offering different trade-offs between speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). Explore the full range of [pretrained models](../models/index.md) to find the best fit for your project.
 
@@ -118,10 +119,10 @@ For advanced inference options, including batch processing and video inference, 
 
 ### Can Ultralytics models be deployed on edge devices or in production environments?
 
-Absolutely! Ultralytics models are designed for versatile deployment across various platforms:
+Yes. Ultralytics models support deployment across various platforms:
 
-- Edge devices: Optimize inference on devices like NVIDIA Jetson or Raspberry Pi using TensorRT, ONNX, or OpenVINO.
-- Mobile: Deploy on Android or iOS devices by converting models to LiteRT or CoreML.
+- Edge devices: Optimize inference on devices like [NVIDIA Jetson](../guides/nvidia-jetson.md) or [Raspberry Pi](../guides/raspberry-pi.md) using TensorRT, ONNX, or OpenVINO.
+- Mobile: Deploy on Android or iOS devices by converting models to [LiteRT](../integrations/litert.md) or [CoreML](../integrations/coreml.md).
 - Cloud: Leverage frameworks like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Serving or TorchServe for scalable cloud deployments.
 - Web: Implement in-browser inference using ONNX Runtime Web.
 
@@ -134,11 +135,11 @@ Key distinctions include:
 - [End-to-End NMS-Free Inference](../guides/end2end-detection.md): YOLO26 offers NMS-free inference with `nms=False`. Its default one-to-many path uses NMS for accuracy.
 - DFL Removal: YOLO26 removes the Distribution Focal Loss module, simplifying export and improving compatibility with edge and low-power devices.
 - MuSGD Optimizer: A hybrid of SGD and Muon (inspired by Moonshot AI's Kimi K2) for more stable training and faster convergence.
-- CPU Performance: YOLO26n runs up to 43% faster than YOLO11n on CPU ONNX inference (Intel Xeon CPU @ 2.00 GHz), making it ideal for devices without GPUs.
-- Task-Specific Optimizations: Enhanced segmentation with semantic loss and multi-scale protos, RLE for precision pose estimation, and improved OBB decoding with angle loss.
-- Tasks: Both models support [object detection](https://www.ultralytics.com/glossary/object-detection) and instance segmentation, while YOLO26 also adds [semantic segmentation](../tasks/semantic.md) for dense pixel-level prediction and [monocular depth estimation](../tasks/depth.md) for per-pixel depth. Both models also support classification, pose estimation, and oriented object detection (OBB) in a unified framework.
+- CPU Performance: YOLO26n runs up to 43% faster than YOLO11n on CPU ONNX inference (Intel Xeon CPU @ 2.00 GHz), making it well suited to devices without GPUs.
+- Task-Specific Optimizations: Enhanced segmentation with semantic loss and multi-scale protos, Residual Log-Likelihood Estimation (RLE) for more accurate pose estimation, and improved OBB decoding with angle loss.
+- Tasks: Both models support [object detection](https://www.ultralytics.com/glossary/object-detection) and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), while YOLO26 also adds [semantic segmentation](../tasks/semantic.md) for dense pixel-level prediction and [monocular depth estimation](../tasks/depth.md) for per-pixel depth. Both models also support classification, pose estimation, and oriented object detection (OBB) in a unified framework.
 
-For an in-depth comparison of features and performance metrics, visit the [YOLO26 documentation page](../models/yolo26.md).
+For an in-depth comparison of features and performance metrics, visit the [YOLO26 documentation page](../models/yolo26.md) or read [how to choose between YOLO26, YOLO11, and YOLOv8](https://www.ultralytics.com/blog/ultralytics-yolo26-vs-yolo11-vs-yolov8-which-one-should-you-use).
 
 ### How can I contribute to the Ultralytics open-source project?
 
@@ -154,7 +155,7 @@ You can also contribute by reporting bugs, suggesting features, or improving doc
 
 ### What are the main features of Ultralytics YOLO?
 
-Ultralytics YOLO boasts a rich set of features for advanced computer vision tasks:
+Ultralytics YOLO offers a rich set of features for advanced computer vision tasks:
 
 - Real-Time Detection: Efficiently detect and classify objects in real-time scenarios.
 - Multi-Task Capabilities: Perform object detection, instance segmentation, [semantic segmentation](../tasks/semantic.md), [monocular depth estimation](../tasks/depth.md), classification, pose estimation, and oriented object detection (OBB) with a unified framework.
@@ -165,7 +166,7 @@ Ultralytics YOLO boasts a rich set of features for advanced computer vision task
 
 ### How can I improve the performance of my YOLO model?
 
-Enhancing your YOLO model's performance can be achieved through several techniques:
+Several techniques can improve your YOLO model's performance:
 
 1. [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning): Experiment with different hyperparameters using the [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md) to optimize model performance.
 2. [Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation): Implement techniques like flip, scale, rotate, and color adjustments to enhance your training dataset and improve model generalization.
@@ -175,13 +176,14 @@ Enhancing your YOLO model's performance can be achieved through several techniqu
 
 ### Where can I find examples and tutorials for using Ultralytics?
 
-Ultralytics provides a wealth of resources to help you get started and master their tools:
+Ultralytics provides many resources to help you get started with its tools:
 
-- 📚 [Official documentation](../index.md): Comprehensive guides, API references, and best practices.
-- 💻 [GitHub repository](https://github.com/ultralytics/ultralytics): Source code, example scripts, and community contributions.
-- ✍️ [Ultralytics blog](https://www.ultralytics.com/blog): In-depth articles, use cases, and technical insights.
-- 💬 [Community forums](https://community.ultralytics.com): Connect with other users, ask questions, and share your experiences.
-- 🎥 [YouTube channel](https://www.youtube.com/ultralytics?sub_confirmation=1): Video tutorials, demos, and webinars on various Ultralytics topics.
+- [Official documentation](../index.md): Comprehensive guides, API references, and best practices.
+- [GitHub repository](https://github.com/ultralytics/ultralytics): Source code, example scripts, and community contributions.
+- [Ultralytics blog](https://www.ultralytics.com/blog): In-depth articles, use cases, and technical insights.
+- [Ultralytics Academy](https://academy.ultralytics.com/): Free courses on computer vision foundations, training your first YOLO model, and running YOLO in production.
+- [Community forums](https://community.ultralytics.com): Connect with other users, ask questions, and share your experiences.
+- [YouTube channel](https://www.youtube.com/ultralytics?sub_confirmation=1): Video tutorials, demos, and webinars on various Ultralytics topics.
 
 These resources provide code examples, real-world use cases, and step-by-step guides for various tasks using Ultralytics models.
 

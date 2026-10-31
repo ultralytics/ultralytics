@@ -27,11 +27,11 @@ This guide covers the most common problems you'll hit when working with Ultralyt
 
 ### Installation Errors
 
-Installation errors can arise due to various reasons, such as incompatible versions, missing dependencies, or incorrect environment setups. First, check to make sure you are doing the following:
+Installation errors can arise due to various reasons, such as incompatible versions, missing dependencies, or incorrect environment setups. First, check the following:
 
-- You're using Python 3.8 or later as recommended.
-- Ensure that you have the correct version of [PyTorch](https://www.ultralytics.com/glossary/pytorch) (1.8 or later) installed.
-- Consider using virtual environments to avoid conflicts.
+- You're using Python 3.8 or later.
+- You have a compatible version of [PyTorch](https://www.ultralytics.com/glossary/pytorch) (1.8 or later) installed.
+- You're using a virtual environment to avoid conflicts.
 - Follow the [official installation guide](../quickstart.md) step by step.
 
 Additionally, here are solutions to common installation issues.
@@ -54,14 +54,14 @@ If you get errors importing YOLO26 or run into dependency conflicts, try these s
 If you're having trouble running YOLO26 on a GPU, consider the following troubleshooting steps:
 
 - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
-- **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
+- **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns `True`, PyTorch is set up to use CUDA.
 - **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
 - **Update Your Packages**: Outdated packages might not be compatible with your GPU. Keep them updated.
-- **Program Configuration**: Check whether your code requests GPU usage. You can set the [`device`](../modes/train.md) argument when running training or prediction (for example, `device=0`).
+- **Program Configuration**: Check whether your code requests GPU usage. You can set the [`device`](../modes/train.md#train-settings) argument when running training or prediction (for example, `device=0`).
 
 !!! warning "Older GPUs and cuDNN 9.11.0+"
 
-    Support for GPU architectures earlier than Turing — compute capability (SM) below 7.5, such as the 1080 Ti — was dropped in cuDNN 9.11.0. On an older GPU you may need a build of PyTorch compiled against an earlier CUDA/cuDNN version. Check your setup with:
+    Support for GPU architectures earlier than Turing — compute capability (SM) below 7.5, such as the GTX 1080 Ti — was dropped in cuDNN 9.11.0. On an older GPU you may need a build of PyTorch compiled against an earlier CUDA/cuDNN version. Check your setup with:
 
     ```python
     import torch
@@ -93,7 +93,7 @@ Common training problems and their fixes are covered below.
 
 **Issue**: Training is slow on a single GPU, and you want to speed up the process using multiple GPUs.
 
-**Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with [multiple GPUs](../modes/train.md), follow these steps:
+**Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with [multiple GPUs](../modes/train.md#multi-gpu-training), follow these steps:
 
 - Ensure that you have multiple GPUs available.
 - Set the `device` argument to a list of GPU indices, e.g., `device=[0,1,2,3]`.
@@ -111,11 +111,11 @@ Common training problems and their fixes are covered below.
 
 **Solution**: While loss is a crucial metric to monitor, it's also essential to track other metrics for model performance optimization. Some key metrics to monitor during training include:
 
-- Precision
-- Recall
+- [Precision](https://www.ultralytics.com/glossary/precision)
+- [Recall](https://www.ultralytics.com/glossary/recall)
 - [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP)
 
-You can access these metrics from the training logs or by using tools like TensorBoard or Weights & Biases for visualization. Implementing early stopping based on these metrics can help you achieve better results.
+You can access these metrics from the training logs or by using tools like [TensorBoard](../integrations/tensorboard.md) or [Weights & Biases](../integrations/weights-biases.md) for visualization. Early stopping with the `patience` training argument (default `100` epochs without validation improvement) helps avoid wasted epochs and [overfitting](https://www.ultralytics.com/glossary/overfitting).
 
 #### Tools for Tracking Training Progress
 
@@ -125,13 +125,13 @@ You can access these metrics from the training logs or by using tools like Tenso
 
 - [TensorBoard](https://www.tensorflow.org/tensorboard): TensorBoard is a popular choice for visualizing training metrics, including loss, [accuracy](https://www.ultralytics.com/glossary/accuracy), and more. You can integrate it with your YOLO26 training process.
 - [Comet](../integrations/comet.md): Comet provides an extensive toolkit for experiment tracking and comparison. It allows you to track metrics, hyperparameters, and even model weights. Integration with YOLO models is also straightforward, providing you with a complete overview of your experiment cycle.
-- [Ultralytics Platform](https://platform.ultralytics.com): Ultralytics Platform offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
+- [Ultralytics Platform](https://platform.ultralytics.com): Ultralytics Platform tracks YOLO training runs alongside your datasets and models, so you can compare metrics and collaborate with your team in one place.
 
 #### How to Check if Training is Happening on the GPU
 
-**Issue**: The 'device' value in the training logs is 'null,' and you're unsure if training is happening on the GPU.
+**Issue**: The `device` value in the training logs is `null`, and you're unsure if training is happening on the GPU.
 
-**Solution**: The 'device' value being 'null' typically means that the training process is set to automatically select an available GPU, which is the default behavior. To train on a specific GPU, set the `device` argument when you start training. `device` is a training argument, so setting it in your dataset `.yaml` has no effect:
+**Solution**: A `null` `device` value typically means that the training process is set to automatically select an available GPU, which is the default behavior. To train on a specific GPU, set the `device` argument when you start training. `device` is a training argument, so setting it in your dataset `.yaml` has no effect:
 
 === "Python"
 
@@ -151,11 +151,11 @@ You can access these metrics from the training logs or by using tools like Tenso
     yolo train data=path/to/data.yaml device=0
     ```
 
-Keep an eye on the 'runs' folder for logs and metrics to monitor training progress effectively.
+Keep an eye on the `runs` folder for logs and metrics to monitor training progress effectively.
 
 #### Key Considerations for Effective Model Training
 
-Here are some things to keep in mind, if you are facing issues related to model training.
+Keep the following in mind if you are facing issues related to model training.
 
 **Dataset Format and Labels**
 
@@ -165,22 +165,22 @@ Here are some things to keep in mind, if you are facing issues related to model 
 **Model Convergence**
 
 - Importance: Achieving model convergence ensures that the model has sufficiently learned from the [training data](https://www.ultralytics.com/glossary/training-data).
-- Recommendation: When training a model 'from scratch', it's vital to ensure that the model reaches a satisfactory level of convergence. This might necessitate a longer training duration, with more [epochs](https://www.ultralytics.com/glossary/epoch), compared to when you're fine-tuning an existing model.
+- Recommendation: When training a model 'from scratch', it's vital to ensure that the model reaches a satisfactory level of convergence. This might necessitate a longer training duration, with more [epochs](https://www.ultralytics.com/glossary/epoch), compared to when you're [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) an existing model.
 
 **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) and Batch Size**
 
-- Importance: These hyperparameters play a pivotal role in determining how the model updates its weights during training.
-- Recommendation: Regularly evaluate if the chosen learning rate and batch size are optimal for your specific dataset. Parameters that are not in harmony with the dataset's characteristics can hinder the model's performance.
+- Importance: These hyperparameters determine how the model updates its weights during training.
+- Recommendation: Regularly evaluate whether the chosen learning rate and batch size suit your specific dataset, and consider [hyperparameter tuning](hyperparameter-tuning.md) to search for better values. Parameters that are not in harmony with the dataset's characteristics can hinder the model's performance.
 
 **Class Distribution**
 
 - Importance: The distribution of classes in your dataset can influence the model's prediction tendencies.
-- Recommendation: Regularly assess the distribution of classes within your dataset. If there's a class imbalance, there's a risk that the model will develop a bias towards the more prevalent class. This bias can be evident in the confusion matrix, where the model might predominantly predict the majority class.
+- Recommendation: Regularly assess the distribution of classes within your dataset. If there's a class imbalance, there's a risk that the model will develop a bias toward the more prevalent class. This bias can be evident in the [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), where the model might predominantly predict the majority class. See [training on an imbalanced dataset](../modes/train.md#how-do-i-train-a-model-on-an-imbalanced-dataset) for mitigation options.
 
 **Cross-Check with Pretrained Weights**
 
 - Importance: Leveraging pretrained weights can provide a solid starting point for model training, especially when data is limited.
-- Recommendation: As a diagnostic step, consider training your model using the same data but initializing it with pretrained weights. If this approach yields a well-formed confusion matrix, it could suggest that the 'from scratch' model might require further training or adjustments.
+- Recommendation: As a diagnostic step, consider training your model using the same data but initializing it with [pretrained weights](https://platform.ultralytics.com/ultralytics/yolo26). If this approach yields a well-formed confusion matrix, it could suggest that the 'from scratch' model might require further training or adjustments.
 
 ### Issues Related to Model Predictions
 
@@ -192,7 +192,7 @@ Common problems encountered during model prediction and their fixes are covered 
 
 **Solution**:
 
-- Coordinate Format: YOLO26 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let's say your image size is 640x640. Then you would do the following:
+- Coordinate Format: YOLO26 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, if your image size is 640x640:
 
     ```python
     # Convert absolute coordinates to relative coordinates
@@ -202,13 +202,15 @@ Common problems encountered during model prediction and their fixes are covered 
     y2 = y2 / 640
     ```
 
+    Alternatively, use the `boxes.xyxyn` or `boxes.xywhn` attributes of each result, which already return normalized coordinates.
+
 - File Name: To obtain the file name of the image you're predicting on, read the image file path from the `path` attribute of each result object (for example `result.path`) within your prediction loop.
 
 #### Filtering Objects in YOLO26 Predictions
 
 **Issue**: Facing issues with how to filter and display only specific objects in the prediction results when running YOLO26 using the Ultralytics library.
 
-**Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
+**Solution**: To detect specific classes, use the `classes` argument to specify the classes you want to include in the output. For instance, to detect only cars (class index 2 in COCO):
 
 ```bash
 yolo segment predict model=yolo26n-seg.pt source='path/to/car.mp4' show=True classes=2
@@ -216,13 +218,13 @@ yolo segment predict model=yolo26n-seg.pt source='path/to/car.mp4' show=True cla
 
 #### Understanding Precision Metrics in YOLO26
 
-**Issue**: Confusion regarding the difference between box precision, mask precision, and [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) precision in YOLO26.
+**Issue**: Confusion regarding the difference between box precision, mask precision, and confusion matrix precision in YOLO26.
 
-**Solution**: Box precision measures the accuracy of predicted bounding boxes compared to the actual ground truth boxes using IoU (Intersection over Union) as the metric. Mask precision assesses the agreement between predicted segmentation masks and ground truth masks in pixel-wise object classification. Confusion matrix precision, on the other hand, focuses on overall classification accuracy across all classes and does not consider the geometric accuracy of predictions. It's important to note that a [bounding box](https://www.ultralytics.com/glossary/bounding-box) can be geometrically accurate (true positive) even if the class prediction is wrong, leading to differences between box precision and confusion matrix precision. These metrics evaluate distinct aspects of a model's performance, reflecting the need for different evaluation metrics in various tasks.
+**Solution**: Box precision measures the accuracy of predicted bounding boxes compared to the actual ground truth boxes using [IoU (Intersection over Union)](https://www.ultralytics.com/glossary/intersection-over-union-iou) as the metric. Mask precision assesses the agreement between predicted segmentation masks and ground truth masks in pixel-wise object classification. Confusion matrix precision, on the other hand, focuses on overall classification accuracy across all classes and does not consider the geometric accuracy of predictions. It's important to note that a [bounding box](https://www.ultralytics.com/glossary/bounding-box) can be geometrically accurate (true positive) even if the class prediction is wrong, leading to differences between box precision and confusion matrix precision. These metrics evaluate distinct aspects of a model's performance, reflecting the need for different evaluation metrics in various tasks.
 
 #### Extracting Object Dimensions in YOLO26
 
-**Issue**: Difficulty in retrieving the length and height of detected objects in YOLO26, especially when multiple objects are detected in an image.
+**Issue**: Difficulty in retrieving the width and height of detected objects in YOLO26, especially when multiple objects are detected in an image.
 
 **Solution**: To retrieve the bounding box dimensions, first use the Ultralytics YOLO26 model to [predict objects](../modes/predict.md) in an image. Then, extract the width and height information of bounding boxes from the prediction results.
 
@@ -249,9 +251,9 @@ for box in boxes:
 
 #### GPU Deployment Issues
 
-**Issue:** Deploying models in a multi-GPU environment can sometimes lead to unexpected behaviors like unexpected memory usage, inconsistent results across GPUs, etc.
+**Issue:** Deploying models in a multi-GPU environment can sometimes lead to unexpected behavior, such as unusual memory usage or inconsistent results across GPUs.
 
-**Solution:** Check for default GPU initialization. Some frameworks, like PyTorch, might initialize CUDA operations on a default GPU before transitioning to the designated GPUs. To bypass unexpected default initializations, specify the GPU directly during deployment and prediction. Then, use tools to monitor GPU utilization and memory usage to identify any anomalies in real-time. Also, ensure you're using the latest version of the framework or library.
+**Solution:** Check for default GPU initialization. Some frameworks, like PyTorch, might initialize CUDA operations on a default GPU before transitioning to the designated GPUs. To bypass unexpected default initializations, specify the GPU directly during deployment and prediction. Then, use tools to monitor GPU utilization and memory usage to identify any anomalies in real time. Also, ensure you're using the latest version of the framework or library.
 
 #### Model Conversion/Exporting Issues
 
@@ -300,11 +302,11 @@ model.train(data="/path/to/your/data.yaml", batch=32, device=[0, 1, 2, 3])
 
 ### How can I ensure my YOLO26 model is training on the GPU?
 
-If the 'device' value shows 'null' in the training logs, it generally means the training process is set to automatically select an available GPU. To explicitly assign a specific GPU, pass the `device` argument when you start training, for example `yolo train data=path/to/data.yaml device=0` for the first GPU. Consult the `nvidia-smi` command to confirm your CUDA setup.
+If the `device` value shows `null` in the training logs, it generally means the training process is set to automatically select an available GPU. To explicitly assign a specific GPU, pass the `device` argument when you start training, for example `yolo train data=path/to/data.yaml device=0` for the first GPU. Run `nvidia-smi` to confirm your CUDA setup.
 
 ### How can I monitor and track my YOLO26 model training progress?
 
-Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](../integrations/comet.md), and [Ultralytics Platform](https://platform.ultralytics.com). These tools allow you to log and visualize metrics such as loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
+Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](../integrations/comet.md), and [Ultralytics Platform](https://platform.ultralytics.com). These tools allow you to log and visualize metrics such as loss, precision, recall, and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
 
 ### What should I do if YOLO26 is not recognizing my dataset format?
 

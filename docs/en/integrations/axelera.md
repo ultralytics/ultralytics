@@ -10,7 +10,7 @@ Ultralytics partners with [Axelera AI](https://axelera.ai/) to enable high-perfo
 
 ![Axelera AI edge deployment ecosystem for YOLO](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
-Axelera AI provides dedicated hardware acceleration for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) at the edge, using a proprietary dataflow architecture and [in-memory computing](https://www.ultralytics.com/glossary/edge-computing) to deliver up to **856 TOPS** with low power consumption.
+Axelera AI provides dedicated hardware acceleration for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) at the edge, using a proprietary dataflow architecture and in-memory computing to deliver up to **856 TOPS** with low power consumption. For background on the partnership, see [Ultralytics YOLO Meets Axelera AI](https://www.ultralytics.com/blog/bringing-ultralytics-yolo-models-to-axelera-ai-hardware-for-edge-ai) and the [Ultralytics Axelera AI partner page](https://www.ultralytics.com/partners/axelera).
 
 ## Selecting the Right Hardware
 
@@ -36,11 +36,11 @@ flowchart TD
 
 ## Hardware Portfolio
 
-The Axelera hardware lineup is optimized to run [Ultralytics YOLO26](../models/yolo26.md) and legacy versions with high FPS-per-watt efficiency.
+The Axelera hardware lineup is optimized to run [Ultralytics YOLO26](../models/yolo26.md) and earlier YOLO versions with high FPS-per-watt efficiency.
 
 ### Accelerator Cards
 
-These cards enable AI acceleration in existing host devices, facilitating [brownfield deployments](https://www.ultralytics.com/glossary/edge-computing).
+These cards enable AI acceleration in existing host devices, facilitating brownfield deployments.
 
 | Product           | Form Factor    | Compute            | Performance (INT8) | Target Application                                                                                                                         |
 | :---------------- | :------------- | :----------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -255,7 +255,7 @@ yolo26n_axelera_model/
 
 ## Axelera AI Benchmarks
 
-The Metis AIPU maximizes throughput while minimizing energy consumption.
+The Metis AIPU is designed for high throughput at low power.
 
 | Model   | Metis PCIe FPS (frames per second) | Metis M.2 FPS (frames per second) |
 | ------- | ---------------------------------- | --------------------------------- |
@@ -269,7 +269,7 @@ These are host throughput figures, measured by the [model zoo](https://docs.axel
 
 ## Real-World Applications
 
-Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
+Ultralytics YOLO on Axelera hardware supports [edge computing](https://www.ultralytics.com/glossary/edge-computing) applications such as:
 
 - **Smart Retail**: Real-time [object counting](../guides/object-counting.md) and [heatmap analytics](../guides/heatmaps.md) for store optimization.
 - **Industrial Safety**: Low-latency [PPE detection](../datasets/detect/construction-ppe.md) in manufacturing environments.
@@ -303,7 +303,7 @@ Models are compiled for a single image, and a single image runs on one AIPU core
 yolo predict model=yolo26n_axelera_model source=path/to/images batch=32
 ```
 
-`yolo26n` at `imgsz=640` over the 128 [COCO128](../datasets/detect/coco128.md) images in a directory, Metis PCIe, median of three runs:
+`yolo26n` at `imgsz=640` over the 128 [COCO128](https://platform.ultralytics.com/ultralytics/datasets/coco128) images in a directory, Metis PCIe, median of three runs:
 
 | Voyager SDK | Devices | `batch=1` | `batch=8` | `batch=32` |
 | :---------- | :------ | :-------- | :-------- | :--------- |
@@ -312,7 +312,7 @@ yolo predict model=yolo26n_axelera_model source=path/to/images batch=32
 | 1.9.0       | 1       | 41 img/s  | 85 img/s  | 109 img/s  |
 | 1.9.0       | 2       | 35 img/s  | 83 img/s  | 113 img/s  |
 
-On SDK 1.9 a batch is what raises throughput, 2.7 times at `batch=32`, where 1.8 stays near 40 img/s at any batch size. Use a large batch for offline throughput and `batch=1` when per-image latency matters. A second device adds little to `predict`: at `batch=32` each image already spends about 4 ms in host-side preprocessing, as long as its time on the device.
+On SDK 1.9 a batch is what raises throughput, 2.7 times at `batch=32`, where 1.8 stays near 40 img/s at any batch size. Use a large batch for offline throughput and `batch=1` when per-image latency matters. A second device adds little to `predict`: at `batch=32` each image already spends about 4 ms in host-side preprocessing, roughly as long as its time on the device.
 
 ### Beyond `predict`
 
@@ -344,7 +344,7 @@ Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) can be 
 
 ### How does INT8 quantization affect accuracy?
 
-Axelera's Voyager SDK automatically quantizes models for the mixed-precision AIPU architecture. For most [object detection](https://www.ultralytics.com/glossary/object-detection) tasks, the performance gains (higher FPS, lower power) significantly outweigh the minimal impact on [mAP](../guides/yolo-performance-metrics.md). Quantization takes seconds to several hours depending on model size. Run `yolo val` after export to verify accuracy.
+Axelera's Voyager SDK automatically quantizes models for the mixed-precision AIPU architecture. For most [object detection](https://www.ultralytics.com/glossary/object-detection) tasks, the performance gains (higher FPS, lower power) usually outweigh the small impact on [mAP](../guides/yolo-performance-metrics.md). Quantization takes seconds to several hours depending on model size. Run `yolo val` after export to verify accuracy.
 
 ### How many calibration images should I use?
 
@@ -352,4 +352,4 @@ We recommend 100 to 400 images. More than 400 provides no additional benefit and
 
 ### Where can I find the Voyager SDK?
 
-The SDK, drivers, and compiler tools are available via the [Axelera Developer Portal](https://github.com/axelera-ai-hub/voyager-sdk).
+The SDK, drivers, and compiler tools are available from the [Voyager SDK GitHub repository](https://github.com/axelera-ai-hub/voyager-sdk).

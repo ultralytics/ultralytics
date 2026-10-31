@@ -7,7 +7,7 @@ keywords: YOLO26, TensorBoard, model training, visualization, machine learning, 
 
 # Gain Visual Insights with YOLO26's Integration with TensorBoard
 
-Understanding and fine-tuning [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models like [Ultralytics' YOLO26](https://www.ultralytics.com) becomes more straightforward when you take a closer look at their training processes. Model training visualization helps with getting insights into the model's learning patterns, performance metrics, and overall behavior. YOLO26's integration with TensorBoard makes this process of visualization and analysis easier and enables more efficient and informed adjustments to the model.
+Understanding and fine-tuning [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models like [Ultralytics YOLO26](../models/yolo26.md) becomes more straightforward when you take a closer look at their training processes. Model training visualization helps with getting insights into the model's learning patterns, performance metrics, and overall behavior. YOLO26's integration with TensorBoard makes this process of visualization and analysis easier and enables more efficient and informed adjustments to the model.
 
 This guide covers how to use TensorBoard with YOLO26. You'll learn about various visualizations, from tracking metrics to analyzing model graphs. These tools will help you understand your YOLO26 model's performance better.
 
@@ -17,7 +17,7 @@ This guide covers how to use TensorBoard with YOLO26. You'll learn about various
   <video width="640" src="https://cdn.ul.run/v/9a84f8f496ec26b77cd289d8d2823a39.mp4" autoplay loop muted playsinline aria-label="TensorBoard training visualization dashboard"></video>
 </p>
 
-[TensorBoard](https://www.tensorflow.org/tensorboard), [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)'s visualization toolkit, is essential for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) experimentation. TensorBoard features a range of visualization tools, crucial for monitoring machine learning models. These tools include tracking key metrics like loss and accuracy, visualizing model graphs, and viewing histograms of weights and biases over time. It also provides capabilities for projecting [embeddings](https://www.ultralytics.com/glossary/embeddings) to lower-dimensional spaces and displaying multimedia data.
+[TensorBoard](https://www.tensorflow.org/tensorboard), [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)'s visualization toolkit, is widely used for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) experimentation. TensorBoard features a range of visualization tools for monitoring machine learning models. These tools include tracking key metrics like [loss](https://www.ultralytics.com/glossary/loss-function) and accuracy, visualizing model graphs, and viewing histograms of weights and biases over time. It also provides capabilities for projecting [embeddings](https://www.ultralytics.com/glossary/embeddings) to lower-dimensional spaces and displaying multimedia data.
 
 ## YOLO26 Training with TensorBoard
 
@@ -42,7 +42,7 @@ For detailed instructions and best practices related to the installation process
 
 ## Configuring TensorBoard for Google Colab
 
-When using Google Colab, it's important to set up TensorBoard before starting your training code:
+When using [Google Colab](google-colab.md), set up TensorBoard before starting your training code:
 
 !!! example "Configure TensorBoard for Google Colab"
 
@@ -55,7 +55,7 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 
 ## Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
+Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](https://platform.ultralytics.com/ultralytics/yolo26). This will help you choose the most appropriate model for your project requirements.
 
 !!! tip "Enable or Disable TensorBoard"
 
@@ -91,17 +91,17 @@ Upon running the usage code snippet above, you can expect the following output:
 TensorBoard: Start with 'tensorboard --logdir runs/detect/train', view at http://localhost:6006/
 ```
 
-This output indicates that TensorBoard is now actively monitoring your YOLO26 training session. You can access the TensorBoard dashboard at `localhost:6006` to view real-time training metrics and model performance. For users working in [Google Colab](../integrations/google-colab.md), the TensorBoard will be displayed in the same cell where you executed the TensorBoard configuration commands.
+This output indicates that TensorBoard is now actively monitoring your YOLO26 training session. You can access the TensorBoard dashboard at `localhost:6006` to view real-time training metrics and model performance. For users working in Google Colab, TensorBoard is displayed in the same cell where you executed the TensorBoard configuration commands.
 
 For more information related to the model training process, be sure to check our [YOLO26 Model Training guide](../modes/train.md). If you are interested in learning more about logging, checkpoints, plotting, and file management, read our [usage guide on configuration](../usage/cfg.md).
 
 ## Understanding Your TensorBoard for YOLO26 Training
 
-Now, let's focus on understanding the various features and components of TensorBoard in the context of YOLO26 training. The three key sections of the TensorBoard are Time Series, Scalars, and Graphs.
+This section explains the main features and components of TensorBoard in the context of YOLO26 training. The three key sections of TensorBoard are Time Series, Scalars, and Graphs.
 
 ### Time Series
 
-The Time Series feature in the TensorBoard offers a dynamic and detailed perspective of various training metrics over time for YOLO26 models. It focuses on the progression and trends of metrics across training epochs. Here's an example of what you can expect to see.
+The Time Series feature in TensorBoard offers a dynamic and detailed perspective of various training metrics over time for YOLO26 models. It focuses on the progression and trends of metrics across training epochs. Here's an example of what you can expect to see.
 
 ![TensorBoard time series training metrics visualization](https://cdn.ul.run/i/aee57d53b8d51fed26cb3ccf370da342.avif)
 
@@ -121,22 +121,22 @@ The Time Series section is essential for a thorough analysis of the YOLO26 model
 
 ### Scalars
 
-Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics like loss and accuracy during the training of YOLO26 models. They offer a clear and concise view of how these metrics evolve with each training [epoch](https://www.ultralytics.com/glossary/epoch), providing insights into the model's learning effectiveness and stability. Here's an example of what you can expect to see.
+Scalars in TensorBoard are used for plotting and analyzing simple metrics like loss and accuracy during the training of YOLO26 models. They offer a clear and concise view of how these metrics evolve with each training [epoch](https://www.ultralytics.com/glossary/epoch), providing insights into the model's learning effectiveness and stability. Here's an example of what you can expect to see.
 
 ![TensorBoard scalars dashboard showing YOLO training metrics](https://cdn.ul.run/i/8cdee541f8b938c4938e763138c464d3.avif)
 
 #### Key Features of Scalars in TensorBoard
 
-- **Learning Rate (lr) Tags**: These tags show the variations in the learning rate across different segments (e.g., `lr/pg0`, `lr/pg1`, `lr/pg2`). This helps us understand the impact of learning rate adjustments on the training process.
+- **Learning Rate (lr) Tags**: These tags show the variations in the learning rate across different segments (e.g., `lr/pg0`, `lr/pg1`, `lr/pg2`). This helps you understand the impact of learning rate adjustments on the training process.
 
 - **Metrics Tags**: Scalars include performance indicators such as:
-    - `metrics/mAP50(B)`: Mean Average [Precision](https://www.ultralytics.com/glossary/precision) at 50% [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), crucial for assessing object detection accuracy.
+    - `metrics/mAP50(B)`: [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) at 50% [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), crucial for assessing object detection accuracy.
 
-    - `metrics/mAP50-95(B)`: [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
+    - `metrics/mAP50-95(B)`: Mean Average Precision calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
 
-    - `metrics/precision(B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction [accuracy](https://www.ultralytics.com/glossary/accuracy).
+    - `metrics/precision(B)`: The [precision](https://www.ultralytics.com/glossary/precision) of the detections, meaning the fraction of positive predictions that are correct.
 
-    - `metrics/recall(B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
+    - `metrics/recall(B)`: Important for models where missing a detection is costly, [recall](https://www.ultralytics.com/glossary/recall) measures the ability to detect all relevant instances.
 
     - To learn more about the different metrics, read our guide on [performance metrics](../guides/yolo-performance-metrics.md).
 
@@ -152,7 +152,7 @@ While both Scalars and Time Series in TensorBoard are used for tracking metrics,
 
 ### Graphs
 
-The Graphs section of the TensorBoard visualizes the computational graph of the YOLO26 model, showing how operations and data flow within the model. It's a powerful tool for understanding the model's structure, ensuring that all layers are connected correctly, and for identifying any potential bottlenecks in data flow. Here's an example of what you can expect to see.
+The Graphs section of the TensorBoard visualizes the computational graph of the YOLO26 model, showing how operations and data flow within the model. It helps with understanding the model's structure, checking that all layers are connected correctly, and identifying any potential bottlenecks in data flow. Here's an example of what you can expect to see.
 
 ![TensorBoard computational graph visualization for YOLO model](https://cdn.ul.run/i/814201f5d964b8b43b59896616e6e02b.avif)
 
@@ -162,9 +162,9 @@ Graphs are particularly useful for debugging the model, especially in complex ar
 
 This guide aims to help you use TensorBoard with YOLO26 for visualization and analysis of machine learning model training. It focuses on explaining how key TensorBoard features can provide insights into training metrics and model performance during YOLO26 training sessions.
 
-For a more detailed exploration of these features and effective utilization strategies, you can refer to TensorFlow's official [TensorBoard documentation](https://www.tensorflow.org/tensorboard/get_started) and their [GitHub repository](https://github.com/tensorflow/tensorboard).
+For a more detailed exploration of these features and effective utilization strategies, you can refer to TensorFlow's official [TensorBoard documentation](https://www.tensorflow.org/tensorboard/get_started) and their [GitHub repository](https://github.com/tensorflow/tensorboard). For a walkthrough with Ultralytics models, see [visualizing YOLO training metrics with TensorBoard](https://www.ultralytics.com/blog/visualizing-training-metrics-with-the-tensorboard-integration).
 
-Want to learn more about the various integrations of Ultralytics? Check out the [Ultralytics integrations guide page](../integrations/index.md) to see what other exciting capabilities are waiting to be discovered!
+To learn about other Ultralytics integrations, see the [Ultralytics integrations overview](index.md).
 
 ## FAQ
 
@@ -192,7 +192,7 @@ The TensorBoard dashboard, accessible at `localhost:6006`, provides real-time in
 When training YOLO26 models, TensorBoard allows you to visualize an array of important metrics including:
 
 - **Loss (Training and Validation):** Indicates how well the model is performing during training and validation.
-- **Accuracy/Precision/[Recall](https://www.ultralytics.com/glossary/recall):** Key performance metrics to evaluate detection accuracy.
+- **Accuracy/Precision/Recall:** Key performance metrics to evaluate detection accuracy.
 - **Learning Rate:** Track learning rate changes to understand its impact on training dynamics.
 - **mAP (mean Average Precision):** For a comprehensive evaluation of [object detection](https://www.ultralytics.com/glossary/object-detection) accuracy at various IoU thresholds.
 
@@ -223,4 +223,4 @@ Yes, you can use TensorBoard in a Google Colab environment to train YOLO26 model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
-TensorBoard will visualize the training progress within Colab, providing real-time insights into metrics like loss and accuracy. For additional details on configuring YOLO26 training, see our detailed [YOLO26 Installation guide](../quickstart.md).
+TensorBoard will visualize the training progress within Colab, providing real-time insights into metrics like loss and accuracy. For installation details, see the [YOLO26 Installation guide](../quickstart.md).

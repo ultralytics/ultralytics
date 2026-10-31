@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to train YOLOv5 on your own custom datasets with easy-to-follow steps. Detailed guide on dataset preparation, model selection, and training process.
+description: Train Ultralytics YOLOv5 on a custom dataset by writing dataset.yaml, labeling in YOLO format, organizing directories, choosing weights and visualizing results.
 keywords: YOLOv5, custom dataset, model training, object detection, machine learning, AI, YOLO model, PyTorch, dataset preparation, Ultralytics
 ---
 
 # Train YOLOv5 on Custom Data
 
-📚 This guide explains how to train your own **custom dataset** using the [YOLOv5](https://github.com/ultralytics/yolov5) model 🚀. Training custom models is a fundamental step in tailoring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions to specific real-world applications beyond generic [object detection](../../tasks/detect.md).
+This guide explains how to train your own **custom dataset** using the [YOLOv5](https://github.com/ultralytics/yolov5) model. Training custom models is a fundamental step in tailoring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions to specific real-world applications beyond generic [object detection](../../tasks/detect.md).
 
 ## Before You Start
 
@@ -27,17 +27,17 @@ Developing a custom [object detection](../../tasks/detect.md) model is an iterat
 1.  **Collect & Organize Images**: Gather images relevant to your specific task. High-quality, diverse data is crucial. See our guide on [Data Collection and Annotation](../../guides/data-collection-and-annotation.md).
 2.  **Label Objects**: Annotate the objects of interest within your images accurately.
 3.  **Train a Model**: Use the labeled data to train your YOLOv5 model. Leverage [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by starting with pretrained weights.
-4.  **Deploy & Predict**: Utilize the trained model for inference on new, unseen data.
+4.  **Deploy & Predict**: Use the trained model for inference on new, unseen data.
 5.  **Collect Edge Cases**: Identify scenarios where the model performs poorly ([edge cases](https://en.wikipedia.org/wiki/Edge_case)) and add similar data to your dataset to improve robustness. Repeat the cycle.
 
-[Ultralytics Platform](../../platform/index.md) offers a streamlined, no-code solution for this entire [machine learning operations (MLOps)](https://www.ultralytics.com/glossary/machine-learning-operations-mlops) cycle, including dataset management, model training, and deployment.
+[Ultralytics Platform](../../platform/index.md) offers a no-code solution for this entire [machine learning operations (MLOps)](https://www.ultralytics.com/glossary/machine-learning-operations-mlops) cycle, including dataset management, model training, and deployment.
 
 !!! question "Licensing"
 
     Ultralytics provides two licensing options to accommodate diverse usage scenarios:
 
     - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-3.0) open-source license is ideal for students, researchers, and enthusiasts passionate about open collaboration and knowledge sharing. It requires derived works to be shared under the same license. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for full details.
-    - **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
+    - **Enterprise License**: For development and production use, this license enables integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
     Explore our licensing options further on the [Ultralytics Licensing](https://www.ultralytics.com/license) page.
 
@@ -85,11 +85,11 @@ names:
 
 Manual labeling is the common approach but is time-consuming. Foundation models can automate or semi-automate annotation and speed up dataset creation. Examples of models that can help generate labels:
 
-- **[Google Gemini](https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-google-gemini-models-for-object-detection-image-captioning-and-ocr.ipynb)**: Large multimodal models like Gemini possess powerful image understanding capabilities. They can be prompted to identify and locate objects within images, generating bounding boxes or descriptions that can be converted into YOLO format labels. Explore its potential in the provided tutorial notebook. The [Ultralytics VLM Leaderboard](https://www.ultralytics.com/benchmarks/vlm) compares how accurately Gemini and other vision language models auto-annotate real-world detection datasets.
+- **[Google Gemini](https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-google-gemini-models-for-object-detection-image-captioning-and-ocr.ipynb)**: Large multimodal models like Gemini have strong image understanding capabilities. They can be prompted to identify and locate objects within images, generating bounding boxes or descriptions that can be converted into YOLO format labels, as shown in the linked tutorial notebook. The [Ultralytics VLM Leaderboard](https://www.ultralytics.com/benchmarks/vlm) compares how accurately Gemini and other [vision language models](https://platform.ultralytics.com/models) auto-annotate real-world detection datasets.
 - **[SAM2 (Segment Anything Model 2)](../../models/sam-2.md)**: Foundation models focused on segmentation, like SAM2, can identify and delineate objects with high precision. While primarily for segmentation, the resulting masks can often be converted into bounding box annotations suitable for object detection tasks.
-- **[YOLOWorld](../../models/yolo-world.md)**: This model offers open-vocabulary detection capabilities. You can provide text descriptions of the objects you're interested in, and YOLOWorld can locate them in images _without_ prior training on those specific classes. This can be used as a starting point for generating initial labels, which can then be refined.
+- **[YOLO-World](../../models/yolo-world.md)**: This model offers open-vocabulary detection capabilities. You can provide text descriptions of the objects you're interested in, and YOLO-World can locate them in images _without_ prior training on those specific classes. This can be used as a starting point for generating initial labels, which can then be refined.
 
-Using these models can provide a "pre-labeling" step, reducing the manual effort required. However, it's crucial to review and refine automatically generated labels to ensure accuracy and consistency, as the quality directly impacts the performance of your trained YOLOv5 model. After generating (and potentially refining) your labels, ensure they adhere to the **YOLO format**: one `*.txt` file per image, with each line representing an object as `class_index x_center y_center width height` (normalized coordinates, zero-indexed class). If an image has no objects of interest, no corresponding `*.txt` file is needed.
+Using these models can provide a "pre-labeling" step, reducing the manual effort required. [Ultralytics Platform Smart Annotation](../../platform/data/annotation.md#smart-annotation) offers SAM, YOLO and vision language model pre-labeling in the browser without code. However, it's crucial to review and refine automatically generated labels to ensure accuracy and consistency, as the quality directly impacts the performance of your trained YOLOv5 model. After generating (and potentially refining) your labels, ensure they adhere to the **YOLO format**: one `*.txt` file per image, with each line representing an object as `class_index x_center y_center width height` (normalized coordinates, zero-indexed class). If an image has no objects of interest, no corresponding `*.txt` file is needed.
 
 The YOLO format `*.txt` file specifications are precise:
 
@@ -106,7 +106,7 @@ The label file corresponding to the image above, containing two 'person' objects
 
 ### 1.3 Organize Directories
 
-Structure your [datasets](../../datasets/index.md) directory as illustrated below. By default, YOLOv5 anticipates the dataset directory (e.g., `/coco128`) to reside within a `/datasets` folder located **adjacent to** the `/yolov5` repository directory.
+Structure your [datasets](../../datasets/index.md) directory as illustrated below. By default, YOLOv5 expects the dataset directory (e.g., `/coco128`) to reside within a `/datasets` folder located **adjacent to** the `/yolov5` repository directory.
 
 YOLOv5 automatically locates the labels for each image by substituting the last instance of `/images/` in the image path with `/labels/`. For example:
 
@@ -138,7 +138,7 @@ The recommended directory structure is:
 
 ## 2. Select a Model
 
-Choose a [pretrained model](../../models/index.md) to initiate the training process. Starting with pretrained weights significantly accelerates learning and improves performance compared to training from scratch. YOLOv5 offers various model sizes, each balancing speed and accuracy differently. For example, [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml) is the second-smallest and second-fastest model, suitable for resource-constrained environments. Consult the [README table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a detailed comparison of all available [models](../../models/index.md).
+Choose a [pretrained model](../../models/index.md) to initiate the training process. Starting with pretrained weights significantly accelerates learning and improves performance compared to training from scratch. YOLOv5 offers various model sizes, each balancing speed and accuracy differently. For example, [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml) is the second-smallest and second-fastest model, suitable for resource-constrained environments. Consult the [README table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a detailed comparison of all available models.
 
 <p align="center"><img width="800" alt="Comparison chart of YOLOv5 models showing size, speed, and accuracy" src="https://cdn.ul.run/i/d41839d4750825bc166761e37782ab31.avif"></p>
 
@@ -150,7 +150,7 @@ Begin model training using the `train.py` script. Essential arguments include:
 - `--batch`: Determines the [batch size](https://www.ultralytics.com/glossary/batch-size) (e.g., `--batch 16`). Choose the largest size your GPU can handle.
 - `--epochs`: Specifies the total number of training [epochs](https://www.ultralytics.com/glossary/epoch) (e.g., `--epochs 100`). One epoch represents a full pass over the entire training dataset.
 - `--data`: Path to your `dataset.yaml` file (e.g., `--data coco128.yaml`).
-- `--weights`: Path to the initial weights file. Using pretrained weights (e.g., `--weights yolov5s.pt`) is highly recommended for faster convergence and superior results. To train from scratch (not advised unless you have a very large dataset and specific needs), use `--weights '' --cfg yolov5s.yaml`.
+- `--weights`: Path to the initial weights file. Using pretrained weights (e.g., `--weights yolov5s.pt`) is recommended for faster convergence and better results. To train from scratch (not advised unless you have a very large dataset and specific needs), use `--weights '' --cfg yolov5s.yaml`.
 
 Pretrained weights are automatically downloaded from the [latest YOLOv5 release](https://github.com/ultralytics/yolov5/releases) if not found locally.
 
@@ -161,21 +161,21 @@ python train.py --img 640 --batch 16 --epochs 3 --data coco128.yaml --weights yo
 
 !!! tip "Optimize Training Speed"
 
-    💡 Employ `--cache ram` or `--cache disk` to cache dataset images in [RAM](https://en.wikipedia.org/wiki/Random-access_memory) or local disk, respectively. This dramatically accelerates training, particularly when dataset I/O (Input/Output) operations are a bottleneck. Note that this requires substantial RAM or disk space.
+    Use `--cache ram` or `--cache disk` to cache dataset images in [RAM](https://en.wikipedia.org/wiki/Random-access_memory) or local disk, respectively. This can significantly speed up training, particularly when dataset I/O (Input/Output) operations are a bottleneck. Note that this requires substantial RAM or disk space.
 
 !!! tip "Local Data Storage"
 
-    💡 Always train using datasets stored locally. Accessing data from network drives (like Google Drive) or remote storage can be significantly slower and impede training performance. Copying your dataset to a local SSD is often the best practice.
+    Always train using datasets stored locally. Accessing data from network drives (like Google Drive) or remote storage can be significantly slower and impede training performance. Copying your dataset to a local SSD is often the best practice.
 
 All training outputs, including weights and logs, are saved in the `runs/train/` directory. Each training session creates a new subdirectory (e.g., `runs/train/exp`, `runs/train/exp2`, etc.). For an interactive, hands-on experience, explore the training section in our official tutorial notebooks: <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 
 ## 4. Visualize
 
-YOLOv5 seamlessly integrates with various tools for visualizing training progress, evaluating results, and monitoring performance in real-time.
+YOLOv5 integrates with various tools for visualizing training progress, evaluating results, and monitoring performance in real time.
 
 ### Comet Logging and Visualization
 
-[Comet](../../integrations/comet.md) is fully integrated for comprehensive experiment tracking. Visualize metrics live, save hyperparameters, manage datasets and model checkpoints, and analyze model predictions using interactive [Comet Custom Panels](https://bit.ly/yolov5-colab-comet-panels).
+[Comet](../../integrations/comet.md) is integrated for full [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking). Visualize metrics live, save hyperparameters, manage datasets and model checkpoints, and analyze model predictions using interactive [Comet Custom Panels](https://bit.ly/yolov5-colab-comet-panels).
 
 Getting started is straightforward:
 
@@ -185,18 +185,18 @@ export COMET_API_KEY=YOUR_API_KEY_HERE                                        # 
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt # 3. Train your model - Comet automatically logs everything!
 ```
 
-Dive deeper into the supported features in our [Comet Integration Guide](../../integrations/comet.md). Learn more about Comet's capabilities from their official [documentation](https://bit.ly/yolov5-colab-comet-docs). Try the Comet Colab Notebook for a live demo: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)
+Dive deeper into the supported features in our [YOLOv5 Comet guide](comet-logging-integration.md). Learn more about Comet's capabilities from their official [documentation](https://bit.ly/yolov5-colab-comet-docs). Try the Comet Colab Notebook for a live demo: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)
 
 <img width="1920" alt="Comet UI showing YOLOv5 training metrics and visualizations" src="https://cdn.ul.run/i/1e8e86c44786988ad132d37dc01c7c01.avif">
 
 ### ClearML Logging and Automation
 
-[ClearML](../../integrations/clearml.md) integration enables detailed experiment tracking, dataset version management, and even remote execution of training runs. Activate ClearML with these simple steps:
+[ClearML](../../integrations/clearml.md) integration enables detailed experiment tracking, dataset version management, and even remote execution of training runs. Activate ClearML with these steps:
 
 - Install the package: `pip install clearml`
 - Initialize ClearML: Run `clearml-init` once to connect to your ClearML server (either self-hosted or the [free tier](https://clear.ml/)).
 
-ClearML automatically captures experiment details, model uploads, comparisons, uncommitted code changes, and installed packages, ensuring full reproducibility. You can easily schedule training tasks on remote agents and manage dataset versions using ClearML Data. Explore the [ClearML Integration Guide](../../integrations/clearml.md) for comprehensive details.
+ClearML automatically captures experiment details, model uploads, comparisons, uncommitted code changes, and installed packages, ensuring full reproducibility. You can schedule training tasks on remote agents and manage dataset versions using ClearML Data. Explore the [YOLOv5 ClearML guide](clearml-logging-integration.md) for details.
 
 <a href="https://clear.ml/">
 <img alt="ClearML experiment management UI for YOLOv5" src="https://cdn.ul.run/i/7ab2511e18fbad3150d5ae8e9df4d4c4.avif" width="1280"></a>
@@ -253,7 +253,7 @@ Ultralytics provides ready-to-use environments equipped with essential dependenc
 
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 Continuous Integration Status Badge"></a>
 
-This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultralytics/yolov5/actions) [Continuous Integration (CI)](https://www.ultralytics.com/glossary/continuous-integration-ci) tests are passing successfully. These rigorous CI tests cover the core functionalities, including [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py), across macOS, Windows, and Ubuntu operating systems. Tests are executed automatically every 24 hours and upon each code commit, ensuring consistent stability and optimal performance.
+This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultralytics/yolov5/actions) [Continuous Integration (CI)](https://www.ultralytics.com/glossary/continuous-integration-ci) tests are passing successfully. These CI tests cover the core functionality, including [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py), across macOS, Windows, and Ubuntu operating systems. Tests are executed automatically every 24 hours and upon each code commit.
 
 ## FAQ
 
@@ -261,7 +261,7 @@ This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultraly
 
 Training YOLOv5 on a custom dataset involves several key steps:
 
-1.  **Prepare Your Dataset**: Collect images and annotate them. Ensure annotations are in the required [YOLO format](../../datasets/detect/index.md). Organize images and labels into `train/` and `val/` (and optionally `test/`) directories. Consider using models like [Google Gemini](https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-google-gemini-models-for-object-detection-image-captioning-and-ocr.ipynb), [SAM2](../../models/sam-2.md), or [YOLOWorld](../../models/yolo-world.md) to assist with or automate the labeling process (see Section 1.2).
+1.  **Prepare Your Dataset**: Collect images and annotate them. Ensure annotations are in the required [YOLO format](../../datasets/detect/index.md). Organize images and labels into `train/` and `val/` (and optionally `test/`) directories. Consider using models like Google Gemini, SAM2, or YOLO-World to assist with or automate the labeling process (see Section 1.2).
 2.  **Set Up Your Environment**: Clone the YOLOv5 repository and install dependencies using `pip install -r requirements.txt`.
     ```bash
     git clone https://github.com/ultralytics/yolov5
@@ -276,10 +276,10 @@ Training YOLOv5 on a custom dataset involves several key steps:
 
 ### Why should I use Ultralytics Platform for training my YOLO models?
 
-[Ultralytics Platform](../../platform/index.md) is a comprehensive platform designed to streamline the entire YOLO model development lifecycle, often without needing to write any code. Key benefits include:
+[Ultralytics Platform](../../platform/index.md) covers the entire YOLO model development lifecycle, often without needing to write any code. Key benefits include:
 
-- **Simplified Training**: Easily train models using pre-configured environments and an intuitive user interface.
-- **Integrated Data Management**: Upload, version control, and manage your datasets efficiently within the platform.
+- **Simplified Training**: Train models in preconfigured cloud environments through a web interface.
+- **Integrated Data Management**: Upload, version, and manage your datasets within the platform.
 - **Real-time Monitoring**: Track training progress and visualize performance metrics as they stream in.
 - **Collaboration Features**: Facilitates teamwork through shared resources, project management tools, and easy model sharing.
 - **No-Code Deployment**: Deploy trained models directly to various targets.

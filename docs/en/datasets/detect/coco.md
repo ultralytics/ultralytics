@@ -7,13 +7,13 @@ creator:
 license:
     name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
-description: Explore the COCO dataset for object detection and segmentation. Learn about its structure, usage, pretrained models, and key features.
+description: COCO is the standard object detection benchmark, with 118K training and 5K validation images across 80 classes. Explore its structure, YOLO26 models, and usage.
 keywords: COCO dataset, object detection, segmentation, benchmarking, computer vision, pose estimation, YOLO models, COCO annotations
 ---
 
 # COCO Dataset
 
-The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is a large-scale object detection, segmentation, and captioning dataset. It is designed to encourage research on a wide variety of object categories and is commonly used for benchmarking [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. It is an essential dataset for researchers and developers working on object detection, segmentation, and pose estimation tasks.
+The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is a large-scale [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning dataset. It is designed to encourage research on a wide variety of object categories and is commonly used for benchmarking [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. It is an essential dataset for researchers and developers working on object detection, [segmentation](../segment/coco.md), and [pose estimation](../pose/coco.md) tasks.
 
 <p align="center">
   <br>
@@ -47,7 +47,7 @@ The COCO dataset is split into three subsets:
 
 ## Applications
 
-The COCO dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as [Ultralytics YOLO](../../models/yolo26.md), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)), and keypoint detection (such as [OpenPose](https://arxiv.org/abs/1812.08008)). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
+The COCO dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as [Ultralytics YOLO](../../models/yolo26.md), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)), and keypoint detection (such as [OpenPose](https://arxiv.org/abs/1812.08008)). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners. To see how COCO compares with other popular benchmarks, read [the best computer vision datasets](https://www.ultralytics.com/blog/exploring-the-best-computer-vision-datasets-in-2025).
 
 Annotations exported from labeling tools in COCO JSON follow this same structure. To train on your own COCO-format data, see [Convert COCO Annotations to YOLO](../../guides/coco-to-yolo.md).
 
@@ -94,7 +94,7 @@ The COCO dataset contains a diverse set of images with various object categories
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
-The example showcases the variety and complexity of the images in the COCO dataset and the benefits of using mosaicing during the training process.
+The example shows the variety and complexity of the images in the COCO dataset and the benefits of using mosaicing during the training process.
 
 ## Citations and Acknowledgments
 
@@ -121,7 +121,7 @@ We would like to acknowledge the COCO Consortium for creating and maintaining th
 
 ### What is the COCO dataset and why is it important for computer vision?
 
-The [COCO dataset](https://cocodataset.org/#home) (Common Objects in Context) is a large-scale dataset used for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning. It contains 330K images with detailed annotations for 80 object categories, making it essential for benchmarking and training computer vision models. Researchers use COCO due to its diverse categories and standardized evaluation metrics like mean Average [Precision](https://www.ultralytics.com/glossary/precision) (mAP).
+The [COCO dataset](https://cocodataset.org/#home) (Common Objects in Context) is a large-scale dataset used for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning. It contains 330K images with detailed annotations for 80 object categories, making it essential for benchmarking and training computer vision models. Researchers use COCO due to its diverse categories and standardized evaluation metrics like mean Average Precision (mAP).
 
 ### How can I train a YOLO model using the COCO dataset?
 
@@ -161,7 +161,7 @@ The COCO dataset includes:
 
 ### Where can I find pretrained YOLO26 models trained on the COCO dataset?
 
-Pretrained YOLO26 models on the COCO dataset can be downloaded from the links provided in the documentation. Examples include:
+Pretrained YOLO26 models trained on COCO are available on Ultralytics Platform and download automatically on first use:
 
 - [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n)
 - [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)

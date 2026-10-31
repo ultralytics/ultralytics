@@ -35,7 +35,7 @@ Format with keypoint visibility (includes visibility per point)
 <class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> ... <pxn> <pyn> <pn-visibility>
 ```
 
-In this format, `<class-index>` is the index of the class for the object, `<x> <y> <width> <height>` are the normalized coordinates of the [bounding box](https://www.ultralytics.com/glossary/bounding-box), and `<px1> <py1> <px2> <py2> ... <pxn> <pyn>` are the normalized keypoint coordinates. The visibility channel is optional but useful for datasets that annotate occlusion.
+In this format, `<class-index>` is the index of the class for the object, `<x> <y> <width> <height>` are the normalized coordinates of the [bounding box](https://www.ultralytics.com/glossary/bounding-box), and `<px1> <py1> <px2> <py2> ... <pxn> <pyn>` are the normalized [keypoint](https://www.ultralytics.com/glossary/keypoints) coordinates. The visibility channel is optional but useful for datasets that annotate occlusion.
 
 ### Dataset YAML format
 
@@ -74,7 +74,7 @@ The `train`, `val`, and `test` fields point to the training, validation, and tes
 
 (Optional) `flip_idx` maps each keypoint to its mirror image, so horizontal-flip augmentation keeps left and right consistent on symmetric skeletons such as a human body or face. For five facial landmarks indexed as [left eye, right eye, nose, left mouth, right mouth] = [0, 1, 2, 3, 4], `flip_idx` is [1, 0, 2, 4, 3]: the left-right pairs 0-1 and 3-4 swap, and the nose keeps its own index.
 
-(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](../../guides/yolo-performance-metrics.md) sigmas used during training and validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise.
+(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](../../guides/yolo-performance-metrics.md) sigmas used during training and validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise. The free Academy lesson on [custom keypoints and OKS metrics](https://academy.ultralytics.com/courses/beyond-detection/custom-keypoints-and-oks) explains how these settings affect training and evaluation.
 
 ## Usage
 
@@ -115,7 +115,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### COCO8-Pose
 
-- **Description**: [Ultralytics](https://www.ultralytics.com) COCO8-Pose is a small, but versatile pose estimation dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
+- **Description**: [Ultralytics](https://www.ultralytics.com) COCO8-Pose is a small pose estimation dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with keypoints for human poses.
 - **Number of Classes**: 1 (person).
 - **Keypoints**: 17 keypoint types including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles, each with a visibility dimension.
@@ -129,7 +129,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Label Format**: Follows the Ultralytics YOLO format, with annotations for multiple keypoints specific to dog anatomy.
 - **Number of Classes**: 1 (dog).
 - **Keypoints**: 24 keypoints, each with a visibility dimension, tailored to dog poses such as limbs, joints, and head positions.
-- **Usage**: Ideal for training models to estimate dog poses in various scenarios, from research to [real-world applications](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation).
+- **Usage**: Ideal for training models to estimate dog poses in various scenarios, from research to real-world applications; see the [dog pose estimation training tutorial](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation).
 - **Additional Notes**: Source images are drawn from the [Stanford Dogs Dataset](http://vision.stanford.edu/aditya86/ImageNetDogs/).
 - [Read more about Dog-Pose](dog-pose.md)
 
@@ -139,7 +139,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Label Format**: Same as the Ultralytics YOLO format described above, but with 21 keypoints for a human hand and a visibility dimension.
 - **Number of Classes**: 1 (hand).
 - **Keypoints**: 21 keypoints.
-- **Usage**: Great for human hand pose estimation and [gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11).
+- **Usage**: Great for [human hand pose estimation](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11) and gesture recognition.
 - **Additional Notes**: Keypoint annotations are generated using [Google MediaPipe](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker) for consistent labeling.
 - [Read more about Hand Keypoints](hand-keypoints.md)
 
@@ -161,7 +161,7 @@ To skip the conversion step entirely, [Ultralytics Platform](https://platform.ul
 
 ### Conversion Tool
 
-Ultralytics provides a convenient conversion tool to convert labels from the popular [COCO dataset](../detect/coco.md) format to YOLO format:
+Ultralytics provides a conversion tool to convert labels from the popular [COCO dataset](../detect/coco.md) format to YOLO format:
 
 !!! example
 
@@ -238,4 +238,4 @@ from ultralytics.data.converter import convert_coco
 convert_coco(labels_dir="path/to/coco/annotations/", use_keypoints=True)
 ```
 
-This tool helps seamlessly integrate COCO datasets into YOLO projects. For details, refer to the [Conversion Tool](#conversion-tool) section and the [data preprocessing guide](../../guides/preprocessing-annotated-data.md).
+This tool lets you bring COCO-format datasets into YOLO projects. For details, refer to the [Conversion Tool](#conversion-tool) section and the [data preprocessing guide](../../guides/preprocessing-annotated-data.md).

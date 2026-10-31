@@ -1,13 +1,13 @@
 ---
 title: Training Callbacks
 comments: true
-description: Explore Ultralytics callbacks for training, validation, exporting, and prediction. Learn how to use and customize them for your ML models.
+description: Ultralytics YOLO callbacks run custom code at key stages of training, validation, prediction, and export. See every hook and register your own in Python.
 keywords: Ultralytics, callbacks, training, validation, export, prediction, ML models, YOLO, Python, machine learning
 ---
 
 # Callbacks
 
-Ultralytics framework supports callbacks, which serve as entry points at strategic stages during the `train`, `val`, `export`, and `predict` modes. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object, depending on the operation type. All properties of these objects are detailed in the [`BaseTrainer`](../reference/engine/trainer.md), [`BaseValidator`](../reference/engine/validator.md), and [`BasePredictor`](../reference/engine/predictor.md) reference pages.
+The Ultralytics framework supports [callbacks](https://www.ultralytics.com/glossary/callback), which serve as entry points at key stages of the `train`, `val`, `predict`, and `export` modes. Each callback accepts a `Trainer`, `Validator`, `Predictor`, or `Exporter` object, depending on the operation type. All properties of these objects are detailed in the [`BaseTrainer`](../reference/engine/trainer.md), [`BaseValidator`](../reference/engine/validator.md), [`BasePredictor`](../reference/engine/predictor.md), and [`Exporter`](../reference/engine/exporter.md) reference pages.
 
 <p align="center">
   <br>
@@ -24,7 +24,7 @@ Ultralytics framework supports callbacks, which serve as entry points at strateg
 
 ### Returning Additional Information with Prediction
 
-In this example, we demonstrate how to return the original frame along with each result object:
+This example returns the original frame along with each result object:
 
 ```python
 from ultralytics import YOLO
@@ -132,7 +132,7 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 | `on_pretrain_routine_start` | Triggered at the beginning of the pre-training routine, before data loading and model setup.                                                                                                                                                                                                                                     |
 | `on_pretrain_routine_end`   | Triggered at the end of the pre-training routine, after data loading and model setup are complete.                                                                                                                                                                                                                               |
 | `on_train_start`            | Triggered when the training starts, before the first [epoch](https://www.ultralytics.com/glossary/epoch) begins.                                                                                                                                                                                                                 |
-| `on_train_epoch_start`      | Triggered at the start of each training [epoch](https://www.ultralytics.com/glossary/epoch), before batch iteration begins.                                                                                                                                                                                                      |
+| `on_train_epoch_start`      | Triggered at the start of each training epoch, before batch iteration begins.                                                                                                                                                                                                                                                    |
 | `on_train_batch_start`      | Triggered at the start of each training batch, before the forward pass.                                                                                                                                                                                                                                                          |
 | `optimizer_step`            | Triggered during the optimizer step. Reserved for custom integrations; not called by the default training loop.                                                                                                                                                                                                                  |
 | `on_before_zero_grad`       | Triggered before gradients are zeroed. Reserved for custom integrations; not called by the default training loop.                                                                                                                                                                                                                |
@@ -174,7 +174,7 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 
 ### What are Ultralytics callbacks and how can I use them?
 
-Ultralytics callbacks are specialized entry points that are triggered during key stages of model operations such as training, validation, exporting, and prediction. These callbacks enable custom functionality at specific points in the process, allowing for enhancements and modifications to the workflow. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object, depending on the operation type. For detailed properties of these objects, refer to the [`BaseTrainer`](../reference/engine/trainer.md), [`BaseValidator`](../reference/engine/validator.md), and [`BasePredictor`](../reference/engine/predictor.md) reference pages.
+Ultralytics callbacks are entry points that are triggered during key stages of model operations such as training, validation, prediction, and export. They let you add custom functionality at specific points in the process without modifying the library. Each callback accepts a `Trainer`, `Validator`, `Predictor`, or `Exporter` object, depending on the operation type. For detailed properties of these objects, refer to the [`BaseTrainer`](../reference/engine/trainer.md), [`BaseValidator`](../reference/engine/validator.md), [`BasePredictor`](../reference/engine/predictor.md), and [`Exporter`](../reference/engine/exporter.md) reference pages.
 
 To use a callback, define a function and add it to the model using the [`model.add_callback()`](../reference/engine/model.md#ultralytics.engine.model.Model.add_callback) method. Here is an example of returning additional information during prediction:
 
@@ -223,7 +223,7 @@ For more details on effectively using training callbacks, see the [Training Guid
 
 ### Why should I use callbacks during validation in Ultralytics YOLO?
 
-Using callbacks during validation in Ultralytics YOLO enhances model evaluation by enabling custom processing, logging, or metrics calculation. Callbacks like `on_val_start`, `on_val_batch_end`, and `on_val_end` provide entry points to inject custom logic, ensuring detailed and comprehensive validation processes.
+Validation callbacks let you add custom processing, logging, or metrics calculation to model evaluation. Callbacks like `on_val_start`, `on_val_batch_end`, and `on_val_end` provide entry points to inject custom logic at each stage of validation.
 
 For example, to plot all validation batches instead of just the first three:
 
@@ -282,7 +282,7 @@ For more comprehensive usage, refer to the [Prediction Guide](../modes/predict.m
 
 Ultralytics YOLO supports various practical implementations of callbacks to enhance and customize different phases like training, validation, and prediction. Some practical examples include:
 
-- **Logging Custom Metrics**: Log additional metrics at different stages, such as at the end of training or validation [epochs](https://www.ultralytics.com/glossary/epoch).
+- **Logging Custom Metrics**: Log additional metrics at different stages, such as at the end of training or validation epochs.
 - **[Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation)**: Implement custom data transformations or augmentations during prediction or training batches.
 - **Intermediate Results**: Save intermediate results, such as predictions or frames, for further analysis or visualization.
 

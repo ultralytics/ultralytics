@@ -11,7 +11,7 @@ keywords: object counting, YOLO26, Ultralytics, real-time object detection, obje
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-count-the-objects-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Object Counting In Colab"></a>
 
-Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) involves accurate identification and counting of specific objects in videos and camera streams. YOLO26 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) capabilities.
+Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) involves identifying and counting specific objects in videos and camera streams. Because YOLO26 runs [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) detection and tracking in real time, it suits counting scenarios such as [crowd and occupancy analysis](https://www.ultralytics.com/blog/people-counting-occupancy-analytics) and surveillance.
 
 <p align="center">
   <br>
@@ -26,11 +26,11 @@ Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Advantages of Object Counting
 
-- **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, optimizing resource allocation in applications like [inventory management](analytics.md).
+- **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, optimizing resource allocation in applications like [inventory management](https://www.ultralytics.com/solutions/computer-vision-in-retail/inventory-management).
 - **Enhanced Security:** Object counting enhances security and surveillance by accurately tracking and counting entities, aiding in proactive [threat detection](security-alarm-system.md).
 - **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, [traffic management](https://www.ultralytics.com/blog/ai-in-traffic-management-from-congestion-to-coordination), and various other domains.
 
-## Real World Applications
+## Real-World Applications
 
 |                                                       Logistics                                                        |                                                 Aquaculture                                                  |
 | :--------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------: |
@@ -39,7 +39,7 @@ Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Count Objects with YOLO26
 
-Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter tracks each object across frames and tallies IN/OUT counts when tracked objects cross the line or pass through the region, returning an annotated frame you can write to an output video.
+Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter [tracks each object](https://www.ultralytics.com/glossary/object-tracking) across frames and tallies IN/OUT counts when tracked objects cross the line or pass through the region, returning an annotated frame you can write to an output video. For a beginner walkthrough, see the Ultralytics Academy lesson on [counting, heatmaps, and speed estimation](https://academy.ultralytics.com/courses/yolo-in-production/counting-heatmaps-and-speed).
 
 !!! example "Object Counting using Ultralytics YOLO"
 
@@ -216,24 +216,24 @@ count_specific_classes("path/to/video.mp4", "output_specific_classes.avi", "yolo
 
 In this example, `classes_to_count=[0, 2]` means it counts objects of class `0` and `2` (e.g., person and car in the COCO dataset). You can find more information about class indices in the [COCO dataset documentation](../datasets/detect/coco.md).
 
-### Why should I use YOLO26 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models for real-time applications?
+### Why should I use YOLO26 over other object detection models for real-time applications?
 
-Ultralytics YOLO26 provides several advantages over other object detection models like Faster R-CNN, SSD, and previous YOLO versions:
+Ultralytics YOLO26 provides several advantages over other [object detection](https://www.ultralytics.com/glossary/object-detection) models like Faster R-CNN, SSD, and previous YOLO versions:
 
-1. **Speed and Efficiency:** YOLO26 offers real-time processing capabilities, making it ideal for applications requiring high-speed inference, such as surveillance and [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars).
-2. **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** It provides state-of-the-art detection and tracking accuracy, reducing false positives and improving overall system reliability.
-3. **Ease of Integration:** YOLO26 offers seamless integration with various platforms and devices, including mobile and [edge devices](nvidia-jetson.md), which is crucial for modern AI applications.
-4. **Flexibility:** Supports [detection](../tasks/detect.md) and [segmentation](../tasks/segment.md) tasks with [track mode](../modes/track.md) on top, and configurable models to meet specific use-case requirements.
+1. **Speed and Efficiency:** YOLO26 runs in real time, making it well suited to applications requiring high-speed inference, such as surveillance and [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars).
+2. **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** It provides high detection and tracking accuracy, reducing false positives and improving overall system reliability.
+3. **Ease of Integration:** YOLO26 [exports to many deployment formats](../modes/export.md) for servers, mobile, and [edge devices](nvidia-jetson.md).
+4. **Flexibility:** Supports [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), and [OBB](../tasks/obb.md) models with [track mode](../modes/track.md) on top, and configurable models to meet specific use-case requirements.
 
 Check out Ultralytics [YOLO26 Documentation](../models/yolo26.md) for a deeper dive into its features and performance comparisons.
 
 ### Can I use YOLO26 for advanced applications like crowd analysis and traffic management?
 
-Yes, Ultralytics YOLO26 is perfectly suited for advanced applications like crowd analysis and traffic management due to its real-time detection capabilities, scalability, and integration flexibility. Its advanced features allow for high-accuracy object tracking, counting, and classification in dynamic environments. Example use cases include:
+Yes. Ultralytics YOLO26 is well suited to crowd analysis and traffic management because it detects, tracks, and counts objects in real time in dynamic environments. Example use cases include:
 
 - **Crowd Analysis:** Monitor and manage large gatherings, ensuring safety and optimizing crowd flow with [region-based counting](region-counting.md).
-- **Traffic Management:** Track and count vehicles, analyze traffic patterns, and manage congestion in real-time with [speed estimation](speed-estimation.md) capabilities.
+- **Traffic Management:** Track and count vehicles, analyze traffic patterns, and manage congestion in real time with [speed estimation](speed-estimation.md).
 - **Retail Analytics:** Analyze customer movement patterns and product interactions to optimize store layouts and improve customer experience.
 - **Industrial Automation:** Count products on conveyor belts and monitor production lines for quality control and efficiency improvements.
 
-For more specialized applications, explore [Ultralytics Solutions](../solutions/index.md) for a comprehensive set of tools designed for real-world computer vision challenges.
+For more specialized applications, explore [Ultralytics Solutions](../solutions/index.md) for more ready-to-use analytics built on YOLO26 detection and tracking.

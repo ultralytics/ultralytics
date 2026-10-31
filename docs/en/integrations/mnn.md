@@ -1,7 +1,7 @@
 ---
 title: YOLO26 MNN Export for Mobile Deployment
 comments: true
-description: Optimize YOLO26 models for mobile and embedded devices by exporting to MNN format. Learn how to convert, deploy, and run inference with MNN.
+description: Export Ultralytics YOLO26 models to Alibaba MNN for fast mobile and embedded inference, with FP16 and INT8 quantization and Python and C++ deployment examples.
 keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, inference, quantization
 ---
 
@@ -13,7 +13,7 @@ keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, 
   <img width="100%" src="https://mnn-docs.readthedocs.io/en/latest/_images/architecture.png" alt="MNN mobile neural network inference framework">
 </p>
 
-[MNN](https://github.com/alibaba/MNN) is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device. At present, MNN has been integrated into more than 30 apps of Alibaba Inc, such as Taobao, Tmall, Youku, DingTalk, Xianyu, etc., covering more than 70 usage scenarios such as live broadcast, short video capture, search recommendation, product searching by image, interactive marketing, equity distribution, security risk control. In addition, MNN is also used on embedded devices, such as IoT.
+[MNN](https://github.com/alibaba/MNN) is a lightweight [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework from Alibaba that supports on-device inference and training of deep learning models. MNN is integrated into more than 30 Alibaba apps, such as Taobao, Tmall, Youku, DingTalk, and Xianyu, covering more than 70 usage scenarios, including live broadcast, short video capture, search recommendation, product search by image, interactive marketing, equity distribution, and security risk control. MNN also runs on embedded and IoT devices.
 
 <p align="center">
   <br>
@@ -52,7 +52,7 @@ To install the required packages, run:
 
 ### Usage
 
-All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
+All [Ultralytics YOLO26 models](../models/index.md) support export out of the box, so you can integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
 The MNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
 
@@ -137,7 +137,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### MNN-Only Inference
 
-A function that relies solely on MNN for YOLO26 inference and preprocessing is implemented, providing both Python and C++ versions for easy deployment in any scenario.
+The following examples run YOLO26 preprocessing, inference, and postprocessing with MNN alone, in both Python and C++, so you can deploy without PyTorch or the Ultralytics package.
 
 !!! example "MNN"
 
@@ -334,9 +334,9 @@ A function that relies solely on MNN for YOLO26 inference and preprocessing is i
 
 ## Summary
 
-In this guide, we introduce how to export the Ultralytics YOLO26 model to MNN and use MNN for inference. The MNN format provides excellent performance for [edge AI](https://www.ultralytics.com/glossary/edge-ai) applications, making it ideal for deploying computer vision models on resource-constrained devices.
+This guide showed how to export Ultralytics YOLO26 models to MNN and run inference with MNN. The MNN format is well suited to [edge AI](https://www.ultralytics.com/glossary/edge-ai) applications that deploy computer vision models on resource-constrained devices. For another walkthrough, see the blog post on [deploying Ultralytics YOLO11 with the MNN integration](https://www.ultralytics.com/blog/seamlessly-deploy-ultralytics-yolo11-using-the-mnn-integration).
 
-For more usage, please refer to the [MNN documentation](https://mnn-docs.readthedocs.io/en/latest).
+For more information, refer to the [MNN documentation](https://mnn-docs.readthedocs.io/en/latest).
 
 ## FAQ
 
@@ -400,15 +400,15 @@ To predict with an exported YOLO26 MNN model, use the `predict` function from th
 
 ### What platforms are supported for MNN?
 
-MNN is versatile and supports various platforms:
+MNN supports various platforms:
 
 - **Mobile**: Android, iOS, Harmony.
-- **Embedded Systems and IoT Devices**: Devices like [Raspberry Pi](../guides/raspberry-pi.md) and NVIDIA Jetson.
+- **Embedded Systems and IoT Devices**: Devices like [Raspberry Pi](../guides/raspberry-pi.md) and [NVIDIA Jetson](../guides/nvidia-jetson.md).
 - **Desktop and Servers**: Linux, Windows, and macOS.
 
 ### How can I deploy Ultralytics YOLO26 MNN models on Mobile Devices?
 
-To deploy your YOLO26 models on Mobile devices:
+To deploy your YOLO26 models on mobile devices:
 
 1. **Build for Android**: Follow the [MNN Android](https://github.com/alibaba/MNN/tree/master/project/android) guide.
 2. **Build for iOS**: Follow the [MNN iOS](https://github.com/alibaba/MNN/tree/master/project/ios) guide.

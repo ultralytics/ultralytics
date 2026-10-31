@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to set up and run YOLOv5 in a Docker container with step-by-step instructions for CPU and GPU environments, mounting volumes, and using display servers.
+description: Run Ultralytics YOLOv5 in a Docker container. Install the NVIDIA Container Toolkit, pull the image, enable GPUs with CDI, mount volumes, and train or export.
 keywords: YOLOv5, Docker, Ultralytics, setup, guide, tutorial, machine learning, deep learning, AI, GPU, NVIDIA, container, X11, Wayland
 ---
 
 # Get Started with YOLOv5 🚀 in Docker
 
-Welcome to the Ultralytics YOLOv5 Docker Quickstart Guide! This tutorial provides step-by-step instructions for setting up and running [YOLOv5](../../models/yolov5.md) within a [Docker](https://www.ultralytics.com/glossary/docker) container. Using Docker enables you to run YOLOv5 in an isolated, consistent environment, simplifying deployment and dependency management across different systems. This approach leverages [containerization](https://www.ultralytics.com/glossary/containerization) to package the application and its dependencies together.
+This tutorial provides step-by-step instructions for setting up and running [YOLOv5](../../models/yolov5.md) within a [Docker](https://www.ultralytics.com/glossary/docker) container. Using Docker enables you to run YOLOv5 in an isolated, consistent environment, simplifying deployment and dependency management across different systems. This approach uses [containerization](https://www.ultralytics.com/glossary/containerization) to package the application and its dependencies together.
 
 For alternative setup methods, consider our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>, [GCP Deep Learning VM](./google-cloud-quickstart-tutorial.md), or [Amazon AWS](./aws-quickstart-tutorial.md) guides. For a general overview of Docker usage with Ultralytics models, see the [Ultralytics Docker Quickstart Guide](../../guides/docker-quickstart.md).
 
@@ -124,7 +124,7 @@ Replace `/path/on/host` with the actual path on your machine and `/path/in/conta
 
 ## Step 3: Use YOLOv5 🚀 within the Docker Container
 
-You are now inside the running YOLOv5 Docker container! From here, you can execute standard YOLOv5 commands for various [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [Deep Learning](https://www.ultralytics.com/glossary/deep-learning-dl) tasks like [Object Detection](https://www.ultralytics.com/glossary/object-detection).
+You are now inside the running YOLOv5 Docker container! From here, you can execute standard YOLOv5 commands for various [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) tasks like [object detection](https://www.ultralytics.com/glossary/object-detection).
 
 ```bash
 # Train a YOLOv5 model on your custom dataset (ensure data is mounted or downloaded)
@@ -142,7 +142,7 @@ python export.py --weights yolov5s.pt --include onnx coreml tflite # Export mode
 
 See the [Train Custom Data](../tutorials/train-custom-data.md) and [Model Export](../tutorials/model-export.md) tutorials for detailed usage.
 
-Learn more about evaluation metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). Understand different export formats like [ONNX](../../integrations/onnx.md), [CoreML](../../integrations/coreml.md), and [TFLite](../../integrations/litert.md), and explore various [Model Deployment Options](../../guides/model-deployment-options.md). Remember to manage your [model weights](https://www.ultralytics.com/glossary/model-weights) effectively.
+Learn more about evaluation metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). Understand different export formats like [ONNX](../../integrations/onnx.md), [CoreML](../../integrations/coreml.md), and [TFLite](../../integrations/litert.md), and explore the available [Model Deployment Options](../../guides/model-deployment-options.md).
 
 <p align="center"><img width="1000" src="https://cdn.ul.run/i/3d3f5576bad0b4a2ea37db62f9d020f8.avif" alt="Running YOLOv5 inside a Docker container on GCP"></p>
 

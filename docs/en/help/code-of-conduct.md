@@ -1,7 +1,7 @@
 ---
 title: Contributor Code of Conduct
 comments: true
-description: Join our welcoming community! Learn about the Ultralytics Code of Conduct to ensure a harassment-free experience for all participants.
+description: Read the Ultralytics Code of Conduct, adapted from the Contributor Covenant, covering community standards, reporting, and enforcement guidelines.
 keywords: Ultralytics, Contributor Covenant, Code of Conduct, community guidelines, harassment-free, inclusive community, diversity, enforcement policy
 ---
 
@@ -103,6 +103,6 @@ Contributing to Ultralytics means engaging positively and respectfully with othe
 
 ### Where can I find additional information about the Ultralytics Code of Conduct?
 
-For more comprehensive details about the Ultralytics Code of Conduct, including reporting guidelines and enforcement policies, you can visit the [Contributor Covenant homepage](https://www.contributor-covenant.org/version/2/0/code_of_conduct/) or check the [FAQ section of Contributor Covenant](https://www.contributor-covenant.org/faq/). Learn more about Ultralytics' goals and initiatives on [our brand page](https://www.ultralytics.com/brand) and [about page](https://www.ultralytics.com/about).
+For more comprehensive details about the Ultralytics Code of Conduct, including reporting guidelines and enforcement policies, you can read [Contributor Covenant version 2.0](https://www.contributor-covenant.org/version/2/0/code_of_conduct/) or the [Contributor Covenant FAQ](https://www.contributor-covenant.org/faq/). Learn more about Ultralytics' goals and initiatives on [our brand page](https://www.ultralytics.com/brand) and [about page](https://www.ultralytics.com/about).
 
 Should you have more questions or need further assistance, check our [Help Center](index.md) and [Contributing Guide](contributing.md) for more information.

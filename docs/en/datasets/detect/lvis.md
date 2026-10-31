@@ -12,7 +12,7 @@ keywords: LVIS dataset, object detection, instance segmentation, large vocabular
 
 # LVIS Dataset
 
-The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale [object detection](../../tasks/detect.md) and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) benchmark with 1,203 object categories across roughly 160,000 images. Developed and released by Facebook AI Research (FAIR), it reuses the [COCO](./coco.md) images but adds a much larger, long-tailed vocabulary — from common objects like cars and bicycles to rarer ones such as handbags, umbrellas, and sports equipment — to push progress on recognizing infrequent categories.
+The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale [object detection](../../tasks/detect.md) and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) benchmark with 1,203 object categories across roughly 160,000 images. Developed and released by Facebook AI Research (FAIR), it reuses the [COCO](./coco.md) images but adds a much larger, long-tailed vocabulary — from common objects like cars and bicycles to rare categories that appear in as few as 1–10 training images — to push progress on recognizing infrequent categories.
 
 <p align="center">
   <br>
@@ -51,7 +51,7 @@ The upstream LVIS benchmark also includes a held-out test set of roughly 20,000 
 
 ## Applications
 
-The LVIS dataset is widely used to train and evaluate [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for object detection (such as [YOLO](../../models/yolo26.md), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)) and instance segmentation (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)). Its large, long-tailed vocabulary, high annotation volume, and standardized evaluation metrics make it an essential benchmark for measuring how well [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models handle rare categories.
+The LVIS dataset is widely used to train and evaluate [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for object detection (such as [YOLO](../../models/yolo26.md), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)) and instance segmentation (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)). Its large, long-tailed vocabulary, high annotation volume, and standardized evaluation metrics make it an essential benchmark for measuring how well [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models handle rare categories. Its minival split is also the standard [zero-shot](https://www.ultralytics.com/glossary/zero-shot-learning) benchmark for open-vocabulary detectors such as [YOLO-World](../../models/yolo-world.md) and [YOLOE](../../models/yoloe.md).
 
 Browse the official [LVIS detection](https://platform.ultralytics.com/ultralytics/datasets/lvis) and [LVIS segmentation](https://platform.ultralytics.com/ultralytics/datasets/lvis-seg) datasets on Ultralytics Platform to inspect their annotations, statistics, and classes or clone them for training.
 
@@ -67,7 +67,7 @@ The `lvis.yaml` file defines the dataset configuration — the dataset paths, cl
 
 ## Usage
 
-To train a YOLO26n model on the LVIS dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. The dataset (20.7 GB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the LVIS dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. The dataset (20.7 GB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -115,7 +115,7 @@ If you use the LVIS dataset in your research or development work, please cite th
         }
         ```
 
-We would like to acknowledge the LVIS Consortium for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about the LVIS dataset and its creators, visit the [LVIS dataset website](https://www.lvisdataset.org/).
+We would like to acknowledge the LVIS Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the LVIS dataset and its creators, visit the [LVIS dataset website](https://www.lvisdataset.org/).
 
 ## FAQ
 
@@ -164,4 +164,4 @@ The Ultralytics `lvis.yaml` configuration provides train (100,170 images), valid
 
 ### Why should I use Ultralytics YOLO for training on the LVIS dataset?
 
-Ultralytics YOLO models, including the latest YOLO26, are optimized for real-time object detection with state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed. They support a wide range of annotations, such as the fine-grained ones provided by the LVIS dataset, making them ideal for advanced computer vision applications. Ultralytics also offers seamless integration with [training](../../modes/train.md), [validation](../../modes/val.md), and [prediction](../../modes/predict.md) modes, ensuring efficient model development and deployment.
+Ultralytics YOLO models, including the latest YOLO26, are built for real-time object detection with a strong balance of [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed. They train directly on large label sets such as the 1,203 LVIS categories, and the same API covers [training](../../modes/train.md), [validation](../../modes/val.md), and [prediction](../../modes/predict.md), so you can move from experiments to deployment with one workflow.

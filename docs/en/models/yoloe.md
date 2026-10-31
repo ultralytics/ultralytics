@@ -7,7 +7,7 @@ keywords: YOLOE, YOLOE-26, open-vocabulary detection, open-vocabulary segmentati
 
 # YOLOE: Real-Time Open-Vocabulary Detection and Segmentation
 
-**Ultralytics YOLOE** (Real-Time Seeing Anything) is an **open-vocabulary** detection and [instance segmentation](../tasks/segment.md) model: instead of a class list fixed at training time, it takes the categories you want at inference time, as a text prompt, a visual example, or a built-in 4,585-name vocabulary. Built on the Ultralytics YOLO architectures — YOLOv8, [YOLO11](yolo11.md) and [YOLO26](yolo26.md) — and inspired by [YOLO-World](yolo-world.md), YOLOE reaches state-of-the-art zero-shot accuracy at close to closed-set YOLO speed.
+**Ultralytics YOLOE** (Real-Time Seeing Anything) is an **open-vocabulary** detection and [instance segmentation](../tasks/segment.md) model: instead of a class list fixed at training time, it takes the categories you want at inference time, as a text prompt, a visual example, or a built-in 4,585-name vocabulary. Built on the Ultralytics YOLO architectures — YOLOv8, [YOLO11](yolo11.md) and [YOLO26](yolo26.md) — and inspired by [YOLO-World](yolo-world.md), YOLOE reaches high [zero-shot](https://www.ultralytics.com/glossary/zero-shot-learning) accuracy at close to closed-set YOLO speed. For a short introduction, see [What is YOLOE?](https://www.ultralytics.com/blog/what-is-yoloe-taking-computer-vision-models-further)
 
 <p align="center">
   <br>
@@ -17,12 +17,12 @@ keywords: YOLOE, YOLOE-26, open-vocabulary detection, open-vocabulary segmentati
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to use Ultralytics YOLOE-26 (New) | Open Vocabulary & Real-Time Seeing Anything 🚀
+  <strong>Watch:</strong> How to use Ultralytics YOLOE-26 (New) | Open Vocabulary & Real-Time Seeing Anything
 </p>
 
 ## Quick Start
 
-Name the classes you want and run. YOLOE-26 returns boxes and [instance segmentation](../tasks/segment.md) masks for categories it was never trained on.
+Name the classes you want and run. YOLOE-26 returns boxes and instance segmentation masks for categories it was never trained on.
 
 !!! example "Detect anything you can name"
 
@@ -90,20 +90,20 @@ To skip the text-encoder download at inference time entirely, bake the prompts i
 ## Architecture Overview
 
 <p align="center">
-  <img src="https://github.com/THU-MIG/yoloe/raw/main/figures/pipeline.svg" alt="YOLOE Architecture" width=90%>
+  <img src="https://github.com/THU-MIG/yoloe/raw/main/figures/pipeline.svg" alt="YOLOE architecture with RepRTA, SAVPE, and LRPC modules" width=90%>
 </p>
 
 YOLOE keeps the standard YOLO structure — a convolutional **backbone** for feature extraction, a **neck** for multi-scale fusion, and an **anchor-free, decoupled head** predicting classes and boxes — and adds three modules, one per prompting mode:
 
-- **Re-parameterizable Region-Text Alignment (RepRTA)** refines text [embeddings](https://www.ultralytics.com/glossary/embeddings) from CLIP through a small auxiliary network. That network runs once per `set_classes()` call and is folded away at export, so it costs nothing per frame. What does run on every forward pass is the comparison of the stored prompt embeddings against region features; see [Limitations](#limitations) for what that costs with a large prompt set.
+- **Re-parameterizable Region-Text Alignment (RepRTA)** refines text [embeddings](https://www.ultralytics.com/glossary/embeddings) from [CLIP](https://www.ultralytics.com/glossary/clip-contrastive-language-image-pre-training) through a small auxiliary network. That network runs once per `set_classes()` call and is folded away at export, so it costs nothing per frame. What does run on every forward pass is the comparison of the stored prompt embeddings against region features; see [Limitations](#limitations) for what that costs with a large prompt set.
 - **Semantic-Activated Visual Prompt Encoder (SAVPE)** encodes semantic and activation features from an example box, conditioning the model on objects that look like it. This is the one-shot path for targets that are hard to name, such as a logo or a specific part.
 - **Lazy Region-Prompt Contrast (LRPC)** matches region embeddings against a built-in 4,585-name vocabulary, so prompt-free checkpoints recognize objects with no external prompt and no text encoder.
 
-[Instance segmentation](../tasks/segment.md) comes from a mask branch on the detection head, as in YOLOv8-Seg, and every prediction carries a mask on `results[0].masks`. Once the model is [exported](#export-usage), the open-world modules are re-parameterized into a standard YOLO head, so the exported file runs the ordinary detect/segment path.
+Instance segmentation comes from a mask branch on the detection head, as in YOLOv8-Seg, and every prediction carries a mask on `results[0].masks`. Once the model is [exported](#export-usage), the open-world modules are re-parameterized into a standard YOLO head, so the exported file runs the ordinary detect/segment path.
 
 ## Available Models
 
-Every checkpoint below is an [instance segmentation](../tasks/segment.md) model and supports [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md) and [track](../modes/track.md). Load a `*-seg.pt` file for text or visual prompting and a `*-seg-pf.pt` file for prompt-free inference; they are not interchangeable, see [Choosing a Prompting Mode](#choosing-a-prompting-mode). Only the `*-seg.pt` files support [train](../modes/train.md); a prompt-free checkpoint is produced from a trained text-prompt model, see [Training the Official Models from Scratch](#training-the-official-models-from-scratch).
+Every checkpoint below is an instance segmentation model and supports [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md) and [track](../modes/track.md). Load a `*-seg.pt` file for text or visual prompting and a `*-seg-pf.pt` file for prompt-free inference; they are not interchangeable, see [Choosing a Prompting Mode](#choosing-a-prompting-mode). Only the `*-seg.pt` files support [train](../modes/train.md); a prompt-free checkpoint is produced from a trained text-prompt model, see [Training the Official Models from Scratch](#training-the-official-models-from-scratch).
 
 | Model     | Text / visual prompt                                                                                | Prompt-free                                                                                               |
 | --------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -175,7 +175,7 @@ Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This most
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train YOLOE on Car Parts Segmentation Dataset | Open-Vocabulary Model, Prediction & Export 🚀
+  <strong>Watch:</strong> How to Train YOLOE on Car Parts Segmentation Dataset | Open-Vocabulary Model, Prediction & Export
 </p>
 
 !!! example
@@ -457,7 +457,7 @@ YOLOE sits between a closed-set detector and a heavyweight open-vocabulary model
 
 - **Against a closed-set YOLO.** Once the prompts are set, YOLOE predicts through the ordinary detect/segment path and exports like any other model. What it adds is the ability to change the class list at inference time instead of retraining; what it costs is zero-shot accuracy well below a model trained on your own classes.
 - **Against the earlier YOLOE families.** YOLOE-26 inherits [YOLO26](yolo26.md)'s NMS-free end-to-end head and covers five scales (n/s/m/l/x) against the earlier three (s/m/l), and leads at every matching scale in [Performance](#yoloe-performance-on-lvis).
-- **Against transformer-based open-vocabulary detectors.** GLIP and OWL-ViT run a vision-language transformer at inference. YOLOE encodes the prompts once and then compares them against region features inside a convolutional head.
+- **Against transformer-based open-vocabulary detectors.** GLIP and OWL-ViT run a vision-language transformer at inference. YOLOE encodes the prompts once and then compares them against region features inside a convolutional head. To see how hosted open-vocabulary detectors such as [OWLv2](https://platform.ultralytics.com/models/owlv2) and [Grounding DINO](https://platform.ultralytics.com/models/groundingdino) compare with vision language models on real-world detection, see the [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm).
 
 The nearest alternatives all take a text prompt, but only YOLOE and SAM 3 return masks, and the three answer different questions:
 

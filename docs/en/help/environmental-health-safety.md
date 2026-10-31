@@ -7,13 +7,13 @@ keywords: Ultralytics, EHS policy, safety, sustainability, environmental impact,
 
 # Ultralytics Environmental, Health, and Safety (EHS) Policy
 
-At Ultralytics, we recognize that the long-term success of our company relies not only on the products and services we offer, but also the manner in which we conduct our business. We are committed to ensuring the safety and well-being of our employees, stakeholders, and the environment, and we will continuously strive to mitigate our impact on the environment while promoting health and safety.
+At Ultralytics, we recognize that the long-term success of our company relies not only on the products and services we offer, but also on the manner in which we conduct our business. We are committed to ensuring the safety and well-being of our employees, stakeholders, and the environment, and we will continuously strive to mitigate our impact on the environment while promoting health and safety.
 
 ## Policy Principles
 
 1. **Compliance**: We will comply with all applicable laws, regulations, and standards related to EHS, and we will strive to exceed these standards where possible.
 
-2. **Prevention**: We will work to prevent accidents, injuries, and environmental harm by implementing [risk management measures](security.md) and ensuring all our operations and procedures are safe.
+2. **Prevention**: We will work to prevent accidents, injuries, and environmental harm by implementing risk management measures and ensuring all our operations and procedures are safe.
 
 3. **Continuous Improvement**: We will continuously improve our EHS performance by setting measurable objectives, monitoring our performance, auditing our operations, and revising our policies and procedures as needed.
 
@@ -33,7 +33,7 @@ At Ultralytics, we recognize that the long-term success of our company relies no
 
 5. **Monitoring and Review**: We will monitor and review our EHS performance regularly to identify opportunities for improvement and ensure we are meeting our objectives.
 
-This policy reflects our commitment to [minimizing our environmental footprint](https://www.ultralytics.com/blog/greener-future-through-vision-ai-and-ultralytics-yolo), ensuring the safety and well-being of our employees, and continuously improving our performance.
+This policy reflects our commitment to [minimizing our environmental footprint](https://www.ultralytics.com/blog/how-does-ai-affect-the-environment-and-drive-sustainability), ensuring the safety and well-being of our employees, and continuously improving our performance.
 
 Please remember that the implementation of an effective EHS policy requires the involvement and commitment of everyone working at or with Ultralytics. We encourage you to take personal responsibility for your safety and the safety of others, and to take care of the environment in which we live and work.
 
@@ -41,11 +41,11 @@ Please remember that the implementation of an effective EHS policy requires the 
 
 ### What is Ultralytics' Environmental, Health, and Safety (EHS) policy?
 
-Ultralytics' Environmental, Health, and Safety (EHS) policy is a comprehensive framework designed to ensure the safety and well-being of employees, stakeholders, and the environment. It emphasizes compliance with relevant laws, accident prevention through risk management, continuous improvement through measurable objectives, open communication, and education and training for employees. By following these principles, Ultralytics aims to minimize its environmental footprint and promote sustainable practices. [Learn more about Ultralytics' commitment to EHS](https://www.ultralytics.com/about).
+Ultralytics' Environmental, Health, and Safety (EHS) policy is a comprehensive framework designed to ensure the safety and well-being of employees, stakeholders, and the environment. It emphasizes compliance with relevant laws, accident prevention through risk management, continuous improvement through measurable objectives, open communication, and education and training for employees. By following these principles, Ultralytics aims to minimize its environmental footprint and promote sustainable practices. Learn more [about Ultralytics](https://www.ultralytics.com/about).
 
 ### How does Ultralytics ensure compliance with EHS regulations?
 
-Ultralytics ensures compliance with EHS regulations by adhering to all applicable laws, regulations, and standards. The company not only strives to meet these requirements but also to exceed them where possible. Regular audits, monitoring, and reviews are conducted to ensure ongoing compliance. Managers and supervisors are also accountable for ensuring these standards are maintained within their areas of control. For more details, refer to the [Policy Principles section](#policy-principles) on the documentation page.
+Ultralytics ensures compliance with EHS regulations by adhering to all applicable laws, regulations, and standards. The company not only strives to meet these requirements but also to exceed them where possible. Regular audits, monitoring, and reviews are conducted to ensure ongoing compliance. Managers and supervisors are also accountable for ensuring these standards are maintained within their areas of control. For more details, see the [Policy Principles](#policy-principles) section.
 
 ### Why is continuous improvement a key principle in Ultralytics' EHS policy?
 

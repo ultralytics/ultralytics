@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLO, depth estimation, TartanAir, synthetic dataset, Air
 
 # TartanAir Depth Dataset
 
-[TartanAir](https://theairlab.org/tartanair-dataset/) is a large-scale synthetic dataset generated in the [AirSim](https://github.com/microsoft/AirSim) simulator. It was created to push the limits of visual SLAM and spans a wide variety of environments — indoor, outdoor, urban, and nature scenes — along with seasonal, weather, and lighting variation, and challenging conditions.
+[TartanAir](https://theairlab.org/tartanair-dataset/) is a large-scale synthetic dataset generated in the [AirSim](https://github.com/microsoft/AirSim) simulator. It was created to push the limits of [visual SLAM](https://www.ultralytics.com/glossary/visual-slam-simultaneous-localization-and-mapping) and spans a wide variety of environments — indoor, outdoor, urban, and nature scenes — along with seasonal, weather, and lighting variation, and challenging conditions.
 
 Because TartanAir is rendered in simulation, it provides dense depth ground truth across this diverse set of scenes, making it a strong source of environmental diversity and long-range geometry for training monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation) models.
 
@@ -39,7 +39,7 @@ git clone https://github.com/castacks/tartanair_tools && cd tartanair_tools
 python download_training.py --output-dir ./data --rgb --depth --only-left --unzip
 ```
 
-Depth is already stored as float32 `.npy` in meters (`depth_left/*_left_depth.npy` next to `image_left/*_left.png`), so conversion is just re-arranging and invalidating the sky (rendered as extreme distances; the released mix clips at 80 m to match the [dataset YAML](#dataset-yaml)). TartanAir ships no official val split — hold out one or more environments. Reference conversion to the [Ultralytics depth dataset format](index.md):
+Depth is already stored as float32 `.npy` in meters (`depth_left/*_left_depth.npy` next to `image_left/*_left.png`), so conversion is just re-arranging and invalidating the sky (rendered as extreme distances; the released mix clips at 80 m to match the [dataset YAML](#dataset-yaml)). TartanAir ships no official val split — hold out one or more environments. Reference conversion to the Ultralytics depth dataset format:
 
 ```python
 import shutil
@@ -82,7 +82,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-Depth model on the TartanAir dataset with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the TartanAir dataset with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 

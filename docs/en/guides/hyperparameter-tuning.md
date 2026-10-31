@@ -5,9 +5,9 @@ description: Tune Ultralytics YOLO hyperparameters with model.tune() and a genet
 keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optimization, genetic algorithms, learning rate, batch size, epochs
 ---
 
-# Ultralytics YOLO [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) Guide
+# Ultralytics YOLO Hyperparameter Tuning Guide
 
-Hyperparameter tuning in Ultralytics YOLO is an automated, iterative search that optimizes settings — such as learning rate, loss weights, and augmentation strength — to maximize a [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics like accuracy, precision, and recall. Rather than testing these values by hand, Ultralytics YOLO explores the hyperparameter space with a genetic algorithm that mutates and evaluates candidate configurations across many short training runs.
+[Hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) in Ultralytics YOLO is an automated, iterative search that optimizes settings — such as learning rate, loss weights, and augmentation strength — to maximize a [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics like accuracy, precision, and recall. Rather than testing these values by hand, Ultralytics YOLO explores the hyperparameter space with a genetic algorithm that mutates and evaluates candidate configurations across many short training runs.
 
 <p align="center">
   <br>
@@ -24,7 +24,7 @@ Hyperparameter tuning in Ultralytics YOLO is an automated, iterative search that
 
 Hyperparameters are high-level, structural settings for the algorithm. They are set prior to the training phase and remain constant during it. Here are some commonly tuned hyperparameters in Ultralytics YOLO:
 
-- **Learning Rate** `lr0`: Determines the step size at each iteration while moving towards a minimum in the [loss function](https://www.ultralytics.com/glossary/loss-function).
+- **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate)** `lr0`: Determines the step size at each iteration while moving towards a minimum in the [loss function](https://www.ultralytics.com/glossary/loss-function).
 - **[Batch Size](https://www.ultralytics.com/glossary/batch-size)** `batch`: Number of images processed simultaneously in a forward pass.
 - **Number of [Epochs](https://www.ultralytics.com/glossary/epoch)** `epochs`: An epoch is one complete forward and backward pass of all the training examples.
 - **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc. These live in the [model YAML configuration](model-yaml-config.md) rather than in training arguments.
@@ -35,11 +35,11 @@ Of these four, only the learning rate is in the default search space: `batch`, `
   <img width="640" src="https://cdn.ul.run/i/61d7129c7b5c4dcbdf8957fb535c998a.avif" alt="Hyperparameter optimization search space visualization">
 </p>
 
-For a full list of augmentation hyperparameters used in YOLO26 please refer to the [configurations page](../usage/cfg.md#augmentation-settings).
+For a full list of augmentation hyperparameters used in YOLO26, refer to the [configurations page](../usage/cfg.md#augmentation-settings).
 
 ## Genetic Evolution and Mutation
 
-Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic_algorithm) to optimize hyperparameters. Genetic algorithms are inspired by the mechanism of natural selection and genetics.
+Ultralytics YOLO uses genetic algorithms, a family of [evolutionary algorithms](https://www.ultralytics.com/glossary/evolutionary-algorithms), to optimize hyperparameters. Genetic algorithms are inspired by the mechanism of natural selection and genetics.
 
 - **Selection**: Each iteration selects one of up to nine highest-fitness configurations, weighted by fitness. After 30 results, the best 20% of all results (up to 30) also estimate parameter covariance, with influence that grows as elite evidence accumulates.
 - **Mutation**: Each iteration mutates roughly half of the parameters using Gaussian steps normalized to their search ranges. Once covariance is active, a confidence-weighted share of at most 40% uses correlated steps, with reflection returning those steps within bounds without accumulating clipped values. As trials accumulate without improvement, step sizes narrow linearly by up to 20% over 25 trials and reset when a new best result is found. Iteration 1 has no parent and uses the default training hyperparameters as a baseline.
@@ -48,8 +48,8 @@ Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic
 
 Before you begin the tuning process, it's important to:
 
-1. **Identify the Metrics**: The built-in tuner (`use_ray=False`) ranks trials by the task's `fitness` score, while `use_ray=True` uses the task metric. Decide which secondary metrics you will inspect, such as AP50 or F1-score.
-2. **Set the Tuning Budget**: Define how much computational resources you're willing to allocate. Hyperparameter tuning can be computationally intensive.
+1. **Identify the Metrics**: The built-in tuner (`use_ray=False`) ranks trials by the task's `fitness` score, while `use_ray=True` uses the task metric. Decide which secondary metrics you will inspect, such as AP50 or [F1-score](https://www.ultralytics.com/glossary/f1-score).
+2. **Set the Tuning Budget**: Define how much compute you're willing to allocate. Hyperparameter tuning can be computationally intensive.
 
 ## How the Tuning Loop Works
 
@@ -105,7 +105,7 @@ The following table lists the default search space parameters for hyperparameter
 
 ## Custom Search Space Example
 
-Here's how to define a search space and use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO26n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
+The example below defines a search space and calls `model.tune()`, which runs the `Tuner` class, to tune [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) on [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) for 30 epochs with the AdamW optimizer. Plotting, checkpointing, and validation other than on the final epoch are skipped for faster tuning.
 
 !!! warning
 
@@ -314,8 +314,8 @@ This file contains scatter plots generated from `tune_results.ndjson`, helping y
 
 This directory contains the saved [PyTorch](https://www.ultralytics.com/glossary/pytorch) models from the best-fitness iteration of the tuning run. Both files come from that same iteration:
 
-- **`last.pt`**: The last.pt are the weights from the last epoch of training.
-- **`best.pt`**: The best.pt weights for the iteration that achieved the best fitness score.
+- **`last.pt`**: Weights from the last epoch of that iteration's training run.
+- **`best.pt`**: Weights from the best-fitness epoch of that iteration's training run.
 
 Using these results, you can make more informed decisions for future model trainings and analyses.
 
@@ -327,7 +327,7 @@ For settings that no argument exposes, such as per-layer learning rates or a cus
 
 ## FAQ
 
-### How do I optimize the [learning rate](https://www.ultralytics.com/glossary/learning-rate) for Ultralytics YOLO during hyperparameter tuning?
+### How do I optimize the learning rate for Ultralytics YOLO during hyperparameter tuning?
 
 Set an initial value with the `lr0` parameter — common values range from `0.001` to `0.01` — and let tuning mutate it from there to find the optimum. You can automate this with the `model.tune()` method. For example:
 
@@ -349,10 +349,10 @@ For more details, check the [Ultralytics YOLO configuration page](../usage/cfg.m
 
 ### What are the benefits of using genetic algorithms for hyperparameter tuning in YOLO26?
 
-Genetic algorithms in Ultralytics YOLO26 provide a robust method for exploring the hyperparameter space, leading to highly optimized model performance. Key benefits include:
+Genetic algorithms give Ultralytics YOLO26 a robust way to explore the hyperparameter space without manual trial and error. Key benefits include:
 
 - **Efficient Search**: Fitness-weighted selection preserves strong configurations while range-normalized mutation explores new candidates.
-- **Avoiding Local Minima**: By introducing randomness, they help in avoiding local minima, ensuring better global optimization.
+- **Avoiding Local Minima**: Random mutations help the search escape local minima that a purely greedy search could get stuck in.
 - **Performance Metrics**: They adapt based on a task-specific fitness score (mAP50-95 for detection).
 
 To see how genetic algorithms can optimize hyperparameters, check out the [hyperparameter evolution guide](../yolov5/tutorials/hyperparameter-evolution.md).
@@ -371,10 +371,10 @@ When evaluating model performance during hyperparameter tuning in YOLO, you can 
 - **F1-Score**: The harmonic mean of precision and recall.
 - **Precision and Recall**: Individual metrics indicating the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) in identifying true positives versus false positives and false negatives.
 
-These metrics help you understand different aspects of your model's performance. Refer to the [Ultralytics YOLO performance metrics](../guides/yolo-performance-metrics.md) guide for a comprehensive overview.
+These metrics help you understand different aspects of your model's performance. Refer to the [Ultralytics YOLO performance metrics](yolo-performance-metrics.md) guide for a comprehensive overview.
 
 ### Can I use Ray Tune for advanced hyperparameter optimization with YOLO26?
 
-Yes, Ultralytics YOLO26 integrates with [Ray Tune](https://docs.ray.io/en/latest/tune/index.html) for advanced hyperparameter optimization. Ray Tune offers sophisticated search algorithms like Bayesian Optimization and Hyperband, along with parallel execution capabilities to speed up the tuning process.
+Yes, Ultralytics YOLO26 integrates with [Ray Tune](https://docs.ray.io/en/latest/tune/index.html) for advanced hyperparameter optimization. Ray Tune offers search algorithms like [Bayesian optimization](https://www.ultralytics.com/glossary/bayesian-optimization) and Hyperband, along with parallel execution capabilities to speed up the tuning process.
 
-To use Ray Tune with YOLO26, simply set the `use_ray=True` parameter in your `model.tune()` method call. For more details and examples, check out the [Ray Tune integration guide](../integrations/ray-tune.md).
+To use Ray Tune with YOLO26, set the `use_ray=True` parameter in your `model.tune()` method call. For more details and examples, check out the [Ray Tune integration guide](../integrations/ray-tune.md).

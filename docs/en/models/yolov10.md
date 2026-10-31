@@ -1,13 +1,13 @@
 ---
 title: YOLOv10 NMS-Free Object Detection
 comments: true
-description: Discover YOLOv10 for real-time object detection, eliminating NMS and boosting efficiency. Achieve top performance with a low computational cost.
+description: YOLOv10 from Tsinghua University brings NMS-free, real-time object detection via consistent dual assignments. See variants, COCO benchmarks, and usage.
 keywords: YOLOv10, real-time object detection, NMS-free, deep learning, Tsinghua University, Ultralytics, machine learning, neural networks, performance optimization
 ---
 
 # YOLOv10: Real-Time End-to-End Object Detection
 
-YOLOv10, released in May 2024 and built on the [Ultralytics](https://www.ultralytics.com) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieved excellent performance with significantly reduced computational overhead at its time of release. Its NMS-free end-to-end design pioneered an approach that has been further developed in [YOLO26](yolo26.md).
+YOLOv10, released in May 2024 and built on the [Ultralytics](https://www.ultralytics.com) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating [non-maximum suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) and optimizing various model components, YOLOv10 achieved strong performance with significantly reduced computational overhead at its time of release. Its NMS-free end-to-end design pioneered an approach that has been further developed in [YOLO26](yolo26.md).
 
 ![YOLOv10 consistent dual assignment for NMS-free training](https://cdn.ul.run/i/30223d6c475e7321eef4a313322d6d3a.avif)
 
@@ -24,7 +24,7 @@ YOLOv10, released in May 2024 and built on the [Ultralytics](https://www.ultraly
 
 ## Overview
 
-Real-time object detection aims to accurately predict object categories and positions in images with low latency. The YOLO series has been at the forefront of this research due to its balance between performance and efficiency. However, reliance on NMS and architectural inefficiencies have hindered optimal performance. YOLOv10 addresses these issues by introducing [consistent dual assignments](https://arxiv.org/abs/2405.14458) for NMS-free training and a holistic efficiency-accuracy driven model design strategy.
+Real-time [object detection](https://www.ultralytics.com/glossary/object-detection) aims to accurately predict object categories and positions in images with low latency. The YOLO series has been at the forefront of this research due to its balance between performance and efficiency. However, reliance on NMS and architectural inefficiencies have hindered optimal performance. YOLOv10 addresses these issues by introducing [consistent dual assignments](https://arxiv.org/abs/2405.14458) for NMS-free training and a holistic efficiency-accuracy driven model design strategy.
 
 ### Architecture
 
@@ -39,7 +39,7 @@ The architecture of YOLOv10 builds upon the strengths of previous YOLO models wh
 
 1. **NMS-Free Training**: Utilizes consistent dual assignments to eliminate the need for NMS, reducing [inference latency](https://www.ultralytics.com/glossary/inference-latency).
 2. **Holistic Model Design**: Comprehensive optimization of various components from both efficiency and accuracy perspectives, including lightweight classification heads, spatial-channel decoupled downsampling, and rank-guided block design.
-3. **Enhanced Model Capabilities**: Incorporates large-kernel [convolutions](https://www.ultralytics.com/glossary/convolution) and partial self-attention modules to improve performance without significant computational cost.
+3. **Enhanced Model Capabilities**: Incorporates large-kernel [convolutions](https://www.ultralytics.com/glossary/convolution) and partial [self-attention](https://www.ultralytics.com/glossary/self-attention) modules to improve performance without significant computational cost.
 
 ## Model Variants
 
@@ -56,7 +56,7 @@ YOLOv10 comes in various model scales to cater to different application needs:
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv10"]'></canvas>
 
-YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10s is 1.8x faster than [RT-DETR-R18](../models/rtdetr.md) with similar AP on the COCO dataset, and YOLOv10b has 46% less latency and 25% fewer parameters than [YOLOv9-C](../models/yolov9.md) with the same performance.
+At release, YOLOv10 outperformed previous YOLO versions and other state-of-the-art models in accuracy and efficiency. For example, YOLOv10s is 1.8x faster than [RT-DETR-R18](../models/rtdetr.md) with similar AP on the COCO dataset, and YOLOv10b has 46% less latency and 25% fewer parameters than [YOLOv9-C](../models/yolov9.md) with the same performance.
 
 !!! tip "Performance"
 
@@ -77,9 +77,9 @@ YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in 
 
 ### Consistent Dual Assignments for NMS-Free Training
 
-YOLOv10 employs dual label assignments, combining one-to-many and one-to-one strategies during training to ensure rich supervision and efficient end-to-end deployment. Ultralytics prediction and validation default to the one-to-many head with NMS; set `nms=False` to select the NMS-free head. The consistent matching metric aligns the supervision between both strategies, enhancing the quality of predictions during [inference](../modes/predict.md).
+YOLOv10 employs dual label assignments, combining one-to-many and one-to-one strategies during training to ensure rich supervision and efficient end-to-end deployment. Ultralytics prediction and validation default to the one-to-many head with NMS; set `nms=False` to select the [NMS-free head](../guides/end2end-detection.md). The consistent matching metric aligns the supervision between both strategies, enhancing the quality of predictions during [inference](../modes/predict.md).
 
-### Holistic Efficiency-[Accuracy](https://www.ultralytics.com/glossary/accuracy) Driven Model Design
+### Holistic Efficiency-Accuracy Driven Model Design
 
 #### Efficiency Enhancements
 
@@ -94,7 +94,7 @@ YOLOv10 employs dual label assignments, combining one-to-many and one-to-one str
 
 ## Experiments and Results
 
-YOLOv10 has been extensively tested on standard benchmarks like [COCO](../datasets/detect/coco.md), demonstrating superior performance and efficiency. The model achieves state-of-the-art results across different variants, showcasing significant improvements in latency and accuracy compared to previous versions and other contemporary detectors.
+YOLOv10 was evaluated on standard benchmarks such as [COCO](../datasets/detect/coco.md). At release, every variant improved the latency-accuracy trade-off compared to previous YOLO versions and other contemporary detectors.
 
 ## Comparisons
 
@@ -205,7 +205,7 @@ For training YOLOv10 on a custom dataset:
 
 ## Supported Tasks and Modes
 
-The YOLOv10 model series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
+The YOLOv10 model series offers a range of models, each optimized for [object detection](../tasks/detect.md). The variants cover a range of computational budgets and accuracy requirements.
 
 | Model   | Filenames                                                                           | Tasks                                  | Training | Validation | Inference | Export |
 | ------- | ----------------------------------------------------------------------------------- | -------------------------------------- | -------- | ---------- | --------- | ------ |
@@ -213,7 +213,7 @@ The YOLOv10 model series offers a range of models, each optimized for high-perfo
 
 ## Exporting YOLOv10
 
-Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table outlines which formats have been successfully converted using Ultralytics for YOLOv10. Feel free to open a pull request if you're able to [provide a contribution change](../help/contributing.md) for adding export support of additional formats for YOLOv10.
+Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table lists the formats that Ultralytics has successfully converted for YOLOv10. Pull requests that add export support for additional formats are welcome; see the [contributing guide](../help/contributing.md).
 
 | Export Format                                     | Export Support | Exported Model Inference | Notes                                                                                  |
 | ------------------------------------------------- | -------------- | ------------------------ | -------------------------------------------------------------------------------------- |
@@ -231,7 +231,7 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 
 ## Conclusion
 
-YOLOv10 set a new standard in real-time object detection at its release by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its NMS-free approach pioneered end-to-end object detection in the YOLO family. For the latest Ultralytics model with improved performance and NMS-free inference, see [YOLO26](yolo26.md).
+At its release, YOLOv10 advanced real-time object detection by removing NMS post-processing and redesigning model components for both efficiency and accuracy. Its NMS-free approach pioneered end-to-end object detection in the YOLO family. For the latest Ultralytics model with improved performance and NMS-free inference, see [YOLO26](yolo26.md) and read [why YOLO26 removes NMS and how that changes deployment](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment).
 
 ## Citations and Acknowledgments
 
@@ -260,11 +260,11 @@ For detailed implementation, architectural innovations, and experimental results
 
 ### What is YOLOv10 and how does it differ from previous YOLO versions?
 
-YOLOv10, developed by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces several key innovations to real-time object detection. It eliminates the need for non-maximum suppression (NMS) by employing consistent dual assignments during training and optimized model components for superior performance with reduced computational overhead. For more details on its architecture and key features, check out the [YOLOv10 overview](#overview) section.
+YOLOv10, developed by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces several key innovations to real-time object detection. It eliminates the need for non-maximum suppression (NMS) by employing consistent dual assignments during training, and optimizes model components to reduce computational overhead. For more details on its architecture and key features, check out the [YOLOv10 overview](#overview) section.
 
 ### How can I get started with running inference using YOLOv10?
 
-For easy inference, you can use the Ultralytics YOLO Python library or the command line interface (CLI). Below are examples of predicting new images using YOLOv10:
+Run inference with the Ultralytics Python API or the [command line interface (CLI)](../usage/cli.md). Below are examples of predicting on new images with YOLOv10:
 
 !!! example
 
@@ -310,4 +310,4 @@ YOLOv10 supports several export formats, including TorchScript, ONNX, OpenVINO, 
 
 ### What are the performance benchmarks for YOLOv10 models?
 
-YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in both accuracy and efficiency. For example, YOLOv10s is 1.8x faster than RT-DETR-R18 with a similar AP on the COCO dataset. YOLOv10b shows 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance. Detailed benchmarks can be found in the [Comparisons](#comparisons) section.
+At release, YOLOv10 outperformed previous YOLO versions and other state-of-the-art models in both accuracy and efficiency. For example, YOLOv10s is 1.8x faster than RT-DETR-R18 with a similar AP on the COCO dataset. YOLOv10b shows 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance. Detailed benchmarks can be found in the [Comparisons](#comparisons) section.

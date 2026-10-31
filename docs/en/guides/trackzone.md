@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover how TrackZone leverages Ultralytics YOLO26 to precisely track objects within specific zones, enabling real-time insights for crowd analysis, surveillance, and targeted monitoring.
-keywords: TrackZone, object tracking, YOLO26, Ultralytics, real-time object detection, AI, deep learning, crowd analysis, surveillance, zone-based tracking, resource optimization
+description: Track objects only inside a defined zone of a video with the Ultralytics YOLO26 TrackZone solution for entry points, restricted areas, and crowd monitoring.
+keywords: TrackZone, object tracking, YOLO26, Ultralytics, real-time object detection, AI, deep learning, crowd analysis, surveillance, zone-based tracking
 ---
 
 # TrackZone using Ultralytics YOLO26
@@ -10,7 +10,7 @@ keywords: TrackZone, object tracking, YOLO26, Ultralytics, real-time object dete
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-track-the-objects-in-zone-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open TrackZone In Colab"></a>
 
-TrackZone specializes in monitoring objects within designated areas of a frame instead of the whole frame. Built on [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/), it integrates object detection and [tracking](../modes/track.md) specifically within zones for videos and live camera feeds. YOLO26's advanced algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) technologies make it a perfect choice for real-time use cases, offering precise and efficient object tracking in applications like crowd monitoring and surveillance.
+TrackZone specializes in monitoring objects within designated areas of a frame instead of the whole frame. Built on [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/), it integrates [object detection](https://www.ultralytics.com/glossary/object-detection) and [tracking](../modes/track.md) specifically within zones for videos and live camera feeds. Because YOLO26 runs [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) detection and tracking in real time, TrackZone suits applications like crowd monitoring and surveillance. For a primer on tracking, see [tracking moving objects in videos with Ultralytics YOLO models](https://www.ultralytics.com/blog/a-guide-on-tracking-moving-objects-in-videos-with-ultralytics-yolo-models).
 
 <p align="center">
   <br>
@@ -28,9 +28,9 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 - **Targeted Analysis:** Tracking objects within specific zones allows for more focused insights, enabling precise monitoring and analysis of areas of interest, such as entry points or restricted zones.
 - **Reduced Downstream Workload:** By ignoring objects outside the zone, TrackZone removes irrelevant detections so there are fewer objects to count, log, or alert on in the logic you build on top of it. Detection still runs on a full-size masked frame rather than a tight crop of the zone, so the benefit is cleaner, more focused output rather than faster model inference.
 - **Enhanced Security:** Zonal tracking improves surveillance by monitoring critical areas, aiding in the early detection of unusual activity or security breaches.
-- **Scalable Solutions:** The ability to focus on specific zones makes TrackZone adaptable to various scenarios, from retail spaces to industrial settings, ensuring seamless integration and scalability.
+- **Scalable Solutions:** The ability to focus on specific zones makes TrackZone adaptable to various scenarios, from retail spaces to industrial settings.
 
-## Real World Applications
+## Real-World Applications
 
 |                                                   Agriculture                                                    |                                                  Transportation                                                   |
 | :--------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------: |
@@ -149,7 +149,7 @@ cap.release()
 
 ### How do I track objects in a specific area or zone of a video frame using Ultralytics YOLO26?
 
-Tracking objects in a defined area or zone of a video frame is straightforward with Ultralytics YOLO26. Simply use the command provided below to initiate tracking. This approach ensures efficient analysis and accurate results, making it ideal for applications like surveillance, crowd management, or any scenario requiring zonal tracking.
+Run the command below to track objects only inside the zone, and pass `region` to set the zone coordinates. This suits applications like surveillance, crowd management, or any scenario requiring zonal tracking.
 
 ```bash
 yolo solutions trackzone source="path/to/video.mp4" show=True

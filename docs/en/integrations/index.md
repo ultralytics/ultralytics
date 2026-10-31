@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Discover Ultralytics integrations for streamlined ML workflows, dataset management, optimized model training, and robust deployment solutions.
+description: Explore Ultralytics YOLO integrations for training, experiment tracking, dataset management, and deployment to ONNX, TensorRT, OpenVINO, CoreML, and edge NPUs.
 keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLflow, Ultralytics Platform, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, Luxonis, PaddlePaddle, NCNN, Hailo, Hailo HEF, Ambarella, CVflow, Qualcomm QNN, RKNN, edge AI
 ---
 
 # Ultralytics Integrations
 
-Welcome to the Ultralytics Integrations page! This page provides an overview of our partnerships with various tools and platforms, designed to streamline your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows, enhance dataset management, simplify model training, and facilitate efficient deployment.
+This page lists the tools and platforms that Ultralytics integrates with to support your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows, from dataset management and model training to experiment tracking and deployment.
 
 <img width="1024" src="https://cdn.ul.run/i/f874ab850f33f361d01a01e9a8c98655.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
@@ -25,11 +25,11 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Agent Skills](agent-skills.md): Teach AI coding agents like Claude Code, Codex, Cursor, and Gemini CLI the complete Ultralytics YOLO workflow with official skills covering datasets, training, inference, and export.
 
-- [Albumentations](albumentations.md): Enhance your Ultralytics models with powerful image augmentations to improve model robustness and generalization.
+- [Albumentations](albumentations.md): Apply additional image [augmentations](https://www.ultralytics.com/glossary/data-augmentation) during Ultralytics training to improve model robustness and generalization.
 
-- [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
+- [Amazon SageMaker](amazon-sagemaker.md): Use Amazon SageMaker to build, train, and deploy Ultralytics models on one platform for the ML lifecycle.
 
-- [ClearML](clearml.md): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
+- [ClearML](clearml.md): Automate your Ultralytics ML workflows, [track experiments](https://www.ultralytics.com/glossary/experiment-tracking), and collaborate as a team.
 
 - [Comet ML](comet.md): Enhance your model development with Ultralytics by tracking, comparing, and optimizing your machine learning experiments.
 
@@ -37,23 +37,23 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Google Colab](google-colab.md): Use Google Colab to train and evaluate Ultralytics models in a cloud-based environment that supports collaboration and sharing.
 
-- [IBM Watsonx](ibm-watsonx.md): See how IBM Watsonx simplifies the training and evaluation of Ultralytics models with its cutting-edge AI tools, effortless integration, and advanced model management system.
+- [IBM Watsonx](ibm-watsonx.md): Train and evaluate Ultralytics models in IBM watsonx.ai notebooks, alongside IBM tools for data management and model governance.
 
-- [JupyterLab](jupyterlab.md): Find out how to use JupyterLab's interactive and customizable environment to train and evaluate Ultralytics models with ease and efficiency.
+- [JupyterLab](jupyterlab.md): Use JupyterLab's interactive, customizable environment to train and evaluate Ultralytics models.
 
-- [Kaggle](kaggle.md): Explore how you can use Kaggle to train and evaluate Ultralytics models in a cloud-based environment with pre-installed libraries, GPU support, and a vibrant community for collaboration and sharing.
+- [Kaggle](kaggle.md): Explore how you can use Kaggle to train and evaluate Ultralytics models in a cloud-based environment with pre-installed libraries, GPU support, and an active community for collaboration and sharing.
 
 - [MLflow](mlflow.md): Streamline the entire ML lifecycle of Ultralytics models, from experimentation and reproducibility to deployment.
 
-- [Modal](../guides/modal-quickstart.md): Run Ultralytics models on Modal's serverless cloud platform with automatic GPU provisioning, pay-per-second pricing, and seamless scaling for inference and training workloads.
+- [Modal](../guides/modal-quickstart.md): Run Ultralytics models on Modal's serverless cloud platform with automatic GPU provisioning, pay-per-second pricing, and automatic scaling for inference and training workloads.
 
-- [Paperspace Gradient](paperspace.md): Paperspace Gradient simplifies working on YOLO26 projects by providing easy-to-use cloud tools for training, testing, and deploying your models quickly.
+- [Paperspace Gradient](paperspace.md): Use Paperspace Gradient cloud GPUs and notebooks to train, test, and deploy YOLO26 models.
 
-- [Ray Tune](ray-tune.md): Optimize the hyperparameters of your Ultralytics models at any scale.
+- [Ray Tune](ray-tune.md): Run [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) for your Ultralytics models at any scale.
 
-- [TensorBoard](tensorboard.md): Visualize your Ultralytics ML workflows, monitor model metrics, and foster team collaboration.
+- [TensorBoard](tensorboard.md): Visualize your Ultralytics training runs and monitor model metrics.
 
-- [Ultralytics Platform](https://platform.ultralytics.com): Train, manage, and deploy Ultralytics models in the browser, and download official pretrained models and datasets.
+- [Ultralytics Platform](https://platform.ultralytics.com): Train, manage, and deploy Ultralytics models in the browser, and download [official pretrained models](https://platform.ultralytics.com/ultralytics/yolo26) and datasets.
 
 - [VS Code](vscode.md): An extension for VS Code that provides code snippets to accelerate Ultralytics development workflows and offers examples to help anyone learn or get started.
 
@@ -89,33 +89,33 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Luxonis OAK](luxonis.md): Convert Ultralytics YOLO models with Luxonis Hub or local Luxonis tooling and run them on-device on Luxonis OAK `RVC2` and `RVC4` cameras.
 
-- [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device.
+- [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a lightweight deep learning framework for on-device inference and training on mobile and embedded hardware.
 
-- [NCNN](ncnn.md): Developed by [Tencent](https://www.tencent.com/), NCNN is an efficient [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.
+- [NCNN](ncnn.md): Developed by [Tencent](https://www.tencent.com/), NCNN is a [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework optimized for mobile devices. It runs AI models directly inside apps across various mobile platforms.
 
 - [Neural Magic](neural-magic.md): Historical guide to sparse CPU inference with the DeepSparse engine, whose community libraries are deprecated.
 
-- [ONNX](onnx.md): An open-source format created by [Microsoft](https://www.microsoft.com/) for facilitating the transfer of AI models between various frameworks, enhancing the versatility and deployment flexibility of Ultralytics models.
+- [ONNX](onnx.md): An open-source format originally developed by [Microsoft](https://www.microsoft.com/) and Facebook for transferring AI models between frameworks, making Ultralytics models portable across runtimes and hardware.
 
-- [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models efficiently across various Intel CPU and GPU platforms.
+- [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on Intel CPUs, GPUs, and NPUs.
 
-- [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
+- [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle supports AI model deployment with a focus on scalable industrial applications.
 
 - [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models locally into the QNN (AI Engine Direct) context-binary format with the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider for accelerated inference on Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware in mobile and edge devices.
 
-- [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
+- [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs, for real-time AI inference on edge devices.
 
-- [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an advanced edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
+- [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an edge AI device for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it runs energy-efficient AI inference, and its modular design and video processing capabilities suit use cases such as safety monitoring, environmental applications, and manufacturing.
 
 - [SONY IMX500](sony-imx500.md): Optimize and deploy Ultralytics YOLOv8n and YOLO11n models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
-- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
+- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for speed and efficiency on NVIDIA GPUs.
 
 - [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
 
-- [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is a universal serialization format for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) models, enabling easy sharing and deployment across a wide range of platforms, from servers to edge devices.
+- [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is a serialization format for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) models, enabling sharing and deployment across a wide range of platforms, from servers to edge devices.
 
-- [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com/) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient [edge computing](https://www.ultralytics.com/glossary/edge-computing).
+- [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com/) for optimizing TensorFlow Lite models on Edge TPUs, this model format enables fast, efficient [edge computing](https://www.ultralytics.com/glossary/edge-computing).
 
 - [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
 
@@ -133,19 +133,17 @@ Explore the links to learn more about each integration and how to get the most o
 
 ## Contribute to Our Integrations
 
-We're always excited to see how the community integrates Ultralytics YOLO with other technologies, tools, and platforms! If you have successfully integrated YOLO with a new system or have valuable insights to share, consider [contributing to our Integrations Docs](../help/contributing.md).
+We welcome community guides on integrating Ultralytics YOLO with other technologies, tools, and platforms. If you have successfully integrated YOLO with a new system or have valuable insights to share, consider [contributing to our Integrations Docs](../help/contributing.md).
 
-By writing a guide or tutorial, you can help expand our documentation and provide real-world examples that benefit the community. It's an excellent way to contribute to the growing ecosystem around Ultralytics YOLO.
+By writing a guide or tutorial, you can help expand our documentation and provide real-world examples that benefit the community.
 
-To contribute, please check out our [Contributing Guide](../help/contributing.md) for instructions on how to submit a Pull Request (PR) 🛠️. We eagerly await your contributions!
-
-Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feature-rich 🙏!
+To contribute, follow the instructions in our contributing guide on how to submit a Pull Request (PR).
 
 ## FAQ
 
 ### What is Ultralytics Platform, and how does it streamline the ML workflow?
 
-[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics Platform](https://platform.ultralytics.com) page and get started quickly with our [Quickstart](../platform/quickstart.md) guide.
+[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform for end-to-end machine learning workflows with Ultralytics models. You can upload and annotate datasets, train models on cloud GPUs, track experiments, and deploy YOLO models without extensive coding. The platform serves as a centralized workspace for your entire ML pipeline, from data preparation to deployment. Explore the key features in the [Ultralytics Platform docs](../platform/index.md) and get started with the [Quickstart](../platform/quickstart.md) guide.
 
 ### Can I track the performance of my Ultralytics models using MLflow?
 
@@ -153,4 +151,4 @@ Yes, you can. Integrating [MLflow](https://mlflow.org/) with Ultralytics models 
 
 ### How do I deploy Ultralytics YOLO models with Gradio for interactive demos?
 
-To deploy Ultralytics YOLO models with [Gradio](https://gradio.app/) for interactive [object detection](https://www.ultralytics.com/glossary/object-detection) demos, you can follow the steps outlined on the [Gradio](gradio.md) integration page. Gradio allows you to create easy-to-use web interfaces for real-time model inference, making it an excellent tool for showcasing your YOLO model's capabilities in a user-friendly format suitable for both developers and end-users. With just a few lines of code, you can build interactive applications that demonstrate your model's performance on custom inputs, facilitating better understanding and evaluation of your computer vision solutions.
+To deploy Ultralytics YOLO models with [Gradio](https://gradio.app/) for interactive [object detection](https://www.ultralytics.com/glossary/object-detection) demos, you can follow the steps outlined on the [Gradio](gradio.md) integration page. Gradio creates web interfaces for real-time model inference, which makes it useful for showcasing your YOLO model to both developers and end users. With a few lines of code, you can build interactive applications that demonstrate your model's performance on custom inputs.

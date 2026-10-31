@@ -1,7 +1,7 @@
 ---
 title: YOLO26 End-to-End NMS-Free Detection
 comments: true
-description: Choose NMS or NMS-free inference with the nms argument and understand model outputs, accuracy, and export compatibility.
+description: Choose NMS or NMS-free inference in Ultralytics YOLO26 with the nms argument, and understand model outputs, accuracy trade-offs, and export compatibility.
 keywords: YOLO26, end-to-end detection, NMS-free inference, NMS, model export, deployment guide, Ultralytics, ONNX, TensorRT, CoreML
 ---
 
@@ -50,7 +50,7 @@ One argument controls the choice across [prediction](../modes/predict.md), [vali
 
 ## How End-to-End Detection Works
 
-Both heads share the backbone and neck and are optimized during [training](../modes/train.md). The one-to-many head provides multiple candidate predictions per object; NMS removes overlapping detections. The one-to-one head learns to produce a single prediction per object. Selecting the inference path does not disable dual-head supervision. Validation during training uses the selected inference head, so checkpoint selection and early stopping follow the same predictions as deployment.
+Both heads share the [backbone](https://www.ultralytics.com/glossary/backbone) and neck and are optimized during [training](../modes/train.md). The one-to-many head provides multiple candidate predictions per object; NMS removes overlapping detections. The one-to-one head learns to produce a single prediction per object. Selecting the inference path does not disable dual-head supervision. Validation during training uses the selected inference head, so checkpoint selection and early stopping follow the same predictions as deployment. For the design rationale, see [why YOLO26 removes NMS and how that changes deployment](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment).
 
 | Head                  | Detection output before external processing | Processing                               |
 | --------------------- | ------------------------------------------- | ---------------------------------------- |
@@ -99,7 +99,7 @@ See the individual [integration guides](../integrations/index.md) for hardware r
 
 ## Accuracy and Speed Trade-offs
 
-The [published YOLO26 COCO results](../models/yolo26.md) show that the one-to-many head improves detection mAP by 0.6–0.8 points across the five scales: for example, 40.9 versus 40.1 for YOLO26n, and 57.5 versus 56.9 for YOLO26x. The one-to-one head avoids the NMS pass and favors latency. These results motivate the default; they do not guarantee a gain on every dataset.
+The [published YOLO26 COCO results](../models/yolo26.md#performance-metrics) show that the one-to-many head improves detection mAP by 0.6–0.8 points across the five scales: for example, 40.9 versus 40.1 for YOLO26n, and 57.5 versus 56.9 for YOLO26x. The one-to-one head avoids the NMS pass and favors latency. These results motivate the default; they do not guarantee a gain on every dataset.
 
 Published NMS-free speed measurements use `nms=False`. Compare accuracy and latency using the same head selection, image size, precision and hardware.
 

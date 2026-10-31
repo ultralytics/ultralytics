@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 # Explore
 
-[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
+The [Ultralytics Platform](https://platform.ultralytics.com) Explore page lists public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
 ![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/0ef70bb4ebae864538173f1176c2e674.avif)<!-- screenshot -->
 
@@ -64,7 +64,8 @@ easy to bookmark or share.
 | **Projects** | Name, description, owner username, and tags              |
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
-search, and their cards show the matching images. On the Images tab, describe a scene such as `cats on a sofa`, then
+search, and their cards show the matching images. The Images tab uses
+[semantic search](https://www.ultralytics.com/glossary/semantic-search): describe a scene such as `cats on a sofa`, then
 click an image to open a side panel with its annotations, source dataset, class counts, and license, followed by up to
 24 similar images, including ones from the same dataset, when you are signed in; click one to open it in the panel. On
 narrow screens such as phones, the image opens full size instead.
@@ -188,7 +189,7 @@ Download a public model:
 2. Click the **download icon** to download its PyTorch `.pt` weights
 3. Open the **Export** tab to download any completed exports that are available
 
-You can also use the model for inference or as a starting point for fine-tuning:
+You can also use the model for inference or as a starting point for [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning):
 
 ```bash
 # Use a downloaded model for inference
@@ -230,9 +231,9 @@ See [Projects](train/projects.md) for organizing models in your project.
 
 ## Official Ultralytics Content
 
-Official `@ultralytics` projects are pinned to the top of the Explore Projects tab: [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md). Open a project to see its current models and supported tasks.
+Official `@ultralytics` projects are pinned to the top of the Explore Projects tab: [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26), [YOLO11](https://platform.ultralytics.com/ultralytics/yolo11), [YOLOv8](https://platform.ultralytics.com/ultralytics/yolov8), and [YOLOv5](https://platform.ultralytics.com/ultralytics/yolov5). Open a project to see its current models and supported tasks.
 
-Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
+Official datasets include benchmark datasets like [coco8](https://platform.ultralytics.com/ultralytics/datasets/coco8) (8-image COCO subset), [VOC](https://platform.ultralytics.com/ultralytics/datasets/voc), [african-wildlife](https://platform.ultralytics.com/ultralytics/datasets/african-wildlife), [dota8](https://platform.ultralytics.com/ultralytics/datasets/dota8), and other commonly used computer vision datasets. The [Datasets Overview](../datasets/index.md) documents each dataset's format, classes, and citation.
 
 !!! tip "Quick Start with Official Models"
 
@@ -349,7 +350,7 @@ Public content on the platform uses clean, shareable URLs:
 | -------- | ------------------------------------------------------- | ----------------------------------------------------- |
 | Profile  | `platform.ultralytics.com/{username}`                   | `platform.ultralytics.com/ultralytics`                |
 | Datasets | `platform.ultralytics.com/{username}/datasets`          | `platform.ultralytics.com/ultralytics/datasets`       |
-| Dataset  | `platform.ultralytics.com/{username}/datasets/{slug}`   | `platform.ultralytics.com/ultralytics/datasets/coco`  |
+| Dataset  | `platform.ultralytics.com/{username}/datasets/{slug}`   | `platform.ultralytics.com/ultralytics/datasets/coco8` |
 | Project  | `platform.ultralytics.com/{username}/{project}`         | `platform.ultralytics.com/ultralytics/yolo26`         |
 | Model    | `platform.ultralytics.com/{username}/{project}/{model}` | `platform.ultralytics.com/ultralytics/yolo26/yolo26n` |
 

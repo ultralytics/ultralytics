@@ -1,7 +1,7 @@
 ---
 comments: true
-description: An overview of how the Ultralytics-Snippets extension for Visual Studio Code can help developers accelerate their work with the Ultralytics Python package.
-keywords: Visual Studio Code, VS Code, deep learning, convolutional neural networks, computer vision, Python, code snippets, Ultralytics, developer productivity, machine learning, YOLO, developers, productivity, efficiency, learning, programming, IDE, code editor, developer utilities, programming tools
+description: Install and use the Ultralytics-Snippets extension for Visual Studio Code to insert ready-to-run Ultralytics YOLO examples, keyword arguments, and result loops.
+keywords: Visual Studio Code, VS Code, VS Code extension, Ultralytics-Snippets, code snippets, Ultralytics, YOLO, Python, computer vision, machine learning, developer productivity, IDE, code editor
 ---
 
 # Ultralytics VS Code Extension
@@ -19,9 +19,9 @@ keywords: Visual Studio Code, VS Code, deep learning, convolutional neural netwo
 
 ## Features and Benefits
 
-✅ Are you a data scientist or [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) engineer building computer vision applications with Ultralytics?
+✅ Are you a data scientist or [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) engineer building [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications with Ultralytics?
 
-✅ Do you despise writing the same blocks of code repeatedly?
+✅ Tired of writing the same blocks of code repeatedly?
 
 ✅ Are you always forgetting the arguments or default values for the [train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), or [track](../modes/track.md) methods?
 
@@ -29,30 +29,30 @@ keywords: Visual Studio Code, VS Code, deep learning, convolutional neural netwo
 
 ✅ Want to speed up your development cycle when working with Ultralytics?
 
-If you use Visual Studio Code and answered 'yes' to any of the above, then the Ultralytics-snippets extension for VS Code is here to help! Read on to learn more about the extension, how to install it, and how to use it.
+If you use Visual Studio Code and answered 'yes' to any of the above, then the Ultralytics-snippets extension for VS Code can help. The sections below cover what the extension does, how to install it, and how to use it.
 
 <p align="center">
   <br>
-    <img src="https://cdn.ul.run/i/07d3e04cb13dba09300a4c01c7661531.avif" alt="Snippet Prediction Preview">
+    <img src="https://cdn.ul.run/i/07d3e04cb13dba09300a4c01c7661531.avif" alt="Inserting and running an Ultralytics YOLO prediction snippet in VS Code">
   <br>
-  Run example code using Ultralytics YOLO in under 20 seconds! 🚀
+  Run example code using Ultralytics YOLO in under 20 seconds.
 </p>
 
 ## Inspired by the Ultralytics Community
 
-The inspiration to build this extension came from the Ultralytics Community. Questions from the Community around similar topics and examples fueled the development for this project. Additionally, many members of the Ultralytics team use VS Code to accelerate their own work ⚡.
+The inspiration to build this extension came from the Ultralytics Community. Questions from the Community around similar topics and examples fueled the development for this project. Additionally, many members of the Ultralytics team use VS Code for their own work.
 
 ## Why VS Code?
 
-[Visual Studio Code](https://code.visualstudio.com/) is extremely popular with developers worldwide and has ranked most popular by the Stack Overflow Developer Survey in [2021](https://survey.stackoverflow.co/2021#section-most-popular-technologies-integrated-development-environment), [2022](https://survey.stackoverflow.co/2022/#section-most-popular-technologies-integrated-development-environment), [2023](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-integrated-development-environment), and [2024](https://survey.stackoverflow.co/2024/technology#1-integrated-development-environment). Due to VS Code's high level of customization, built-in features, broad compatibility, and extensibility, it's no surprise that so many developers are using it. Given the popularity in the wider developer community and within the Ultralytics [Discord](https://discord.com/invite/ultralytics), [Discourse](https://community.ultralytics.com), [Reddit](https://www.reddit.com/r/ultralytics/), and [GitHub](https://github.com/ultralytics) Communities, it made sense to build a VS Code extension to help streamline your workflow and boost your productivity.
+[Visual Studio Code](https://code.visualstudio.com/) is widely used by developers worldwide and has ranked most popular by the Stack Overflow Developer Survey in [2021](https://survey.stackoverflow.co/2021#section-most-popular-technologies-integrated-development-environment), [2022](https://survey.stackoverflow.co/2022/#section-most-popular-technologies-integrated-development-environment), [2023](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-integrated-development-environment), and [2024](https://survey.stackoverflow.co/2024/technology#1-integrated-development-environment). Its popularity comes from its high level of customization, built-in features, broad compatibility, and extensibility. Given that popularity in the wider developer community and within the Ultralytics [Discord](https://discord.com/invite/ultralytics), [Discourse](https://community.ultralytics.com), [Reddit](https://www.reddit.com/r/ultralytics/), and [GitHub](https://github.com/ultralytics) Communities, it made sense to build a VS Code extension to help streamline your workflow.
 
-Want to let us know what you use for developing code? Head over to our Discourse [community poll](https://community.ultralytics.com/t/what-do-you-use-to-write-code/89/1) and let us know! While you're there, maybe check out some of our favorite computer vision, machine learning, AI, and developer [memes](https://community.ultralytics.com/c/off-topic/memes-jokes/11), or even post your favorite!
+To share which tools you use for developing code, vote in the Discourse [community poll](https://community.ultralytics.com/t/what-do-you-use-to-write-code/89/1).
 
 ## Installing the Extension
 
 !!! note
 
-    Any code environment that will allow for installing VS Code extensions _should be_ compatible with the Ultralytics-snippets extension. After publishing the extension, it was discovered that [neovim](https://neovim.io/) can be made compatible with VS Code extensions. To learn more see the [`neovim` install section](https://github.com/Burhan-Q/ultralytics-snippets?tab=readme-ov-file#use-with-neovim) of the Readme in the [Ultralytics-Snippets repository](https://github.com/Burhan-Q/ultralytics-snippets).
+    Any code environment that will allow for installing VS Code extensions _should be_ compatible with the Ultralytics-snippets extension. [Neovim](https://neovim.io/) can also be made compatible with VS Code extensions. To learn more see the [`neovim` install section](https://github.com/Burhan-Q/ultralytics-snippets?tab=readme-ov-file#use-with-neovim) of the Readme in the [Ultralytics-Snippets repository](https://github.com/Burhan-Q/ultralytics-snippets).
 
 ### Installing in VS Code
 
@@ -62,7 +62,7 @@ Want to let us know what you use for developing code? Head over to our Discourse
 
 <p align="center">
   <br>
-    <img src="https://cdn.ul.run/i/379d837d9716e9a7cb626d6775fe4c71.avif" alt="VS Code extension menu">
+    <img src="https://cdn.ul.run/i/379d837d9716e9a7cb626d6775fe4c71.avif" alt="Ultralytics Snippets search result with Install button in the VS Code Extensions Marketplace panel">
   <br>
 </p>
 
@@ -83,17 +83,17 @@ Want to let us know what you use for developing code? Head over to our Discourse
 
 ## Using the Ultralytics-Snippets Extension
 
-- 🧠 **Intelligent Code Completion:** Write code faster and more accurately with advanced code completion suggestions tailored to the Ultralytics API.
+- **Intelligent Code Completion:** Write code faster and more accurately with advanced code completion suggestions tailored to the Ultralytics API.
 
-- ⌛ **Increased Development Speed:** Save time by eliminating repetitive coding tasks and leveraging pre-built code block snippets.
+- **Increased Development Speed:** Save time by eliminating repetitive coding tasks with pre-built code block snippets.
 
-- 🔬 **Improved Code Quality:** Write cleaner, more consistent, and error-free code with intelligent code completion.
+- **Improved Code Quality:** Write cleaner, more consistent code with fewer errors.
 
-- 💎 **Streamlined Workflow:** Stay focused on the core logic of your project by automating common tasks.
+- **Streamlined Workflow:** Stay focused on the core logic of your project by automating common tasks.
 
 ### Overview
 
-The extension will only operate when the [Language Mode](https://code.visualstudio.com/docs/getstarted/tips-and-tricks#_change-language-mode) is configured for Python 🐍. This is to avoid snippets from being inserted when working on any other file type. All snippets have prefix starting with `ultra`, and simply typing `ultra` in your editor after installing the extension, will display a list of possible snippets to use. You can also open the VS Code [Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) using <kbd>Ctrl</kbd>+<kbd>Shift ⇑</kbd>+<kbd>p</kbd> and running the command `Snippets: Insert Snippet`.
+The extension will only operate when the [Language Mode](https://code.visualstudio.com/docs/getstarted/tips-and-tricks#_change-language-mode) is configured for Python. This prevents snippets from being inserted when working on any other file type. All snippets have a prefix starting with `ultra`; typing `ultra` in your editor after installing the extension displays a list of possible snippets to use. You can also open the VS Code [Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) using <kbd>Ctrl</kbd>+<kbd>Shift ⇑</kbd>+<kbd>p</kbd> and running the command `Snippets: Insert Snippet`.
 
 ### Code Snippet Fields
 
@@ -101,7 +101,7 @@ Many snippets have "fields" with default placeholder values or names. For instan
 
 <p align="center">
   <br>
-    <img src="https://cdn.ul.run/i/cf3f13b46116c7c266c8099243fe1b6d.avif" alt="Multi-update field and options">
+    <img src="https://cdn.ul.run/i/cf3f13b46116c7c266c8099243fe1b6d.avif" alt="Renaming a snippet field updates every instance and opens model scale and variant dropdowns">
   <br>
   After inserting snippet, renaming <code>model</code> as <code>world_model</code> updates all instances. Pressing <kbd>Tab ⇥</kbd> moves to the next field, which opens a dropdown menu and allows for selection of a model scale, and moving to the next field provides another dropdown to choose either <code>world</code> or <code>worldv2</code> model variant.
 </p>
@@ -123,7 +123,7 @@ The snippets are named in the most descriptive way possible, but this means ther
 
 ### Snippet Categories
 
-These are the current snippet categories available to the Ultralytics-snippets extension. More will be added in the future, so make sure to check for updates and to enable auto-updates for the extension. You can also [request additional snippets](#how-do-i-request-a-new-snippet) to be added if you feel there's any missing.
+These are the current snippet categories available to the Ultralytics-snippets extension. More will be added in the future, so make sure to check for updates and to enable auto-updates for the extension. You can also [request additional snippets](#how-do-i-request-a-new-snippet) to be added if any are missing.
 
 | Category  | Starting Prefix  | Description                                                                                                                                                                                                           |
 | :-------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -136,7 +136,7 @@ These are the current snippet categories available to the Ultralytics-snippets e
 
 ### Learning with Examples
 
-The `ultra.examples` snippets are very useful for anyone looking to learn how to get started with the basics of working with Ultralytics YOLO. Example snippets are intended to run once inserted (some have dropdown options as well). An example of this is shown at the animation at the [top](#ultralytics-vs-code-extension) of this page, where after the snippet is inserted, all code is selected and run interactively using <kbd>Shift ⇑</kbd>+<kbd>Enter ↵</kbd>.
+The `ultra.examples` snippets are very useful for anyone looking to learn how to get started with the basics of working with Ultralytics YOLO. Example snippets are intended to run once inserted (some have dropdown options as well). An example of this is shown in the animation at the [top](#ultralytics-vs-code-extension) of this page, where after the snippet is inserted, all code is selected and run interactively using <kbd>Shift ⇑</kbd>+<kbd>Enter ↵</kbd>.
 
 !!! example
 
@@ -155,7 +155,7 @@ The `ultra.examples` snippets are very useful for anyone looking to learn how to
 
 ### Accelerating Development
 
-The aim for snippets other than the `ultra.examples` are for making development easier and quicker when working with Ultralytics. A common code block to be used in many projects, is to iterate the list of `Results` returned from using the model [predict](../modes/predict.md) method. The `ultra.result-loop` snippet can help with this.
+Snippets other than `ultra.examples` aim to make development easier and quicker when working with Ultralytics. A common code block in many projects iterates over the list of `Results` returned by the model [predict](../modes/predict.md) method. The `ultra.result-loop` snippet can help with this.
 
 !!! example
 
@@ -168,7 +168,7 @@ The aim for snippets other than the `ultra.examples` are for making development 
         result.boxes.data  # torch.Tensor array
     ```
 
-However, since Ultralytics supports numerous [tasks](../tasks/index.md), when [working with inference results](../modes/predict.md#working-with-results) there are other `Results` attributes that you may wish to access, which is where the [snippet fields](#code-snippet-fields) will be powerful.
+However, since Ultralytics supports numerous [tasks](../tasks/index.md), when [working with inference results](../modes/predict.md#working-with-results) there are other `Results` attributes that you may wish to access, which is where the [snippet fields](#code-snippet-fields) are useful.
 
 <p align="center">
   <br>
@@ -179,7 +179,7 @@ However, since Ultralytics supports numerous [tasks](../tasks/index.md), when [w
 
 ### Keywords Arguments
 
-There are over 💯 keyword arguments for all the various Ultralytics [tasks](../tasks/index.md) and [modes](../modes/index.md)! That's a lot to remember, and it can be easy to forget if the argument is `save_frame` or `save_frames` (it's definitely `save_frames` by the way). This is where the `ultra.kwargs` snippets can help out!
+There are over 100 keyword arguments for all the various Ultralytics [tasks](../tasks/index.md) and [modes](../modes/index.md)! That's a lot to remember, and it can be easy to forget if the argument is `save_frame` or `save_frames` (it's `save_frames`). This is where the `ultra.kwargs` snippets can help out!
 
 !!! example
 
@@ -218,7 +218,7 @@ The best way to find out what snippets are available is to download and install 
 
 ## Conclusion
 
-The Ultralytics-Snippets extension for VS Code is designed to empower data scientists and machine learning engineers to build [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications using Ultralytics YOLO more efficiently. By providing pre-built code snippets and useful examples, we help you focus on what matters most: creating innovative solutions. Please share your feedback by visiting the [extension page on the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=Ultralytics.ultralytics-snippets) and leaving a review. ⭐
+The Ultralytics-Snippets extension for VS Code helps data scientists and machine learning engineers build computer vision applications with Ultralytics YOLO more efficiently. Its pre-built code snippets and examples let you spend less time on boilerplate and more on your project logic. Please share your feedback by visiting the [extension page on the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=Ultralytics.ultralytics-snippets) and leaving a review.
 
 ## FAQ
 
@@ -228,7 +228,7 @@ New snippets can be requested using the Issues on the Ultralytics-Snippets [repo
 
 ### How much does the Ultralytics-Snippets extension cost?
 
-It's 100% free!
+The extension is free.
 
 ### Why don't I see a code snippet preview?
 
@@ -238,7 +238,7 @@ VS Code uses the key combination <kbd>Ctrl</kbd>+<kbd>Space</kbd> to show more/l
 
 If you use VS Code and have started to see a message prompting you to install the Ultralytics-snippets extension, and don't want to see the message any more, there are two ways to disable this message.
 
-1. Install Ultralytics-snippets and the message will no longer be shown 😆!
+1. Install Ultralytics-snippets and the message will no longer be shown.
 
 2. You can use `yolo settings vscode_msg=False` to disable the message from showing without having to install the extension. You can learn more on the [Ultralytics Settings](../usage/settings.md) page if you're unfamiliar.
 
@@ -252,6 +252,6 @@ Like any other VS Code extension, you can uninstall it by navigating to the Exte
 
 <p align="center">
   <br>
-    <img src="https://cdn.ul.run/i/06d437f7d868ca47d303e1fe9f01fd6e.avif" alt="VS Code extension menu">
+    <img src="https://cdn.ul.run/i/06d437f7d868ca47d303e1fe9f01fd6e.avif" alt="Uninstall option in the Ultralytics Snippets settings menu in the VS Code Extensions panel">
   <br>
 </p>

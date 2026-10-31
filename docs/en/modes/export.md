@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to export your YOLO26 model to various formats like ONNX, TensorRT, and CoreML. Achieve maximum compatibility and performance.
-keywords: YOLO26, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine Learning, Inference, Deployment
+description: Export Ultralytics YOLO26 models to ONNX, TensorRT, CoreML, OpenVINO, LiteRT, and more, with export arguments, INT8/FP16 quantization, and QAT.
+keywords: YOLO26, Model Export, ONNX, TensorRT, CoreML, OpenVINO, Ultralytics, quantization, INT8, Inference, Deployment
 ---
 
 # Model Export with Ultralytics YOLO
@@ -10,7 +10,7 @@ keywords: YOLO26, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine
 
 ## Introduction
 
-The ultimate goal of training a model is to deploy it for real-world applications. Export mode in Ultralytics YOLO26 offers a versatile range of options for exporting your trained model to different formats, making it deployable across various platforms and devices. This comprehensive guide aims to walk you through the nuances of model exporting, showcasing how to achieve maximum compatibility and performance.
+The goal of training a model is usually to [deploy](https://www.ultralytics.com/glossary/model-deployment) it in real-world applications. Export mode in Ultralytics YOLO26 converts your trained model to different formats so it can run across various platforms and devices. This guide covers export usage, arguments, supported formats, and quantization options. If you are new to exporting, the Ultralytics Academy lesson [Export for Deployment](https://academy.ultralytics.com/courses/train-your-first-yolo/export-for-deployment) walks through the basics.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned export support.
 
@@ -29,12 +29,12 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-mode
 
 - **Versatility:** Export to multiple formats including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), and more.
 - **Performance:** Gain up to 5x GPU speedup with TensorRT and 3x CPU speedup with ONNX or [OpenVINO](../integrations/openvino.md).
-- **Compatibility:** Make your model universally deployable across numerous hardware and software environments.
-- **Ease of Use:** Simple CLI and Python API for quick and straightforward model exporting.
+- **Compatibility:** Deploy your model across a wide range of hardware and software environments.
+- **Ease of Use:** Export with a single CLI command or Python call.
 
 ## Usage Examples
 
-Export a YOLO26n model to a different format like ONNX or TensorRT. See the Arguments section below for a full list of export arguments.
+Export a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model to a different format like ONNX or TensorRT. See the [Arguments](#arguments) section below for a full list of export arguments.
 
 !!! example
 
@@ -60,11 +60,11 @@ Export a YOLO26n model to a different format like ONNX or TensorRT. See the Argu
 
 ## Arguments
 
-This table details the configurations and options available for exporting YOLO models to different formats. These settings are critical for optimizing the exported model's performance, size, and compatibility across various platforms and environments. Proper configuration ensures that the model is ready for deployment in the intended application with optimal efficiency.
+This table lists the arguments available for exporting YOLO models to different formats. They control the exported model's performance, size, and compatibility with the target platform and environment.
 
 {% include "macros/export-args.md" %}
 
-Adjusting these parameters allows for customization of the export process to fit specific requirements, such as deployment environment, hardware constraints, and performance targets. Selecting the appropriate format and settings is essential for achieving the best balance between model size, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy).
+Choose the format and settings that fit your deployment environment, hardware constraints, and performance targets to get the best balance between model size, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 ## Export Formats
 
@@ -126,7 +126,7 @@ For INT8 and W8A16 exports, provide representative calibration data with `data`,
 
 ### Quantization-Aware Training
 
-The INT8 exports above are post-training quantization (PTQ): ranges are observed in a single calibration pass over `data`. Quantization-aware training (QAT) instead learns weights that tolerate INT8 by fine-tuning with fake-quantization in the loop, which recovers accuracy that calibration alone loses. Pass `quantize=8` to `train` to fine-tune a pretrained checkpoint, then export it as usual:
+The INT8 exports above are [post-training quantization](https://www.ultralytics.com/glossary/model-quantization) (PTQ): ranges are observed in a single calibration pass over `data`. [Quantization-aware training (QAT)](https://www.ultralytics.com/glossary/quantization-aware-training-qat) instead learns weights that tolerate INT8 by fine-tuning with fake-quantization in the loop, which recovers accuracy that calibration alone loses. Pass `quantize=8` to `train` to fine-tune a pretrained checkpoint, then export it as usual:
 
 !!! example
 
@@ -184,7 +184,7 @@ Find your deployment target's integration guide — [ONNX](../integrations/onnx.
 
 ### How do I export a YOLO26 model to ONNX format?
 
-Exporting a YOLO26 model to ONNX format is straightforward with Ultralytics. It provides both Python and CLI methods for exporting models.
+Export a YOLO26 model to ONNX with either the Python API or the CLI:
 
 !!! example
 
@@ -212,7 +212,7 @@ For more details on the process, including advanced options like handling differ
 
 ### What are the benefits of using TensorRT for model export?
 
-Using TensorRT for model export offers significant performance improvements. YOLO26 models exported to TensorRT can achieve up to a 5x GPU speedup, making it ideal for real-time inference applications.
+Using TensorRT for model export offers significant performance improvements on NVIDIA GPUs. YOLO26 models exported to TensorRT can achieve up to a 5x GPU speedup, making TensorRT well suited to [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) applications.
 
 - **Versatility:** Optimize models for a specific hardware setup.
 - **Speed:** Achieve faster inference through advanced optimizations.
@@ -222,7 +222,7 @@ To learn more about integrating TensorRT, see the [TensorRT integration guide](.
 
 ### How do I enable INT8 quantization when exporting my YOLO26 model?
 
-INT8 quantization is an excellent way to compress the model and speed up inference, especially on edge devices. Here's how you can enable INT8 quantization:
+INT8 quantization compresses the model and speeds up inference, especially on edge devices. Enable it with `quantize=8`:
 
 !!! example
 
@@ -245,7 +245,7 @@ INT8 quantization can be applied to formats such as [ONNX](../integrations/onnx.
 
 ### Why is dynamic input size important when exporting models?
 
-Dynamic input size allows the exported model to handle varying image dimensions, providing flexibility and optimizing processing efficiency for different use cases. When exporting to formats like [ONNX](../integrations/onnx.md) or [TensorRT](../integrations/tensorrt.md), enabling dynamic input size ensures that the model can adapt to different input shapes seamlessly.
+Dynamic input size allows the exported model to handle varying image dimensions, providing flexibility and optimizing processing efficiency for different use cases. When exporting to formats like [ONNX](../integrations/onnx.md) or [TensorRT](../integrations/tensorrt.md), enabling dynamic input size lets the model accept different input shapes.
 
 To enable this feature, use the `dynamic=True` flag during export:
 
@@ -276,7 +276,7 @@ PyTorch models and dynamic exports use [minimum-rectangle padding](../modes/pred
 
 ### What are the key export arguments to consider for optimizing model performance?
 
-Understanding and configuring export arguments is crucial for optimizing model performance:
+These export arguments have the most impact on model performance:
 
 - **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `saved_model`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).

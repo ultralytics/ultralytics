@@ -1,13 +1,13 @@
 ---
 title: Extract Segmented Objects with YOLO and OpenCV
 comments: true
-description: Learn how to isolate and extract segmented objects from Ultralytics YOLO inference results with OpenCV. Remove backgrounds, crop to objects, and save transparent PNGs step by step.
+description: Isolate and extract segmented objects from Ultralytics YOLO results with OpenCV. Remove backgrounds, crop to bounding boxes, and save transparent PNGs.
 keywords: Ultralytics YOLO, segmentation, object isolation, background removal, binary mask, instance segmentation, OpenCV, Predict Mode, transparent PNG, crop object, YOLO26, image processing
 ---
 
 # How to Isolate Segmentation Objects with Ultralytics YOLO
 
-[Instance segmentation](../tasks/segment.md) produces a pixel-precise mask for every detected object, which means you can lift each object out of an image on its own. This guide shows you how to turn Ultralytics YOLO segmentation results into isolated objects using [Predict Mode](../modes/predict.md) and OpenCV, with either a solid black background or a transparent one for saving as PNG.
+[Instance segmentation](../tasks/segment.md) produces a pixel-precise mask for every detected object, which means you can lift each object out of an image on its own. This guide shows you how to turn Ultralytics YOLO segmentation results into isolated objects using [Predict Mode](../modes/predict.md) and [OpenCV](https://www.ultralytics.com/glossary/opencv), with either a solid black background or a transparent one for saving as PNG.
 
 <p align="center">
   <br>
@@ -33,7 +33,7 @@ The recipe works with any Ultralytics YOLO segmentation model and follows four s
 
 ## Run Segmentation Inference
 
-Install the required libraries, then load a segmentation model (the `-seg` suffix, required to produce masks) and run prediction on your source image:
+Install the required libraries, then load a segmentation model such as [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) (the `-seg` suffix is required to produce masks) and run prediction on your source image:
 
 ```python
 from ultralytics import YOLO
@@ -55,7 +55,7 @@ Each item in `results` corresponds to one image, and iterating over a result yie
 
 The snippets in this section and the next run **inside** the detection loop below; the complete, copy-paste script is in [Full Example](#full-example).
 
-<img width="240" align="right" src="https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca" alt="Binary Mask Image">
+<img width="240" align="right" src="https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca" alt="Binary mask with the segmented object in white on a black background">
 
 ```python
 from pathlib import Path
@@ -102,7 +102,7 @@ With the binary mask ready, combine it with the original image. There are two co
         ```
 
         <figure style="text-align: center;">
-            <img width="240" src="https://cdn.ul.run/i/effd6d59c803d824cbef6fa60236addd.avif" alt="Example Full size Isolated Object Image Black Background">
+            <img width="240" src="https://cdn.ul.run/i/effd6d59c803d824cbef6fa60236addd.avif" alt="Full-size isolated object on a black background">
             <figcaption style="font-style: italic; color: gray;">Full-size object on a black background</figcaption>
         </figure>
 
@@ -116,7 +116,7 @@ With the binary mask ready, combine it with the original image. There are two co
         ```
 
         <figure style="text-align: center;">
-            <img width="240" src="https://cdn.ul.run/i/b4f15875131ff53de8dad501c13daec6.avif" alt="Example Full size Isolated Object Image No Background">
+            <img width="240" src="https://cdn.ul.run/i/b4f15875131ff53de8dad501c13daec6.avif" alt="Full-size isolated object with a transparent background">
             <figcaption style="font-style: italic; color: gray;">Full-size object with a transparent background</figcaption>
         </figure>
 
@@ -132,7 +132,7 @@ With the binary mask ready, combine it with the original image. There are two co
     ```
 
     <figure style="text-align: center;">
-        <img width="240" src="https://cdn.ul.run/i/8819942788c1d27de1178b97864cd17a.avif" alt="Example Crop Isolated Object Image Black Background">
+        <img width="240" src="https://cdn.ul.run/i/8819942788c1d27de1178b97864cd17a.avif" alt="Isolated object cropped to its bounding box on a black background">
         <figcaption style="font-style: italic; color: gray;">Object cropped to its bounding box</figcaption>
     </figure>
 
@@ -194,7 +194,7 @@ For repeated use, wrap the loop body in a function so you can call it across man
 
 ## Conclusion
 
-You now have a complete recipe for isolating segmented objects with Ultralytics YOLO: run inference, build a binary mask from each contour, then extract the object on a black or transparent background and optionally crop it to its bounding box. Explore the full [Segment Task](../tasks/segment.md) and [Predict Mode](../modes/predict.md) documentation to adapt the workflow to your own classes.
+You now have a complete recipe for isolating segmented objects with Ultralytics YOLO: run inference, build a binary mask from each contour, then extract the object on a black or transparent background and optionally crop it to its bounding box. Explore the full [Segment Task](../tasks/segment.md) and [Predict Mode](../modes/predict.md) documentation to adapt the workflow to your own classes, or work through the [Use Masks in Code lesson](https://academy.ultralytics.com/courses/beyond-detection/use-masks-in-code) in Ultralytics Academy for more mask operations such as area, overlap, and outlines.
 
 ## FAQ
 

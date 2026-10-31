@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn to customize the Ultralytics YOLO Trainer for specific tasks. Step-by-step instructions with Python examples for maximum model performance.
+description: Customize the Ultralytics YOLO Trainer engine by overriding get_model, get_dataloader and the loss, adding callbacks, and passing custom trainers to train().
 keywords: Ultralytics, YOLO, Trainer Customization, Python, Machine Learning, AI, Model Training, DetectionTrainer, Custom Models
 ---
 
 # Advanced Customization
 
-Both the Ultralytics YOLO command-line and Python interfaces are high-level abstractions built upon base engine executors. This guide focuses on the `Trainer` engine, explaining how to customize it for your specific needs.
+Both the Ultralytics YOLO [command-line](cli.md) and [Python](python.md) interfaces are high-level abstractions built upon base engine executors. This guide focuses on the `Trainer` engine, explaining how to customize it for your specific needs.
 
 <p align="center">
   <br>
@@ -141,7 +141,7 @@ trainer.train()
 trained_model = trainer.best  # Get the best model
 ```
 
-For further customization, such as changing the [loss function](https://www.ultralytics.com/glossary/loss-function) or adding a [callback](https://www.ultralytics.com/glossary/callback), refer to the [Callbacks Guide](../usage/callbacks.md).
+For further customization, such as changing the loss function or adding a [callback](https://www.ultralytics.com/glossary/callback), refer to the [Callbacks Guide](../usage/callbacks.md).
 
 ### What are the key components of the BaseTrainer in Ultralytics YOLO?
 
@@ -157,7 +157,7 @@ For more details on customization and source code, see the [`BaseTrainer` Refere
 
 ### How can I add a callback to the Ultralytics YOLO DetectionTrainer?
 
-Add callbacks to monitor and modify the training process in `DetectionTrainer`. Here's how to add a callback to log model weights after every training [epoch](https://www.ultralytics.com/glossary/epoch):
+Add callbacks to monitor and modify the training process in `DetectionTrainer`. Here's how to add a callback to log model weights after every training epoch:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -179,19 +179,19 @@ For more details on callback events and entry points, refer to the [Callbacks Gu
 
 ### Why should I use Ultralytics YOLO for model training?
 
-Ultralytics YOLO provides a high-level abstraction over powerful engine executors, making it ideal for rapid development and customization. Key benefits include:
+Ultralytics YOLO provides a high-level abstraction over its engine executors, making it well suited to rapid development and customization. Key benefits include:
 
 - **Ease of Use**: Both command-line and Python interfaces simplify complex tasks.
 - **Performance**: Optimized for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and various vision AI applications.
-- **Customization**: Easily extendable for custom models, [loss functions](https://www.ultralytics.com/glossary/loss-function), and dataloaders.
+- **Customization**: Extendable with custom models, loss functions, and dataloaders.
 - **Modularity**: Components can be modified independently without affecting the entire pipeline.
-- **Integration**: Seamlessly works with popular frameworks and tools in the ML ecosystem.
+- **Integration**: Works with popular [frameworks and tools](../integrations/index.md) in the ML ecosystem.
 
 Learn more about YOLO's capabilities by exploring the main [Ultralytics YOLO](https://www.ultralytics.com/yolo) page.
 
 ### Can I use the Ultralytics YOLO DetectionTrainer for non-standard models?
 
-Yes, the `DetectionTrainer` is highly flexible and customizable for non-standard models. Inherit from `DetectionTrainer` and overload methods to support your specific model's needs. Here's a simple example:
+Yes, the `DetectionTrainer` can be customized for non-standard models. Inherit from `DetectionTrainer` and overload methods to support your specific model's needs. Here's a simple example:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer

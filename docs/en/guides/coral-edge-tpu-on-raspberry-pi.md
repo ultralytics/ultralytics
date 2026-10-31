@@ -1,7 +1,7 @@
 ---
 title: YOLO26 on Raspberry Pi with Coral Edge TPU
 comments: true
-description: Accelerate Ultralytics YOLO26 inference on a Raspberry Pi with the Coral Edge TPU. Step-by-step guide to install the runtime, export to Edge TPU format, and run fast low-power inference.
+description: Accelerate Ultralytics YOLO26 on a Raspberry Pi with a Coral Edge TPU. Install the runtime, export to Edge TPU format, and run fast, low-power inference.
 keywords: Coral Edge TPU, Raspberry Pi, YOLO26, Ultralytics, TensorFlow Lite, tflite-runtime, edge AI, low-power inference, edgetpu export, USB Accelerator, embedded AI, ML inference
 ---
 
@@ -11,7 +11,7 @@ keywords: Coral Edge TPU, Raspberry Pi, YOLO26, Ultralytics, TensorFlow Lite, tf
   <img width="800" src="https://cdn.ul.run/i/d92f346ad0fe56e927a81fa17fff78b2.avif" alt="Raspberry Pi with Edge TPU accelerator">
 </p>
 
-A [Raspberry Pi](raspberry-pi.md) is a power-efficient, affordable platform for running computer vision at the edge, but on-device inference is slow even with optimized formats like [ONNX](../integrations/onnx.md) or [OpenVINO](../integrations/openvino.md). Pairing the Pi with a Coral Edge TPU coprocessor offloads inference to dedicated hardware and dramatically speeds it up. This guide shows you how to install the runtime, export an Ultralytics YOLO26 model to the Edge TPU format, and run accelerated inference.
+A [Raspberry Pi](raspberry-pi.md) is a power-efficient, affordable platform for running computer vision at the [edge](https://www.ultralytics.com/glossary/edge-ai), but on-device inference is slow even with optimized formats like [ONNX](../integrations/onnx.md) or [OpenVINO](../integrations/openvino.md). Pairing the Pi with a Coral Edge TPU coprocessor offloads inference to dedicated hardware and speeds it up substantially. This guide shows you how to install the runtime, export an Ultralytics YOLO26 model to the Edge TPU format, and run accelerated inference.
 
 <p align="center">
   <br>
@@ -26,9 +26,9 @@ A [Raspberry Pi](raspberry-pi.md) is a power-efficient, affordable platform for 
 
 ## Why Use a Coral Edge TPU?
 
-The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your system, enabling low-power, high-performance ML inference for TensorFlow Lite models. It is a great fit for embedded and mobile deployments where a CPU alone cannot keep up:
+The Coral Edge TPU is a compact device that adds an Edge [TPU](https://www.ultralytics.com/glossary/tpu-tensor-processing-unit) coprocessor to your system, enabling low-power, high-performance ML inference for TensorFlow Lite models. It suits embedded and mobile deployments where a CPU alone cannot keep up:
 
-- **Faster inference** — the Edge TPU accelerates quantized models far beyond what the Raspberry Pi CPU achieves on its own.
+- **Faster inference** — the Edge TPU accelerates [quantized](https://www.ultralytics.com/glossary/model-quantization) models far beyond what the Raspberry Pi CPU achieves on its own.
 - **Low power draw** — it delivers high throughput per watt, ideal for battery- or solar-powered deployments.
 - **Plug-and-play** — the [USB Accelerator](https://developers.google.com/coral) connects over USB 3.0, so no extra hardware integration is required.
 
@@ -62,7 +62,7 @@ The runtime ships in several builds, so pick the one that matches your operating
 | Bookworm 32bit  |         Yes         | `libedgetpu1-max_ ... .bookworm_armhf.deb` |
 | Bookworm 64bit  |         Yes         | `libedgetpu1-max_ ... .bookworm_arm64.deb` |
 
-[Download the latest version from here](https://github.com/feranick/libedgetpu/releases), then install the `.deb` package:
+Download the latest build from the [libedgetpu releases page](https://github.com/feranick/libedgetpu/releases), then install the `.deb` package:
 
 ```bash
 sudo dpkg -i path/to/package.deb
@@ -84,7 +84,7 @@ After installing the runtime, plug your Coral Edge TPU into a USB 3.0 port on th
 
 ## Export Your Model to Edge TPU Format
 
-To use the Edge TPU, convert your model to a compatible format. Run the export on x86_64 Linux — Google Colab, an x86_64 Linux machine, the official [Ultralytics Docker container](docker-quickstart.md) on an x86_64 host, or [Ultralytics Platform](../platform/quickstart.md) — since the Edge TPU compiler is only available on x86_64 Linux. See the [Export mode](../modes/export.md) for the available arguments.
+To use the Edge TPU, convert your model to the [Edge TPU format](../integrations/edge-tpu.md). Run the export on x86_64 Linux — Google Colab, an x86_64 Linux machine, the official [Ultralytics Docker container](docker-quickstart.md) on an x86_64 host, or [Ultralytics Platform](../platform/quickstart.md) — since the Edge TPU compiler is only available on x86_64 Linux. See [Export mode](../modes/export.md) for the available arguments.
 
 !!! example "Exporting the model"
 
@@ -214,7 +214,7 @@ The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your
 
 ### How do I install the Coral Edge TPU runtime on a Raspberry Pi?
 
-Download the appropriate `.deb` package for your Raspberry Pi OS version from [this link](https://github.com/feranick/libedgetpu/releases), then install it:
+Download the appropriate `.deb` package for your Raspberry Pi OS version from the [libedgetpu releases page](https://github.com/feranick/libedgetpu/releases), then install it:
 
 ```bash
 sudo dpkg -i path/to/package.deb

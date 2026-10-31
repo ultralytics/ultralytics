@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Install and use the official Ultralytics Agent Skills in Claude Code, Codex, and other coding agents for YOLO model selection, datasets, training, tuning, inference, export, and Platform CLI automation.
+description: Install the official Ultralytics Agent Skills in Claude Code, Codex, and other coding agents to guide YOLO training, tuning, inference, export, and Platform CLI tasks.
 keywords: Ultralytics, YOLO, agent skills, Claude Code, Codex, Cursor, Gemini CLI, SKILL.md, training, inference, export, Platform CLI, ul cloud, Ask AI, AutoTrain
 ---
 
 # Ultralytics Agent Skills
 
-[Ultralytics Agent Skills](https://github.com/ultralytics/skills) give compatible AI coding agents instructions and reference material for working with the `ultralytics` Python package, the `yolo` CLI, and [Ultralytics Platform](https://platform.ultralytics.com), including automation with `ul cloud`. They follow the open [Agent Skills](https://agentskills.io/) format and load when a relevant task is requested.
+[Ultralytics Agent Skills](https://github.com/ultralytics/skills) give compatible [AI coding agents](https://www.ultralytics.com/glossary/agentic-coding) instructions and reference material for working with the `ultralytics` Python package, the `yolo` CLI, and [Ultralytics Platform](https://platform.ultralytics.com), including automation with `ul cloud`. They follow the open [Agent Skills](https://agentskills.io/) format and load when a relevant task is requested.
 
 ## How the Skills Work
 
@@ -87,7 +87,7 @@ See the [`ultralytics/skills` repository](https://github.com/ultralytics/skills)
 
 ### What are Ultralytics Agent Skills?
 
-They are reusable instructions and reference material that help AI coding agents work with Ultralytics Platform, the `ultralytics` Python package, the `yolo` CLI, and the `ul` Platform CLI.
+They are reusable [agent skills](https://www.ultralytics.com/glossary/agent-skills): instructions and reference material that help AI coding agents work with Ultralytics Platform, the `ultralytics` Python package, the `yolo` CLI, and the `ul` Platform CLI.
 
 ### Which agents can use these skills?
 

@@ -7,7 +7,7 @@ creator:
 license:
     name: Research-Only
     url: https://captain-whu.github.io/DOTA/dataset.html
-description: Explore the DOTA128 dataset - a versatile oriented object detection dataset ideal for testing and debugging OBB models using Ultralytics YOLO26.
+description: DOTA128 is a 128-image DOTAv1 subset for oriented bounding box (OBB) detection, used to test, debug, and sanity-check Ultralytics YOLO26 OBB training.
 keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, training models, oriented object detection, dataset YAML
 ---
 
@@ -15,7 +15,7 @@ keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, tra
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com) DOTA128 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of 128 images from the DOTAv1 set that serve as both the training and validation split. This dataset is ideal for testing and debugging oriented bounding box (OBB) models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com) DOTA128 is a small oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of 128 images from the DOTAv1 set that serve as both the training and validation split. This dataset is ideal for testing and debugging oriented bounding box (OBB) models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 ## Dataset Structure
 
@@ -24,7 +24,7 @@ keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, tra
 - **Labels**: YOLO-format oriented bounding boxes saved as `.txt` files beside each image.
 - **Download**: 34 MB, fetched automatically from Ultralytics GitHub assets the first time you train.
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dota128) and [YOLO26](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dota128) and [YOLO26](../../models/yolo26.md).
 
 ## Dataset YAML
 
@@ -38,7 +38,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-obb model on the DOTA128 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-obb) model on the DOTA128 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -92,13 +92,13 @@ If you use the DOTA dataset in your research or development work, please cite th
         }
         ```
 
-A special note of gratitude to the team behind the DOTA datasets for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DOTA website](https://captain-whu.github.io/DOTA/index.html).
+We thank the team behind the DOTA datasets for curating them. For full details on the dataset, visit the [official DOTA website](https://captain-whu.github.io/DOTA/index.html).
 
 ## FAQ
 
 ### What is the DOTA128 dataset and how can it be used?
 
-The DOTA128 dataset is a versatile oriented object detection dataset made up of 128 images from the DOTAv1 set, all stored in the train folder. Both training and validation use the same set of images, making it ideal for quickly testing and debugging OBB models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before training on larger datasets. Learn more about OBB detection with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics).
+The DOTA128 dataset is an oriented object detection dataset made up of 128 images from the DOTAv1 set, all stored in the train folder. Both training and validation use the same set of images, making it ideal for quickly testing and debugging OBB models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before training on larger datasets. Learn more about [OBB detection](../../tasks/obb.md) with Ultralytics YOLO26.
 
 ### How do I train a YOLO26 model using the DOTA128 dataset?
 
@@ -127,7 +127,7 @@ To train a YOLO26n-obb model on the DOTA128 dataset for 100 epochs with an image
 
 ### What are the key features of the DOTA dataset and where can I access the YAML file?
 
-The DOTA dataset is known for its large-scale benchmark and the challenges it presents for object detection in aerial images. The DOTA128 subset provides more diversity than DOTA8 while remaining manageable for initial tests. You can access the `dota128.yaml` file, which contains paths, classes, and configuration details, at this [GitHub link](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dota128.yaml).
+The DOTA dataset is known for its large-scale benchmark and the challenges it presents for object detection in aerial images. The DOTA128 subset provides more diversity than DOTA8 while remaining manageable for initial tests. The [`dota128.yaml` configuration file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dota128.yaml), which contains paths, classes, and configuration details, is maintained in the Ultralytics GitHub repository.
 
 ### How does DOTA128 compare to other DOTA dataset variants?
 
@@ -141,8 +141,8 @@ DOTA128 provides a good middle ground, offering more diversity than DOTA8 while 
 
 ### How does mosaicing enhance model training with the DOTA128 dataset?
 
-Mosaicing combines multiple images into one during training, increasing the variety of objects and contexts within each batch. This improves a model's ability to generalize to different object sizes, aspect ratios, and scenes. This technique can be visually demonstrated through a training batch composed of mosaiced DOTA128 dataset images, helping in robust model development. Explore more about mosaicing and training techniques on our [Training](../../modes/train.md) page.
+Mosaicing combines multiple images into one during training, increasing the variety of objects and contexts within each batch. This improves a model's ability to generalize to different object sizes, aspect ratios, and scenes. The [Sample Images and Annotations](#sample-images-and-annotations) section shows a mosaiced DOTA128 training batch. Learn more about mosaicing and other augmentations in the [YOLO data augmentation guide](../../guides/yolo-data-augmentation.md).
 
 ### Why should I use Ultralytics YOLO26 for oriented object detection tasks?
 
-Ultralytics YOLO26 provides state-of-the-art real-time object detection capabilities, including features like oriented bounding boxes (OBB), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and a highly versatile training pipeline. It's suitable for various applications and offers pretrained models for efficient fine-tuning. Explore further about the advantages and usage in the [Ultralytics YOLO26 documentation](https://github.com/ultralytics/ultralytics).
+Ultralytics YOLO26 supports real-time oriented bounding box (OBB) detection alongside other tasks such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), all through one training pipeline. Its pretrained OBB models make [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) on aerial data efficient. Learn more in the [Ultralytics YOLO26 documentation](../../models/yolo26.md).

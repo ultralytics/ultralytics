@@ -42,7 +42,7 @@ AMD Xilinx deployment uses its own vocabulary. The table below explains every te
 | **AMD Quark**                         | AMD's current [model quantization](https://www.ultralytics.com/glossary/model-quantization) library, used by the Versal AI Edge Gen 2 flow to turn an FP32 ONNX model into an INT8 model.                                                                                                                                                                                |
 | **Quantization, PTQ and QAT**         | Converting FP32 weights and activations to INT8. Post-training quantization (PTQ) uses calibration images. [Quantization-aware training (QAT)](https://www.ultralytics.com/glossary/quantization-aware-training-qat) fine-tunes the model to recover accuracy.                                                                                                           |
 | **Calibration images**                | A small, representative set of images run through the model during PTQ to choose the INT8 scale for each tensor.                                                                                                                                                                                                                                                         |
-| **BF16 and mixed precision**          | BFloat16 is a 16-bit floating-point format that keeps FP32's range. [Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) runs most of the network in INT8 and sensitive layers in BF16.                                                                                                                                                               |
+| **BF16 and mixed precision**          | [BFloat16](https://www.ultralytics.com/glossary/bfloat16-bf16) is a 16-bit floating-point format that keeps FP32's range. [Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) runs most of the network in INT8 and sensitive layers in BF16.                                                                                                         |
 | **XIR**                               | Xilinx Intermediate Representation: the graph format the DPU compiler produces and the runtime reads.                                                                                                                                                                                                                                                                    |
 | **`.xmodel`**                         | A serialized XIR graph. The quantizer writes a quantized `.xmodel`, and the DPU compiler turns it into a compiled `.xmodel` with DPU instructions, quantized weights and any CPU subgraphs. The compiled model requires the matching DPU configuration.                                                                                                                  |
 | **`arch.json` / DPU fingerprint**     | The file that describes a specific DPU configuration. The DPU compiler needs it, and an `.xmodel` compiled for one fingerprint will not run on another.                                                                                                                                                                                                                  |
@@ -54,7 +54,7 @@ AMD Xilinx deployment uses its own vocabulary. The table below explains every te
 
 ## AMD Xilinx Device Families for Edge AI
 
-AMD Xilinx devices for edge AI fall into three families. Zynq and Kria use the DPU in programmable logic, while the Versal AI Edge devices covered here use the NPU on their AI Engines.
+AMD Xilinx devices for [edge AI](https://www.ultralytics.com/glossary/edge-ai) fall into three families. Zynq and Kria use the DPU in programmable logic, while the Versal AI Edge devices covered here use the NPU on their AI Engines.
 
 | Family                                                                                                                 | What it is                                                        | Application CPU                   | AI accelerator                      | Example boards                                                                                                                                                                                                                                    |
 | :--------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- | :-------------------------------- | :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -273,11 +273,11 @@ flowchart TD
 
 The table compares the exported INT8 model with the FP32 ONNX model on [COCO](../datasets/detect/coco.md) val2017 (5,000 images) at 640, both run with ONNX Runtime on the host CPU. The INT8 models were calibrated on the default `coco128.yaml` dataset; calibrating on your own deployment images usually narrows the gap.
 
-| Model                          | FP32 mAP50-95 | AMD Xilinx INT8 mAP50-95 |
-| :----------------------------- | :------------ | :----------------------- |
-| [YOLO26n](../models/yolo26.md) | 40.3          | 36.7                     |
-| [YOLO26s](../models/yolo26.md) | 47.9          | 42.5                     |
-| [YOLO11n](../models/yolo11.md) | 38.8          | 35.5                     |
+| Model                                                                  | FP32 mAP50-95 | AMD Xilinx INT8 mAP50-95 |
+| :--------------------------------------------------------------------- | :------------ | :----------------------- |
+| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) | 40.3          | 36.7                     |
+| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s) | 47.9          | 42.5                     |
+| [YOLO11n](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n) | 38.8          | 35.5                     |
 
 These host results run the quantized model with ONNX Runtime on the CPU, the baseline AMD's [accuracy methodology](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_compilation/accuracy_methodology.html) compares NPU results against. AMD's published YOLOv8m results on the VEK385 show the same mixed-precision approach on the NPU:
 
@@ -488,7 +488,7 @@ AMD Xilinx devices are common wherever vision AI must run in real time, at low p
 - **Industrial and construction safety**: Detect people and machines around heavy equipment, and monitor work zones with [object detection](../tasks/detect.md) and [object counting](../guides/object-counting.md).
 - **Automotive and off-highway vision**: Run camera-based perception on qualified automotive-grade parts, supporting [autonomous vehicles](https://www.ultralytics.com/glossary/autonomous-vehicles) and driver assistance.
 - **Smart cameras and video analytics**: Combine video capture, encoding and YOLO inference on one chip for [security systems](../guides/security-alarm-system.md) and [video analytics](../guides/analytics.md).
-- **Machine vision and quality inspection**: Pair FPGA-based high-speed image capture with YOLO [instance segmentation](../tasks/segment.md) or [classification](../tasks/classify.md) for inline defect detection.
+- **Machine vision and quality inspection**: Pair FPGA-based high-speed image capture with YOLO [instance segmentation](../tasks/segment.md) or [classification](../tasks/classify.md) for inline [defect detection](https://www.ultralytics.com/solutions/computer-vision-in-manufacturing/defect-detection).
 - **Robotics and drones**: Use Kria KR260 or Versal modules for [pose estimation](../tasks/pose.md), [oriented object detection](../tasks/obb.md) and navigation with deterministic latency.
 
 ## Summary

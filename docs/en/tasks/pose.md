@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover how to use YOLO26 for pose estimation tasks. Learn about model training, validation, prediction, and exporting in various formats.
+description: Pose estimation with Ultralytics YOLO26. Explore COCO keypoint-pretrained models, then train, validate, predict, and export keypoint models in Python or CLI.
 keywords: pose estimation, YOLO26, Ultralytics, keypoints, model training, image recognition, deep learning, human pose detection, computer vision, real-time tracking
 model_name: yolo26n-pose
 ---
@@ -9,7 +9,7 @@ model_name: yolo26n-pose
 
 <img width="1024" src="https://cdn.ul.run/i/477e6f71d8227d8edf9f240147bc03fe.avif" alt="Ultralytics YOLO pose estimation with human body keypoint detection">
 
-Pose estimation is a task that involves identifying the location of specific points in an image, usually referred to as keypoints. The keypoints can represent various parts of the object such as joints, landmarks, or other distinctive features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` coordinates, optionally with a visibility flag `[x, y, visible]`.
+[Pose estimation](https://www.ultralytics.com/glossary/pose-estimation) is a task that involves identifying the location of specific points in an image, usually referred to as [keypoints](https://www.ultralytics.com/glossary/keypoints). The keypoints can represent various parts of the object such as joints, landmarks, or other distinctive features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` coordinates, optionally with a visibility flag `[x, y, visible]`.
 
 The output of a pose estimation model is a set of points that represent the keypoints on an object in the image, usually along with the confidence scores for each point. Pose estimation is a good choice when you need to identify specific parts of an object in a scene, and their location in relation to each other.
 
@@ -26,11 +26,11 @@ The output of a pose estimation model is a set of points that represent the keyp
 
 !!! tip
 
-    YOLO26 Pose models use the `-pose` suffix, i.e., `yolo26n-pose.pt`, and are pretrained on [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml).
+    YOLO26 Pose models use the `-pose` suffix, e.g., `yolo26n-pose.pt`, and are pretrained on [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 Pose models pretrained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset are shown below.
+YOLO26 Pose models pretrained on the [COCO keypoints](https://platform.ultralytics.com/ultralytics/datasets/coco2017-pose) dataset are shown below.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -44,7 +44,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train YOLO26n-pose on the [COCO8-pose](../datasets/pose/coco8-pose.md) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) on the [COCO8-pose](https://platform.ultralytics.com/ultralytics/datasets/coco8-pose) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example
 
@@ -75,7 +75,7 @@ Train YOLO26n-pose on the [COCO8-pose](../datasets/pose/coco8-pose.md) dataset f
         yolo pose train data=coco8-pose.yaml model=yolo26n-pose.yaml pretrained=yolo26n-pose.pt epochs=100 imgsz=640
         ```
 
-See full `train` mode details in the [Train](../modes/train.md) page. Pose models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
+See full `train` mode details in the [Train](../modes/train.md) page. Pose models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md). For a guided exercise, see the Ultralytics Academy lesson [Label and Train Pose Models](https://academy.ultralytics.com/courses/beyond-detection/label-and-train-pose-models).
 
 ### Dataset format
 
@@ -85,7 +85,7 @@ For custom pose estimation tasks, you can also explore specialized datasets like
 
 ## Val
 
-Validate trained YOLO26n-pose model [accuracy](https://www.ultralytics.com/glossary/accuracy). No arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` from the [Train](#train) example validates on COCO8-pose. Official weights record a training dataset path that doesn't exist on your machine, so they fall back to the task default `coco8-pose.yaml` with a warning. Pass `data` to validate on another dataset.
+Validate trained YOLO26n-pose model accuracy, measured as [mean average precision (mAP)](https://www.ultralytics.com/glossary/mean-average-precision-map). No arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` from the [Train](#train) example validates on COCO8-pose. Official weights record a training dataset path that doesn't exist on your machine, so they fall back to the task default `coco8-pose.yaml` with a warning. Pass `data` to validate on another dataset.
 
 !!! example
 
@@ -218,7 +218,7 @@ Export a YOLO26n-pose model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx # export custom model
         ```
 
-Available YOLO26-pose export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-pose.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26-pose export formats are in the table below. You can export to any format using the `format` argument, e.g., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, e.g., `yolo predict model=yolo26n-pose.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -228,7 +228,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### What is Pose Estimation with Ultralytics YOLO26 and how does it work?
 
-Pose estimation with Ultralytics YOLO26 involves identifying specific points, known as keypoints, in an image. These keypoints typically represent joints or other important features of the object. The output includes the `[x, y]` coordinates and confidence scores for each point. YOLO26-pose models are specifically designed for this task and use the `-pose` suffix, such as `yolo26n-pose.pt`. These models are pretrained on datasets like [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) and can be used for various pose estimation tasks. For more information, visit the [Pose Estimation Page](#pose-estimation).
+Pose estimation with Ultralytics YOLO26 involves identifying specific points, known as keypoints, in an image. These keypoints typically represent joints or other important features of the object. The output includes the `[x, y]` coordinates and confidence scores for each point. YOLO26-pose models are specifically designed for this task and use the `-pose` suffix, such as `yolo26n-pose.pt`. These models are pretrained on datasets like COCO keypoints and can be used for various pose estimation tasks. See the [Keypoint index map](#keypoint-index-map) for the 17 COCO keypoints the default models predict.
 
 ### How can I train a YOLO26-pose model on a custom dataset?
 
@@ -313,4 +313,4 @@ Refer to the [Export Section](#export) for more details. Exported models can be 
 
 ### What are the available Ultralytics YOLO26-pose models and their performance metrics?
 
-Ultralytics YOLO26 offers various pretrained pose models such as YOLO26n-pose, YOLO26s-pose, YOLO26m-pose, among others. These models differ in size, accuracy (mAP), and speed. For the complete list with COCO keypoint mAP, speed, parameters, and FLOPs per model, see the [Models](#models) section.
+Ultralytics YOLO26 offers various pretrained pose models such as YOLO26n-pose, YOLO26s-pose, YOLO26m-pose, among others. These models differ in size, accuracy (mAP), and speed. For the complete list with COCO keypoint mAP, speed, parameters, and FLOPs per model, see the [Models](#models) section. For a comparison with earlier Ultralytics models, read [comparing Ultralytics YOLO26 to other YOLO models for pose estimation](https://www.ultralytics.com/blog/ultralytics-yolo26-vs-other-ultralytics-yolo-models-for-pose-estimation).

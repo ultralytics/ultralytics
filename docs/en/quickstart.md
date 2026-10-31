@@ -6,7 +6,7 @@ keywords: Install Ultralytics, Ultralytics, YOLO26, YOLO11, pip install ultralyt
 
 # Install Ultralytics
 
-Install the `ultralytics` package with pip, conda, or Docker, or from source, then run your first prediction with a pretrained [YOLO26](models/yolo26.md) model. Every method installs all required dependencies listed in [pyproject.toml](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml).
+Install the `ultralytics` package with pip, conda, or Docker, or from source, then run your first prediction with a pretrained [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) model. Every method installs all required dependencies listed in [pyproject.toml](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml).
 
 !!! example "Install"
 
@@ -126,7 +126,7 @@ Persistent settings such as the datasets, weights, and runs directories, the [Ul
 
 ## What's Next
 
-Browse the [modes](modes/index.md) YOLO runs in and the [YOLO26](models/yolo26.md) model sizes, then [train on your own data](modes/train.md) after formatting it with the [Datasets guide](datasets/index.md).
+Browse the [modes](modes/index.md) YOLO runs in, the [tasks](tasks/index.md) it supports, and the [YOLO26](models/yolo26.md) model sizes, then [train on your own data](modes/train.md) after formatting it with the [Datasets guide](datasets/index.md). For a guided path from installation to export, take the free Ultralytics Academy course [Train your first YOLO model](https://academy.ultralytics.com/courses/train-your-first-yolo).
 
 For a look ahead, explore [YOLO27 (Coming Soon)](models/yolo27.md). Its models are not yet available; the examples above use the released YOLO26 family.
 
@@ -157,7 +157,7 @@ conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torch
 conda activate ultralytics-env
 ```
 
-This method is a great alternative to pip, ensuring compatibility with other packages. For CUDA environments, add the `pytorch-gpu` metapackage to the same command so conda selects a CUDA-enabled PyTorch build:
+Conda is an alternative to pip that resolves compatible versions of all packages together. For CUDA environments, add the `pytorch-gpu` metapackage to the same command so conda selects a CUDA-enabled PyTorch build:
 
 ```bash
 conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision pytorch-gpu -y
@@ -168,7 +168,7 @@ For more instructions, see the [Conda quickstart guide](guides/conda-quickstart.
 
 ### What are the advantages of using Docker to run Ultralytics YOLO?
 
-Docker provides an isolated, consistent environment for Ultralytics YOLO, ensuring smooth performance across systems and avoiding local installation complexities. Official Docker images are available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), with variants for GPU, CPU, ARM64, [NVIDIA Jetson](guides/nvidia-jetson.md), and Conda. To pull and run the latest image:
+Docker provides an isolated, consistent environment for Ultralytics YOLO, so the same setup runs across systems without local installation issues. Official Docker images are available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), with variants for GPU, CPU, ARM64, [NVIDIA Jetson](guides/nvidia-jetson.md), and Conda. To pull and run the latest image:
 
 ```bash
 # Pull the latest ultralytics image from Docker Hub
@@ -199,7 +199,7 @@ This allows contributions to the project or experimentation with the latest sour
 
 ### Why should I use Ultralytics YOLO CLI?
 
-The Ultralytics YOLO CLI simplifies running object detection tasks without Python code, enabling single-line commands for training, validation, and prediction directly from your terminal. The basic syntax is:
+The Ultralytics YOLO CLI runs every task and mode from your terminal with single-line commands, so you can train, validate, predict, and export without writing Python code. The basic syntax is:
 
 ```bash
 yolo TASK MODE ARGS

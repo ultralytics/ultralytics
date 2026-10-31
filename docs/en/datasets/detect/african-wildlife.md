@@ -23,7 +23,7 @@ The Ultralytics African Wildlife Dataset is an [object detection](../../tasks/de
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on the African Wildlife Dataset | Inference, Metrics & ONNX Export 🐘
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on the African Wildlife Dataset | Inference, Metrics & ONNX Export
 </p>
 
 ## Dataset Structure
@@ -42,9 +42,9 @@ Explore [African Wildlife on Ultralytics Platform](https://platform.ultralytics.
 
 ## Applications
 
-The Ultralytics African Wildlife Dataset supports a range of [object detection](../../tasks/detect.md) applications:
+The Ultralytics African Wildlife Dataset supports a range of object detection applications:
 
-- **Wildlife conservation** — detect and count buffalo, elephant, rhino, and zebra to support [animal population monitoring](../../solutions/index.md) in nature reserves and protected areas.
+- **Wildlife conservation** — detect and count buffalo, elephant, rhino, and zebra to support [animal population monitoring](https://www.ultralytics.com/blog/ai-in-wildlife-conservation) in nature reserves and protected areas.
 - **Ecological research** — study species distribution and behavior across different habitats.
 - **Anti-poaching surveillance** — flag animals in camera-trap or drone footage over large protected areas.
 - **Education and prototyping** — a compact four-class dataset for learning [model training](../../modes/train.md) and [prediction](../../modes/predict.md).
@@ -61,7 +61,7 @@ A YAML file defines the dataset configuration, including paths, classes, and oth
 
 ## Usage
 
-To train a YOLO26n model on the African Wildlife Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
+To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the African Wildlife Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -84,7 +84,7 @@ To train a YOLO26n model on the African Wildlife Dataset for 100 [epochs](https:
         yolo detect train data=african-wildlife.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
-Once trained, run [inference](../../modes/predict.md) with the fine-tuned model on new images:
+Once trained, run inference with the fine-tuned model on new images:
 
 !!! example "Inference Example"
 
@@ -109,15 +109,15 @@ Once trained, run [inference](../../modes/predict.md) with the fine-tuned model 
 
 ## Sample Images and Annotations
 
-The African Wildlife Dataset comprises a wide variety of images showcasing diverse animal species and their natural habitats. Below are examples of images from the dataset, each accompanied by its corresponding annotations.
+The African Wildlife Dataset comprises a wide variety of images showing diverse animal species and their natural habitats. Below are examples of images from the dataset, each accompanied by its corresponding annotations.
 
 ![African wildlife dataset sample image](https://cdn.ul.run/i/8ff389dba1e205ab981da75cfe2f25d9.avif)
 
-- **Mosaiced Image**: Here, we present a training batch consisting of mosaiced dataset images. Mosaicing, a training technique, combines multiple images into one, enriching batch diversity. This method helps enhance the model's ability to generalize across different object sizes, aspect ratios, and contexts.
+- **Mosaiced Image**: This training batch combines multiple dataset images into one through mosaicing, a [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) technique that increases batch diversity and helps the model generalize across different object sizes, aspect ratios, and contexts.
 
 ## Citations, License and Acknowledgments
 
-We'd like to thank the original dataset author, [Bianca Ferreira](https://www.kaggle.com/datasets/biancaferreira/african-wildlife), for releasing this dataset to the community. The Ultralytics team has updated and adapted it internally so it can be used seamlessly with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. The source dataset does not specify a license.
+We'd like to thank the original dataset author, [Bianca Ferreira](https://www.kaggle.com/datasets/biancaferreira/african-wildlife), for releasing this dataset to the community. The Ultralytics team has updated and adapted it internally for use with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. The source dataset does not specify a license.
 
 If you use this dataset in your research, please cite it using the mentioned details:
 
@@ -176,8 +176,8 @@ For additional training parameters and options, refer to the [Training](../../mo
 
 ### Where can I find the YAML configuration file for the African Wildlife Dataset?
 
-The YAML configuration file for the African Wildlife Dataset, named `african-wildlife.yaml`, can be found at [this GitHub link](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml). This file defines the dataset configuration, including paths, classes, and other details crucial for training [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
+The YAML configuration file for the African Wildlife Dataset, named `african-wildlife.yaml`, can be found in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml). This file defines the dataset configuration, including paths, classes, and other details crucial for training [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
 
 ### What license is the African Wildlife Dataset released under?
 
-The [source dataset](https://www.kaggle.com/datasets/biancaferreira/african-wildlife) does not specify a license. It was originally published on Kaggle by Bianca Ferreira and adapted by Ultralytics for seamless use with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. If you use the dataset in your research, please cite it using the BibTeX entry in the [Citations](#citations-license-and-acknowledgments) section.
+The [source dataset](https://www.kaggle.com/datasets/biancaferreira/african-wildlife) does not specify a license. It was originally published on Kaggle by Bianca Ferreira and adapted by Ultralytics for use with Ultralytics YOLO models. If you use the dataset in your research, please cite it using the BibTeX entry in the [Citations](#citations-license-and-acknowledgments) section.

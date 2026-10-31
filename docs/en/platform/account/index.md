@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Manage your Ultralytics Platform account including API keys, billing, and user settings with security and GDPR compliance.
+description: "Manage your Ultralytics Platform account: profile settings, API keys, plans and billing, teams, activity, trash recovery, security, and GDPR export."
 keywords: Ultralytics Platform, account, settings, API keys, billing, security, GDPR
 ---
 
 # Account Management
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive account management for API keys, billing, teams, and user settings. Manage your account securely with GDPR-compliant data handling.
+[Ultralytics Platform](https://platform.ultralytics.com) provides account management for API keys, billing, teams, and user settings, with GDPR-compliant data handling.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ The Account section helps you:
 - **Collaborate** with team members using shared workspaces
 - **Monitor** account activity and audit events
 - **Recover** deleted items from Trash within 30 days
-- **Export** your data for GDPR compliance
+- **Export** your data for [GDPR compliance](settings.md#gdpr-compliance)
 
 ![Ultralytics Platform Settings Page Profile Tab With Social Links](https://cdn.ul.run/i/25a3075d0bce50c69d1524decb80d67c.avif)<!-- screenshot -->
 
@@ -65,7 +65,7 @@ Account management is organized into nine tabs within `Settings` (in order):
 
 ## Security
 
-Ultralytics Platform implements multiple security measures:
+Ultralytics Platform implements multiple security measures. See [Ultralytics Security](https://www.ultralytics.com/security) for certifications, and the Ultralytics Academy lesson [Privacy, Regions, and Compliance](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/regions-and-compliance) for how data regions affect a project.
 
 ### Authentication
 

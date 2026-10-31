@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 # Monitoring
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track endpoint requests, latency, errors, and logs. Ready dedicated endpoints on a current runtime also provide live prediction statistics and temporary examples that you can inspect and save to datasets.
+[Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track endpoint requests, latency, errors, and logs. Ready dedicated endpoints on a current runtime also provide live prediction statistics and temporary examples that you can inspect and save to datasets. For a walkthrough, see [monitoring deployed models on Ultralytics Platform](https://www.ultralytics.com/blog/monitoring-deployed-computer-vision-models-on-ultralytics-platform) or the [Monitor Health and Accuracy](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/monitor-in-production) lesson in Ultralytics Academy.
 
 ![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/61603cb9902cf112660c2a5d2fb5bc44.avif)<!-- screenshot -->
 
@@ -47,7 +47,7 @@ Four summary cards at the top of the page show:
 | **HTTP P95 Latency (24h)** | Average of the hourly 95th-percentile latencies, weighted by volume                   |
 
 P95 rather than median latency is reported because health checks return in a couple of milliseconds and would otherwise
-dominate the picture of real inference latency.
+dominate the picture of real [inference latency](https://www.ultralytics.com/glossary/inference-latency).
 
 !!! warning "Error Rate Alert"
 

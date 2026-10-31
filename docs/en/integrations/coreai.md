@@ -10,7 +10,7 @@ keywords: Apple Core AI, CoreAI, aimodel, Core ML comparison, CoreML, mlpackage,
 
     `coreai-core` publishes `macosx_26_0_arm64` and `manylinux_2_34_x86_64` wheels, so export runs on Apple silicon Macs and x86_64 Linux with glibc 2.34 or newer. The exported `.aimodel` runs on iOS 27 and macOS 27. The [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app) (8.9.15 and later) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) (0.6.15 and later) load `.aimodel` assets as an opt-in on iOS 27 devices; [Core ML](coreml.md) remains their default.
 
-[Core AI](https://developer.apple.com/core-ai/) is Apple's new framework for running neural networks directly on Apple silicon. It introduces the `.aimodel` model format, a modern Swift inference API, PyTorch-based conversion tools, ahead-of-time compilation, model specialization, and dedicated debugging and profiling tools.
+[Core AI](https://developer.apple.com/core-ai/) is Apple's new framework for running [neural networks](https://www.ultralytics.com/glossary/neural-network-nn) directly on Apple silicon. It introduces the `.aimodel` model format, a modern Swift inference API, PyTorch-based conversion tools, ahead-of-time compilation, model specialization, and dedicated debugging and profiling tools.
 
 Apple describes Core AI as the next evolution of on-device AI execution and the inference framework behind on-device Apple Intelligence. It is designed for current neural network architectures, from compact vision models to large generative models, and can schedule work across the CPU, GPU, and Apple Neural Engine (ANE).
 
@@ -94,7 +94,7 @@ asset's own `metadata.json`, so class names, stride and task survive the round t
 With `nms=False`, YOLO26 exports its end-to-end head, which selects detections inside the graph. Core AI has
 no top-k primitive, so that selection lowers to a full sort and is charged a fixed cost at the Apple
 Neural Engine partition boundary — about 1.7 ms, regardless of `max_det`. Exporting with
-`nms=None` emits the raw `(1, 84, 8400)` predictions instead and leaves non-maximum suppression
+`nms=None` emits the raw `(1, 84, 8400)` predictions instead and leaves [non-maximum suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms)
 to the predictor:
 
 ```bash
@@ -162,7 +162,7 @@ Core AI offers several promising advantages for future Ultralytics deployment:
 - **Dedicated developer tools:** The Core AI Debugger can inspect graphs and tensor values and trace them back to the originating Python code. Xcode and Instruments provide runtime profiling.
 - **Zero-copy opportunities:** Core AI exposes storage and buffer controls intended to reduce copies between camera, graphics, and inference workloads.
 - **Apple-silicon optimization:** Device specialization lets Apple optimize a model for the CPU, GPU, and Neural Engine available on the specific device.
-- **Flexible compression:** Apple's Core AI Optimization tools support quantization, palettization, and pruning, including low-bit weight formats.
+- **Flexible compression:** Apple's Core AI Optimization tools support [quantization](https://www.ultralytics.com/glossary/model-quantization), palettization, and pruning, including low-bit weight formats.
 
 These capabilities could be particularly useful for future YOLO models with dynamic execution, larger multimodal components, or custom operations that do not map cleanly to existing Core ML operations.
 

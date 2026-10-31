@@ -12,7 +12,7 @@ keywords: YOLO data augmentation, computer vision, deep learning, image transfor
 
 ## Introduction
 
-[Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) is a crucial technique in computer vision that artificially expands your training dataset by applying various transformations to existing images. When training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like Ultralytics YOLO, data augmentation helps improve model robustness, reduces overfitting, and enhances generalization to real-world scenarios.
+[Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) is a crucial technique in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) that artificially expands your training dataset by applying various transformations to existing images. When training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like Ultralytics YOLO, data augmentation helps improve model robustness, reduces [overfitting](https://www.ultralytics.com/glossary/overfitting), and enhances generalization to real-world scenarios.
 
 <p align="center">
   <br>
@@ -34,7 +34,7 @@ Data augmentation serves multiple critical purposes in training computer vision 
 - **Reduced Overfitting**: By introducing variability in the training data, models are less likely to memorize specific image characteristics.
 - **Enhanced Performance**: Models trained with proper augmentation typically achieve better [accuracy](https://www.ultralytics.com/glossary/accuracy) on validation and test sets.
 
-Ultralytics YOLO's implementation provides a comprehensive suite of augmentation techniques, each serving specific purposes and contributing to model performance in different ways. This guide explores the augmentation settings below, helping you understand when and how to use them effectively in your projects.
+Ultralytics YOLO's implementation provides a comprehensive suite of augmentation techniques, each serving specific purposes and contributing to model performance in different ways. This guide explores the augmentation settings below, helping you understand when and how to use them effectively in your projects. For a broader overview of augmentation strategies, see [the ultimate guide to data augmentation](https://www.ultralytics.com/blog/the-ultimate-guide-to-data-augmentation-in-2025).
 
 ### Example Configurations
 
@@ -105,7 +105,7 @@ hsv_s: 0.6
 hsv_v: 0.5
 ```
 
-Then launch the training with the Python API:
+Then launch training with the Python API or the CLI:
 
 !!! example "Train Example"
 
@@ -134,13 +134,13 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ hsv_h }}`
-- **Usage**: Shifts image colors while preserving their relationships. The `hsv_h` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_h` and `hsv_h`. For example, with `hsv_h=0.3`, the shift is randomly selected within `-0.3` to `0.3`. For values above `0.5`, the hue shift wraps around the color wheel, that's why the augmentations look the same between `0.5` and `-0.5`.
+- **Usage**: Shifts image colors while preserving their relationships. The `hsv_h` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_h` and `hsv_h`. For example, with `hsv_h=0.3`, the shift is randomly selected within `-0.3` to `0.3`. For values above `0.5`, the hue shift wraps around the color wheel, which is why the augmentations look the same at `0.5` and `-0.5`.
 - **Purpose**: Particularly useful for outdoor scenarios where lighting conditions can dramatically affect object appearance. For example, a banana might look more yellow under bright sunlight but more greenish indoors.
 - **Ultralytics' implementation**: [RandomHSV](../reference/data/augment.md#ultralytics.data.augment.RandomHSV)
 
 |                                                **`-0.5`**                                                 |                                                **`-0.25`**                                                 |                                                     **`0.0`**                                                     |                                                **`0.25`**                                                 |                                                 **`0.5`**                                                 |
 | :-------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.ul.run/i/4e6d4b589ee58106c9290a156a6dcb52.avif" alt="Hue shift -0.5 augmentation"/> | <img src="https://cdn.ul.run/i/456d42998989b8537b269a63b5b4d164.avif" alt="Hue shift -0.25 augmentation"/> | <img src="https://cdn.ul.run/i/96850e8fb08eedb22329434dcbbaaaf7.avif" alt="Original image without augmentation"/> | <img src="https://cdn.ul.run/i/7c07282fbb39f3a99e80fc98d80809e0.avif" alt="Hue shift 0.25 augmentation"/> | <img src="https://cdn.ul.run/i/4e6d4b589ee58106c9290a156a6dcb52.avif" alt="Hue shift -0.5 augmentation"/> |
+| <img src="https://cdn.ul.run/i/4e6d4b589ee58106c9290a156a6dcb52.avif" alt="Hue shift -0.5 augmentation"/> | <img src="https://cdn.ul.run/i/456d42998989b8537b269a63b5b4d164.avif" alt="Hue shift -0.25 augmentation"/> | <img src="https://cdn.ul.run/i/96850e8fb08eedb22329434dcbbaaaf7.avif" alt="Original image without augmentation"/> | <img src="https://cdn.ul.run/i/7c07282fbb39f3a99e80fc98d80809e0.avif" alt="Hue shift 0.25 augmentation"/> | <img src="https://cdn.ul.run/i/4e6d4b589ee58106c9290a156a6dcb52.avif" alt="Hue shift +0.5 augmentation"/> |
 
 ### Saturation Adjustment (`hsv_s`)
 
@@ -185,7 +185,7 @@ Then launch the training with the Python API:
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ translate }}`
 - **Usage**: Shifts images horizontally and vertically by a random fraction of the image size. The `translate` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen twice (once for each axis) within the range `-translate` and `translate`. For example, with `translate=0.5`, the translation is randomly selected within `-0.5` to `0.5` on the x-axis, and another independent random value is selected within the same range on the y-axis.
-- **Purpose**: Helps models learn to detect partially visible objects and improves robustness to object position. For example, in vehicle damage assessment applications, car parts may appear fully or partially in frame depending on the photographer's position and distance, the translation augmentation will teach the model to recognize these features regardless of their completeness or position.
+- **Purpose**: Helps models learn to detect partially visible objects and improves robustness to object position. For example, in vehicle damage assessment applications, car parts may appear fully or partially in frame depending on the photographer's position and distance; translation augmentation teaches the model to recognize these features regardless of their completeness or position.
 - **Ultralytics' implementation**: [RandomPerspective](../reference/data/augment.md#ultralytics.data.augment.RandomPerspective)
 - **Note**: For simplicity, the translations applied below are the same each time for both `x` and `y` axes. Values `-1.0` and `1.0` are not shown as they would translate the image completely out of the frame.
 
@@ -241,7 +241,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ flipud }}`
-- **Usage**: Performs a vertical flip by inverting the image along the y-axis. This transformation mirrors the entire image upside-down but preserves all spatial relationships between objects. The flipud hyperparameter defines the probability of applying the transformation, with a value of `flipud=1.0` ensuring that all images are flipped and a value of `flipud=0.0` disabling the transformation entirely. For example, with `flipud=0.5`, each image has a 50% chance of being flipped upside-down.
+- **Usage**: Performs a vertical flip by inverting the image along the y-axis. This transformation mirrors the entire image upside-down but preserves all spatial relationships between objects. The `flipud` hyperparameter defines the probability of applying the transformation, with a value of `flipud=1.0` ensuring that all images are flipped and a value of `flipud=0.0` disabling the transformation entirely. For example, with `flipud=0.5`, each image has a 50% chance of being flipped upside-down.
 - **Purpose**: Useful for scenarios where objects can appear upside down. For example, in robotic vision systems, objects on conveyor belts or robotic arms may be picked up and placed in various orientations. Vertical flipping helps the model recognize objects regardless of their top-down positioning.
 - **Ultralytics' implementation**: [RandomFlip](../reference/data/augment.md#ultralytics.data.augment.RandomFlip)
 
@@ -281,7 +281,7 @@ Then launch the training with the Python API:
 - **Purpose**: Highly effective for improving small object detection and context understanding. For example, in wildlife conservation projects where animals may appear at various distances and scales, mosaic augmentation helps the model learn to recognize the same species across different sizes, partial occlusions, and environmental contexts by artificially creating diverse training samples from limited data.
 - **Ultralytics' implementation**: [Mosaic](../reference/data/augment.md#ultralytics.data.augment.Mosaic)
 - **Note**:
-    - Even if the `mosaic` augmentation makes the model more robust, it can also make the training process more challenging.
+    - Although the `mosaic` augmentation makes the model more robust, it can also make the training process more challenging.
     - The `mosaic` augmentation can be disabled near the end of training by setting `close_mosaic` to the number of epochs before completion when it should be turned off. For example, if `epochs` is set to `200` and `close_mosaic` is set to `20`, the `mosaic` augmentation will be disabled after `180` epochs. If `close_mosaic` is set to `0`, the `mosaic` augmentation will be enabled for the entire training process.
     - Closing the mosaic also disables `copy_paste`, `mixup`, and `cutmix` at the same epoch. The four are switched off together, so the final epochs train without them while every other augmentation — the geometric transforms, HSV, flips, and Albumentations — keeps running. Note that `copy_paste` in its default `flip` mode works within a single image rather than combining several.
     - The center of the generated mosaic is determined using random values, and can either be inside the image or outside of it.
@@ -295,7 +295,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ mixup }}`
-- **Usage**: Blends two images and their labels with given probability. The `mixup` hyperparameter defines the probability of applying the transformation, with `mixup=1.0` ensuring that all images are mixed and `mixup=0.0` disabling the transformation. For example, with `mixup=0.5`, each image has a 50% chance of being mixed with another image.
+- **Usage**: Blends two images and their labels with a given probability. The `mixup` hyperparameter defines the probability of applying the transformation, with `mixup=1.0` ensuring that all images are mixed and `mixup=0.0` disabling the transformation. For example, with `mixup=0.5`, each image has a 50% chance of being mixed with another image.
 - **Purpose**: Improves model robustness and reduces overfitting. For example, in retail product recognition systems, mixup helps the model learn more robust features by blending images of different products, teaching it to identify items even when they're partially visible or obscured by other products on crowded store shelves.
 - **Ultralytics' implementation**: [MixUp](../reference/data/augment.md#ultralytics.data.augment.MixUp)
 - **Note**:
@@ -309,12 +309,12 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ cutmix }}`
-- **Usage**: Cuts a rectangular region from one image and pastes it onto another image with given probability. The `cutmix` hyperparameter defines the probability of applying the transformation, with `cutmix=1.0` ensuring that all images undergo this transformation and `cutmix=0.0` disabling it completely. For example, with `cutmix=0.5`, each image has a 50% chance of having a region replaced with a patch from another image.
+- **Usage**: Applies [CutMix](https://www.ultralytics.com/glossary/cutmix), which cuts a rectangular region from one image and pastes it onto another image with a given probability. The `cutmix` hyperparameter defines the probability of applying the transformation, with `cutmix=1.0` ensuring that all images undergo this transformation and `cutmix=0.0` disabling it completely. For example, with `cutmix=0.5`, each image has a 50% chance of having a region replaced with a patch from another image.
 - **Purpose**: Enhances model performance by creating realistic occlusion scenarios while maintaining local feature integrity. For example, in autonomous driving systems, cutmix helps the model learn to recognize vehicles or pedestrians even when they're partially occluded by other objects, improving detection accuracy in complex real-world environments with overlapping objects.
 - **Ultralytics' implementation**: [CutMix](../reference/data/augment.md#ultralytics.data.augment.CutMix)
 - **Note**:
-    - The size and position of the cut region is determined randomly for each application.
-    - Unlike mixup which blends pixel values globally, `cutmix` maintains the original pixel intensities within the cut regions, preserving local features.
+    - The size and position of the cut region are determined randomly for each application.
+    - Unlike `mixup`, which blends pixel values globally, `cutmix` maintains the original pixel intensities within the cut regions, preserving local features.
     - A region is pasted into the target image only if it does not overlap with any existing bounding box. Additionally, only the bounding boxes that retain enough of their original area within the pasted region are preserved.
     - This minimum bounding box area threshold cannot be changed with the current implementation. It is `0.1` (10%) for detection labels and `0.01` (1%) once the labels carry segments.
 
@@ -364,13 +364,13 @@ Then launch the training with the Python API:
 - **Default**: `'{{ auto_augment }}'`
 - **Usage**: Applies automated augmentation policies for classification. The `'randaugment'` option uses RandAugment, `'autoaugment'` uses AutoAugment, and `'augmix'` uses AugMix. Setting to `None` disables automated augmentation.
 - **Purpose**: Optimizes augmentation strategies automatically for classification tasks. The differences are the following:
-    - **AutoAugment**: This mode applies predefined augmentation policies learned from datasets like ImageNet, CIFAR10, and SVHN. Users can select these existing policies but cannot train new ones within Torchvision. To discover optimal augmentation strategies for specific datasets, external libraries or custom implementations would be necessary. Reference to the [AutoAugment paper](https://arxiv.org/abs/1805.09501).
-    - **RandAugment**: Applies a random selection of transformations with uniform magnitude. This approach reduces the need for an extensive search phase, making it more computationally efficient while still enhancing model robustness. Reference to the [RandAugment paper](https://arxiv.org/abs/1909.13719).
-    - **AugMix**: AugMix is a data augmentation method that enhances model robustness by creating diverse image variations through random combinations of simple transformations. Reference to the [AugMix paper](https://arxiv.org/abs/1912.02781).
+    - **AutoAugment**: This mode applies predefined augmentation policies learned from datasets like ImageNet, CIFAR-10, and SVHN. Users can select these existing policies but cannot train new ones within Torchvision. To discover optimal augmentation strategies for specific datasets, external libraries or custom implementations would be necessary. See the [AutoAugment paper](https://arxiv.org/abs/1805.09501).
+    - **RandAugment**: Applies a random selection of transformations with uniform magnitude. This approach reduces the need for an extensive search phase, making it more computationally efficient while still enhancing model robustness. See the [RandAugment paper](https://arxiv.org/abs/1909.13719).
+    - **AugMix**: AugMix is a data augmentation method that enhances model robustness by creating diverse image variations through random combinations of simple transformations. See the [AugMix paper](https://arxiv.org/abs/1912.02781).
 - **Ultralytics' implementation**: [classify_augmentations()](../reference/data/augment.md#ultralytics.data.augment.classify_augmentations)
 - **Note**:
     - Essentially, the main difference between the three methods is the way the augmentation policies are defined and applied.
-    - You can refer to [this article](https://sebastianraschka.com/blog/2023/data-augmentation-pytorch.html) that compares the three methods in detail.
+    - Sebastian Raschka's [comparison of PyTorch data augmentation methods](https://sebastianraschka.com/blog/2023/data-augmentation-pytorch.html) covers the three methods in detail.
 
 ### Random Erasing (`erasing`)
 
@@ -380,7 +380,7 @@ Then launch the training with the Python API:
 - **Purpose**: Helps models learn robust features and prevents over-reliance on specific image regions. For example, in facial recognition systems, random erasing helps models become more robust to partial occlusions like sunglasses, face masks, or other objects that might partially cover facial features. This improves real-world performance by forcing the model to identify individuals using multiple facial characteristics rather than depending solely on distinctive features that might be obscured.
 - **Ultralytics' implementation**: [classify_augmentations()](../reference/data/augment.md#ultralytics.data.augment.classify_augmentations)
 - **Note**:
-    - The `erasing` augmentation comes with a `scale`, `ratio`, and `value` hyperparameters that cannot be changed with the [current implementation](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py). Their default values are `(0.02, 0.33)`, `(0.3, 3.3)`, and `0`, respectively, as stated in the PyTorch [documentation](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.RandomErasing.html).
+    - The `erasing` augmentation comes with `scale`, `ratio`, and `value` hyperparameters that cannot be changed with the [current implementation](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py). Their default values are `(0.02, 0.33)`, `(0.3, 3.3)`, and `0`, respectively, as stated in the PyTorch [RandomErasing documentation](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.RandomErasing.html).
 
 |                                                 **`erasing` off**                                                 |                                      **`erasing` on (example 1)**                                      |                                      **`erasing` on (example 2)**                                      |                                      **`erasing` on (example 3)**                                      |
 | :---------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
@@ -392,7 +392,7 @@ Then launch the training with the Python API:
 
 - **Type**: `list` of Albumentations transforms
 - **Default**: `None`
-- **Usage**: Allows you to provide custom [Albumentations](https://albumentations.ai/) transforms for data augmentation using the Python API. This parameter accepts a list of Albumentations transform objects that will be applied during training instead of the default Albumentations transforms.
+- **Usage**: Allows you to provide custom [Albumentations](https://albumentations.ai/) transforms for data augmentation using the Python API, as shown in [this Albumentations walkthrough for Ultralytics YOLO](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data). This parameter accepts a list of Albumentations transform objects that will be applied during training instead of the default Albumentations transforms.
 - **Purpose**: Provides fine-grained control over data augmentation strategies by leveraging the extensive library of Albumentations transforms. This is particularly useful when you need specialized augmentations beyond the built-in YOLO options, such as elastic deformations and grid distortions for medical imaging, transforms tuned for overhead aerial and satellite perspectives, noise and brightness shifts that simulate low-light conditions, or defect-like texture variations for industrial inspection.
 - **Ultralytics' implementation**: [Albumentations](../reference/data/augment.md#ultralytics.data.augment.Albumentations)
 - **Note**:
@@ -486,7 +486,7 @@ Choosing the right augmentations depends on your specific use case and dataset. 
 - If the camera's point of view is consistent and won't change once the model is deployed, you can likely skip geometric transformations such as `degrees` (rotation), `translate`, `scale`, `shear`, or `perspective`. However, if the camera angle may vary, and you need the model to be more robust, it's better to keep these augmentations.
 - Use the `mosaic` augmentation only if having partially occluded objects or multiple objects per image is acceptable and does not change the label value. Alternatively, you can keep `mosaic` active but increase the `close_mosaic` value to disable it earlier in the training process.
 
-In short: keep it simple. Start with a small set of augmentations and gradually add more as needed. The goal is to improve the model's generalization and robustness, not to overcomplicate the training process. Also, make sure the augmentations you apply reflect the same data distribution your model will encounter in production.
+In short: keep it simple. Start with a small set of augmentations and gradually add more as needed; the Ultralytics Academy lesson [Use Augmentation Carefully](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/use-augmentation-carefully) walks through this process. The goal is to improve the model's generalization and robustness, not to overcomplicate the training process. Also, make sure the augmentations you apply reflect the same data distribution your model will encounter in production.
 
 ### When starting a training, I see an `albumentations: Blur[...]` reference. Does that mean Ultralytics YOLO runs additional augmentation like blurring?
 

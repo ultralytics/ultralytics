@@ -1,7 +1,7 @@
 ---
 title: YOLO26 Object Detection with Gradio
 comments: true
-description: Discover an interactive way to perform object detection with Ultralytics YOLO26 using Gradio. Upload images and adjust settings for real-time results.
+description: Build a Gradio web app for Ultralytics YOLO26 object detection that lets users upload images, tune confidence and IoU thresholds, and view results.
 keywords: Ultralytics, YOLO26, Gradio, object detection, interactive, real-time, image processing, AI
 ---
 
@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLO26, Gradio, object detection, interactive, real-time,
 
 ## Introduction to Interactive Object Detection
 
-This Gradio interface provides an easy and interactive way to perform [object detection](https://www.ultralytics.com/glossary/object-detection) using the [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) model. Users can upload images and adjust parameters like confidence threshold and intersection-over-union (IoU) threshold to get real-time detection results.
+This Gradio interface provides an easy and interactive way to perform [object detection](https://www.ultralytics.com/glossary/object-detection) using the [Ultralytics YOLO26](../models/yolo26.md) model. Users can upload images and adjust parameters like the [confidence](https://www.ultralytics.com/glossary/confidence) threshold and [intersection-over-union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold to get real-time detection results.
 
 <p align="center">
   <br>
@@ -26,7 +26,7 @@ This Gradio interface provides an easy and interactive way to perform [object de
 
 - **User-Friendly Interface:** Gradio offers a straightforward platform for users to upload images and visualize detection results without any coding requirement.
 - **Real-Time Adjustments:** Parameters such as confidence and IoU thresholds can be adjusted on the fly, allowing for immediate feedback and optimization of detection results.
-- **Broad Accessibility:** The Gradio web interface can be accessed by anyone, making it an excellent tool for demonstrations, educational purposes, and quick experiments.
+- **Broad Accessibility:** The Gradio web interface can be accessed by anyone, making it useful for demonstrations, educational purposes, and quick experiments.
 
 <p align="center">
    <img width="800" alt="Gradio YOLO detection interface" src="https://cdn.ul.run/i/cdbe1c42e06247a42987c0f3f1b8f211.avif">
@@ -43,7 +43,7 @@ pip install gradio
 1. **Upload Image:** Click on 'Upload Image' to choose an image file for object detection.
 2. **Adjust Parameters:**
     - **Confidence Threshold:** Slider to set the minimum confidence level for detecting objects.
-    - **IoU Threshold:** Slider to set the IoU threshold for distinguishing different objects.
+    - **IoU Threshold:** Slider to set the IoU threshold that [non-maximum suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) uses to remove overlapping boxes.
 3. **View Results:** The processed image with detected objects and their labels will be displayed.
 
 ## Example Use Cases
@@ -53,7 +53,7 @@ pip install gradio
 
 ## Usage Example
 
-This section provides the Python code used to create a Gradio interface for Ultralytics YOLO26 object detection. The sample can be adapted for classification, instance segmentation, pose, and other YOLO tasks by loading the corresponding model checkpoint.
+This section provides the Python code used to create a Gradio interface for Ultralytics YOLO26 object detection. The sample can be adapted for instance segmentation, classification, pose, and other YOLO tasks by loading the corresponding model checkpoint.
 
 ```python
 import gradio as gr
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 To use Gradio with Ultralytics YOLO26 for object detection, you can follow these steps:
 
 1. **Install Gradio:** Use the command `pip install gradio`.
-2. **Create Interface:** Write a Python script to initialize the Gradio interface. You can refer to the provided code example in the [documentation](#usage-example) for details.
+2. **Create Interface:** Write a Python script to initialize the Gradio interface. See the [Usage Example](#usage-example) for the full code.
 3. **Upload and Adjust:** Upload your image and adjust the confidence and IoU thresholds on the Gradio interface to get real-time object detection results.
 
 Here's a minimal code snippet for reference:
@@ -171,18 +171,18 @@ Using Gradio for Ultralytics YOLO26 object detection offers several benefits:
 - **Real-Time Adjustments:** You can dynamically adjust detection parameters such as confidence and IoU thresholds and see the effects immediately.
 - **Accessibility:** The web interface is accessible to anyone, making it useful for quick experiments, educational purposes, and demonstrations.
 
-For more details, you can read this [blog post on AI in radiology](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency) that showcases similar interactive visualization techniques.
+For a similar browser-based approach, see [Run an Interactive AI App with Streamlit and Ultralytics YOLO11](https://www.ultralytics.com/blog/run-an-interactive-ai-app-with-streamlit-and-ultralytics-yolo11).
 
 ### Can I use Gradio and Ultralytics YOLO26 together for educational purposes?
 
-Yes, Gradio and Ultralytics YOLO26 can be utilized together for educational purposes effectively. Gradio's intuitive web interface makes it easy for students and educators to interact with state-of-the-art [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like Ultralytics YOLO26 without needing advanced programming skills. This setup is ideal for demonstrating key concepts in object detection and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), as Gradio provides immediate visual feedback which helps in understanding the impact of different parameters on the detection performance.
+Yes, Gradio and Ultralytics YOLO26 work well together for education. Gradio's intuitive web interface makes it easy for students and educators to interact with state-of-the-art [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like Ultralytics YOLO26 without needing advanced programming skills. This setup is ideal for demonstrating key concepts in object detection and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), as Gradio provides immediate visual feedback which helps in understanding the impact of different parameters on the detection performance.
 
 ### How do I adjust the confidence and IoU thresholds in the Gradio interface for YOLO26?
 
 In the Gradio interface for YOLO26, you can adjust the confidence and IoU thresholds using the sliders provided. These thresholds help control the prediction [accuracy](https://www.ultralytics.com/glossary/accuracy) and object separation:
 
 - **Confidence Threshold:** Determines the minimum confidence level for detecting objects. Slide to increase or decrease the confidence required.
-- **IoU Threshold:** Sets the intersection-over-union threshold for distinguishing between overlapping objects. Adjust this value to refine object separation.
+- **IoU Threshold:** Sets the intersection-over-union threshold used to suppress overlapping boxes. Lower values remove more overlapping detections; higher values keep more of them.
 
 For more information on these parameters, visit the [parameters explanation section](#parameters-explanation).
 
@@ -195,4 +195,4 @@ Practical applications of combining Ultralytics YOLO26 with Gradio include:
 - **Prototype Development:** Efficient for developing and testing prototype object detection applications quickly.
 - **Community and Collaborations:** Making it easy to share models with the community for feedback and collaboration.
 
-For examples of similar use cases, check out the [Ultralytics blog on animal behavior monitoring](https://www.ultralytics.com/blog/monitoring-animal-behavior-using-ultralytics-yolov8) which demonstrates how interactive visualization can enhance wildlife conservation efforts.
+To share a trained model beyond a local demo, you can [deploy it as a dedicated endpoint on Ultralytics Platform](../platform/deploy/endpoints.md).

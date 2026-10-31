@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, depth estimation, depth dataset format, PNG depth m
 
 # Depth Estimation Datasets Overview
 
-Monocular depth estimation assigns a depth value in meters to every pixel in an image. Depth targets use either scaled 16-bit grayscale PNGs or floating-point NPY arrays in meters.
+Monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation) assigns a depth value in meters to every pixel in an image. Depth targets use either scaled 16-bit grayscale PNGs or floating-point NPY arrays in meters.
 
 This guide explains the dataset format used by Ultralytics YOLO depth estimation models and lists the built-in dataset configurations available for training and validation.
 
@@ -69,7 +69,7 @@ Depth estimation datasets are configured with YAML files. The main fields are:
 
 ## Usage
 
-Train a YOLO26 depth estimation model with Python or CLI:
+Train a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model with Python or CLI. For an overview of how YOLO26 predicts metric depth from a single RGB image, see the [YOLO26 depth estimation announcement](https://www.ultralytics.com/blog/ultralytics-yolo26-now-supports-monocular-depth-estimation).
 
 !!! example
 
@@ -93,7 +93,7 @@ Train a YOLO26 depth estimation model with Python or CLI:
 
 ## Supported Datasets
 
-The YOLO26 depth models are pretrained on a broad multi-dataset mix (~2.19M images) spanning indoor (≤10 m) to outdoor (~80 m) ranges, then evaluated across five benchmarks, zero-shot on all but KITTI Eigen. Each dataset has a dedicated page, and several are hosted on [Ultralytics Platform](https://platform.ultralytics.com) for browsing and cloud training.
+The YOLO26 depth models are pretrained on a broad multi-dataset mix (~2.19M images) spanning indoor (≤10 m) to outdoor (~80 m) ranges, then evaluated across five benchmarks, zero-shot on all but KITTI Eigen. Each dataset has a dedicated page, and several, such as [NYU Depth V2](https://platform.ultralytics.com/ultralytics/datasets/nyu-depth), are hosted on Ultralytics Platform for browsing and cloud training.
 
 **Debugging**
 

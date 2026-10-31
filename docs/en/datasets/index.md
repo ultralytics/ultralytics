@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore Ultralytics datasets for detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB, with high-quality annotated data for your projects.
+description: Ultralytics datasets for detection, instance and semantic segmentation, depth estimation, classification, pose, and OBB, plus how to contribute a new dataset.
 keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, depth estimation, image classification, pose estimation, multi-object tracking
 ---
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding boxes (OBB). Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets. [Track mode](../modes/track.md) runs on top of detection, segmentation, pose and OBB models without tracker-specific training; see [tracking datasets](track/index.md).
+Ultralytics supports datasets for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding boxes (OBB). Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets. [Track mode](../modes/track.md) runs on top of detection, segmentation, pose and OBB models without tracker-specific training; see [tracking datasets](track/index.md).
 
 <p align="center">
   <br>
@@ -39,7 +39,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 - [LVIS](detect/lvis.md): A large-scale object detection and instance segmentation dataset with 1,203 object categories.
 - [Medical-pills](detect/medical-pills.md): A dataset containing labeled images of medical pills, designed to aid in tasks like pharmaceutical quality control, sorting, and ensuring compliance with industry standards.
 - [Objects365](detect/objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 1.7 million annotated images.
-- [OpenImagesV7](detect/open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
+- [Open Images V7](detect/open-images-v7.md): A large-scale Google dataset with 601 classes, 1.7M train images, and 42K validation images.
 - [RF100](detect/roboflow-100.md): A diverse object detection benchmark with 100 datasets spanning seven imagery domains for comprehensive model evaluation.
 - [Signature](detect/signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 - [SKU-110K](detect/sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million bounding boxes.
@@ -62,7 +62,7 @@ Instance segmentation is a computer vision technique that involves identifying a
 
 ## [Semantic Segmentation](semantic/index.md)
 
-Semantic segmentation assigns a class label to every pixel in an image, producing dense scene maps for applications such as autonomous driving, scene parsing, and land-cover mapping.
+[Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) assigns a class label to every pixel in an image, producing dense scene maps for applications such as autonomous driving, scene parsing, and land-cover mapping.
 
 - [Cityscapes](semantic/cityscapes.md): Urban street-scene semantic segmentation dataset with 19 train classes.
 - [Cityscapes8](semantic/cityscapes8.md): A compact 8-image Cityscapes subset for quick semantic segmentation pipeline checks.
@@ -70,7 +70,7 @@ Semantic segmentation assigns a class label to every pixel in an image, producin
 
 ## [Depth Estimation](depth/index.md)
 
-Monocular depth estimation predicts a per-pixel depth map in meters from a single RGB image, supporting 3D scene reconstruction, robot navigation, and AR/VR applications.
+Monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation) predicts a per-pixel depth map in meters from a single RGB image, supporting 3D scene reconstruction, robot navigation, and AR/VR applications.
 
 - [Depth8](depth/depth8.md): A compact 8-image SUN RGB-D subset for quick pipeline checks.
 - [ARKitScenes](depth/arkitscenes.md): Real indoor RGB-D captured with Apple ARKit LiDAR, the largest real training source.
@@ -104,12 +104,12 @@ Monocular depth estimation predicts a per-pixel depth map in meters from a singl
 
 ## [Pose Estimation](pose/index.md)
 
-Pose estimation is a technique used to determine the pose of the object relative to the camera or the world coordinate system. This involves identifying key points or joints on objects, particularly humans or animals.
+[Pose estimation](https://www.ultralytics.com/glossary/pose-estimation) is a technique used to determine the pose of an object relative to the camera or the world coordinate system. This involves identifying keypoints or joints on objects, particularly humans or animals.
 
 - [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
 - [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
 - [Dog-pose](pose/dog-pose.md): A comprehensive dataset featuring approximately 8,500 images focused on dogs, annotated with 24 keypoints per dog, tailored for pose estimation tasks.
-- [Hand-Keypoints](pose/hand-keypoints.md): A concise dataset featuring over 26,000 images centered on human hands, annotated with 21 keypoints per hand, designed for pose estimation tasks.
+- [Hand-Keypoints](pose/hand-keypoints.md): A dataset featuring over 26,000 images centered on human hands, annotated with 21 keypoints per hand, designed for pose estimation tasks.
 - [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
 
 ## [Oriented Bounding Boxes (OBB)](obb/index.md)
@@ -118,7 +118,7 @@ Oriented Bounding Boxes (OBB) is a method in computer vision for detecting angle
 
 - [DOTA-v2](obb/dota-v2.md): A popular OBB aerial imagery dataset with 1.7 million instances and 11,268 images.
 - [DOTA8](obb/dota8.md): A smaller subset of the first 8 images from the DOTAv1 split set, 4 for training and 4 for validation, suitable for quick tests.
-- [DOTA128](obb/dota128.md): A 128-image subset of the DOTA dataset with 128 images for training and validation, providing a good balance between size and diversity for testing OBB models.
+- [DOTA128](obb/dota128.md): A 128-image subset of DOTAv1 used for both training and validation, providing a good balance between size and diversity for testing OBB models.
 
 ## Contribute New Datasets
 
@@ -137,8 +137,8 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
 ### Steps to Contribute a New Dataset
 
-1. **Collect Images**: Gather the images that belong to the dataset. These could be collected from various sources, such as public databases or your own collection.
-2. **Annotate Images**: Annotate these images with bounding boxes, segments, or keypoints, depending on the task.
+1. **Collect Images**: Gather the images that belong to the dataset. These could be collected from various sources, such as public databases or your own collection. The free Academy lesson on [collecting high-quality, representative data](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/collect-representative-data) covers what to gather.
+2. **Annotate Images**: Annotate these images with bounding boxes, segments, or keypoints, depending on the task, for example with [Ultralytics Platform annotation](../platform/data/annotation.md).
 3. **Export Annotations**: Convert these annotations into the YOLO `*.txt` file format which Ultralytics supports.
 4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `images/` and `labels/` top-level directories, and within each, a `train/` and `val/` subdirectory.
 
@@ -194,7 +194,7 @@ Ultralytics supports a wide variety of datasets for [object detection](https://w
 - [VisDrone](detect/visdrone.md): A dataset with object detection and multi-object tracking data from drone-captured imagery.
 - [SKU-110K](detect/sku-110k.md): Featuring dense object detection in retail environments with over 11K images.
 
-These datasets facilitate training robust [Ultralytics YOLO](../models/index.md) models for various object detection applications.
+These datasets support training robust [Ultralytics YOLO](../models/index.md) models for various object detection applications. For a broader survey, see this guide to the [best computer vision datasets](https://www.ultralytics.com/blog/exploring-the-best-computer-vision-datasets-in-2025).
 
 ### How do I contribute a new dataset to Ultralytics?
 
@@ -213,18 +213,18 @@ Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive gu
 
 ### Why should I use Ultralytics Platform for my dataset?
 
-[Ultralytics Platform](https://platform.ultralytics.com) offers powerful features for dataset management and analysis, including:
+[Ultralytics Platform](https://platform.ultralytics.com) offers dataset management and analysis features, including:
 
-- **Seamless Dataset Management**: Upload, organize, and manage your datasets in one place.
+- **Dataset Management**: Upload, organize, and manage your datasets in one place.
 - **Immediate Training Integration**: Use uploaded datasets directly for model training without additional setup.
 - **Visualization Tools**: Explore and visualize your dataset images and annotations.
 - **Dataset Analysis**: Get insights into your dataset distribution and characteristics.
 
-The platform streamlines the transition from dataset management to model training, making the entire process more efficient. Learn more about [Ultralytics Platform Datasets](../platform/data/index.md).
+Datasets move straight from management to model training on the same platform. Learn more about [Ultralytics Platform Datasets](../platform/data/index.md).
 
 ### What are the unique features of Ultralytics YOLO models for computer vision?
 
-Ultralytics YOLO models provide several unique features for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks:
+Ultralytics YOLO models provide several unique features for computer vision tasks:
 
 - **Real-time Performance**: High-speed inference and training capabilities for time-sensitive applications.
 - **Versatility**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding box (OBB) tasks in a unified framework.
@@ -232,7 +232,7 @@ Ultralytics YOLO models provide several unique features for [computer vision](ht
 - **Extensive Community Support**: Active community and comprehensive documentation for troubleshooting and development.
 - **Easy Integration**: Simple API for integrating with existing projects and workflows.
 
-Discover more about YOLO models on the [Ultralytics Models](../models/index.md) page.
+Discover more about the latest model on the [YOLO26](../models/yolo26.md) page.
 
 ### How can I optimize and zip a dataset using Ultralytics tools?
 
@@ -259,4 +259,4 @@ To optimize and zip a dataset using Ultralytics tools, follow this example code:
         zip_directory(path)
         ```
 
-This process helps reduce dataset size for more efficient storage and faster download speeds. Learn more on how to [Optimize and Zip a Dataset](#example-code-to-optimize-and-zip-a-dataset).
+This process helps reduce dataset size for more efficient storage and faster download speeds. Learn more in [Example Code to Optimize and Zip a Dataset](#example-code-to-optimize-and-zip-a-dataset).

@@ -118,7 +118,8 @@ def test_onnx_int8_quantize_excludes_non_weighted_ops(monkeypatch):
         ]
     )
 
-    monkeypatch.setattr(onnx, "load", lambda _: SimpleNamespace(graph=graph))
+    opset_import = [SimpleNamespace(domain="", version=18)]
+    monkeypatch.setattr(onnx, "load", lambda _: SimpleNamespace(graph=graph, opset_import=opset_import))
     monkeypatch.setattr(ort_quantization, "quantize_static", lambda *args, **kwargs: calls.update(kwargs))
     result = onnx_int8_quantize(Path("model.onnx"), Path("model_int8.onnx"), [], lambda x: x)
     assert result == "model_int8.onnx"

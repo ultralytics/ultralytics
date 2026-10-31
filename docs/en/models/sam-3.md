@@ -440,13 +440,14 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO26](yolo26.md) models:
 | **Speed (GPU, ms/im)**       | 2921                                  | 857                  | **8.4**          |
 | **Model Size**               | 3.45 GB                               | 162 MB (base)        | **6.4 MB**       |
 
-Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8.4.19`. [YOLOE](yoloe.md) brings the same kinds of prompt to real-time open-vocabulary detection and segmentation.
+Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8.4.19`.
 
 **Key Takeaways**:
 
 - **SAM 3**: Best for open-vocabulary concept segmentation, finding all instances of a concept with text or exemplar prompts
 - **SAM 2**: Best for interactive single-object segmentation in images and videos with geometric prompts
 - **YOLO26**: Best for real-time, high-speed segmentation with optional NMS-free end-to-end inference, [exportable to many formats](../modes/export.md#export-formats) for deployment on GPUs, CPUs, and edge devices
+- **[YOLOE](yoloe.md)**: Best for real-time open-vocabulary detection and segmentation with text or visual prompts
 
 ## SAM Comparison vs YOLO
 

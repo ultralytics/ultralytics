@@ -206,7 +206,6 @@ For more troubleshooting tips, see the [Installation section](#installation) and
 Kaggle offers several features that set it apart from [Google Colab](google-colab.md):
 
 - **Public Notebooks**: Share your work with the community for feedback and collaboration.
-- **Free Access to TPUs**: Use TPUs at no extra cost with frameworks that support them; Ultralytics YOLO26 trains on Kaggle's GPUs or CPU.
 - **Comprehensive History**: Track changes over time with a detailed history of notebook commits.
 - **Resource Availability**: Significant resources are provided for each notebook session, including 12 hours of execution time for CPU and GPU sessions.
 

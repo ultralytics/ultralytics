@@ -320,7 +320,7 @@ You can measure localization accuracy by calculating the [Intersection over Unio
 
 ## Summary
 
-We explored the key features of IBM Watsonx and how to [train a YOLO26 model with it](https://developer.ibm.com/tutorials/awb-train-yolo-object-detection-model-in-python/). IBM Watsonx also provides tools for model building, data management, and compliance.
+We explored the key features of IBM Watsonx and how to train a YOLO26 model with it. IBM Watsonx also provides tools for model building, data management, and compliance.
 
 For further details on usage, visit [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
 

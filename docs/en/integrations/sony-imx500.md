@@ -19,7 +19,7 @@ The IMX500 model format is designed to use minimal power while delivering fast p
 ## Why Should You Export to IMX500?
 
 Sony's [IMX500 Intelligent Vision Sensor](https://www.aitrios.sony-semicon.com/edge-ai-devices/raspberry-pi-ai-camera) runs AI processing on the sensor itself, which Sony describes as a world first for an intelligent vision sensor. It helps overcome common [edge AI](https://www.ultralytics.com/glossary/edge-ai) challenges, including data processing bottlenecks, privacy concerns, and performance limitations.
-While conventional sensors only pass along images and frames, the IMX500 [processes data directly on the sensor](https://www.ultralytics.com/blog/empowering-edge-ai-with-sony-imx500-and-aitrios), allowing devices to generate insights in real time.
+While conventional sensors only pass along images and frames, the IMX500 [interprets what it captures](https://www.ultralytics.com/blog/empowering-edge-ai-with-sony-imx500-and-aitrios), allowing devices to generate insights in real time.
 
 ## Sony's IMX500 Export for YOLO11 Models
 

@@ -100,7 +100,7 @@ SAM speeds measured with PyTorch, YOLO speeds measured with ONNX Runtime. Tests 
 
 ## Usage Examples
 
-The FastSAM models are easy to integrate into your Python applications. Ultralytics provides a Python API and CLI commands for both.
+The FastSAM models are easy to integrate into your Python applications. Ultralytics provides both a Python API and CLI commands.
 
 ### Predict Usage
 

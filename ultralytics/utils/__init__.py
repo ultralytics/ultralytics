@@ -578,24 +578,12 @@ class ThreadingLocked:
 
 
 class YAML:
-    """YAML utility class for efficient file operations with automatic C-implementation detection.
+    """Minimal YAML reader and writer for Ultralytics configs, datasets and export metadata.
 
-    This class provides optimized YAML loading and saving operations using PyYAML's fastest available implementation
-    (C-based when possible). It implements a singleton pattern with lazy initialization, allowing direct class method
-    usage without explicit instantiation. The class handles file path creation, validation, and character encoding
-    issues automatically.
-
-    The implementation prioritizes performance through:
-        - Automatic C-based loader/dumper selection when available
-        - Singleton pattern to reuse the same instance
-        - Lazy initialization to defer import costs until needed
-        - Fallback mechanisms for handling problematic YAML content
-
-    Attributes:
-        _instance: Internal singleton instance storage.
-        yaml: Reference to the PyYAML module.
-        SafeLoader: Best available YAML loader (CSafeLoader if available).
-        SafeDumper: Best available YAML dumper (CSafeDumper if available).
+    Parses the YAML these files use: block mappings and sequences, flow collections, plain, quoted and block scalars,
+    and comments. Plain scalars resolve with YAML 1.2 core rules plus Python's None/True/False spellings, so `yes`,
+    `no`, `on` and `off` stay strings and `1e-3` is a float. Anchors, aliases, tags and complex keys raise ValueError.
+    Saved files write nested dicts as blocks and other values inline, readable by any YAML parser.
 
     Examples:
         >>> from ultralytics.utils import YAML
@@ -605,27 +593,29 @@ class YAML:
         >>> YAML.print(data)
     """
 
-    _instance = None
+    _CONST = {
+        **dict.fromkeys(("", "~", "null", "Null", "NULL", "None")),
+        **dict.fromkeys(("true", "True", "TRUE"), True),
+        **dict.fromkeys(("false", "False", "FALSE"), False),
+        **dict.fromkeys((".inf", ".Inf", ".INF", "+.inf", "+.Inf", "+.INF"), float("inf")),
+        **dict.fromkeys(("-.inf", "-.Inf", "-.INF"), float("-inf")),
+        **dict.fromkeys((".nan", ".NaN", ".NAN"), float("nan")),
+    }
+    _ESC = dict(zip('0abt\tnvfre "/\\N_LP', '\0\a\b\t\t\n\v\f\r\x1b "/\\\x85\xa0\u2028\u2029'))
+    _YAML11 = {"y", "n", "yes", "no", "on", "off"}  # quoted on save so YAML 1.1 readers keep them strings
+    _COMMENT = re.compile(r"[ \t]#")
+    _QUOTED = re.compile(r""""(?:[^"\\]|\\[\s\S])*"|'(?:[^']|'')*'(?!')""")
+    _FLOW = re.compile(  # flow token: quoted scalar | indicator | comment | plain scalar
+        rf"\s*(?:({_QUOTED.pattern})|([\[\]{{}},:])|(#.*)|([^\s,\[\]{{}}#](?:[^,\[\]{{}}:#\n]|:(?=[^\s,\[\]{{}}])|(?<=\S)#)*))"
+    )
+    _FOLD = r"[ \t]*\n((?:[ \t]*\n)*)[ \t]*"  # quoted line break: one folds to a space, n + 1 to n newlines
+    _DQ = re.compile(rf"\\(x[0-9A-Fa-f]{{2}}|u[0-9A-Fa-f]{{4}}|U[0-9A-Fa-f]{{8}}|\n[ \t]*|[\s\S])|{_FOLD}")
+    _PLAIN = re.compile(r"(?:\.\.?/|[^\s\d+.\-?:,\[\]{}#&*!|>'\"%@`<=])(?:[^\n\r\t:#]|:(?! |$)|(?<! )#)*(?<! )")
 
-    @classmethod
-    def _get_instance(cls):
-        """Initialize singleton instance on first use."""
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
-
-    def __init__(self):
-        """Initialize with optimal YAML implementation (C-based when available)."""
-        import yaml
-
-        self.yaml = yaml
-        # Use C-based implementation if available for better performance
-        try:
-            self.SafeLoader = yaml.CSafeLoader
-            self.SafeDumper = yaml.CSafeDumper
-        except (AttributeError, ImportError):
-            self.SafeLoader = yaml.SafeLoader
-            self.SafeDumper = yaml.SafeDumper
+    def __init__(self, text: str):
+        """Split a YAML document into lines for `parse()`."""
+        self.lines = text.lstrip("\ufeff").replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        self.i = 0
 
     @classmethod
     def save(cls, file="data.yaml", data=None, header=""):
@@ -637,7 +627,6 @@ class YAML:
                 in place.
             header (str): Optional string to add at file beginning.
         """
-        instance = cls._get_instance()
         if data is None:
             data = {}
 
@@ -653,13 +642,11 @@ class YAML:
 
         # Write YAML file
         with open(file, "w", errors="ignore", encoding="utf-8") as f:
-            if header:
-                f.write(header)
-            instance.yaml.dump(data, f, sort_keys=False, allow_unicode=True, Dumper=instance.SafeDumper)
+            f.write(header + cls._dump(data))
 
     @classmethod
     def load(cls, file="data.yaml", append_filename=False):
-        """Load YAML file to Python object with robust error handling.
+        """Load YAML file to Python object.
 
         Args:
             file (str | Path): Path to YAML file.
@@ -672,25 +659,15 @@ class YAML:
             AssertionError: If the file does not have a .yaml or .yml suffix.
             ValueError: If the file contains a YAML syntax error or is not a YAML mapping.
         """
-        instance = cls._get_instance()
         assert str(file).lower().endswith((".yaml", ".yml")), f"Not a YAML file: {file}"
-
-        # Read file content
         with open(file, errors="ignore", encoding="utf-8") as f:
             s = f.read()
-
-        # Try loading YAML with fallback for problematic characters
         try:
-            data = instance.yaml.load(s, Loader=instance.SafeLoader)
+            data = cls(s).parse()
         except Exception as e:
-            # Remove problematic characters and retry
-            s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
-            try:
-                data = instance.yaml.load(s, Loader=instance.SafeLoader)
-            except Exception:
-                raise ValueError(
-                    f"YAML syntax error in '{file}': {e}\nVerify YAML with https://ray.run/tools/yaml-formatter"
-                ) from None
+            raise ValueError(
+                f"YAML syntax error in '{file}': {e}\nVerify YAML with https://ray.run/tools/yaml-formatter"
+            ) from None
 
         if data is None:  # empty file, comments only, or explicit 'null'
             data = {}
@@ -698,10 +675,6 @@ class YAML:
             raise ValueError(
                 f"'{file}' is not a valid YAML mapping. Verify YAML with https://ray.run/tools/yaml-formatter"
             )
-
-        # Check for accidental user-error None strings (should be 'null' in YAML)
-        if "None" in data.values():
-            data = {k: None if v == "None" else v for k, v in data.items()}
 
         if append_filename:
             data["yaml_file"] = str(file)
@@ -714,15 +687,274 @@ class YAML:
         Args:
             yaml_file (str | Path | dict): Path to YAML file or dict to print.
         """
-        instance = cls._get_instance()
-
-        # Load file if path provided
         yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+        LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{cls._dump(yaml_dict)}")
 
-        # Use -1 for unlimited width in C implementation
-        dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=-1, Dumper=instance.SafeDumper)
+    @classmethod
+    def _dump(cls, v, indent: str = "") -> str:
+        """Serialize a dict or list in PyYAML's block layout, with scalars and empty collections inline."""
+        out = []
+        for k, x in v.items() if isinstance(v, dict) else enumerate(v):
+            head = f"{indent}{cls._repr(k)}:" if isinstance(v, dict) else f"{indent}-"
+            if isinstance(x, (dict, list, tuple)) and x:
+                if isinstance(v, dict):  # nested dict indented, nested list at the key's indent like PyYAML
+                    out.append(f"{head}\n{cls._dump(x, indent + '  ' if isinstance(x, dict) else indent)}")
+                else:  # '- - x' and '- k: v' put the item's first line after its dash
+                    out.append(f"{head} {cls._dump(x, indent + '  ')[len(indent) + 2 :]}")
+            else:
+                out.append(f"{head} {cls._repr(x)}\n")
+        return "".join(out)
 
-        LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
+    @classmethod
+    def _repr(cls, v) -> str:
+        """Represent a scalar or empty collection inline, strings plain when unambiguous and double-quoted otherwise."""
+        if v is None or v is True or v is False:
+            return {None: "null", True: "true", False: "false"}[v]
+        if isinstance(v, int):
+            return str(v)
+        if isinstance(v, float):
+            s = {"nan": ".nan", "inf": ".inf", "-inf": "-.inf"}.get(repr(v), repr(v))
+            return s.replace("e", ".0e") if "e" in s and "." not in s else s  # '1.0e-05' so YAML 1.1 reads a float
+        if isinstance(v, (dict, list, tuple)):
+            return "{}" if isinstance(v, dict) else "[]"
+        v = str(v)
+        if v.isprintable() and cls._PLAIN.fullmatch(v) and cls._scalar(v) is v and v.lower() not in cls._YAML11:
+            return v
+        return re.sub(r"[\x7f-\x9f]", lambda m: f"\\x{ord(m[0]):02x}", json.dumps(v, ensure_ascii=False))
+
+    @classmethod
+    def _scalar(cls, s: str):
+        """Resolve a plain scalar to None, bool, int, float or str."""
+        if s in cls._CONST:
+            return cls._CONST[s]
+        if s[0] in "0123456789+-." and s[-1] in "0123456789.":
+            for f in (int, float):
+                try:
+                    return f(s)
+                except ValueError:
+                    pass
+        return s
+
+    @classmethod
+    def _unquote(cls, s: str) -> str:
+        """Decode a quoted scalar, including its quotes, by folding line breaks and resolving escapes."""
+        q, s = s[0], s[1:-1]
+        if q == "'":
+            return (re.sub(cls._FOLD, lambda m: "\n" * m[1].count("\n") or " ", s) if "\n" in s else s).replace(
+                "''", "'"
+            )
+        return cls._DQ.sub(cls._escape, s) if "\\" in s or "\n" in s else s
+
+    @classmethod
+    def _escape(cls, m) -> str:
+        """Replace one double-quoted escape sequence or folded line break."""
+        e = m[1]
+        if e is None:
+            return "\n" * m[2].count("\n") or " "
+        return "" if e[0] == "\n" else chr(int(e[1:], 16)) if len(e) > 1 else cls._ESC[e]
+
+    def parse(self):
+        r"""Parse the YAML document passed to the constructor.
+
+        Returns:
+            (Any): The top-level node, usually a dict, or None for an empty document.
+
+        Raises:
+            ValueError: If the document has a syntax error or uses unsupported YAML features.
+
+        Examples:
+            >>> YAML("names:\n  0: person\nnc: 1").parse()
+            {'names': {0: 'person'}, 'nc': 1}
+        """
+        n, c = self._peek()
+        if c == "---" or c.startswith("--- "):  # document start, possibly with content on the same line
+            self.lines[self.i] = c[4:]
+            n, c = self._peek()
+        v = None if n < 0 else self._node(n, c)
+        n, c = self._peek()
+        if n >= 0 and c != "...":
+            self._error(f"unexpected {c!r}")
+        return v
+
+    def _error(self, msg):
+        """Raise a ValueError for the current line."""
+        raise ValueError(f"line {self.i + 1}: {msg}")
+
+    def _peek(self):
+        """Advance past blank and comment lines, returning (indent, content) of the next line or (-1, '') at the end."""
+        while self.i < len(self.lines):
+            line = self.lines[self.i]
+            c = line.strip(" \t")
+            if c and c[0] != "#":
+                n = len(line) - len(line.lstrip(" "))
+                if line[n] == "\t":
+                    self._error("tab indentation")
+                return n, c
+            self.i += 1
+        return -1, ""
+
+    @classmethod
+    def _key(cls, c):
+        """Split a 'key: value' line into (key, rest), or return None if it is not a mapping entry."""
+        if c[0] in "\"'":
+            m = cls._QUOTED.match(c)
+            tail = c[m.end() :] if m else ""
+            return (cls._unquote(m[0]), tail[1:].strip(" \t")) if tail[:1] == ":" and tail[1:2] in {"", " "} else None
+        j = c.find(": ")
+        j = len(c) - 1 if j < 0 and c[-1] == ":" else j
+        k = c[:j].rstrip(" \t")
+        if j <= 0 or not k or c[0] in "[{&*!" or c[:2] == "- " or cls._COMMENT.search(k):
+            return None
+        return cls._scalar(k), c[j + 1 :].strip(" \t")
+
+    def _node(self, n, c):
+        """Parse the block node whose first line has indent n and content c."""
+        if c == "-" or c.startswith("- "):
+            return self._seq(n)
+        if self._key(c):
+            return self._map(n)
+        self.i += 1
+        return self._value(c, n - 1)
+
+    def _map(self, n):
+        """Parse a block mapping at indent n."""
+        d = {}
+        while True:
+            m, c = self._peek()
+            if m < n:
+                return d
+            kv = self._key(c) if m == n else None
+            if kv is None:
+                self._error(f"expected 'key: value' at indent {n}, got {c!r}")
+            self.i += 1
+            d[kv[0]] = self._value(kv[1], n)
+
+    def _seq(self, n):
+        """Parse a block sequence whose '-' indicators are at indent n."""
+        out = []
+        while True:
+            m, c = self._peek()
+            if m != n or not (c == "-" or c.startswith("- ")):
+                if m > n:
+                    self._error(f"bad indentation of {c!r}")
+                return out
+            rest = c[1:].lstrip(" ")
+            if not rest or rest[0] == "#":  # empty item: a block indented under the dash, otherwise null
+                self.i += 1
+                m, c = self._peek()
+                out.append(self._node(m, c) if m > n else None)
+            elif rest == "-" or rest.startswith("- ") or self._key(rest):
+                k = n + len(c) - len(rest)
+                self.lines[self.i] = " " * k + rest  # re-read '- key: v' and '- - x' as a node at the item's column
+                out.append(self._node(k, rest))
+            else:
+                self.i += 1
+                out.append(self._value(rest, n))
+
+    def _value(self, rest, n):
+        """Parse a value starting with text rest, on a line that belongs to a parent node at indent n."""
+        if not rest or rest[0] == "#":  # nested block, indentless sequence or null
+            m, c = self._peek()
+            return self._node(m, c) if m > n or (m == n and (c == "-" or c.startswith("- "))) else None
+        if rest[0] in "[{\"'":  # flow collection or quoted scalar, possibly spanning lines
+            flow, i, k = rest[0] in "[{", self.i, 0
+            while True:  # add following lines in doubling chunks so long multi-line values stay linear
+                text = "\n".join([rest, *self.lines[i : i + k]])
+                end = self._flow_end(text) if flow else (m.end() if (m := self._QUOTED.match(text)) else -1)
+                if end >= 0:
+                    break
+                if i + k >= len(self.lines):
+                    self._error("unterminated flow collection or quoted scalar")
+                k = 2 * k or 1
+            self.i = i + text.count("\n", 0, end)
+            tail = text[end:].split("\n", 1)[0].strip(" \t")
+            if tail[:1] not in {"", "#"}:
+                self._error(f"unexpected {tail!r}")
+            return self._flow(text[:end]) if flow else self._unquote(text[:end])
+        if rest[0] in "|>":
+            return self._block_scalar(rest, n)
+        if rest[0] in "&*!":
+            self._error("anchors, aliases and tags are not supported")
+        s = self._COMMENT.split(rest, maxsplit=1)[0].rstrip(" \t") if "#" in rest else rest
+        while (m := self._peek())[0] > n:  # multi-line plain scalar
+            s += " " + (self._COMMENT.split(m[1], maxsplit=1)[0].rstrip(" \t") if "#" in m[1] else m[1])
+            self.i += 1
+        if ": " in s or s.endswith(":"):
+            self._error(f"mapping inside plain scalar {s!r}")
+        return self._scalar(s)
+
+    def _block_scalar(self, header, n):
+        """Read a literal '|' or folded '>' block scalar with optional chomping and indentation indicators."""
+        h, lines, ind = header.split("#", 1)[0].strip(" \t"), [], None
+        while self.i < len(self.lines):
+            raw = self.lines[self.i]
+            if raw.strip(" \t"):
+                m = len(raw) - len(raw.lstrip(" "))
+                if m <= n or (ind is not None and m < ind):  # a less-indented line ends the scalar
+                    break
+                ind = m if ind is None else ind
+            lines.append(raw)
+            self.i += 1
+        digits = "".join(x for x in h if x.isdigit())
+        ind = n + int(digits) if digits else ind or 0
+        lines, trailing = [x[ind:] for x in lines], -(self.i == len(self.lines))  # '' after the final break is no line
+        while lines and not lines[-1].strip(" \t"):
+            lines.pop()
+            trailing += 1
+        text = "\n".join(lines)
+        if h[0] == ">":  # fold breaks between unindented text lines: one to a space, n + 1 to n newlines
+            text = re.sub(r"(?m)^([^ \n].*)\n(\n*)(?=[^ \n])", lambda m: m[1] + (m[2] or " "), text)
+        if "-" in h or trailing < 0:  # strip, or no final line break at end of file
+            return text
+        return (text + "\n" if text else "") + "\n" * (trailing if "+" in h else 0)
+
+    @classmethod
+    def _flow_end(cls, text):
+        """Return the index just past the flow collection that opens text, or -1 if it continues on the next line."""
+        depth = 0
+        for m in cls._FLOW.finditer(text):
+            depth += (m[2] in {"[", "{"}) - (m[2] in {"]", "}"})
+            if not depth:
+                return m.end()
+        return -1
+
+    def _flow(self, text):
+        """Parse a complete flow collection."""
+        toks = [(m[1], m[2], m[4]) for m in self._FLOW.finditer(text) if not m[3]]
+        pos = 0
+
+        def node():
+            """Parse the flow node at the current token."""
+            nonlocal pos
+            q, ind, plain = toks[pos]
+            pos += 1
+            if plain and plain[0] in "&*!":
+                self._error("anchors, aliases and tags are not supported")
+            if q or plain:
+                return self._unquote(q) if q else self._scalar(plain.rstrip(" \t"))
+            if ind not in {"[", "{"}:
+                self._error(f"unexpected {ind!r} in {text!r}")
+            close, out = ("]", []) if ind == "[" else ("}", {})
+            while toks[pos][1] != close:
+                k = node()
+                if ind == "[":
+                    out.append(k)
+                elif toks[pos][1] == ":":
+                    pos += 1
+                    out[k] = None if toks[pos][1] in {",", "}"} else node()
+                else:
+                    out[k] = None
+                if toks[pos][1] == ",":
+                    pos += 1
+                elif toks[pos][1] != close:
+                    self._error(f"expected ',' or '{close}' in {text!r}")
+            pos += 1
+            return out
+
+        try:
+            return node()
+        except IndexError:
+            self._error(f"unterminated flow collection {text!r}")
 
 
 # Default configuration

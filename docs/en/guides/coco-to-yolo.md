@@ -202,7 +202,7 @@ Create a `dataset.yaml` configuration file that maps your COCO categories to YOL
 import json
 from pathlib import Path
 
-import yaml
+from ultralytics.utils import YAML
 
 # Read categories from your COCO JSON
 with open("my_dataset/annotations/instances_train.json") as f:
@@ -222,8 +222,7 @@ dataset = {
     "names": names,
 }
 
-with open("my_dataset/dataset.yaml", "w") as f:
-    yaml.dump(dataset, f, default_flow_style=False)
+YAML.save("my_dataset/dataset.yaml", dataset)
 ```
 
 The resulting YAML file:

@@ -80,11 +80,11 @@ Then, you can import the needed packages.
         import os
         import shutil
 
-        import yaml
         from IPython.display import display
         from PIL import Image
 
         import ultralytics
+        from ultralytics.utils import YAML
 
         ultralytics.checks()
         ```
@@ -226,13 +226,7 @@ Run the following script to delete the current contents of `config.yaml` and rep
                 "test": "test/images",
                 "names": {0: "plastic", 1: "bio", 2: "rov"},
             }
-
-            # Ensures the "names" list appears after the sub/directories
-            names_data = data.pop("names")
-            with open(file_path, "w") as yaml_file:
-                yaml.dump(data, yaml_file)
-                yaml_file.write("\n")
-                yaml.dump({"names": names_data}, yaml_file)
+            YAML.save(file_path, data)  # keeps key order, so "names" follows the directories
 
 
         if __name__ == "__main__":

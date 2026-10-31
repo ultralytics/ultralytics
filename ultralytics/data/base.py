@@ -249,6 +249,60 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:] = 0
 
+    def _read_image(self, im_file: str) -> tuple[np.ndarray, tuple[int, int]]:
+        """Read image from disk.
+
+        This method can be overridden by subclasses to support custom image reading logic,
+        such as loading multi-channel images or stereo pairs.
+
+        Args:
+            im_file (str): Path to the image file to read.
+
+        Returns:
+            im (np.ndarray): Loaded image as a NumPy array.
+            hw_original (tuple[int, int]): Original image dimensions (height, width).
+
+        Raises:
+            FileNotFoundError: If the image file is not found.
+        """
+        im = imread(im_file, flags=self.cv2_flag)  # BGR
+        if im is None:
+            raise FileNotFoundError(f"Image Not Found {im_file}")
+        h0, w0 = im.shape[:2]
+        return im, (h0, w0)
+
+    def _resize_image(self, im: np.ndarray, rect_mode: bool = True, resize_short: bool = False) -> np.ndarray:
+        """Resize image to target size.
+
+        Args:
+            im (np.ndarray): Image to resize.
+            rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
+            resize_short (bool): Whether to resize the shorter side to imgsz while maintaining aspect ratio. Overrides
+                rect_mode behavior when True.
+
+        Returns:
+            np.ndarray: Resized image.
+        """
+        h0, w0 = im.shape[:2]
+        shape = tuple(self.imgsz) if isinstance(self.imgsz, (tuple, list)) else (self.imgsz, self.imgsz)
+        imgsz = max(shape)
+        if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
+            if resize_short:  # resize short side to imgsz while maintaining aspect ratio
+                r = imgsz / min(h0, w0)  # ratio
+                if r != 1:  # if sizes are not equal
+                    w, h = (math.ceil(w0 * r), imgsz) if h0 < w0 else (imgsz, math.ceil(h0 * r))
+                    im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+            else:
+                r = imgsz / max(h0, w0)  # ratio
+                if r != 1:  # if sizes are not equal
+                    w, h = (min(math.ceil(w0 * r), imgsz), min(math.ceil(h0 * r), imgsz))
+                    im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+        elif (h0, w0) != shape:  # resize by stretching to the requested shape
+            im = cv2.resize(im, shape[::-1], interpolation=cv2.INTER_LINEAR)
+        if im.ndim == 2:
+            im = im[..., None]
+        return im
+
     def load_image(
         self, i: int, rect_mode: bool = True, resize_short: bool = False
     ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
@@ -282,35 +336,21 @@ class BaseDataset(Dataset):
                             f"{self.prefix}Refreshing stale *.npy image file {fn} with {npy_channels} channels and "
                             f"{im.dtype} dtype"
                         )
-                        im = imread(f, flags=self.cv2_flag)
+                        im, _ = self._read_image(f)
                         np.save(fn.as_posix(), im, allow_pickle=False)  # keep disk-cache benefits for this image
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
-                    im = imread(f, flags=self.cv2_flag)  # BGR
-            else:  # read image
-                im = imread(f, flags=self.cv2_flag)  # BGR
-            if im is None:
-                raise FileNotFoundError(f"Image Not Found {f}")
+                    im = None
 
-            h0, w0 = im.shape[:2]  # orig hw
-            shape = tuple(self.imgsz) if isinstance(self.imgsz, (tuple, list)) else (self.imgsz, self.imgsz)
-            imgsz = max(shape)
-            if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
-                if resize_short:  # resize short side to imgsz while maintaining aspect ratio
-                    r = imgsz / min(h0, w0)  # ratio
-                    if r != 1:  # if sizes are not equal
-                        w, h = (math.ceil(w0 * r), imgsz) if h0 < w0 else (imgsz, math.ceil(h0 * r))
-                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
-                else:
-                    r = imgsz / max(h0, w0)  # ratio
-                    if r != 1:  # if sizes are not equal
-                        w, h = (min(math.ceil(w0 * r), imgsz), min(math.ceil(h0 * r), imgsz))
-                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
-            elif (h0, w0) != shape:  # resize by stretching to the requested shape
-                im = cv2.resize(im, shape[::-1], interpolation=cv2.INTER_LINEAR)
-            if im.ndim == 2:
-                im = im[..., None]
+            if im is None:  # not loaded from disk cache, read from disk
+                im, (h0, w0) = self._read_image(f)
+            else:
+                # Loaded from npy cache, get original shape from storage if available
+                h0, w0 = self.im_hw0[i] if self.im_hw0[i] is not None else im.shape[:2]
+
+            # Always apply resize (images from disk cache are raw and need resizing)
+            im = self._resize_image(im, rect_mode=rect_mode, resize_short=resize_short)
 
             # Add to buffer if training with augmentations
             if self.augment and self.cache != "ram":
@@ -348,7 +388,8 @@ class BaseDataset(Dataset):
         f = self.npy_files[i]
         if not f.exists() or f.stat().st_mtime < Path(self.im_files[i]).stat().st_mtime:  # missing or stale
             try:
-                np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
+                im, _ = self._read_image(self.im_files[i])
+                np.save(f.as_posix(), im, allow_pickle=False)
             except Exception as e:
                 f.unlink(missing_ok=True)
                 LOGGER.warning(f"{self.prefix}Failed to cache image {f}: {e}")

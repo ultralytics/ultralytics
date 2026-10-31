@@ -354,6 +354,7 @@ def build_dataloader(
     rank: int = -1,
     drop_last: bool = False,
     pin_memory: bool = True,
+    sampler=None,
     device: torch.device | str = "cuda",
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
@@ -367,6 +368,9 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch of each rank's shard. A shard smaller than
             one batch is kept.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
+        sampler (torch.utils.data.Sampler, optional): Index sampler to use instead of the default
+            shuffle/DistributedSampler behavior. It must already be rank-aware — its length sets the per-rank epoch size
+            — and it suppresses `shuffle`, which the sampler is then responsible for.
         device (torch.device | str, optional): Device used by the dataloader consumer.
 
     Returns:
@@ -380,12 +384,18 @@ def build_dataloader(
     dataset_len = len(dataset)
     batch = min(batch, dataset_len)
     seed = torch.initial_seed() - RANK - 1
+    # `is not None`, not truthiness: a Sampler defines __len__, so one that happens to be empty is falsy
+    # and would silently fall through to the default behavior.
     sampler = (
-        None
-        if rank == -1
-        else distributed.DistributedSampler(dataset, shuffle=shuffle, seed=seed)
-        if shuffle
-        else ContiguousDistributedSampler(dataset)
+        sampler
+        if sampler is not None
+        else (
+            None
+            if rank == -1
+            else distributed.DistributedSampler(dataset, shuffle=shuffle, seed=seed)
+            if shuffle
+            else ContiguousDistributedSampler(dataset)
+        )
     )
     samples = len(sampler) if sampler is not None else dataset_len
     drop_last = drop_last and samples > batch > 0 and samples % batch != 0

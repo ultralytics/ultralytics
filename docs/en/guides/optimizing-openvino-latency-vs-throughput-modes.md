@@ -1,17 +1,17 @@
 ---
 comments: true
 title: OpenVINO Latency vs Throughput Optimization for YOLO
-description: Discover how to enhance Ultralytics YOLO model performance using Intel's OpenVINO toolkit. Boost latency and throughput efficiently.
+description: Tune Ultralytics YOLO inference with Intel OpenVINO using latency and throughput performance hints, model caching, AUTO device selection, and async requests.
 keywords: Ultralytics YOLO, OpenVINO optimization, deep learning, model inference, throughput optimization, latency optimization, AI deployment, Intel's OpenVINO, performance tuning
 ---
 
 # OpenVINO Inference Optimization for YOLO
 
-<img width="1024" src="https://cdn.ul.run/i/c3120a6b5d08e902d20cc1447249c1ac.avif" alt="OpenVINO Ecosystem">
+<img width="1024" src="https://cdn.ul.run/i/c3120a6b5d08e902d20cc1447249c1ac.avif" alt="Intel OpenVINO toolkit ecosystem overview">
 
 ## Introduction
 
-When deploying [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, particularly those for [object detection](https://www.ultralytics.com/glossary/object-detection) such as Ultralytics YOLO models, achieving optimal performance is crucial. This guide delves into leveraging [Intel's OpenVINO toolkit](../integrations/openvino.md) to optimize inference, focusing on latency and throughput. Whether you're working on consumer-grade applications or large-scale deployments, understanding and applying these optimization strategies will ensure your models run efficiently on various devices.
+When deploying [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, particularly those for [object detection](https://www.ultralytics.com/glossary/object-detection) such as Ultralytics YOLO models, you usually optimize inference either for [latency](https://www.ultralytics.com/glossary/inference-latency) (fast responses to single requests) or for throughput (many requests processed at once). This guide explains how to use [Intel's OpenVINO toolkit](../integrations/openvino.md) for each goal, from consumer-grade applications to large-scale deployments.
 
 ## Optimizing for Latency
 
@@ -27,11 +27,11 @@ Latency optimization is vital for applications requiring immediate response from
 
 - **Model Caching:** To mitigate model load and compile times impacting latency, use model caching where possible. For scenarios where caching isn't viable, CPUs generally offer the fastest model load times.
 - **Model Mapping vs. Reading:** To reduce load times, OpenVINO replaced model reading with mapping. However, if the model is on a removable or network drive, consider using `ov::enable_mmap(false)` to switch back to reading.
-- **AUTO Device Selection:** This mode begins inference on the CPU, shifting to an accelerator once ready, seamlessly reducing first-inference latency.
+- **AUTO Device Selection:** This mode begins inference on the CPU and shifts to an accelerator once it is ready, reducing first-inference latency.
 
 ## Optimizing for Throughput
 
-Throughput optimization is crucial for scenarios serving numerous inference requests simultaneously, maximizing [resource utilization](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations) without significantly sacrificing individual request performance.
+Throughput optimization is crucial for scenarios serving numerous inference requests simultaneously, maximizing resource utilization without significantly sacrificing individual request performance.
 
 ### Approaches to Throughput Optimization
 
@@ -55,7 +55,7 @@ To maximize throughput, applications should:
 
 - Process inputs in parallel, making full use of the device's capabilities.
 - Decompose data flow into concurrent inference requests, scheduled for parallel execution.
-- Utilize the Async API with callbacks to maintain efficiency and avoid device starvation.
+- Use the Async API with callbacks to maintain efficiency and avoid device starvation.
 
 ### Multi-Device Execution
 
@@ -63,13 +63,13 @@ OpenVINO's multi-device mode simplifies scaling throughput by automatically bala
 
 ## Real-World Performance Gains
 
-Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](../integrations/openvino.md#openvino-yolo26-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with even greater accelerations possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and NPUs.
+Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](../integrations/openvino.md#openvino-yolo26-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with [even greater accelerations](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake) possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and NPUs.
 
 For example, when running YOLO26 models on Intel Xeon CPUs, the OpenVINO-optimized versions consistently outperform their PyTorch counterparts in terms of inference time per image, without compromising on [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 ## Practical Implementation
 
-To export and optimize your Ultralytics YOLO model for OpenVINO, you can use the [export](../modes/export.md) functionality:
+To export and [optimize your Ultralytics YOLO model for OpenVINO](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu), use the [export](../modes/export.md) functionality:
 
 ```python
 from ultralytics import YOLO
@@ -93,11 +93,11 @@ results = ov_model("https://ultralytics.com/images/bus.jpg", verbose=True)
 
 ## Conclusion
 
-Optimizing Ultralytics YOLO models for latency and throughput with OpenVINO can significantly enhance your application's performance. By carefully applying the strategies outlined in this guide, developers can ensure their models run efficiently, meeting the demands of various deployment scenarios. Remember, the choice between optimizing for latency or throughput depends on your specific application needs and the characteristics of the deployment environment.
+Optimizing Ultralytics YOLO models for latency or throughput with OpenVINO can significantly improve your application's performance. The choice between optimizing for latency or throughput depends on your specific application needs and the characteristics of the deployment environment.
 
-For more detailed technical information and the latest updates, refer to the [OpenVINO documentation](https://docs.openvino.ai/) and [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics). These resources provide in-depth guides, tutorials, and community support to help you get the most out of your deep learning models.
+For more detailed technical information and the latest updates, refer to the [OpenVINO documentation](https://docs.openvino.ai/) and [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics). These resources provide in-depth guides, tutorials, and community support.
 
-Ensuring your models achieve optimal performance is not just about tweaking configurations; it's about understanding your application's needs and making informed decisions. Whether you're optimizing for [real-time responses](https://www.ultralytics.com/blog/real-time-inferences-in-vision-ai-solutions-are-making-an-impact) or maximizing throughput for large-scale processing, the combination of Ultralytics YOLO models and OpenVINO offers a powerful toolkit for developers to deploy high-performance AI solutions.
+Whether you're optimizing for [real-time responses](https://www.ultralytics.com/blog/real-time-inferences-in-vision-ai-solutions-are-making-an-impact) or maximizing throughput for large-scale processing, start from your application's requirements, choose the matching performance hint, and benchmark on the target hardware.
 
 ## FAQ
 
@@ -106,7 +106,7 @@ Ensuring your models achieve optimal performance is not just about tweaking conf
 Optimizing Ultralytics YOLO models for low latency involves several key strategies:
 
 1. **Single Inference per Device:** Limit inferences to one at a time per device to minimize delays.
-2. **Leveraging Sub-Devices:** Utilize devices like multi-socket CPUs or multi-tile GPUs which can handle multiple requests with minimal latency increase.
+2. **Leveraging Sub-Devices:** Use devices like multi-socket CPUs or multi-tile GPUs which can handle multiple requests with minimal latency increase.
 3. **OpenVINO Performance Hints:** Use OpenVINO's `ov::hint::PerformanceMode::LATENCY` during model compilation for simplified, device-agnostic tuning.
 
 For more practical tips on optimizing latency, check out the [Latency Optimization section](#optimizing-for-latency) of our guide.
@@ -139,7 +139,7 @@ To reduce first-inference latency, consider these practices:
 
 1. **Model Caching:** Use model caching to decrease load and compile times.
 2. **Model Mapping vs. Reading:** Use mapping (`ov::enable_mmap(true)`) by default but switch to reading (`ov::enable_mmap(false)`) if the model is on a removable or network drive.
-3. **AUTO Device Selection:** Utilize AUTO mode to start with CPU inference and transition to an accelerator seamlessly.
+3. **AUTO Device Selection:** Use AUTO mode to start with CPU inference and transition to an accelerator once it is ready.
 
 For detailed strategies on managing first-inference latency, refer to the [Managing First-Inference Latency section](#managing-first-inference-latency).
 
@@ -154,7 +154,7 @@ Using OpenVINO's high-level performance hints and multi-device modes can help st
 
 ### Can I use Ultralytics YOLO models with other AI frameworks besides OpenVINO?
 
-Yes, Ultralytics YOLO models are highly versatile and can be integrated with various AI frameworks. Options include:
+Yes, Ultralytics YOLO models can be exported to many other runtimes. Options include:
 
 - **TensorRT:** For NVIDIA GPU optimization, follow the [TensorRT integration guide](../integrations/tensorrt.md).
 - **CoreML:** For Apple devices, refer to our [CoreML export instructions](../integrations/coreml.md).

@@ -1,20 +1,20 @@
 ---
 comments: true
-description: Dive deep into the powerful YOLOv5 architecture by Ultralytics, exploring its model structure, data augmentation techniques, training strategies, and loss computations.
+description: Ultralytics YOLOv5 architecture explained, covering the CSPDarknet53 backbone, SPPF and PANet neck, augmentation, training strategies, losses and target building.
 keywords: YOLOv5 architecture, object detection, Ultralytics, YOLO, model structure, data augmentation, training strategies, loss computations, deep learning, machine learning
 ---
 
 # Ultralytics YOLOv5 Architecture
 
-YOLOv5 (v6.0/6.1) is a powerful object detection algorithm developed by Ultralytics. This article dives deep into the YOLOv5 architecture, [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) strategies, training methodologies, and loss computation techniques. This comprehensive understanding will help improve your practical application of object detection in various fields, including surveillance, autonomous vehicles, and [image recognition](https://www.ultralytics.com/glossary/image-recognition).
+[YOLOv5](../../models/yolov5.md) (v6.0/6.1) is an [object detection](https://www.ultralytics.com/glossary/object-detection) algorithm developed by Ultralytics. This article explains the YOLOv5 architecture, [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) strategies, training methodologies, and loss computation techniques. Understanding them will help you apply object detection in fields such as surveillance, [autonomous vehicles](https://www.ultralytics.com/glossary/autonomous-vehicles), and [image recognition](https://www.ultralytics.com/glossary/image-recognition).
 
 ## 1. Model Structure
 
 YOLOv5's architecture consists of three main parts:
 
-- **Backbone**: This is the main body of the network. For YOLOv5, the backbone is designed using the `CSPDarknet53` structure, a modification of the Darknet architecture used in previous versions.
+- **[Backbone](https://www.ultralytics.com/glossary/backbone)**: This is the main body of the network. For YOLOv5, the backbone is designed using the `CSPDarknet53` structure, a modification of the Darknet architecture used in previous versions.
 - **Neck**: This part connects the backbone and the head. In YOLOv5, `SPPF` (Spatial Pyramid Pooling - Fast) and `PANet` (Path Aggregation Network) structures are utilized.
-- **Head**: This part is responsible for generating the final output. YOLOv5 uses the `YOLOv3 Head` for this purpose.
+- **[Head](https://www.ultralytics.com/glossary/detection-head)**: This part is responsible for generating the final output. YOLOv5 uses the `YOLOv3 Head` for this purpose.
 
 The structure of the model is depicted in the image below. The model structure details can be found in [`models/yolov5l.yaml`](https://github.com/ultralytics/yolov5/blob/master/models/yolov5l.yaml).
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     main()
 ```
 
-result:
+Result:
 
 ```text
 True
@@ -106,11 +106,11 @@ SPPF time: 0.20780706405639648
 
 YOLOv5 employs various data augmentation techniques to improve the model's ability to generalize and reduce [overfitting](https://www.ultralytics.com/glossary/overfitting). These techniques include:
 
-- **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage [object detection](https://www.ultralytics.com/glossary/object-detection) models to better handle various object scales and translations.
+- **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage object detection models to better handle various object scales and translations.
 
     ![YOLOv5 mosaic data augmentation combining four images](https://cdn.ul.run/i/8c209c17d47c92f9c3c1abbccf5fb743.avif)
 
-- **Copy-Paste Augmentation**: An innovative data augmentation method that copies random patches from an image and pastes them onto another randomly chosen image, effectively generating a new training sample.
+- **Copy-Paste Augmentation**: A data augmentation method that copies object instances, using their segmentation masks, and pastes them onto training images, generating new training samples.
 
     ![YOLOv5 copy-paste augmentation for instance segmentation](https://cdn.ul.run/i/330efc1cd07d545e759af37daef44e74.avif)
 
@@ -122,7 +122,7 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
 
     ![YOLOv5 MixUp data augmentation blending two images](https://cdn.ul.run/i/afdbd5ce80e044c88f3cad1aa03178d1.avif)
 
-- **Albumentations**: A powerful image augmentation library that supports a wide variety of augmentation techniques. Learn more about [using Albumentations augmentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
+- **Albumentations**: An image augmentation library that supports a wide variety of augmentation techniques. Learn more about [using Albumentations augmentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
 
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 
@@ -134,13 +134,13 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
 
 ## 3. Training Strategies
 
-YOLOv5 applies several sophisticated training strategies to enhance the model's performance. They include:
+YOLOv5 applies several training strategies to enhance the model's performance. They include:
 
 - **Multiscale Training**: The input images are randomly rescaled within a range of 0.5 to 1.5 times their original size during the training process.
-- **AutoAnchor**: This strategy optimizes the prior anchor boxes to match the statistical characteristics of the ground truth boxes in your custom data.
+- **AutoAnchor**: This strategy optimizes the prior [anchor boxes](https://www.ultralytics.com/glossary/anchor-boxes) to match the statistical characteristics of the ground truth boxes in your custom data.
 - **Warmup and Cosine LR Scheduler**: A method to adjust the [learning rate](https://www.ultralytics.com/glossary/learning-rate) to enhance model performance.
 - **Exponential Moving Average (EMA)**: A strategy that uses the average of parameters over past steps to stabilize the training process and reduce generalization error.
-- **[Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision) Training**: A method to perform operations in half-[precision](https://www.ultralytics.com/glossary/precision) format, reducing memory usage and enhancing computational speed.
+- **[Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision) Training**: A method to perform operations in [half-precision](https://www.ultralytics.com/glossary/half-precision) format, reducing memory usage and enhancing computational speed.
 - **Hyperparameter Evolution**: A strategy to automatically tune hyperparameters to achieve optimal performance. See the [Hyperparameter Evolution](hyperparameter-evolution.md) tutorial.
 
 ## 4. Additional Features
@@ -151,7 +151,7 @@ The loss in YOLOv5 is computed as a combination of three individual loss compone
 
 - **Classes Loss (BCE Loss)**: Binary Cross-Entropy loss, measures the error for the classification task.
 - **Objectness Loss (BCE Loss)**: Another Binary Cross-Entropy loss, calculates the error in detecting whether an object is present in a particular grid cell or not.
-- **Location Loss (CIoU Loss)**: Complete IoU loss, measures the error in localizing the object within the grid cell.
+- **Location Loss (CIoU Loss)**: Complete [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) loss, measures the error in localizing the object within the grid cell.
 
 The overall [loss function](https://www.ultralytics.com/glossary/loss-function) is depicted by:
 
@@ -183,11 +183,11 @@ The revised formulas for calculating the predicted [bounding box](https://www.ul
 ![YOLOv5 revised bounding box width formula](<https://latex.codecogs.com/svg.image?b_w=p_w\cdot(2\cdot\sigma(t_w))^2>)
 ![YOLOv5 revised bounding box height formula](<https://latex.codecogs.com/svg.image?b_h=p_h\cdot(2\cdot\sigma(t_h))^2>)
 
-Compare the center point offset before and after scaling. The center point offset range is adjusted from (0, 1) to (-0.5, 1.5). Therefore, offset can easily get 0 or 1.
+Compare the center point offset before and after scaling. The center point offset range is adjusted from (0, 1) to (-0.5, 1.5). Therefore, the offset can more easily reach 0 or 1.
 
 <img src="https://user-images.githubusercontent.com/31005897/158508052-c24bc5e8-05c1-4154-ac97-2e1ec71f582e.png#pic_center" width=40% alt="YOLOv5 grid scaling">
 
-Compare the height and width scaling ratio (relative to anchor) before and after adjustment. The original yolo/darknet box equations have a serious flaw. Width and Height are completely unbounded as they are simply out=exp(in), which is dangerous, as it can lead to runaway gradients, instabilities, NaN losses and ultimately a complete loss of training. [Refer to this issue](https://github.com/ultralytics/yolov5/issues/471#issuecomment-662009779) for more details.
+Compare the height and width scaling ratio (relative to anchor) before and after adjustment. The original YOLO/Darknet box equations have a [serious flaw](https://github.com/ultralytics/yolov5/issues/471#issuecomment-662009779). Width and height are completely unbounded as they are simply out=exp(in), which is dangerous, as it can lead to runaway gradients, instabilities, NaN losses and ultimately a complete loss of training.
 
 <img src="https://user-images.githubusercontent.com/31005897/158508089-5ac0c7a3-6358-44b7-863e-a6e45babb842.png#pic_center" width=40% alt="YOLOv5 unbounded scaling">
 
@@ -227,7 +227,7 @@ This way, the build targets process ensures that each ground truth object is pro
 
 YOLOv5 represents a meaningful step in the evolution of real-time object detection. Its architectural choices, training strategies, and engineering refinements deliver strong performance and efficiency relative to earlier YOLO versions.
 
-The primary enhancements in YOLOv5 include the use of a dynamic architecture, an extensive range of data augmentation techniques, innovative training strategies, as well as important adjustments in computing losses and the process of building targets. All these innovations significantly improve the accuracy and efficiency of object detection while retaining a high degree of speed, which is the trademark of YOLO models.
+The primary enhancements in YOLOv5 include architecture refinements such as the `6x6 Conv2d` stem and `SPPF`, a broad set of data augmentation techniques, training strategies such as AutoAnchor and EMA, and adjustments to loss computation and target building. Together, these improve the accuracy and efficiency of object detection while retaining the speed YOLO models are known for.
 
 ## FAQ
 

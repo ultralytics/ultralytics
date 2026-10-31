@@ -7,7 +7,7 @@ creator:
 license:
     name: Research-Only
     url: https://www.image-net.org/download.php
-description: "ImageNet (ILSVRC-2012) image classification dataset: 1,000 classes, 1.28M training images. Train Ultralytics YOLO classification models with data=imagenet."
+description: "ImageNet (ILSVRC-2012) image classification dataset: 1,000 classes, 1.28M training and 50K validation images. Train Ultralytics YOLO models with data=imagenet."
 keywords: ImageNet, ILSVRC-2012, image classification, deep learning, computer vision, pretrained models, YOLO, dataset, WordNet
 ---
 
@@ -23,7 +23,7 @@ The **Ultralytics ImageNet** dataset (`data="imagenet"`) is the ImageNet-1k / IL
 
 - The Ultralytics `imagenet` dataset provides 1,000 classes with 1,281,167 training and 50,000 validation images (ILSVRC-2012), the standard pretraining benchmark for image classification.
 - Classes are organized according to the WordNet hierarchy, where each class corresponds to a synset (a set of synonymous terms).
-- Images are trained at 224x224, and the full dataset is a large ~144 GB download.
+- Models are typically trained at 224x224, and the full dataset is a large ~144 GB download.
 - The annual ImageNet Large Scale Visual Recognition Challenge (ILSVRC) has been instrumental in advancing computer vision research.
 
 ## Dataset Structure
@@ -47,7 +47,7 @@ The annual [ImageNet Large Scale Visual Recognition Challenge (ILSVRC)](https://
 
 ## Applications
 
-The ImageNet dataset is widely used to train and evaluate deep learning models for image classification, object detection, and object localization. Landmark architectures such as [AlexNet](https://en.wikipedia.org/wiki/AlexNet), [VGG](https://arxiv.org/abs/1409.1556), and [ResNet](https://arxiv.org/abs/1512.03385) were all developed and benchmarked on ImageNet, and ImageNet-pretrained weights remain a common starting point for transfer learning across vision tasks.
+The ImageNet dataset is widely used to train and evaluate deep learning models for image classification, object detection, and object localization. Landmark architectures such as [AlexNet](https://en.wikipedia.org/wiki/AlexNet), [VGG](https://arxiv.org/abs/1409.1556), and [ResNet](https://arxiv.org/abs/1512.03385) were all developed and benchmarked on ImageNet, and ImageNet-pretrained weights remain a common starting point for [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) across vision tasks.
 
 ## Usage
 
@@ -139,11 +139,11 @@ To train an Ultralytics YOLO model on ImageNet, load a pretrained classification
         yolo classify train data=imagenet model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
-For more in-depth training instruction, refer to our [Training page](../../modes/train.md).
+For more in-depth training instructions, refer to our [Training page](../../modes/train.md).
 
 ### Why should I use the Ultralytics YOLO26 pretrained models for my ImageNet dataset projects?
 
-Ultralytics YOLO26 pretrained models offer state-of-the-art performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for various computer vision tasks. For example, the YOLO26n-cls model, with a top-1 accuracy of 71.4% and a top-5 accuracy of 90.1%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLO26 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
+Ultralytics YOLO26 pretrained classification models offer a strong balance of speed and accuracy. For example, the YOLO26n-cls model, with a top-1 accuracy of 71.4% and a top-5 accuracy of 90.1%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLO26 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
 
 ### What role does the ImageNet Large Scale Visual Recognition Challenge (ILSVRC) play in computer vision?
 

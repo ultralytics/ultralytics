@@ -7,7 +7,7 @@ keywords: COCO to YOLO, convert COCO JSON to YOLO, COCO JSON format, YOLO annota
 
 # How to Convert COCO Annotations to YOLO Format
 
-Training [Ultralytics YOLO](https://www.ultralytics.com) models requires annotations in YOLO format, but many popular [annotation](https://www.ultralytics.com/glossary/data-labeling) tools export in [COCO JSON](https://cocodataset.org/#format-data) format instead. This guide shows you how to convert your COCO annotations to YOLO format and start training [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and [pose estimation](https://www.ultralytics.com/glossary/pose-estimation) models.
+Training [Ultralytics YOLO](https://www.ultralytics.com/yolo) models requires annotations in YOLO format, but many popular [annotation](https://www.ultralytics.com/glossary/data-annotation) tools export in [COCO JSON](https://cocodataset.org/#format-data) format instead. This guide shows you how to convert your COCO annotations to YOLO format and start training [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and [pose estimation](https://www.ultralytics.com/glossary/pose-estimation) models.
 
 !!! tip "Prefer to skip conversion?"
 
@@ -175,7 +175,7 @@ for src in converted_dir.iterdir():
         shutil.move(str(f), str(dst / f.name))
 ```
 
-Your final [dataset structure](../datasets/detect/index.md#ultralytics-yolo-format) should look like:
+Your final dataset structure should look like:
 
 ```text
 my_dataset/
@@ -286,7 +286,7 @@ for line in label_file.read_text().strip().splitlines():
 
 ### Wrong Class IDs After Conversion
 
-If your model trains but detects wrong object classes, you're likely using `cls91to80=True` (default) on a custom dataset. This maps your `category_id` values through the COCO 91-to-80 lookup table, which is only correct for the standard [COCO dataset](../datasets/detect/coco.md). A `category_id` with no COCO-80 counterpart maps to nothing and raises `TypeError: must be real number, not NoneType` during conversion instead of producing wrong labels.
+If your model trains but detects wrong object classes, you're likely using `cls91to80=True` (default) on a custom dataset. This maps your `category_id` values through the COCO 91-to-80 lookup table, which is only correct for the standard COCO dataset. A `category_id` with no COCO-80 counterpart maps to nothing and raises `TypeError: must be real number, not NoneType` during conversion instead of producing wrong labels.
 
 **Solution**: Always use `cls91to80=False` for custom datasets.
 

@@ -77,7 +77,7 @@ The `VOC.yaml` file defines the dataset configuration — the dataset paths, the
 
     VOC downloads automatically the first time you train — three archives totaling 2.8 GB — and needs roughly 6 GB of free disk space during extraction and conversion.
 
-To train a YOLO26n model on the VOC dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the VOC dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -133,7 +133,7 @@ We would like to acknowledge the PASCAL VOC Consortium for creating and maintain
 
 ### What is the PASCAL VOC dataset used for?
 
-PASCAL VOC is used to train and benchmark object detection models on 20 everyday object classes such as person, car, dog, and chair. Because it is compact, fully labeled, and backed by years of published baselines, it is a common choice for validating new architectures, running coursework experiments, and quick [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) studies.
+PASCAL VOC is used to train and benchmark object detection models on 20 everyday object classes such as person, car, dog, and chair. Because it is compact, fully labeled, and backed by years of published baselines, it is a common choice for validating new architectures, running coursework experiments, and quick transfer learning studies.
 
 ### How many images are in the PASCAL VOC dataset?
 
@@ -176,8 +176,8 @@ Both challenges share the same 20 classes but contribute different images. VOC20
 
 ### How does PASCAL VOC compare to the COCO dataset?
 
-VOC is smaller and simpler: 20 classes and 21,503 images versus COCO's 80 classes and 330K images. VOC results are traditionally reported as mAP at 0.5 IoU, while COCO averages mAP over IoU thresholds from 0.5 to 0.95. VOC trains much faster and suits quick experiments; the [COCO dataset](coco.md) is the standard for production-scale benchmarking.
+VOC is smaller and simpler: 20 classes and 21,503 images versus COCO's 80 classes and 330K images. VOC results are traditionally reported as mAP at 0.5 [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou), while COCO averages mAP over IoU thresholds from 0.5 to 0.95. VOC trains much faster and suits quick experiments; the [COCO dataset](coco.md) is the standard for production-scale benchmarking.
 
 ### Can I train segmentation models with VOC.yaml?
 
-No — `VOC.yaml` is a detection-only configuration: its converter extracts bounding boxes from the VOC XML annotations, and the segmentation masks included in the original benchmark are not converted. To train an [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) model, use a dataset with polygon labels such as [COCO-Seg](../segment/coco.md) with a `yolo26n-seg.pt` model.
+No — `VOC.yaml` is a detection-only configuration: its converter extracts bounding boxes from the VOC XML annotations, and the segmentation masks included in the original benchmark are not converted. To train an [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) model, use a dataset with polygon labels such as [COCO-Seg](../segment/coco.md) with a [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) model.

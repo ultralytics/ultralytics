@@ -7,7 +7,7 @@ creator:
 license:
     name: Research-Only
     url: https://www.cityscapes-dataset.com/license/
-description: Explore the Ultralytics Cityscapes8 dataset, a compact set of 8 urban-scene images for testing semantic segmentation models and training pipelines.
+description: Ultralytics Cityscapes8 is an 8-image subset of Cityscapes for quickly testing YOLO semantic segmentation models, label mapping, and training pipelines.
 keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, semantic, training, validation, urban scenes, computer vision
 ---
 
@@ -17,7 +17,7 @@ keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, sema
 
 The [Ultralytics](https://www.ultralytics.com) Cityscapes8 dataset is a compact [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) dataset with 8 images sampled from the [Cityscapes](cityscapes.md) dataset: 4 for training and 4 for validation. It is designed for rapid testing, debugging, and experimentation with [YOLO](../../models/yolo26.md) semantic segmentation models and training pipelines. Its urban-scene content provides a useful pipeline check before scaling to the full Cityscapes dataset.
 
-Cityscapes8 uses the same 19 evaluation classes and the same `label_mapping` behavior as the full Cityscapes dataset, and is fully compatible with [YOLO26](../../models/yolo26.md) semantic segmentation workflows.
+Cityscapes8 uses the same 19 evaluation classes and the same `label_mapping` behavior as the full Cityscapes dataset, and is fully compatible with YOLO26 semantic segmentation workflows.
 
 !!! note
 
@@ -51,7 +51,7 @@ The Cityscapes8 dataset configuration is defined in a dataset YAML file, which s
 
 ## Usage
 
-To train a YOLO26n-sem model on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
+To train a [YOLO26n-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-sem) model on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
 
 !!! example "Train Example"
 

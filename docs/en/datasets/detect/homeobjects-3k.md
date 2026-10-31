@@ -15,7 +15,7 @@ keywords: HomeObjects-3K, indoor dataset, household items, object detection, com
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-homeobjects-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="HomeObjects-3K Dataset In Colab"></a>
 
-The Ultralytics HomeObjects-3K dataset is an indoor [object detection](../../tasks/detect.md) dataset of 2,689 images (2,285 training and 404 validation) labeled across 12 everyday household classes — bed, sofa, chair, table, lamp, tv, laptop, wardrobe, window, door, potted plant, and photo frame. Built for training and [benchmarking](../../modes/benchmark.md) [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, it targets indoor scene understanding, smart home devices, [robotics](https://www.ultralytics.com/glossary/robotics), and augmented reality.
+The Ultralytics HomeObjects-3K dataset is an indoor [object detection](../../tasks/detect.md) dataset of 2,689 images (2,285 training and 404 validation) labeled across 12 everyday household classes — bed, sofa, chair, table, lamp, tv, laptop, wardrobe, window, door, potted plant, and photo frame. Built for training and benchmarking [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, it targets indoor scene understanding, smart home devices, [robotics](https://www.ultralytics.com/glossary/robotics), and augmented reality.
 
 <p align="center">
   <br>
@@ -25,7 +25,7 @@ The Ultralytics HomeObjects-3K dataset is an indoor [object detection](../../tas
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on HomeObjects-3K Dataset | Detection, Validation & ONNX Export 🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on HomeObjects-3K Dataset | Detection, Validation & ONNX Export
 </p>
 
 ## Dataset Structure
@@ -37,7 +37,7 @@ The HomeObjects-3K dataset is split into two predefined subsets, defined by the 
 | Train      | 2,285  | Indoor scenes with labeled household objects     |
 | Validation | 404    | Held-out images for evaluating model performance |
 
-Each image is labeled with bounding boxes in the [Ultralytics YOLO](../detect/index.md#what-is-the-ultralytics-yolo-dataset-format-and-how-to-structure-it) format, ready for [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) pipelines.
+Each image is labeled with bounding boxes in the [Ultralytics YOLO](index.md#ultralytics-yolo-format) format, ready for object detection and [tracking](../../modes/track.md) pipelines.
 
 ## Object Classes
 
@@ -64,7 +64,7 @@ HomeObjects-3K supports a range of indoor computer vision applications across re
 
 - **Indoor object detection**: Use models like [Ultralytics YOLO26](../../models/yolo26.md) to find and locate common home items like beds, chairs, lamps, and laptops in images for real-time understanding of indoor scenes.
 
-- **Scene layout parsing**: Help robotics and smart home systems understand how rooms are arranged — where doors, windows, and furniture sit — so devices can navigate safely and interact with their environment.
+- **Scene layout parsing**: Help robotics and [smart home systems](https://www.ultralytics.com/blog/a-look-at-daily-life-with-ai-enabled-smart-home-solutions) understand how rooms are arranged — where doors, windows, and furniture sit — so devices can navigate safely and interact with their environment.
 
 - **AR applications**: Power [object recognition](https://www.ultralytics.com/glossary/image-recognition) features in augmented reality apps. For example, detect TVs or wardrobes and overlay extra information or effects on them.
 
@@ -86,7 +86,7 @@ The `HomeObjects-3K.yaml` file defines the dataset configuration — the train a
 
 ## Usage
 
-You can train a YOLO26n model on the HomeObjects-3K dataset for 100 epochs using an image size of 640. The dataset (390 MB) downloads automatically on first use. The examples below show how to get started. For more training options and detailed settings, check the [Training](../../modes/train.md) guide.
+You can train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the HomeObjects-3K dataset for 100 epochs using an image size of 640. The dataset (390 MB) downloads automatically on first use. The examples below show how to get started. For more training options and detailed settings, check the [Training](../../modes/train.md) guide.
 
 !!! example "Train Example"
 

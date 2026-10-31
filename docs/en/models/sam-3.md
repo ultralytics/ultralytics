@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover SAM 3 and SAM 3.1, Meta's Segment Anything Models with Promptable Concept Segmentation that detect every instance of a text or image-exemplar concept across images and videos.
+description: SAM 3 and SAM 3.1 are Meta's Segment Anything Models for Promptable Concept Segmentation, finding every instance of a text or exemplar concept in images and video.
 keywords: SAM 3, SAM 3.1, Segment Anything 3, SAM3, SAM3.1, SAM-3, Object Multiplex, concept segmentation, text prompt segmentation, open-vocabulary segmentation, zero-shot segmentation, instance segmentation, real-time segmentation, video segmentation, image segmentation, SAM 3 vs YOLO, SAM 3 vs SAM 2, SA-Co dataset, Meta, Ultralytics
 ---
 
@@ -8,7 +8,7 @@ keywords: SAM 3, SAM 3.1, Segment Anything 3, SAM3, SAM3.1, SAM-3, Object Multip
 
 ![SAM 3 promptable concept segmentation overview](https://cdn.ul.run/i/48018c7df06e1f5b500ba441da1f22ec.avif)
 
-**SAM 3** (Segment Anything Model 3) is Meta's released foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
+**SAM 3** ([Segment Anything Model 3](https://www.ultralytics.com/blog/exploring-sam-3-meta-ais-new-segment-anything-model)) is Meta's [foundation model](https://www.ultralytics.com/glossary/foundation-model) for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
 <p align="center">
   <br>
@@ -25,19 +25,19 @@ SAM 3 is fully integrated into the `ultralytics` package, providing native suppo
 
 ## Overview
 
-SAM 3 achieves a **2× performance gain** over existing systems in Promptable Concept Segmentation while maintaining and improving SAM 2's capabilities for interactive [visual segmentation](../tasks/segment.md). The model excels at open-vocabulary segmentation, allowing users to specify concepts using simple noun phrases (e.g., "yellow school bus", "striped cat") or by providing example images of the target object. These capabilities complement production-ready pipelines that rely on streamlined [predict](../modes/predict.md) and [track](../modes/track.md) workflows.
+SAM 3 achieves a **2× performance gain** over existing systems in Promptable Concept Segmentation while maintaining and improving SAM 2's capabilities for interactive [visual segmentation](../tasks/segment.md). The model excels at open-vocabulary segmentation, allowing users to specify concepts using simple noun phrases (e.g., "yellow school bus", "striped cat") or by providing example images of the target object. In Ultralytics, SAM 3 runs through [predict](../modes/predict.md) mode, with dedicated video predictors for tracking.
 
 ![SAM 3 text-prompt segmentation examples](https://cdn.ul.run/i/d484414be765e8fb2e05c15a96cccdc5.avif)
 
 ### What is Promptable Concept Segmentation (PCS)?
 
-The PCS task takes a **concept prompt** as input and returns segmentation masks with unique identities for **all matching object instances**. Concept prompts can be:
+The [PCS task](https://www.ultralytics.com/blog/understanding-promptable-concept-segmentation) takes a **concept prompt** as input and returns segmentation masks with unique identities for **all matching object instances**. Concept prompts can be:
 
 - **Text**: Simple noun phrases like "red apple" or "person wearing a hat", similar to [zero-shot learning](https://www.ultralytics.com/glossary/zero-shot-learning)
 - **Image exemplars**: Bounding boxes around example objects (positive or negative) for fast generalization
 - **Combined**: Both text and image exemplars together for precise control
 
-This differs from traditional visual prompts (points, boxes, masks) which segment only a single specific object instance, as popularized by the original [SAM family](../models/sam.md).
+This differs from traditional visual prompts (points, boxes, masks) which segment only a single specific object instance, as popularized by the original [SAM family](sam.md).
 
 ### Key Performance Metrics
 
@@ -83,10 +83,10 @@ SAM 3 consists of a **detector** and **tracker** that share a Perception Encoder
     - Novel **presence head** that decouples recognition ("what") from localization ("where")
     - Mask head for generating instance segmentation masks
 
-- **Tracker**: Memory-based video segmentation inherited from [SAM 2](sam-2.md)
+- **Tracker**: Memory-based video segmentation inherited from SAM 2
     - Prompt encoder, mask decoder, memory encoder
     - Memory bank for storing object appearance across frames
-    - Temporal disambiguation aided by techniques like a [Kalman filter](../reference/trackers/utils/kalman_filter.md) in multi-object settings
+    - Temporal disambiguation aided by techniques like a [Kalman filter](https://www.ultralytics.com/glossary/kalman-filter-kf) in multi-object settings
 
 - **Presence Token**: A learned global token that predicts whether the target concept is present in the image/frame, improving detection by separating recognition from localization.
 
@@ -125,10 +125,10 @@ The **SA-Co evaluation benchmark** contains **214K unique phrases** across **126
 
 SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotation throughput** through:
 
-1. **AI Annotators**: [Llama](https://arxiv.org/abs/2302.13971) based models propose diverse noun phrases including hard negatives
+1. **AI Annotators**: [Llama](https://arxiv.org/abs/2302.13971)-based models propose diverse noun phrases, including [hard negatives](https://www.ultralytics.com/glossary/hard-negative-mining)
 2. **AI Verifiers**: Fine-tuned [multimodal LLMs](https://www.ultralytics.com/glossary/vision-language-model-vlm) verify mask quality and exhaustivity at near-human performance
 3. **Active Mining**: Focuses human effort on challenging failure cases where AI struggles
-4. **Ontology-Driven**: Leverages a large ontology grounded in [Wikidata](https://www.wikidata.org/wiki/Wikidata:Main_Page) for concept coverage
+4. **Ontology-Driven**: Uses a large ontology grounded in [Wikidata](https://www.wikidata.org/wiki/Wikidata:Main_Page) for concept coverage
 
 ## Installation
 
@@ -369,16 +369,16 @@ SAM 3 maintains full backward compatibility with SAM 2's visual prompting for si
 
 ### Image Segmentation
 
-SAM 3 achieves state-of-the-art results across multiple benchmarks, including real-world datasets like [LVIS](../datasets/detect/lvis.md) and [COCO for segmentation](../datasets/segment/coco.md):
+SAM 3 achieves state-of-the-art results across multiple benchmarks, including real-world datasets like LVIS and [COCO for segmentation](../datasets/segment/coco.md):
 
-| Benchmark                     | Metric  | SAM 3    | Previous Best | Improvement |
-| ----------------------------- | ------- | -------- | ------------- | ----------- |
-| **LVIS (zero-shot)**          | Mask AP | **47.0** | 38.5          | +22.1%      |
-| **SA-Co/Gold**                | CGF1    | **65.0** | 34.3 (OWLv2)  | +89.5%      |
-| **COCO (zero-shot)**          | Box AP  | **53.5** | 52.2 (T-Rex2) | +2.5%       |
-| **ADE-847 (semantic seg)**    | mIoU    | **14.7** | 9.2 (APE-D)   | +59.8%      |
-| **PascalConcept-59**          | mIoU    | **59.4** | 58.5 (APE-D)  | +1.5%       |
-| **Cityscapes (semantic seg)** | mIoU    | **65.1** | 44.2 (APE-D)  | +47.3%      |
+| Benchmark                     | Metric  | SAM 3    | Previous Best                                                 | Improvement |
+| ----------------------------- | ------- | -------- | ------------------------------------------------------------- | ----------- |
+| **LVIS (zero-shot)**          | Mask AP | **47.0** | 38.5                                                          | +22.1%      |
+| **SA-Co/Gold**                | CGF1    | **65.0** | 34.3 ([OWLv2](https://platform.ultralytics.com/models/owlv2)) | +89.5%      |
+| **COCO (zero-shot)**          | Box AP  | **53.5** | 52.2 (T-Rex2)                                                 | +2.5%       |
+| **ADE-847 (semantic seg)**    | mIoU    | **14.7** | 9.2 (APE-D)                                                   | +59.8%      |
+| **PascalConcept-59**          | mIoU    | **59.4** | 58.5 (APE-D)                                                  | +1.5%       |
+| **Cityscapes (semantic seg)** | mIoU    | **65.1** | 44.2 (APE-D)                                                  | +47.3%      |
 
 Explore dataset options for quick experimentation in [Ultralytics datasets](../datasets/index.md).
 
@@ -396,7 +396,7 @@ SAM 3 shows significant improvements over SAM 2 and prior state-of-the-art acros
 
 ### Few-Shot Adaptation
 
-SAM 3 excels at adapting to new domains with minimal examples, relevant for [data-centric AI](https://www.ultralytics.com/glossary/data-centric-ai) workflows:
+SAM 3 adapts to new domains with [few examples](https://www.ultralytics.com/glossary/few-shot-learning), which is relevant for [data-centric AI](https://www.ultralytics.com/glossary/data-centric-ai) workflows:
 
 | Benchmark    | 0-shot AP | 10-shot AP | Previous Best (10-shot) |
 | ------------ | --------- | ---------- | ----------------------- |
@@ -426,7 +426,7 @@ SAM 3 provides accurate counting by segmenting all instances, a common requireme
 
 ## SAM 3 vs SAM 2 vs YOLO Comparison
 
-Here we compare SAM 3's capabilities with [SAM 2](./sam-2.md) and [YOLO26](./yolo26.md) models. For real-time open-vocabulary detection and segmentation from the same kinds of prompt, see [YOLOE](./yoloe.md):
+Here we compare SAM 3's capabilities with SAM 2 and [YOLO26](yolo26.md) models:
 
 | Capability                   | SAM 3                                 | SAM 2                | YOLO26n-seg      |
 | ---------------------------- | ------------------------------------- | -------------------- | ---------------- |
@@ -440,7 +440,7 @@ Here we compare SAM 3's capabilities with [SAM 2](./sam-2.md) and [YOLO26](./yol
 | **Speed (GPU, ms/im)**       | 2921                                  | 857                  | **8.4**          |
 | **Model Size**               | 3.45 GB                               | 162 MB (base)        | **6.4 MB**       |
 
-Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8.4.19`.
+Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8.4.19`. [YOLOE](yoloe.md) brings the same kinds of prompt to real-time open-vocabulary detection and segmentation.
 
 **Key Takeaways**:
 
@@ -460,13 +460,13 @@ Comparing SAM 3, SAM 2, SAM, MobileSAM, and FastSAM against Ultralytics YOLO seg
 | Meta SAM3                                                                                      | 3450                    | 473.6                        | 2921                              |
 | [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 605                               |
 | [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.7                    | 11.8                         | 55.9                              |
-| Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | 6.7 (515x smaller)      | 3.4 (139.1x less)            | 17.4 (167x faster)                |
-| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **5.9** (585x smaller)  | 2.9 (163.1x less)            | 12.6 (231x faster)                |
-| Ultralytics [YOLO26n-seg](yolo26.md)                                                           | 6.4 (539x smaller)      | **2.7** (175.2x less)        | **8.4** (347x faster)             |
+| Ultralytics [YOLOv8n-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n-seg)     | 6.7 (515x smaller)      | 3.4 (139.1x less)            | 17.4 (167x faster)                |
+| Ultralytics [YOLO11n-seg](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n-seg)     | **5.9** (585x smaller)  | 2.9 (163.1x less)            | 12.6 (231x faster)                |
+| Ultralytics [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg)     | 6.4 (539x smaller)      | **2.7** (175.2x less)        | **8.4** (347x faster)             |
 
 This comparison demonstrates the substantial differences in model sizes and speeds between SAM variants and YOLO segmentation models. While SAM provides unique automatic segmentation capabilities, YOLO models, particularly YOLOv8n-seg, YOLO11n-seg and YOLO26n-seg, are significantly smaller, faster, and more computationally efficient.
 
-Tests run on a NVIDIA RTX PRO 6000 with 96GB of VRAM using `torch==2.9.1` and `ultralytics==8.4.19`. To reproduce this test:
+Tests run on an NVIDIA RTX PRO 6000 with 96GB of VRAM using `torch==2.9.1` and `ultralytics==8.4.19`. To reproduce this test:
 
 !!! example
 
@@ -510,7 +510,7 @@ Where:
 
 ### Why These Metrics?
 
-Traditional AP metrics don't account for calibration, making models difficult to use in practice. By evaluating only predictions above 0.5 confidence, SAM 3's metrics enforce good calibration and mimic real-world usage patterns in interactive [predict](../modes/predict.md) and [track](../modes/track.md) loops.
+Traditional AP metrics don't account for calibration, making models difficult to use in practice. By evaluating only predictions above 0.5 confidence, SAM 3's metrics enforce good calibration and mimic real-world usage patterns in interactive prediction and tracking loops.
 
 ## Key Ablations and Insights
 
@@ -551,8 +551,8 @@ High-quality human annotations provide large gains over synthetic or external da
 SAM 3's concept segmentation capability enables new use cases:
 
 - **Content Moderation**: Find all instances of specific content types across media libraries
-- **E-commerce**: Segment all products of a certain type in catalog images, supporting [auto-annotation](../guides/preprocessing-annotated-data.md)
-- **Medical Imaging**: Identify all occurrences of specific tissue types or abnormalities
+- **E-commerce**: Segment all products of a certain type in catalog images, supporting [auto-annotation](sam.md#auto-annotation-a-quick-path-to-segmentation-datasets)
+- **[Medical Imaging](https://www.ultralytics.com/glossary/medical-image-analysis)**: Identify all occurrences of specific tissue types or abnormalities
 - **Autonomous Systems**: Track all instances of traffic signs, pedestrians, or vehicles by category
 - **Video Analytics**: Count and track all people wearing specific clothing or performing actions
 - **[Dataset Annotation](https://www.ultralytics.com/annotate)**: Rapidly annotate all instances of rare object categories
@@ -583,11 +583,11 @@ The MLLM proposes simple noun phrase queries to SAM 3, analyzes returned masks, 
 
 ## Limitations
 
-While SAM 3 represents a major advancement, it has certain limitations:
+SAM 3 has the following limitations:
 
 - **Phrase Complexity**: Best suited for simple noun phrases; long referring expressions or complex reasoning may require MLLM integration
 - **Ambiguity Handling**: Some concepts remain inherently ambiguous (e.g., "small window", "cozy room")
-- **Computational Requirements**: Larger and slower than specialized detection models like [YOLO](../models/yolo26.md)
+- **Computational Requirements**: Larger and slower than specialized detection models like YOLO
 - **Vocabulary Scope**: Focused on atomic visual concepts; compositional reasoning is limited without MLLM assistance
 - **Rare Concepts**: Performance may degrade on extremely rare or fine-grained concepts not well-represented in training data
 
@@ -613,11 +613,11 @@ While SAM 3 represents a major advancement, it has certain limitations:
 
 ### When Was SAM 3 Released?
 
-SAM 3 was released by Meta on **November 19, 2025** and is fully integrated into the `ultralytics` package, with support for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
+SAM 3 was released by Meta on **November 19, 2025** and is fully integrated into the `ultralytics` package, with support for image prediction and video tracking through dedicated predictors.
 
 ### Is SAM 3 Integrated Into Ultralytics?
 
-Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. SAM 3 and SAM 3.1 also power the [smart annotation](../platform/data/annotation.md) feature on [Ultralytics Platform](https://platform.ultralytics.com), where SAM 3.1 is the default model and you can annotate images with just a few clicks. On detection datasets with 1–200 classes, [SAM 3 Text](https://platform.ultralytics.com/models/sam3) and [SAM 3.1 Text](https://platform.ultralytics.com/models/sam3.1) also auto-annotate from your class names, and the [VLM Leaderboard](https://www.ultralytics.com/benchmarks/vlm) compares their accuracy with vision language models.
+Yes. SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. SAM 3 and SAM 3.1 also power the [smart annotation](../platform/data/annotation.md) feature on [Ultralytics Platform](https://platform.ultralytics.com), where SAM 3.1 is the default model and you can annotate images with just a few clicks. On detection datasets with 1–200 classes, [SAM 3 Text](https://platform.ultralytics.com/models/sam3) and [SAM 3.1 Text](https://platform.ultralytics.com/models/sam3.1) also auto-annotate from your class names, and the [VLM Leaderboard](https://www.ultralytics.com/benchmarks/vlm) compares their accuracy with vision language models.
 
 ### Does Ultralytics support SAM 3.1?
 
@@ -630,8 +630,6 @@ PCS is a new task introduced in SAM 3 that segments **all instances** of a visua
 - **Text prompt**: "yellow school bus" → segments all yellow school buses in the scene
 - **Image exemplar**: Box around one dog → segments all dogs in the image
 - **Combined**: "striped cat" + exemplar box → segments all striped cats matching the example
-
-See related background on [object detection](https://www.ultralytics.com/glossary/object-detection) and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
 ### How Does SAM 3 Differ From SAM 2?
 
@@ -664,7 +662,7 @@ SAM 3 is trained on the **Segment Anything with Concepts (SA-Co)** dataset:
 - **50× more concepts** than existing benchmarks (e.g., LVIS has ~4K concepts)
 - Triple annotation on SA-Co/Gold for measuring human performance bounds
 
-This massive scale and diversity enables SAM 3's superior zero-shot generalization across open-vocabulary concepts.
+This scale and diversity underpin SAM 3's zero-shot generalization across open-vocabulary concepts.
 
 ### How does SAM 3 compare to YOLO26 for segmentation?
 

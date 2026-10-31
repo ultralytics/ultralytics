@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn about monocular depth estimation using YOLO26. Predict per-pixel depth maps from single RGB images with NYU Depth V2 and custom dataset support.
+description: Monocular depth estimation with Ultralytics YOLO26. Predict metric depth maps from single RGB images, fine-tune on custom data, calibrate scale, and export.
 keywords: monocular depth estimation, YOLO26, depth map, per-pixel depth, NYU Depth V2, DPT, dense prediction, Depth Anything V2, Ultralytics
 model_name: yolo26n-depth
 ---
@@ -9,9 +9,9 @@ model_name: yolo26n-depth
 
 <img width="1024" src="https://cdn.ul.run/i/7a53b502cdffcaa1bbf61ca1690a2dde.avif" alt="Monocular depth estimation examples">
 
-Monocular depth estimation predicts a per-pixel depth map from a single RGB image. Each output pixel holds a depth value in meters representing the estimated distance from the camera to that surface point.
+Monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation) predicts a per-pixel depth map from a single RGB image. Each output pixel holds a depth value in meters representing the estimated distance from the camera to that surface point.
 
-The output of a depth model is a dense float map of shape `(H, W)` aligned to the input image. This per-pixel representation makes monocular depth estimation well-suited for 3D scene reconstruction, robot navigation, AR/VR content creation, and any application that requires spatial layout from a single camera.
+The output of a depth model is a dense float map of shape `(H, W)` aligned to the input image. This per-pixel representation makes monocular depth estimation well-suited for [3D scene reconstruction](https://www.ultralytics.com/glossary/3d-reconstruction), robot navigation, AR/VR content creation, and any application that requires spatial layout from a single camera.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ The output of a depth model is a dense float map of shape `(H, W)` aligned to th
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~2.19M images) are shown below. The metrics columns are reported on the [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) Eigen test split.
+[YOLO26 depth models](https://www.ultralytics.com/blog/ultralytics-yolo26-now-supports-monocular-depth-estimation) pretrained on a broad multi-dataset mix (indoor + outdoor, ~2.19M images) are shown below. The metrics columns are reported on the [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) Eigen test split.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -47,7 +47,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ### Speed compared to Depth Anything V2
 
-Depth Anything V2 is a widely used open baseline for monocular depth. Its DINOv2 [vision transformer](https://www.ultralytics.com/glossary/vision-transformer-vit) backbone and DPT decoder are compute-heavy, so on the same Tesla T4 under TensorRT fp16 the smallest released Depth Anything V2 model is slower than every YOLO26 depth model — including YOLO26x-depth, which carries more than twice the parameters.
+Depth Anything V2 is a [widely used open baseline](https://www.ultralytics.com/blog/best-depth-estimation-models) for monocular depth. Its DINOv2 [vision transformer](https://www.ultralytics.com/glossary/vision-transformer-vit) backbone and DPT decoder are compute-heavy, so on the same Tesla T4 under TensorRT fp16 the smallest released Depth Anything V2 model is slower than every YOLO26 depth model — including YOLO26x-depth, which carries more than twice the parameters.
 
 At ~768 px — `imgsz=768` for YOLO26, the resolution its released weights are trained at, and 770 px for Depth Anything V2, whose DINOv2 backbone requires a multiple of its patch size of 14:
 
@@ -110,7 +110,7 @@ The largest gains are on the longer-range outdoor benchmarks (KITTI, ETH3D) — 
 
 ## Train
 
-Train YOLO26n-depth on the [Depth8](../datasets/depth/depth8.md) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) on the [Depth8](https://platform.ultralytics.com/ultralytics/datasets/depth8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example
 
@@ -161,7 +161,7 @@ For example, an image at `images/train/scene_001.jpg` is paired with a depth map
 
 ### Fine-tuning on your own data
 
-When adapting a pretrained depth model to a custom dataset, **lower the learning rate and use the AdamW optimizer**. The default optimizer settings are tuned for training from scratch; applied to an already-converged depth model they can overwrite the pretrained knowledge and degrade results — especially when fine-tuning on a single domain.
+When adapting a pretrained depth model to a custom dataset, **lower the learning rate and use the AdamW optimizer**. The default optimizer settings are tuned for training from scratch; applied to an already-converged depth model they can overwrite the pretrained knowledge and degrade results — especially when [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) on a single domain.
 
 !!! example "Recommended fine-tuning recipe"
 
@@ -194,7 +194,7 @@ Additional tips:
 - **Augmentation is controlled by the standard args** (`degrees`, `translate`, `scale`, `shear`, `perspective`, `flipud`, `fliplr`, `hsv_h`, `hsv_s`, `hsv_v`); the geometric warp and flips are applied identically to the paired depth map. To see the exact recipe used for the released YOLO26-Depth weights, inspect the `train_args` stored in the checkpoint — see [Inspecting YOLO26 Checkpoint Training Args](../guides/yolo26-training-recipe.md#inspecting-yolo26-checkpoint-training-args).
 - **`mosaic`, `mixup`, `cutmix`, and `copy_paste` are not implemented for depth.** The depth dataset loader automatically sets these probabilities to 0, so passing them has no effect. These augmentations are not supported because they combine multiple images, which would produce invalid paired depth maps.
 - **Any depth range works out of the box.** The `log`-head models predict unbounded depth, so they adapt to short-range (macro) or long-range (outdoor/driving) data without changes. Setting `max_depth:` in your dataset YAML (in meters) bounds which GT pixels count toward validation metrics.
-- **Retain general performance.** If you need the model to stay accurate on scenes beyond your training set, mix a small fraction (~5–10%) of diverse general-purpose images into your training data; this substantially reduces forgetting during fine-tuning.
+- **Retain general performance.** If you need the model to stay accurate on scenes beyond your training set, mix a small fraction (~5–10%) of diverse general-purpose images into your training data; this substantially reduces [forgetting](https://www.ultralytics.com/glossary/catastrophic-forgetting) during fine-tuning.
 - **Train from scratch** (`model=yolo26s-depth.yaml`) only if your domain is very different and you have a large dataset — there the default `optimizer=auto` is appropriate, since there are no pretrained weights to preserve.
 
 ### Calibrating the depth scale
@@ -277,7 +277,7 @@ If your camera has no depth sensor, you can still calibrate for it. Calibration 
 
     === "Metric depth model"
 
-        Label every pixel with a larger monocular model that outputs **metric** depth from your camera's focal length. Relative-depth models such as Marigold do not work, and metric models that ignore the focal length, such as Depth Anything V2 Metric, were off by up to 22% in our tests. This example uses [DA3METRIC-LARGE](https://huggingface.co/depth-anything/DA3METRIC-LARGE). Install it with Python 3.12 or older:
+        Label every pixel with a larger monocular model that outputs **metric** depth from your camera's focal length. Relative-depth models such as Marigold do not work, and metric models that ignore the focal length, such as Depth Anything V2 Metric, were off by up to 22% in Ultralytics tests. This example uses [DA3METRIC-LARGE](https://huggingface.co/depth-anything/DA3METRIC-LARGE). Install it with Python 3.12 or older:
 
         ```bash
         git clone https://github.com/ByteDance-Seed/depth-anything-3
@@ -332,7 +332,7 @@ In tests with `yolo26s-depth.pt` and 150 images per camera, the released calibra
 
 ## Val
 
-Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML. The released weights are trained at `imgsz=768` on images stretched to a square rather than letterboxed with padding, so validate and predict at that size for best accuracy. Prediction, validation and `model.calibrate()` all stretch the input the same way.
+Validate the accuracy of a trained YOLO26n-depth model on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML. The released weights are trained at `imgsz=768` on images stretched to a square rather than letterboxed with padding, so validate and predict at that size for best accuracy. Prediction, validation and `model.calibrate()` all stretch the input the same way.
 
 !!! example
 
@@ -496,7 +496,7 @@ Export a YOLO26n-depth model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx  # export custom model
         ```
 
-Available YOLO26 depth estimation export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-depth.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26 depth estimation export formats are in the table below. You can export to any format using the `format` argument, e.g., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, e.g., `yolo predict model=yolo26n-depth.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -557,7 +557,7 @@ The depth map is stored as a `torch.Tensor` of shape `(H, W)` where each value i
 
 ### What datasets are supported for depth estimation?
 
-Ultralytics YOLO26 provides built-in dataset YAML configurations for several depth estimation datasets including NYU Depth V2, KITTI, Hypersim, SUN RGB-D, and ARKitScenes. See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full list and format details.
+Ultralytics YOLO26 provides built-in dataset YAML configurations for several depth estimation datasets including [NYU Depth V2](../datasets/depth/nyu-depth-v2.md), [KITTI](../datasets/depth/kitti.md), [Hypersim](../datasets/depth/hypersim.md), [SUN RGB-D](../datasets/depth/sunrgbd.md), and [ARKitScenes](../datasets/depth/arkitscenes.md). See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full list and format details.
 
 ### How do I validate a pretrained YOLO26 depth estimation model?
 

@@ -1,64 +1,64 @@
 ---
 title: YOLO26 on Seeed Studio reCamera
 comments: true
-description: Discover how to get started with Seeed Studio reCamera for edge AI applications using Ultralytics YOLO26. Learn about its powerful features, real-world applications, and how to export YOLO26 models to ONNX format for seamless integration.
+description: Set up Seeed Studio reCamera with Ultralytics YOLO26, run its pre-installed YOLO models in Node-RED, and convert custom models via ONNX to cvimodel for edge AI.
 keywords: Seeed Studio reCamera, YOLO26, ONNX export, edge AI, computer vision, real-time detection, personal protective equipment detection, fire detection, waste detection, fall detection, modular AI devices, Ultralytics
 ---
 
 # Quick Start Guide: Seeed Studio reCamera with Ultralytics YOLO26
 
-[reCamera](https://www.seeedstudio.com/recamera) was introduced for the AI community at [YOLO Vision 2024 (YV24)](https://www.youtube.com/watch?v=rfI5vOo3-_A), [Ultralytics](https://www.ultralytics.com)' annual hybrid event. It is mainly designed for [edge AI applications](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai), offering powerful processing capabilities and effortless deployment.
+[reCamera](https://www.seeedstudio.com/recamera) was introduced for the AI community at [YOLO Vision 2024 (YV24)](https://www.youtube.com/watch?v=rfI5vOo3-_A), [Ultralytics](https://www.ultralytics.com)' annual hybrid event. It is mainly designed for [edge AI applications](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai), offering on-device AI processing and straightforward deployment.
 
-With support for diverse hardware configurations and open-source resources, it serves as an ideal platform for prototyping and deploying innovative [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [solutions](../solutions/index.md#solutions) at the edge.
+With support for diverse hardware configurations and open-source resources, it is well suited to prototyping and deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [solutions](../solutions/index.md#solutions) at the edge.
 
 ![Seeed Studio reCamera](https://cdn.ul.run/i/df3134b577cc880586d982ee72057f2b.avif)
 
 ## Why Choose reCamera?
 
-The reCamera series is purpose-built for edge AI applications, tailored to meet the needs of developers and innovators. Here's why it stands out:
+The reCamera series is purpose-built for edge AI applications, tailored to the needs of developers. Its key features include:
 
-- **RISC-V Powered Performance**: At its core is the SG200X processor, built on the RISC-V architecture, delivering exceptional performance for edge AI tasks while maintaining energy efficiency. With the ability to execute 1 trillion operations per second (1 TOPS), it handles demanding tasks like real-time [object detection](../tasks/detect.md) easily.
+- **RISC-V Powered Performance**: At its core is the SG200X processor, built on the RISC-V architecture, delivering efficient performance for edge AI tasks. With the ability to execute 1 trillion operations per second (1 TOPS), it handles tasks like real-time [object detection](../tasks/detect.md).
 
-- **Optimized Video Technologies**: Supports advanced video compression standards, including H.264 and H.265, to reduce storage and bandwidth requirements without sacrificing quality. Features like HDR imaging, 3D noise reduction, and lens correction ensure professional visuals, even in challenging environments.
+- **Optimized Video Technologies**: Supports advanced video compression standards, including H.264 and H.265, to reduce storage and bandwidth requirements without sacrificing quality. Features like HDR imaging, 3D noise reduction, and lens correction maintain image quality, even in challenging environments.
 
 - **Energy-Efficient Dual Processing**: While the SG200X handles complex AI tasks, a smaller 8-bit microcontroller manages simpler operations to conserve power, making the reCamera ideal for battery-operated or low-power setups.
 
-- **Modular and Upgradable Design**: The reCamera is built with a modular structure, consisting of three main components: the core board, sensor board, and baseboard. This design allows developers to easily swap or upgrade components, ensuring flexibility and future-proofing for evolving projects.
+- **Modular and Upgradable Design**: The reCamera is built with a modular structure, consisting of three main components: the core board, sensor board, and baseboard. This design allows developers to swap or upgrade components as projects evolve.
 
 ## Quick Hardware Setup of reCamera
 
-Please follow the [reCamera Getting Started](https://wiki.seeedstudio.com/recamera_basic_getting_start/) page and select your device (such as reCamera 2002 Series, Gimbal, or HQ POE) to open its Quick Start Guide for initial onboarding of the device such as connecting the device to a network and accessing the [Node-RED](https://nodered.org/) web UI for quick previewing of detection results.
+Follow the [reCamera Getting Started](https://wiki.seeedstudio.com/recamera_basic_getting_start/) page and select your device (such as reCamera 2002 Series, Gimbal, or HQ POE) to open its Quick Start Guide for initial onboarding of the device such as connecting the device to a network and accessing the [Node-RED](https://nodered.org/) web UI for quick previewing of detection results.
 
 ## Inference Using Pre-installed YOLO Models
 
-reCamera comes pre-installed with four Ultralytics YOLO models and you can simply choose your desired model within the Node-RED dashboard.
+reCamera comes pre-installed with four [Ultralytics YOLO models](https://www.ultralytics.com/blog/integrating-ultralytics-yolo-models-on-seeed-studios-recamera), and you can choose your desired model within the Node-RED dashboard.
 
 - [Detection](../tasks/detect.md)
 - [Segmentation](../tasks/segment.md)
 - [Classification](../tasks/classify.md)
 - [Pose Estimation](../tasks/pose.md)
 
-Step 1: If you have connected reCamera to a network, enter the IP address of reCamera on a web browser to open the Node-RED dashboard. If you have connected the reCamera to a PC via USB, you can enter `192.168.42.1`. Here you will see the detection model is loaded by default.
+Step 1: If you have connected reCamera to a network, enter the IP address of reCamera on a web browser to open the Node-RED dashboard. If you have connected the reCamera to a PC via USB, you can enter `192.168.42.1`. The detection model is loaded by default.
 
 ![reCamera detection demo](https://cdn.ul.run/i/04fbba83a473ebe9538308d17fa3fc7e.avif)
 
-Step 2: Click the green color circle at the bottom right corner to access the Node-RED flow editor.
+Step 2: Click the green circle at the bottom right corner to access the Node-RED flow editor.
 
 Step 3: Click the `model` node and click `On Device`.
 
 ![Node-RED model selection](https://cdn.ul.run/i/e207e928c1dc69c1ece32721f08614f0.avif)
 
-Step 4: Choose one of the four different pre-installed models and click `Done`. For example, here we will select the pose model
+Step 4: Choose one of the four pre-installed models and click `Done`. This example selects the pose model.
 
 <p align="center">
-  <img width="50%" src="https://cdn.ul.run/i/5b3ac5675170e20a6d860d1ec5581444.avif" alt="Node-RED pose model select">
+  <img width="50%" src="https://cdn.ul.run/i/5b3ac5675170e20a6d860d1ec5581444.avif" alt="Selecting the pose model in the Node-RED model node">
 </p>
 
 Step 5: Click `Deploy` and when it finishes deploying, click `Dashboard`.
 
 ![reCamera Node-RED deploy](https://cdn.ul.run/i/bc8081618ab44cbc14ea45fda4b02e4c.avif)
 
-Now you will be able to see the pose estimation model in action!
+The dashboard now shows the pose estimation model running on the camera feed.
 
 ![reCamera pose estimation demo](https://cdn.ul.run/i/8c716ae65dee6871454e0066e0ae0a41.avif)
 
@@ -66,7 +66,7 @@ Now you will be able to see the pose estimation model in action!
 
 If you want to use a [custom-trained YOLO26 model](../modes/train.md) with reCamera, follow the steps below.
 
-Here, we'll first convert a `PyTorch` model to `ONNX` and then convert it to the `MLIR` model format. Finally, `MLIR` will be converted to `cvimodel` to run inference on-device.
+The conversion first exports a `PyTorch` model to `ONNX`, then converts it to the `MLIR` model format, and finally converts `MLIR` to `cvimodel` to run inference on-device.
 
 <p align="center">
   <img width="80%" src="https://cdn.ul.run/i/8c80f6699c91ae6e1fefb97e39e42233.avif" alt="Seeed Studio reCamera AI development toolchain">
@@ -117,21 +117,21 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### Export ONNX to MLIR and cvimodel
 
-After obtaining an ONNX model, refer to [Convert and Quantize AI Models](https://wiki.seeedstudio.com/recamera_model_conversion/) page to convert the ONNX model to MLIR and then to cvimodel. For more insights, see our blog on [Integrating Ultralytics YOLO Models with Seeed Studio's reCamera](https://www.ultralytics.com/blog/integrating-ultralytics-yolo-models-on-seeed-studios-recamera).
+After obtaining an ONNX model, refer to the [Convert and Quantize AI Models](https://wiki.seeedstudio.com/recamera_model_conversion/) page to convert the ONNX model to MLIR and then to cvimodel.
 
 ## Real-World Applications of reCamera
 
-reCamera's advanced computer vision capabilities and modular design make it suitable for a wide range of real-world scenarios, helping developers and businesses tackle unique challenges with ease.
+reCamera's on-device computer vision and modular design make it suitable for a wide range of real-world scenarios.
 
-- **Fall Detection**: Designed for safety and healthcare applications, the reCamera can detect falls in real-time, making it ideal for elderly care, hospitals, and industrial settings where rapid response is critical.
+- **Fall Detection**: Designed for safety and healthcare applications, the reCamera can detect falls in real time, making it well suited to elderly care, hospitals, and industrial settings where rapid response is critical.
 
-- **Personal Protective Equipment Detection**: The reCamera can be used to ensure workplace safety by detecting PPE compliance in real-time. It helps identify whether workers are wearing helmets, gloves, or other safety gear, reducing risks in industrial environments.
+- **Personal Protective Equipment Detection**: The reCamera can support workplace safety by [detecting PPE compliance](https://www.ultralytics.com/blog/computer-vision-workplace-safety-ppe) in real time. It helps identify whether workers are wearing helmets, gloves, or other safety gear, reducing risks in industrial environments.
 
 ![Personal protective equipment detection](https://cdn.ul.run/i/a07294367ec992bd9a46f3aabe13fcba.avif)
 
-- **Fire Detection**: The reCamera's real-time processing capabilities make it an excellent choice for [fire detection](https://www.ultralytics.com/blog/computer-vision-in-fire-detection-and-prevention) in industrial and residential areas, providing early warnings to prevent potential disasters.
+- **Fire Detection**: The reCamera's real-time processing capabilities make it well suited to [fire detection](https://www.ultralytics.com/blog/computer-vision-in-fire-detection-and-prevention) in industrial and residential areas, providing early warnings to prevent potential disasters.
 
-- **Waste Detection**: It can also be utilized for waste detection applications, making it an excellent tool for environmental monitoring and [waste management](https://www.ultralytics.com/blog/simplifying-e-waste-management-with-ai-innovations).
+- **Waste Detection**: It can also be used for waste detection in environmental monitoring and [waste management with YOLO11](https://www.ultralytics.com/blog/enhancing-waste-management-with-ultralytics-yolo11).
 
 - **Car Parts Detection**: In manufacturing and automotive industries, it aids in detecting and analyzing car parts for quality control, assembly line monitoring, and inventory management.
 

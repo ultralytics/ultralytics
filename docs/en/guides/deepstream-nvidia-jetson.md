@@ -1,7 +1,7 @@
 ---
 title: YOLO26 on Jetson DeepStream & TensorRT
 comments: true
-description: Learn how to deploy Ultralytics YOLO26 on NVIDIA Jetson devices using TensorRT and DeepStream SDK. Explore performance benchmarks and maximize AI capabilities.
+description: Deploy Ultralytics YOLO26 on NVIDIA Jetson with the DeepStream SDK and TensorRT, covering ONNX export, INT8 calibration, multi-stream setup, and benchmarks.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, embedded systems, deep learning, TensorRT, DeepStream SDK, computer vision
 ---
 
@@ -18,7 +18,7 @@ keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, embedded s
   <strong>Watch:</strong> How to use Ultralytics YOLO26 models with NVIDIA Deepstream on Jetson Orin NX 🚀
 </p>
 
-This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO26 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices using DeepStream SDK and TensorRT. Here we use [TensorRT](../integrations/tensorrt.md) to maximize the inference performance on the Jetson platform.
+This guide walks through deploying Ultralytics YOLO26 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices using DeepStream SDK and TensorRT. Here we use [TensorRT](../integrations/tensorrt.md) to maximize the inference performance on the Jetson platform.
 
 This guide walks through [DeepStream configuration for YOLO26](#deepstream-configuration-for-yolo26), [INT8 calibration](#int8-calibration), [multi-stream setup](#multistream-setup), and [benchmark results](#benchmark-results).
 
@@ -31,7 +31,7 @@ This guide walks through [DeepStream configuration for YOLO26](#deepstream-confi
 
 ## What is NVIDIA DeepStream?
 
-[NVIDIA's DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) is a complete streaming analytics toolkit based on GStreamer for AI-based multi-sensor processing, video, audio, and image understanding. It's ideal for vision AI developers, software partners, startups, and OEMs building IVA (Intelligent Video Analytics) apps and services. You can now create stream-processing pipelines that incorporate [neural networks](https://www.ultralytics.com/glossary/neural-network-nn) and other complex processing tasks like tracking, video encoding/decoding, and video rendering. These pipelines enable real-time analytics on video, image, and sensor data. DeepStream's multi-platform support gives you a faster, easier way to develop vision AI applications and services on-premise, at the edge, and in the cloud.
+[NVIDIA's DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) is a complete streaming analytics toolkit based on GStreamer for AI-based multi-sensor processing, video, audio, and image understanding. It's ideal for vision AI developers, software partners, startups, and OEMs building IVA (Intelligent Video Analytics) apps and services. You can create stream-processing pipelines that incorporate [neural networks](https://www.ultralytics.com/glossary/neural-network-nn) and other complex processing tasks like tracking, video encoding/decoding, and video rendering. These pipelines enable real-time analytics on video, image, and sensor data. DeepStream's multi-platform support gives you a faster, easier way to develop vision AI applications and services on-premise, at the edge, and in the cloud.
 
 ## Prerequisites
 
@@ -50,7 +50,7 @@ Before you start to follow this guide:
 
 ## DeepStream Configuration for YOLO26
 
-Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) GitHub repository which includes NVIDIA DeepStream SDK support for YOLO models. We appreciate the efforts of marcoslucianops for his contributions!
+Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) GitHub repository which includes NVIDIA DeepStream SDK support for YOLO models. We appreciate the contributions of marcoslucianops.
 
 1.  Install Ultralytics with necessary dependencies
 
@@ -181,17 +181,17 @@ deepstream-app -c deepstream_app_config.txt
 
 !!! note
 
-    It will take a long time to generate the TensorRT engine file before starting the inference. So please be patient.
+    Generating the TensorRT engine file can take a long time before inference starts.
 
-<div align=center><img width=1000 src="https://cdn.ul.run/i/42c8bde3499593b9dea44594eacfccda.avif" alt="YOLO26 with deepstream"></div>
+<div align=center><img width=1000 src="https://cdn.ul.run/i/42c8bde3499593b9dea44594eacfccda.avif" alt="YOLO26 object detection running in NVIDIA DeepStream on Jetson"></div>
 
 !!! tip
 
-    If you want to convert the model to FP16 precision, simply set `model-engine-file=model_b1_gpu0_fp16.engine` and `network-mode=2` inside `config_infer_primary_yolo26.txt`
+    To convert the model to FP16 precision, set `model-engine-file=model_b1_gpu0_fp16.engine` and `network-mode=2` inside `config_infer_primary_yolo26.txt`
 
 ## INT8 Calibration
 
-If you want to use INT8 precision for inference, you need to follow the steps below:
+To use [INT8 precision](https://www.ultralytics.com/glossary/model-quantization) for inference, follow these steps:
 
 !!! note
 
@@ -227,7 +227,7 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 
     !!! note
 
-        NVIDIA recommends at least 500 images to get a good [accuracy](https://www.ultralytics.com/glossary/accuracy). On this example, 1000 images are chosen to get better accuracy (more images = more accuracy). You can set it from **head -1000**. For example, for 2000 images, **head -2000**. This process can take a long time.
+        NVIDIA recommends at least 500 images to get good accuracy. In this example, 1000 images are chosen to get better accuracy (more images generally give more accuracy). You can set it from **head -1000**. For example, for 2000 images, **head -2000**. This process can take a long time.
 
 6.  Create the `calibration.txt` file with all selected images
 
@@ -244,7 +244,7 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 
     !!! note
 
-        Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to your GPU memory.
+        Higher `INT8_CALIB_BATCH_SIZE` values give more accurate and faster calibration. Set it according to your GPU memory.
 
 8.  Update the `config_infer_primary_yolo26.txt` file
 
@@ -440,4 +440,4 @@ The performance of YOLO11 models on NVIDIA Jetson Orin NX 16GB varies based on T
 - **FP16 Precision**: 7.91 ms/im, 126 FPS
 - **INT8 Precision**: 6.05 ms/im, 165 FPS
 
-These benchmarks underscore the efficiency and capability of using TensorRT-optimized YOLO11 models on NVIDIA Jetson hardware. For further details, see our [Benchmark Results](#benchmark-results) section.
+These results show how much FP16 and INT8 TensorRT engines speed up YOLO11 models on NVIDIA Jetson hardware. For further details, see our [Benchmark Results](#benchmark-results) section.

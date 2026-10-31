@@ -1,19 +1,19 @@
 ---
 comments: true
-description: Learn about Ultralytics CI actions, Docker deployment, broken link checks, CodeQL analysis, and PyPI publishing to ensure high-quality code.
+description: See how Ultralytics uses continuous integration, including unit tests, Docker deployment checks, broken link scans, CodeQL, PyPI publishing, and Codecov.
 keywords: Ultralytics, Continuous Integration, CI, Docker deployment, CodeQL, PyPI publishing, code quality, automated testing
 ---
 
 # Continuous Integration (CI)
 
-Continuous Integration (CI) is an essential aspect of software development which involves integrating changes and testing them automatically. CI allows us to maintain high-quality code by catching issues early and often in the development process. At Ultralytics, we use various CI tests to ensure the quality and integrity of our codebase.
+[Continuous Integration (CI)](https://www.ultralytics.com/glossary/continuous-integration-ci) is an essential aspect of software development that involves integrating changes and testing them automatically. CI allows us to maintain high-quality code by catching issues early and often in the development process. At Ultralytics, we use various CI tests to ensure the quality and integrity of our codebase.
 
 ## CI Actions
 
 Here's a brief description of our CI actions:
 
 - **[CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml):** This is our primary CI test that runs unit tests and, depending on the repository, more comprehensive tests such as export checks and benchmarks.
-- **[Docker Deployment](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yml):** This test checks the deployment of the project using Docker to ensure the Dockerfile and related scripts are working correctly.
+- **[Docker Deployment](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yml):** This test checks the deployment of the project using [Docker](../guides/docker-quickstart.md) to ensure the Dockerfile and related scripts are working correctly.
 - **[Broken Links](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml):** This test scans the codebase for any broken or dead links in our markdown or HTML files.
 - **[CodeQL](https://github.com/ultralytics/ultralytics/actions/workflows/github-code-scanning/codeql):** CodeQL is a tool from GitHub that performs semantic analysis on our code, helping to find potential security vulnerabilities and maintain high-quality code.
 - **[PyPI Publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml):** This workflow builds the package and publishes each new version to PyPI.
@@ -51,7 +51,7 @@ Remember, a successful CI test does not mean that everything is perfect. It is a
 
 Code coverage is a metric that represents the percentage of your codebase that is executed when your tests run. It provides insight into how well your tests exercise your code and can be crucial in identifying untested parts of your application. A high code coverage percentage is often associated with a lower likelihood of bugs. However, it's essential to understand that code coverage does not guarantee the absence of defects. It merely indicates which parts of the code have been executed by the tests.
 
-### Integration with [codecov.io](https://about.codecov.io/)
+### Integration with codecov.io
 
 At Ultralytics, we have integrated our repositories with [codecov.io](https://about.codecov.io/), a popular online platform for measuring and visualizing code coverage. Codecov provides detailed insights, coverage comparisons between commits, and visual overlays directly on your code, indicating which lines were covered.
 
@@ -59,7 +59,7 @@ By integrating with Codecov, we aim to maintain and improve the quality of our c
 
 ### Coverage Results
 
-To quickly get a glimpse of the code coverage status of our repositories, we have included Codecov badges and sunburst previews for each tracked project. The innermost circle of each sunburst is the entire project, moving away from the center are folders then, finally, a single file. The size and color of each slice represent the number of statements and the coverage, respectively. For full details, visit the [Ultralytics Codecov organization](https://app.codecov.io/gh/ultralytics).
+To quickly get a glimpse of the [code coverage status of our repositories](https://app.codecov.io/gh/ultralytics), we have included Codecov badges and sunburst previews for each tracked project. The innermost circle of each sunburst is the entire project; moving outward are folders and, finally, individual files. The size and color of each slice represent the number of statements and the coverage, respectively.
 
 | Repository                                                          | Code Coverage                                                                                                                                                | Sunburst                                                                                                                                                                                                                                 |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -1,7 +1,7 @@
 ---
 title: TFLite Model Export for Edge Devices (Deprecated)
 comments: true
-description: Historical guide to legacy YOLO TFLite model export and edge deployment. Use LiteRT for new exports.
+description: Legacy guide to YOLO TFLite export and edge deployment, deprecated in Ultralytics 8.4.83. format="tflite" now exports LiteRT; use LiteRT for new exports.
 keywords: YOLO26, TFLite, model export, TensorFlow Lite, edge devices, deployment, Ultralytics, machine learning, on-device inference, model optimization
 ---
 
@@ -9,17 +9,17 @@ keywords: YOLO26, TFLite, model export, TensorFlow Lite, edge devices, deploymen
 
 !!! warning "Deprecated — replaced by LiteRT"
 
-    As of **Ultralytics 8.4.83**, the standalone `tflite` export format has been removed and replaced by the unified **[Google LiteRT](litert.md)** format. LiteRT (_Lite Runtime_) is the next generation and new name for TensorFlow Lite, and it exports the **same `.tflite` model** — now covering mobile, embedded, edge, and browser deployment in one format.
+    As of **Ultralytics 8.4.83**, the standalone `tflite` export format has been deprecated and replaced by the unified **Google LiteRT** format. LiteRT (_Lite Runtime_) is the next generation and new name for TensorFlow Lite, and it exports the **same `.tflite` model** — now covering mobile, embedded, edge, and browser deployment in one format.
 
-    `format="tflite"` still works but emits a deprecation warning and exports a LiteRT model instead. **Use [`format="litert"`](litert.md)** going forward; for current export instructions and options, see the **[LiteRT export guide](litert.md)**.
+    `format="tflite"` still works but emits a deprecation warning and exports a LiteRT model instead. **Use `format="litert"`** going forward; for current export instructions and options, see the **[LiteRT export guide](litert.md)**.
 
 <p align="center">
   <img width="75%" src="https://cdn.ul.run/i/77f69836dfc1d1e96a7e9c9968fa98fd.avif" alt="TensorFlow Lite edge deployment framework">
 </p>
 
-Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge devices or embedded devices requires a format that can ensure seamless performance.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge or embedded devices requires a format built for efficient on-device inference.
 
-The former TensorFlow Lite or TFLite export format optimized [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) and [image classification](https://www.ultralytics.com/glossary/image-classification) in edge applications. This guide preserves the legacy TFLite deployment context; use [LiteRT](litert.md) for new exports.
+The former TensorFlow Lite or TFLite export format optimized [Ultralytics YOLO26](../models/yolo26.md) models for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) and [image classification](https://www.ultralytics.com/glossary/image-classification) in edge applications. This guide preserves the legacy TFLite deployment context; use LiteRT for new exports.
 
 ## Why Was TFLite Used for Export?
 
@@ -31,13 +31,13 @@ TensorFlow Lite supported a wide range of platforms, including embedded Linux, A
 
 TFLite models offer a wide range of key features that enable on-device machine learning by helping developers run their models on mobile, embedded, and edge devices:
 
-- **On-device Optimization**: TFLite optimizes for on-device ML, reducing latency by processing data locally, enhancing privacy by not transmitting personal data, and minimizing model size to save space.
+- **On-device Optimization**: TFLite optimizes for on-device ML, reducing [latency](https://www.ultralytics.com/glossary/inference-latency) by processing data locally, enhancing privacy by not transmitting personal data, and minimizing model size to save space.
 
 - **Multiple Platform Support**: TFLite offers extensive platform compatibility, supporting Android, iOS, embedded Linux, and microcontrollers.
 
 - **Diverse Language Support**: TFLite is compatible with various programming languages, including Java, Swift, Objective-C, C++, and Python.
 
-- **High Performance**: Achieves superior performance through hardware acceleration and model optimization.
+- **High Performance**: Uses hardware acceleration and model optimization for fast inference.
 
 ## Measured Performance (historical)
 
@@ -82,7 +82,7 @@ Benchmark the target device and confirm accelerator placement in its runtime log
 
 ## Deployment Options in TFLite
 
-Before we look at the LiteRT replacement export example, let's understand how TFLite models are normally used.
+Before the LiteRT replacement export example, here is how TFLite models are typically used.
 
 TFLite offers various on-device deployment options for machine learning models, including:
 
@@ -92,7 +92,7 @@ TFLite offers various on-device deployment options for machine learning models, 
   <img width="75%" src="https://cdn.ul.run/i/322c2a4f70b733df7eccc80a9e6ef6d7.avif" alt="TensorFlow Lite deployment architecture for mobile">
 </p>
 
-- **Implementing with Embedded Linux**: If running inferences on a [Raspberry Pi](https://www.raspberrypi.com/) using the [Ultralytics Guide](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference times. Additionally, it's possible to further improve performance by utilizing a [Coral Edge TPU device](https://developers.google.com/coral).
+- **Implementing with Embedded Linux**: If running inference on a [Raspberry Pi](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference. Additionally, it's possible to further improve performance by using a [Coral Edge TPU device](https://developers.google.com/coral).
 
 - **Deploying with Microcontrollers**: TFLite models can also be deployed on microcontrollers and other devices with only a few kilobytes of memory. The core runtime just fits in 16 KB on an Arm Cortex M3 and can run many basic models. It doesn't require operating system support, any standard C or C++ libraries, or dynamic memory allocation.
 
@@ -117,7 +117,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
+All [Ultralytics YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
 The replacement LiteRT format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported `.tflite` model to run inference or validate its accuracy.
 
@@ -190,11 +190,11 @@ See the [LiteRT export arguments](litert.md#export-arguments). For more details 
 
 ## Deploying Exported YOLO26 TFLite Models
 
-After exporting your Ultralytics YOLO26 model to LiteRT format, you can deploy the resulting `.tflite` model. The primary and recommended first step for running a TFLite model is to use the `YOLO("model.tflite")` method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
+After exporting your Ultralytics YOLO26 model to LiteRT format, you can deploy the resulting `.tflite` model. The primary and recommended first step for running a TFLite model is to use the `YOLO("model.tflite")` method, as outlined in the previous usage code snippet. For in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
 
-- **[Android](https://developers.google.com/edge/litert/android)**: A quick start guide for integrating [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite into Android applications, providing easy-to-follow steps for setting up and running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
+- **[Android](https://developers.google.com/edge/litert/android)**: A quick start guide for integrating TensorFlow Lite into Android applications, providing easy-to-follow steps for setting up and running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
 
-- **[iOS](https://developers.google.com/edge/litert/ios/quickstart)**: Check out this detailed guide for developers on integrating and deploying TensorFlow Lite models in iOS applications, offering step-by-step instructions and resources.
+- **[iOS](https://developers.google.com/edge/litert/ios/quickstart)**: A guide for developers on integrating and deploying TensorFlow Lite models in iOS applications, offering step-by-step instructions and resources.
 
 - **[End-To-End Examples](https://github.com/tensorflow/examples/tree/master/lite/examples)**: This page provides an overview of various TensorFlow Lite examples, showcasing practical applications and tutorials designed to help developers implement TensorFlow Lite in their machine learning projects on mobile and edge devices.
 
@@ -203,8 +203,6 @@ After exporting your Ultralytics YOLO26 model to LiteRT format, you can deploy t
 This guide preserves the legacy TFLite deployment workflow. For new exports, use LiteRT to create `.tflite` models for edge computing environments.
 
 For further details on usage, visit the [TFLite official documentation](https://developers.google.com/edge/litert).
-
-Also, if you're curious about other Ultralytics YOLO26 integrations, check out our [integration guide page](../integrations/index.md). You'll find plenty of helpful information and insights there.
 
 ## FAQ
 
@@ -242,15 +240,15 @@ TensorFlow Lite (TFLite) is an open-source [deep learning](https://www.ultralyti
 
 - **On-device optimization**: Minimize latency and enhance privacy by processing data locally.
 - **Platform compatibility**: Supports Android, iOS, embedded Linux, and MCU.
-- **Performance**: Utilizes hardware acceleration to optimize model speed and efficiency.
+- **Performance**: Uses hardware acceleration to optimize model speed and efficiency.
 
 To learn more, check out the [TFLite guide](https://developers.google.com/edge/litert).
 
 ### Is it possible to run YOLO26 TFLite models on Raspberry Pi?
 
-Yes, you can run YOLO26 TFLite models on Raspberry Pi to improve inference speeds. First, export your model to LiteRT format as explained above. Then, use a tool like TensorFlow Lite Interpreter to execute the model on your Raspberry Pi.
+Yes, you can run YOLO26 TFLite models on Raspberry Pi to improve inference speeds. First, export your model to LiteRT format as explained above. Then, run the `.tflite` model on your Raspberry Pi with `YOLO("yolo26n.tflite")` or the LiteRT interpreter.
 
-For further optimizations, you might consider using [Coral Edge TPU](https://developers.google.com/coral). For detailed steps, refer to our [Raspberry Pi deployment guide](../guides/raspberry-pi.md) and the [Edge TPU integration guide](../integrations/edge-tpu.md).
+A [Coral Edge TPU](edge-tpu.md) can accelerate inference further.
 
 ### Can I use TFLite models on microcontrollers for YOLO26 predictions?
 

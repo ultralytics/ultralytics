@@ -3,13 +3,13 @@ comments: true
 license:
     name: Other
     url: http://make3d.cs.cornell.edu/data.html
-description: Explore the Make3D outdoor benchmark for monocular depth estimation. Learn about its structure, usage, pretrained models, and role as a YOLO26-Depth zero-shot generalization benchmark.
+description: Make3D is a classic outdoor monocular depth benchmark of 134 laser-scanned campus images, used to test zero-shot generalization of YOLO26-Depth models.
 keywords: Ultralytics, YOLO, depth estimation, Make3D, outdoor depth, laser scanner, monocular depth, out-of-distribution benchmark
 ---
 
 # Make3D Depth Dataset
 
-[Make3D](http://make3d.cs.cornell.edu/data.html) is a classic outdoor benchmark for [monocular depth estimation](index.md). It contains images of campus scenes paired with depth ground truth captured by a custom 3D laser scanner, and is widely used to probe out-of-distribution generalization.
+[Make3D](http://make3d.cs.cornell.edu/data.html) is a classic outdoor benchmark for monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation). It contains images of campus scenes paired with depth ground truth captured by a custom 3D laser scanner, and is widely used to probe out-of-distribution generalization.
 
 ## Key Features
 

@@ -3,13 +3,13 @@ comments: true
 license:
     name: CC-BY-NC-SA-3.0
     url: https://creativecommons.org/licenses/by-nc-sa/3.0/
-description: Explore the Virtual KITTI 2 depth dataset, a photorealistic synthetic recreation of KITTI driving scenes with dense per-pixel ground truth for training Ultralytics YOLO26-Depth models.
+description: Virtual KITTI 2 is a photorealistic synthetic recreation of KITTI driving scenes with dense per-pixel depth to 80 m, used to train Ultralytics YOLO26-Depth.
 keywords: Ultralytics, YOLO, depth estimation, Virtual KITTI 2, vKITTI2, synthetic driving dataset, dense depth, monocular depth, autonomous driving
 ---
 
 # Virtual KITTI 2 Depth Dataset
 
-[Virtual KITTI 2](https://europe.naverlabs.com/proxy-virtual-worlds-vkitti-2/) (vKITTI2) is a photorealistic synthetic recreation of the KITTI driving scenes. It clones 5 sequences from the original KITTI dataset and re-renders them under varied weather and lighting conditions, providing dense per-pixel ground truth.
+[Virtual KITTI 2](https://europe.naverlabs.com/proxy-virtual-worlds-vkitti-2/) (vKITTI2) is a photorealistic synthetic recreation of the KITTI driving scenes. It clones 5 sequences from the original [KITTI](kitti.md) dataset and re-renders them under varied weather and lighting conditions, providing dense per-pixel ground truth.
 
 As a synthetic outdoor-driving dataset, vKITTI2 offers a dense counterpart to the sparse real KITTI LiDAR returns, making it a useful source of clean outdoor driving geometry for training monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation) models.
 
@@ -49,7 +49,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-Depth model on the Virtual KITTI 2 dataset with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the Virtual KITTI 2 dataset with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 

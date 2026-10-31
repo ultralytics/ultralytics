@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, integrations, Weights & Biases, W&B, model impor
 
 # Integrations
 
-[Ultralytics Platform](https://platform.ultralytics.com) [integrations](../../integrations/index.md) connect your workspace to other tools and services you already use. Send job results to Slack, import existing models and datasets with an API key, or connect your cloud storage and use the data where it lives.
+[Ultralytics Platform](https://platform.ultralytics.com) integrations connect your workspace to other tools and services you already use. Send job results to Slack, import existing models and datasets with an API key, or connect your cloud storage and use the data where it lives.
 
 ![Ultralytics Platform Settings Integrations Tab](https://cdn.ul.run/i/1384c1cf51578679a5b5fe042bdf9979.avif)<!-- screenshot -->
 

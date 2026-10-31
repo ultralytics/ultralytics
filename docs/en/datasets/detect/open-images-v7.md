@@ -40,7 +40,7 @@ Ultralytics publishes five [YOLOv8](../../models/yolov8.md) models pretrained on
 
 The visualization below shows the range of object classes these models can detect:
 
-![Open Images V7 classes visual](https://cdn.ul.run/i/5f0362a9dd9d720d95f7e3bd2958644f.avif)
+![Open Images V7 object classes detected by pretrained YOLOv8 models](https://cdn.ul.run/i/5f0362a9dd9d720d95f7e3bd2958644f.avif)
 
 You can run [prediction](../../modes/predict.md) or start fine-tuning from these checkpoints as follows.
 
@@ -74,7 +74,7 @@ You can run [prediction](../../modes/predict.md) or start fine-tuning from these
 ## Key Features
 
 - Open Images V7 contains about 9 million images annotated for multiple computer vision tasks, averaging 8.3 objects per image.
-- Roughly 90% of its 16 million bounding boxes on 1.9 million images were drawn manually by professional annotators, ensuring high [precision](https://www.ultralytics.com/glossary/precision).
+- Roughly 90% of its 16 million bounding boxes on 1.9 million images were drawn manually by professional annotators, ensuring consistent, high-quality labels.
 - Annotations extend beyond boxes: 3.3 million visual-relationship annotations covering 1,466 triplets, segmentation masks for 2.8 million objects across 350 classes (added in V5), 675k localized narratives (V6), and 66.4 million point-level labels on 1.4 million images spanning 5,827 classes (V7).
 - 61.4 million image-level labels across 20,638 classes make the dataset suitable for [image classification](https://www.ultralytics.com/glossary/image-classification) and multimodal research alongside detection and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
@@ -97,7 +97,7 @@ Open Images V7 supports training and evaluating models across a range of compute
 - **Visual relationship detection**: 3.3 million relationship annotations support models that understand interactions between objects.
 - **Instance segmentation**: Masks for 2.8 million objects enable pixel-level scene analysis.
 - **Multimodal learning**: Localized narratives that combine voice, text, and mouse traces pair visual data with rich descriptions.
-- **Zero-shot evaluation**: The extensive class coverage helps assess how models handle objects not seen during training.
+- **Zero-shot evaluation**: The extensive class coverage helps assess how [zero-shot](https://www.ultralytics.com/glossary/zero-shot-learning) models handle objects not seen during training.
 
 To label your own images, train, and manage large-scale datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com).
 
@@ -117,7 +117,7 @@ The `open-images-v7.yaml` file defines the dataset configuration — the dataset
 
     Open Images V7 downloads automatically on first use and requires about 561 GB of free disk space for its 1,743,042 training and 41,620 validation images. The download script installs the `fiftyone` package to fetch the images and converts the annotations to YOLO format, which can take a long time depending on your connection and hardware.
 
-To train a YOLO26n model on the Open Images V7 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Open Images V7 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -208,7 +208,7 @@ For more details on arguments and settings, refer to the [Training](../../modes/
 
 ### Can I use the Open Images V7 pretrained models without downloading the dataset?
 
-Yes. The five [Open Images V7 pretrained models](#open-images-v7-pretrained-models) (`yolov8n-oiv7.pt` through `yolov8x-oiv7.pt`, ranging from 18.4 to 36.3 mAP) detect all 601 classes out of the box, so you can run [prediction](../../modes/predict.md) on your own images with no 561 GB download.
+Yes. The five [Open Images V7 pretrained models](#open-images-v7-pretrained-models) (`yolov8n-oiv7.pt` through `yolov8x-oiv7.pt`, ranging from 18.4 to 36.3 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map)) detect all 601 classes out of the box, so you can run [prediction](../../modes/predict.md) on your own images with no 561 GB download.
 
 ### How does Open Images V7 compare to the COCO dataset?
 

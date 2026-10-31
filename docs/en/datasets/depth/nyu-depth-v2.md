@@ -3,13 +3,13 @@ comments: true
 license:
     name: CC-BY-NC-SA-3.0
     url: https://creativecommons.org/licenses/by-nc-sa/3.0/
-description: Explore the NYU Depth V2 indoor benchmark for monocular depth estimation. Learn about its structure, usage, pretrained models, and role as the primary YOLO26-Depth evaluation benchmark.
+description: NYU Depth V2 is the standard indoor monocular depth benchmark of Kinect RGB-D scenes and the primary YOLO26-Depth evaluation set, with a 654-image Eigen test split.
 keywords: Ultralytics, YOLO, depth estimation, NYU Depth V2, indoor RGB-D, Kinect, monocular depth, Eigen split, depth benchmark
 ---
 
 # NYU Depth V2 Depth Dataset
 
-[NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) is the standard indoor benchmark for [monocular depth estimation](index.md). It consists of RGB-D video sequences of a wide variety of indoor scenes recorded with a Microsoft Kinect v1. It is the primary benchmark used to report YOLO26-Depth accuracy.
+[NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) is the standard indoor benchmark for monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation). It consists of RGB-D video sequences of a wide variety of indoor scenes recorded with a Microsoft Kinect v1. It is the primary benchmark used to report YOLO26-Depth accuracy.
 
 Explore [NYU Depth V2 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/nyu-depth) to preview its RGB-depth pairs, inspect dataset statistics, and clone it for training.
 

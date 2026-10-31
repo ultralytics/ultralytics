@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to use YOLOv5 model ensembling during testing and inference to enhance mAP and Recall for more accurate predictions.
+description: Ensemble multiple Ultralytics YOLOv5 checkpoints at validation and inference time by listing them after --weights to raise mAP and recall.
 keywords: YOLOv5, model ensembling, testing, inference, mAP, Recall, Ultralytics, object detection, PyTorch
 ---
 
 # YOLOv5 Model Ensembling
 
-📚 This guide explains how to use Ultralytics YOLOv5 🚀 **model ensembling** during testing and inference for improved mAP and [Recall](https://www.ultralytics.com/glossary/recall).
+This guide explains how to use Ultralytics [YOLOv5](../../models/yolov5.md) **[model ensembling](https://www.ultralytics.com/glossary/model-ensemble)** during testing and inference for improved [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and [recall](https://www.ultralytics.com/glossary/recall).
 
 From [ensemble learning](https://en.wikipedia.org/wiki/Ensemble_learning):
 
@@ -14,7 +14,7 @@ From [ensemble learning](https://en.wikipedia.org/wiki/Ensemble_learning):
 
 ## Before You Start
 
-Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+Clone the repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
 git clone https://github.com/ultralytics/yolov5 # clone
@@ -24,7 +24,7 @@ pip install -r requirements.txt # install
 
 ## Test Normally
 
-Before ensembling, establish the baseline performance of a single model. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5n.pt`, `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset, i.e. `runs/train/exp/weights/best.pt`. For details on all available models, see the [pretrained checkpoints table](../../models/yolov5.md).
+Before ensembling, establish the baseline performance of a single model. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate P5 model. Other options are the smaller [pretrained checkpoints](https://github.com/ultralytics/yolov5#pretrained-checkpoints) `yolov5n.pt`, `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset, e.g. `runs/train/exp/weights/best.pt`.
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
@@ -63,7 +63,7 @@ Evaluating pycocotools mAP... saving runs/val/exp/yolov5x_predictions.json...
 
 ## Ensemble Test
 
-Multiple pretrained models can be ensembled together at test and inference time by simply appending extra models to the `--weights` argument in any existing val.py or detect.py command. This example tests an ensemble of 2 models together:
+Multiple pretrained models can be ensembled together at test and inference time by appending extra models to the `--weights` argument in any existing `val.py` or `detect.py` command. This example tests an ensemble of 2 models together:
 
 - YOLOv5x
 - YOLOv5l6
@@ -72,7 +72,7 @@ Multiple pretrained models can be ensembled together at test and inference time 
 python val.py --weights yolov5x.pt yolov5l6.pt --data coco.yaml --img 640 --half
 ```
 
-You can list as many checkpoints as you would like, including custom weights such as `runs/train/exp5/weights/best.pt`. YOLOv5 will automatically run each model, and concatenate their predictions on a per-image basis before performing NMS.
+You can list as many checkpoints as you would like, including custom weights such as `runs/train/exp5/weights/best.pt`. YOLOv5 will automatically run each model and concatenate their predictions on a per-image basis before performing [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms).
 
 Output:
 
@@ -132,14 +132,14 @@ Results saved to runs/detect/exp2
 Done. (0.223s)
 ```
 
-<img src="https://cdn.ul.run/i/abbd31bf5a19d431758c48ac4a6aef72.avif" width="500" alt="YOLO inference result">
+<img src="https://cdn.ul.run/i/abbd31bf5a19d431758c48ac4a6aef72.avif" width="500" alt="YOLOv5 ensemble detection results on a sample image">
 
 ## Benefits of Model Ensembling
 
 Model ensembling with YOLOv5 offers several advantages:
 
 1. **Improved Accuracy**: As demonstrated in the examples above, ensembling multiple models increases mAP from 0.504 to 0.515 and mAR from 0.681 to 0.689.
-2. **Better Generalization**: Combining diverse models helps reduce overfitting and improves performance on varied data.
+2. **Better Generalization**: Combining diverse models helps reduce [overfitting](https://www.ultralytics.com/glossary/overfitting) and improves performance on varied data.
 3. **Enhanced Robustness**: Ensembles are typically more robust to noise and outliers in the data.
 4. **Complementary Strengths**: Different models may excel at detecting different types of objects or in different environmental conditions.
 
@@ -158,7 +158,7 @@ For real-time applications with strict latency requirements, single model infere
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)

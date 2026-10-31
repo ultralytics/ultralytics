@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Inference API Testing
 comments: true
-description: Learn how to test YOLO models with the Ultralytics Platform inference API including browser testing and programmatic access.
+description: Test YOLO models in the Ultralytics Platform Predict tab with images, webcam, or IP camera, and call shared or dedicated inference endpoints over REST.
 keywords: Ultralytics Platform, inference, API, YOLO, object detection, prediction, testing
 ---
 
@@ -127,7 +127,7 @@ Adjust inference behavior with the three sliders below the image (depth models s
 
 ### Confidence Threshold
 
-Filter predictions by confidence:
+Filter predictions by [confidence](https://www.ultralytics.com/glossary/confidence) score:
 
 - **Higher (0.5+)**: Fewer, more certain predictions
 - **Lower (0.1-0.25)**: More predictions, some noise
@@ -135,7 +135,7 @@ Filter predictions by confidence:
 
 ### IoU Threshold
 
-Control Non-Maximum Suppression:
+Control [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), which removes boxes whose [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) with a higher-confidence box exceeds this threshold:
 
 - **Higher (0.7+)**: Allow more overlapping boxes
 - **Lower (0.3-0.5)**: Suppress overlapping detections more aggressively
@@ -568,7 +568,7 @@ The current API processes one image per request. For batch:
 
 1. Send separate requests for each image
 2. Distribute requests across dedicated endpoints when appropriate
-3. Use local inference for large batches
+3. Use [local inference for large batches](https://www.ultralytics.com/blog/using-ultralytics-yolo11-to-run-batch-inferences)
 
 !!! example "Batch Inference with Python"
 

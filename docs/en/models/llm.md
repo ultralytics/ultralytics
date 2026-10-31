@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Use the Ultralytics LLM interface with OpenAI, DeepSeek, Kimi, Z.AI GLM, OpenRouter, and other compatible providers.
+description: Use the Ultralytics LLM interface to call OpenAI, DeepSeek, Kimi, Z.AI GLM, OpenRouter and other OpenAI-compatible language and vision models next to YOLO.
 keywords: Ultralytics LLM, OpenAI, DeepSeek, Kimi, Z.AI, GLM, OpenRouter, OpenAI compatible API, Responses API, Chat Completions, vision language model, local LLM, YOLO
 ---
 
 # Ultralytics LLM Interface
 
-`LLM` is a small interface for calling language and vision models through an OpenAI-compatible API. It prepares text or image input, forwards request arguments to the official OpenAI Python SDK, and returns the SDK's native response object. This makes it easy to add language or vision reasoning next to a [YOLO](yolo26.md) pipeline without wrapping provider-specific response types.
+`LLM` is a small interface for calling [large language models](https://www.ultralytics.com/glossary/large-language-model-llm) and [vision language models](https://www.ultralytics.com/glossary/vision-language-model-vlm) through an OpenAI-compatible API. It prepares text or image input, forwards request arguments to the official OpenAI Python SDK, and returns the SDK's native response object. This makes it easy to add language or vision reasoning next to a [YOLO](yolo26.md) pipeline without wrapping provider-specific response types.
 
 The default API is `responses`; use `api="chat.completions"` for providers that implement only Chat Completions.
 
@@ -128,7 +128,7 @@ The same configuration works with compatible local servers. Model names, image s
 
 ## Combine YOLO and an LLM
 
-Run YOLO first, then call the LLM only when a person is detected:
+Run YOLO first, then call the LLM only when a person is detected.
 
 ```python
 from ultralytics import LLM, YOLO

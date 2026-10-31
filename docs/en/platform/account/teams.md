@@ -2,7 +2,7 @@
 plans: [pro, enterprise]
 title: Team Management & Roles
 comments: true
-description: Create and manage teams on Ultralytics Platform with role-based access control, shared resources, and enterprise features for collaborative computer vision workflows.
+description: Create and manage Ultralytics Platform teams with four-role access control, shared resources and credits, seat billing, invitations, and Enterprise features.
 keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permissions, RBAC, workspace, team management
 ---
 
@@ -42,7 +42,7 @@ with different members.
 
 Create a new team workspace:
 
-1. Click on the workspace switcher in the sidebar
+1. Click the workspace switcher in the sidebar
 2. Click **Create Team** to open the Teams tab in Settings
 3. Click **Upgrade to Pro**
 4. Select **Team** in the upgrade dialog
@@ -182,7 +182,7 @@ Enterprise plans include additional capabilities for organizations with advanced
 
 ### Getting Started with Enterprise
 
-Enterprise plans are provisioned by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/license) for plan details. Once your enterprise configuration is set up, you'll receive a provisioning invite to accept as the team Owner, after which you can invite your team members.
+Enterprise plans are provisioned by the Ultralytics team. Once your enterprise configuration is set up, you'll receive a provisioning invite to accept as the team Owner, after which you can invite your team members.
 
 ## FAQ
 

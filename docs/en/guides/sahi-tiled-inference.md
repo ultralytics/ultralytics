@@ -221,7 +221,7 @@ We extend our thanks to the SAHI research group for creating and maintaining thi
 
 ### How can I integrate YOLO26 with SAHI for sliced inference in object detection?
 
-Integrating Ultralytics YOLO26 with SAHI (Slicing Aided Hyper Inference) for sliced inference improves object detection on high-resolution images by partitioning them into manageable slices. This approach helps detect small objects while keeping memory usage manageable. To get started, you need to install the ultralytics and sahi libraries:
+Integrating Ultralytics YOLO26 with SAHI (Slicing Aided Hyper Inference) for [sliced inference](#sliced-inference-with-yolo26) improves object detection on high-resolution images by partitioning them into manageable slices. This approach helps detect small objects while keeping memory usage manageable. To get started, you need to install the ultralytics and sahi libraries:
 
 ```bash
 pip install -U ultralytics sahi
@@ -242,8 +242,6 @@ download_from_url(
     "demo_data/terrain2.png",
 )
 ```
-
-For more detailed instructions, see the [Sliced Inference with YOLO26](#sliced-inference-with-yolo26) section.
 
 ### Why should I use SAHI with YOLO26 for object detection on large images?
 

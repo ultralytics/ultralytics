@@ -304,7 +304,7 @@ For more configuration options, visit the [Configuration](../usage/cfg.md) page.
 
 ### Where can I find pretrained YOLO26 classification models?
 
-Pretrained YOLO26 classification models are listed in the [Models](#models) section above, and you can browse, test, and download them on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). Models like `yolo26n-cls.pt`, `yolo26s-cls.pt`, and `yolo26m-cls.pt` are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset and download automatically on first use.
+You can browse, test, and download pretrained YOLO26 classification models on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). Models like `yolo26n-cls.pt`, `yolo26s-cls.pt`, and `yolo26m-cls.pt` are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset and download automatically on first use.
 
 ### How do I validate a trained YOLO26 classification model?
 

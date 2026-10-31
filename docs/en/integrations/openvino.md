@@ -185,7 +185,7 @@ This approach suits fast prototyping or deployment when you don't need full cont
 
 ### Inference with OpenVINO Runtime
 
-The OpenVINO Runtime provides a unified API for inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution; see [optimizing OpenVINO latency vs. throughput modes](../guides/optimizing-openvino-latency-vs-throughput-modes.md) to tune them. For more information on running inference, refer to the [YOLO26 notebooks](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov26-optimization).
+The OpenVINO Runtime provides a unified API for inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and [asynchronous execution](../guides/optimizing-openvino-latency-vs-throughput-modes.md).
 
 Remember, you'll need the XML and BIN files as well as any application-specific settings like input size, scale factor for normalization, etc., to correctly set up and use the model with the Runtime.
 
@@ -217,7 +217,7 @@ The Intel® Core™ Ultra™ series combines CPU cores, an integrated GPU, and a
 
 This hybrid design lets OpenVINO run inference on the CPU, GPU, or NPU depending on the latency, throughput, and power needs of an application. The lineup ranges from energy-efficient designs to high-power variants marked by the "H" designation for laptops and compact form factors that need more compute.
 
-Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultra™ 7 155H at FP32, FP16 and INT8 precision.
+Benchmarks below run on [Intel® Core™ Ultra™ X7 358H](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake), Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultra™ 7 155H at FP32, FP16 and INT8 precision.
 
 #### Intel® Core™ Ultra™ X7 358H
 
@@ -510,7 +510,7 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
 
 The benchmarking results show the benefits of exporting YOLO26 models to the OpenVINO format. Across model sizes and Intel hardware, OpenVINO runs inference much faster than PyTorch while maintaining comparable accuracy.
 
-By converting models to the OpenVINO format, developers can achieve significant performance improvements on Intel CPUs, GPUs, and NPUs, making it easier to deploy these models in real-world applications. For Panther Lake results and deployment tips, read the blog post on [accelerating Ultralytics YOLO26 with OpenVINO on Intel Core Ultra Series 3](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake), or follow the [OpenVINO on CPU](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu) lesson in Ultralytics Academy.
+By converting models to the OpenVINO format, developers can achieve significant performance improvements on [Intel CPUs](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu), GPUs, and NPUs, making it easier to deploy these models in real-world applications.
 
 For more detailed information and instructions on using OpenVINO, refer to the [official OpenVINO documentation](https://docs.openvino.ai/).
 

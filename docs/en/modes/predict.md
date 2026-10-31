@@ -895,7 +895,7 @@ The `plot()` method supports various arguments to customize the output:
 
 ## Thread-Safe Inference
 
-Ensuring thread safety during inference is crucial when you are running multiple YOLO models in parallel across different threads. Thread-safe inference guarantees that each thread's predictions are isolated and do not interfere with one another, avoiding race conditions and ensuring consistent and reliable outputs.
+Ensuring [thread safety during inference](../guides/yolo-thread-safe-inference.md) is crucial when you are running multiple YOLO models in parallel across different threads. Thread-safe inference guarantees that each thread's predictions are isolated and do not interfere with one another, avoiding race conditions and ensuring consistent and reliable outputs.
 
 When using YOLO models in a multi-threaded application, it's important to instantiate separate model objects for each thread or employ thread-local storage to prevent conflicts:
 
@@ -919,8 +919,6 @@ When using YOLO models in a multi-threaded application, it's important to instan
     Thread(target=thread_safe_predict, args=("yolo26n.pt", "image1.jpg")).start()
     Thread(target=thread_safe_predict, args=("yolo26n.pt", "image2.jpg")).start()
     ```
-
-For an in-depth look at thread-safe inference with YOLO models and step-by-step instructions, see the [YOLO Thread-Safe Inference Guide](../guides/yolo-thread-safe-inference.md), which covers common pitfalls in multi-threaded inference and how to avoid them.
 
 ## Streaming Source `for`-loop
 

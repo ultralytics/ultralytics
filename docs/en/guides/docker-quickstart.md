@@ -281,7 +281,7 @@ yolo predict model=yolo26n.pt show=True
 
 ??? question "Want to view image results directly in the Terminal?"
 
-    Refer to the following guide on [viewing the image results using a terminal](./view-results-in-terminal.md).
+    On Linux and macOS, you can [display image results in the VSCode integrated terminal](./view-results-in-terminal.md) using the `sixel` protocol.
 
 You are now set up to use Ultralytics with Docker. To self-host the Ultralytics web application, see the [Platform On-Premise guide](../platform/integrations/on-premise.md). For alternative Python package installation methods, see the [Ultralytics quickstart documentation](../quickstart.md).
 
@@ -289,13 +289,11 @@ You are now set up to use Ultralytics with Docker. To self-host the Ultralytics 
 
 ### How do I set up Ultralytics with Docker?
 
-To set up Ultralytics with Docker, first ensure that Docker is installed on your system. If you have an NVIDIA GPU, install the [NVIDIA Container Toolkit](#installing-nvidia-container-toolkit) to enable GPU support. Then, pull the latest Ultralytics Docker image from Docker Hub using the following command:
+To set up Ultralytics with Docker, first ensure that Docker is installed on your system. If you have an NVIDIA GPU, install the [NVIDIA Container Toolkit](#installing-nvidia-container-toolkit) to enable GPU support. Then, pull the latest [Ultralytics Docker image](#installing-ultralytics-docker-images) from Docker Hub using the following command:
 
 ```bash
 sudo docker pull ultralytics/ultralytics:latest
 ```
-
-To choose a different image, see [Installing Ultralytics Docker Images](#installing-ultralytics-docker-images).
 
 ### What are the benefits of using Ultralytics Docker images for machine learning projects?
 
@@ -309,7 +307,7 @@ First, ensure that the [NVIDIA Container Toolkit](#installing-nvidia-container-t
 sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest # all GPUs
 ```
 
-This command sets up a Docker container with GPU access. To select specific GPUs or use AMD ROCm, see [Using GPUs](#using-gpus).
+This command sets up a Docker container with [GPU access](#using-gpus).
 
 ### How do I visualize YOLO prediction results in a Docker container with a display server?
 

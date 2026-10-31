@@ -307,9 +307,7 @@ Integrating Ultralytics YOLO26 with NVIDIA Triton Inference Server provides seve
 - **High Performance**: Optimized for NVIDIA GPUs, Triton Inference Server ensures high-speed inference operations, perfect for real-time applications such as [object detection](https://www.ultralytics.com/glossary/object-detection).
 - **Ensemble and Model Versioning**: Triton's ensemble mode enables combining multiple models to improve results, and its model versioning supports A/B testing and rolling updates.
 - **Automatic Batching**: Triton automatically groups multiple inference requests together, significantly improving throughput.
-- **Simplified Deployment**: Ultralytics loads a Triton endpoint like a local model, so you can adopt Triton without rewriting your inference code.
-
-For detailed instructions on setting up and running Ultralytics YOLO26 with Triton, see [Setting Up Triton Inference Server](#setting-up-triton-inference-server) and [Running Inference](#running-inference).
+- **Simplified Deployment**: Ultralytics [loads a Triton endpoint like a local model](#running-inference), so you can adopt Triton without rewriting your inference code.
 
 ### Why should I export my YOLO26 model to ONNX format before using Triton Inference Server?
 

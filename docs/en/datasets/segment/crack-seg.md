@@ -131,7 +131,7 @@ Load a pretrained segmentation model (e.g., `yolo26n-seg.pt`) and train it with 
 
 ### Why use the Crack Segmentation Dataset for self-driving car and infrastructure projects?
 
-Its diverse images of cracks across roads and walls cover many real-world scenarios, improving the robustness of models trained for crack detection. Accurate segmentation supports road safety and infrastructure-assessment systems that must identify potential hazards reliably — see the [Applications](#applications) section above and our [model training tips](../../guides/model-training-tips.md) for best practices.
+Its diverse images of cracks across roads and walls cover many real-world scenarios, improving the robustness of models trained for crack detection. Accurate segmentation supports road safety and infrastructure-assessment systems that must identify potential hazards reliably.
 
 ### Where can I find the dataset configuration file for Crack Segmentation?
 

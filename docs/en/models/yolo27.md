@@ -220,13 +220,11 @@ _Params and FLOPs values are for the fused model after Conv/BatchNorm folding an
 
 ## Usage Examples
 
-This section provides simple YOLO27 training and inference examples. For full documentation on these and other
-[modes](../modes/index.md), see the [Train](../modes/train.md), [Val](../modes/val.md),
-[Predict](../modes/predict.md), and [Export](../modes/export.md) docs pages. For custom datasets, see [Tips for Best Training Results](../guides/model-training-tips.md) and the [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md).
+This section provides simple YOLO27 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
+For custom datasets, see [Tips for Best Training Results](../guides/model-training-tips.md) and the [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md).
 
 The example below is for YOLO27 [Detect](../tasks/detect.md) models for [object
-detection](https://www.ultralytics.com/glossary/object-detection). For the other supported tasks, see the
-[task documentation](../tasks/index.md).
+detection](https://www.ultralytics.com/glossary/object-detection).
 
 !!! example "Training and inference (after release)"
 

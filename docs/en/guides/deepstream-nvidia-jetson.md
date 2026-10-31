@@ -341,7 +341,7 @@ deepstream-app -c deepstream_app_config.txt
 
 ## Benchmark Results
 
-The following [benchmarks](../modes/benchmark.md) summarize how YOLO11 models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB. YOLO26 uses the same DeepStream export and inference workflow described above. For results on a smaller board, see the [YOLO11 benchmarks on Jetson Orin Nano Super](https://www.ultralytics.com/blog/ultralytics-yolo11-on-nvidia-jetson-orin-nano-super-fast-and-efficient).
+The following [benchmarks](../modes/benchmark.md) summarize how YOLO11 models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB. YOLO26 uses the same DeepStream export and inference workflow described above.
 
 ### Comparison Chart
 

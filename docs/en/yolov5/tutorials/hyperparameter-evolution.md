@@ -14,7 +14,7 @@ Hyperparameters in [machine learning](https://www.ultralytics.com/glossary/machi
 2. Unknown correlations among the dimensions
 3. Expensive nature of evaluating the fitness at each point
 
-This makes [genetic algorithms](https://www.ultralytics.com/blog/what-is-an-evolutionary-algorithm-a-quick-guide) a suitable candidate for hyperparameter searches.
+This makes genetic algorithms, a type of [evolutionary algorithm](https://www.ultralytics.com/blog/what-is-an-evolutionary-algorithm-a-quick-guide), a suitable candidate for hyperparameter searches.
 
 ## Before You Start
 

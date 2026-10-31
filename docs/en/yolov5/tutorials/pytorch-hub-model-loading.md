@@ -24,7 +24,7 @@ pip install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requi
 
 ### Simple Example
 
-This example loads a pretrained YOLOv5s model from PyTorch Hub as `model` and passes an image for inference. `'yolov5s'` is a small, fast YOLOv5 model. For details on all available models, see the README [pretrained checkpoints table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+This example loads a pretrained YOLOv5s model from PyTorch Hub as `model` and passes an image for inference. `'yolov5s'` is a small, fast model among the YOLOv5 [pretrained checkpoints](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
 
 ```python
 import torch
@@ -48,7 +48,7 @@ results.pandas().xyxy[0]
 
 ### Detailed Example
 
-This example shows **batched inference** with **PIL** and **[OpenCV](https://www.ultralytics.com/glossary/opencv)** image sources. `results` can be **printed** to console, **saved** to `runs/hub`, **shown** on screen on supported environments, and returned as **tensors** or **pandas** dataframes.
+This example shows **batched inference** with **PIL** and **[OpenCV](https://www.ultralytics.com/glossary/opencv)** image sources, two of the input types the YOLOv5 `AutoShape()` [forward method](https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252) accepts. `results` can be **printed** to console, **saved** to `runs/hub`, **shown** on screen on supported environments, and returned as **tensors** or **pandas** dataframes.
 
 ```python
 import cv2
@@ -82,8 +82,6 @@ results.pandas().xyxy[0]  # im1 predictions (pandas)
 
 <img src="https://cdn.ul.run/i/2c629c77c52cd4aa1641eb7435b17b74.avif" width="500" alt="YOLO inference results on zidane.jpg">
 <img src="https://cdn.ul.run/i/547184dd9a2ca246746a5cbb799157f0.avif" width="300" alt="YOLO inference results on bus.jpg">
-
-For all inference options, see the YOLOv5 `AutoShape()` [forward method](https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252).
 
 ### Inference Settings
 
@@ -202,7 +200,7 @@ threading.Thread(target=run, args=[model1, "https://ultralytics.com/images/bus.j
 
 ### Training
 
-To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case. Alternatively, see the YOLOv5 [Train Custom Data Tutorial](./train-custom-data.md) for model training.
+To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case, or train with `train.py` as shown in the YOLOv5 [Train Custom Data Tutorial](./train-custom-data.md).
 
 ```python
 import torch
@@ -213,7 +211,7 @@ model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False, pretrai
 
 ### Base64 Results
 
-Base64-encoded results are useful for API services. See the [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example for details.
+Base64-encoded results are useful for API services such as the YOLOv5 [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example.
 
 ```python
 import base64
@@ -341,7 +339,7 @@ model = torch.hub.load("path/to/yolov5", "custom", path="path/to/best.pt", sourc
 
 ## TensorRT, ONNX and OpenVINO Models
 
-PyTorch Hub supports inference on most YOLOv5 export formats, including custom-trained models. See the [TFLite, ONNX, CoreML, TensorRT Export tutorial](./model-export.md) for details on exporting models.
+PyTorch Hub supports inference on most YOLOv5 [export formats](./model-export.md), including custom-trained models.
 
 !!! tip
 

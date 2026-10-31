@@ -107,7 +107,7 @@ Pretrained weights come from the `model` argument, so `model=yolo26n.pt` already
 There are a couple of other techniques to consider when handling a large dataset:
 
 - **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLO26, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate. For behavior no argument exposes, such as per-layer learning rates or gradient clipping, [subclass the trainer](./custom-trainer.md).
-- **[Distributed Training](https://www.ultralytics.com/glossary/distributed-training)**: For handling large datasets, distributed training reduces training time by spreading the workload across multiple GPUs or machines; see [multi-GPU training](../modes/train.md#multi-gpu-training) for YOLO26. This approach is particularly valuable for enterprise-scale projects with substantial computational resources.
+- **[Distributed Training](https://www.ultralytics.com/glossary/distributed-training)**: For handling large datasets, distributed training reduces training time by spreading the workload across [multiple GPUs](../modes/train.md#multi-gpu-training) or machines. This approach is particularly valuable for enterprise-scale projects with substantial computational resources.
 - **Channels-last memory format**: CUDA training automatically uses the faster NHWC memory layout on PyTorch 1.11 and newer, except on Windows, where it measured slower. Set `channels_last=True` to force it or `channels_last=False` to keep NCHW; PyTorch 1.10 and older, CPU, and MPS remain NCHW by default.
 
 ## The Number of Epochs To Train For
@@ -162,8 +162,8 @@ Different optimizers have various strengths and weaknesses. Here are a few commo
     - Adjusts the learning rate for each parameter by dividing the gradient by a running average of the magnitudes of recent gradients.
     - Helps in handling the vanishing gradient problem and is effective for [recurrent neural networks](https://www.ultralytics.com/glossary/recurrent-neural-network-rnn).
 
-- **MuSGD (Muon + SGD hybrid)**:
-    - Combines SGD-style updates with Muon-inspired behavior for improved stability in large-scale training; see [how YOLO26 trains with ProgLoss, STAL, and MuSGD](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd) for details.
+- **[MuSGD](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd) (Muon + SGD hybrid)**:
+    - Combines SGD-style updates with Muon-inspired behavior for improved stability in large-scale training.
     - A good choice when you want SGD-like generalization but need smoother convergence than vanilla SGD.
     - Especially relevant for [YOLO26 training recipes](./yolo26-training-recipe.md); if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
 
@@ -181,10 +181,6 @@ Being part of a community of computer vision enthusiasts can help you solve prob
 
 - **GitHub Issues:** Visit the [YOLO26 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are very active and ready to help.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to chat with other users and developers, get support, and share your experiences.
-
-### Official Documentation
-
-- **Ultralytics Guides:** Check out the [Ultralytics guides](./index.md) for detailed tutorials and tips on various computer vision projects.
 
 Using these resources will help you solve challenges and stay up to date with the latest trends and practices in the computer vision community.
 

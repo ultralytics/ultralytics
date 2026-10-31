@@ -159,7 +159,7 @@ The sample below shows typical DOTA scenes and annotations:
 
 - **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) annotations, capturing objects in their natural orientation.
 
-These scenes highlight detection challenges specific to aerial imagery. DOTA-v2.0 is widely used for remote sensing and aerial surveillance projects thanks to its comprehensive annotations and diverse object categories; see this overview of [popular computer vision datasets](https://www.ultralytics.com/blog/exploring-the-best-computer-vision-datasets-in-2025) for comparable benchmarks.
+These scenes highlight detection challenges specific to aerial imagery. DOTA-v2.0 is widely used for remote sensing and aerial surveillance projects thanks to its comprehensive annotations and diverse object categories.
 
 ## Citations and Acknowledgments
 

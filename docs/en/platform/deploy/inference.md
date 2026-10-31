@@ -568,7 +568,7 @@ The current API processes one image per request. For batch:
 
 1. Send separate requests for each image
 2. Distribute requests across dedicated endpoints when appropriate
-3. Use local inference for large batches (see [batch inference with Ultralytics YOLO](https://www.ultralytics.com/blog/using-ultralytics-yolo11-to-run-batch-inferences))
+3. Use [local inference for large batches](https://www.ultralytics.com/blog/using-ultralytics-yolo11-to-run-batch-inferences)
 
 !!! example "Batch Inference with Python"
 

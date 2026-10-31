@@ -1745,9 +1745,8 @@ for the requested GPU.
 
 ## Exports API
 
-Convert models to optimized formats like ONNX, TensorRT, CoreML, and LiteRT for [edge deployment](https://www.ultralytics.com/glossary/edge-ai). See
-[Deploy documentation](../deploy/index.md) and the walkthrough
-[Exporting models on Ultralytics Platform](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform).
+[Convert models](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to optimized formats like ONNX, TensorRT, CoreML, and LiteRT for
+[edge deployment](https://www.ultralytics.com/glossary/edge-ai).
 
 ### List Exports
 

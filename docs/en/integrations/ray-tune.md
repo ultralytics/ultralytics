@@ -284,7 +284,7 @@ To tune the hyperparameters of your Ultralytics YOLO26 model using Ray Tune, fol
     result_grid = model.tune(data="coco8.yaml", use_ray=True)
     ```
 
-This uses Ray Tune's search strategies and parallelism to optimize your model's hyperparameters efficiently. For more information, check out the [Ray Tune documentation](https://docs.ray.io/en/latest/tune/index.html).
+This uses [Ray Tune](https://docs.ray.io/en/latest/tune/index.html) search strategies and parallelism to optimize your model's hyperparameters efficiently.
 
 ### What are the default hyperparameters for YOLO26 tuning with Ray Tune?
 
@@ -340,7 +340,7 @@ Ray Tune offers numerous advantages for hyperparameter optimization:
 - **Parallelism:** Supports parallel execution of multiple trials, significantly speeding up the tuning process.
 - **Early Stopping:** Employs strategies like ASHA to terminate under-performing trials early, saving computational resources.
 
-Ray Tune is built into Ultralytics YOLO26 through `model.tune(use_ray=True)`. To get started, see the [Usage](#usage) example above.
+Ray Tune is built into Ultralytics YOLO26 through `model.tune(use_ray=True)`.
 
 ### How can I define a custom search space for YOLO26 hyperparameter tuning?
 

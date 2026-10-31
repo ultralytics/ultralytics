@@ -187,7 +187,7 @@ Compare the center point offset before and after scaling. The center point offse
 
 <img src="https://user-images.githubusercontent.com/31005897/158508052-c24bc5e8-05c1-4154-ac97-2e1ec71f582e.png#pic_center" width=40% alt="YOLOv5 grid scaling">
 
-Compare the height and width scaling ratio (relative to anchor) before and after adjustment. The original YOLO/Darknet box equations have a serious flaw. Width and height are completely unbounded as they are simply out=exp(in), which is dangerous, as it can lead to runaway gradients, instabilities, NaN losses and ultimately a complete loss of training. See [YOLOv5 issue #471](https://github.com/ultralytics/yolov5/issues/471#issuecomment-662009779) for more details.
+Compare the height and width scaling ratio (relative to anchor) before and after adjustment. The original YOLO/Darknet box equations have a [serious flaw](https://github.com/ultralytics/yolov5/issues/471#issuecomment-662009779). Width and height are completely unbounded as they are simply out=exp(in), which is dangerous, as it can lead to runaway gradients, instabilities, NaN losses and ultimately a complete loss of training.
 
 <img src="https://user-images.githubusercontent.com/31005897/158508089-5ac0c7a3-6358-44b7-863e-a6e45babb842.png#pic_center" width=40% alt="YOLOv5 unbounded scaling">
 

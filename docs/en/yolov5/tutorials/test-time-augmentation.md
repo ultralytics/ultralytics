@@ -20,7 +20,7 @@ pip install -r requirements.txt # install
 
 ## Test Normally
 
-Before trying TTA, establish a baseline performance to compare against. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate P5 model. Other options are `yolov5n.pt`, `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset, e.g. `runs/train/exp/weights/best.pt`. For details on all available models, see the README [pretrained checkpoints table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+Before trying TTA, establish a baseline performance to compare against. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate P5 model. Other options are the smaller [pretrained checkpoints](https://github.com/ultralytics/yolov5#pretrained-checkpoints) `yolov5n.pt`, `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset, e.g. `runs/train/exp/weights/best.pt`.
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half

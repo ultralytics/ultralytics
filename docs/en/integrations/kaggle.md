@@ -163,8 +163,6 @@ Kaggle gives your YOLO26 projects free access to GPUs for model training and eva
 
 For more details, visit [Kaggle's documentation](https://www.kaggle.com/docs).
 
-Interested in more YOLO26 integrations? Check out the [Ultralytics integrations overview](index.md) to explore additional tools and capabilities for your machine learning projects.
-
 ## FAQ
 
 ### How do I install Ultralytics YOLO26 on Kaggle?
@@ -190,8 +188,6 @@ Kaggle offers several advantages for training YOLO26 models:
 - **Community Collaboration**: Engage with a large community of data scientists and machine learning enthusiasts.
 - **Version Control**: Manage different versions of your notebooks and revert to previous versions if needed.
 
-For more details, visit our [Ultralytics integration guide](index.md).
-
 ### What common issues might I encounter when using Kaggle for YOLO26, and how can I resolve them?
 
 Common issues include:
@@ -207,14 +203,12 @@ For more troubleshooting tips, see the [Installation section](#installation) and
 
 ### Why should I choose Kaggle over other platforms like Google Colab for training YOLO26 models?
 
-Kaggle offers several features that set it apart:
+Kaggle offers several features that set it apart from [Google Colab](google-colab.md):
 
 - **Public Notebooks**: Share your work with the community for feedback and collaboration.
 - **Free Access to TPUs**: Use TPUs at no extra cost with frameworks that support them; Ultralytics YOLO26 trains on Kaggle's GPUs or CPU.
 - **Comprehensive History**: Track changes over time with a detailed history of notebook commits.
 - **Resource Availability**: Significant resources are provided for each notebook session, including 12 hours of execution time for CPU and GPU sessions.
-
-For a comparison with Google Colab, refer to our [Google Colab guide](google-colab.md).
 
 ### How can I revert to a previous version of my Kaggle notebook?
 

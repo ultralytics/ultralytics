@@ -194,7 +194,7 @@ For repeated use, wrap the loop body in a function so you can call it across man
 
 ## Conclusion
 
-You now have a complete recipe for isolating segmented objects with Ultralytics YOLO: run inference, build a binary mask from each contour, then extract the object on a black or transparent background and optionally crop it to its bounding box. Explore the full [Segment Task](../tasks/segment.md) and [Predict Mode](../modes/predict.md) documentation to adapt the workflow to your own classes, or work through the [Use Masks in Code lesson](https://academy.ultralytics.com/courses/beyond-detection/use-masks-in-code) in Ultralytics Academy for more mask operations such as area, overlap, and outlines.
+You now have a complete recipe for isolating segmented objects with Ultralytics YOLO: run inference, build a binary mask from each contour, then extract the object on a black or transparent background and optionally crop it to its bounding box. Explore the full [Segment Task](../tasks/segment.md) and [Predict Mode](../modes/predict.md) documentation to adapt the workflow to your own classes.
 
 ## FAQ
 

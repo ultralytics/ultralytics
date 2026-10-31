@@ -18,7 +18,7 @@ cd yolov5
 pip install -r requirements.txt # install
 ```
 
-For a [TensorRT](https://developer.nvidia.com/tensorrt) export example (requires GPU), see the appendix section of our Colab [notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb#scrollTo=VTRwsvA9u7ln&line=2&uniqifier=1). <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
+The appendix of the YOLOv5 Colab [notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb#scrollTo=VTRwsvA9u7ln&line=2&uniqifier=1) includes a [TensorRT](https://developer.nvidia.com/tensorrt) export example (requires GPU). <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 
 ## Supported Export Formats
 
@@ -100,7 +100,7 @@ Benchmarks complete (241.20s)
 
 ## Export a Trained YOLOv5 Model
 
-This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats. `yolov5s.pt` is the 'small' model, the second-smallest model available. Other options are `yolov5n.pt`, `yolov5m.pt`, `yolov5l.pt` and `yolov5x.pt`, along with their P6 counterparts, e.g. `yolov5s6.pt`, or your own custom training checkpoint, e.g. `runs/train/exp/weights/best.pt`. For details on all available models, see the README [pretrained checkpoints table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats. `yolov5s.pt` is the 'small' model, the second-smallest model available. Other options are the [pretrained checkpoints](https://github.com/ultralytics/yolov5#pretrained-checkpoints) `yolov5n.pt`, `yolov5m.pt`, `yolov5l.pt` and `yolov5x.pt`, along with their P6 counterparts, e.g. `yolov5s6.pt`, or your own custom training checkpoint, e.g. `runs/train/exp/weights/best.pt`.
 
 ```bash
 python export.py --weights yolov5s.pt --include torchscript onnx

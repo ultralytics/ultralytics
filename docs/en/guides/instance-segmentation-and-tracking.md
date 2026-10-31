@@ -136,7 +136,7 @@ At [construction sites](https://www.ultralytics.com/blog/using-ultralytics-yolo1
 
 ### How do I perform instance segmentation using Ultralytics YOLO26?
 
-To perform instance segmentation using Ultralytics YOLO26, initialize the `InstanceSegmentation` solution with a YOLO26 segmentation model and process video frames through it. Here's a simplified code example:
+To perform instance segmentation using Ultralytics YOLO26, initialize the `InstanceSegmentation` solution with a YOLO26 [segmentation model](../tasks/segment.md) and process video frames through it. Here's a simplified code example:
 
 ```python
 import cv2
@@ -169,8 +169,6 @@ cap.release()
 video_writer.release()
 cv2.destroyAllWindows()
 ```
-
-Learn more in the [instance segmentation task guide](../tasks/segment.md).
 
 ### What is the difference between instance segmentation and object tracking in Ultralytics YOLO26?
 

@@ -44,7 +44,7 @@ When working with JupyterLab, you might come across some common issues. Here are
 - **Managing Kernels**: Kernels are crucial because they manage the connection between the code you write in JupyterLab and the environment where it runs. They can also access and share data between notebooks. When you close a Jupyter Notebook, the kernel might still be running because other notebooks could be using it. If you want to completely shut down a kernel, you can select it, right-click, and choose "Shut Down Kernel" from the pop-up menu.
 - **Installing Python Packages**: Sometimes, you might need additional Python packages that aren't pre-installed on the server. You can install these packages in your home directory or a virtual environment by using the command `python -m pip install package-name`. To see all installed packages, use `python -m pip list`.
 - **Deploying Flask/FastAPI API to Posit Connect**: You can deploy your Flask and FastAPI APIs to Posit Connect using the [rsconnect-python](https://docs.posit.co/rsconnect-python/) package from the terminal. Doing so makes it easier to integrate your web applications with JupyterLab and share them with others.
-- **Installing JupyterLab Extensions**: JupyterLab supports various extensions to enhance functionality. You can install and customize these extensions to suit your needs. For detailed instructions, refer to the [JupyterLab Extensions Guide](https://jupyterlab.readthedocs.io/en/latest/user/extensions.html).
+- **Installing JupyterLab Extensions**: JupyterLab supports various [extensions](https://jupyterlab.readthedocs.io/en/latest/user/extensions.html) to enhance functionality. You can install and customize these extensions to suit your needs.
 - **Using Multiple Versions of Python**: If you need to work with different versions of Python, you can use Jupyter kernels configured with different Python versions.
 
 ## How to Use JupyterLab to Try Out YOLO26
@@ -110,8 +110,6 @@ This guide showed how to use JupyterLab to experiment with Ultralytics YOLO26 mo
 Unlike cloud platforms such as [Google Colab](google-colab.md), JupyterLab runs locally on your machine, giving you more control over your computing environment while still providing an interactive notebook experience. This makes it particularly valuable for developers who need consistent access to their development environment without relying on cloud resources.
 
 For more details, visit the [JupyterLab FAQ Page](https://jupyterlab.readthedocs.io/en/stable/getting_started/faq.html).
-
-Interested in more YOLO26 integrations? Check out the [Ultralytics integrations overview](index.md) to explore additional tools and capabilities for your machine learning projects.
 
 ## FAQ
 

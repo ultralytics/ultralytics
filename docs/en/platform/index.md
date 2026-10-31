@@ -13,7 +13,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 ## What is Ultralytics Platform?
 
-Ultralytics Platform brings dataset management and annotation, [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking), cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring [into one workspace](https://www.ultralytics.com/blog/ultralytics-platform-five-tools-one-computer-vision-platform). It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
+Ultralytics Platform brings dataset management and annotation, [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking), cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into [one workspace](https://www.ultralytics.com/blog/ultralytics-platform-five-tools-one-computer-vision-platform). It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
 
 ## Workflow: Upload → Annotate → Train → Export or Deploy
 

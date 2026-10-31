@@ -40,7 +40,7 @@ keywords: queue management, YOLO26, Ultralytics, reduce wait times, efficiency, 
 
 ## Manage Queues with YOLO26
 
-The `QueueManager` solution counts the [tracked objects](https://www.ultralytics.com/glossary/object-tracking) inside a defined region each frame, giving you a live queue length you can write to an output video. Pass a polygon region covering the waiting area, then run it over your video source with either the Python API or the CLI.
+The [`QueueManager` solution](../reference/solutions/queue_management.md) counts the [tracked objects](https://www.ultralytics.com/glossary/object-tracking) inside a defined region each frame, giving you a live queue length you can write to an output video. Pass a polygon region covering the waiting area, then run it over your video source with either the Python API or the CLI.
 
 !!! example "Queue Management using Ultralytics YOLO"
 
@@ -173,8 +173,6 @@ Using Ultralytics YOLO26 for queue management offers several benefits:
 - **Real-time Insights:** Provides live queue counts for every frame, enabling quick intervention when lines grow.
 - **Scalability:** Easily scalable across different environments like retail, airports, and healthcare.
 
-For implementation details, see the [`QueueManager` API reference](../reference/solutions/queue_management.md).
-
 ### Why should I choose Ultralytics YOLO26 over competitors like TensorFlow or Detectron2 for queue management?
 
 Ultralytics YOLO26 has several advantages over [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)-based detectors and Detectron2 for queue management:
@@ -188,7 +186,7 @@ Learn how to get started with [Ultralytics YOLO](../quickstart.md).
 
 ### Can Ultralytics YOLO26 handle multiple types of queues, such as in airports and retail?
 
-Yes, Ultralytics YOLO26 can manage various types of queues, including those in airports and retail environments. By configuring the QueueManager with specific regions and settings, YOLO26 can adapt to different queue layouts and densities.
+Yes, Ultralytics YOLO26 can manage various types of queues, including those in [airports and retail environments](#real-world-applications). By configuring the QueueManager with specific regions and settings, YOLO26 can adapt to different queue layouts and densities.
 
 Example for airports:
 
@@ -200,8 +198,6 @@ queue_airport = solutions.QueueManager(
     line_width=3,
 )
 ```
-
-For more information on diverse applications, check out our [Real-World Applications](#real-world-applications) section.
 
 ### What are some real-world applications of Ultralytics YOLO26 in queue management?
 

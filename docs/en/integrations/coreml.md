@@ -219,7 +219,7 @@ Ship the model either embedded in the app bundle (instant availability, ideal fo
 
 ## Summary
 
-In this guide, you learned how to export Ultralytics YOLO26 models to CoreML's `.mlpackage` format, [quantize](https://www.ultralytics.com/glossary/model-quantization) them for the Apple Neural Engine, and deploy them at single-digit-millisecond latencies — either through the official iOS SDK and Flutter plugin or your own Vision integration. For other deployment targets, browse the [integration guide page](../integrations/index.md), and compare formats with [Benchmark mode](../modes/benchmark.md).
+In this guide, you learned how to export Ultralytics YOLO26 models to CoreML's `.mlpackage` format, [quantize](https://www.ultralytics.com/glossary/model-quantization) them for the Apple Neural Engine, and deploy them at single-digit-millisecond latencies — either through the official iOS SDK and Flutter plugin or your own Vision integration.
 
 ## FAQ
 

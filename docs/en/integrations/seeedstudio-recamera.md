@@ -31,7 +31,7 @@ Follow the [reCamera Getting Started](https://wiki.seeedstudio.com/recamera_basi
 
 ## Inference Using Pre-installed YOLO Models
 
-reCamera comes pre-installed with four Ultralytics YOLO models, and you can choose your desired model within the Node-RED dashboard.
+reCamera comes pre-installed with four [Ultralytics YOLO models](https://www.ultralytics.com/blog/integrating-ultralytics-yolo-models-on-seeed-studios-recamera), and you can choose your desired model within the Node-RED dashboard.
 
 - [Detection](../tasks/detect.md)
 - [Segmentation](../tasks/segment.md)
@@ -117,7 +117,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### Export ONNX to MLIR and cvimodel
 
-After obtaining an ONNX model, refer to the [Convert and Quantize AI Models](https://wiki.seeedstudio.com/recamera_model_conversion/) page to convert the ONNX model to MLIR and then to cvimodel. For more insights, see our blog on [Integrating Ultralytics YOLO Models with Seeed Studio's reCamera](https://www.ultralytics.com/blog/integrating-ultralytics-yolo-models-on-seeed-studios-recamera).
+After obtaining an ONNX model, refer to the [Convert and Quantize AI Models](https://wiki.seeedstudio.com/recamera_model_conversion/) page to convert the ONNX model to MLIR and then to cvimodel.
 
 ## Real-World Applications of reCamera
 

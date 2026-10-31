@@ -157,9 +157,7 @@ yolo solutions count source="path/to/video.mp4" # specify video file path
 
 ### Contribute to Our Solutions
 
-Community contributions are welcome. If you have built a solution with Ultralytics YOLO that is not covered here, consider sharing it as a guide so other users can benefit.
-
-To get started, read the [Contributing Guide](../help/contributing.md) for guidelines on opening a Pull Request (PR).
+Community contributions are welcome. If you have built a solution with Ultralytics YOLO that is not covered here, consider [sharing it as a guide](../help/contributing.md) so other users can benefit.
 
 ## FAQ
 
@@ -173,12 +171,12 @@ Ultralytics YOLO26 adds real-time object detection and alerting to [camera-based
 
 ### How can Ultralytics YOLO improve queue management systems?
 
-Ultralytics YOLO26 counts and tracks people inside a queue region, giving you live queue lengths that help reduce wait times and plan staffing. Follow the [Queue Management](../guides/queue-management.md) guide to set up YOLO26 for queue monitoring and analysis.
+Ultralytics YOLO26 [counts and tracks people inside a queue region](../guides/queue-management.md), giving you live queue lengths that help reduce wait times and plan staffing.
 
 ### Can Ultralytics YOLO be used for workout monitoring?
 
-Yes. Ultralytics YOLO26 pose models track body keypoints in real time, so the workout solution can measure joint angles, count repetitions, and report the current exercise stage. See the [Workouts Monitoring](../guides/workouts-monitoring.md) guide to set up workout monitoring with YOLO26.
+Yes. Ultralytics YOLO26 pose models track body keypoints in real time, so the [workout monitoring solution](../guides/workouts-monitoring.md) can measure joint angles, count repetitions, and report the current exercise stage.
 
 ### How does Ultralytics YOLO help in creating heatmaps for data visualization?
 
-Ultralytics YOLO26 can generate heatmaps that show where objects appear or move most often in a scene, highlighting regions of high activity. These [data visualizations](https://www.ultralytics.com/glossary/data-visualization) help you understand traffic patterns and trends over time. Learn more about creating and using [Heatmaps](../guides/heatmaps.md) with YOLO26.
+Ultralytics YOLO26 can generate [heatmaps](../guides/heatmaps.md) that show where objects appear or move most often in a scene, highlighting regions of high activity. These [data visualizations](https://www.ultralytics.com/glossary/data-visualization) help you understand traffic patterns and trends over time.

@@ -134,16 +134,16 @@ Ultralytics YOLO26 improves security alarm systems by delivering accurate, real-
 
 ### Can I integrate Ultralytics YOLO26 with my existing security infrastructure?
 
-Yes. The `SecurityAlarm` solution processes frames from any source OpenCV can read, including video files, webcams, and RTSP streams from IP cameras, so you can add YOLO26 detection to an existing camera setup. For export and deployment options, visit the [integrations page](../integrations/index.md).
+Yes. The `SecurityAlarm` solution processes frames from any source OpenCV can read, including video files, webcams, and RTSP streams from IP cameras, so you can add YOLO26 detection to an existing camera setup.
 
 ### What are the storage requirements for running Ultralytics YOLO26?
 
-Running Ultralytics YOLO26 on a standard setup typically requires around 5GB of free disk space. This includes space for storing the YOLO26 model and any additional dependencies. For cloud-based solutions, [Ultralytics Platform](../platform/index.md) offers efficient project management and dataset handling, which can optimize storage needs. Learn more about the [Pro Plan](../platform/account/billing.md#pro-plan), which increases storage to 500 GB.
+Running Ultralytics YOLO26 on a standard setup typically requires around 5GB of free disk space. This includes space for storing the YOLO26 model and any additional dependencies. For cloud-based solutions, [Ultralytics Platform](../platform/index.md) offers efficient project management and dataset handling, which can optimize storage needs. The [Pro Plan](../platform/account/billing.md#pro-plan) increases storage to 500 GB.
 
 ### What makes Ultralytics YOLO26 different from other object detection models like Faster R-CNN or SSD?
 
-Ultralytics YOLO26 provides an edge over models like Faster R-CNN or SSD with its real-time detection capabilities and higher accuracy. Its single-stage architecture processes images much faster without compromising accuracy, making it well suited to time-sensitive applications like security alarm systems. For a comparison of object detection models, explore the [supported models overview](../models/index.md).
+Ultralytics YOLO26 provides an edge over models like Faster R-CNN or SSD with its real-time detection capabilities and higher accuracy. Its single-stage architecture processes images much faster without compromising accuracy, making it well suited to time-sensitive applications like security alarm systems.
 
 ### How can I reduce the frequency of false positives in my security system using Ultralytics YOLO26?
 
-To reduce false positives, ensure your Ultralytics YOLO26 model is adequately trained with a diverse and well-annotated dataset. [Tuning hyperparameters](https://www.ultralytics.com/glossary/hyperparameter-tuning) and regularly updating the model with new data can significantly improve detection accuracy. Detailed techniques are in our [hyperparameter tuning guide](hyperparameter-tuning.md).
+To reduce false positives, ensure your Ultralytics YOLO26 model is adequately trained with a diverse and well-annotated dataset. [Tuning hyperparameters](hyperparameter-tuning.md) and regularly updating the model with new data can significantly improve detection accuracy.

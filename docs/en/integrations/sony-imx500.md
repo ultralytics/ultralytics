@@ -529,7 +529,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchm
 
 ### Supported Features of MCT
 
-[Sony's MCT](https://www.ultralytics.com/blog/sonys-mct-bridging-ai-research-to-real-time-edge) offers a range of features designed to optimize neural network models:
+Sony's MCT offers a range of features designed to [optimize neural network models](https://www.ultralytics.com/blog/sonys-mct-bridging-ai-research-to-real-time-edge):
 
 1. **Graph Optimizations**: Transforms models into more efficient versions by folding layers like [batch normalization](https://www.ultralytics.com/glossary/batch-normalization) into preceding layers.
 2. **Quantization Parameter Search**: Minimizes quantization noise using metrics like Mean-Square-Error, No-Clipping, and Mean-Average-Error.

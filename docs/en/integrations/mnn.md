@@ -334,9 +334,7 @@ The following examples run YOLO26 preprocessing, inference, and postprocessing w
 
 ## Summary
 
-This guide showed how to export Ultralytics YOLO26 models to MNN and run inference with MNN. The MNN format is well suited to [edge AI](https://www.ultralytics.com/glossary/edge-ai) applications that [deploy computer vision models on resource-constrained devices](https://www.ultralytics.com/blog/seamlessly-deploy-ultralytics-yolo11-using-the-mnn-integration).
-
-For more information, refer to the [MNN documentation](https://mnn-docs.readthedocs.io/en/latest).
+This guide showed how to export Ultralytics YOLO26 models to MNN and run inference with [MNN](https://mnn-docs.readthedocs.io/en/latest). The MNN format is well suited to [edge AI](https://www.ultralytics.com/glossary/edge-ai) applications that [deploy computer vision models on resource-constrained devices](https://www.ultralytics.com/blog/seamlessly-deploy-ultralytics-yolo11-using-the-mnn-integration).
 
 ## FAQ
 

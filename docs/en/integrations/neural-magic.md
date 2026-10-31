@@ -67,7 +67,7 @@ Check out [Neural Magic's SparseML YOLOv8 documentation](https://github.com/neur
 
 ## Usage: Deploying YOLO26 using DeepSparse
 
-Deploying YOLO26 with Neural Magic's DeepSparse involves a few steps. Before you start, review the range of [models offered by Ultralytics](../models/index.md) to choose the most appropriate one for your project.
+Deploying YOLO26 with Neural Magic's DeepSparse involves a few steps.
 
 ### Step 1: Installation
 
@@ -186,17 +186,17 @@ To convert YOLO26 models to the ONNX format, which is required for compatibility
 yolo detect export model=yolo26n.pt format=onnx opset=13
 ```
 
-This command will export your YOLO26 model (`yolo26n.pt`) to a format (`yolo26n.onnx`) that can be used by the DeepSparse Engine. More information about model export can be found in the [Model Export section](#step-2-exporting-yolo26-to-onnx-format).
+This command will [export your YOLO26 model](#step-2-exporting-yolo26-to-onnx-format) (`yolo26n.pt`) to a format (`yolo26n.onnx`) that can be used by the DeepSparse Engine.
 
 ### How do I benchmark YOLO26 performance on the DeepSparse Engine?
 
-Benchmarking YOLO26 performance on DeepSparse helps you analyze throughput and latency to ensure your model is optimized. You can use the following CLI command to run a benchmark:
+Benchmarking YOLO26 performance on DeepSparse helps you analyze throughput and latency to ensure your model is optimized. You can use the following CLI command to [run a benchmark](#step-4-benchmarking-performance):
 
 ```bash
 deepsparse.benchmark model_path="path/to/yolo26n.onnx" --scenario=sync --input_shapes="[1,3,640,640]"
 ```
 
-This command reports throughput and latency metrics. For more details, see the [Benchmarking Performance section](#step-4-benchmarking-performance).
+This command reports throughput and latency metrics.
 
 ### Why should I use Neural Magic's DeepSparse with YOLO26 for object detection tasks?
 

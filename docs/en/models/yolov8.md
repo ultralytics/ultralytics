@@ -8,7 +8,7 @@ keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer
 
 ## Overview
 
-YOLOv8 was released by Ultralytics on January 10, 2023, offering improved accuracy and speed over previous YOLO versions. Building upon those versions, YOLOv8 introduced new features and optimizations that made it a strong choice for [object detection](https://www.ultralytics.com/glossary/object-detection) and other vision tasks across a wide range of applications. For new projects, Ultralytics recommends [YOLO26](yolo26.md); see [how YOLO26, YOLO11, and YOLOv8 compare](https://www.ultralytics.com/blog/ultralytics-yolo26-vs-yolo11-vs-yolov8-which-one-should-you-use).
+YOLOv8 was released by Ultralytics on January 10, 2023, offering improved accuracy and speed over previous YOLO versions. Building upon those versions, YOLOv8 introduced new features and optimizations that made it a strong choice for [object detection](https://www.ultralytics.com/glossary/object-detection) and other vision tasks across a wide range of applications. For new projects, Ultralytics recommends [YOLO26](yolo26.md).
 
 ![YOLOv8 performance comparison charts](https://cdn.ul.run/i/7dd03f050503e5700d4cf85d6ea7ae3f.avif)
 
@@ -131,7 +131,7 @@ This table summarizes the YOLOv8 model variants, the task each one performs, and
 
 ## YOLOv8 Usage Examples
 
-This example provides simple YOLOv8 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv8 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for object detection. For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) docs.
 

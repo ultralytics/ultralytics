@@ -143,7 +143,7 @@ To contribute, follow the instructions in our contributing guide on how to submi
 
 ### What is Ultralytics Platform, and how does it streamline the ML workflow?
 
-[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform for end-to-end machine learning workflows with Ultralytics models. You can upload and annotate datasets, train models on cloud GPUs, track experiments, and deploy YOLO models without extensive coding. The platform serves as a centralized workspace for your entire ML pipeline, from data preparation to deployment. Explore the key features in the [Ultralytics Platform docs](../platform/index.md) and get started with the [Quickstart](../platform/quickstart.md) guide.
+[Ultralytics Platform](../platform/index.md) is a cloud-based platform for end-to-end machine learning workflows with Ultralytics models. You can upload and annotate datasets, train models on cloud GPUs, track experiments, and deploy YOLO models without extensive coding. The platform serves as a centralized workspace for your entire ML pipeline, from data preparation to deployment.
 
 ### Can I track the performance of my Ultralytics models using MLflow?
 

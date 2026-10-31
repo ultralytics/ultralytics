@@ -57,8 +57,6 @@ After executing this command, visit the [ClearML Settings page](https://app.clea
 
 ## Usage
 
-Before training, review the available [YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) to choose the size and task that fit your project.
-
 !!! example "Usage"
 
     === "Python"

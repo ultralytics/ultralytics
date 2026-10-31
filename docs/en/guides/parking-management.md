@@ -155,8 +155,8 @@ Using Ultralytics YOLO26 for [smart parking](https://www.ultralytics.com/blog/ul
 Defining parking spaces is straightforward with Ultralytics YOLO26:
 
 1. Capture a frame from a video or camera stream.
-2. Use the provided code to launch a GUI for selecting an image and drawing polygons to define parking spaces.
-3. Save the labeled data in JSON format for further processing. For step-by-step instructions, see the [parking management code workflow](#parking-management-system-code-workflow).
+2. Use the [provided code](#parking-management-system-code-workflow) to launch a GUI for selecting an image and drawing polygons to define parking spaces.
+3. Save the labeled data in JSON format for further processing.
 
 ### How do I customize the ParkingManagement solution for my parking lot?
 

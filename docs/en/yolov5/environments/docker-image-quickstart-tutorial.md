@@ -142,7 +142,7 @@ python export.py --weights yolov5s.pt --include onnx coreml tflite # Export mode
 
 See the [Train Custom Data](../tutorials/train-custom-data.md) and [Model Export](../tutorials/model-export.md) tutorials for detailed usage.
 
-Learn more about evaluation metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). Understand different export formats like [ONNX](../../integrations/onnx.md), [CoreML](../../integrations/coreml.md), and [TFLite](../../integrations/litert.md), and explore the available [Model Deployment Options](../../guides/model-deployment-options.md).
+`val.py` reports [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map), and `export.py` writes formats such as [ONNX](../../integrations/onnx.md), [CoreML](../../integrations/coreml.md), and [TFLite](../../integrations/litert.md) for your chosen [deployment option](../../guides/model-deployment-options.md).
 
 <p align="center"><img width="1000" src="https://cdn.ul.run/i/3d3f5576bad0b4a2ea37db62f9d020f8.avif" alt="Running YOLOv5 inside a Docker container on GCP"></p>
 

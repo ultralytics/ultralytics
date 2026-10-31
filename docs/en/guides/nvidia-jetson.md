@@ -36,7 +36,7 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 
 ## NVIDIA Jetson Series Comparison
 
-[NVIDIA Jetson AGX Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/) is the latest iteration of the NVIDIA Jetson family based on the NVIDIA Blackwell architecture, which delivers significantly higher AI performance than previous generations. The table below compares a few of the Jetson devices in the ecosystem.
+[NVIDIA Jetson AGX Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/) is the latest iteration of the NVIDIA Jetson family based on the NVIDIA Blackwell architecture, which delivers significantly higher AI performance than previous generations. The table below compares a few of the [Jetson devices](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems) in the ecosystem.
 
 |                   | Jetson AGX Thor (T5000)                                          | Jetson AGX Orin 64GB                                             | Jetson Orin NX 16GB                                             | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                             | Jetson Nano                                 |
 | ----------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
@@ -46,8 +46,6 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 | CPU               | 14-core Arm® Neoverse®-V3AE 64-bit CPU 1MB L2 + 16MB L3          | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3   | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3    | 6-core NVIDIA Carmel Arm®v8.2 64-bit CPU 6MB L2 + 4MB L3     | Quad-Core Arm® Cortex®-A57 MPCore processor |
 | CPU Max Frequency | 2.6 GHz                                                          | 2.2 GHz                                                          | 2.0 GHz                                                         | 1.7 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                      | 1.43GHz                                     |
 | Memory            | 128GB 256-bit LPDDR5X 273GB/s                                    | 64GB 256-bit LPDDR5 204.8GB/s                                    | 16GB 128-bit LPDDR5 102.4GB/s                                   | 8GB 128-bit LPDDR5 102 GB/s                                   | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                 | 4GB 64-bit LPDDR4 25.6GB/s                  |
-
-For a more detailed comparison table, visit the **Compare Specifications** section of the [official NVIDIA Jetson page](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems).
 
 ## What is NVIDIA JetPack?
 
@@ -346,10 +344,6 @@ The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model
         # Run inference with the exported model
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
-
-!!! note
-
-    Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats.
 
 ### Use NVIDIA Deep Learning Accelerator (DLA)
 
@@ -971,7 +965,7 @@ For further learning and support, see the [Ultralytics YOLO26 Docs](../index.md)
 
 ### How do I deploy Ultralytics YOLO26 on NVIDIA Jetson devices?
 
-To deploy Ultralytics YOLO26 on NVIDIA Jetson devices, first flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach are in the [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation) sections.
+To deploy Ultralytics YOLO26 on NVIDIA Jetson devices, first flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a [pre-built Docker image](#quick-start-with-docker) for quick setup or [manually install the required packages](#start-with-native-installation).
 
 ### What performance benchmarks can I expect from YOLO26 models on NVIDIA Jetson devices?
 

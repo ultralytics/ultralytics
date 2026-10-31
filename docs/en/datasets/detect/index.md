@@ -413,8 +413,6 @@ To start training a YOLO26 model, ensure your dataset is formatted correctly and
         yolo detect train data=path/to/your_dataset.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
-Refer to the [Usage](#usage-example) section for more details on using different modes, including CLI commands.
-
 ### Where can I find practical examples of using Ultralytics YOLO for object detection?
 
-Ultralytics provides many examples and practical guides for using YOLO in diverse applications. Start with the [object detection tutorial](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-object-detection), or visit the [Ultralytics Blog](https://www.ultralytics.com/blog) for case studies, detailed tutorials, and community stories covering object detection, segmentation, and more. For specific examples, check the [Predict mode](../../modes/predict.md) page in the documentation.
+Ultralytics provides many examples and practical guides for using YOLO in diverse applications. Visit the [Ultralytics Blog](https://www.ultralytics.com/blog) for case studies, detailed tutorials, and community stories covering object detection, segmentation, and more. For specific examples, check the [Predict mode](../../modes/predict.md) page in the documentation.

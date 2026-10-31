@@ -110,7 +110,7 @@ If you'd like to dive deeper into Google Colab, here are a few resources to guid
 
 ## Summary
 
-This guide showed how to experiment with Ultralytics YOLO26 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks, making it an accessible platform for developers without high-end hardware.
+This guide showed how to experiment with Ultralytics YOLO26 models on Google Colab. Like [Kaggle](kaggle.md) and Ultralytics Platform [cloud training](../platform/train/cloud-training.md), Google Colab lets you train and evaluate your models on cloud GPUs with a few clicks, making it an accessible platform for developers without high-end hardware.
 
 For more details, visit [Google Colab's FAQ page](https://research.google.com/colaboratory/faq.html).
 

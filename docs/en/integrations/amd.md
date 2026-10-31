@@ -126,13 +126,11 @@ MIGraphX inference uses the standard [ONNX export](onnx.md). Export the model to
 
 ### Supported Tasks
 
-MIGraphX inference supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+MIGraphX inference supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26), the only family that ships those heads.
 
 {% include "macros/supported-tasks.md" %}
 
 ### Usage
-
-Before exporting, review the available [YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) to choose the size and task that fit your accuracy and latency requirements.
 
 The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation on an AMD GPU require a ROCm system with the MIGraphX plugin installed. Export your model, then load the exported model to run inference or validate its accuracy on `device=0`.
 
@@ -235,7 +233,7 @@ For a ready-to-run environment, [`Dockerfile-amd`](https://github.com/ultralytic
 
 ## Benchmarks
 
-YOLO26 benchmarks below were run by the Ultralytics team on an AMD Radeon 8060S GPU (Ryzen AI Max+ PRO 395), comparing speed and accuracy between PyTorch and ONNX on the MIGraphX execution provider. Both formats run at FP32 precision on the GPU, PyTorch through ROCm and ONNX through MIGraphX. For results on other hardware, see the official [Ultralytics YOLO26 benchmarks](https://www.ultralytics.com/benchmarks).
+YOLO26 [benchmarks](../modes/benchmark.md) below were run by the Ultralytics team on an AMD Radeon 8060S GPU (Ryzen AI Max+ PRO 395), comparing speed and accuracy between PyTorch and ONNX on the MIGraphX execution provider. Both formats run at FP32 precision on the GPU, PyTorch through ROCm and ONNX through MIGraphX.
 
 !!! tip "Performance"
 
@@ -375,8 +373,6 @@ Support for one AMD product or runtime does not imply support for every AMD acce
 ## Summary
 
 In this guide, you learned how to train Ultralytics YOLO26 models on AMD GPUs with PyTorch ROCm using the standard `device=0` argument, then export them to ONNX for accelerated inference through the ONNX Runtime MIGraphX execution provider. The ONNX backend selects `MIGraphXExecutionProvider` automatically, caches the compiled program for fast subsequent loads, and supports all YOLO26 tasks with no code changes.
-
-For other deployment targets, browse the [integration guide page](../integrations/index.md), and compare export formats with [Benchmark mode](../modes/benchmark.md).
 
 ## FAQ
 

@@ -101,7 +101,7 @@ To get started, please read our [Contributing Guide](../help/contributing.md) fo
 
 ### How do I train a custom object detection model using Ultralytics YOLO?
 
-Training a custom object detection model with Ultralytics YOLO is straightforward. Start by preparing your dataset in the correct format and installing the Ultralytics package. Use the following code to initiate training:
+Training a custom object detection model with Ultralytics YOLO is straightforward. Start by preparing your dataset in the [correct format](../datasets/detect/index.md) and installing the Ultralytics package. Use the following code to initiate training:
 
 !!! example
 
@@ -120,15 +120,13 @@ Training a custom object detection model with Ultralytics YOLO is straightforwar
         yolo detect train model=yolo26n.pt data=path/to/dataset.yaml epochs=50
         ```
 
-For dataset formatting, see the [detection dataset guide](../datasets/detect/index.md); for additional training options, refer to our [Tips for Model Training](model-training-tips.md) guide.
-
 ### What performance metrics should I use to evaluate my YOLO model?
 
 Evaluating your YOLO model performance is crucial to understanding its efficacy. Key metrics include [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP), [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), and F1 score. These metrics help assess the accuracy and [precision](https://www.ultralytics.com/glossary/precision) of object detection tasks. You can learn more about these metrics and how to improve your model in our [YOLO Performance Metrics](yolo-performance-metrics.md) guide.
 
 ### Why should I use Ultralytics Platform for my computer vision projects?
 
-Ultralytics Platform is an end-to-end, no-code workspace for dataset annotation, experiment tracking, cloud training, export, and dedicated inference endpoints for YOLO models, suited to both beginners and professionals. Learn more about its features in the [Ultralytics Platform](../platform/index.md) quickstart guide.
+[Ultralytics Platform](../platform/index.md) is an end-to-end, no-code workspace for dataset annotation, experiment tracking, cloud training, export, and dedicated inference endpoints for YOLO models, suited to both beginners and professionals.
 
 ### What are the common issues faced during YOLO model training, and how can I resolve them?
 

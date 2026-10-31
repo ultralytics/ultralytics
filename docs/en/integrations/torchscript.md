@@ -179,8 +179,6 @@ This guide covered exporting Ultralytics YOLO26 models to the TorchScript format
 
 For further details on usage, visit [TorchScript's official documentation](https://docs.pytorch.org/docs/stable/jit.html).
 
-To learn about other Ultralytics YOLO26 integrations, visit the [integrations overview](index.md).
-
 ## FAQ
 
 ### What is Ultralytics YOLO26 model export to TorchScript?
@@ -256,5 +254,3 @@ After exporting YOLO26 models to the TorchScript format, you can deploy them acr
 - **C++ API**: Use [LibTorch](https://docs.pytorch.org/cppdocs/) for low-overhead, highly efficient production environments.
 - **Mobile Deployment**: Use [ExecuTorch](executorch.md), PyTorch's supported replacement with a separate `.pte` export pipeline.
 - **Cloud Deployment**: Use services like [TorchServe](https://docs.pytorch.org/serve/getting_started.html) for scalable server-side deployment.
-
-See the resources in [Deploying Exported YOLO26 TorchScript Models](#deploying-exported-yolo26-torchscript-models) for step-by-step deployment guidance.

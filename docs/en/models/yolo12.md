@@ -86,7 +86,7 @@ YOLO12 improves [accuracy](https://www.ultralytics.com/glossary/accuracy) at all
 
 ## Usage Examples
 
-This section provides examples for training and inference with YOLO12. For full documentation on these and other modes, see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) pages.
+This section provides examples for [training](../modes/train.md) and [inference](../modes/predict.md) with YOLO12.
 
 The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for object detection). For other supported tasks (segmentation, classification, pose estimation, and oriented object detection), refer to the respective task-specific documentation: [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md).
 
@@ -185,7 +185,7 @@ YOLO12 incorporates several key innovations to balance speed and accuracy. The A
 
 ### What computer vision tasks does YOLO12 support?
 
-YOLO12 supports a wide range of core [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks: object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented object detection (OBB)](../tasks/obb.md). This makes YOLO12 applicable to diverse fields, from [robotics](https://www.ultralytics.com/glossary/robotics) and autonomous driving to medical imaging and industrial inspection; see [YOLO12's real-world applications](https://www.ultralytics.com/blog/yolo12-explained-real-world-applications-and-use-cases) for examples. Note that pretrained `.pt` weights are currently published for detection only; the segmentation, pose, classification, and OBB architectures are provided as `.yaml` configs for training from scratch.
+YOLO12 supports a wide range of core [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks: object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented object detection (OBB)](../tasks/obb.md). This makes YOLO12 applicable to [diverse fields](https://www.ultralytics.com/blog/yolo12-explained-real-world-applications-and-use-cases), from [robotics](https://www.ultralytics.com/glossary/robotics) and autonomous driving to medical imaging and industrial inspection. Note that pretrained `.pt` weights are currently published for detection only; the segmentation, pose, classification, and OBB architectures are provided as `.yaml` configs for training from scratch.
 
 ### How does YOLO12 compare to other YOLO models and competitors like RT-DETR?
 
@@ -197,4 +197,4 @@ By default, the Ultralytics YOLO12 implementation does _not_ require FlashAttent
 
 ### Where can I find usage examples and more detailed documentation for YOLO12?
 
-This page provides basic [usage examples](#usage-examples) for training and inference. For comprehensive documentation on these and other modes, see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) pages. For task-specific information, refer to the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) documentation.
+This page provides basic [usage examples](#usage-examples) for training and inference. YOLO12 uses the same [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) modes and [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) task interfaces as other Ultralytics models.

@@ -22,10 +22,6 @@ keywords: Ultralytics YOLO26, speed estimation, object tracking, vehicle speed, 
   <strong>Watch:</strong> Speed Estimation using Ultralytics YOLO26
 </p>
 
-!!! tip "Check Out Our Blog"
-
-    For deeper insights into speed estimation, check out our blog post: [Ultralytics YOLO for Speed Estimation in Computer Vision Projects](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects).
-
 ## Advantages of Speed Estimation
 
 - **Efficient Traffic Control:** Accurate speed estimation aids in managing traffic flow, enhancing safety, and reducing congestion on roadways.
@@ -156,5 +152,3 @@ Learn more about exporting models in our [guide on export](../modes/export.md).
 The [accuracy](https://www.ultralytics.com/glossary/accuracy) of speed estimation using Ultralytics YOLO26 depends on several factors, including the quality of the object tracking, the resolution and frame rate of the video, and environmental variables. While the speed estimator provides reliable estimates, it may not be 100% accurate due to variances in frame processing speed and object occlusion.
 
 **Note**: Always consider margin of error and validate the estimates with ground truth data when possible.
-
-For tuning options such as `meter_per_pixel` and `max_hist`, see the [`SpeedEstimator` Arguments](#speedestimator-arguments) section.

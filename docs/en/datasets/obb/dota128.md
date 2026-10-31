@@ -98,7 +98,7 @@ We thank the team behind the DOTA datasets for curating them. For full details o
 
 ### What is the DOTA128 dataset and how can it be used?
 
-The DOTA128 dataset is an oriented object detection dataset made up of 128 images from the DOTAv1 set, all stored in the train folder. Both training and validation use the same set of images, making it ideal for quickly testing and debugging OBB models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before training on larger datasets. Learn more about [OBB detection](../../tasks/obb.md) with Ultralytics YOLO26.
+The DOTA128 dataset is an [oriented object detection](../../tasks/obb.md) dataset made up of 128 images from the DOTAv1 set, all stored in the train folder. Both training and validation use the same set of images, making it ideal for quickly testing and debugging OBB models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before training on larger datasets.
 
 ### How do I train a YOLO26 model using the DOTA128 dataset?
 
@@ -145,4 +145,4 @@ DOTA128 provides a good middle ground, offering more diversity than DOTA8 while 
 
 ### Why should I use Ultralytics YOLO26 for oriented object detection tasks?
 
-Ultralytics YOLO26 supports real-time oriented bounding box (OBB) detection alongside other tasks such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), all through one training pipeline. Its pretrained OBB models make [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) on aerial data efficient. Learn more in the [Ultralytics YOLO26 documentation](../../models/yolo26.md).
+[Ultralytics YOLO26](../../models/yolo26.md) supports real-time oriented bounding box (OBB) detection alongside other tasks such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), all through one training pipeline. Its pretrained OBB models make [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) on aerial data efficient.

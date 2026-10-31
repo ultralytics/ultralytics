@@ -252,7 +252,7 @@ python utils/loggers/comet/hpo.py \
 
 ## Visualizing Results
 
-Comet provides a number of ways to visualize the results of your sweep. Take a look at an [example project with a completed sweep](https://www.comet.com/examples/comet-example-yolov5/view/PrlArHGuuhDTKC1UuBmTtOSXD/panels?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github).
+Comet provides a number of ways to [visualize the results of your sweep](https://www.comet.com/examples/comet-example-yolov5/view/PrlArHGuuhDTKC1UuBmTtOSXD/panels?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github).
 
 ![Comet Hyperparameter Visualization](https://cdn.ul.run/i/9d78fed3421a57006224ecd94dcd5696.avif)
 

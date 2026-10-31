@@ -7,7 +7,7 @@ keywords: Ultralytics, callbacks, training, validation, export, prediction, ML m
 
 # Callbacks
 
-The Ultralytics framework supports [callbacks](https://www.ultralytics.com/glossary/callback), which serve as entry points at key stages of the `train`, `val`, `predict`, and `export` modes. Each callback accepts a `Trainer`, `Validator`, `Predictor`, or `Exporter` object, depending on the operation type. All properties of these objects are detailed in the [`BaseTrainer`](../reference/engine/trainer.md), [`BaseValidator`](../reference/engine/validator.md), [`BasePredictor`](../reference/engine/predictor.md), and [`Exporter`](../reference/engine/exporter.md) reference pages.
+The Ultralytics framework supports [callbacks](https://www.ultralytics.com/glossary/callback), which serve as entry points at key stages of the `train`, `val`, `predict`, and `export` modes. Each callback accepts a [`Trainer`](../reference/engine/trainer.md), [`Validator`](../reference/engine/validator.md), [`Predictor`](../reference/engine/predictor.md), or [`Exporter`](../reference/engine/exporter.md) object, depending on the operation type.
 
 <p align="center">
   <br>
@@ -174,7 +174,7 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 
 ### What are Ultralytics callbacks and how can I use them?
 
-Ultralytics callbacks are entry points that are triggered during key stages of model operations such as training, validation, prediction, and export. They let you add custom functionality at specific points in the process without modifying the library. Each callback accepts a `Trainer`, `Validator`, `Predictor`, or `Exporter` object, depending on the operation type. For detailed properties of these objects, refer to the [`BaseTrainer`](../reference/engine/trainer.md), [`BaseValidator`](../reference/engine/validator.md), [`BasePredictor`](../reference/engine/predictor.md), and [`Exporter`](../reference/engine/exporter.md) reference pages.
+Ultralytics callbacks are entry points that are triggered during key stages of model operations such as training, validation, prediction, and export. They let you add custom functionality at specific points in the process without modifying the library. Each callback accepts a [`Trainer`](../reference/engine/trainer.md), [`Validator`](../reference/engine/validator.md), [`Predictor`](../reference/engine/predictor.md), or [`Exporter`](../reference/engine/exporter.md) object, depending on the operation type.
 
 To use a callback, define a function and add it to the model using the [`model.add_callback()`](../reference/engine/model.md#ultralytics.engine.model.Model.add_callback) method. Here is an example of returning additional information during prediction:
 

@@ -41,11 +41,11 @@ Please remember that the implementation of an effective EHS policy requires the 
 
 ### What is Ultralytics' Environmental, Health, and Safety (EHS) policy?
 
-Ultralytics' Environmental, Health, and Safety (EHS) policy is a comprehensive framework designed to ensure the safety and well-being of employees, stakeholders, and the environment. It emphasizes compliance with relevant laws, accident prevention through risk management, continuous improvement through measurable objectives, open communication, and education and training for employees. By following these principles, Ultralytics aims to minimize its environmental footprint and promote sustainable practices. Learn more [about Ultralytics](https://www.ultralytics.com/about).
+Ultralytics' Environmental, Health, and Safety (EHS) policy is a comprehensive framework designed to ensure the safety and well-being of employees, stakeholders, and the environment. It emphasizes compliance with relevant laws, accident prevention through risk management, continuous improvement through measurable objectives, open communication, and education and training for employees. By following these principles, [Ultralytics](https://www.ultralytics.com/about) aims to minimize its environmental footprint and promote sustainable practices.
 
 ### How does Ultralytics ensure compliance with EHS regulations?
 
-Ultralytics ensures compliance with EHS regulations by adhering to all applicable laws, regulations, and standards. The company not only strives to meet these requirements but also to exceed them where possible. Regular audits, monitoring, and reviews are conducted to ensure ongoing compliance. Managers and supervisors are also accountable for ensuring these standards are maintained within their areas of control. For more details, see the [Policy Principles](#policy-principles) section.
+Ultralytics ensures compliance with EHS regulations by [adhering to all applicable laws, regulations, and standards](#policy-principles). The company not only strives to meet these requirements but also to exceed them where possible. Regular audits, monitoring, and reviews are conducted to ensure ongoing compliance. Managers and supervisors are also accountable for ensuring these standards are maintained within their areas of control.
 
 ### Why is continuous improvement a key principle in Ultralytics' EHS policy?
 

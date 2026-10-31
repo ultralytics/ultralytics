@@ -41,7 +41,7 @@ Once your pipeline trains cleanly on this small set, swap in your own animal or 
 
 ## Dataset YAML
 
-A YAML file defines the dataset configuration, including file paths, class definitions, and keypoint settings. For the `tiger-pose.yaml` file, see the [Ultralytics Tiger-Pose Dataset Configuration File](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml).
+The [`tiger-pose.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml) file defines the dataset configuration, including file paths, class definitions, and keypoint settings.
 
 !!! example "ultralytics/cfg/datasets/tiger-pose.yaml"
 

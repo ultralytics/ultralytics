@@ -55,8 +55,6 @@ When using [Google Colab](google-colab.md), set up TensorBoard before starting y
 
 ## Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](https://platform.ultralytics.com/ultralytics/yolo26). This will help you choose the most appropriate model for your project requirements.
-
 !!! tip "Enable or Disable TensorBoard"
 
     By default, TensorBoard logging is disabled. You can enable or disable the logging by using the `yolo settings` command.
@@ -221,4 +219,4 @@ Yes, you can use TensorBoard in a Google Colab environment to train YOLO26 model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
-TensorBoard will visualize the training progress within Colab, providing real-time insights into metrics like loss and accuracy. For installation details, see the [YOLO26 Installation guide](../quickstart.md).
+TensorBoard will visualize the training progress within Colab, providing real-time insights into metrics like loss and accuracy.

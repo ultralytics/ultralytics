@@ -17,7 +17,7 @@ Integrating DVCLive with [Ultralytics YOLO26](../models/yolo26.md) automatically
   <img width="640" src="https://cdn.ul.run/i/51f227a2cf9c3008135aa0c7cfeaec95.avif" alt="DVCLive experiment tracking integration">
 </p>
 
-[DVCLive](https://doc.dvc.org/dvclive), developed by DVC, is an open-source tool for [experiment tracking](https://www.ultralytics.com/blog/experiment-tracking-with-ultralytics-yolo11-and-dvc) in machine learning. It works with Git and DVC to automate the logging of experiment data like model parameters and training metrics, and makes it easy to compare and analyze multiple runs with [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis tools.
+[DVCLive](https://doc.dvc.org/dvclive), developed by DVC, is an open-source tool for experiment tracking in machine learning. It works with Git and DVC to [automate the logging of experiment data](https://www.ultralytics.com/blog/experiment-tracking-with-ultralytics-yolo11-and-dvc) like model parameters and training metrics, and makes it easy to compare and analyze multiple runs with [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis tools.
 
 ## YOLO26 Training with DVCLive
 
@@ -66,8 +66,6 @@ Begin by initializing a Git repository, as Git plays a crucial role in version c
 In these commands, ensure you replace `your-email` with the email address associated with your Git account, and "Your Name" with your Git account username.
 
 ## Usage
-
-Before training, review the available [YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) to choose the size and task that fit your project.
 
 ### Training YOLO26 Models with DVCLive
 
@@ -251,7 +249,7 @@ To configure your environment for a smooth integration of DVCLive and YOLO26, fo
 3. **Initialize DVC**: Execute `dvc init -q`.
 4. **Commit to Git**: Use `git commit -m "DVC init"`.
 
-These steps ensure proper version control and setup for experiment tracking. For installation details, visit the [Quickstart guide](../quickstart.md).
+These steps ensure proper version control and setup for experiment tracking.
 
 ### How do I visualize YOLO26 experiment results using DVCLive?
 

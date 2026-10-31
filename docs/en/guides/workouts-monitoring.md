@@ -149,8 +149,6 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-For further customization and settings, refer to the [`AIGym` Arguments](#aigym-arguments) section.
-
 ### What are the benefits of using Ultralytics YOLO26 for workout monitoring?
 
 Using Ultralytics YOLO26 for workout monitoring provides several key benefits:
@@ -165,11 +163,11 @@ You can watch a [YouTube video demonstration](https://www.youtube.com/watch?v=LG
 
 ### How accurate is Ultralytics YOLO26 in detecting and tracking exercises?
 
-Ultralytics YOLO26 pose models accurately track key body landmarks and joints in real time, providing reliable feedback on exercise form and repetition counts. In practice, accuracy also depends on camera angle, lighting, occlusion, and choosing suitable `kpts`, `up_angle`, and `down_angle` values for each exercise. To see how pose-based tracking supports fitness applications, read about [smart fitness technology with Ultralytics YOLO](https://www.ultralytics.com/blog/smart-fitness-technology-enabled-by-ultralytics-yolo11). For real-world examples, check out the [real-world applications](#real-world-applications) section, which showcases push-up and pull-up counting.
+Ultralytics YOLO26 pose models accurately track key body landmarks and joints in real time, providing reliable feedback on exercise form and [repetition counts](#real-world-applications). In practice, accuracy also depends on camera angle, lighting, occlusion, and choosing suitable `kpts`, `up_angle`, and `down_angle` values for each exercise.
 
 ### Can I use Ultralytics YOLO26 for custom workout routines?
 
-Yes, Ultralytics YOLO26 can be adapted for custom workout routines. The `AIGym` class detects exercise repetitions using the `up_angle`, `down_angle`, and `kpts` arguments. You can specify keypoints and angles to detect specific exercises. Here is an example setup:
+Yes, Ultralytics YOLO26 can be adapted for custom workout routines. The `AIGym` class detects exercise repetitions using the `up_angle`, `down_angle`, and `kpts` [arguments](#aigym-arguments). You can specify keypoints and angles to detect specific exercises. Here is an example setup:
 
 ```python
 from ultralytics import solutions
@@ -181,7 +179,7 @@ gym = solutions.AIGym(
 )
 ```
 
-For more details on setting arguments, refer to the [`AIGym` Arguments](#aigym-arguments) section. This flexibility allows you to monitor various exercises and customize routines based on your fitness goals.
+This flexibility allows you to monitor various exercises and customize routines based on your fitness goals.
 
 ### How can I save the workout monitoring output using Ultralytics YOLO26?
 

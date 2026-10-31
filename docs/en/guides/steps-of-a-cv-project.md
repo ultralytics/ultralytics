@@ -169,7 +169,7 @@ For more detailed guidance on deployment strategies and best practices, check ou
 
 Once your model is deployed, it's important to continuously monitor its performance, maintain it to handle any issues, and document the entire process for future reference and improvements.
 
-Monitoring tools can help you track key performance indicators (KPIs) and detect anomalies or drops in accuracy. By monitoring the model, you can be aware of model drift, where the model's performance declines over time due to [changes in the input data](https://www.ultralytics.com/glossary/data-drift). Periodically retrain the model with updated data to maintain accuracy and relevance. For common post-launch pitfalls, see [why computer vision models fail in production](https://www.ultralytics.com/blog/5-reasons-why-computer-vision-models-fail-in-production).
+Monitoring tools can help you track key performance indicators (KPIs) and detect anomalies or drops in accuracy. By monitoring the model, you can be aware of model drift, where the model's performance declines over time due to [changes in the input data](https://www.ultralytics.com/glossary/data-drift). Periodically retrain the model with updated data to maintain accuracy and relevance.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/1eb070b8f975068d5805d971f3487c11.avif" alt="Model monitoring and maintenance lifecycle">
@@ -185,10 +185,6 @@ Connecting with a community of computer vision enthusiasts can help you tackle a
 
 - **GitHub Issues:** Check out the [YOLO26 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to interact with other users and developers, get support, and share insights.
-
-### Official Documentation
-
-- **Ultralytics YOLO26 Documentation:** Explore the [official YOLO26 documentation](../index.md) for detailed guides with helpful tips on different computer vision tasks and projects.
 
 Using these resources will help you overcome challenges and stay updated with the latest trends and best practices in the computer vision community.
 

@@ -8,7 +8,7 @@ title: Weights & Biases Model Import - Ultralytics Platform
 
 # Weights & Biases Integration
 
-Import YOLO `best.pt` checkpoints from [Weights & Biases (W&B)](https://www.ultralytics.com/glossary/weights-biases) into [Ultralytics Platform](https://platform.ultralytics.com). Imported checkpoints become regular [Platform models](../train/models.md), ready to inspect, predict, export, or deploy. For a walkthrough, see [importing YOLO models from W&B into Ultralytics Platform](https://www.ultralytics.com/blog/migrate-yolo-models-from-wandb).
+[Import YOLO `best.pt` checkpoints](https://www.ultralytics.com/blog/migrate-yolo-models-from-wandb) from [Weights & Biases (W&B)](https://www.ultralytics.com/glossary/weights-biases) into [Ultralytics Platform](https://platform.ultralytics.com). Imported checkpoints become regular [Platform models](../train/models.md), ready to inspect, predict, export, or deploy.
 
 To log new training runs to W&B, see the [YOLO experiment tracking guide](../../integrations/weights-biases.md).
 

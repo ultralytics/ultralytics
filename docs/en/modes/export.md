@@ -34,7 +34,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-mode
 
 ## Usage Examples
 
-Export a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model to a different format like ONNX or TensorRT. See the [Arguments](#arguments) section below for a full list of export arguments.
+Export a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model to a different format like ONNX or TensorRT.
 
 !!! example
 

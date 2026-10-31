@@ -178,8 +178,6 @@ In this guide, we explored how to export Ultralytics YOLO26 models to the TF Gra
 
 For further details on usage, visit the [TF GraphDef official documentation](https://www.tensorflow.org/api_docs/python/tf/Graph).
 
-For more information on integrating Ultralytics YOLO26 with other platforms and frameworks, see our [integration guide page](index.md).
-
 ## FAQ
 
 ### How do I export a YOLO26 model to TF GraphDef format?

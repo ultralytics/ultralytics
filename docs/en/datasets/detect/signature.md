@@ -78,7 +78,7 @@ To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n
         yolo detect train data=signature.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
-Once trained, you can run [inference](../../modes/predict.md) on documents or video with the fine-tuned model, or try the ready-made [document signature detection model](https://platform.ultralytics.com/ultralytics/solutions/document-signature-detection-yolo26n) on Ultralytics Platform. The example below runs prediction on a sample video with a confidence threshold of 0.75:
+Once trained, you can run [inference](../../modes/predict.md) on documents or video with the fine-tuned model. The example below runs prediction on a sample video with a confidence threshold of 0.75:
 
 !!! example "Inference Example"
 
@@ -133,7 +133,7 @@ If you use the Signature Detection Dataset in your research or development work,
 
 ### What is the Signature Detection Dataset used for?
 
-The Signature Detection Dataset is a collection of 178 annotated document images for training models to detect handwritten signatures. It supports document verification, fraud detection, and archival research, and is a practical base for building [smart document analysis](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-smart-document-analysis) systems with [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml).
+The Signature Detection Dataset is a collection of 178 annotated document images for training models to [detect handwritten signatures](https://platform.ultralytics.com/ultralytics/solutions/document-signature-detection-yolo26n). It supports document verification, fraud detection, and archival research, and is a practical base for building [smart document analysis](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-smart-document-analysis) systems with [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml).
 
 ### How do I download the Signature Detection Dataset?
 

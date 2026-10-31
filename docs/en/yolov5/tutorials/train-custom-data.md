@@ -138,7 +138,7 @@ The recommended directory structure is:
 
 ## 2. Select a Model
 
-Choose a [pretrained model](../../models/index.md) to initiate the training process. Starting with pretrained weights significantly accelerates learning and improves performance compared to training from scratch. YOLOv5 offers various model sizes, each balancing speed and accuracy differently. For example, [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml) is the second-smallest and second-fastest model, suitable for resource-constrained environments. Consult the [README table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a detailed comparison of all available models.
+Choose a [pretrained model](../../models/index.md) to initiate the training process. Starting with pretrained weights significantly accelerates learning and improves performance compared to training from scratch. YOLOv5 offers [various model sizes](https://github.com/ultralytics/yolov5#pretrained-checkpoints), each balancing speed and accuracy differently. For example, [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml) is the second-smallest and second-fastest model, suitable for resource-constrained environments.
 
 <p align="center"><img width="800" alt="Comparison chart of YOLOv5 models showing size, speed, and accuracy" src="https://cdn.ul.run/i/d41839d4750825bc166761e37782ab31.avif"></p>
 
@@ -185,7 +185,7 @@ export COMET_API_KEY=YOUR_API_KEY_HERE                                        # 
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt # 3. Train your model - Comet automatically logs everything!
 ```
 
-Dive deeper into the supported features in our [YOLOv5 Comet guide](comet-logging-integration.md). Learn more about Comet's capabilities from their official [documentation](https://bit.ly/yolov5-colab-comet-docs). Try the Comet Colab Notebook for a live demo: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)
+Learn more about Comet's capabilities from their official [documentation](https://bit.ly/yolov5-colab-comet-docs). Try the Comet Colab Notebook for a live demo: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)
 
 <img width="1920" alt="Comet UI showing YOLOv5 training metrics and visualizations" src="https://cdn.ul.run/i/1e8e86c44786988ad132d37dc01c7c01.avif">
 
@@ -196,7 +196,7 @@ Dive deeper into the supported features in our [YOLOv5 Comet guide](comet-loggin
 - Install the package: `pip install clearml`
 - Initialize ClearML: Run `clearml-init` once to connect to your ClearML server (either self-hosted or the [free tier](https://clear.ml/)).
 
-ClearML automatically captures experiment details, model uploads, comparisons, uncommitted code changes, and installed packages, ensuring full reproducibility. You can schedule training tasks on remote agents and manage dataset versions using ClearML Data. Explore the [YOLOv5 ClearML guide](clearml-logging-integration.md) for details.
+ClearML automatically captures experiment details, model uploads, comparisons, uncommitted code changes, and installed packages, ensuring full reproducibility. You can [schedule training tasks on remote agents](clearml-logging-integration.md#remote-execution-advanced) and manage dataset versions using ClearML Data.
 
 <a href="https://clear.ml/">
 <img alt="ClearML experiment management UI for YOLOv5" src="https://cdn.ul.run/i/7ab2511e18fbad3150d5ae8e9df4d4c4.avif" width="1280"></a>

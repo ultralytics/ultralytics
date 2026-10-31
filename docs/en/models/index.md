@@ -6,7 +6,7 @@ keywords: Ultralytics, supported models, YOLO27, YOLO26, YOLO12, YOLO11, YOLOv10
 
 # Models Supported by Ultralytics
 
-Ultralytics supports a wide range of models, each tailored to specific tasks such as [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding boxes](../tasks/obb.md). To add your own model architecture to Ultralytics, see [Contributing New Models](#contributing-new-models).
+Ultralytics supports a wide range of models, each tailored to specific tasks such as [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding boxes](../tasks/obb.md).
 
 ![Ultralytics YOLO26 Comparison Plots](https://cdn.ul.run/i/1b042c1a3e984e8d2eb58c2af3c53965.avif)
 
@@ -60,7 +60,7 @@ The table lists released models and architecture references with their tasks, su
 
 ## Getting Started: Usage Examples
 
-The examples below show simple YOLO training and inference. For full documentation on these and other modes, see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md) and [Export](../modes/export.md) pages.
+The examples below show simple YOLO [training](../modes/train.md) and [inference](../modes/predict.md).
 
 The example below uses the COCO-pretrained [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model for [object detection](https://www.ultralytics.com/glossary/object-detection) and trains it on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset. The same API applies to the Segment, Semantic, Depth, Classify, Pose and OBB tasks listed above.
 
@@ -114,13 +114,11 @@ Ultralytics welcomes new model contributions. To add a model:
 
 6. **Code Review & Merging**: After review, if your model meets our criteria, it will be merged into the main repository.
 
-For detailed steps, consult the Contributing Guide.
-
 ## FAQ
 
 ### What is the latest Ultralytics YOLO model?
 
-The latest released Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features optional NMS-free end-to-end inference, optimized edge deployment, and supports detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and OBB, plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are recommended choices; see [how to choose between YOLO26, YOLO11 and YOLOv8](https://www.ultralytics.com/blog/ultralytics-yolo26-vs-yolo11-vs-yolov8-which-one-should-you-use).
+The latest released Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features optional NMS-free end-to-end inference, optimized edge deployment, and supports detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and OBB, plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are [recommended choices](https://www.ultralytics.com/blog/ultralytics-yolo26-vs-yolo11-vs-yolov8-which-one-should-you-use).
 
 [YOLO27](yolo27.md) is the upcoming family, currently in final R&D. It is not yet available and has no set launch date.
 

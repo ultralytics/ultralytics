@@ -33,7 +33,7 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 !!! tip "SAM on Ultralytics Platform"
 
-    SAM-family models (SAM 2.1, SAM 3, and SAM 3.1) power the [smart annotation feature](https://www.ultralytics.com/annotate) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based masking for [fast dataset labeling](https://www.ultralytics.com/blog/how-ultralytics-platform-uses-ai-to-automate-annotation). See the [annotation guide](../platform/data/annotation.md) for details.
+    SAM-family models (SAM 2.1, SAM 3, and SAM 3.1) power the [smart annotation feature](../platform/data/annotation.md#smart-annotation) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based masking for fast dataset labeling.
 
 ## Available Models, Supported Tasks, and Operating Modes
 
@@ -289,8 +289,6 @@ Alternatively, you can run inference with SAM in the command line interface (CLI
 ```bash
 yolo predict model=sam_b.pt source=path/to/image.jpg
 ```
-
-For more detailed usage instructions, see the [SAM prediction example](#sam-prediction-example).
 
 ### How do SAM and YOLO models compare in terms of performance?
 

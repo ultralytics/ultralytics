@@ -177,8 +177,6 @@ In this guide, we explored how to export Ultralytics YOLO26 models to the TF Sav
 
 For further details on usage, visit the [TF SavedModel official documentation](https://www.tensorflow.org/guide/saved_model).
 
-For more information on integrating Ultralytics YOLO26 with other platforms and frameworks, see the [integrations overview](index.md).
-
 ## FAQ
 
 ### How do I export an Ultralytics YOLO model to TensorFlow SavedModel format?

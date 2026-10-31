@@ -182,8 +182,6 @@ In this guide, we explored the process of exporting Ultralytics YOLO26 models to
 
 For further details on usage, visit the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html).
 
-To explore more ways to integrate your Ultralytics YOLO26 models, see the [integrations overview](index.md).
-
 ## FAQ
 
 ### How do I export Ultralytics YOLO26 models to PaddlePaddle format?
@@ -231,7 +229,7 @@ PaddlePaddle offers several key advantages for model deployment:
 - **Operator Fusion**: By merging compatible operations, it reduces computational overhead.
 - **Quantization Techniques**: Supports both post-training and quantization-aware training, enabling lower-precision data representations for improved performance.
 
-Exporting your Ultralytics YOLO26 models to PaddlePaddle gives you flexibility and performance across various applications and hardware platforms. Explore PaddlePaddle's key features and capabilities in the [official PaddlePaddle documentation](https://www.paddlepaddle.org.cn/en).
+Exporting your Ultralytics YOLO26 models to [PaddlePaddle](https://www.paddlepaddle.org.cn/en) gives you flexibility and performance across various applications and hardware platforms.
 
 ### Why should I choose PaddlePaddle for deploying my YOLO26 models?
 
@@ -245,13 +243,13 @@ These features make PaddlePaddle a strong option for deploying YOLO26 models in 
 
 ### How does PaddlePaddle improve model performance over other frameworks?
 
-PaddlePaddle uses several techniques to optimize model performance:
+PaddlePaddle uses several [techniques to optimize model performance](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html):
 
 - **Dynamic-to-Static Graph**: Converts models into a static computational graph for runtime optimizations.
 - **Operator Fusion**: Combines compatible operations to minimize memory transfer and increase inference speed.
 - **Quantization**: Reduces model size and increases efficiency using lower-precision data while maintaining [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
-These techniques prioritize efficient model execution, making PaddlePaddle a good option for deploying high-performance YOLO26 models. For more on optimization, see the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html).
+These techniques prioritize efficient model execution, making PaddlePaddle a good option for deploying high-performance YOLO26 models.
 
 ### What deployment options does PaddlePaddle offer for YOLO26 models?
 

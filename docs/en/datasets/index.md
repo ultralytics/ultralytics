@@ -228,15 +228,13 @@ Ultralytics YOLO models provide several unique features for computer vision task
 
 - **Real-time Performance**: High-speed inference and training capabilities for time-sensitive applications.
 - **Versatility**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding box (OBB) tasks in a unified framework.
-- **Pretrained Models**: Access to high-performing, pretrained models for various applications, reducing training time.
+- **Pretrained Models**: Access to high-performing, [pretrained models](../models/yolo26.md) for various applications, reducing training time.
 - **Extensive Community Support**: Active community and comprehensive documentation for troubleshooting and development.
 - **Easy Integration**: Simple API for integrating with existing projects and workflows.
 
-Discover more about the latest model on the [YOLO26](../models/yolo26.md) page.
-
 ### How can I optimize and zip a dataset using Ultralytics tools?
 
-To optimize and zip a dataset using Ultralytics tools, follow this example code:
+To [optimize and zip a dataset](#example-code-to-optimize-and-zip-a-dataset) using Ultralytics tools, follow this example code:
 
 !!! example "Optimize and Zip a Dataset"
 
@@ -259,4 +257,4 @@ To optimize and zip a dataset using Ultralytics tools, follow this example code:
         zip_directory(path)
         ```
 
-This process helps reduce dataset size for more efficient storage and faster download speeds. Learn more in [Example Code to Optimize and Zip a Dataset](#example-code-to-optimize-and-zip-a-dataset).
+This process helps reduce dataset size for more efficient storage and faster download speeds.

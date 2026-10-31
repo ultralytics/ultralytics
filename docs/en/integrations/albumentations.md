@@ -258,15 +258,11 @@ If you are interested in learning more about Albumentations, check out the follo
 
 - **[Ultralytics Albumentations API Reference](../reference/data/augment.md#ultralytics.data.augment.Albumentations)**: See the details of the class that implements this integration.
 
-- **[Data Augmentation with Albumentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data)**: Read the Ultralytics blog walkthrough on diversifying YOLO training data with Albumentations.
-
 - **[Albumentations GitHub Repository](https://github.com/albumentations-team/albumentations/)**: The repository includes examples, benchmarks, and discussions to help you get started with customizing augmentations.
 
 ## Key Takeaways
 
 In this guide, we explored the key aspects of Albumentations, a Python library for image augmentation. We discussed its wide range of transformations, optimized performance, and how you can use it in your next YOLO26 project.
-
-To learn about other Ultralytics YOLO26 integrations, visit the [integrations overview](../integrations/index.md).
 
 ## FAQ
 

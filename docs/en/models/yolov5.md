@@ -64,7 +64,7 @@ This table summarizes the YOLOv5u model variants and their support for the Train
 
 ## Usage Examples
 
-This example provides simple YOLOv5 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv5 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 !!! example
 

@@ -27,7 +27,7 @@ limitations under the License.
 
     Neural Magic was [acquired by Red Hat in January 2025](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud) and [deprecated the community versions](https://github.com/neuralmagic/deepsparse/blob/main/README.md) of DeepSparse, SparseML, SparseZoo, and Sparsify on June 2, 2025. The tools still run but no longer receive updates or support. For maintained CPU acceleration, see the [OpenVINO](../../integrations/openvino.md) and [ONNX](../../integrations/onnx.md) integrations.
 
-This guide explains how to deploy [YOLOv5](../../models/yolov5.md) with Neural Magic's DeepSparse. For the `ultralytics` package, see the [Neural Magic integration](../../integrations/neural-magic.md).
+This guide explains how to deploy [YOLOv5](../../models/yolov5.md) with Neural Magic's DeepSparse. In the `ultralytics` package, the [Neural Magic integration](../../integrations/neural-magic.md) does the same.
 
 DeepSparse is an inference runtime optimized for CPUs. In the benchmarks below, a pruned-quantized YOLOv5s runs 5.8x faster in DeepSparse than the dense model in ONNX Runtime on the same machine.
 

@@ -46,7 +46,7 @@ The following are some notable features of YOLO26's Train mode:
 
 ## Usage Examples
 
-Train [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed, GPU `device=0` will be used when available; otherwise `device='cpu'` will be used. See [Train Settings](#train-settings) for a full list of training arguments.
+Train [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed, GPU `device=0` will be used when available; otherwise `device='cpu'` will be used.
 
 !!! warning "Windows Multi-Processing Error"
 
@@ -218,7 +218,7 @@ This is especially useful in shared computing environments or when running multi
 
 ### Apple Silicon MPS Training
 
-Ultralytics YOLO models can train on Apple silicon through the Metal Performance Shaders (MPS) framework, which runs computation and image processing tasks on Apple's custom GPUs.
+Ultralytics YOLO models can train on Apple silicon through the [Metal Performance Shaders (MPS)](https://docs.pytorch.org/docs/stable/notes/mps.html) framework, which runs computation and image processing tasks on Apple's custom GPUs.
 
 To train on Apple silicon, specify `mps` as your device when starting training, in Python or on the command line:
 
@@ -242,8 +242,6 @@ To train on Apple silicon, specify `mps` as your device when starting training, 
         # Start training from a pretrained *.pt model using MPS
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=mps
         ```
-
-For more detailed guidance and advanced configuration options, see the [PyTorch MPS documentation](https://docs.pytorch.org/docs/stable/notes/mps.html).
 
 ### Resuming Interrupted Trainings
 

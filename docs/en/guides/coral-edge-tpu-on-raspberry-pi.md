@@ -84,7 +84,7 @@ After installing the runtime, plug your Coral Edge TPU into a USB 3.0 port on th
 
 ## Export Your Model to Edge TPU Format
 
-To use the Edge TPU, convert your model to the [Edge TPU format](../integrations/edge-tpu.md). Run the export on x86_64 Linux — Google Colab, an x86_64 Linux machine, the official [Ultralytics Docker container](docker-quickstart.md) on an x86_64 host, or [Ultralytics Platform](../platform/quickstart.md) — since the Edge TPU compiler is only available on x86_64 Linux. See [Export mode](../modes/export.md) for the available arguments.
+To use the Edge TPU, convert your model to the [Edge TPU format](../integrations/edge-tpu.md). Run the [export](../modes/export.md) on x86_64 Linux — Google Colab, an x86_64 Linux machine, the official [Ultralytics Docker container](docker-quickstart.md) on an x86_64 host, or [Ultralytics Platform](../platform/quickstart.md) — since the Edge TPU compiler is only available on x86_64 Linux.
 
 !!! example "Exporting the model"
 

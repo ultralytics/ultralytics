@@ -497,8 +497,6 @@ Exporting with `format="xilinx"` quantizes Ultralytics YOLO models with AMD Quar
 
 Older AMD Xilinx devices use other flows. The DPU on Zynq UltraScale+ and Kria uses the frozen Vitis AI 3.5 toolchain and `.xmodel` files, needs DPU-native activations such as Hard-Swish, and runs attention on the CPU. The first-generation Versal AI Edge NPU uses the snapshot flow, with operator coverage that depends on the Vitis AI version and precision.
 
-For other deployment targets, see the [model deployment options guide](../guides/model-deployment-options.md), [deployment best practices](../guides/model-deployment-practices.md), and accelerator integrations such as [Hailo](hailo.md), [Rockchip RKNN](rockchip-rknn.md) and [Axelera](axelera.md).
-
 ## FAQ
 
 ### Is Xilinx part of AMD?

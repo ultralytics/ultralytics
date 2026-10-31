@@ -143,7 +143,7 @@ The dataset totals 3,833 images — 3,156 for training, 401 for validation, and 
 
 ### How can I train an Ultralytics YOLO26 model on the Carparts Segmentation Dataset?
 
-Load a pretrained segmentation model (e.g., `yolo26n-seg.pt`) and train it with the `carparts-seg.yaml` configuration using the Python or CLI snippets in the [Usage](#usage) section above. See the [Training guide](../../modes/train.md) for the full list of available arguments, or follow this walkthrough of [car parts segmentation with Ultralytics YOLO on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab).
+Load a pretrained segmentation model (e.g., `yolo26n-seg.pt`) and train it with the `carparts-seg.yaml` configuration using the Python or CLI snippets in the [Usage](#usage) section above. See the [Training guide](../../modes/train.md) for the full list of available arguments.
 
 ### What are some applications of the Carparts Segmentation Dataset?
 

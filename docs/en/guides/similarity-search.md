@@ -22,7 +22,7 @@ This guide walks you through building a **[semantic image search](https://www.ul
 
 ![Flask webpage with semantic search results overview](https://cdn.ul.run/i/7d8a865264e506cc0aa075e4bf0cf896.avif)
 
-The Ultralytics Python package wraps this entire pipeline behind two classes, so you can launch a working search app or run queries programmatically in a few lines (see [a look at the Ultralytics semantic image search solution](https://www.ultralytics.com/blog/a-look-at-the-ultralytics-semantic-image-search-solution) for an overview). This guide covers [why semantic search is useful](#why-use-semantic-image-search), [how it works](#how-semantic-image-search-works), [running the web app](#run-the-semantic-search-web-app), [searching programmatically](#search-images-programmatically), and [configuring parameters](#configure-visualaisearch-parameters).
+The Ultralytics Python package wraps this entire pipeline behind two classes, so you can launch a working search app or run queries programmatically in a few lines. This guide covers [why semantic search is useful](#why-use-semantic-image-search), [how it works](#how-semantic-image-search-works), [running the web app](#run-the-semantic-search-web-app), [searching programmatically](#search-images-programmatically), and [configuring parameters](#configure-visualaisearch-parameters).
 
 ## Why Use Semantic Image Search?
 

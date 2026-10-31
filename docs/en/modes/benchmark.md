@@ -66,7 +66,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
     pip install "ultralytics[export]"
     ```
 
-Run [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) benchmarks across all supported export formats (ONNX, TensorRT, etc.). See the [Arguments](#arguments) section below for a full list of benchmark arguments.
+Run [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) benchmarks across all supported export formats (ONNX, TensorRT, etc.).
 
 !!! example
 

@@ -87,7 +87,7 @@ The `cls_remap` setting enables this name-based transfer by default. Training pr
 
 ### Choosing a Model Size
 
-Larger models have more capacity but also more parameters to update, which can increase the risk of overfitting when training data is limited. Starting with a smaller model ([YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) or [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)) and scaling up only if validation metrics plateau is a practical approach. The optimal model size depends on the complexity of the task, the number of classes, the diversity of the dataset, and the hardware available for deployment. See the [YOLO26 performance metrics](../models/yolo26.md#performance-metrics) for available sizes and benchmarks.
+Larger models have more capacity but also more parameters to update, which can increase the risk of overfitting when training data is limited. Starting with a smaller model ([YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) or [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)) and scaling up only if validation metrics plateau is a practical approach. The optimal [model size](../models/yolo26.md#performance-metrics) depends on the complexity of the task, the number of classes, the diversity of the dataset, and the hardware available for deployment.
 
 ## Optimizer and Learning Rate Selection
 

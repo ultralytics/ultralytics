@@ -40,7 +40,7 @@ NCNN models are compatible with a variety of [deployment](https://www.ultralytic
 
 - **Mobile Deployment**: Optimized for Android and iOS, for efficient on-device inference inside mobile applications.
 
-- **Embedded Systems and IoT Devices**: Suited to resource-constrained devices like Raspberry Pi and [NVIDIA Jetson](../guides/nvidia-jetson.md). If standard PyTorch inference on a Raspberry Pi, as described in the [Raspberry Pi guide](../guides/raspberry-pi.md), is too slow, NCNN can provide significant performance improvements.
+- **Embedded Systems and IoT Devices**: Suited to resource-constrained devices like Raspberry Pi and [NVIDIA Jetson](../guides/nvidia-jetson.md). If standard PyTorch inference on a [Raspberry Pi](../guides/raspberry-pi.md) is too slow, NCNN can provide significant performance improvements.
 
 - **Desktop and Server Deployment**: Supports deployment across Linux, Windows, and macOS for development, training, and evaluation workflows.
 
@@ -202,9 +202,7 @@ After exporting your Ultralytics YOLO26 models to NCNN format, you can deploy th
 
 ## Summary
 
-This guide covered exporting Ultralytics YOLO26 models to NCNN format for improved efficiency and speed on resource-constrained devices. For another walkthrough, see the blog post on [exporting Ultralytics YOLO11 models to NCNN](https://www.ultralytics.com/blog/exporting-ultralytics-yolo11-models-to-ncnn-model-format).
-
-For additional details, refer to the [official NCNN documentation](https://ncnn.readthedocs.io/en/latest/index.html). For other export options, visit the [integrations overview](index.md).
+This guide covered exporting Ultralytics YOLO26 models to [NCNN](https://ncnn.readthedocs.io/en/latest/index.html) format for improved efficiency and speed on resource-constrained devices.
 
 ## FAQ
 

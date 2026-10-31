@@ -162,7 +162,7 @@ The result is a dynamic visualization that builds up over time, revealing traffi
 
 ## Conclusion
 
-The Ultralytics YOLO26 Heatmap solution turns object tracking results into an intuitive activity overlay with a few lines of code. To go further, combine it with [object counting](object-counting.md), explore the other [Ultralytics Solutions](../solutions/index.md), read about the underlying [tracking mode](../modes/track.md), or work through the [Counting, Heatmaps, and Speed Estimation lesson](https://academy.ultralytics.com/courses/yolo-in-production/counting-heatmaps-and-speed) in Ultralytics Academy.
+The Ultralytics YOLO26 Heatmap solution turns object tracking results into an intuitive activity overlay with a few lines of code. To go further, combine it with [object counting](object-counting.md), explore the other [Ultralytics Solutions](../solutions/index.md), or read about the underlying [tracking mode](../modes/track.md).
 
 ## FAQ
 

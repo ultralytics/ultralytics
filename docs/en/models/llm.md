@@ -6,7 +6,7 @@ keywords: Ultralytics LLM, OpenAI, DeepSeek, Kimi, Z.AI, GLM, OpenRouter, OpenAI
 
 # Ultralytics LLM Interface
 
-`LLM` is a small interface for calling [large language models](https://www.ultralytics.com/glossary/large-language-model-llm) and [vision language models](https://www.ultralytics.com/glossary/vision-language-model-vlm) through an OpenAI-compatible API. It prepares text or image input, forwards request arguments to the official OpenAI Python SDK, and returns the SDK's native response object. This makes it easy to [add language or vision reasoning](https://www.ultralytics.com/blog/build-an-anpr-system-with-ultralytics-yolo11-and-gpt-4o-mini) next to a [YOLO](yolo26.md) pipeline without wrapping provider-specific response types.
+`LLM` is a small interface for calling [large language models](https://www.ultralytics.com/glossary/large-language-model-llm) and [vision language models](https://www.ultralytics.com/glossary/vision-language-model-vlm) through an OpenAI-compatible API. It prepares text or image input, forwards request arguments to the official OpenAI Python SDK, and returns the SDK's native response object. This makes it easy to add language or vision reasoning next to a [YOLO](yolo26.md) pipeline without wrapping provider-specific response types.
 
 The default API is `responses`; use `api="chat.completions"` for providers that implement only Chat Completions.
 

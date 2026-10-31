@@ -11,7 +11,7 @@ model_name: yolo26n-obb
 
 [Oriented object detection](https://www.ultralytics.com/blog/what-is-oriented-bounding-box-obb-detection-a-quick-guide) goes a step further than standard [object detection](https://www.ultralytics.com/glossary/object-detection) by introducing an extra angle to locate objects more accurately in an image.
 
-The output of an oriented object detector is a set of rotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) that precisely enclose the objects in the image, along with class labels and confidence scores for each box. [Oriented bounding boxes](https://academy.ultralytics.com/courses/beyond-detection/oriented-bounding-boxes) are particularly useful when objects appear at various angles, such as in aerial imagery, where traditional axis-aligned bounding boxes may include unnecessary background. Typical uses are ship and vehicle detection from satellites and drones, building and infrastructure analysis for urban planning, crop monitoring, and solar panel or wind turbine inspection.
+The output of an oriented object detector is a set of rotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) that precisely enclose the objects in the image, along with class labels and confidence scores for each box. Oriented bounding boxes are particularly useful when objects appear at various angles, such as in aerial imagery, where traditional axis-aligned bounding boxes may include unnecessary background. Typical uses are ship and vehicle detection from satellites and drones, building and infrastructure analysis for urban planning, crop monitoring, and solar panel or wind turbine inspection.
 
 <p align="center">
   <br>

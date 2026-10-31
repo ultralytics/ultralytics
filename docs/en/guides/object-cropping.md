@@ -113,7 +113,7 @@ Ultralytics YOLO26 combines accurate detection, fast inference, and a simple API
 
 ### How can I reduce the data volume of my dataset using object cropping?
 
-By using Ultralytics YOLO26 to crop only relevant objects from your images or videos, you can significantly reduce the data size, making it more efficient for storage and processing. Use a pretrained model, or [train](../modes/train.md) one to detect the objects you need, then crop and save only those regions. To get started with Ultralytics YOLO26, visit our [quickstart guide](../quickstart.md).
+By using Ultralytics YOLO26 to crop only relevant objects from your images or videos, you can significantly reduce the data size, making it more efficient for storage and processing. Use a pretrained model, or [train](../modes/train.md) one to detect the objects you need, then crop and save only those regions.
 
 ### Can I use Ultralytics YOLO26 for real-time video analysis and object cropping?
 
@@ -121,4 +121,4 @@ Yes, Ultralytics YOLO26 can process real-time video feeds to detect and crop obj
 
 ### What are the hardware requirements for efficiently running YOLO26 for object cropping?
 
-Ultralytics YOLO26 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., an NVIDIA RTX or data center GPU) is recommended. For deployment on lightweight devices, consider using [CoreML](../integrations/coreml.md) for iOS or [LiteRT](../integrations/litert.md) for Android. More details on supported devices and formats can be found in our [model deployment options](model-deployment-options.md).
+Ultralytics YOLO26 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., an NVIDIA RTX or data center GPU) is recommended. For [deployment on lightweight devices](model-deployment-options.md), consider using [CoreML](../integrations/coreml.md) for iOS or [LiteRT](../integrations/litert.md) for Android.

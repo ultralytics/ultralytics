@@ -131,7 +131,7 @@ Each call also returns a results object whose `plot_im` attribute holds the anno
 
 ## Conclusion
 
-The Ultralytics YOLO26 RegionCounter solution monitors live object counts in as many named zones as you need with a few lines of code. To go further, count boundary crossings with [object counting](object-counting.md), follow objects inside a single zone with [TrackZone](trackzone.md), or explore the other [Ultralytics Solutions](../solutions/index.md). For more use cases, read [region-based object counting with Ultralytics YOLO11](https://www.ultralytics.com/blog/region-based-object-counting-using-ultralytics-yolo11).
+The Ultralytics YOLO26 RegionCounter solution monitors live object counts in as many named zones as you need with a few lines of code. To go further, count boundary crossings with [object counting](object-counting.md), follow objects inside a single zone with [TrackZone](trackzone.md), or explore the other [Ultralytics Solutions](../solutions/index.md).
 
 ## FAQ
 

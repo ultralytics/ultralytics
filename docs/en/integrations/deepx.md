@@ -318,11 +318,9 @@ YOLO models deployed on DEEPX NPU hardware are well suited for a wide range of [
 
 In this guide, you've learned how to export Ultralytics YOLO models to DEEPX format and deploy them on DEEPX NPU hardware. The export pipeline uses INT8 calibration and the `dx_com` compiler to produce a hardware-optimized `.dxnn` binary, while the `dx_engine` runtime handles inference on the device.
 
-Together, [Ultralytics YOLO](https://www.ultralytics.com/yolo) and DEEPX NPUs run computer vision workloads on [embedded and edge devices](https://www.ultralytics.com/blog/ultralytics-yolo-partners-with-deepx-edge-ai-inference-for-physical-ai) with high throughput and low power consumption for real-time applications.
+Together, [Ultralytics YOLO](https://www.ultralytics.com/yolo) and [DEEPX NPUs](https://www.ultralytics.com/blog/ultralytics-yolo-partners-with-deepx-edge-ai-inference-for-physical-ai) run computer vision workloads on embedded and edge devices with high throughput and low power consumption for real-time applications.
 
 For further details on usage, visit the [DEEPX official website](https://deepx.ai/).
-
-To learn about other Ultralytics YOLO integrations, visit the [integrations overview](../integrations/index.md).
 
 ## FAQ
 

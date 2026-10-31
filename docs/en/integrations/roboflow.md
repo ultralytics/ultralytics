@@ -30,11 +30,11 @@ This guide demonstrates how to find, label, and organize data for training a cus
 
 ## Gather Data for Training a Custom YOLO26 Model
 
-Roboflow offers two primary services to assist in data collection for Ultralytics YOLO models: Universe and Collect. For more general information on data collection strategies, refer to our [Data Collection and Annotation Guide](../guides/data-collection-and-annotation.md).
+Roboflow offers two primary services to assist in [data collection](../guides/data-collection-and-annotation.md) for Ultralytics YOLO models: Universe and Collect.
 
 ### Roboflow Universe
 
-Roboflow Universe is an online repository of vision [datasets](../datasets/index.md). You can export datasets in YOLO format for use with Ultralytics models, as shown in this [YOLO11 custom training walkthrough with Roboflow datasets](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-with-computer-vision-datasets).
+Roboflow Universe is an online repository of vision [datasets](../datasets/index.md). You can export datasets in YOLO format for use with Ultralytics models.
 
 ### Roboflow Collect
 
@@ -103,7 +103,7 @@ Once your dataset version is generated, you can export it in various formats sui
 <img src="https://cdn.ul.run/i/2d375cd076d209f59bf26453dd74043d.avif" alt="Roboflow dataset export to YOLO format" width="800">
 </p>
 
-Select the "YOLO26" format for compatibility with Ultralytics training pipelines. You are now ready to train your custom YOLO26 model. Refer to the [Ultralytics Train mode documentation](../modes/train.md) for detailed instructions on initiating training with your exported dataset.
+Select the "YOLO26" format for compatibility with Ultralytics training pipelines. You are now ready to [train your custom YOLO26 model](../modes/train.md).
 
 ## Upload Custom YOLO26 Model Weights for Testing and Deployment
 
@@ -198,7 +198,7 @@ Vector Analysis helps:
 
 ### How do I label data for YOLO26 models using Roboflow?
 
-Use Roboflow Annotate. Create a project, upload images, and use the annotation tools (`B` for bounding boxes, `P` for polygons) or the SAM-based label assistant for faster labeling. Detailed steps are available in the [Upload, Convert and Label Data section](#upload-convert-and-label-data-for-yolo26-format).
+Use [Roboflow Annotate](#upload-convert-and-label-data-for-yolo26-format). Create a project, upload images, and use the annotation tools (`B` for bounding boxes, `P` for polygons) or the SAM-based label assistant for faster labeling.
 
 ### What services does Roboflow offer for collecting YOLO26 training data?
 
@@ -206,11 +206,11 @@ Roboflow provides Universe (access to numerous [datasets](../datasets/index.md))
 
 ### How can I manage and analyze my YOLO26 dataset using Roboflow?
 
-Use Roboflow's dataset search, tagging, and Health Check features. Search finds images by text or tags, while Health Check analyzes dataset quality (class balance, image sizes, etc.) to guide improvements before training. See the [Dataset Management section](#dataset-management-for-yolo26) for details.
+Use Roboflow's [dataset search, tagging, and Health Check](#dataset-management-for-yolo26) features. Search finds images by text or tags, while Health Check analyzes dataset quality (class balance, image sizes, etc.) to guide improvements before training.
 
 ### How do I export my YOLO26 dataset from Roboflow?
 
-Create a dataset version in Roboflow, apply desired preprocessing and augmentations, then click "Export Dataset" and select the YOLO26 format. The process is outlined in the [Export Data section](#export-data-in-40-formats-for-model-training). This prepares your data for use with Ultralytics [training pipelines](../modes/train.md).
+[Create a dataset version](#export-data-in-40-formats-for-model-training) in Roboflow, apply desired preprocessing and augmentations, then click "Export Dataset" and select the YOLO26 format. This prepares your data for use with Ultralytics [training pipelines](../modes/train.md).
 
 ### How can I integrate and deploy YOLO26 models with Roboflow?
 

@@ -29,13 +29,11 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
 - **Number of [Epochs](https://www.ultralytics.com/glossary/epoch)** `epochs`: An epoch is one complete forward and backward pass of all the training examples.
 - **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc. These live in the [model YAML configuration](model-yaml-config.md) rather than in training arguments.
 
-Of these four, only the learning rate is in the default search space: `batch`, `epochs`, and architecture remain fixed. The tuner also mutates the schedule, loss gains, and augmentations listed [below](#default-search-space).
+Of these four, only the learning rate is in the default search space: `batch`, `epochs`, and architecture remain fixed. The tuner also mutates the schedule, loss gains, and [augmentations](../usage/cfg.md#augmentation-settings) listed [below](#default-search-space).
 
 <p align="center">
   <img width="640" src="https://cdn.ul.run/i/61d7129c7b5c4dcbdf8957fb535c998a.avif" alt="Hyperparameter optimization search space visualization">
 </p>
-
-For a full list of augmentation hyperparameters used in YOLO26, refer to the [configurations page](../usage/cfg.md#augmentation-settings).
 
 ## Genetic Evolution and Mutation
 
@@ -371,7 +369,7 @@ When evaluating model performance during hyperparameter tuning in YOLO, you can 
 - **F1-Score**: The harmonic mean of precision and recall.
 - **Precision and Recall**: Individual metrics indicating the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) in identifying true positives versus false positives and false negatives.
 
-These metrics help you understand different aspects of your model's performance. Refer to the [Ultralytics YOLO performance metrics](yolo-performance-metrics.md) guide for a comprehensive overview.
+These metrics help you understand different aspects of your [model's performance](yolo-performance-metrics.md).
 
 ### Can I use Ray Tune for advanced hyperparameter optimization with YOLO26?
 

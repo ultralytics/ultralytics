@@ -84,13 +84,11 @@ This guide explored the [Paperspace Gradient integration](https://www.ultralytic
 
 For further exploration, visit [Paperspace's official documentation](https://docs.digitalocean.com/products/paperspace/).
 
-Also, visit the [Ultralytics integrations overview](index.md) to learn about other YOLO26 integrations.
-
 ## FAQ
 
 ### How do I train a YOLO26 model using Paperspace Gradient?
 
-Training a YOLO26 model with Paperspace Gradient is straightforward. First, sign in to the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics). Next, click the "Start Machine" button to initiate a managed GPU environment. Once the environment is ready, you can run the notebook's cells to start training your YOLO26 model. For detailed instructions, refer to our [YOLO26 Model Training guide](../modes/train.md).
+Training a YOLO26 model with Paperspace Gradient is straightforward. First, sign in to the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics). Next, click the "Start Machine" button to initiate a managed GPU environment. Once the environment is ready, you can run the notebook's cells to [start training your YOLO26 model](../modes/train.md).
 
 ### What are the advantages of using Paperspace Gradient for YOLO26 projects?
 
@@ -109,7 +107,7 @@ Paperspace Gradient offers several advantages for training and deploying YOLO26 
 
 ### Can I deploy my YOLO26 model on edge devices using Paperspace Gradient?
 
-Yes. After training your model on Gradient, export it with Ultralytics to an edge-optimized format such as [LiteRT](litert.md) or [Edge TPU](edge-tpu.md), then deploy it to your edge devices. Refer to our [export guide](../modes/export.md) for instructions on converting your model to the desired format.
+Yes. After training your model on Gradient, [export it with Ultralytics](../modes/export.md) to an edge-optimized format such as [LiteRT](litert.md) or [Edge TPU](edge-tpu.md), then deploy it to your edge devices.
 
 ### How does experiment tracking in Paperspace Gradient help improve YOLO26 training?
 

@@ -316,15 +316,13 @@ Unlike precision, recall is highest at low confidence thresholds and falls as th
 
 ### Step 8: Calculating Intersection Over Union
 
-You can measure localization accuracy by calculating the [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) between a predicted bounding box and a ground truth bounding box for the same object. Check out [IBM's tutorial on training a YOLO object detection model](https://developer.ibm.com/tutorials/awb-train-yolo-object-detection-model-in-python/) for more details.
+You can measure localization accuracy by calculating the [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) between a predicted bounding box and a ground truth bounding box for the same object.
 
 ## Summary
 
-We explored the key features of IBM Watsonx and how to train a YOLO26 model with it. IBM Watsonx also provides tools for model building, data management, and compliance.
+We explored the key features of IBM Watsonx and how to [train a YOLO26 model with it](https://developer.ibm.com/tutorials/awb-train-yolo-object-detection-model-in-python/). IBM Watsonx also provides tools for model building, data management, and compliance.
 
 For further details on usage, visit [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
-
-Also, check out the [Ultralytics integrations overview](index.md) to learn about other integrations.
 
 ## FAQ
 
@@ -353,14 +351,12 @@ For more information, visit the [IBM Watsonx official documentation](https://www
 
 ### Why should I use IBM Watsonx for training Ultralytics YOLO26 models?
 
-IBM Watsonx suits Ultralytics YOLO26 training because its tools cover the full AI lifecycle. Key benefits include:
+IBM Watsonx suits [Ultralytics YOLO26](../models/yolo26.md) training because its tools cover the full AI lifecycle. Key benefits include:
 
 - **Scalability**: Easily scale your model training with IBM Cloud services.
 - **Integration**: Connect to various data sources and APIs.
 - **User-Friendly Interface**: Simplifies the development process with a collaborative and intuitive interface.
 - **Advanced Tools**: Access tools like the Prompt Lab, Tuning Studio, and Flows Engine for enhancing model performance.
-
-Learn more about [Ultralytics YOLO26](../models/yolo26.md) and other training platforms in the [integrations overview](index.md).
 
 ### How can I preprocess my dataset for YOLO26 training on IBM Watsonx?
 

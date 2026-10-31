@@ -141,8 +141,6 @@ trainer.train()
 trained_model = trainer.best  # Get the best model
 ```
 
-For further customization, such as changing the loss function or adding a [callback](https://www.ultralytics.com/glossary/callback), refer to the [Callbacks Guide](../usage/callbacks.md).
-
 ### What are the key components of the BaseTrainer in Ultralytics YOLO?
 
 The `BaseTrainer` serves as the foundation for training routines, customizable for various tasks by overriding its generic methods. Key components include:

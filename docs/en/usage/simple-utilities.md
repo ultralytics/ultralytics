@@ -732,7 +732,7 @@ auto_annotate(
 )
 ```
 
-For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate), or use [Ultralytics Platform Smart Annotation](../platform/data/annotation.md#smart-annotation) as a hosted, no-code alternative with click-based masking via [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31), predictions from pretrained and fine-tuned YOLO models for detect, segment, and OBB tasks, or class-prompted boxes from [vision language models](https://platform.ultralytics.com/models) ranked on the [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm).
+[Ultralytics Platform Smart Annotation](../platform/data/annotation.md#smart-annotation) is a hosted, no-code alternative to [`auto_annotate`](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate), with click-based masking via [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31), predictions from pretrained and fine-tuned YOLO models for detect, segment, and OBB tasks, or class-prompted boxes from [vision language models](https://platform.ultralytics.com/models) ranked on the [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm).
 
 ### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
 

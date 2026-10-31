@@ -103,8 +103,6 @@ Roboflow 100 is useful for a wide range of [computer vision](https://www.ultraly
 - Compare model performance across different [neural network](https://www.ultralytics.com/glossary/neural-network-nn) architectures and [optimization](https://www.ultralytics.com/glossary/optimization-algorithm) techniques.
 - Identify domain-specific challenges that may require specialized [model training tips](../../guides/model-training-tips.md) or [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) approaches like [transfer learning](https://www.ultralytics.com/glossary/transfer-learning).
 
-For real-world project ideas, see the [Ultralytics guides](../../guides/index.md); to train and [deploy](../../guides/model-deployment-options.md) models in your browser, use [Ultralytics Platform](https://platform.ultralytics.com).
-
 ## Usage
 
 The Roboflow 100 dataset, including metadata and download links, is available on the official [Roboflow 100 GitHub repository](https://github.com/roboflow/roboflow-100-benchmark). Once the datasets are downloaded and prepared as shown above, Ultralytics models can be fine-tuned across the entire collection in a single `model.train()` call by passing the list of dataset YAMLs.
@@ -138,8 +136,6 @@ If you use the Roboflow 100 dataset in your research or development work, please
         ```
 
 We extend our gratitude to the Roboflow team and all contributors for their significant efforts in creating and maintaining the Roboflow 100 dataset as a valuable resource for the computer vision community.
-
-If you are interested in exploring more datasets to enhance your object detection and machine learning projects, visit the [Ultralytics datasets overview](../index.md), which includes many other [detection datasets](index.md).
 
 ## FAQ
 
@@ -178,5 +174,3 @@ When using the Roboflow 100 dataset, please cite the original paper to give cred
             url = {https://arxiv.org/abs/2211.13523}
         }
         ```
-
-For further exploration, browse the other [detection datasets](index.md) supported by Ultralytics models.

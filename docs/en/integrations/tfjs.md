@@ -101,7 +101,7 @@ See the [LiteRT export arguments](litert.md#export-arguments). For more details 
 
 ## Deploying Exported YOLO26 TensorFlow.js Models
 
-Now that you have exported your YOLO26 model, the next step is to deploy it. The export produces a LiteRT `.tflite` model that runs on-device and in the browser via LiteRT.js, as described in the [LiteRT export guide](litert.md).
+Now that you have exported your YOLO26 model, the next step is to deploy it. The export produces a [LiteRT](litert.md) `.tflite` model that runs on-device and in the browser via LiteRT.js.
 
 For reference, the legacy TensorFlow.js runtime resources are below:
 
@@ -113,11 +113,9 @@ For reference, the legacy TensorFlow.js runtime resources are below:
 
 ## Summary
 
-This guide preserves the legacy TF.js deployment context. Use LiteRT for new exports; for a walkthrough, see [LiteRT export for YOLO edge, mobile, and browser inference](https://www.ultralytics.com/blog/export-ultralytics-yolo-with-litert-for-edge-and-browser-deployment).
+This guide preserves the legacy TF.js deployment context. Use LiteRT for new exports.
 
 For further details on usage, visit the [TensorFlow.js official documentation](https://www.tensorflow.org/js/guide).
-
-For more information on integrating Ultralytics YOLO26 with other platforms and frameworks, see the [integrations overview](index.md).
 
 ## FAQ
 

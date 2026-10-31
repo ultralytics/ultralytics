@@ -53,7 +53,7 @@ The pipeline has six stages:
 5. **Cavalry conversion** — convert the validated AmbaPB checkpoint into a Cavalry binary with the SDK tools.
 6. **Run on device** — run the Cavalry binary on the device with Ambarella's SDK runtime library.
 
-The SpongeTorch train and export workflow is optional and can be replaced by a plain ONNX export (see [Exporting Without SpongeTorch](#exporting-without-spongetorch)).
+The SpongeTorch train and export workflow is optional and can be replaced by a [plain ONNX export](#exporting-without-spongetorch).
 
 ## Prerequisites
 
@@ -269,9 +269,7 @@ Ultralytics YOLO models on Ambarella CVflow SoCs power always-on vision at the e
 
 ## Summary
 
-This guide outlined the current workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), ONNX export of the compressed checkpoint, offline compilation to an AmbaPB checkpoint with the SDK tools, host validation through Ultralytics, and conversion to a Cavalry binary for on-device deployment with the Ambarella SDK.
-
-For other edge AI targets, see the related [Hailo](hailo.md), [Rockchip RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), [Qualcomm QNN](qnn.md), [DEEPX](deepx.md), and [Axelera](axelera.md) guides. For the full list of export formats, visit the [Export mode](../modes/export.md) documentation and the [integrations page](index.md).
+This guide outlined the current workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), [ONNX export](../modes/export.md) of the compressed checkpoint, offline compilation to an AmbaPB checkpoint with the SDK tools, host validation through Ultralytics, and conversion to a Cavalry binary for on-device deployment with the Ambarella SDK.
 
 ## FAQ
 

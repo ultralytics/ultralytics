@@ -102,8 +102,6 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-Before you start, review the range of [models offered by Ultralytics](../models/index.md) to choose the most appropriate one for your project.
-
 The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or [validate its accuracy](https://academy.ultralytics.com/courses/yolo-in-production/export-to-onnx).
 
 !!! example "Export"
@@ -248,8 +246,6 @@ In this guide, you've learned how to export Ultralytics YOLO26 models to ONNX fo
 ONNX export is just one of many [export formats](../modes/export.md) supported by Ultralytics YOLO26, allowing you to deploy your models in virtually any environment. Depending on your specific needs, you might also want to explore other export options like [TensorRT](tensorrt.md) for maximum GPU performance or [CoreML](coreml.md) for Apple devices.
 
 For further details on usage, visit the [ONNX official documentation](https://onnx.ai/onnx/intro/).
-
-To learn about other Ultralytics YOLO26 integrations, visit the [integrations overview](index.md).
 
 ## FAQ
 

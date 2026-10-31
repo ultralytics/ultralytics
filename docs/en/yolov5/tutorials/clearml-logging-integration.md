@@ -14,7 +14,7 @@ keywords: ClearML, YOLOv5, machine learning, experiment tracking, data versionin
 
 - Track every YOLOv5 training run in the **experiment manager**.
 - Version and access your custom [training data](https://www.ultralytics.com/glossary/training-data) with the integrated ClearML **data versioning tool**.
-- **Remotely train and monitor** YOLOv5 runs using the ClearML Agent.
+- **[Remotely train and monitor](https://www.ultralytics.com/blog/remotely-train-and-monitor-yolov5-using-clearml)** YOLOv5 runs using the ClearML Agent.
 - Find the best [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) with ClearML **hyperparameter optimization**.
 - Turn your trained **YOLOv5 model into an API** with a few commands using ClearML Serving.
 
@@ -220,7 +220,7 @@ Watch the getting-started video below:
 
 ## Learn More
 
-For more information about integrating ClearML with Ultralytics models, check out our [ClearML integration guide](../../integrations/clearml.md), read how to [remotely train and monitor YOLOv5 with ClearML](https://www.ultralytics.com/blog/remotely-train-and-monitor-yolov5-using-clearml), and explore how you can enhance your [MLOps workflow](https://www.ultralytics.com/blog/exploring-yolov8-ml-experiment-tracking-integrations) with other experiment tracking tools.
+For more information about integrating ClearML with Ultralytics models, check out our [ClearML integration guide](../../integrations/clearml.md) and explore how you can enhance your [MLOps workflow](https://www.ultralytics.com/blog/exploring-yolov8-ml-experiment-tracking-integrations) with other experiment tracking tools.
 
 ## FAQ
 

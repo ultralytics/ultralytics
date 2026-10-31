@@ -22,7 +22,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-mode
 The output from Ultralytics trackers is consistent with standard [object detection](https://www.ultralytics.com/glossary/object-detection) but has the added value of object IDs. This makes it easy to [track objects in video streams](https://academy.ultralytics.com/courses/yolo-in-production/tracking-with-bytetrack-and-botsort) and perform subsequent analytics. Key reasons to use Ultralytics YOLO for object tracking:
 
 - **Efficiency:** Process video streams in real-time without compromising [accuracy](https://www.ultralytics.com/glossary/accuracy).
-- **Flexibility:** Supports [multiple tracking algorithms](https://www.ultralytics.com/blog/top-8-open-source-object-tracking-tools-and-algorithms) and configurations.
+- **Flexibility:** Supports [multiple tracking algorithms](#supported-trackers) and configurations.
 - **Ease of Use:** Simple Python API and CLI options for quick integration and deployment.
 - **Customizability:** Easy to use with custom-trained YOLO models, allowing integration into domain-specific applications.
 
@@ -158,7 +158,7 @@ Pass the tracker config filename to `tracker=`. All other code stays the same.
 
 ### Tracking Arguments
 
-Tracking configuration shares properties with Predict mode, such as `conf`, `iou`, and `show`. For further configurations, see the [Predict mode inference arguments](predict.md#inference-arguments).
+Tracking configuration shares [inference arguments](predict.md#inference-arguments) with Predict mode, such as `conf`, `iou`, and `show`.
 
 !!! example
 
@@ -668,9 +668,7 @@ This example can easily be extended to handle more video files and models by cre
 
 ## Contribute New Trackers
 
-If you have implemented or adapted a multi-object tracking algorithm for Ultralytics YOLO, consider contributing it to [ultralytics/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/trackers) with a matching config in [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers). Contributions expand the tracking options available to the whole community.
-
-See the [Contributing Guide](../help/contributing.md) for instructions on submitting a Pull Request (PR).
+If you have implemented or adapted a multi-object tracking algorithm for Ultralytics YOLO, consider [contributing](../help/contributing.md) it to [ultralytics/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/trackers) with a matching config in [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers). Contributions expand the tracking options available to the whole community.
 
 ## FAQ
 

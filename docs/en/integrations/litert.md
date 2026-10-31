@@ -86,7 +86,7 @@ Adreno GPU, and Hexagon NPU.
   NPUs. LiteRT reports an NPU compile even when it silently runs the graph on the GPU, so every NPU row was checked against
   the GPU time; rows that fell back are shown as —.
 - The matching Snapdragon **Hexagon NPU** numbers for the official QNN assets are in the [Qualcomm QNN integration](qnn.md).
-- Compare the Apple CPU/accelerator results in the [CoreML integration](coreml.md#measured-performance), or browse [Ultralytics Benchmarks](https://www.ultralytics.com/benchmarks) for measured on-device speeds on more phones.
+- Compare the Apple CPU/accelerator results in the [CoreML integration](coreml.md#measured-performance).
 
 The following device sweeps use the same official `v0.7.0` assets.
 
@@ -361,11 +361,9 @@ After exporting your Ultralytics YOLO model to LiteRT, you can deploy it across 
 
 ## Summary
 
-In this guide, we covered how to export Ultralytics YOLO models to the LiteRT format. By consolidating mobile/edge (formerly TFLite) and browser (formerly TF.js) deployment into a single `.tflite` model, LiteRT makes your YOLO models smaller, faster, and portable across mobile, embedded, edge, and browser targets.
+In this guide, we covered how to export Ultralytics YOLO models to the LiteRT format. By consolidating mobile/edge (formerly TFLite) and browser (formerly TF.js) deployment into a single `.tflite` model, LiteRT makes your YOLO models smaller, faster, and [portable across mobile, embedded, edge, and browser targets](https://www.ultralytics.com/blog/export-ultralytics-yolo-with-litert-for-edge-and-browser-deployment).
 
-For further details, visit the [LiteRT official documentation](https://developers.google.com/edge/litert/overview) and the Ultralytics blog post on [LiteRT export for edge, mobile, and browser inference](https://www.ultralytics.com/blog/export-ultralytics-yolo-with-litert-for-edge-and-browser-deployment).
-
-To explore other Ultralytics YOLO integrations, see the [integrations overview](index.md).
+For further details, visit the [LiteRT official documentation](https://developers.google.com/edge/litert/overview).
 
 ## FAQ
 
@@ -408,7 +406,7 @@ If you have an existing `.tflite` file, you can load it directly with `YOLO("mod
 
 ### Can I run YOLO LiteRT models on a Raspberry Pi?
 
-Yes. Export your model to LiteRT format, then run it on a Raspberry Pi to improve inference speeds. For further optimization, consider a [Coral Edge TPU](edge-tpu.md). For detailed steps, refer to our [Raspberry Pi deployment guide](../guides/raspberry-pi.md).
+Yes. Export your model to LiteRT format, then run it on a [Raspberry Pi](../guides/raspberry-pi.md) to improve inference speeds. A [Coral Edge TPU](edge-tpu.md) can accelerate inference further.
 
 ### Can I run YOLO models in the browser with LiteRT?
 

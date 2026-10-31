@@ -85,8 +85,6 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](https://platform.ultralytics.com/ultralytics/yolo26). This will help you choose the most appropriate model for your project requirements.
-
 The TensorRT format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation require an NVIDIA GPU. Export your model, then load the exported model to run inference or validate its accuracy.
 
 !!! example "Export"
@@ -269,7 +267,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 #### Drawbacks of using YOLO with TensorRT INT8
 
-- **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. Sigmoid layers are kept at higher precision to preserve score calibration, but INT8 can still shift confidence values, so select the operating threshold from the INT8 model's own [F1](https://www.ultralytics.com/glossary/f1-score) curve. See the [Performance results section](#ultralytics-yolo-tensorrt-export-performance) to compare the differences in `mAP50` and `mAP50-95` when exporting with INT8 on a small sample of devices.
+- **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. Sigmoid layers are kept at higher precision to preserve score calibration, but INT8 can still shift confidence values, so select the operating threshold from the INT8 model's own [F1](https://www.ultralytics.com/glossary/f1-score) curve.
 
 - **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 
@@ -619,5 +617,3 @@ Performance improvements with TensorRT can vary based on the model and hardware 
     - **INT8** Inference: ~0.52 ms / image
 
 Detailed performance benchmarks for different hardware configurations can be found in the [performance section](#ultralytics-yolo-tensorrt-export-performance).
-
-For more on export options, refer to the [export mode documentation](../modes/export.md).

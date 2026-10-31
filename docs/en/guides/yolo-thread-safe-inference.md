@@ -158,7 +158,7 @@ For more advanced scenarios and to further optimize your multi-threaded inferenc
 
 ### How can I avoid race conditions when using YOLO models in a multi-threaded Python environment?
 
-To prevent race conditions when using Ultralytics YOLO models in a multi-threaded Python environment, instantiate a separate YOLO model within each thread. This ensures that each thread has its own isolated model instance, avoiding concurrent modification of the model state.
+To prevent race conditions when using Ultralytics YOLO models in a multi-threaded Python environment, [instantiate a separate YOLO model within each thread](#thread-safe-inference). This ensures that each thread has its own isolated model instance, avoiding concurrent modification of the model state.
 
 Example:
 
@@ -178,8 +178,6 @@ def thread_safe_predict(image_path):
 Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
 Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
 ```
-
-For more information on ensuring thread safety, see the [Thread-Safe Inference](#thread-safe-inference) section.
 
 ### What are the best practices for running multi-threaded YOLO model inference in Python?
 

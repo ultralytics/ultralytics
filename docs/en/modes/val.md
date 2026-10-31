@@ -49,7 +49,7 @@ Notable features of YOLO26's Val mode:
 
 ## Usage Examples
 
-Validate the [accuracy](https://www.ultralytics.com/glossary/accuracy) of a trained [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model. No arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` validates on the dataset it was trained on. Official weights record a training dataset path that doesn't exist on your machine, so they fall back to the task default `coco8.yaml` with a warning. Pass `data` to validate on another dataset. See [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) for a full list of validation arguments.
+Validate the [accuracy](https://www.ultralytics.com/glossary/accuracy) of a trained [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model. No arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` validates on the dataset it was trained on. Official weights record a training dataset path that doesn't exist on your machine, so they fall back to the task default `coco8.yaml` with a warning. Pass `data` to validate on another dataset.
 
 !!! warning "Windows Multi-Processing Error"
 
@@ -186,7 +186,7 @@ The examples below run YOLO model validation with custom arguments in Python and
 
     This feature is available for detection, segmentation, pose, and OBB tasks.
 
-The returned metrics object also exposes export helpers for downstream analysis:
+The returned metrics object also exposes export helpers from [`DataExportMixin`](../reference/utils/__init__.md#ultralytics.utils.__init__.DataExportMixin) for downstream analysis:
 
 | Method      | Return Type            | Description                                                                |
 | ----------- | ---------------------- | -------------------------------------------------------------------------- |
@@ -194,8 +194,6 @@ The returned metrics object also exposes export helpers for downstream analysis:
 | `to_df()`   | `DataFrame`            | Returns the validation results as a structured Polars DataFrame.           |
 | `to_csv()`  | `str`                  | Exports the validation results in CSV format and returns the CSV string.   |
 | `to_json()` | `str`                  | Exports the validation results in JSON format and returns the JSON string. |
-
-For more details, see the [`DataExportMixin` class documentation](../reference/utils/__init__.md#ultralytics.utils.__init__.DataExportMixin).
 
 ## What's Next
 

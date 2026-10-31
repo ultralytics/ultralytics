@@ -48,7 +48,7 @@ Explore [Brain Tumor on Ultralytics Platform](https://platform.ultralytics.com/u
 
 ## Applications
 
-Brain tumor [detection](../../tasks/detect.md) with computer vision enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and tumor-progression monitoring. By analyzing MRI or CT scans, [detection models](https://platform.ultralytics.com/ultralytics/solutions/brain-tumor-detection-yolo26s) locate tumors, supporting timely medical intervention and personalized treatment.
+Brain tumor [detection](../../tasks/detect.md) with computer vision enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and tumor-progression monitoring. By analyzing MRI or CT scans, detection models [locate tumors](https://platform.ultralytics.com/ultralytics/solutions/brain-tumor-detection-yolo26s), supporting timely medical intervention and personalized treatment.
 
 Medical professionals can use this technology to:
 

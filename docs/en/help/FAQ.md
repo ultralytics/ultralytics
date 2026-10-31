@@ -139,7 +139,7 @@ Key distinctions include:
 - Task-Specific Optimizations: Enhanced segmentation with semantic loss and multi-scale protos, Residual Log-Likelihood Estimation (RLE) for more accurate pose estimation, and improved OBB decoding with angle loss.
 - Tasks: Both models support [object detection](https://www.ultralytics.com/glossary/object-detection) and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), while YOLO26 also adds [semantic segmentation](../tasks/semantic.md) for dense pixel-level prediction and [monocular depth estimation](../tasks/depth.md) for per-pixel depth. Both models also support classification, pose estimation, and oriented object detection (OBB) in a unified framework.
 
-For an in-depth comparison of features and performance metrics, visit the [YOLO26 documentation page](../models/yolo26.md) or read [how to choose between YOLO26, YOLO11, and YOLOv8](https://www.ultralytics.com/blog/ultralytics-yolo26-vs-yolo11-vs-yolov8-which-one-should-you-use).
+For an in-depth comparison of features and performance metrics, visit the [YOLO26 documentation page](../models/yolo26.md).
 
 ### How can I contribute to the Ultralytics open-source project?
 

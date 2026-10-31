@@ -92,7 +92,7 @@ TFLite offers various on-device deployment options for machine learning models, 
   <img width="75%" src="https://cdn.ul.run/i/322c2a4f70b733df7eccc80a9e6ef6d7.avif" alt="TensorFlow Lite deployment architecture for mobile">
 </p>
 
-- **Implementing with Embedded Linux**: If running inference on a Raspberry Pi as described in the [Ultralytics Raspberry Pi guide](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference. Additionally, it's possible to further improve performance by using a [Coral Edge TPU device](https://developers.google.com/coral).
+- **Implementing with Embedded Linux**: If running inference on a [Raspberry Pi](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference. Additionally, it's possible to further improve performance by using a [Coral Edge TPU device](https://developers.google.com/coral).
 
 - **Deploying with Microcontrollers**: TFLite models can also be deployed on microcontrollers and other devices with only a few kilobytes of memory. The core runtime just fits in 16 KB on an Arm Cortex M3 and can run many basic models. It doesn't require operating system support, any standard C or C++ libraries, or dynamic memory allocation.
 
@@ -200,11 +200,9 @@ After exporting your Ultralytics YOLO26 model to LiteRT format, you can deploy t
 
 ## Summary
 
-This guide preserves the legacy TFLite deployment workflow. For new exports, use LiteRT to create `.tflite` models for edge computing environments; for a walkthrough, see [LiteRT export for YOLO edge, mobile, and browser inference](https://www.ultralytics.com/blog/export-ultralytics-yolo-with-litert-for-edge-and-browser-deployment).
+This guide preserves the legacy TFLite deployment workflow. For new exports, use LiteRT to create `.tflite` models for edge computing environments.
 
 For further details on usage, visit the [TFLite official documentation](https://developers.google.com/edge/litert).
-
-To learn about other Ultralytics YOLO26 integrations, see the [integrations overview](index.md).
 
 ## FAQ
 
@@ -250,7 +248,7 @@ To learn more, check out the [TFLite guide](https://developers.google.com/edge/l
 
 Yes, you can run YOLO26 TFLite models on Raspberry Pi to improve inference speeds. First, export your model to LiteRT format as explained above. Then, run the `.tflite` model on your Raspberry Pi with `YOLO("yolo26n.tflite")` or the LiteRT interpreter.
 
-For further optimizations, you might consider using [Coral Edge TPU](https://developers.google.com/coral). For detailed steps, refer to our [Raspberry Pi deployment guide](../guides/raspberry-pi.md) and the [Edge TPU integration guide](edge-tpu.md).
+A [Coral Edge TPU](edge-tpu.md) can accelerate inference further.
 
 ### Can I use TFLite models on microcontrollers for YOLO26 predictions?
 

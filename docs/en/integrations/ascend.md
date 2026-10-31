@@ -181,8 +181,6 @@ In this guide, you have learned how to train Ultralytics YOLO on Huawei Ascend N
 
 For more details on usage, visit the [official CANN documentation](https://www.hiascend.com/cann).
 
-To learn about other Ultralytics YOLO integrations, visit the [integrations overview](index.md).
-
 ## FAQ
 
 ### How do I export my Ultralytics YOLO model to Ascend format?

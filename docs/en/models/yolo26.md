@@ -52,7 +52,7 @@ The YOLO26 model family is built around four design areas:
 
 - **Native end-to-end inference:** The optional one-to-one detection head produces predictions without [non-maximum suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), simplifying deployment and reducing post-processing.
 - **Lighter box regression:** YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity while preserving an unconstrained regression range.
-- **Training recipe updates:** The training pipeline combines **MuSGD** (a hybrid Muon + SGD optimizer), **Progressive Loss**, and **STAL** (Small-Target-Aware Label Assignment) to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. For an overview of these techniques, see [how YOLO26 trains smarter with ProgLoss, STAL and MuSGD](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd); the full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
+- **Training recipe updates:** The [training pipeline](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd) combines **MuSGD** (a hybrid Muon + SGD optimizer), **Progressive Loss**, and **STAL** (Small-Target-Aware Label Assignment) to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. The full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
 - **Task-specific heads and losses:** YOLO26 adds targeted designs for instance segmentation, semantic segmentation variants, pose estimation, and oriented detection while keeping a single model pipeline across tasks.
 
 Together, these updates improve the accuracy-latency tradeoff across model scales and deployment targets.
@@ -153,11 +153,11 @@ This unified framework covers real-time detection, instance segmentation, semant
 
         --8<-- "docs/macros/yolo-obb-perf.md"
 
-_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. Speed measurements select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts. For measured training throughput, inference latency, and on-device phone speeds, see [Ultralytics Benchmarks](https://www.ultralytics.com/benchmarks)._
+_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. [Speed measurements](https://www.ultralytics.com/benchmarks) select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
 
 ## Usage Examples
 
-This section provides simple YOLO26 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) docs pages.
+This section provides simple YOLO26 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 The example below trains a YOLO26 [Detect](../tasks/detect.md) model for [object detection](https://www.ultralytics.com/glossary/object-detection) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset. For additional supported tasks, see the [Segment](../tasks/segment.md), [Semantic Segmentation](../tasks/semantic.md), [Depth](../tasks/depth.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) docs.
 

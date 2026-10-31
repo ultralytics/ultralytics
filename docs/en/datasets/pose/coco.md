@@ -128,6 +128,6 @@ COCO-Pose ships two labeled splits: 56,599 train2017 images and 2,346 val2017 im
 
 ### What are the key features and applications of the COCO-Pose dataset?
 
-COCO-Pose uses 17 human keypoint types and inherits COCO's standardized metrics, including Object Keypoint Similarity (OKS), for comparing models. That combination suits human pose applications such as sports analytics, healthcare, and human-computer interaction. Pretrained YOLO26-pose weights are listed under [COCO-Pose Pretrained Models](#coco-pose-pretrained-models); for how they compare with earlier versions, see [YOLO26 vs. other Ultralytics YOLO models for pose estimation](https://www.ultralytics.com/blog/ultralytics-yolo26-vs-other-ultralytics-yolo-models-for-pose-estimation).
+COCO-Pose uses 17 human keypoint types and inherits COCO's standardized metrics, including Object Keypoint Similarity (OKS), for comparing models. That combination suits human pose applications such as sports analytics, healthcare, and human-computer interaction. Pretrained YOLO26-pose weights are listed under [COCO-Pose Pretrained Models](#coco-pose-pretrained-models).
 
 For more on keypoint models, see the [Pose Estimation](../../tasks/pose.md) task docs.

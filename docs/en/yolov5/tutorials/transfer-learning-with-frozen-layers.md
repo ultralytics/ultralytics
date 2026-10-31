@@ -149,7 +149,7 @@ Layer freezing during transfer learning is particularly advantageous in several 
 3.  **Rapid Prototyping**: When you need to quickly adapt an existing model to a new task or domain for initial evaluation.
 4.  **Similar Feature Domains**: If the low-level features in your new dataset are very similar to those in the dataset the model was pretrained on.
 
-Explore more about transfer learning in our [guide to few-shot, zero-shot and transfer learning](https://www.ultralytics.com/blog/understanding-few-shot-zero-shot-and-transfer-learning) and consider [hyperparameter evolution](hyperparameter-evolution.md) for optimizing performance.
+To optimize performance further, consider [hyperparameter evolution](hyperparameter-evolution.md).
 
 ## Supported Environments
 

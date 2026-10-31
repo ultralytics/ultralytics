@@ -7,7 +7,7 @@ keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model t
 
 # Ultralytics Platform Quickstart
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides a [guided workflow](https://academy.ultralytics.com/courses/build-with-ultralytics-platform) to upload datasets, train new YOLO models from pretrained weights, test completed models in the browser, and configure dedicated inference endpoints.
+[Ultralytics Platform](https://platform.ultralytics.com) provides a guided workflow to upload datasets, train new YOLO models from pretrained weights, test completed models in the browser, and configure dedicated inference endpoints.
 
 <p align="center">
   <br>
@@ -230,9 +230,7 @@ After upload, the platform automatically processes your data:
         └── labels/
     ```
 
-    For full syntax across tasks, see the [detect](../datasets/detect/index.md#ultralytics-yolo-format), [segment](../datasets/segment/index.md#ultralytics-yolo-format), [semantic](../datasets/semantic/index.md#png-mask-format), [depth](../datasets/depth/index.md#depth-map-format), [classify](../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks), [pose](../datasets/pose/index.md#ultralytics-yolo-format), and [OBB](../datasets/obb/index.md#yolo-obb-format) dataset guides.
-
-Read more about [datasets](data/datasets.md) and supported formats for [detect](../datasets/detect/index.md), [segment](../datasets/segment/index.md), [semantic](../datasets/semantic/index.md), [depth](../datasets/depth/index.md), [classify](../datasets/classify/index.md), [pose](../datasets/pose/index.md), and [OBB](../datasets/obb/index.md).
+    Label syntax differs across [detect](../datasets/detect/index.md#ultralytics-yolo-format), [segment](../datasets/segment/index.md#ultralytics-yolo-format), [semantic](../datasets/semantic/index.md#png-mask-format), [depth](../datasets/depth/index.md#depth-map-format), [classify](../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks), [pose](../datasets/pose/index.md#ultralytics-yolo-format), and [OBB](../datasets/obb/index.md#yolo-obb-format) datasets.
 
 ## Create Your First Project
 

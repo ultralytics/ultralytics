@@ -76,8 +76,6 @@ If you are using a Google Colab notebook, the code above will prompt you to ente
 
 ## Usage
 
-Before training, review the available [YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) to choose the size and task that fit your project.
-
 !!! example "Usage"
 
     === "Python"
@@ -101,7 +99,7 @@ Before training, review the available [YOLO26 models](https://platform.ultralyti
 
 After running the training code, Comet will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLO26 model's training](../modes/train.md) process.
 
-Once Comet is installed and configured, its callback is enabled by default and logs metrics such as mAP and loss, hyperparameters, model checkpoints, and an interactive confusion matrix. Image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions from the validation set are logged for detect and segment training with `save_json=True`. Run `yolo settings comet=False` to disable the integration.
+Once Comet is installed and configured, its callback is enabled by default and logs metrics such as mAP and loss, hyperparameters, model checkpoints, and an interactive confusion matrix. Image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions from the validation set are logged for detect and [segment training](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) with `save_json=True`. Run `yolo settings comet=False` to disable the integration.
 
 ## Understanding Your Model's Performance with Comet Visualizations
 
@@ -300,7 +298,7 @@ By integrating Ultralytics YOLO26 with Comet, you can:
 - **Track experiments offline**: Log your training runs locally when internet access is unavailable.
 - **Compare different training runs**: Use the interactive Comet dashboard to analyze and compare multiple experiments.
 
-With these features, you can optimize your machine learning workflows for better performance and reproducibility. For more integrations, visit the [Ultralytics integrations guide](../integrations/index.md).
+With these features, you can optimize your machine learning workflows for better performance and reproducibility.
 
 ### How do I customize the logging behavior of Comet during YOLO26 training?
 

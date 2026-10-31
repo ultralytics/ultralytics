@@ -159,10 +159,8 @@ For more in-depth use cases and examples, explore [Ultralytics Solutions](../sol
 
 ### How does Ultralytics YOLO26 compare to other object detection models like YOLOv5 and RCNNs?
 
-Ultralytics YOLO26 provides several enhancements over prior models like YOLOv5 and R-CNN-family detectors:
+[Ultralytics YOLO26](../models/yolo26.md) provides several enhancements over prior models like YOLOv5 and R-CNN-family detectors:
 
 - **Higher Speed and Accuracy**: Improved performance for real-time applications.
 - **Ease of Use**: Simplified interfaces and deployment.
 - **Resource Efficiency**: Optimized for better speed with minimal computational requirements.
-
-For a detailed comparison, check the [Ultralytics YOLO26 documentation](../models/yolo26.md) and our [comparison of the best object detection models](https://www.ultralytics.com/blog/best-object-detection-models).

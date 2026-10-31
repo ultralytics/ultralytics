@@ -174,8 +174,6 @@ In this guide, we've learned how to export Ultralytics YOLO26 models to TFLite E
 
 For further details on usage, visit the [Coral Edge TPU official website](https://developers.google.com/coral).
 
-For more information on other Ultralytics YOLO26 integrations, visit the [integrations overview](index.md).
-
 ## FAQ
 
 ### How do I export a YOLO26 model to TFLite Edge TPU format?
@@ -216,13 +214,13 @@ For complete details on exporting models to other formats, refer to our [export 
 
 ### What are the benefits of exporting YOLO26 models to TFLite Edge TPU?
 
-Exporting YOLO26 models to TFLite Edge TPU offers several benefits:
+Exporting YOLO26 models to TFLite Edge TPU offers [several benefits](#why-should-you-export-to-tflite-edge-tpu):
 
 - **Optimized Performance**: Achieve high-speed neural network performance with minimal power consumption.
 - **Reduced Latency**: Quick local data processing without the need for cloud dependency.
 - **Enhanced Privacy**: Local processing keeps user data private and secure.
 
-This makes it ideal for applications in edge computing, where devices have limited power and computational resources. Learn more about [why you should export](#why-should-you-export-to-tflite-edge-tpu).
+This makes it ideal for applications in edge computing, where devices have limited power and computational resources.
 
 ### Can I deploy TFLite Edge TPU models on mobile and embedded devices?
 

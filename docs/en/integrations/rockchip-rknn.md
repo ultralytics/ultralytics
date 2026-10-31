@@ -237,8 +237,6 @@ The combination of [Ultralytics YOLO26](https://platform.ultralytics.com/ultraly
 
 For further details on usage, visit the [RKNN official documentation](https://github.com/airockchip/rknn-toolkit2).
 
-To learn about other Ultralytics YOLO26 integrations, visit the [integrations overview](index.md).
-
 ## FAQ
 
 ### How do I export my Ultralytics YOLO model to RKNN format?

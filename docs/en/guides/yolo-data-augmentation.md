@@ -362,11 +362,11 @@ Then launch training with the Python API or the CLI:
 
 - **Options**: `'randaugment'`, `'autoaugment'`, `'augmix'`, `None`
 - **Default**: `'{{ auto_augment }}'`
-- **Usage**: Applies automated augmentation policies for classification. The `'randaugment'` option uses RandAugment, `'autoaugment'` uses AutoAugment, and `'augmix'` uses AugMix. Setting to `None` disables automated augmentation.
+- **Usage**: Applies automated augmentation policies for classification. The `'randaugment'` option uses [RandAugment](https://arxiv.org/abs/1909.13719), `'autoaugment'` uses [AutoAugment](https://arxiv.org/abs/1805.09501), and `'augmix'` uses [AugMix](https://arxiv.org/abs/1912.02781). Setting to `None` disables automated augmentation.
 - **Purpose**: Optimizes augmentation strategies automatically for classification tasks. The differences are the following:
-    - **AutoAugment**: This mode applies predefined augmentation policies learned from datasets like ImageNet, CIFAR-10, and SVHN. Users can select these existing policies but cannot train new ones within Torchvision. To discover optimal augmentation strategies for specific datasets, external libraries or custom implementations would be necessary. See the [AutoAugment paper](https://arxiv.org/abs/1805.09501).
-    - **RandAugment**: Applies a random selection of transformations with uniform magnitude. This approach reduces the need for an extensive search phase, making it more computationally efficient while still enhancing model robustness. See the [RandAugment paper](https://arxiv.org/abs/1909.13719).
-    - **AugMix**: AugMix is a data augmentation method that enhances model robustness by creating diverse image variations through random combinations of simple transformations. See the [AugMix paper](https://arxiv.org/abs/1912.02781).
+    - **AutoAugment**: This mode applies predefined augmentation policies learned from datasets like ImageNet, CIFAR-10, and SVHN. Users can select these existing policies but cannot train new ones within Torchvision. To discover optimal augmentation strategies for specific datasets, external libraries or custom implementations would be necessary.
+    - **RandAugment**: Applies a random selection of transformations with uniform magnitude. This approach reduces the need for an extensive search phase, making it more computationally efficient while still enhancing model robustness.
+    - **AugMix**: AugMix is a data augmentation method that enhances model robustness by creating diverse image variations through random combinations of simple transformations.
 - **Ultralytics' implementation**: [classify_augmentations()](../reference/data/augment.md#ultralytics.data.augment.classify_augmentations)
 - **Note**:
     - Essentially, the main [difference between the three methods](https://sebastianraschka.com/blog/2023/data-augmentation-pytorch.html) is the way the augmentation policies are defined and applied.

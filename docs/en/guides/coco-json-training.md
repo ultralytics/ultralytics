@@ -346,7 +346,7 @@ model = YOLO("yolo26n.pt")
 model.train(data="dataset.yaml", epochs=100, imgsz=640, trainer=COCOTrainer)
 ```
 
-You now have a minimal dataset and trainer that train Ultralytics YOLO directly on COCO JSON, with annotations staying the single source of truth and no intermediate `.txt` files. Extend the `cache_labels()` method with `segments` or `keypoints` to cover segmentation and pose, and see the [Model Training Tips](model-training-tips.md) guide for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) recommendations.
+You now have a minimal dataset and trainer that train Ultralytics YOLO directly on COCO JSON, with annotations staying the single source of truth and no intermediate `.txt` files. Extend the `cache_labels()` method with `segments` or `keypoints` to cover segmentation and pose.
 
 ## FAQ
 

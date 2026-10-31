@@ -82,8 +82,7 @@ Adreno GPU, and Hexagon NPU (HTP v81).
 - The detailed benchmark record is in the
   [Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
 - Compare other Android devices in the [LiteRT integration](litert.md#measured-performance) and Apple devices in the
-  [CoreML integration](coreml.md#measured-performance), or browse [Ultralytics Benchmarks](https://www.ultralytics.com/benchmarks) for
-  measured on-device speeds on more phones.
+  [CoreML integration](coreml.md#measured-performance).
 
 ### Windows on Snapdragon Laptop
 
@@ -324,7 +323,7 @@ In this guide, you've learned how to export Ultralytics YOLO models to the Qualc
 
 Together, [Ultralytics YOLO](https://www.ultralytics.com/yolo) and Qualcomm's on-device AI stack let you run [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workloads across the broad Snapdragon ecosystem.
 
-For other on-device and mobile deployment targets, see the related [ONNX](onnx.md), [CoreML](coreml.md), [NCNN](ncnn.md), [LiteRT](litert.md), [ExecuTorch](executorch.md), [RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), and [TensorRT](tensorrt.md) export guides. To compare formats before shipping, use [Benchmark mode](../modes/benchmark.md). For the full list of formats and options, visit the [Export mode](../modes/export.md) documentation and the [integrations overview](index.md).
+To compare formats before shipping, use [Benchmark mode](../modes/benchmark.md).
 
 ## FAQ
 

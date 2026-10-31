@@ -235,5 +235,3 @@ Yes. Ultralytics YOLO26 is well suited to crowd analysis and traffic management 
 - **Traffic Management:** Track and count vehicles, analyze traffic patterns, and manage congestion in real time with [speed estimation](speed-estimation.md).
 - **Retail Analytics:** Analyze customer movement patterns and product interactions to optimize store layouts and improve customer experience.
 - **Industrial Automation:** Count products on conveyor belts and monitor production lines for quality control and efficiency improvements.
-
-For more specialized applications, explore [Ultralytics Solutions](../solutions/index.md) for more ready-to-use analytics built on YOLO26 detection and tracking.

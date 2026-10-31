@@ -37,7 +37,7 @@ YOLOv6 also provides [quantized](https://www.ultralytics.com/glossary/model-quan
 
 ## Usage Examples
 
-This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv6 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 !!! example
 

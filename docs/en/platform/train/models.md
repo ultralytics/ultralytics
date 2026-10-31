@@ -220,7 +220,7 @@ flowchart TD
     F --> G
 ```
 
-Export your model to 22 deployment formats (see also [exporting models on Ultralytics Platform](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform)):
+[Export your model](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to 22 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format

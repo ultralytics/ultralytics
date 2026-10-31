@@ -123,11 +123,11 @@ These results show that YOLOv9 improved computational efficiency without comprom
 
 ## Conclusion
 
-YOLOv9, released in February 2024, improved the efficiency and accuracy of real-time object detection. By addressing information loss with PGI and GELAN, YOLOv9 set new benchmarks at its time of release. Newer models like [YOLO26](yolo26.md) and [YOLO11](yolo11.md) have since added further improvements (see [how YOLO11 compares with YOLOv8, YOLOv9, and YOLOv10](https://www.ultralytics.com/blog/comparing-ultralytics-yolo11-vs-previous-yolo-models)), but YOLOv9's architectural innovations continue to influence the field.
+YOLOv9, released in February 2024, improved the efficiency and accuracy of real-time object detection. By addressing information loss with PGI and GELAN, YOLOv9 set new benchmarks at its time of release. Newer models like [YOLO26](yolo26.md) and [YOLO11](yolo11.md) have since added [further improvements](https://www.ultralytics.com/blog/comparing-ultralytics-yolo11-vs-previous-yolo-models), but YOLOv9's architectural innovations continue to influence the field.
 
 ## Usage Examples
 
-This example provides simple YOLOv9 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv9 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 !!! example
 

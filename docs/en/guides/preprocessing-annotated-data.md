@@ -54,7 +54,7 @@ YOLO26 handles normalization automatically as part of its preprocessing pipeline
 
 ### Splitting the Dataset
 
-Splitting the data into training, validation, and test sets lets you evaluate the model on unseen data and measure its generalization. A common split is 70% for training, 20% for validation, and 10% for testing; the Ultralytics Academy lesson on [splitting the dataset correctly](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/split-the-dataset-correctly) explains how to avoid common mistakes. Tools like [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) make this straightforward.
+[Splitting the data](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/split-the-dataset-correctly) into training, validation, and test sets lets you evaluate the model on unseen data and measure its generalization. A common split is 70% for training, 20% for validation, and 10% for testing. Tools like [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) make this straightforward.
 
 Keep these points in mind when splitting:
 

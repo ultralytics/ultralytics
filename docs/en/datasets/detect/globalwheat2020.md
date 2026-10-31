@@ -38,9 +38,9 @@ The Global Wheat Head Dataset is organized into three subsets defined by the `Gl
 
 ## Applications
 
-The Global Wheat Head Dataset is widely used to train and evaluate [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for wheat head detection. Its diverse imagery across regions, genotypes, and conditions makes it a valuable resource for plant phenotyping and crop management — supporting yield estimation, crop-health monitoring, and phenotypic analysis.
+The Global Wheat Head Dataset is widely used to train and evaluate [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for [wheat head detection](https://platform.ultralytics.com/ultralytics/solutions/wheat-head-detection-yolo26s). Its diverse imagery across regions, genotypes, and conditions makes it a valuable resource for plant phenotyping and crop management — supporting yield estimation, crop-health monitoring, and phenotypic analysis.
 
-To annotate field imagery, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/globalwheat2020), or try the fine-tuned [YOLO26s wheat head detection model](https://platform.ultralytics.com/ultralytics/solutions/wheat-head-detection-yolo26s).
+To annotate field imagery, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/globalwheat2020).
 
 ## Dataset YAML
 

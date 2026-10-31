@@ -150,7 +150,7 @@ names:
 
 ### What is the difference between semantic segmentation masks and instance segmentation labels?
 
-Semantic segmentation masks are dense pixel maps. Each pixel stores a class ID, and there is one mask image per training image. Instance segmentation labels in Ultralytics YOLO use text files with polygon coordinates, one row per object instance. To decide which task fits your project, see [semantic vs instance segmentation](https://www.ultralytics.com/blog/semantic-vs-instance-segmentation).
+Semantic segmentation masks are dense pixel maps. Each pixel stores a class ID, and there is one mask image per training image. Instance segmentation labels in Ultralytics YOLO use text files with polygon coordinates, one row per object instance.
 
 ### What pixel value is ignored during training?
 

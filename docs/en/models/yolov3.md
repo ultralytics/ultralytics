@@ -10,7 +10,7 @@ keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, object detection, Ultralytics, co
 
 This document presents an overview of three closely related object detection models, namely [YOLOv3](https://pjreddie.com/darknet/yolo/), [YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3), and [YOLOv3u](https://github.com/ultralytics/ultralytics).
 
-1. **YOLOv3:** This is the third version of the You Only Look Once (YOLO) object detection algorithm (see the [evolution of YOLO models](https://www.ultralytics.com/blog/the-evolution-of-object-detection-and-ultralytics-yolo-models)). Originally developed by Joseph Redmon, YOLOv3 improved on its predecessors by introducing predictions at three different scales.
+1. **YOLOv3:** This is the [third version](https://www.ultralytics.com/blog/the-evolution-of-object-detection-and-ultralytics-yolo-models) of the You Only Look Once (YOLO) object detection algorithm. Originally developed by Joseph Redmon, YOLOv3 improved on its predecessors by introducing predictions at three different scales.
 
 2. **YOLOv3-Ultralytics:** This is the Ultralytics PyTorch implementation of YOLOv3, maintained in the [ultralytics/yolov3](https://github.com/ultralytics/yolov3) repository. It keeps the original [anchor-based](https://www.ultralytics.com/glossary/anchor-based-detectors) architecture while adding more pretrained models and easier customization.
 
@@ -40,7 +40,7 @@ This table summarizes the supported tasks and modes for each YOLOv3 variant.
 
 ## Usage Examples
 
-This example provides simple YOLOv3 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv3 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 !!! example
 

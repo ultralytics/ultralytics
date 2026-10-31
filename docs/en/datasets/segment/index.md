@@ -197,7 +197,7 @@ This utility converts the mask images into the YOLO segmentation format and save
 
 ### What dataset formats does Ultralytics YOLO support for instance segmentation?
 
-Ultralytics YOLO supports several dataset formats for instance segmentation, with the primary format being its own Ultralytics YOLO format. Each image in your dataset needs a corresponding text file with object information segmented into multiple rows (one row per object), listing the class index and normalized polygon coordinates. For more detailed instructions, see the [Ultralytics YOLO format](#ultralytics-yolo-format) section.
+Ultralytics YOLO supports several dataset formats for instance segmentation, with the primary format being its own [Ultralytics YOLO format](#ultralytics-yolo-format). Each image in your dataset needs a corresponding text file with object information segmented into multiple rows (one row per object), listing the class index and normalized polygon coordinates.
 
 ### How can I convert COCO dataset annotations to the YOLO format?
 

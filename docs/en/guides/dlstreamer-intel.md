@@ -33,9 +33,9 @@ DL Streamer is regularly validated on the systems listed in the [DL Streamer sys
 
 Before you begin, ensure the following are installed and configured on your Intel system:
 
-- **Ubuntu 24.04** with Intel GPU/NPU drivers installed (see the [DL Streamer Ubuntu installation guide](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/install/install_guide_ubuntu.html))
+- **Ubuntu 24.04** with [Intel GPU/NPU drivers](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/install/install_guide_ubuntu.html) installed
 
-- **Docker Engine** (see the [Docker Engine installation guide for Ubuntu](https://docs.docker.com/engine/install/ubuntu/))
+- **[Docker Engine](https://docs.docker.com/engine/install/ubuntu/)**
 
 ## YOLO26 Model Preparation
 

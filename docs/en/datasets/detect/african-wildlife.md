@@ -176,7 +176,7 @@ For additional training parameters and options, refer to the [Training](../../mo
 
 ### Where can I find the YAML configuration file for the African Wildlife Dataset?
 
-The YAML configuration file for the African Wildlife Dataset, named `african-wildlife.yaml`, can be found in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml). This file defines the dataset configuration, including paths, classes, and other details crucial for training [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
+The African Wildlife Dataset's YAML configuration file, [`african-wildlife.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml), defines the dataset configuration, including paths, classes, and other details crucial for training [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
 
 ### What license is the African Wildlife Dataset released under?
 

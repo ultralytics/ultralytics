@@ -117,7 +117,7 @@ This table provides an overview of the YOLO11 model variants, their tasks, and t
 
 ## Usage Examples
 
-This section provides simple YOLO11 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) docs pages.
+This section provides simple YOLO11 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 The example below trains a YOLO11 [Detect](../tasks/detect.md) model for [object detection](https://www.ultralytics.com/glossary/object-detection) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset. For additional supported tasks, see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) docs.
 
@@ -182,7 +182,7 @@ Please note that the DOI is pending and will be added to the citation once it is
 
 ### What are the key improvements in Ultralytics YOLO11 compared to YOLOv8?
 
-Ultralytics YOLO11 introduces several advancements over YOLOv8; for benchmarks, see [YOLO11 vs YOLOv8, YOLOv9 and YOLOv10](https://www.ultralytics.com/blog/comparing-ultralytics-yolo11-vs-previous-yolo-models). Key improvements include:
+Ultralytics YOLO11 introduces [several advancements over YOLOv8](https://www.ultralytics.com/blog/comparing-ultralytics-yolo11-vs-previous-yolo-models). Key improvements include:
 
 - **Enhanced Feature Extraction:** YOLO11 employs an improved backbone and neck architecture, enhancing feature extraction capabilities for more precise object detection.
 - **Optimized Efficiency and Speed:** Refined architectural designs and optimized training pipelines deliver faster processing speeds while maintaining a balance between accuracy and performance.

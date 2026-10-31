@@ -165,11 +165,11 @@ pip install onnxruntime-gpu
 
 ## Use TensorRT on NVIDIA DGX Spark
 
-Among all the model export formats supported by Ultralytics, TensorRT offers the highest inference performance on NVIDIA DGX Spark, making it our top recommendation for deployments. For setup instructions and advanced usage, see our [dedicated TensorRT integration guide](../integrations/tensorrt.md) or the overview of [optimizing Ultralytics YOLO models with TensorRT](https://www.ultralytics.com/blog/optimizing-ultralytics-yolo-models-with-the-tensorrt-integration).
+Among all the model export formats supported by Ultralytics, [TensorRT](../integrations/tensorrt.md) offers the highest inference performance on NVIDIA DGX Spark, making it our top recommendation for deployments.
 
 ### Convert Model to TensorRT and Run Inference
 
-The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) PyTorch model is converted to TensorRT, and the exported model is then used for inference.
+The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) PyTorch model is [converted to TensorRT](../modes/export.md#arguments), and the exported model is then used for inference.
 
 !!! example
 
@@ -200,10 +200,6 @@ The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) PyTor
         # Run inference with the exported model
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
-
-!!! note
-
-    Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats.
 
 ## NVIDIA DGX Spark YOLO11 Benchmarks
 

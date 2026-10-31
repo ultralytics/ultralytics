@@ -217,7 +217,7 @@ flowchart TD
 
 ## Training Costs
 
-Cloud training costs depend on GPU selection. For help choosing one, read [Picking a Cloud GPU for Training on Ultralytics Platform](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform).
+Cloud training costs depend on [GPU selection](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform):
 
 {% include "macros/platform-gpu-table.md" %}
 

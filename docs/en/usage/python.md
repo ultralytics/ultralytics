@@ -329,7 +329,7 @@ Each mode covers a different stage of [model development and deployment](../guid
 
 ### How do I train a custom YOLO model using my dataset?
 
-To train a custom YOLO model, specify your dataset and any other hyperparameters. Here's a quick example:
+To [train](../modes/train.md) a custom YOLO model, specify your dataset and any other hyperparameters. Here's a quick example:
 
 ```python
 from ultralytics import YOLO
@@ -340,8 +340,6 @@ model = YOLO("yolo26n.yaml")
 # Train the model with custom dataset
 model.train(data="path/to/your/dataset.yaml", epochs=10)
 ```
-
-For more training details and examples, visit the [Train Mode](../modes/train.md) page.
 
 ### How do I export YOLO models for deployment?
 

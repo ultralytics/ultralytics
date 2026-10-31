@@ -309,7 +309,7 @@ For more troubleshooting help, visit the [Ultralytics GitHub Issues](https://git
 
 ## Summary
 
-Exporting YOLO26 models to ExecuTorch format enables efficient deployment on mobile and edge devices. With PyTorch-native integration, cross-platform support, and optimized performance, ExecuTorch is a strong choice for [edge AI](https://www.ultralytics.com/glossary/edge-ai) applications. For a walkthrough, see [Deploy Ultralytics YOLO Models Using the ExecuTorch Integration](https://www.ultralytics.com/blog/deploy-ultralytics-yolo-models-using-the-executorch-integration).
+Exporting YOLO26 models to ExecuTorch format enables efficient [deployment on mobile and edge devices](https://www.ultralytics.com/blog/deploy-ultralytics-yolo-models-using-the-executorch-integration). With PyTorch-native integration, cross-platform support, and optimized performance, ExecuTorch is a strong choice for [edge AI](https://www.ultralytics.com/glossary/edge-ai) applications.
 
 Key takeaways:
 

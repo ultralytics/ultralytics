@@ -171,5 +171,3 @@ Ultralytics YOLO26 stands out from other object detection solutions like [OpenCV
 3. **Real-time Performance**: Optimized for high-speed inference, suitable for real-time applications.
 4. **Diverse Applications**: Supports multi-object tracking, custom model training, and exporting to different formats like ONNX, TensorRT, and CoreML.
 5. **Comprehensive Documentation**: Extensive [documentation](../index.md) and [blog resources](https://www.ultralytics.com/blog) to guide users through every step.
-
-For real-world use cases, see how teams turn [computer vision visualizations into business insights](https://www.ultralytics.com/blog/from-visualizations-to-business-insights-with-computer-vision).

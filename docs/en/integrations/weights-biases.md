@@ -82,8 +82,6 @@ Navigate to the [Weights & Biases authorization page](https://wandb.ai/authorize
 
 ## Usage: Training YOLO26 with Weights & Biases
 
-Before diving into the usage instructions for YOLO26 model training with Weights & Biases, be sure to check out the range of [YOLO26 models offered by Ultralytics](https://platform.ultralytics.com/ultralytics/yolo26). This will help you choose the most appropriate model for your project requirements.
-
 !!! example "Usage: Training YOLO26 with Weights & Biases"
 
     === "Python"

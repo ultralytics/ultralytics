@@ -60,7 +60,7 @@ In this example, we validate YOLO-NAS-s on the [COCO8](https://platform.ultralyt
 
 !!! example
 
-    This example provides simple inference and validation code for YOLO-NAS. For handling inference results, see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes, see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS on the `ultralytics` package does not support training.
+    This example provides simple [inference](../modes/predict.md) and [validation](../modes/val.md) code for YOLO-NAS. YOLO-NAS also supports [export](../modes/export.md), but the `ultralytics` package does not support training it.
 
     === "Python"
 

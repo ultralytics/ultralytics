@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, open-source, contribution, pull request, code of co
 
 # Contributing to Ultralytics Open-Source Projects
 
-Thank you for considering a contribution to our [Ultralytics](https://www.ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. This guide provides clear guidelines and best practices to help you get started, and these [tips for contributing to Ultralytics open-source projects](https://www.ultralytics.com/blog/tips-to-start-contributing-to-ultralytics-open-source-projects) offer a quick overview.
+Thank you for considering a contribution to our [Ultralytics](https://www.ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. This guide provides clear guidelines and best practices to [help you get started](https://www.ultralytics.com/blog/tips-to-start-contributing-to-ultralytics-open-source-projects).
 
 [![Ultralytics open-source contributors](https://raw.githubusercontent.com/ultralytics/assets/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
 

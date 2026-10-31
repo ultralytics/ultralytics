@@ -59,7 +59,7 @@ Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75,
 
 ## Evaluating a YOLO26 Model
 
-You can evaluate a trained YOLO26 model with the [validation mode](../modes/val.md). For a deeper look at how each metric is computed and interpreted, see the [YOLO26 performance metrics](./yolo-performance-metrics.md) guide, or the beginner-friendly [Reading Detection Metrics Honestly lesson](https://academy.ultralytics.com/courses/computer-vision-foundations/reading-detection-metrics) in Ultralytics Academy.
+You can evaluate a trained YOLO26 model with the [validation mode](../modes/val.md). For a deeper look at how each metric is computed and interpreted, see the [YOLO26 performance metrics](./yolo-performance-metrics.md) guide.
 
 ### Handling Variable Image Sizes
 

@@ -263,15 +263,11 @@ Computer vision projects on Raspberry Pi often need real-time video feeds for in
 
 ### Test the Camera
 
-Execute the following command after connecting the camera to the Raspberry Pi. You should see a live video feed from the camera for about 5 seconds.
+Execute the following [`rpicam-hello`](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-hello) command after connecting the camera to the Raspberry Pi. You should see a live video feed from the camera for about 5 seconds.
 
 ```bash
 rpicam-hello
 ```
-
-!!! tip
-
-    Learn more about [`rpicam-hello` usage in the official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-hello).
 
 ### Inference with Camera
 
@@ -327,13 +323,11 @@ There are two methods of using the Raspberry Pi Camera to run inference on YOLO2
 
     === "Method 2"
 
-        Start a TCP stream with `rpicam-vid` from the connected camera, then use the stream URL as the inference source. Run the following command to start the TCP stream.
+        Start a TCP stream with [`rpicam-vid`](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-vid) from the connected camera, then use the stream URL as the [inference source](../modes/predict.md#inference-sources). Run the following command to start the TCP stream.
 
         ```bash
         rpicam-vid -n -t 0 --inline --listen -o tcp://127.0.0.1:8888
         ```
-
-        Learn more about [`rpicam-vid` usage in the official Raspberry Pi documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-vid).
 
         !!! example
 
@@ -354,10 +348,6 @@ There are two methods of using the Raspberry Pi Camera to run inference on YOLO2
                 ```bash
                 yolo predict model=yolo26n.pt source="tcp://127.0.0.1:8888"
                 ```
-
-!!! tip
-
-    See [Inference Sources](../modes/predict.md#inference-sources) to change the image or video input type.
 
 ## Best Practices when using Raspberry Pi
 

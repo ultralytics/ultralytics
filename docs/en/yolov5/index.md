@@ -94,7 +94,7 @@ Ultralytics YOLOv5 is known for fast, high-[accuracy](https://www.ultralytics.co
 
 ### How can I train a custom YOLOv5 model on my dataset?
 
-Training a custom YOLOv5 model on your dataset involves a few key steps. First, prepare your dataset in the required format, annotated with labels. Then, configure the YOLOv5 training parameters and start the training process using the `train.py` script. For step-by-step instructions, consult the [Train Custom Data guide](tutorials/train-custom-data.md).
+[Training a custom YOLOv5 model](tutorials/train-custom-data.md) on your dataset involves a few key steps. First, prepare your dataset in the required format, annotated with labels. Then, configure the YOLOv5 training parameters and start the training process using the `train.py` script.
 
 ### Why should I use Ultralytics YOLOv5 over other object detection models like RCNN?
 

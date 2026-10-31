@@ -95,9 +95,7 @@ Note: To use the Ask AI feature, you'll need to set the OpenAI API key: `yolo se
 
 ### How does the semantic search feature in Ultralytics Explorer GUI work?
 
-The semantic search feature in Ultralytics Explorer GUI allows you to find images similar to a given image based on their embeddings. This technique is useful for identifying and exploring images that share visual similarities. To use this feature, select one or more images in the UI and execute a search for similar images. The result will display images that closely resemble the selected ones, facilitating efficient dataset exploration and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection).
-
-Learn more in the [Vector Semantic Similarity Search](#vector-semantic-similarity-search) section.
+The [semantic search feature](#vector-semantic-similarity-search) in Ultralytics Explorer GUI allows you to find images similar to a given image based on their embeddings. This technique is useful for identifying and exploring images that share visual similarities. To use this feature, select one or more images in the UI and execute a search for similar images. The result will display images that closely resemble the selected ones, facilitating efficient dataset exploration and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection).
 
 ### Can I use natural language to filter datasets in Ultralytics Explorer GUI?
 

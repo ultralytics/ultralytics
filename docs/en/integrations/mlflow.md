@@ -124,7 +124,7 @@ yolo settings mlflow=False
 
 ## Conclusion
 
-MLflow logging integration with Ultralytics YOLO offers a simple way to keep track of your [machine learning experiments](https://www.ultralytics.com/blog/log-ultralytics-yolo-experiments-using-mlflow-integration). It lets you monitor performance metrics and manage artifacts throughout model development and deployment. For further details, visit the MLflow [official documentation](https://mlflow.org/docs/latest/index.html).
+[MLflow](https://mlflow.org/docs/latest/index.html) logging integration with Ultralytics YOLO offers a simple way to keep track of your [machine learning experiments](https://www.ultralytics.com/blog/log-ultralytics-yolo-experiments-using-mlflow-integration). It lets you monitor performance metrics and manage artifacts throughout model development and deployment.
 
 ## FAQ
 
@@ -170,13 +170,11 @@ mlflow ui
 
 ### What metrics and parameters can I log using MLflow with Ultralytics YOLO?
 
-Ultralytics YOLO with MLflow supports logging various metrics, parameters, and artifacts throughout the training process:
+Ultralytics YOLO with MLflow supports [logging various metrics, parameters, and artifacts](#features) throughout the training process:
 
 - **Metrics Logging**: Tracks metrics at the end of each [epoch](https://www.ultralytics.com/glossary/epoch) and upon training completion.
 - **Parameter Logging**: Logs all parameters used in the training process.
 - **Artifacts Logging**: Saves model artifacts like weights and configuration files after training.
-
-For more detailed information, see the [Features](#features) section above.
 
 ### Can I disable MLflow logging once it is enabled?
 
@@ -219,5 +217,3 @@ Integrating MLflow with Ultralytics YOLO offers several benefits for managing yo
 - **Performance Monitoring**: Visualize performance metrics over time to make data-driven decisions for model improvements.
 - **Streamlined Workflow**: Automate the logging process to focus more on model development rather than manual tracking.
 - **Collaborative Development**: Share experiment results with team members for better collaboration and knowledge sharing.
-
-For an in-depth look at setting up and using MLflow with Ultralytics YOLO, start from the [Introduction](#introduction) of this guide.

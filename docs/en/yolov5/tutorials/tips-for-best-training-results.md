@@ -22,14 +22,14 @@ The sections below cover the main factors that affect YOLOv5 training results.
 - **Label consistency.** All instances of all classes in all images must be labeled. Partial labeling will not work.
 - **Label [accuracy](https://www.ultralytics.com/glossary/accuracy).** Labels must closely enclose each object. No space should exist between an object and its [bounding box](https://www.ultralytics.com/glossary/bounding-box). No objects should be missing a label.
 - **Train/val split discipline.** Ensure that validation and test images never appear in the training set to avoid overly optimistic metrics. Keep class distributions similar between the splits.
-- **Label verification.** View `train_batch*.jpg` on train start to verify your labels appear correct; see the [example mosaic](./train-custom-data.md#local-logging).
+- **Label verification.** View the `train_batch*.jpg` [mosaics](./train-custom-data.md#local-logging) on train start to verify your labels appear correct.
 - **Background images.** Background images are images with no objects that are added to a dataset to reduce False Positives (FP). We recommend about 0-10% background images to help reduce FPs (COCO has 1000 background images for reference, 1% of the total). No labels are required for background images.
 
 <a href="https://arxiv.org/abs/1405.0312"><img width="800" src="https://cdn.ul.run/i/2dc6b0ae398a01c4eaf32cfc067eff9d.avif" alt="COCO dataset class distribution analysis"></a>
 
 ## Model Selection
 
-Larger models like YOLOv5x and [YOLOv5x6](https://github.com/ultralytics/yolov5/releases/tag/v5.0) will produce better results in nearly all cases, but have more parameters, require more CUDA memory to train, and are slower to run. For **mobile** deployments we recommend YOLOv5s/m, for **cloud** deployments we recommend YOLOv5l/x. See the README [pretrained checkpoints table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a full comparison of all models.
+Larger models like YOLOv5x and [YOLOv5x6](https://github.com/ultralytics/yolov5/releases/tag/v5.0) will produce better results in nearly all cases, but have more parameters, require more CUDA memory to train, and are slower to run. For **mobile** deployments we recommend YOLOv5s/m, for **cloud** deployments we recommend YOLOv5l/x.
 
 <p align="center"><img width="700" alt="YOLOv5 model size, speed and mAP comparison chart" src="https://cdn.ul.run/i/d41839d4750825bc166761e37782ab31.avif"></p>
 

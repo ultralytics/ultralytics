@@ -631,8 +631,6 @@ PCS is a new task introduced in SAM 3 that segments **all instances** of a visua
 - **Image exemplar**: Box around one dog → segments all dogs in the image
 - **Combined**: "striped cat" + exemplar box → segments all striped cats matching the example
 
-See related background on [object detection](https://www.ultralytics.com/glossary/object-detection) and instance segmentation.
-
 ### How Does SAM 3 Differ From SAM 2?
 
 | Feature                    | SAM 2                         | SAM 3                                 |

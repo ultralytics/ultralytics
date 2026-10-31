@@ -127,7 +127,7 @@ This preserves the data used for the run even if you later add or remove images,
 
 ### Step 5: Select GPU (Cloud Tab)
 
-Choose your GPU from Ultralytics Cloud. For guidance on matching GPUs to workloads, see [how to pick a cloud GPU for training on Ultralytics Platform](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform).
+[Choose your GPU](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform) from Ultralytics Cloud:
 
 ![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.ul.run/i/9a53e7f94acd24b99713e6c70d0e6f2f.avif)<!-- screenshot -->
 

@@ -128,8 +128,6 @@ Consider using [Ultralytics Platform](../../platform/index.md) for a no-code way
 
 For questions and collaboration, join the [GitHub discussions](https://github.com/ultralytics/yolov5/discussions).
 
-To keep learning, explore the [documentation](../../quickstart.md) and the [Ultralytics Blog](https://www.ultralytics.com/blog) for more tutorials.
-
 ## FAQ
 
 ### Which VM configuration should I choose?

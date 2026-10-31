@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to load YOLOv5 from PyTorch Hub for seamless model inference and customization. Follow our step-by-step guide at Ultralytics Docs.
+description: Load Ultralytics YOLOv5 from PyTorch Hub with torch.hub.load for inference, custom weights, exported ONNX or TensorRT models, and pandas or JSON results.
 keywords: YOLOv5, PyTorch Hub, model loading, Ultralytics, object detection, machine learning, AI, tutorial, inference
 ---
 
 # Loading YOLOv5 from PyTorch Hub
 
-📚 This guide explains how to load YOLOv5 🚀 from [PyTorch](https://www.ultralytics.com/glossary/pytorch) Hub at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5/).
+This guide explains how to load [YOLOv5](../../models/yolov5.md) from [PyTorch Hub](https://pytorch.org/hub/ultralytics_yolov5/), the pretrained model repository for [PyTorch](https://www.ultralytics.com/glossary/pytorch).
 
 ## Before You Start
 
@@ -24,7 +24,7 @@ pip install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requi
 
 ### Simple Example
 
-This example loads a pretrained YOLOv5s model from PyTorch Hub as `model` and passes an image for inference. `'yolov5s'` is a small, fast YOLOv5 model. For details on all available models please see the [README](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+This example loads a pretrained YOLOv5s model from PyTorch Hub as `model` and passes an image for inference. `'yolov5s'` is a small, fast model among the YOLOv5 [pretrained checkpoints](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
 
 ```python
 import torch
@@ -48,7 +48,7 @@ results.pandas().xyxy[0]
 
 ### Detailed Example
 
-This example shows **batched inference** with **PIL** and **[OpenCV](https://www.ultralytics.com/glossary/opencv)** image sources. `results` can be **printed** to console, **saved** to `runs/hub`, **shown** on screen on supported environments, and returned as **tensors** or **pandas** dataframes.
+This example shows **batched inference** with **PIL** and **[OpenCV](https://www.ultralytics.com/glossary/opencv)** image sources, two of the input types the YOLOv5 `AutoShape()` [forward method](https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252) accepts. `results` can be **printed** to console, **saved** to `runs/hub`, **shown** on screen on supported environments, and returned as **tensors** or **pandas** dataframes.
 
 ```python
 import cv2
@@ -83,11 +83,9 @@ results.pandas().xyxy[0]  # im1 predictions (pandas)
 <img src="https://cdn.ul.run/i/2c629c77c52cd4aa1641eb7435b17b74.avif" width="500" alt="YOLO inference results on zidane.jpg">
 <img src="https://cdn.ul.run/i/547184dd9a2ca246746a5cbb799157f0.avif" width="300" alt="YOLO inference results on bus.jpg">
 
-For all inference options see YOLOv5 `AutoShape()` forward [method](https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252).
-
 ### Inference Settings
 
-YOLOv5 models contain various inference attributes such as **confidence threshold**, **IoU threshold**, etc. which can be set by:
+YOLOv5 models contain various inference attributes, such as the **confidence threshold** and **[IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold**, which can be set as follows:
 
 ```python
 model.conf = 0.25  # NMS confidence threshold
@@ -137,7 +135,7 @@ To load a pretrained YOLOv5s model with 4 input channels rather than the default
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", channels=4)
 ```
 
-In this case the model will be composed of pretrained weights **except for** the very first input layer, which is no longer the same shape as the pretrained input layer. The input layer will remain initialized by random weights.
+In this case, the model will be composed of pretrained weights **except for** the very first input layer, which is no longer the same shape as the pretrained input layer. The input layer will remain initialized by random weights.
 
 ### Number of Classes
 
@@ -147,7 +145,7 @@ To load a pretrained YOLOv5s model with 10 output classes rather than the defaul
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", classes=10)
 ```
 
-In this case the model will be composed of pretrained weights **except for** the output layers, which are no longer the same shape as the pretrained output layers. The output layers will remain initialized by random weights.
+In this case, the model will be composed of pretrained weights **except for** the output layers, which are no longer the same shape as the pretrained output layers. The output layers will remain initialized by random weights.
 
 ### Force Reload
 
@@ -202,7 +200,7 @@ threading.Thread(target=run, args=[model1, "https://ultralytics.com/images/bus.j
 
 ### Training
 
-To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case. Alternatively see our YOLOv5 [Train Custom Data Tutorial](./train-custom-data.md) for model training.
+To load a YOLOv5 model for training rather than inference, set `autoshape=False`. To load a model with randomly initialized weights (to train from scratch) use `pretrained=False`. You must provide your own training script in this case, or train with `train.py` as shown in the YOLOv5 [Train Custom Data Tutorial](./train-custom-data.md).
 
 ```python
 import torch
@@ -213,7 +211,7 @@ model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False, pretrai
 
 ### Base64 Results
 
-For use with API services. See [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example for details.
+Base64-encoded results are useful for API services, as in the YOLOv5 [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example.
 
 ```python
 import base64
@@ -266,7 +264,7 @@ print(results.pandas().xyxy[0])
 
 ### Sorted Results
 
-Results can be sorted by column, i.e. to sort license plate digit detection left-to-right (x-axis):
+Results can be sorted by column, e.g. to sort license plate digit detections left-to-right (x-axis):
 
 ```python
 results = model(im)  # inference
@@ -341,7 +339,7 @@ model = torch.hub.load("path/to/yolov5", "custom", path="path/to/best.pt", sourc
 
 ## TensorRT, ONNX and OpenVINO Models
 
-PyTorch Hub supports inference on most YOLOv5 export formats, including custom-trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](./model-export.md) for details on exporting models.
+PyTorch Hub supports inference on most YOLOv5 [export formats](./model-export.md), including custom-trained models.
 
 !!! tip
 
@@ -363,7 +361,7 @@ model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_paddle_mode
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)

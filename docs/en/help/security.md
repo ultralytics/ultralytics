@@ -1,21 +1,21 @@
 ---
-description: Learn about the security measures and tools used by Ultralytics to protect user data and systems. Discover how we address vulnerabilities with Snyk, CodeQL, Dependabot, and more.
+description: Learn how Ultralytics secures its projects with Snyk, CodeQL, Dependabot, and secret scanning, plus ISO 27001, SOC 2, and private vulnerability reporting.
 keywords: Ultralytics security policy, ISO 27001, SOC 2, HIPAA, Trust Center, Snyk scanning, CodeQL scanning, Dependabot alerts, secret scanning, vulnerability reporting, GitHub security, open-source security
 ---
 
 # Ultralytics Security Policy
 
-At [Ultralytics](https://www.ultralytics.com), the security of our users' data and systems is of utmost importance. To ensure the safety and security of our [open-source projects](https://github.com/ultralytics), we have implemented several measures to detect and prevent security vulnerabilities.
+At [Ultralytics](https://www.ultralytics.com), the [security of our users' data](https://www.ultralytics.com/glossary/data-security) and systems is a top priority. To ensure the safety and security of our [open-source projects](https://github.com/ultralytics), we have implemented several measures to detect and prevent security vulnerabilities.
 
 ## Snyk Scanning
 
-We utilize [Snyk](https://security.snyk.io/package/pip/ultralytics) to conduct comprehensive security scans on Ultralytics repositories. Snyk's robust scanning capabilities extend beyond dependency checks; it also examines our code and Dockerfiles for various vulnerabilities. By identifying and addressing these issues proactively, we ensure a higher level of security and reliability for our users.
+We use [Snyk](https://security.snyk.io/package/pip/ultralytics) to run security scans on Ultralytics repositories. Beyond dependency checks, Snyk also examines our code and Dockerfiles for vulnerabilities, so we can identify and address issues proactively.
 
 [![ultralytics](https://img.shields.io/badge/Snyk_security-monitored-8A2BE2)](https://security.snyk.io/package/pip/ultralytics)
 
 ## GitHub CodeQL Scanning
 
-Our security strategy includes GitHub's [CodeQL](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql) scanning. CodeQL delves deep into our codebase, identifying complex vulnerabilities like SQL injection and XSS by analyzing the code's semantic structure. This advanced level of analysis ensures early detection and resolution of potential security risks.
+Our security strategy includes GitHub's [CodeQL](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql) scanning. CodeQL analyzes the semantic structure of our codebase to identify complex vulnerabilities such as SQL injection and cross-site scripting (XSS), helping us detect and resolve potential security risks early.
 
 [![CodeQL](https://github.com/ultralytics/ultralytics/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ultralytics/ultralytics/actions/workflows/github-code-scanning/codeql)
 
@@ -63,13 +63,13 @@ These tools ensure proactive identification and resolution of security issues, e
 
 ### How does Ultralytics use Snyk for security scanning?
 
-Ultralytics utilizes [Snyk](https://security.snyk.io/package/pip/ultralytics) to conduct thorough security scans on its repositories. Snyk extends beyond basic dependency checks, examining the code and Dockerfiles for various vulnerabilities. By proactively identifying and resolving potential security issues, Snyk helps ensure that Ultralytics' open-source projects remain secure and reliable.
+Ultralytics uses [Snyk](https://security.snyk.io/package/pip/ultralytics) to run security scans on its repositories. Snyk extends beyond basic dependency checks, examining the code and Dockerfiles for various vulnerabilities. By proactively identifying and resolving potential security issues, Snyk helps ensure that Ultralytics' open-source projects remain secure and reliable.
 
 To see the Snyk badge and learn more about its deployment, check the [Snyk Scanning section](#snyk-scanning).
 
 ### What is CodeQL and how does it enhance security for Ultralytics?
 
-[CodeQL](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql) is a security analysis tool integrated into Ultralytics' workflow via GitHub. It delves deep into the codebase to identify complex vulnerabilities such as SQL injection and Cross-Site Scripting (XSS). CodeQL analyzes the semantic structure of the code to provide an advanced level of security, ensuring early detection and mitigation of potential risks.
+[CodeQL](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql) is a security analysis tool integrated into Ultralytics' workflow via GitHub. It analyzes the codebase to identify complex vulnerabilities such as SQL injection and Cross-Site Scripting (XSS). CodeQL analyzes the semantic structure of the code to provide an advanced level of security, ensuring early detection and mitigation of potential risks.
 
 For more information on how CodeQL is used, visit the [GitHub CodeQL Scanning section](#github-codeql-scanning).
 

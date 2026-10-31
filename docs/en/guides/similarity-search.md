@@ -1,13 +1,13 @@
 ---
 title: Semantic Image Search with CLIP
 comments: true
-description: Build a semantic image search engine with OpenAI CLIP and Flask. Embed images, run natural-language queries, and serve ranked results from a web app with the Ultralytics Python package.
+description: Build a semantic image search engine with OpenAI CLIP, Flask, and the Ultralytics Python package to rank images against natural-language text queries.
 keywords: CLIP, Flask, semantic search, semantic image search, image retrieval, natural language image search, zero-shot search, cosine similarity, embeddings, OpenAI, Ultralytics, VisualAISearch, computer vision, web app
 ---
 
 # How to Build Semantic Image Search with OpenAI CLIP
 
-This guide walks you through building a **semantic image search** engine using [OpenAI CLIP](https://openai.com/index/clip/) and [Flask](https://flask.palletsprojects.com/en/stable/). By combining CLIP's visual-language [embeddings](https://developers.openai.com/api/docs/guides/embeddings) with fast [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity) search powered by [NumPy](https://numpy.org/), you can build a web interface that retrieves relevant images from natural language queries, no labels or categories required.
+This guide walks you through building a **[semantic image search](https://www.ultralytics.com/glossary/semantic-search)** engine using [OpenAI CLIP](https://openai.com/index/clip/) and [Flask](https://flask.palletsprojects.com/en/stable/). By combining CLIP's visual-language [embeddings](https://www.ultralytics.com/glossary/embeddings) with fast [cosine similarity](https://www.ultralytics.com/glossary/cosine-similarity) search powered by [NumPy](https://numpy.org/), you can build a web interface that retrieves relevant images from natural language queries, no labels or categories required.
 
 <p align="center">
   <br>
@@ -26,7 +26,7 @@ The Ultralytics Python package wraps this entire pipeline behind two classes, so
 
 ## Why Use Semantic Image Search?
 
-Building your own semantic image search system with CLIP provides several compelling advantages:
+Building your own semantic image search system with CLIP provides several advantages:
 
 - **Zero-shot capabilities:** You don't need to train on your dataset. CLIP's [zero-shot learning](https://www.ultralytics.com/glossary/zero-shot-learning) lets you query any image collection with free-form natural language, saving time and resources.
 - **Human-like understanding:** Unlike keyword search, CLIP understands semantic context and retrieves images from abstract, emotional, or relational queries like "a happy child in nature" or "a futuristic city skyline at night."
@@ -38,11 +38,11 @@ Building your own semantic image search system with CLIP provides several compel
 
 The pipeline combines three components, each handling one stage of turning images and text into ranked results:
 
-- **CLIP** uses a vision encoder (e.g., ResNet or ViT) for images and a text encoder (Transformer-based) for language to project both into the same multimodal embedding space. This allows direct comparison between text and images using [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity).
+- **CLIP** uses a vision encoder (e.g., ResNet or [ViT](https://www.ultralytics.com/glossary/vision-transformer-vit)) for images and a text encoder (Transformer-based) for language to project both into the same multimodal embedding space. This allows direct comparison between text and images using cosine similarity.
 - **NumPy** stores the image embeddings as a single array and ranks them against a query embedding with one matrix multiplication, returning the closest vectors by cosine similarity with no extra indexing dependency.
 - **Flask** provides a simple web interface to submit natural language queries and display semantically matched images from the index.
 
-![OpenAI Clip image retrieval workflow](https://cdn.ul.run/i/875b3fa7610c254e28e14e293593d26b.avif)
+![OpenAI CLIP image retrieval workflow](https://cdn.ul.run/i/875b3fa7610c254e28e14e293593d26b.avif)
 
 Because both images and text land in the same vector space, retrieval is zero-shot: you don't need labels or categories, just image data and a good prompt.
 
@@ -68,7 +68,7 @@ The `SearchApp` class launches the full Flask interface. On first run it downloa
 The `VisualAISearch` class performs all the backend operations without the web layer:
 
 - Builds an embedding index from local images each time it starts.
-- Extracts image and text [embeddings](https://developers.openai.com/api/docs/guides/embeddings) using CLIP.
+- Extracts image and text embeddings using CLIP.
 - Performs similarity search using cosine similarity.
 
 Call the searcher with a natural language query to get back a list of matching image filenames ranked by similarity:
@@ -104,7 +104,7 @@ The table below outlines the available parameters for `VisualAISearch`:
 
 !!! tip "Manage your data in the cloud"
 
-    To search image collections at production scale without managing local files, you can organize and version your images in the [Ultralytics Platform](../platform/data/index.md) before indexing them with CLIP.
+    To search image collections at production scale without managing local files, you can organize and version your images in [Ultralytics Platform](../platform/data/index.md) before indexing them with CLIP.
 
 ## Conclusion
 
@@ -114,7 +114,7 @@ With CLIP and the Ultralytics Python package, you can stand up a zero-shot seman
 
 ### How does CLIP understand both images and text?
 
-[CLIP](https://github.com/openai/CLIP) (Contrastive Language Image Pretraining) is a model developed by [OpenAI](https://openai.com/) that learns to connect visual and linguistic information. It's trained on a massive dataset of images paired with natural language captions. This training allows it to map both images and text into a shared embedding space, so you can compare them directly using vector similarity.
+[CLIP](https://github.com/openai/CLIP) ([Contrastive Language-Image Pre-training](https://www.ultralytics.com/glossary/clip-contrastive-language-image-pre-training)) is a model developed by [OpenAI](https://openai.com/) that learns to connect visual and linguistic information. It's trained on a massive dataset of images paired with natural language captions. This training allows it to map both images and text into a shared embedding space, so you can compare them directly using vector similarity.
 
 ### Why is CLIP considered so powerful for AI tasks?
 
@@ -122,11 +122,11 @@ What makes CLIP stand out is its ability to generalize. Instead of being trained
 
 ### How are images ranked against a text query?
 
-Once CLIP turns your images into embeddings, the Ultralytics package L2-normalizes them and stores them in a single [NumPy](https://numpy.org/) array. A query is ranked with one matrix multiplication that computes the [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity) between the query embedding and every image embedding, then sorts the scores. This brute-force search is exact and fast for typical image collections, with no extra vector-database dependency to install or manage.
+Once CLIP turns your images into embeddings, the Ultralytics package L2-normalizes them and stores them in a single [NumPy](https://numpy.org/) array. A query is ranked with one matrix multiplication that computes the cosine similarity between the query embedding and every image embedding, then sorts the scores. This brute-force search is exact and fast for typical image collections, with no extra vector-database dependency to install or manage.
 
-### Why use the [Ultralytics](https://www.ultralytics.com) [Python package](https://github.com/ultralytics/ultralytics/) if CLIP is from OpenAI?
+### Why use the Ultralytics Python package if CLIP is from OpenAI?
 
-While CLIP is developed by OpenAI, the [Ultralytics Python package](https://pypi.org/project/ultralytics/) wraps embedding generation, indexing, and cosine-similarity search into a complete semantic image search pipeline behind a few lines of code that just work:
+While CLIP is developed by OpenAI, the [Ultralytics Python package](https://pypi.org/project/ultralytics/) wraps embedding generation, indexing, and cosine-similarity search into a complete semantic image search pipeline behind a few lines of code:
 
 === "Python"
 
@@ -146,7 +146,7 @@ This high-level implementation handles:
 - CLIP-based image and text embedding generation.
 - Embedding index creation and management.
 - Efficient semantic search with cosine similarity.
-- Directory-based image loading and [visualization](https://www.ultralytics.com/glossary/data-visualization).
+- Directory-based image loading and visualization.
 
 ### Can I customize the frontend of this app?
 

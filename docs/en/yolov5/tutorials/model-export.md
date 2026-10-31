@@ -1,16 +1,16 @@
 ---
 comments: true
-description: Learn to export YOLOv5 models to various formats like TFLite, ONNX, CoreML and TensorRT. Increase model efficiency and deployment flexibility with our step-by-step guide.
+description: Export Ultralytics YOLOv5 models to ONNX, TensorRT, CoreML, OpenVINO, TFLite and more with export.py, then run them with detect.py, val.py or PyTorch Hub.
 keywords: YOLOv5 export, TFLite, ONNX, CoreML, TensorRT, model conversion, YOLOv5 tutorial, PyTorch export
 ---
 
 # TFLite, ONNX, CoreML, TensorRT Export
 
-📚 This guide explains how to export a trained YOLOv5 🚀 model from [PyTorch](https://www.ultralytics.com/glossary/pytorch) to various deployment formats including ONNX, TensorRT, CoreML and more.
+This guide explains how to export a trained [YOLOv5](../../models/yolov5.md) model from [PyTorch](https://www.ultralytics.com/glossary/pytorch) to various deployment formats including [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), TensorRT, CoreML and more.
 
 ## Before You Start
 
-Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+Clone the repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
 git clone https://github.com/ultralytics/yolov5 # clone
@@ -18,7 +18,7 @@ cd yolov5
 pip install -r requirements.txt # install
 ```
 
-For [TensorRT](https://developer.nvidia.com/tensorrt) export example (requires GPU) see our Colab [notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb#scrollTo=VTRwsvA9u7ln&line=2&uniqifier=1) appendix section. <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
+The appendix of the YOLOv5 Colab [notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb#scrollTo=VTRwsvA9u7ln&line=2&uniqifier=1) includes a [TensorRT](https://developer.nvidia.com/tensorrt) export example (requires GPU). <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 
 ## Supported Export Formats
 
@@ -100,7 +100,7 @@ Benchmarks complete (241.20s)
 
 ## Export a Trained YOLOv5 Model
 
-This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats. `yolov5s.pt` is the 'small' model, the second-smallest model available. Other options are `yolov5n.pt`, `yolov5m.pt`, `yolov5l.pt` and `yolov5x.pt`, along with their P6 counterparts i.e. `yolov5s6.pt` or your own custom training checkpoint, i.e. `runs/train/exp/weights/best.pt`. For details on all available models please see our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats. `yolov5s.pt` is the 'small' model, the second-smallest model available. Other options are the [pretrained checkpoints](https://github.com/ultralytics/yolov5#pretrained-checkpoints) `yolov5n.pt`, `yolov5m.pt`, `yolov5l.pt` and `yolov5x.pt`, along with their P6 counterparts, e.g. `yolov5s6.pt`, or your own custom training checkpoint, e.g. `runs/train/exp/weights/best.pt`.
 
 ```bash
 python export.py --weights yolov5s.pt --include torchscript onnx
@@ -108,7 +108,7 @@ python export.py --weights yolov5s.pt --include torchscript onnx
 
 !!! tip
 
-    Add `--half` to export models at FP16 half [precision](https://www.ultralytics.com/glossary/precision) for smaller file sizes
+    Add `--half` to export models at FP16 [half precision](https://www.ultralytics.com/glossary/half-precision) for smaller file sizes.
 
 Output:
 
@@ -140,11 +140,11 @@ Visualize:       https://netron.app/
 
 The exported models will be saved alongside the original PyTorch model:
 
-<p align="center"><img width="700" src="https://cdn.ul.run/i/c6887df5000c6206cd8cee3edcdffb3c.avif" alt="YOLO export locations"></p>
+<p align="center"><img width="700" src="https://cdn.ul.run/i/c6887df5000c6206cd8cee3edcdffb3c.avif" alt="Exported YOLOv5 model files saved alongside the PyTorch weights"></p>
 
 [Netron Viewer](https://github.com/lutzroeder/netron) is recommended for visualizing exported models:
 
-<p align="center"><img width="850" src="https://cdn.ul.run/i/8caec6d7fe3f09c6c3fdfc4e60c025ab.avif" alt="YOLO model visualization"></p>
+<p align="center"><img width="850" src="https://cdn.ul.run/i/8caec6d7fe3f09c6c3fdfc4e60c025ab.avif" alt="Exported YOLOv5 model graph visualized in Netron"></p>
 
 ## Exported Model Usage Examples
 
@@ -237,7 +237,7 @@ YOLOv5 OpenVINO C++ inference examples:
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)

@@ -214,7 +214,7 @@ def import_execstack(name: str, *patterns: str):
 def get_latest_run(search_dir: str = ".") -> str:
     """Return the path to the most recent 'last*.pt' file under a directory for resuming training, or '' if none."""
     last_list = glob.glob(f"{search_dir}/**/last*.pt", recursive=True)
-    return max(last_list, key=os.path.getctime) if last_list else ""
+    return max(last_list, key=os.path.getmtime) if last_list else ""
 
 
 def update_models(model_names: tuple = ("yolo26n.pt",), source_dir: Path = Path("."), update_names: bool = False):

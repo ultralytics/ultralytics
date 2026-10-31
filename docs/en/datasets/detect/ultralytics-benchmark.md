@@ -1,7 +1,7 @@
 ---
 title: Ultralytics Benchmark
 comments: true
-description: Explore Ultralytics Benchmark across medical imaging, remote sensing, documents, user interfaces, retail, industry, agriculture, and sports.
+description: Ultralytics Benchmark measures object detection generalization across 37 curated datasets, from medical imaging and remote sensing to retail and sports.
 keywords: Ultralytics Benchmark, cross-domain object detection, real-world datasets, model generalization, macro mAP, YOLO26, computer vision
 ---
 
@@ -17,7 +17,9 @@ documents, user interfaces, retail, [machine vision](https://www.ultralytics.com
 sports, wildlife, underwater imaging, and waste detection. Its sensor types include RGB, fisheye, thermal infrared,
 X-ray, MRI, ultrasound, microscopy, and synthetic aperture radar (SAR).
 
-The curated datasets are hosted on [Ultralytics Platform](../../platform/data/datasets.md).
+The curated datasets are hosted on [Ultralytics Platform](../../platform/data/datasets.md). The
+[VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm) ranks vision language models and open-vocabulary
+detectors on images from 36 of these datasets by accuracy, cost, and speed.
 
 Candidate datasets were checked for exact and near-duplicate images across the training and validation splits. Flagged
 pairs were reviewed, and confirmed split leaks were removed or the affected dataset was replaced.
@@ -82,7 +84,8 @@ Macro [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) is
 
 ## Benchmark results
 
-Metrics are macro averages across the 37 validation splits, reported as percentages.
+Metrics are macro averages across the 37 validation splits, reported as percentages. YOLO27 is an unreleased
+[preview](../../models/yolo27.md); its weights are not yet available.
 
 | Size | Model                                                                   |  mAP50-95 | Precision |    Recall | mAP50-95-S | mAP50-95-M | mAP50-95-L |
 | :--: | ----------------------------------------------------------------------- | --------: | --------: | --------: | ---------: | ---------: | ---------: |
@@ -158,7 +161,7 @@ datasets = [
     "ul://ultralytics/datasets/visdrone",
 ]
 
-results = YOLO("yolo27n.pt").train(
+results = YOLO("yolo26n.pt").train(
     data=datasets,
     epochs=100,
     patience=100,

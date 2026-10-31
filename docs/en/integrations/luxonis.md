@@ -7,11 +7,11 @@ keywords: Luxonis, OAK camera, DepthAI, RVC2, RVC4, Luxonis Hub, Tools, ModelCon
 
 # Luxonis OAK Deployment for Ultralytics YOLO
 
-[Luxonis OAK cameras](https://www.luxonis.com/) run Ultralytics YOLO models on-device after conversion with Luxonis tooling. This is a manual deployment workflow; Luxonis is not a native Ultralytics `model.export(format="...")` target.
+[Luxonis OAK cameras](https://www.luxonis.com/) run Ultralytics YOLO models [on-device](https://www.ultralytics.com/glossary/edge-ai) after conversion with Luxonis tooling. This is a manual deployment workflow; Luxonis is not a native Ultralytics `model.export(format="...")` target.
 
 This guide covers [RVC2](https://docs.luxonis.com/hardware/platform/rvc/rvc2) and [RVC4](https://docs.luxonis.com/hardware/platform/rvc/rvc4) devices. Convert for your camera's platform: RVC2 and RVC4 artifacts are not interchangeable. Supported model families and tasks vary; check the [Luxonis Tools support matrix](https://github.com/luxonis/tools#-supported-models) before conversion.
 
-Start with a supported YOLO `.pt` checkpoint, such as `yolo26n.pt`, or your own [trained model](../modes/train.md). The converted [NN Archive](https://docs.luxonis.com/software-v3/ai-inference/nn-archive) packages the model and runtime metadata.
+Start with a supported YOLO `.pt` checkpoint, such as [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) (`yolo26n.pt`), or your own [trained model](../modes/train.md). The converted [NN Archive](https://docs.luxonis.com/software-v3/ai-inference/nn-archive) packages the model and runtime metadata.
 
 ## Cloud Conversion with Luxonis Hub
 
@@ -79,7 +79,7 @@ with dai.Pipeline() as pipeline:
 
 Open `http://localhost:8082` to view the RGB stream and detections. `DetectionNetwork` also supports compatible [instance segmentation](https://github.com/luxonis/depthai-core/blob/v3.9.0/examples/python/DetectionNetwork/detection_and_segmentation.py) and [pose](https://github.com/luxonis/depthai-core/blob/v3.9.0/examples/python/DetectionNetwork/detection_and_keypoints.py) models. For other tasks, including semantic segmentation and classification, follow the [task-specific inference guidance](https://docs.luxonis.com/software-v3/ai-inference/inference/).
 
-For stereo depth pipelines, see the [spatial detection example](https://github.com/luxonis/oak-examples/tree/main/neural-networks/object-detection/spatial-detections). Measure your model on the target camera using the [benchmarking guide](https://docs.luxonis.com/software-v3/ai-inference/benchmarking/); throughput depends on the model, input size, precision, and pipeline configuration.
+For [stereo depth](https://www.ultralytics.com/glossary/stereo-vision) pipelines, see the [spatial detection example](https://github.com/luxonis/oak-examples/tree/main/neural-networks/object-detection/spatial-detections). Measure your model on the target camera using the [benchmarking guide](https://docs.luxonis.com/software-v3/ai-inference/benchmarking/); throughput depends on the model, input size, precision, and pipeline configuration.
 
 ## FAQ
 

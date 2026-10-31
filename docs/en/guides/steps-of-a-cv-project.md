@@ -1,7 +1,7 @@
 ---
 title: Computer Vision Project Steps
 comments: true
-description: Discover essential steps for launching a successful computer vision project, from defining goals to model deployment and maintenance.
+description: Plan a computer vision project step by step, from defining goals and annotating data to training, evaluating, deploying, and monitoring YOLO models.
 keywords: Computer Vision, AI, Object Detection, Image Classification, Instance Segmentation, Data Annotation, Model Training, Model Evaluation, Model Deployment
 ---
 
@@ -19,7 +19,7 @@ Building a computer vision project means moving through a clear sequence of stag
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Do <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> Projects | A Step-by-Step Guide
+  <strong>Watch:</strong> How to Do Computer Vision Projects | A Step-by-Step Guide
 </p>
 
 Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/computer-vision-in-automotive) to [medical imaging](https://www.ultralytics.com/solutions/computer-vision-in-healthcare) to gain valuable insights.
@@ -38,11 +38,11 @@ Before discussing the details of each step involved in a computer vision project
   <img width="100%" src="https://cdn.ul.run/i/92ee1c17e7216a471b75fe17c20fbe59.avif" alt="Computer Vision Project Steps Overview">
 </p>
 
-Now that we know what to expect, let's dive right into the steps and get your project moving forward.
+Now that you know what to expect, the sections below cover each step in detail.
 
 ## Step 1: Defining Your Project's Goals
 
-The first step in any computer vision project is clearly defining the problem you're trying to solve. Knowing the end goal helps you start to build a solution. This is especially true when it comes to computer vision because your project's objective will directly affect which computer vision task you need to focus on.
+The first step in any computer vision project is clearly [defining the problem](https://academy.ultralytics.com/courses/computer-vision-foundations/frame-the-problem) you're trying to solve. Knowing the end goal helps you start to build a solution. This is especially true when it comes to computer vision because your project's objective will directly affect which computer vision task you need to focus on.
 
 Here are some examples of project objectives and the computer vision tasks that can be used to reach these objectives:
 
@@ -83,11 +83,11 @@ Before getting into the hands-on work of a computer vision project, it's importa
 
 ## Step 2: Data Collection and Data Annotation
 
-The quality of your computer vision models depends on the quality of your dataset. You can either collect images from the internet, take your own pictures, or use pre-existing datasets. Here are some great resources for downloading high-quality datasets: [Google Dataset Search Engine](https://datasetsearch.research.google.com/), [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/), and [Kaggle Datasets](https://www.kaggle.com/datasets).
+The quality of your computer vision models depends on the quality of your dataset. You can either collect images from the internet, take your own pictures, or use pre-existing datasets. Useful sources of public datasets include [Google Dataset Search Engine](https://datasetsearch.research.google.com/), [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/), and [Kaggle Datasets](https://www.kaggle.com/datasets).
 
-Some libraries, like Ultralytics, provide [built-in support for various datasets](../datasets/index.md), making it easier to get started with high-quality data. These libraries often include utilities for using popular datasets seamlessly, which can save you a lot of time and effort in the initial stages of your project.
+Some libraries, like Ultralytics, provide [built-in support for various datasets](../datasets/index.md), making it easier to get started with high-quality data. These libraries often include utilities for downloading and loading popular datasets, which can save you a lot of time and effort in the initial stages of your project.
 
-However, if you choose to collect images or take your own pictures, you'll need to annotate your data. [Data annotation](https://www.ultralytics.com/annotate) is the process of labeling your data to impart knowledge to your model. The type of data annotation you'll work with depends on your specific computer vision technique. Here are some examples:
+However, if you choose to collect images or take your own pictures, you'll need to annotate your data. [Data annotation](https://www.ultralytics.com/glossary/data-annotation) is the process of labeling your data to impart knowledge to your model. The type of data annotation you'll work with depends on your specific computer vision technique. Here are some examples:
 
 - **Image Classification:** You'll label the entire image as a single class.
 - **[Object Detection](https://www.ultralytics.com/glossary/object-detection):** You'll draw bounding boxes around each object in the image and label each box.
@@ -115,9 +115,9 @@ After splitting your data, you can perform data augmentation by applying transfo
   <img width="100%" src="https://cdn.ul.run/i/fa3501e5c19f9ce9a2684cba0be24649.avif" alt="Data augmentation examples">
 </p>
 
-Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumentations](../integrations/albumentations.md), and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) offer flexible augmentation functions that you can use. Additionally, some libraries, such as Ultralytics, have [built-in augmentation settings](../modes/train.md) directly within its model training function, simplifying the process.
+Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumentations](../integrations/albumentations.md), and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) offer flexible augmentation functions that you can use. Additionally, some libraries, such as Ultralytics, have [built-in augmentation settings](../usage/cfg.md#augmentation-settings) directly within their model training function, simplifying the process.
 
-To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. The [Ultralytics Platform](https://platform.ultralytics.com) `Charts` tab can surface many of these insights without any code by automatically generating split distribution, class counts, image-dimension histograms, and annotation-position heatmaps for every uploaded dataset.
+To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. The Ultralytics Platform [`Charts` tab](../platform/data/datasets.md#charts-tab) can surface many of these insights without any code by automatically generating split distribution, class counts, image-dimension histograms, and annotation-position heatmaps for every uploaded dataset.
 
 By properly [understanding, splitting, and augmenting your data](./preprocessing-annotated-data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
 
@@ -140,7 +140,7 @@ It's important to keep in mind that proper dataset management is vital for effic
 
 It's important to assess your model's performance using various metrics and refine it to improve [accuracy](https://www.ultralytics.com/glossary/accuracy). [Evaluating](../modes/val.md) helps identify areas where the model excels and where it may need improvement. [Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) ensures the model is optimized for the best possible performance.
 
-- **[Performance Metrics](./yolo-performance-metrics.md):** Use metrics like accuracy, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and F1-score to evaluate your model's performance. These metrics provide insights into how well your model is making predictions.
+- **[Performance Metrics](./yolo-performance-metrics.md):** Use metrics like accuracy, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [F1-score](https://www.ultralytics.com/glossary/f1-score) to evaluate your model's performance. These metrics provide insights into how well your model is making predictions.
 - **[Hyperparameter Tuning](./hyperparameter-tuning.md):** Adjust hyperparameters to optimize model performance. Techniques like grid search or random search can help find the best hyperparameter values.
 - **Fine-Tuning:** Make small adjustments to the model architecture or training process to enhance performance. This might involve tweaking [learning rates](https://www.ultralytics.com/glossary/learning-rate), [batch sizes](https://www.ultralytics.com/glossary/batch-size), or other model parameters.
 
@@ -152,24 +152,24 @@ Model testing confirms your model performs well on completely unseen data, verif
 
 It's important to thoroughly test and debug any common issues that may arise. Test your model on a separate test dataset that was not used during training or validation. This dataset should represent real-world scenarios to ensure the model's performance is consistent and reliable.
 
-Also, address common problems such as overfitting, [underfitting](https://www.ultralytics.com/glossary/underfitting), and data leakage. Use techniques like [cross-validation](https://www.ultralytics.com/glossary/cross-validation) and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) to identify and fix these issues. For comprehensive testing strategies, refer to our [model testing guide](./model-testing.md).
+Also, address common problems such as overfitting, [underfitting](https://www.ultralytics.com/glossary/underfitting), and [data leakage](https://www.ultralytics.com/glossary/data-leakage). Use techniques like [cross-validation](https://www.ultralytics.com/glossary/cross-validation) to identify these issues. For comprehensive testing strategies, refer to our [model testing guide](./model-testing.md).
 
 ## Step 7: Model Deployment
 
-Once your model has been thoroughly tested, it's time to deploy it. [Model deployment](https://www.ultralytics.com/glossary/model-deployment) involves making your model available for use in a production environment. Here are the steps to deploy a computer vision model:
+Once your model has been thoroughly tested, it's time to deploy it. [Model deployment](https://www.ultralytics.com/glossary/model-deployment) involves making your model available for use in a production environment. Here are the [steps to deploy a computer vision model](./model-deployment-practices.md):
 
 - **Setting Up the Environment:** Configure the necessary infrastructure for your chosen deployment option, whether it's cloud-based (AWS, Google Cloud, Azure) or edge-based (local devices, IoT).
 - **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLO26) to ensure compatibility with your deployment platform.
 - **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
 - **Ensuring Scalability:** Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
 
-For more detailed guidance on deployment strategies and best practices, check out our [model deployment practices guide](./model-deployment-practices.md). [Ultralytics Platform](https://platform.ultralytics.com) also provides managed [deployment endpoints](../platform/deploy/endpoints.md) with auto-scaling across 42 global regions, handling infrastructure setup automatically.
+Ultralytics Platform also provides managed [deployment endpoints](../platform/deploy/endpoints.md) in 42 global regions with scale-to-zero by default, handling infrastructure setup automatically.
 
 ## Step 8: Monitoring, Maintenance, and Documentation
 
 Once your model is deployed, it's important to continuously monitor its performance, maintain it to handle any issues, and document the entire process for future reference and improvements.
 
-Monitoring tools can help you track key performance indicators (KPIs) and detect anomalies or drops in accuracy. By monitoring the model, you can be aware of model drift, where the model's performance declines over time due to changes in the input data. Periodically retrain the model with updated data to maintain accuracy and relevance.
+Monitoring tools can help you track key performance indicators (KPIs) and detect anomalies or drops in accuracy. By monitoring the model, you can be aware of model drift, where the model's performance declines over time due to [changes in the input data](https://www.ultralytics.com/glossary/data-drift). Periodically retrain the model with updated data to maintain accuracy and relevance.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/1eb070b8f975068d5805d971f3487c11.avif" alt="Model monitoring and maintenance lifecycle">
@@ -186,10 +186,6 @@ Connecting with a community of computer vision enthusiasts can help you tackle a
 - **GitHub Issues:** Check out the [YOLO26 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to interact with other users and developers, get support, and share insights.
 
-### Official Documentation
-
-- **Ultralytics YOLO26 Documentation:** Explore the [official YOLO26 documentation](./index.md) for detailed guides with helpful tips on different computer vision tasks and projects.
-
 Using these resources will help you overcome challenges and stay updated with the latest trends and best practices in the computer vision community.
 
 ## Next Steps
@@ -200,7 +196,7 @@ You now have a roadmap for every stage of a computer vision project, from defini
 
 ### How do I choose the right computer vision task for my project?
 
-Choosing the right computer vision task depends on your project's end goal. For instance, if you want to monitor traffic, **object detection** is suitable as it can locate and identify multiple vehicle types in real-time. For medical imaging, **image segmentation** is ideal for providing detailed boundaries of tumors, aiding in diagnosis and treatment planning. Learn more about specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [image classification](../tasks/classify.md).
+Choosing the right computer vision task depends on your project's end goal. For instance, if you want to monitor traffic, [object detection](../tasks/detect.md) is suitable as it can locate and identify multiple vehicle types in real time. For medical imaging, [image segmentation](../tasks/segment.md) is ideal for providing detailed boundaries of tumors, aiding in diagnosis and treatment planning.
 
 ### Why is data annotation crucial in computer vision projects?
 
@@ -210,7 +206,7 @@ Data annotation is vital for teaching your model to recognize patterns. The type
 - **Object Detection**: Bounding boxes drawn around objects.
 - **Image Segmentation**: Each pixel labeled according to the object it belongs to.
 
-The built-in [annotation editor](../platform/data/annotation.md) in [Ultralytics Platform](https://platform.ultralytics.com) can assist in this process. For more details, refer to our [data collection and annotation guide](./data-collection-and-annotation.md).
+The built-in [annotation editor](../platform/data/annotation.md) in Ultralytics Platform can assist in this process.
 
 ### What steps should I follow to augment and split my dataset effectively?
 
@@ -220,7 +216,7 @@ Splitting your dataset before augmentation helps validate model performance on o
 - **Validation Set**: 10-15% for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning).
 - **Test Set**: Remaining 10-15% for final evaluation.
 
-After splitting, apply data augmentation techniques like rotation, scaling, and flipping to increase dataset diversity. Libraries such as [Albumentations](../integrations/albumentations.md) and OpenCV can help. Ultralytics also offers [built-in augmentation settings](../modes/train.md) for convenience.
+After splitting, apply data augmentation techniques like rotation, scaling, and flipping to increase dataset diversity. Libraries such as [Albumentations](../integrations/albumentations.md) and OpenCV can help. Ultralytics also offers [built-in augmentation settings](../usage/cfg.md#augmentation-settings) for convenience.
 
 ### How can I export my trained computer vision model for deployment?
 

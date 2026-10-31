@@ -3,13 +3,13 @@ comments: true
 license:
     name: CC-BY-NC-SA-4.0
     url: https://creativecommons.org/licenses/by-nc-sa/4.0/
-description: Explore the ETH3D high-resolution benchmark for monocular depth estimation. Learn about its structure, usage, pretrained models, and role as a YOLO26-Depth zero-shot evaluation benchmark.
+description: ETH3D is a high-resolution indoor and outdoor benchmark with laser-scanner ground truth, used for zero-shot evaluation of YOLO26-Depth monocular depth models.
 keywords: Ultralytics, YOLO, depth estimation, ETH3D, multi-view stereo, laser scanner, monocular depth, indoor outdoor benchmark
 ---
 
 # ETH3D Depth Dataset
 
-[ETH3D](https://openaccess.thecvf.com/content_cvpr_2017/html/Schops_A_Multi-View_Stereo_CVPR_2017_paper.html) is a high-resolution multi-view-stereo benchmark used for [monocular depth estimation](index.md). It provides survey-grade laser-scanner ground truth across both indoor and outdoor scenes.
+[ETH3D](https://openaccess.thecvf.com/content_cvpr_2017/html/Schops_A_Multi-View_Stereo_CVPR_2017_paper.html) is a high-resolution multi-view-stereo benchmark used for monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation). It provides survey-grade laser-scanner ground truth across both indoor and outdoor scenes.
 
 ## Key Features
 
@@ -43,7 +43,7 @@ ETH3D is not shipped with a bundled dataset YAML. It is evaluated through a dedi
 
 ## Usage
 
-ETH3D is an external benchmark, so models are typically run with `predict` on its images. For a comprehensive list of available arguments, refer to the model [Prediction](../../modes/predict.md) page.
+ETH3D is an external benchmark, so models are typically run with [`predict`](../../modes/predict.md) on its images.
 
 !!! example "Predict Example"
 

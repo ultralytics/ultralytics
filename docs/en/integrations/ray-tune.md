@@ -7,11 +7,11 @@ keywords: YOLO26, Ray Tune, hyperparameter tuning, model optimization, machine l
 
 # Efficient Hyperparameter Tuning with Ray Tune and YOLO26
 
-Hyperparameter tuning is vital in achieving peak model performance by discovering the optimal set of hyperparameters. This involves running trials with different hyperparameters and evaluating each trial's performance.
+[Hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) searches for the set of hyperparameters that gives the best model performance. It runs trials with different hyperparameter values and evaluates each trial's performance.
 
 ## Accelerate Tuning with Ultralytics YOLO26 and Ray Tune
 
-[Ultralytics YOLO26](https://www.ultralytics.com) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLO26 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
+[Ultralytics YOLO26](../models/yolo26.md) integrates Ray Tune for hyperparameter tuning. With Ray Tune, you can use advanced search strategies, parallelism, and early stopping to speed up the tuning process.
 
 ### Ray Tune
 
@@ -19,11 +19,11 @@ Hyperparameter tuning is vital in achieving peak model performance by discoverin
   <img width="640" src="https://cdn.ul.run/i/dc2aec6593226b59809a3de0d0fb8a20.avif" alt="Ray Tune hyperparameter optimization workflow">
 </p>
 
-[Ray Tune](https://docs.ray.io/en/latest/tune/index.html) is a hyperparameter tuning library designed for efficiency and flexibility. It supports various search strategies, parallelism, and early stopping strategies, and seamlessly integrates with popular [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) frameworks, including Ultralytics YOLO26.
+[Ray Tune](https://docs.ray.io/en/latest/tune/index.html) is a hyperparameter tuning library designed for efficiency and flexibility. It supports various search strategies, parallelism, and early stopping strategies, and integrates with popular [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) frameworks, including Ultralytics YOLO26.
 
 ### Integration with Weights & Biases
 
-YOLO26 also allows optional integration with [Weights & Biases](https://wandb.ai/site) for monitoring the tuning process.
+YOLO26 also supports optional integration with [Weights & Biases](https://wandb.ai/site) for monitoring the tuning process.
 
 ## Installation
 
@@ -109,7 +109,7 @@ The following table lists the default search space parameters for hyperparameter
 
 ## Custom Search Space Example
 
-In this example, we demonstrate how to use a custom search space for hyperparameter tuning with Ray Tune and YOLO26. By providing a custom search space, you can focus the tuning process on specific hyperparameters of interest.
+This example shows how to use a custom search space for hyperparameter tuning with Ray Tune and YOLO26. By providing a custom search space, you can focus the tuning process on specific hyperparameters of interest.
 
 !!! example "Usage"
 
@@ -130,7 +130,7 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     )
     ```
 
-In the code snippet above, we create a YOLO model with the "yolo26n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-2)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
+The code snippet above creates a YOLO model from the pretrained [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) weights, then calls the `tune()` method with the dataset configuration `coco8.yaml`. It provides a custom search space for the initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) `lr0` as a dictionary with the key `"lr0"` and the value `tune.uniform(1e-5, 1e-2)`. Finally, it passes additional training arguments, such as the number of epochs, directly to the tune method as `epochs=50`.
 
 ## Search Algorithm Example
 
@@ -180,7 +180,7 @@ If you need to customize the searcher's sampler or override its metric and optim
 
 ## Resuming An Interrupted Hyperparameter Tuning Session With Ray Tune
 
-You can resume an interrupted Ray Tune session by passing `resume=True`. You can optionally pass the directory `name` used by Ray Tune under `runs/{task}` to resume. Otherwise, it would resume the last interrupted session. You don't need to provide the `iterations` and `space` again, but you need to provide the rest of the training arguments again including `data` and `epochs`.
+You can resume an interrupted Ray Tune session by passing `resume=True`. You can optionally pass the directory `name` used by Ray Tune under `runs/{task}` to resume. Otherwise, it resumes the last interrupted session. You don't need to provide the `iterations` and `space` again, but you need to provide the rest of the training arguments again including `data` and `epochs`.
 
 !!! example "Using `resume=True` with `model.tune()`"
 
@@ -284,7 +284,7 @@ To tune the hyperparameters of your Ultralytics YOLO26 model using Ray Tune, fol
     result_grid = model.tune(data="coco8.yaml", use_ray=True)
     ```
 
-This utilizes Ray Tune's advanced search strategies and parallelism to efficiently optimize your model's hyperparameters. For more information, check out the [Ray Tune documentation](https://docs.ray.io/en/latest/tune/index.html).
+This uses [Ray Tune](https://docs.ray.io/en/latest/tune/index.html) search strategies and parallelism to optimize your model's hyperparameters efficiently.
 
 ### What are the default hyperparameters for YOLO26 tuning with Ray Tune?
 
@@ -308,7 +308,7 @@ These hyperparameters can be customized to suit your specific needs. For a compl
 
 ### How can I integrate Weights & Biases with my YOLO26 model tuning?
 
-To integrate Weights & Biases (W&B) with your Ultralytics YOLO26 tuning process:
+To integrate [Weights & Biases (W&B)](weights-biases.md) with your Ultralytics YOLO26 tuning process:
 
 1. **Install W&B:**
 
@@ -340,7 +340,7 @@ Ray Tune offers numerous advantages for hyperparameter optimization:
 - **Parallelism:** Supports parallel execution of multiple trials, significantly speeding up the tuning process.
 - **Early Stopping:** Employs strategies like ASHA to terminate under-performing trials early, saving computational resources.
 
-Ray Tune seamlessly integrates with Ultralytics YOLO26, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Hyperparameter Tuning](../guides/hyperparameter-tuning.md) guide.
+Ray Tune is built into Ultralytics YOLO26 through `model.tune(use_ray=True)`.
 
 ### How can I define a custom search space for YOLO26 hyperparameter tuning?
 

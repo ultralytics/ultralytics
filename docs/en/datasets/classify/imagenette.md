@@ -38,7 +38,7 @@ The ImageNette dataset is widely used for training and evaluating [deep learning
 
 ## Usage
 
-To train a model on the ImageNette dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with a standard image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on the ImageNette dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with a standard image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -63,11 +63,11 @@ To train a model on the ImageNette dataset for 100 [epochs](https://www.ultralyt
 
 ## Sample Images and Annotations
 
-The ImageNette dataset contains colored images of various objects and scenes, providing a diverse dataset for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks. Here are some examples of images from the dataset:
+The ImageNette dataset contains colored images of various objects and scenes, providing a diverse dataset for image classification tasks. Here are some examples of images from the dataset:
 
 ![ImageNette classification dataset sample images](https://cdn.ul.run/i/c974580dea2d1610c994357dc6c24fbf.avif)
 
-The example showcases the variety and complexity of the images in the ImageNette dataset, highlighting the importance of a diverse dataset for training robust image classification models.
+The example shows the variety and complexity of the images in the ImageNette dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 
 ## ImageNette160 and ImageNette320
 
@@ -123,13 +123,13 @@ These smaller versions of the dataset allow for rapid iterations during developm
 
 If you use the ImageNette dataset in your research or development work, please acknowledge it appropriately. For more information about ImageNette, visit the [ImageNette dataset GitHub page](https://github.com/fastai/imagenette).
 
-We would like to acknowledge the [fast.ai](https://www.fast.ai/) team for creating and maintaining ImageNette as a valuable resource for the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research community.
+We would like to acknowledge the [fast.ai](https://www.fast.ai/) team for creating and maintaining ImageNette as a valuable resource for the machine learning and computer vision research community.
 
 ## FAQ
 
 ### What is the ImageNette dataset?
 
-The [ImageNette dataset](https://github.com/fastai/imagenette) is a simplified subset of [ImageNet](imagenet.md) with 10 easily distinguishable classes such as tench, English springer, and French horn. It contains 13,394 images (9,469 training and 3,925 validation) and was created by fast.ai to offer a more manageable dataset for efficient training and evaluation of image classification models. This makes it especially useful for quick software development and educational purposes in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision.
+The [ImageNette dataset](https://github.com/fastai/imagenette) is a simplified subset of [ImageNet](imagenet.md) with 10 easily distinguishable classes such as tench, English springer, and French horn. It contains 13,394 images (9,469 training and 3,925 validation) and was created by fast.ai to offer a more manageable dataset for efficient training and evaluation of image classification models. This makes it especially useful for quick software development and educational purposes in machine learning and computer vision.
 
 ### How many images and classes does ImageNette have?
 
@@ -137,7 +137,7 @@ ImageNette contains 13,394 images in total — 9,469 for training and 3,925 for 
 
 ### How can I use the ImageNette dataset for training a YOLO model?
 
-To train a YOLO model on ImageNette for 100 [epochs](https://www.ultralytics.com/glossary/epoch), use the following commands. Make sure you have the Ultralytics YOLO environment set up.
+To train a YOLO model on ImageNette for 100 epochs, use the following commands. Make sure you have the Ultralytics YOLO environment set up.
 
 !!! example "Train Example"
 
@@ -168,7 +168,7 @@ The ImageNette dataset is advantageous for several reasons:
 
 - **Quick and Simple**: With only 10 classes and about 13,000 images, it is far less complex and time-consuming to train than the full ImageNet.
 - **Educational Use**: Ideal for learning and teaching the basics of image classification, since it requires less computational power and time.
-- **Versatility**: Widely used to train and benchmark image classification models, especially [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs).
+- **Versatility**: Widely used to train and benchmark image classification models, especially Convolutional Neural Networks (CNNs).
 
 For more details on model training and dataset management, explore the [Dataset Structure](#dataset-structure) section.
 
@@ -203,8 +203,8 @@ For more information, refer to [Training with ImageNette160 and ImageNette320](#
 
 The ImageNette dataset is extensively used in:
 
-- **Educational Settings**: To teach beginners the fundamentals of machine learning and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
+- **Educational Settings**: To teach beginners the fundamentals of machine learning and computer vision.
 - **Software Development**: For rapid prototyping and development of image classification models.
-- **Deep Learning Research**: To evaluate and benchmark the performance of various deep learning models, especially Convolutional [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) (CNNs).
+- **Deep Learning Research**: To evaluate and benchmark the performance of various deep learning models, especially Convolutional Neural Networks (CNNs).
 
 Explore the [Applications](#applications) section for detailed use cases.

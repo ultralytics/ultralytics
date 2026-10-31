@@ -15,7 +15,7 @@ keywords: Dog-Pose, Ultralytics, pose estimation dataset, YOLO26, machine learni
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com) Dog-Pose dataset is a high-quality and extensive dataset specifically curated for dog keypoint estimation, providing 6,773 training and 1,703 validation images.
+The [Ultralytics](https://www.ultralytics.com) Dog-Pose dataset is a [pose estimation](https://www.ultralytics.com/glossary/pose-estimation) dataset curated for dog [keypoint](https://www.ultralytics.com/glossary/keypoints) estimation, providing 6,773 training and 1,703 validation images.
 
 <p align="center">
   <br>
@@ -28,9 +28,9 @@ The [Ultralytics](https://www.ultralytics.com) Dog-Pose dataset is a high-qualit
   <strong>Watch:</strong> How to Train an Ultralytics YOLO Model on the Stanford Dog Pose Estimation Dataset | Step-by-Step Tutorial
 </p>
 
-Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y, visibility), making it a valuable resource for advanced research and development in computer vision.
+Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y, visibility), supporting canine pose estimation research and applications.
 
-<img src="https://cdn.ul.run/i/552d36d65c7964875d28eff3c299c8cd.avif" alt="Ultralytics Dog-Pose display image" width="800">
+<img src="https://cdn.ul.run/i/552d36d65c7964875d28eff3c299c8cd.avif" alt="Ultralytics Dog-Pose dataset sample images with dog keypoint annotations" width="800">
 
 For a specific breed or a different animal altogether, [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dog-pose) handles uploading, labeling, and training a custom keypoint model on your own data without managing infrastructure.
 
@@ -59,7 +59,7 @@ A YAML file is used to define the dataset configuration. It includes paths, keyp
 
 ## Usage
 
-To train a YOLO26n-pose model on the Dog-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) model on the Dog-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -121,7 +121,7 @@ We would like to acknowledge the Stanford team for creating and maintaining this
 
 ### What is the Dog-Pose dataset, and how is it used with Ultralytics YOLO26?
 
-The Dog-Pose dataset features 6,773 training and 1,703 validation images annotated with 24 keypoints for dog pose estimation. It's designed for training and validating models with [Ultralytics YOLO26](../../models/yolo26.md), supporting applications like animal behavior analysis, pet monitoring, and veterinary studies. The dataset's comprehensive annotations make it ideal for developing accurate pose estimation models for canines.
+The Dog-Pose dataset features 6,773 training and 1,703 validation images annotated with 24 keypoints for [dog pose estimation](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation). It's designed for training and validating models with [Ultralytics YOLO26](../../models/yolo26.md), supporting applications like animal behavior analysis, pet monitoring, and veterinary studies. Its detailed annotations make it well suited to developing accurate pose estimation models for canines.
 
 ### How do I train a YOLO26 model using the Dog-Pose dataset in Ultralytics?
 
@@ -129,7 +129,7 @@ Load `yolo26n-pose.pt` and call `model.train(data="dog-pose.yaml", epochs=100, i
 
 ### What are the benefits of using the Dog-Pose dataset?
 
-With 8,476 total images (6,773 train / 1,703 val) covering a wide range of dog breeds and poses, and 24 keypoints in 3 dimensions (x, y, visibility) per annotation, the Dog-Pose dataset gives models the real-world scenario coverage needed for applications like [pet monitoring](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation) and behavior analysis. For more about its features and usage, see the [Dataset Introduction](#introduction) section.
+With 8,476 total images (6,773 train / 1,703 val) covering a wide range of dog breeds and poses, and 24 keypoints in 3 dimensions (x, y, visibility) per annotation, the Dog-Pose dataset gives models the real-world scenario coverage needed for applications like pet monitoring and behavior analysis. For more about its features and usage, see the [Dataset Introduction](#introduction) section.
 
 ### How does mosaicing benefit the YOLO26 training process using the Dog-Pose dataset?
 
@@ -139,6 +139,6 @@ Mosaicing combines multiple Dog-Pose images into a single training image, increa
 
 The Dog-Pose dataset YAML file can be found at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml>. This file defines the dataset configuration, including paths, classes, keypoint details, and other relevant information. The YAML specifies 24 keypoints with 3 dimensions per keypoint, making it suitable for detailed pose estimation tasks.
 
-To use this file with YOLO26 training scripts, simply reference it in your training command as shown in the [Usage](#usage) section. The dataset will be automatically downloaded when first used, making setup straightforward.
+To use this file with YOLO26 training scripts, reference it in your training command as shown in the [Usage](#usage) section. The dataset will be automatically downloaded when first used, making setup straightforward.
 
 For more on keypoint models, see the [Pose Estimation](../../tasks/pose.md) task docs.

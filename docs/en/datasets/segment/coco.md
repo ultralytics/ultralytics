@@ -13,7 +13,7 @@ keywords: COCO-Seg, dataset, YOLO models, instance segmentation, object detectio
 
 # COCO-Seg Dataset
 
-The [COCO-Seg](https://cocodataset.org/#home) dataset provides [COCO](https://cocodataset.org/#home) (Common Objects in Context) instance segmentation masks — 118,287 training and 5,000 validation images with polygon masks across 80 object categories — in the [Ultralytics YOLO](../../models/index.md) label format. It uses COCO's original images and native segmentation annotations, converted for YOLO training, making it a crucial resource for researchers and developers working on [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks.
+The COCO-Seg dataset provides [COCO](../detect/coco.md) (Common Objects in Context) instance segmentation masks — 118,287 training and 5,000 validation images with polygon masks across 80 object categories — in the [Ultralytics YOLO label format](index.md#ultralytics-yolo-format). It uses COCO's original images and native segmentation annotations, converted for YOLO training, making it a standard resource for researchers and developers working on [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks.
 
 ## COCO-Seg Pretrained Models
 
@@ -39,7 +39,7 @@ For smaller experimentation needs, see the [COCO128-Seg](coco128-seg.md) (128 im
 
 ## Applications
 
-COCO-Seg is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models on [instance segmentation](../../tasks/segment.md), such as the YOLO models. The large number of annotated images, the diversity of object categories, and the standardized evaluation metrics make it an indispensable resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners. Full COCO-Seg annotations can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco2017-seg).
+COCO-Seg is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models on [instance segmentation](../../tasks/segment.md), such as the YOLO models. The large number of annotated images, the diversity of object categories, and the standardized evaluation metrics make it a standard resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners. Full COCO-Seg annotations can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco2017-seg).
 
 ## Dataset YAML
 
@@ -53,7 +53,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-seg model on the COCO-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) model on the COCO-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -103,13 +103,13 @@ If you use the COCO-Seg dataset in your research or development work, please cit
         }
         ```
 
-We extend our thanks to the COCO Consortium for creating and maintaining this invaluable resource for the computer vision community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).
+We extend our thanks to the COCO Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).
 
 ## FAQ
 
 ### What is the COCO-Seg dataset and how does it differ from the original COCO dataset?
 
-[COCO-Seg](https://cocodataset.org/#home) is the [Ultralytics YOLO](../../models/index.md)-format packaging of COCO's (Common Objects in Context) native instance segmentation masks for the same 118,287 train2017 and 5,000 val2017 images. The original COCO annotations already include these polygon masks for all 80 object categories; COCO-Seg converts them to the YOLO label format used for [object instance segmentation](../../tasks/segment.md) training.
+COCO-Seg is the Ultralytics YOLO-format packaging of COCO's (Common Objects in Context) native instance segmentation masks for the same 118,287 train2017 and 5,000 val2017 images. The original COCO annotations already include these polygon masks for all 80 object categories; COCO-Seg converts them to the YOLO label format used for [object instance segmentation](../../tasks/segment.md) training.
 
 ### How can I train a YOLO26 model using the COCO-Seg dataset?
 
@@ -143,7 +143,7 @@ The COCO-Seg dataset includes several key features:
 - Provides instance segmentation masks for 123,287 labeled COCO train2017/val2017 images (118,287 train + 5,000 val).
 - Annotates the same 80 object categories found in the original COCO.
 - Provides instance segmentation masks in the YOLO polygon label format.
-- Uses standardized evaluation metrics such as mean Average [Precision](https://www.ultralytics.com/glossary/precision) (mAP) and mean Average Recall (mAR) for [instance segmentation](../../tasks/segment.md) tasks.
+- Uses standardized evaluation metrics such as [mean Average Precision (mAP)](https://www.ultralytics.com/glossary/mean-average-precision-map) and mean Average Recall (mAR) for instance segmentation tasks.
 
 ### What pretrained models are available for COCO-Seg, and what are their performance metrics?
 
@@ -151,14 +151,14 @@ The COCO-Seg dataset supports multiple pretrained YOLO26 segmentation models wit
 
 {% include "macros/yolo-seg-perf.md" %}
 
-These models range from the lightweight YOLO26n-seg to the more powerful YOLO26x-seg, offering different trade-offs between speed and accuracy to suit various application requirements. For more information on model selection, visit the [Ultralytics models page](../../models/index.md).
+These models range from the lightweight [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) to the more accurate [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg), offering different trade-offs between speed and accuracy to suit various application requirements. For more information on model selection, visit the [Ultralytics models page](../../models/index.md).
 
 ### How is the COCO-Seg dataset structured and what subsets does it contain?
 
 The COCO-Seg dataset is partitioned into three subsets for specific training and evaluation needs:
 
 1. **Train2017**: Contains 118,287 images used primarily for training instance segmentation models.
-2. **Val2017**: Comprises 5,000 images utilized for validation during the training process.
-3. **Test-dev2017**: Encompasses 20,288 of the 40,670 test2017 images reserved for testing and benchmarking trained models. Note that ground truth annotations for this subset are not publicly available, and performance results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for assessment.
+2. **Val2017**: Comprises 5,000 images used for validation during the training process.
+3. **Test-dev2017**: Contains 20,288 of the 40,670 test2017 images reserved for testing and benchmarking trained models. Note that ground truth annotations for this subset are not publicly available, and performance results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for assessment.
 
 For smaller experimentation needs, you might also consider the [COCO128-Seg dataset](coco128-seg.md) (128 images) or the [COCO8-Seg dataset](coco8-seg.md), a compact version containing just 8 images from the COCO train 2017 set.

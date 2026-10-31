@@ -1,7 +1,7 @@
 ---
 title: YOLO26 Instance Segmentation & Tracking
 comments: true
-description: Master instance segmentation and tracking with Ultralytics YOLO26. Learn techniques for precise object identification and tracking.
+description: Segment and track objects in video with the Ultralytics YOLO26 InstanceSegmentation solution, with per-instance masks, track IDs, and Python and CLI examples.
 keywords: instance segmentation, tracking, YOLO26, Ultralytics, object detection, machine learning, computer vision, python
 ---
 
@@ -11,7 +11,7 @@ keywords: instance segmentation, tracking, YOLO26, Ultralytics, object detection
 
 [Instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) is a computer vision task that involves identifying and outlining individual objects in an image at the pixel level. Unlike [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) which only classifies pixels by category, instance segmentation uniquely labels and precisely delineates each object instance, making it crucial for applications requiring detailed spatial understanding like medical imaging, autonomous driving, and industrial automation.
 
-[Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) provides powerful instance segmentation capabilities that enable precise object boundary detection while maintaining the speed and efficiency YOLO models are known for.
+[Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) delineates object boundaries precisely while keeping the speed and efficiency YOLO models are known for.
 
 There are two types of instance segmentation tracking available in the Ultralytics package:
 
@@ -35,11 +35,11 @@ There are two types of instance segmentation tracking available in the Ultralyti
 |                                      Instance Segmentation                                       |                                        Instance Segmentation + Object Tracking                                        |
 | :----------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics Instance Segmentation](https://cdn.ul.run/i/ced9bc3d97a11702962789cc52c6cf89.avif) | ![Ultralytics Instance Segmentation with Object Tracking](https://cdn.ul.run/i/63b0ce2e4edbe54b46c7a7c173618975.avif) |
-|                               Ultralytics Instance Segmentation 😍                               |                               Ultralytics Instance Segmentation with Object Tracking 🔥                               |
+|                                Ultralytics Instance Segmentation                                 |                                Ultralytics Instance Segmentation with Object Tracking                                 |
 
 ## Segment and Track with YOLO26
 
-The `InstanceSegmentation` solution runs a YOLO26 segmentation model on each frame, draws per-object masks, and colors every instance separately so you can follow individual objects across a video. Load a `-seg` model, then run it over your source with the Python API or the CLI.
+The `InstanceSegmentation` solution runs a YOLO26 segmentation model on each frame, draws per-object masks, and colors every instance separately so you can [track](../modes/track.md) individual objects across a video. Load a `-seg` model such as [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg), then run it over your source with the Python API or the CLI.
 
 !!! example "Instance segmentation using Ultralytics YOLO"
 
@@ -103,7 +103,7 @@ Here's a table with the `InstanceSegmentation` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "line_width", "verbose"]) }}
 
-You can also take advantage of `track` arguments within the `InstanceSegmentation` solution:
+You can also use `track` arguments within the `InstanceSegmentation` solution:
 
 {% include "macros/solutions-track-args.md" %}
 
@@ -118,11 +118,11 @@ Instance segmentation with YOLO26 has numerous real-world applications across va
 
 ### Waste Management and Recycling
 
-YOLO26 can be used in [waste management facilities](https://www.ultralytics.com/blog/simplifying-e-waste-management-with-ai-innovations) to identify and sort different types of materials. The model can segment plastic waste, cardboard, metal, and other recyclables with high precision, enabling automated sorting systems to process waste more efficiently. This is particularly valuable considering that only about 10% of the 7 billion tonnes of plastic waste generated globally gets recycled.
+YOLO26 can be used in [waste management facilities](https://www.ultralytics.com/blog/enhancing-waste-management-with-ultralytics-yolo11) to identify and sort different types of materials. The model can segment plastic waste, cardboard, metal, and other recyclables with high precision, enabling automated sorting systems to process waste more efficiently. This is particularly valuable considering that only about 10% of the 7 billion tonnes of plastic waste generated globally gets recycled.
 
 ### Autonomous Vehicles
 
-In [self-driving cars](https://www.ultralytics.com/solutions/computer-vision-in-automotive), instance segmentation helps identify and track pedestrians, vehicles, traffic signs, and other road elements at the pixel level. This precise understanding of the environment is crucial for navigation and safety decisions. YOLO26's real-time performance makes it ideal for these time-sensitive applications.
+In [self-driving cars](https://www.ultralytics.com/solutions/computer-vision-in-automotive), instance segmentation helps identify and track pedestrians, vehicles, traffic signs, and other road elements at the pixel level. This precise understanding of the environment is crucial for navigation and safety decisions. YOLO26's real-time performance makes it well suited to these time-sensitive applications.
 
 ### Medical Imaging
 
@@ -130,13 +130,13 @@ Instance segmentation can identify and outline tumors, organs, or cellular struc
 
 ### Construction Site Monitoring
 
-At construction sites, instance segmentation can track heavy machinery, workers, and materials. This helps ensure safety by monitoring equipment positions and detecting when workers enter hazardous areas, while also optimizing workflow and resource allocation.
+At [construction sites](https://www.ultralytics.com/blog/using-ultralytics-yolo11-in-construction), instance segmentation can track heavy machinery, workers, and materials. This helps ensure safety by monitoring equipment positions and detecting when workers enter hazardous areas, while also optimizing workflow and resource allocation.
 
 ## FAQ
 
 ### How do I perform instance segmentation using Ultralytics YOLO26?
 
-To perform instance segmentation using Ultralytics YOLO26, initialize the YOLO model with a segmentation version of YOLO26 and process video frames through it. Here's a simplified code example:
+To perform instance segmentation using Ultralytics YOLO26, initialize the `InstanceSegmentation` solution with a YOLO26 [segmentation model](../tasks/segment.md) and process video frames through it. Here's a simplified code example:
 
 ```python
 import cv2
@@ -170,15 +170,13 @@ video_writer.release()
 cv2.destroyAllWindows()
 ```
 
-Learn more about instance segmentation in the [Ultralytics YOLO26 guide](../tasks/segment.md).
-
 ### What is the difference between instance segmentation and object tracking in Ultralytics YOLO26?
 
-Instance segmentation identifies and outlines individual objects within an image, giving each object a unique label and mask. Object tracking extends this by assigning consistent IDs to objects across video frames, facilitating continuous tracking of the same objects over time. When combined, as in YOLO26's implementation, you get powerful capabilities for analyzing object movement and behavior in videos while maintaining precise boundary information.
+Instance segmentation identifies and outlines individual objects within an image, giving each object a unique label and mask. Object tracking extends this by assigning consistent IDs to objects across video frames, facilitating continuous tracking of the same objects over time. When combined, as in YOLO26's implementation, you can analyze object movement and behavior in videos while keeping precise boundary information.
 
 ### Why should I use Ultralytics YOLO26 for instance segmentation and tracking over other models like Mask R-CNN or Faster R-CNN?
 
-Ultralytics YOLO26 offers real-time performance, superior [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of use compared to other models like Mask R-CNN or Faster R-CNN. YOLO26 processes images in a single pass (one-stage detection), making it significantly faster while maintaining high precision. It also provides seamless integration with [Ultralytics Platform](https://platform.ultralytics.com), allowing users to manage models, datasets, and training pipelines efficiently. For applications requiring both speed and accuracy, YOLO26 provides an optimal balance.
+Ultralytics YOLO26 offers real-time performance, competitive [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of use compared to two-stage models like Mask R-CNN or Faster R-CNN. YOLO26 processes images in a single pass ([one-stage detection](https://www.ultralytics.com/glossary/one-stage-object-detectors)), making it much faster while maintaining high precision. It also integrates with [Ultralytics Platform](https://platform.ultralytics.com) for managing models, datasets, and training pipelines. For applications that need both speed and accuracy, YOLO26 offers a strong balance.
 
 ### Are there any datasets provided by Ultralytics suitable for training YOLO26 models for instance segmentation and tracking?
 

@@ -38,11 +38,11 @@ The Package Segmentation Dataset splits its 2,197 images as follows:
 
 ## Applications
 
-Package segmentation optimizes logistics, last-mile delivery, manufacturing quality control, and smart-city systems, with applications spanning e-commerce fulfillment and security screening. Precise package masks let automated systems locate, count, and inspect parcels in real time.
+[Package segmentation](https://www.ultralytics.com/blog/package-identification-and-segmentation-with-ultralytics-yolo11) supports logistics, last-mile delivery, manufacturing quality control, and smart-city systems, with applications spanning e-commerce fulfillment and security screening. Precise package masks let automated systems locate, count, and inspect parcels in real time.
 
 ### Smart Warehouses and Logistics
 
-In modern warehouses, [vision AI solutions](https://www.ultralytics.com/solutions) can streamline operations by automating package identification and sorting. Computer vision models trained on this dataset can quickly detect and segment packages in real-time, even in challenging environments with dim lighting or cluttered spaces. This leads to faster processing times, reduced errors, and improved overall efficiency in [logistics operations](https://www.ultralytics.com/blog/ultralytics-yolo11-the-key-to-computer-vision-in-logistics).
+In modern warehouses, [vision AI solutions](https://www.ultralytics.com/solutions) can streamline operations by automating package identification and sorting. Computer vision models trained on this dataset can quickly detect and segment packages in real time, even in challenging environments with dim lighting or cluttered spaces. This leads to faster processing times, reduced errors, and improved overall efficiency in [logistics operations](https://www.ultralytics.com/blog/ultralytics-yolo11-the-key-to-computer-vision-in-logistics).
 
 ### Quality Control and Damage Detection
 
@@ -62,7 +62,7 @@ A [YAML](https://www.ultralytics.com/glossary/yaml) file defines the dataset con
 
 ## Usage
 
-To train an [Ultralytics YOLO26n-seg](../../models/yolo26.md) model on the Package Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. The dataset (~103 MB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training page](../../modes/train.md).
+To train an Ultralytics [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) model on the Package Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. The dataset (~103 MB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training page](../../modes/train.md).
 
 !!! example "Train Example"
 

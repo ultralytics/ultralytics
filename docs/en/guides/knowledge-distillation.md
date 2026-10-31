@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Master knowledge distillation for Ultralytics YOLO to optimize student model performance with a teacher model.
+description: Train smaller, more accurate Ultralytics YOLO26 student models with knowledge distillation from a larger teacher using the distill_model and dis arguments.
 keywords: knowledge distillation, YOLO, Ultralytics, object detection, machine learning, computer vision, distill_model, teacher model, student model
 ---
 
@@ -31,7 +31,7 @@ Train a smaller student model with guidance from a larger teacher model by addin
 
 [Knowledge distillation](https://www.ultralytics.com/glossary/knowledge-distillation) transfers knowledge from a large, accurate **teacher model** to a smaller **student model**. The student learns to mimic the teacher's internal feature representations, often achieving better accuracy than training from scratch.
 
-![Knowledge distillation workflow image](https://cdn.ul.run/i/69daf2d70527cec60e3c29bfb262839f.avif)
+![Knowledge distillation workflow with a frozen teacher model guiding a smaller student model](https://cdn.ul.run/i/69daf2d70527cec60e3c29bfb262839f.avif)
 
 **Use distillation when:**
 
@@ -238,7 +238,7 @@ The exported model contains **only the student weights**—file size and inferen
 
 ### How does distillation differ from standard training?
 
-Add the `distill_model` parameter—everything else works identically. An extra distillation loss computes during training, but the saved model is a standard YOLO model with no overhead.
+Add the `distill_model` parameter—everything else works identically. An extra distillation loss is computed during training, but the saved model is a standard YOLO model with no overhead.
 
 ### Does knowledge distillation slow down training?
 

@@ -25,7 +25,7 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset adapts COCO (Co
 
 - COCO-Pose builds upon the [COCO Keypoints 2017](http://presentations.cocodataset.org/COCO17-Keypoints-Overview.pdf) challenge, which labels 1,710,498 individual keypoints across 156,165 annotated people.
 - Each person annotation uses 17 keypoint types — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles — stored as `(x, y, visibility)` triplets.
-- Like COCO, it provides standardized evaluation metrics, including Object Keypoint Similarity (OKS) for pose estimation tasks, making it suitable for comparing model performance.
+- Like COCO, it provides standardized evaluation metrics, including [Object Keypoint Similarity (OKS)](https://academy.ultralytics.com/courses/beyond-detection/custom-keypoints-and-oks) for pose estimation tasks, making it suitable for comparing model performance.
 - **Download size**: ~20.2 GB on first use (`train2017.zip` + `val2017.zip` + labels). The 7 GB `test2017.zip` is not fetched automatically, since those images have withheld ground truth and are only needed for a [test-dev2017 submission](https://codalab.lisn.upsaclay.fr/competitions/7403).
 
 ## Dataset Structure
@@ -40,7 +40,7 @@ Training at this scale is where [Ultralytics Platform](https://platform.ultralyt
 
 ## Applications
 
-The COCO-Pose dataset is specifically used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models on keypoint detection and [pose estimation](../../tasks/pose.md). The dataset's large number of annotated images and standardized evaluation metrics make it an essential resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners working on human pose.
+The COCO-Pose dataset is specifically used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models on [keypoint](https://www.ultralytics.com/glossary/keypoints) detection and pose estimation. The dataset's large number of annotated images and standardized evaluation metrics make it an essential resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners working on human pose.
 
 ## Dataset YAML
 
@@ -54,7 +54,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-pose model on the COCO-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) model on the COCO-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 

@@ -66,7 +66,7 @@ A dataset YAML file defines the Cityscapes paths, classes, mask directory, and l
 
 ## Usage
 
-To train a YOLO26n-sem model on the Cityscapes dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-sem) model on the Cityscapes dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -108,7 +108,7 @@ If you use the Cityscapes dataset in your research or development work, please c
         }
         ```
 
-We would like to acknowledge the Cityscapes team for creating and maintaining this valuable resource for the autonomous driving and computer vision communities. For more information about the Cityscapes dataset and its creators, visit the [Cityscapes dataset website](https://www.cityscapes-dataset.com/).
+We acknowledge the Cityscapes team for creating and maintaining this valuable resource for the autonomous driving and computer vision communities. For more information about the Cityscapes dataset and its creators, visit the [Cityscapes dataset website](https://www.cityscapes-dataset.com/).
 
 ## FAQ
 

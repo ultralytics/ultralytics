@@ -1,13 +1,13 @@
 ---
 comments: true
-description: Optimize your Ultralytics YOLO model's performance with the right settings and hyperparameters. Learn about training, validation, and prediction configurations.
+description: Reference for every Ultralytics YOLO configuration argument and default, covering train, val, predict, export, solutions, augmentation, and logging settings.
 keywords: YOLO, hyperparameters, configuration, training, validation, prediction, model settings, Ultralytics, performance optimization, machine learning
 title: YOLO Configuration
 ---
 
 # Configuration
 
-YOLO settings and hyperparameters play a critical role in the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). These settings can affect the model's behavior at various stages, including training, validation, and prediction.
+YOLO settings and [hyperparameters](https://www.ultralytics.com/glossary/hyperparameter-tuning) play a critical role in the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). These settings can affect the model's behavior at various stages, including training, validation, and prediction.
 
 <p align="center">
   <br>
@@ -62,7 +62,7 @@ Ultralytics YOLO models can perform a variety of computer vision tasks, includin
 - **Depth (`depth`)**: [Monocular depth estimation](../tasks/depth.md) predicts a per-pixel depth map in meters from a single RGB image.
 - **Classify**: [Image classification](../tasks/classify.md) predicts the class label of an input image.
 - **Pose**: [Pose estimation](../tasks/pose.md) identifies objects and estimates their keypoints in an image or video.
-- **OBB**: [Oriented Bounding Boxes](../tasks/obb.md) uses rotated bounding boxes, suitable for satellite or medical imagery.
+- **OBB**: [Oriented Bounding Boxes](../tasks/obb.md) uses rotated bounding boxes, suitable for aerial or satellite imagery.
 
 | Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                                               |
 | -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -78,7 +78,7 @@ Ultralytics YOLO models operate in different modes, each designed for a specific
 - **Val**: Validate a trained YOLO model.
 - **Predict**: Use a trained YOLO model to make predictions on new images or videos.
 - **Export**: Export a YOLO model for deployment.
-- **Track**: Track objects in real-time using a YOLO model.
+- **Track**: Track objects in real time using a YOLO model.
 - **Benchmark**: Benchmark the speed and accuracy of YOLO exports (ONNX, TensorRT, etc.).
 
 | Argument | Default   | Description                                                                                                                                                                                                                                                                                                        |
@@ -89,7 +89,7 @@ Ultralytics YOLO models operate in different modes, each designed for a specific
 
 ## Train Settings
 
-Training settings for YOLO models include hyperparameters and configurations that affect the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). Key settings include [batch size](https://www.ultralytics.com/glossary/batch-size), [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. The choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and dataset composition also impact training. Tuning and experimentation are crucial for optimal performance. For more details, see the [Ultralytics entrypoint function](../reference/cfg/__init__.md).
+Training settings for YOLO models include hyperparameters and configurations that affect the model's performance, speed, and accuracy. Key settings include [batch size](https://www.ultralytics.com/glossary/batch-size), [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. The choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and dataset composition also impact training. Tuning and experimentation are crucial for optimal performance. For more details, see the [Ultralytics entrypoint function](../reference/cfg/__init__.md).
 
 {% include "macros/train-args.md" %}
 
@@ -106,7 +106,7 @@ Training settings for YOLO models include hyperparameters and configurations tha
 
 ## Predict Settings
 
-Prediction settings for YOLO models include hyperparameters and configurations that influence performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy) during inference. Key settings include the confidence threshold, [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) threshold, and the number of classes. Input data size, format, and supplementary features like masks also affect predictions. Tuning these settings is essential for optimal performance.
+Prediction settings for YOLO models include hyperparameters and configurations that influence performance, speed, and accuracy during inference. Key settings include the confidence threshold, [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) threshold, and class filtering. Input data size, format, and supplementary features like masks also affect predictions. Tuning these settings is essential for optimal performance.
 
 Inference arguments:
 
@@ -120,7 +120,7 @@ Visualization arguments:
 
 ## Validation Settings
 
-Validation settings for YOLO models involve hyperparameters and configurations to evaluate performance on a [validation dataset](https://www.ultralytics.com/glossary/validation-data). These settings influence performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). Common settings include batch size, validation frequency, and performance metrics. The validation dataset's size and composition, along with the specific task, also affect the process.
+Validation settings for YOLO models involve hyperparameters and configurations to evaluate performance on a [validation dataset](https://www.ultralytics.com/glossary/validation-data). These settings influence performance, speed, and accuracy. Common settings include batch size, image size, confidence and IoU thresholds, and the dataset split to evaluate. The validation dataset's size and composition, along with the specific task, also affect the process.
 
 {% include "macros/validation-args.md" %}
 
@@ -130,7 +130,7 @@ Careful tuning and experimentation are crucial to ensure optimal performance and
 
 ## Export Settings
 
-Export settings for YOLO models include configurations for saving or exporting the model for use in different environments. These settings impact performance, size, and compatibility. Key settings include the exported file format (e.g., ONNX, TensorFlow SavedModel), the target device (e.g., CPU, GPU), and features like masks. The model's task and the destination environment's constraints also affect the export process.
+Export settings for YOLO models include configurations for saving or exporting the model for use in different environments. These settings impact performance, size, and compatibility. Key settings include the exported file format (e.g., ONNX, TensorFlow SavedModel), the target device (e.g., CPU, GPU), and numeric precision through [quantization](https://www.ultralytics.com/glossary/model-quantization) (`quantize`). The model's task and the destination environment's constraints also affect the export process.
 
 {% include "macros/export-args.md" %}
 
@@ -187,7 +187,7 @@ Load a saved YAML to reuse a full set of arguments without passing them inline. 
 
 ### How do I improve my YOLO model's performance during training?
 
-Improve performance by tuning hyperparameters like [batch size](https://www.ultralytics.com/glossary/batch-size), [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. Adjust [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) settings, select the right optimizer, and use techniques like early stopping or [mixed precision](https://www.ultralytics.com/glossary/mixed-precision). For details, see the [Train Guide](../modes/train.md).
+Improve performance by tuning hyperparameters like batch size, learning rate, momentum, and weight decay. Adjust data augmentation settings, select the right optimizer, and use techniques like early stopping or mixed precision. For details, see the [Train Guide](../modes/train.md).
 
 ### What are the key hyperparameters for YOLO model accuracy?
 
@@ -209,7 +209,7 @@ The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for [
 Default settings include:
 
 - **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
-- **IoU Threshold (`iou=0.7`)**: For [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms).
+- **IoU Threshold (`iou=0.7`)**: For Non-Maximum Suppression (NMS).
 - **Image Size (`imgsz=640`)**: Resizes input images.
 - **Device (`device=None`)**: Selects CPU, CUDA GPU, Apple MPS, Intel XPU (`xpu`), or Huawei Ascend NPU (`npu`).
 
@@ -217,4 +217,4 @@ For a full overview, see [Predict Settings](#predict-settings) and the [Predict 
 
 ### Why use mixed precision training with YOLO models?
 
-[Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) training (`amp=True`) reduces memory usage and speeds up training using FP16 and FP32. It's beneficial for modern GPUs, allowing larger models and faster computations without significant accuracy loss. Learn more in the [Train Guide](../modes/train.md).
+[Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) training (`amp=True`, or `amp='bf16'` for BF16) reduces memory usage and speeds up training by combining half-precision and FP32 computation. It's beneficial for modern GPUs, allowing larger models and faster computations without significant accuracy loss. Learn more in the [Train Guide](../modes/train.md).

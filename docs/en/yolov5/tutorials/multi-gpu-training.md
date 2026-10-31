@@ -1,16 +1,16 @@
 ---
 comments: true
-description: Learn how to train YOLOv5 on multiple GPUs for optimal performance. Guide covers single and multiple machine setups with DistributedDataParallel.
+description: Train Ultralytics YOLOv5 on multiple GPUs with PyTorch DistributedDataParallel on one or several machines, with SyncBatchNorm and A100 scaling results.
 keywords: YOLOv5, multiple GPUs, machine learning, deep learning, PyTorch, data parallel, distributed data parallel, DDP, multi-GPU training
 ---
 
 # Multi-GPU Training with YOLOv5
 
-This guide explains how to train YOLOv5 with **multiple** GPUs on a single machine or across multiple machines.
+This guide explains [distributed training](https://www.ultralytics.com/glossary/distributed-training) of [YOLOv5](../../models/yolov5.md) with **multiple** GPUs on a single machine or across multiple machines.
 
 ## Before You Start
 
-Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+Clone the repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
 git clone https://github.com/ultralytics/yolov5 # clone
@@ -28,9 +28,9 @@ pip install -r requirements.txt # install
 
 ## Training
 
-Select a pretrained model to start training from. Here we select [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml), a small and fast model. See our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a full comparison of all models. We will train this model with Multi-GPU on the [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) dataset.
+Select a [pretrained model](https://github.com/ultralytics/yolov5#pretrained-checkpoints) to start training from. Here we select [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml), a small and fast model. We will train this model with Multi-GPU on the [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) dataset.
 
-<p align="center"><img width="700" alt="YOLOv5 Models" src="https://cdn.ul.run/i/d41839d4750825bc166761e37782ab31.avif"></p>
+<p align="center"><img width="700" alt="YOLOv5 model size, speed and mAP comparison chart" src="https://cdn.ul.run/i/d41839d4750825bc166761e37782ab31.avif"></p>
 
 ### Single GPU
 
@@ -38,9 +38,9 @@ Select a pretrained model to start training from. Here we select [YOLOv5s](https
 python train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0
 ```
 
-### Multi-GPU [DataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.DataParallel) Mode (⚠️ not recommended)
+### Multi-GPU DataParallel Mode (⚠️ not recommended)
 
-Pass multiple GPU IDs to `--device` to enable DataParallel mode:
+Pass multiple GPU IDs to `--device` to enable [DataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.DataParallel) mode:
 
 ```bash
 python train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0,1
@@ -48,7 +48,7 @@ python train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0,1
 
 DataParallel is slow and barely speeds up training compared to using a single GPU.
 
-### Multi-GPU [DistributedDataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) Mode (✅ recommended)
+### Multi-GPU DistributedDataParallel Mode (✅ recommended)
 
 Prefix the training command with `python -m torch.distributed.run --nproc_per_node`, then pass the usual arguments:
 
@@ -159,7 +159,7 @@ As shown in the results, using [DistributedDataParallel](https://docs.pytorch.or
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)

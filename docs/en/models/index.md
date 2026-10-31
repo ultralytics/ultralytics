@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Discover a variety of models supported by Ultralytics, including YOLO26 back to YOLOv3, NAS, SAM, and RT-DETR, plus a preview of the upcoming YOLO27 for detection, segmentation, semantic segmentation, depth estimation, and more.
+description: Explore the models supported by Ultralytics, from YOLO26 back to YOLOv3 plus SAM, RT-DETR, YOLO-World and YOLOE, with the tasks, modes and use cases of each.
 keywords: Ultralytics, supported models, YOLO27, YOLO26, YOLO12, YOLO11, YOLOv10, YOLOv9, YOLOv8, YOLOv7, YOLOv6, YOLOv5, YOLOv4, YOLOv3, SAM3.1, SAM3, SAM2, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, YOLOE, object detection, image segmentation, semantic segmentation, depth estimation, classification, pose estimation, multi-object tracking
 ---
 
 # Models Supported by Ultralytics
 
-Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding boxes](../tasks/obb.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
+Ultralytics supports a wide range of models, each tailored to specific tasks such as [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding boxes](../tasks/obb.md).
 
 ![Ultralytics YOLO26 Comparison Plots](https://cdn.ul.run/i/1b042c1a3e984e8d2eb58c2af3c53965.avif)
 
@@ -45,7 +45,7 @@ The table lists released models and architecture references with their tasks, su
 
 !!! tip "Large Language Models"
 
-    Ultralytics also ships [LLM](llm.md), an OpenAI-compatible interface to large language and vision models for text and image understanding. It has no tasks or modes of its own, so it is not in the table above, but it pairs with any YOLO pipeline and runs against OpenAI and other cloud providers or a fully local on-prem server.
+    Ultralytics also ships [LLM](llm.md), an OpenAI-compatible interface to large language and [vision language models](https://www.ultralytics.com/glossary/vision-language-model-vlm) for text and image understanding. It has no tasks or modes of its own, so it is not in the table above, but it pairs with any YOLO pipeline and runs against OpenAI and other cloud providers or a fully local on-prem server.
 
 <p align="center">
   <br>
@@ -60,9 +60,9 @@ The table lists released models and architecture references with their tasks, su
 
 ## Getting Started: Usage Examples
 
-This example provides simple YOLO training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+The examples below show simple YOLO [training](../modes/train.md) and [inference](../modes/predict.md).
 
-Note the below example spotlights YOLO26 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks see the [Segment](../tasks/segment.md), [Semantic](../tasks/semantic.md), [Depth](../tasks/depth.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md) and [OBB](../tasks/obb.md) docs.
+The example below uses the COCO-pretrained [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model for [object detection](https://www.ultralytics.com/glossary/object-detection) and trains it on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset. The same API applies to the Segment, Semantic, Depth, Classify, Pose and OBB tasks listed above.
 
 !!! example
 
@@ -100,7 +100,7 @@ Note the below example spotlights YOLO26 [Detect](../tasks/detect.md) models for
 
 ## Contributing New Models
 
-Interested in contributing your model to Ultralytics? Great! We're always open to expanding our model portfolio.
+Ultralytics welcomes new model contributions. To add a model:
 
 1. **Fork the Repository**: Start by forking the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics).
 
@@ -108,25 +108,23 @@ Interested in contributing your model to Ultralytics? Great! We're always open t
 
 3. **Implement Your Model**: Add your model following the coding standards and guidelines provided in our [Contributing Guide](../help/contributing.md).
 
-4. **Test Thoroughly**: Make sure to test your model rigorously, both in isolation and as part of the pipeline.
+4. **Test Thoroughly**: Test your model both in isolation and as part of the full pipeline.
 
 5. **Create a Pull Request**: Once you're satisfied with your model, create a pull request to the main repository for review.
 
 6. **Code Review & Merging**: After review, if your model meets our criteria, it will be merged into the main repository.
 
-For detailed steps, consult our [Contributing Guide](../help/contributing.md).
-
 ## FAQ
 
 ### What is the latest Ultralytics YOLO model?
 
-The latest released Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features optional NMS-free end-to-end inference, optimized edge deployment, and supports detection, instance segmentation, [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), classification, pose estimation, and OBB plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are recommended choices.
+The latest released Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features optional NMS-free end-to-end inference, optimized edge deployment, and supports detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and OBB, plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are [recommended choices](https://www.ultralytics.com/blog/ultralytics-yolo26-vs-yolo11-vs-yolov8-which-one-should-you-use).
 
 [YOLO27](yolo27.md) is the upcoming family, currently in final R&D. It is not yet available and has no set launch date.
 
 ### How can I train a YOLO model on custom data?
 
-Training a YOLO model on custom data can be easily accomplished using Ultralytics' libraries. Here's a quick example:
+Train a YOLO model on custom data with a few lines of Python or a single CLI command:
 
 !!! example
 
@@ -154,10 +152,10 @@ For more detailed instructions, visit the [Train](../modes/train.md) documentati
 
 Ultralytics natively supports YOLOv3, YOLOv5, YOLOv6, YOLOv8, YOLOv9, YOLOv10, YOLO11, YOLO12, and YOLO26, along with the SAM family (SAM 3, SAM 2, SAM, MobileSAM and FastSAM), YOLO-NAS, RT-DETR, YOLO-World, and YOLOE. The package publishes no weights or YAMLs for YOLOv4 or YOLOv7: YOLOv4 is documented as an architecture reference only, while YOLOv7 runs as an exported ONNX or TensorRT model. See [Featured Models](#featured-models) for the tasks and modes available for each.
 
-### Why should I use Ultralytics Platform for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
+### Why should I use Ultralytics Platform for machine learning projects?
 
-[Ultralytics Platform](../platform/index.md) provides a no-code, end-to-end platform for training, deploying, and managing YOLO models. It simplifies complex workflows, enabling users to focus on model performance and application. It also offers [cloud training capabilities](../platform/train/cloud-training.md), comprehensive dataset management, and user-friendly interfaces for both beginners and experienced developers.
+[Ultralytics Platform](../platform/index.md) is a no-code, end-to-end environment for annotating datasets and training, deploying, and managing YOLO [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. It offers [cloud training](../platform/train/cloud-training.md), dataset management, and an interface that suits both beginners and experienced developers.
 
 ### What types of tasks can Ultralytics YOLO models perform?
 
-Ultralytics YOLO models are versatile and can perform tasks including object detection, instance segmentation, [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), classification, pose estimation, and oriented object detection (OBB). The latest model, [YOLO26](yolo26.md), supports all seven tasks plus open-vocabulary detection. For details on specific tasks, refer to the [Task pages](../tasks/index.md).
+Ultralytics YOLO models can perform tasks including object detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented object detection (OBB). The latest model, YOLO26, supports all seven tasks plus open-vocabulary detection. For details on specific tasks, refer to the [Task pages](../tasks/index.md).

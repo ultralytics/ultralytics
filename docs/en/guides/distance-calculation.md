@@ -1,7 +1,7 @@
 ---
 title: Distance Calculation with YOLO26
 comments: true
-description: Learn how to calculate distances between objects using Ultralytics YOLO26 for accurate spatial positioning and scene understanding.
+description: Measure pixel distances between tracked objects with the Ultralytics YOLO26 DistanceCalculation solution. Click two boxes to get their centroid distance in video.
 keywords: Ultralytics, YOLO26, distance calculation, computer vision, object tracking, spatial positioning
 ---
 
@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLO26, distance calculation, computer vision, object tra
 
 ## What is Distance Calculation?
 
-Distance calculation is the process of measuring the space between two detected objects within an image or video frame. In the case of [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics), the [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroid is employed to calculate the distance for bounding boxes highlighted by the user.
+[Distance calculation](https://www.ultralytics.com/blog/how-to-calculate-distance-using-computer-vision-models) is the process of measuring the space between two detected objects within an image or video frame. With [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics), the solution measures the distance between the centroids of two [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) that the user selects.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ Distance calculation is the process of measuring the space between two detected 
 
 ## Advantages of Distance Calculation
 
-- **Localization [Precision](https://www.ultralytics.com/glossary/precision):** Enhances accurate spatial positioning in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
+- **Localization Precision:** Enhances accurate spatial positioning in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 - **Size Estimation:** Allows estimation of object size for better contextual understanding.
 - **Scene Understanding:** Improves 3D scene comprehension for better decision-making in applications like [autonomous vehicles](https://www.ultralytics.com/glossary/autonomous-vehicles) and surveillance systems.
 - **Collision Avoidance:** Enables systems to detect potential collisions by monitoring distances between moving objects.
@@ -43,7 +43,7 @@ Distance calculation is the process of measuring the space between two detected 
 
 ???+ warning "Distance is an estimate"
 
-    Distance is an estimate and may not be fully accurate because it is calculated using 2D data, which lacks depth information.
+    Distance is an estimate and may not be fully accurate because it is calculated using 2D data, which lacks depth information. For per-pixel depth, use a [depth estimation](../tasks/depth.md) model.
 
 ## Calculate Distances with YOLO26
 
@@ -97,7 +97,7 @@ Here's a table with the `DistanceCalculation` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "line_width", "verbose"]) }}
 
-You can also make use of various `track` arguments in the `DistanceCalculation` solution.
+You can also use `track` arguments in the `DistanceCalculation` solution.
 
 {% include "macros/solutions-track-args.md" %}
 
@@ -140,8 +140,8 @@ Using distance calculation with Ultralytics YOLO26 offers several advantages:
 - **Localization Precision:** Provides accurate spatial positioning for objects.
 - **Size Estimation:** Helps estimate physical sizes, contributing to better contextual understanding.
 - **Scene Understanding:** Enhances 3D scene comprehension, aiding improved decision-making in applications like autonomous driving and surveillance.
-- **Real-time Processing:** Performs calculations on-the-fly, making it suitable for live video analysis.
-- **Integration Capabilities:** Works seamlessly with other YOLO26 solutions like [object tracking](../modes/track.md) and [speed estimation](speed-estimation.md).
+- **Real-time Processing:** Performs calculations on the fly, making it suitable for live video analysis.
+- **Integration Capabilities:** Works with other YOLO26 solutions like [object tracking](../modes/track.md) and [speed estimation](speed-estimation.md).
 
 ### Can I perform distance calculation in real-time video streams with Ultralytics YOLO26?
 

@@ -13,13 +13,13 @@ keywords: Global Wheat Head Dataset, GWHD, wheat head detection, wheat spike det
 
 # Global Wheat Head Dataset
 
-The [Global Wheat Head Dataset](https://www.global-wheat.com/) (GWHD) is a single-class [object detection](../../tasks/detect.md) dataset for detecting **wheat heads** — the grain-bearing spikes of the wheat plant — in outdoor field images. It provides 3,422 training, 748 validation, and 1,276 test images captured across multiple growing regions, and was created by a collaboration of nine research institutes from seven countries so that models generalize across different environments. Accurate wheat head detection underpins estimates of head density, size, and yield potential in [plant phenotyping](https://www.ultralytics.com/blog/computer-vision-in-agriculture-transforming-fruit-detection-and-precision-farming) and crop management.
+The [Global Wheat Head Dataset](https://www.global-wheat.com/) (GWHD) is a single-class [object detection](../../tasks/detect.md) dataset for detecting **wheat heads** — the grain-bearing spikes of the wheat plant — in outdoor field images. It provides 3,422 training, 748 validation, and 1,276 test images captured across multiple growing regions, and was created by a collaboration of nine research institutes from seven countries so that models generalize across different environments. Accurate wheat head detection underpins estimates of head density, size, and yield potential in [plant phenotyping](https://www.ultralytics.com/blog/ultralytics-yolo11-and-computer-vision-in-plant-phenotyping) and crop management.
 
 ## Key Features
 
 - Real outdoor field images that capture the natural variability in wheat head appearance, lighting, and growth stage.
 - Built by nine research institutes across seven countries, spanning European, North American, Asian, and Australian growing regions for strong cross-environment generalization.
-- Bounding-box annotations for a single class, `wheat_head`, ready for [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) pipelines.
+- Bounding-box annotations for a single class, `wheat_head`, ready for object detection and [tracking](../../modes/track.md) pipelines.
 - Test images come from genotypes and regions unseen during training, providing a genuine generalization benchmark.
 
 ## Dataset Structure
@@ -38,7 +38,7 @@ The Global Wheat Head Dataset is organized into three subsets defined by the `Gl
 
 ## Applications
 
-The Global Wheat Head Dataset is widely used to train and evaluate [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for wheat head detection. Its diverse imagery across regions, genotypes, and conditions makes it a valuable resource for [plant phenotyping](https://www.ultralytics.com/blog/from-farm-to-table-how-ai-drives-innovation-in-agriculture) and crop management — supporting yield estimation, crop-health monitoring, and phenotypic analysis.
+The Global Wheat Head Dataset is widely used to train and evaluate [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for [wheat head detection](https://platform.ultralytics.com/ultralytics/solutions/wheat-head-detection-yolo26s). Its diverse imagery across regions, genotypes, and conditions makes it a valuable resource for plant phenotyping and crop management — supporting yield estimation, crop-health monitoring, and phenotypic analysis.
 
 To annotate field imagery, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/globalwheat2020).
 
@@ -54,7 +54,7 @@ A YAML file is used to define the dataset configuration. It defines the dataset'
 
 ## Usage
 
-To train a YOLO26n model on the Global Wheat Head Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. The dataset (~7.0 GB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Global Wheat Head Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. The dataset (~7.0 GB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -83,7 +83,7 @@ The Global Wheat Head Dataset contains a diverse set of outdoor field images, ca
 
 ![Global Wheat dataset sample showing wheat head detection](https://cdn.ul.run/i/8e9624f0c7a3dba5a50e77531f41268e.avif)
 
-- **Wheat Head Detection**: Wheat heads are annotated with bounding boxes for [object detection](../../tasks/detect.md), across a variety of field conditions that reflect the diversity and complexity of the dataset.
+- **Wheat Head Detection**: Wheat heads are annotated with bounding boxes for object detection, across a variety of field conditions that reflect the diversity and complexity of the dataset.
 
 ## Citations and Acknowledgments
 
@@ -108,7 +108,7 @@ We would like to acknowledge the researchers and institutions that contributed t
 
 ### What is the Global Wheat Head Dataset used for?
 
-The Global Wheat Head Dataset is primarily used for developing and training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models aimed at wheat head detection. This is crucial for applications in [wheat phenotyping](https://www.ultralytics.com/blog/from-farm-to-table-how-ai-drives-innovation-in-agriculture) and crop management, allowing for more accurate estimations of wheat head density, size, and overall crop yield potential. Accurate detection methods help in assessing crop health and maturity, essential for efficient crop management.
+The Global Wheat Head Dataset is primarily used for developing and training deep learning models aimed at wheat head detection. This is crucial for applications in wheat phenotyping and crop management, allowing for more accurate estimations of wheat head density, size, and overall crop yield potential. Accurate detection methods help in assessing crop health and maturity, essential for efficient crop management.
 
 ### How many images and classes are in the Global Wheat Head Dataset?
 
@@ -151,6 +151,6 @@ The configuration YAML file for the Global Wheat Head Dataset, named `GlobalWhea
 
 ### Why is wheat head detection important in crop management?
 
-Wheat head detection is critical in crop management because it enables accurate estimation of wheat head density and size, which are essential for evaluating crop health, maturity, and yield potential. By leveraging [deep learning models](../../models/index.md) trained on datasets like the Global Wheat Head Dataset, farmers and researchers can better monitor and manage crops, leading to improved productivity and optimized resource use in agricultural practices. This technological advancement supports [sustainable agriculture](https://www.ultralytics.com/blog/real-time-crop-health-monitoring-with-ultralytics-yolo11) and food security initiatives.
+Wheat head detection is critical in crop management because it enables accurate estimation of wheat head density and size, which are essential for evaluating crop health, maturity, and yield potential. By using [deep learning models](../../models/index.md) trained on datasets like the Global Wheat Head Dataset, farmers and researchers can better monitor and manage crops, leading to improved productivity and optimized resource use in agricultural practices. The same models enable [real-time crop health monitoring](https://www.ultralytics.com/blog/real-time-crop-health-monitoring-with-ultralytics-yolo11), supporting sustainable agriculture and food security initiatives.
 
 For more information on applications of AI in agriculture, visit [AI in Agriculture](https://www.ultralytics.com/solutions/computer-vision-in-agriculture).

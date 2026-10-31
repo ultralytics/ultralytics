@@ -1,13 +1,13 @@
 ---
 title: YOLO26 on Amazon SageMaker Endpoints
 comments: true
-description: Learn step-by-step how to deploy Ultralytics' YOLO26 on Amazon SageMaker Endpoints, from setup to testing, for powerful real-time inference with AWS services.
+description: Deploy Ultralytics YOLO26 on Amazon SageMaker Endpoints with AWS CDK and CloudFormation, from environment setup to endpoint testing and monitoring.
 keywords: YOLO26, Amazon SageMaker, AWS, Ultralytics, machine learning, computer vision, model deployment, AWS CloudFormation, AWS CDK, real-time inference
 ---
 
 # A Guide to Deploying YOLO26 on Amazon SageMaker Endpoints
 
-Deploying advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models like [Ultralytics' YOLO26](https://github.com/ultralytics/ultralytics) on Amazon SageMaker Endpoints opens up a wide range of possibilities for various [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) applications. The key to effectively using these models lies in understanding their setup, configuration, and deployment processes. YOLO26 becomes even more powerful when integrated seamlessly with Amazon SageMaker, a robust and scalable machine learning service by AWS.
+Amazon SageMaker Endpoints provide managed, scalable hosting for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models like [Ultralytics YOLO26](../models/yolo26.md) in production [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) applications. A successful [model deployment](https://www.ultralytics.com/glossary/model-deployment) depends on understanding the setup, configuration, and deployment steps on both the model and the AWS side.
 
 This guide will take you through the process of deploying YOLO26 [PyTorch](https://www.ultralytics.com/glossary/pytorch) models on Amazon SageMaker Endpoints step by step. You'll learn the essentials of preparing your AWS environment, configuring the model appropriately, and using tools like AWS CloudFormation and the AWS Cloud Development Kit (CDK) for deployment.
 
@@ -21,13 +21,13 @@ This guide will take you through the process of deploying YOLO26 [PyTorch](https
 
 ## Deploying YOLO26 on Amazon SageMaker Endpoints
 
-Deploying YOLO26 on Amazon SageMaker lets you use its managed environment for real-time inference and take advantage of features like autoscaling. Take a look at the AWS architecture below.
+Deploying YOLO26 on Amazon SageMaker lets you use its managed environment for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) and take advantage of features like autoscaling. Take a look at the AWS architecture below.
 
 <p align="center">
-  <img width="640" src="https://cdn.ul.run/i/8d98b503db95f4426bfd35e313166a1b.avif" alt="AWS SageMaker YOLO training architecture">
+  <img width="640" src="https://cdn.ul.run/i/8d98b503db95f4426bfd35e313166a1b.avif" alt="AWS architecture for hosting YOLO on an Amazon SageMaker endpoint">
 </p>
 
-### Step 1: Setup Your AWS Environment
+### Step 1: Set Up Your AWS Environment
 
 First, ensure you have the following prerequisites in place:
 
@@ -107,8 +107,6 @@ Now that you have the necessary code, set up your environment for deploying with
 
 ### Step 5: Deploy the YOLO Model
 
-Before diving into the deployment instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
-
 After creating the AWS CloudFormation Stack, the next step is to deploy YOLO26.
 
 - Open the Notebook Instance: Go to the AWS Console and navigate to the Amazon SageMaker service. Select "Notebook Instances" from the dashboard, then locate the notebook instance that was created by your CDK deployment script. Open the notebook instance to access the Jupyter environment.
@@ -148,7 +146,7 @@ Now that your YOLO26 model is deployed, it's important to test its performance a
 - Run the Test Notebook: Follow the instructions within the notebook to test the deployed SageMaker endpoint. This includes sending an image to the endpoint and running inferences. Then, you'll plot the output to visualize the model's performance and [accuracy](https://www.ultralytics.com/glossary/accuracy), as shown below.
 
 <p align="center">
-  <img width="640" src="https://cdn.ul.run/i/373b4db68fb4b27bd989f229905114c2.avif" alt="Testing Results YOLO26">
+  <img width="640" src="https://cdn.ul.run/i/373b4db68fb4b27bd989f229905114c2.avif" alt="YOLO26 detection results returned by the SageMaker test endpoint">
 </p>
 
 - Clean-Up Resources: The test notebook will also guide you through the process of cleaning up the endpoint and the hosted model. This is an important step to manage costs and resources effectively, especially if you do not plan to use the deployed model immediately.
@@ -161,15 +159,11 @@ After testing, continuous monitoring and management of your deployed model are e
 
 - Manage the Endpoint: Use the SageMaker console for ongoing management of the endpoint. This includes scaling, updating, or redeploying the model as required.
 
-By completing these steps, you will have successfully deployed and tested a YOLO26 model on Amazon SageMaker Endpoints. This process not only equips you with practical experience in using AWS services for machine learning deployment but also lays the foundation for deploying other advanced models in the future.
+By completing these steps, you will have deployed and tested a YOLO26 model on Amazon SageMaker Endpoints. The same workflow applies to deploying other models on AWS.
 
 ## Summary
 
-This guide took you step by step through deploying YOLO26 on Amazon SageMaker Endpoints using AWS CloudFormation and the AWS Cloud Development Kit (CDK). The process includes cloning the necessary GitHub repository, setting up the CDK environment, deploying the model using AWS services, and testing its performance on SageMaker.
-
-For more technical details, refer to [this article](https://aws.amazon.com/blogs/machine-learning/hosting-yolov8-pytorch-model-on-amazon-sagemaker-endpoints/) on the AWS Machine Learning Blog. You can also check out the official [Amazon SageMaker Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints.html) for more insights into various features and functionalities.
-
-Are you interested in learning more about different YOLO26 integrations? Visit the [Ultralytics integrations guide page](../integrations/index.md) to discover additional tools and capabilities that can enhance your machine-learning projects.
+This guide took you step by step through deploying YOLO26 on [Amazon SageMaker Endpoints](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints.html) using AWS CloudFormation and the AWS Cloud Development Kit (CDK). The process includes cloning the AWS sample repository from the AWS Machine Learning Blog post on [hosting YOLOv8 PyTorch models on Amazon SageMaker Endpoints](https://aws.amazon.com/blogs/machine-learning/hosting-yolov8-pytorch-model-on-amazon-sagemaker-endpoints/), setting up the CDK environment, deploying the model using AWS services, and testing its performance on SageMaker.
 
 ## FAQ
 
@@ -197,30 +191,24 @@ To deploy the Ultralytics YOLO26 model on Amazon SageMaker Endpoints, follow the
     cdk deploy
     ```
 
-For further details, review the [documentation section](#step-5-deploy-the-yolo-model).
-
 ### What are the prerequisites for deploying YOLO26 on Amazon SageMaker?
 
-To deploy YOLO26 on Amazon SageMaker, ensure you have the following prerequisites:
+To deploy YOLO26 on Amazon SageMaker, ensure you have the following [prerequisites](#step-1-set-up-your-aws-environment):
 
-1. **AWS Account**: Active AWS account ([sign up here](https://aws.amazon.com/)).
+1. **AWS Account**: Active AWS account ([sign up for AWS](https://aws.amazon.com/)).
 2. **IAM Roles**: Configured IAM roles with permissions for SageMaker, CloudFormation, and Amazon S3.
 3. **AWS CLI**: Installed and configured AWS Command Line Interface ([AWS CLI installation guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)).
 4. **AWS CDK**: Installed AWS Cloud Development Kit ([CDK setup guide](https://docs.aws.amazon.com/cdk/v2/guide/#getting_started_install)).
 5. **Service Quotas**: Sufficient quotas for `ml.m5.4xlarge` instances for both endpoint and notebook usage ([request a quota increase](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html#quota-console-increase)).
-
-For detailed setup, refer to [this section](#step-1-setup-your-aws-environment).
 
 ### Why should I use Ultralytics YOLO26 on Amazon SageMaker?
 
 Using Ultralytics YOLO26 on Amazon SageMaker offers several advantages:
 
 1. **Scalability and Management**: SageMaker provides a managed environment with features like autoscaling, which helps in real-time inference needs.
-2. **Integration with AWS Services**: Seamlessly integrate with other AWS services, such as S3 for data storage, CloudFormation for infrastructure as code, and CloudWatch for monitoring.
+2. **Integration with AWS Services**: Integrate with other AWS services, such as S3 for data storage, CloudFormation for infrastructure as code, and CloudWatch for monitoring.
 3. **Ease of Deployment**: Simplified setup using AWS CDK scripts and streamlined deployment processes.
-4. **Performance**: Leverage Amazon SageMaker's high-performance infrastructure for running large scale inference tasks efficiently.
-
-Explore more about the advantages of using SageMaker in the [introduction section](#amazon-sagemaker).
+4. **Performance**: Use Amazon SageMaker's managed infrastructure to run large-scale inference workloads.
 
 ### Can I customize the inference logic for YOLO26 on Amazon SageMaker?
 
@@ -252,6 +240,6 @@ To test the deployed YOLO26 model on Amazon SageMaker:
 
 1. **Open the Test Notebook**: Locate the `2_TestEndpoint.ipynb` notebook in the SageMaker Jupyter environment.
 2. **Run the Notebook**: Follow the notebook's instructions to send an image to the endpoint, perform inference, and display results.
-3. **Visualize Results**: Use built-in plotting functionalities to visualize performance metrics, such as bounding boxes around detected objects.
+3. **Visualize Results**: Use the notebook's plotting code to draw the predicted bounding boxes on the test image.
 
 For comprehensive testing instructions, visit the [testing section](#step-6-testing-your-deployment).

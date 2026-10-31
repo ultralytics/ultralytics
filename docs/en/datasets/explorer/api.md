@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore the Ultralytics Explorer API for dataset exploration with SQL queries, vector similarity search, and semantic search. Learn installation and usage tips.
+description: Use the Ultralytics Explorer API to explore datasets with SQL queries, vector similarity search, semantic search, and natural language queries in ultralytics 8.3.11.
 keywords: Ultralytics, Explorer API, dataset exploration, SQL queries, similarity search, semantic search, Python API, embeddings, data analysis
 ---
 
@@ -12,7 +12,7 @@ keywords: Ultralytics, Explorer API, dataset exploration, SQL queries, similarit
 
 ## Introduction
 
-The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search, and semantic search.
+The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search, and [semantic search](https://www.ultralytics.com/glossary/semantic-search).
 
 <p align="center">
   <br>
@@ -55,13 +55,13 @@ df = explorer.get_similar(idx=0)
 
     [Embeddings](https://www.ultralytics.com/glossary/embeddings) table for a given dataset and model pair is only created once and reused. These use [LanceDB](https://lancedb.github.io/lancedb/) under the hood, which scales on-disk, so you can create and reuse embeddings for large datasets like COCO without running out of memory.
 
-In case you want to force update the embeddings table, you can pass `force=True` to `create_embeddings_table` method.
+To force an update of the embeddings table, pass `force=True` to the `create_embeddings_table` method.
 
 You can directly access the LanceDB table object to perform advanced analysis. Learn more about it in the [Working with Embeddings Table section](#4-working-with-embeddings-table).
 
 ## 1. Similarity Search
 
-Similarity search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. Once the embeddings table is built, you can run similarity search in any of the following ways:
+Similarity search, also known as [vector search](https://www.ultralytics.com/glossary/vector-search), is a technique for finding images similar to a given image. It is based on the idea that similar images will have similar embeddings. Once the embeddings table is built, you can run similarity search in any of the following ways:
 
 - On a given index or list of indices in the dataset: `exp.get_similar(idx=[1,10], limit=10)`
 - On any image or list of images not in the dataset: `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`
@@ -144,7 +144,7 @@ You can also plot the similar images using the `plot_similar` method. This metho
 ## 2. Ask AI (Natural Language Querying)
 
 This feature lets you filter your dataset using natural language, without writing SQL. The AI-powered query generator converts your prompt into a query and returns matching results. For example, you can ask: "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it will generate the query and show you those results.
-Note: This feature uses LLMs, so results are probabilistic and may be inaccurate.
+Note: This feature uses [LLMs](https://www.ultralytics.com/glossary/large-language-model-llm), so results are probabilistic and may be inaccurate.
 
 !!! example "Ask AI"
 
@@ -276,7 +276,7 @@ It returns a pandas DataFrame with the following columns:
 
 !!! tip
 
-    For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`.
+    For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. If your dataset has changed, or you need to regenerate the similarity index, pass `force=True`.
 
 !!! example "Similarity Index"
 
@@ -289,7 +289,7 @@ It returns a pandas DataFrame with the following columns:
     sim_idx = exp.similarity_index()
     ```
 
-You can use similarity index to build custom conditions to filter out the dataset. For example, you can filter out images that are not similar to any other image in the dataset using the following code:
+You can use the similarity index to build custom conditions for filtering the dataset. For example, the following code lists images that have more than 30 similar images in the dataset, which are good candidates for near-duplicate removal:
 
 ```python
 import numpy as np
@@ -300,7 +300,7 @@ sim_idx["im_file"][sim_count > 30]
 
 ### Visualize Embedding Space
 
-You can also visualize the embedding space using the plotting tool of your choice. For example here is a simple example using Matplotlib:
+You can also visualize the embedding space using the plotting tool of your choice. Here is a simple example that reduces the embeddings with [PCA](https://www.ultralytics.com/glossary/principal-component-analysis-pca) and plots them with Matplotlib:
 
 ```python
 import matplotlib.pyplot as plt
@@ -328,13 +328,13 @@ Start creating your own CV dataset exploration reports using the Explorer API. F
 
 ## Apps Built Using Ultralytics Explorer
 
-Try our [GUI Demo](dashboard.md) based on Explorer API
+The [Explorer GUI](dashboard.md) is built on the Explorer API.
 
 ## FAQ
 
 ### What is the Ultralytics Explorer API used for?
 
-The Ultralytics Explorer API is designed for comprehensive dataset exploration. It allows users to filter and search datasets using SQL queries, vector similarity search, and semantic search. This powerful Python API can handle large datasets, making it ideal for various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks using Ultralytics models.
+The Ultralytics Explorer API is designed for dataset exploration. It lets you filter and search datasets using SQL queries, vector similarity search, and semantic search, and it scales to large datasets for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks with Ultralytics models.
 
 ### How do I install the Ultralytics Explorer API?
 

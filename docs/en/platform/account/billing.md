@@ -2,20 +2,20 @@
 plans: [free, pro, enterprise]
 title: Billing & Credits
 comments: true
-description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent compute pricing for cloud training, batch annotation, and endpoints.
+description: Manage credits, payments, and Free, Pro, or Enterprise plans on Ultralytics Platform, with metered credits for GPU cloud training, batch annotation, and endpoint uptime.
 keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
 ---
 
 # Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, batch annotation, and custom-resource endpoint uptime. Add credits, track
+[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, [batch annotation](../data/annotation.md#batch-annotation), and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
 
 ## Plans
 
-Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
+Choose the plan that fits your needs. Compare plans in `Settings > Plans` or on the [Ultralytics pricing page](https://www.ultralytics.com/pricing):
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
 
@@ -217,7 +217,7 @@ flowchart TD
 
 ## Training Costs
 
-Cloud training costs depend on GPU selection:
+Cloud training costs depend on [GPU selection](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform):
 
 {% include "macros/platform-gpu-table.md" %}
 
@@ -260,13 +260,13 @@ After upgrading:
 - 10 cloud deployments
 - [Google Cloud Storage, Amazon S3, and Azure Blob Storage datasets](../integrations/index.md)
 - [Team collaboration](teams.md) (up to 5 members, including you)
-- Access to best GPUs (B200, B300)
+- Access to the best GPUs (B200, B300)
 - Priority support
 
 ### Renewals
 
 Ultralytics bills the Pro plan directly from your saved payment method. At the end of each billing period,
-your default payment method is charged for the seats currently in use. If the charge fails you're emailed, and the
+your default payment method is charged for the seats currently in use. If the charge fails, you're emailed, and the
 platform retries on the following days — after three failed attempts the workspace is downgraded to Free.
 
 ### Cancel Pro

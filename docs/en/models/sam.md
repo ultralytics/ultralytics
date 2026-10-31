@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore the revolutionary Segment Anything Model (SAM) for promptable image segmentation with zero-shot performance. Discover key features, datasets, and usage tips.
+description: Meta's Segment Anything Model (SAM) performs promptable, zero-shot image segmentation. Learn its architecture, SA-1B dataset, auto-annotation and Ultralytics usage.
 keywords: Segment Anything, SAM, SAM-1, image segmentation, promptable segmentation, zero-shot segmentation, instance segmentation, auto-annotation, SAM vs YOLO, SAM vs SAM 2, SA-1B dataset, Meta, Ultralytics
 ---
 
@@ -12,32 +12,32 @@ keywords: Segment Anything, SAM, SAM-1, image segmentation, promptable segmentat
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam-and-sam2-using-ultralytics-python-package.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="How to use Segment Anything In Colab"></a>
 
-Welcome to the frontier of [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) with the Segment Anything Model, or SAM. This revolutionary model has changed the game by introducing promptable image segmentation with real-time performance, setting new standards in the field.
+The Segment Anything Model (SAM) from Meta introduced promptable [image segmentation](https://www.ultralytics.com/glossary/image-segmentation): given a point, box, or mask prompt, it returns a mask for the indicated object, with a lightweight decoder fast enough for interactive use.
 
 ## Introduction to SAM: The Segment Anything Model
 
-The Segment Anything Model, or SAM, is a cutting-edge image segmentation model that allows for promptable segmentation, providing unparalleled versatility in image analysis tasks. SAM forms the heart of the Segment Anything initiative, a groundbreaking project that introduces a novel model, task, and dataset for image segmentation.
+The Segment Anything Model, or SAM, is an image segmentation model built for promptable segmentation across a wide range of image analysis tasks. SAM is the core of Meta's Segment Anything project, which introduced a new model, task, and dataset for image segmentation.
 
-SAM's advanced design allows it to adapt to new image distributions and tasks without prior knowledge, a feature known as zero-shot transfer. Trained on the expansive [SA-1B dataset](https://arxiv.org/abs/2304.02643), which contains more than 1 billion masks spread over 11 million carefully curated images, SAM has displayed impressive zero-shot performance, surpassing previous fully supervised results in many cases.
+SAM's design allows it to adapt to new image distributions and tasks without prior knowledge, a capability known as [zero-shot](https://www.ultralytics.com/glossary/zero-shot-learning) transfer. Trained on the [SA-1B dataset](https://arxiv.org/abs/2304.02643), which contains more than 1 billion masks across 11 million curated images, SAM shows strong zero-shot performance that is often competitive with or better than prior fully supervised results.
 
-![SA-1B dataset sample with automatic segmentation masks](https://cdn.ul.run/i/620ba43b239b65fda908547da826ac16.avif) **SA-1B Example images.** Dataset images overlaid masks from the newly introduced SA-1B dataset. SA-1B contains 11M diverse, high-resolution, licensed, and privacy protecting images and 1.1B high-quality segmentation masks. These masks were annotated fully automatically by SAM, and as verified by human ratings and numerous experiments, are of high quality and diversity. Images are grouped by number of masks per image for visualization (there are ∼100 masks per image on average).
+![SA-1B dataset sample with automatic segmentation masks](https://cdn.ul.run/i/620ba43b239b65fda908547da826ac16.avif) **SA-1B example images.** Images with overlaid masks from the SA-1B dataset. SA-1B contains 11M diverse, high-resolution, licensed, and privacy-protecting images and 1.1B high-quality segmentation masks. These masks were annotated fully automatically by SAM, and as verified by human ratings and numerous experiments, are of high quality and diversity. Images are grouped by number of masks per image for visualization (there are ∼100 masks per image on average).
 
 ## Key Features of the Segment Anything Model (SAM)
 
 - **Promptable Segmentation Task:** SAM was designed with a promptable segmentation task in mind, allowing it to generate valid segmentation masks from any given prompt, such as spatial or text clues identifying an object.
-- **Advanced Architecture:** The Segment Anything Model employs a powerful image encoder, a prompt encoder, and a lightweight mask decoder. This unique architecture enables flexible prompting, real-time mask computation, and ambiguity awareness in segmentation tasks.
-- **The SA-1B Dataset:** Introduced by the Segment Anything project, the SA-1B dataset features over 1 billion masks on 11 million images. As the largest segmentation dataset to date, it provides SAM with a diverse and large-scale training data source.
-- **Zero-Shot Performance:** SAM displays outstanding zero-shot performance across various segmentation tasks, making it a ready-to-use tool for diverse applications with minimal need for [prompt engineering](https://www.ultralytics.com/glossary/prompt-engineering).
+- **Advanced Architecture:** The Segment Anything Model uses a heavyweight image encoder, a prompt encoder, and a lightweight mask decoder. This architecture enables flexible prompting, real-time mask computation, and ambiguity awareness in segmentation tasks.
+- **The SA-1B Dataset:** Introduced by the Segment Anything project, the SA-1B dataset features over 1 billion masks on 11 million images. As the largest segmentation dataset at its release, it provides SAM with a diverse and large-scale training data source.
+- **Zero-Shot Performance:** SAM displays strong zero-shot performance across various segmentation tasks, making it a ready-to-use tool for diverse applications with minimal need for [prompt engineering](https://www.ultralytics.com/glossary/prompt-engineering).
 
 For an in-depth look at the Segment Anything Model and the SA-1B dataset, please visit the [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything) and check out the research paper [Segment Anything](https://arxiv.org/abs/2304.02643).
 
 !!! tip "SAM on Ultralytics Platform"
 
-    SAM powers the [smart annotation feature](https://www.ultralytics.com/annotate) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based intelligent masking for fast dataset labeling. See the [annotation guide](../platform/data/annotation.md) for details.
+    SAM-family models (SAM 2.1, SAM 3, and SAM 3.1) power the [smart annotation feature](../platform/data/annotation.md#smart-annotation) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based masking for fast dataset labeling.
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-This table presents the available models with their specific pretrained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
+This table presents the available models with their specific pretrained weights, the tasks they support, and their compatibility with different operating modes like [Training](../modes/train.md), [Validation](../modes/val.md), [Inference](../modes/predict.md), and [Export](../modes/export.md). Supported modes are indicated by ✅ and unsupported modes by ❌.
 
 | Model Type | Pretrained Weights                                                                  | Tasks Supported                              | Training | Validation | Inference | Export |
 | ---------- | ----------------------------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
@@ -46,7 +46,7 @@ This table presents the available models with their specific pretrained weights,
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 
-The Segment Anything Model can be employed for a multitude of downstream tasks that go beyond its training data. This includes edge detection, object proposal generation, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and preliminary text-to-mask prediction. With prompt engineering, SAM can swiftly adapt to new tasks and data distributions in a zero-shot manner, establishing it as a versatile and potent tool for all your image segmentation needs.
+The Segment Anything Model can be used for many downstream tasks beyond its training data, including edge detection, object proposal generation, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and preliminary text-to-mask prediction. With prompt engineering, SAM can adapt to new tasks and data distributions in a zero-shot manner.
 
 ### SAM prediction example
 
@@ -107,11 +107,11 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         yolo predict model=sam_b.pt source=path/to/image.jpg
         ```
 
-- The logic here is to segment the whole image if you don't pass any prompts (bboxes/points/masks).
+- SAM segments the whole image when you don't pass any prompts (bboxes/points/masks).
 
 !!! example "SAMPredictor example"
 
-    This way you can set image once and run prompts inference multiple times without running image encoder multiple times.
+    Set the image once, then run prompt inference multiple times without re-running the image encoder.
 
     === "Prompt inference"
 
@@ -159,22 +159,22 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 !!! note
 
-    All the returned `results` in the above examples are [Results](../modes/predict.md#working-with-results) objects which allow access to predicted masks and source image easily.
+    All the returned `results` in the above examples are [Results](../modes/predict.md#working-with-results) objects which provide access to the predicted masks and the source image.
 
 - For more `Segment everything` args, see the [`Predictor/generate` Reference](../reference/models/sam/predict.md).
 
 ## SAM Comparison vs YOLO
 
-Here we compare Meta's SAM-b model with Ultralytics segmentation models including [YOLO26n-seg](yolo26.md):
+Here we compare Meta's SAM-b model with Ultralytics segmentation models, including [YOLO26](yolo26.md):
 
 | Model                                                                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
 | ---------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
-| [Meta SAM-b](sam.md)                                                                           | 375                     | 93.7                         | 41703                             |
+| Meta SAM-b                                                                                     | 375                     | 93.7                         | 41703                             |
 | [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 23802                             |
 | [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.9                    | 11.8                         | 58.0                              |
-| Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | 7.1 (52.8x smaller)     | 3.4 (27.6x less)             | 24.8 (1682x faster)               |
-| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **6.2** (60.5x smaller) | 2.9 (32.3x less)             | **24.3** (1716x faster)           |
-| Ultralytics [YOLO26n-seg](yolo26.md)                                                           | 6.7 (56.0x smaller)     | **2.7** (34.7x less)         | 25.2 (1655x faster)               |
+| Ultralytics [YOLOv8n-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n-seg)     | 7.1 (52.8x smaller)     | 3.4 (27.6x less)             | 24.8 (1682x faster)               |
+| Ultralytics [YOLO11n-seg](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n-seg)     | **6.2** (60.5x smaller) | 2.9 (32.3x less)             | **24.3** (1716x faster)           |
+| Ultralytics [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg)     | 6.7 (56.0x smaller)     | **2.7** (34.7x less)         | 25.2 (1655x faster)               |
 
 This comparison demonstrates the substantial differences in model sizes and speeds between SAM variants and YOLO segmentation models. While SAM provides unique automatic segmentation capabilities, YOLO models, particularly YOLOv8n-seg, YOLO11n-seg and YOLO26n-seg, are significantly smaller, faster, and more computationally efficient.
 
@@ -209,11 +209,11 @@ SAM speeds measured with PyTorch, YOLO speeds measured with ONNX Runtime. Tests 
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
 
-Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](../datasets/segment/index.md) using a pretrained detection model. This feature enables rapid and accurate annotation of a large number of images, bypassing the need for time-consuming manual labeling.
+Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](../datasets/segment/index.md) using a pretrained detection model. This feature enables rapid annotation of large numbers of images, bypassing time-consuming manual labeling.
 
 ### Generate Your Segmentation Dataset Using a Detection Model
 
-To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
+To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function, which pairs a detector such as [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x) with SAM:
 
 !!! example
 
@@ -229,7 +229,7 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
 
 The `auto_annotate` function takes the path to your images, with optional arguments for specifying the pretrained detection and SAM segmentation models, the device to run the models on, and the output directory for saving the annotated results.
 
-Auto-annotation with pretrained models can dramatically cut down the time and effort required for creating high-quality segmentation datasets. This feature is especially beneficial for researchers and developers dealing with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
+Auto-annotation with pretrained models greatly reduces the time and effort required to create segmentation datasets, letting teams with large image collections focus on model development and evaluation rather than manual annotation.
 
 ## Citations and Acknowledgments
 
@@ -256,7 +256,7 @@ We would like to express our gratitude to Meta AI for creating and maintaining t
 
 ### What is the Segment Anything Model (SAM)?
 
-Meta's Segment Anything Model (SAM) is a revolutionary image segmentation model designed for promptable segmentation tasks. It leverages advanced architecture, including image and prompt encoders combined with a lightweight mask decoder, to generate high-quality segmentation masks from various prompts such as spatial or text cues. Trained on the expansive [SA-1B dataset](https://arxiv.org/abs/2304.02643), SAM excels in zero-shot performance, adapting to new image distributions and tasks without prior knowledge.
+Meta's Segment Anything Model (SAM) is an image segmentation model designed for promptable segmentation tasks. It combines image and prompt encoders with a lightweight mask decoder to generate segmentation masks from prompts such as points, boxes, or masks. Trained on the SA-1B dataset, SAM performs well zero-shot, adapting to new image distributions and tasks without prior knowledge.
 
 ### How can I use the Segment Anything Model (SAM) for image segmentation?
 
@@ -290,11 +290,9 @@ Alternatively, you can run inference with SAM in the command line interface (CLI
 yolo predict model=sam_b.pt source=path/to/image.jpg
 ```
 
-For more detailed usage instructions, visit the [Segmentation section](#sam-prediction-example).
-
 ### How do SAM and YOLO models compare in terms of performance?
 
-Compared to YOLO models, SAM variants like SAM-b, MobileSAM, and FastSAM-s are typically larger and slower but offer unique zero-shot segmentation capabilities. For example, [YOLO26n-seg](yolo26.md) is **56x smaller** and over **1650x faster** than Meta's original SAM-b model on CPU. This makes YOLO models ideal for applications requiring rapid, lightweight, and computationally efficient segmentation, while SAM models excel in flexible, promptable, and zero-shot segmentation tasks.
+Compared to YOLO models, SAM variants like SAM-b, MobileSAM, and FastSAM-s are typically larger and slower but offer unique zero-shot segmentation capabilities. For example, [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) is **56x smaller** and over **1650x faster** than Meta's original SAM-b model on CPU. This makes YOLO models ideal for applications requiring rapid, lightweight, and computationally efficient segmentation, while SAM models excel in flexible, promptable, and zero-shot segmentation tasks.
 
 ### How can I auto-annotate my dataset using SAM?
 
@@ -310,4 +308,4 @@ This function takes the path to your images and optional arguments for pretraine
 
 ### What datasets are used to train the Segment Anything Model (SAM)?
 
-SAM is trained on the extensive [SA-1B dataset](https://arxiv.org/abs/2304.02643) which comprises over 1 billion masks across 11 million images. SA-1B is the largest segmentation dataset to date, providing high-quality and diverse [training data](https://www.ultralytics.com/glossary/training-data), ensuring impressive zero-shot performance in varied segmentation tasks. For more details, visit the [Dataset section](#key-features-of-the-segment-anything-model-sam).
+SAM is trained on the SA-1B dataset, which comprises over 1 billion masks across 11 million images. SA-1B was the largest segmentation dataset at its release, providing high-quality and diverse [training data](https://www.ultralytics.com/glossary/training-data) that underpins SAM's zero-shot performance across segmentation tasks. For more details, visit the [Dataset section](#key-features-of-the-segment-anything-model-sam).

@@ -6,7 +6,7 @@ creator:
     url: https://data.caltech.edu/records/mzrjq-6wc02
 license:
     name: CC-BY-4.0
-description: Train YOLO image classification models on Caltech-101, a benchmark of 9,144 images across 101 object categories plus a background class, with automatic 80/20 splitting.
+description: Train YOLO image classification models on Caltech-101, a benchmark of 9,144 images in 101 object categories plus a background class, split 80/20 automatically.
 keywords: Caltech-101, dataset, image classification, object recognition, machine learning, computer vision, YOLO, deep learning, AI
 ---
 
@@ -24,7 +24,7 @@ Explore [Caltech-101 on Ultralytics Platform](https://platform.ultralytics.com/u
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-101 Dataset with Ultralytics Platform
+  <strong>Watch:</strong> How to Train an Image Classification Model using Caltech-101 Dataset with Ultralytics Platform
 </p>
 
 !!! note "Automatic Data Splitting"
@@ -37,7 +37,7 @@ Explore [Caltech-101 on Ultralytics Platform](https://platform.ultralytics.com/u
 - The categories span a wide variety of real-world objects, including animals, vehicles, household items, and people.
 - Each category holds about 40 to 800 images, so class sizes are imbalanced.
 - Images are of variable sizes, most roughly 300x200 pixels (medium resolution).
-- Caltech-101 is widely used to benchmark [image classification](https://www.ultralytics.com/glossary/image-classification) and object recognition algorithms.
+- Caltech-101 is widely used to benchmark image classification and object recognition algorithms.
 
 ## Dataset Structure
 
@@ -50,11 +50,11 @@ Caltech-101 is distributed as 102 folders — one per class, covering 101 object
 
 ## Applications
 
-Caltech-101 is widely used to train and evaluate [image classification](https://www.ultralytics.com/glossary/image-classification) and object recognition models, including [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs). Its broad category coverage and clean, labeled images make it a popular benchmark for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research and prototyping.
+Caltech-101 is widely used to train and evaluate image classification and object recognition models, including [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs). Its broad category coverage and clean, labeled images make it a popular benchmark for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research and prototyping.
 
 ## Usage
 
-Train a YOLO model on Caltech-101 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 416. For the full list of available arguments, see the [Training](../../modes/train.md) page and the [image classification](../../tasks/classify.md) task guide.
+Train a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on Caltech-101 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 416. For the full list of available arguments, see the [Training](../../modes/train.md) page and the [image classification](../../tasks/classify.md) task guide.
 
 !!! example "Train Example"
 
@@ -79,7 +79,7 @@ Train a YOLO model on Caltech-101 for 100 [epochs](https://www.ultralytics.com/g
 
 ## Sample Images and Annotations
 
-The Caltech-101 dataset contains high-quality color images of various objects, providing a well-structured dataset for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks. Here are some examples of images from the dataset:
+The Caltech-101 dataset contains high-quality color images of various objects, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
 ![Caltech-101 image classification dataset samples](https://cdn.ul.run/i/c914f41ceb204ba9dc47bd4b80b12d53.avif)
 
@@ -112,7 +112,7 @@ We would like to acknowledge Li Fei-Fei, Rob Fergus, and Pietro Perona for creat
 
 ### What is the Caltech-101 dataset used for in machine learning?
 
-The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is widely used to train and benchmark [image classification](https://www.ultralytics.com/glossary/image-classification) and object recognition models. It contains 9,144 images across 101 object categories plus a background class, providing a challenging benchmark for evaluating algorithms such as Convolutional [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) (CNNs) and Support Vector Machines (SVMs).
+The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is widely used to train and benchmark [image classification](https://www.ultralytics.com/glossary/image-classification) and object recognition models. It contains 9,144 images across 101 object categories plus a background class, providing a challenging benchmark for evaluating algorithms such as Convolutional Neural Networks (CNNs) and Support Vector Machines (SVMs).
 
 ### How can I train an Ultralytics YOLO model on the Caltech-101 dataset?
 

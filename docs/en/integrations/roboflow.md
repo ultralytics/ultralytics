@@ -1,20 +1,20 @@
 ---
 comments: true
-description: Learn how to label data and export datasets in YOLO format using Roboflow for training Ultralytics models.
+description: Label, manage, and export datasets in YOLO format with Roboflow, then train Ultralytics YOLO26 models and upload the weights for deployment and evaluation.
 keywords: Roboflow, Ultralytics YOLO, data labeling, computer vision, dataset export
 title: Roboflow Data Labeling for YOLO
 ---
 
 # Roboflow
 
-Roboflow provides tools for [data labeling](https://www.ultralytics.com/glossary/data-labeling) and dataset export in various formats, including YOLO. This guide covers labeling, exporting, and deploying data for [Ultralytics YOLO](../models/index.md) models.
+Roboflow provides tools for [data labeling](https://www.ultralytics.com/glossary/data-labeling) and dataset export in various formats, including YOLO. This guide covers labeling and exporting data, and deploying [Ultralytics YOLO](../models/index.md) models.
 
 !!! question "Licensing"
 
     Ultralytics offers two licensing options to accommodate different use cases:
 
     - **AGPL-3.0 License**: This [OSI-approved open-source license](https://www.ultralytics.com/legal/agpl-3-0-software-license) is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
-    - **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
+    - **Enterprise License**: For development and production use, this license enables integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
     For more details see the [Ultralytics Licensing page](https://www.ultralytics.com/license).
 
@@ -30,7 +30,7 @@ This guide demonstrates how to find, label, and organize data for training a cus
 
 ## Gather Data for Training a Custom YOLO26 Model
 
-Roboflow offers two primary services to assist in data collection for Ultralytics [YOLO models](../models/index.md): Universe and Collect. For more general information on data collection strategies, refer to our [Data Collection and Annotation Guide](../guides/data-collection-and-annotation.md).
+Roboflow offers two primary services to assist in [data collection](../guides/data-collection-and-annotation.md) for Ultralytics YOLO models: Universe and Collect.
 
 ### Roboflow Universe
 
@@ -42,9 +42,9 @@ If you prefer to gather images yourself, Roboflow Collect is an open-source proj
 
 ## Upload, Convert and Label Data for YOLO26 Format
 
-Roboflow Annotate is an online tool for labeling images for various computer vision tasks, including [object detection](../tasks/detect.md), [classification](../tasks/classify.md), and [segmentation](../tasks/segment.md).
+Roboflow Annotate is an online tool for labeling images for various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks, including [object detection](../tasks/detect.md), [classification](../tasks/classify.md), and [segmentation](../tasks/segment.md).
 
-To label data for an Ultralytics [YOLO](../models/index.md) model, create a project in Roboflow, upload your images, and start annotating.
+To label data for an Ultralytics YOLO model, create a project in Roboflow, upload your images, and start annotating.
 
 ### Annotation Tools
 
@@ -53,7 +53,7 @@ To label data for an Ultralytics [YOLO](../models/index.md) model, create a proj
 
 ### Label Assistant (SAM Integration)
 
-Roboflow integrates a [Segment Anything Model (SAM)](../models/sam.md)-based label assistant to potentially speed up annotation.
+Roboflow integrates a [Segment Anything Model (SAM)](../models/sam.md)-based label assistant to speed up annotation.
 
 To use the label assistant, click the cursor icon in the sidebar. SAM will be enabled for your project.
 
@@ -69,7 +69,7 @@ Models hosted on Roboflow can be used with Label Assist to suggest annotations. 
 
 ## Dataset Management for YOLO26
 
-Roboflow provides several tools for understanding and managing your computer vision [datasets](../datasets/index.md).
+Roboflow provides several tools for understanding and managing your computer vision datasets.
 
 ### Dataset Search
 
@@ -83,11 +83,11 @@ Before training, use Roboflow Health Check to gain insights into your dataset an
 <img src="https://cdn.ul.run/i/eb929c239a886f640359d3deb64c8e2a.avif" alt="Roboflow Health Check analysis dashboard" width="800">
 </p>
 
-Health Check might suggest changes to enhance performance, such as addressing class imbalances identified in the class balance feature. Understanding dataset health is crucial for effective [model training](../modes/train.md).
+Health Check might suggest changes to enhance performance, such as addressing class imbalances identified in the class balance feature. Understanding dataset health is crucial for effective model training.
 
 ## Pre-process and Augment Data for Model Robustness
 
-To export your data, you need to create a dataset version, which is a snapshot of your dataset at a specific point in time. Click "Versions" in the sidebar, then "Create New Version." Here, you can apply preprocessing steps and [data augmentations](https://www.ultralytics.com/glossary/data-augmentation) to potentially enhance model robustness.
+To export your data, you need to create a dataset version, which is a snapshot of your dataset at a specific point in time. Click "Versions" in the sidebar, then "Create New Version." Here, you can apply [preprocessing](https://www.ultralytics.com/glossary/data-preprocessing) steps and [data augmentations](https://www.ultralytics.com/glossary/data-augmentation) to potentially enhance model robustness.
 
 <p align="center">
 <img src="https://cdn.ul.run/i/8d07c550e9704bb6b40d412e06de1577.avif" alt="Creating Roboflow dataset version with augmentation" width="800">
@@ -103,7 +103,7 @@ Once your dataset version is generated, you can export it in various formats sui
 <img src="https://cdn.ul.run/i/2d375cd076d209f59bf26453dd74043d.avif" alt="Roboflow dataset export to YOLO format" width="800">
 </p>
 
-Select the "YOLO26" format for compatibility with Ultralytics training pipelines. You are now ready to train your custom [YOLO26](../models/yolo26.md) model. Refer to the [Ultralytics Train mode documentation](../modes/train.md) for detailed instructions on initiating training with your exported dataset.
+Select the "YOLO26" format for compatibility with Ultralytics training pipelines. You are now ready to [train your custom YOLO26 model](../modes/train.md).
 
 ## Upload Custom YOLO26 Model Weights for Testing and Deployment
 
@@ -198,7 +198,7 @@ Vector Analysis helps:
 
 ### How do I label data for YOLO26 models using Roboflow?
 
-Use Roboflow Annotate. Create a project, upload images, and use the annotation tools (`B` for [bounding boxes](https://www.ultralytics.com/glossary/bounding-box), `P` for polygons) or the SAM-based label assistant for faster labeling. Detailed steps are available in the [Upload, Convert and Label Data section](#upload-convert-and-label-data-for-yolo26-format).
+Use [Roboflow Annotate](#upload-convert-and-label-data-for-yolo26-format). Create a project, upload images, and use the annotation tools (`B` for bounding boxes, `P` for polygons) or the SAM-based label assistant for faster labeling.
 
 ### What services does Roboflow offer for collecting YOLO26 training data?
 
@@ -206,11 +206,11 @@ Roboflow provides Universe (access to numerous [datasets](../datasets/index.md))
 
 ### How can I manage and analyze my YOLO26 dataset using Roboflow?
 
-Utilize Roboflow's dataset search, tagging, and Health Check features. Search finds images by text or tags, while Health Check analyzes dataset quality (class balance, image sizes, etc.) to guide improvements before training. See the [Dataset Management section](#dataset-management-for-yolo26) for details.
+Use Roboflow's [dataset search, tagging, and Health Check](#dataset-management-for-yolo26) features. Search finds images by text or tags, while Health Check analyzes dataset quality (class balance, image sizes, etc.) to guide improvements before training.
 
 ### How do I export my YOLO26 dataset from Roboflow?
 
-Create a dataset version in Roboflow, apply desired preprocessing and [augmentations](https://www.ultralytics.com/glossary/data-augmentation), then click "Export Dataset" and select the YOLO26 format. The process is outlined in the [Export Data section](#export-data-in-40-formats-for-model-training). This prepares your data for use with Ultralytics [training pipelines](../modes/train.md).
+[Create a dataset version](#export-data-in-40-formats-for-model-training) in Roboflow, apply desired preprocessing and augmentations, then click "Export Dataset" and select the YOLO26 format. This prepares your data for use with Ultralytics [training pipelines](../modes/train.md).
 
 ### How can I integrate and deploy YOLO26 models with Roboflow?
 

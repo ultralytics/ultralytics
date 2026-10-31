@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how to evaluate your YOLO26 model's performance in real-world scenarios using benchmark mode. Optimize speed, accuracy, and resource allocation across export formats.
+description: Benchmark Ultralytics YOLO26 speed and accuracy across ONNX, TensorRT, OpenVINO, CoreML, and other export formats with one Python call or CLI command.
 keywords: model benchmarking, YOLO26, Ultralytics, performance evaluation, export formats, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow, optimization, mAP50-95, inference time
 ---
 
@@ -14,7 +14,7 @@ keywords: model benchmarking, YOLO26, Ultralytics, performance evaluation, expor
 
 ## Introduction
 
-Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLO26 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.
+Once your model is trained and validated, the next step is to [evaluate how it performs in deployment](https://www.ultralytics.com/blog/how-to-benchmark-ultralytics-yolo-models-like-yolo11). Benchmark mode in Ultralytics YOLO26 measures the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary speed benchmarks.
 
@@ -38,9 +38,9 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ### Key Metrics in Benchmark Mode
 
-- **mAP50-95:** For [object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, pose estimation, and OBB.
-- **mIoU:** For semantic segmentation.
-- **delta1:** For depth estimation.
+- **[mAP50-95](https://www.ultralytics.com/glossary/mean-average-precision-map):** For [object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, pose estimation, and OBB.
+- **mIoU:** For [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation).
+- **delta1:** For [depth estimation](https://www.ultralytics.com/glossary/depth-estimation).
 - **accuracy_top1:** For [image classification](https://www.ultralytics.com/glossary/image-classification).
 - **Inference Time:** Time taken for each image in milliseconds.
 
@@ -63,10 +63,10 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
     Install Ultralytics with export dependencies before benchmarking to avoid missing packages.
 
     ```bash
-    pip install ultralytics[export]
+    pip install "ultralytics[export]"
     ```
 
-Run YOLO26n benchmarks across all supported export formats (ONNX, TensorRT, etc.). See the Arguments section below for a full list of export options.
+Run [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) benchmarks across all supported export formats (ONNX, TensorRT, etc.).
 
 !!! example
 
@@ -93,7 +93,7 @@ Run YOLO26n benchmarks across all supported export formats (ONNX, TensorRT, etc.
 
 ## Arguments
 
-Arguments such as `model`, `data`, `imgsz`, `quantize`, `device`, `verbose` and `format` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
+Arguments such as `model`, `data`, `imgsz`, `quantize`, `device`, `verbose`, and `format` let you tailor benchmarks to your needs and compare the performance of different export formats.
 
 | Key        | Default Value | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ---------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -122,7 +122,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I benchmark my YOLO26 model's performance using Ultralytics?
 
-Ultralytics YOLO26 offers a Benchmark mode to assess your model's performance across different export formats. This mode provides insights into key metrics such as [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP50-95), accuracy, and inference time in milliseconds. To run benchmarks, you can use either Python or CLI commands. For example, to benchmark on a GPU:
+Ultralytics YOLO26 offers a Benchmark mode to assess your model's performance across different export formats. This mode reports key metrics such as mean Average Precision (mAP50-95), accuracy, and inference time in milliseconds. To run benchmarks, you can use either Python or CLI commands. For example, to benchmark on a GPU:
 
 !!! example
 
@@ -171,7 +171,7 @@ YOLO26 supports a variety of export formats, each tailored for specific hardware
 - **ONNX:** Best for CPU performance.
 - **TensorRT:** Ideal for GPU efficiency.
 - **OpenVINO:** Optimized for Intel hardware.
-- **CoreML & [TensorFlow](https://www.ultralytics.com/glossary/tensorflow):** Useful for iOS and general ML applications.
+- **CoreML and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow):** CoreML for Apple devices; TensorFlow formats for mobile, web, and general ML deployment.
 
 For a complete list of supported formats and their respective advantages, check out the [Supported Export Formats](#supported-export-formats) section.
 

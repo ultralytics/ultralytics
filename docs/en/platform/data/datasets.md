@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Dataset Management
 comments: true
-description: Learn how to upload, manage, and organize datasets in Ultralytics Platform for YOLO model training with automatic processing and statistics.
+description: Upload, browse, version, and export computer vision datasets in Ultralytics Platform, with YOLO, COCO, NDJSON, and video import and automatic statistics.
 keywords: Ultralytics Platform, datasets, dataset management, dataset versioning, YOLO, data upload, training data, computer vision, machine learning
 ---
 
 # Datasets
 
-[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically.
+[Ultralytics Platform](https://platform.ultralytics.com) datasets hold the images, labels, and splits that make up your [training data](https://www.ultralytics.com/glossary/training-data). After upload, the platform processes images, labels, and statistics automatically.
 
 A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
 
@@ -18,7 +18,7 @@ Use [Agents](../agents.md#collect-images-for-review) to add images to a dataset 
 
 ## Upload Dataset
 
-Ultralytics Platform accepts multiple upload formats for flexibility.
+Ultralytics Platform accepts images, videos, archives, and NDJSON files.
 
 !!! tip "Already have data elsewhere?"
 
@@ -502,7 +502,7 @@ Navigate large scatters directly from your mouse and keyboard, or with the zoom 
 
 If your dataset changes after analysis — new images arrive, or the analyzed count no longer matches the dataset — or the analysis predates the **Clusters** color option, a `Re-analyze` button appears at the top of the panel for owners and editors.
 
-Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
+Click `Re-analyze` to recompute [embeddings](https://www.ultralytics.com/glossary/embeddings) and the 2D projection from scratch.
 
 ### Find Similar Images
 
@@ -824,7 +824,7 @@ Classes are matched by name, ignoring case except for one- and two-character nam
 
 ### Generate Similar Images
 
-Create new training images from one you already have. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Generate similar images**. Platform describes new scenes inspired by the image and generates one image for each, so the results share the source's subjects and style without copying it.
+Create new [synthetic training images](https://www.ultralytics.com/glossary/synthetic-data) from one you already have. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Generate similar images**. Platform describes new scenes inspired by the image and generates one image for each, so the results share the source's subjects and style without copying it.
 
 | Setting              | Description                                                                                                        |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -851,7 +851,7 @@ A paid model generates with the provider key saved in the dataset workspace's [*
 
 ### Blur Faces
 
-In a dataset you can edit, blur the faces in its images, for example to protect the privacy of people in your data. Blur Faces is not available for [connected datasets](#what-is-not-available-for-connected-datasets) or for datasets with more than three image channels.
+In a dataset you can edit, blur the faces in its images, for example to protect the [privacy](https://www.ultralytics.com/glossary/data-privacy) of people in your data. Blur Faces is not available for [connected datasets](#what-is-not-available-for-connected-datasets) or for datasets with more than three image channels.
 
 - **One image:** right-click the image in **Grid** or **Compact** view (or a single selected row in **Table** view), or, while annotating in the fullscreen viewer (not on classification datasets), right-click the image or an annotation, and choose **Blur faces**.
 - **Whole dataset:** open **More actions** (`⋯`) on the dataset page and choose **Blur faces**.
@@ -895,7 +895,7 @@ Use this URI to train models from anywhere:
     The `ul://` URI works from any environment:
 
     - **Local machine**: Train on your hardware, data downloaded automatically
-    - **Google Colab**: Access your Platform datasets in notebooks
+    - **[Google Colab](../../integrations/google-colab.md)**: Access your Platform datasets in notebooks
     - **Remote servers**: Train on cloud VMs with full dataset access
 
 ## Available Licenses

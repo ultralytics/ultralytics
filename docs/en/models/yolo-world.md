@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore the YOLO-World Model for efficient, real-time open-vocabulary object detection using Ultralytics YOLOv8 advancements. Achieve top performance with minimal computation.
-keywords: YOLO-World, Ultralytics, open-vocabulary detection, YOLOv8, real-time object detection, machine learning, computer vision, AI, deep learning, model training
+description: YOLO-World is a real-time open-vocabulary object detector built on Ultralytics YOLOv8. Detect objects from text prompts, then train, validate and export it.
+keywords: YOLO-World, Ultralytics, open-vocabulary detection, zero-shot detection, YOLOv8, real-time object detection, text prompts, computer vision, model training
 ---
 
 # YOLO-World Model
 
-The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://www.ultralytics.com) [YOLOv8](yolov8.md)-based approach for Open-Vocabulary Detection tasks. This innovation enables the detection of any object within an image based on descriptive texts. By significantly lowering computational demands while preserving competitive performance, YOLO-World emerges as a versatile tool for numerous vision-based applications.
+The YOLO-World Model is a real-time, [Ultralytics](https://www.ultralytics.com) [YOLOv8](yolov8.md)-based approach to Open-Vocabulary Detection. It detects objects in an image from descriptive text. By lowering computational demands while preserving competitive accuracy, YOLO-World suits a wide range of vision applications.
 
 <p align="center">
   <br>
@@ -23,31 +23,31 @@ The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://www
 
 ## Overview
 
-YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection models, which often rely on cumbersome [Transformer](https://www.ultralytics.com/glossary/transformer) models requiring extensive computational resources. These models' dependence on pre-defined object categories also restricts their utility in dynamic scenarios. YOLO-World revitalizes the YOLOv8 framework with open-vocabulary detection capabilities, employing vision-[language modeling](https://www.ultralytics.com/glossary/language-modeling) and pre-training on expansive datasets to excel at identifying a broad array of objects in zero-shot scenarios with unmatched efficiency.
+YOLO-World addresses the challenges of traditional Open-Vocabulary detection models, which often rely on heavy [Transformer](https://www.ultralytics.com/glossary/transformer) models requiring extensive computational resources. Closed-set detectors, in turn, depend on predefined object categories, which restricts their use in dynamic scenarios. YOLO-World extends the YOLOv8 framework with [open-vocabulary detection](https://www.ultralytics.com/blog/getting-hands-on-with-yolo-world), using vision-[language modeling](https://www.ultralytics.com/glossary/language-modeling) and pre-training on large datasets to identify a broad range of objects in [zero-shot](https://www.ultralytics.com/glossary/zero-shot-learning) scenarios efficiently.
 
 For open-vocabulary work that also needs instance masks, visual prompts, or a prompt-free mode, see [YOLOE](yoloe.md), which keeps the same `set_classes()` API.
 
 ## Key Features
 
-1. **Real-time Solution:** Harnessing the computational speed of CNNs, YOLO-World delivers a swift open-vocabulary detection solution, catering to industries in need of immediate results.
+1. **Real-time Solution:** Built on fast [CNNs](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn), YOLO-World delivers open-vocabulary detection quickly enough for applications that need immediate results.
 
-2. **Efficiency and Performance:** YOLO-World slashes computational and resource requirements without sacrificing performance, offering a robust alternative to models like SAM but at a fraction of the computational cost, enabling real-time applications.
+2. **Efficiency and Performance:** YOLO-World reduces computational and resource requirements while maintaining accuracy, offering an efficient alternative to heavier transformer-based open-vocabulary detectors and enabling real-time applications.
 
-3. **Inference with Offline Vocabulary:** YOLO-World introduces a "prompt-then-detect" strategy, employing an offline vocabulary to enhance efficiency further. This approach enables the use of custom prompts computed a priori, including captions or categories, to be encoded and stored as offline vocabulary embeddings, streamlining the detection process.
+3. **Inference with Offline Vocabulary:** YOLO-World introduces a "prompt-then-detect" strategy, using an offline vocabulary to further improve efficiency. This approach enables the use of custom prompts computed a priori, including captions or categories, to be encoded and stored as offline vocabulary embeddings, streamlining the detection process.
 
-4. **Powered by YOLOv8:** Built upon [Ultralytics YOLOv8](yolov8.md), YOLO-World leverages the latest advancements in real-time object detection to facilitate open-vocabulary detection with unparalleled accuracy and speed.
+4. **Powered by YOLOv8:** Built upon Ultralytics YOLOv8, YOLO-World adapts its real-time detection architecture for fast, accurate open-vocabulary detection.
 
-5. **Benchmark Excellence:** YOLO-World outperforms existing open-vocabulary detectors, including MDETR and GLIP series, in terms of speed and efficiency on standard benchmarks, showcasing YOLOv8's superior capability on a single NVIDIA V100 GPU.
+5. **Benchmark Excellence:** YOLO-World outperforms existing open-vocabulary detectors, including MDETR and the GLIP series, in speed and efficiency on standard benchmarks, measured on a single NVIDIA V100 GPU.
 
-6. **Versatile Applications:** YOLO-World's innovative approach unlocks new possibilities for a multitude of vision tasks, delivering speed improvements by orders of magnitude over existing methods.
+6. **Versatile Applications:** YOLO-World's efficiency makes open-vocabulary detection practical for many vision tasks, running much faster than earlier open-vocabulary methods.
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-This section details the models available with their specific pretrained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
+This section details the models available with their specific pretrained weights, the tasks they support, and their compatibility with various operating modes such as [Training](../modes/train.md), [Validation](../modes/val.md), [Inference](../modes/predict.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
 
 !!! note
 
-    All the YOLOv8-World weights have been directly migrated from the official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repository, highlighting their excellent contributions.
+    All YOLOv8-World weights are migrated directly from the official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repository; credit for them goes to its authors.
 
 | Model Type      | Pretrained Weights                                                                                      | Tasks Supported                        | Training | Validation | Inference | Export |
 | --------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------- | ---------- | --------- | ------ |
@@ -79,7 +79,7 @@ This section details the models available with their specific pretrained weights
 
 ## Usage Examples
 
-The YOLO-World models are easy to integrate into your Python applications. Ultralytics provides user-friendly [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) to streamline development.
+Ultralytics provides a [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) for YOLO-World models.
 
 <p align="center">
   <br>
@@ -89,7 +89,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> YOLO-World Model Usage examples with Ultralytics | Open Vocab, Prompt-Free & others  🚀
+  <strong>Watch:</strong> YOLO-World Model Usage examples with Ultralytics | Open Vocab, Prompt-Free & others
 </p>
 
 ### Train Usage
@@ -98,7 +98,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
     We strongly recommend using `yolov8-worldv2` for custom training because it supports deterministic training and exports more easily to formats such as ONNX and TensorRT.
 
-[Object detection](https://www.ultralytics.com/glossary/object-detection) is straightforward with the `train` method, as illustrated below:
+Train a YOLO-World [object detection](https://www.ultralytics.com/glossary/object-detection) model with the `train` method, shown below on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset:
 
 !!! example
 
@@ -128,7 +128,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
 ### Predict Usage
 
-Object detection is straightforward with the `predict` method, as illustrated below:
+Run object detection with the `predict` method, as shown below:
 
 !!! example
 
@@ -154,11 +154,11 @@ Object detection is straightforward with the `predict` method, as illustrated be
         yolo predict model=yolov8s-world.pt source=path/to/image.jpg imgsz=640
         ```
 
-This snippet demonstrates the simplicity of loading a pretrained model and running a prediction on an image.
+This snippet loads a pretrained model and runs prediction on an image.
 
 ### Val Usage
 
-Model validation on a dataset is streamlined as follows:
+Validate the model on a dataset as follows:
 
 !!! example
 
@@ -183,7 +183,7 @@ Model validation on a dataset is streamlined as follows:
 
 ### Track Usage
 
-[Object tracking](https://www.ultralytics.com/glossary/object-tracking) with YOLO-World model on a video/images is streamlined as follows:
+Run [object tracking](https://www.ultralytics.com/glossary/object-tracking) with a YOLO-World model on videos or images as follows:
 
 !!! example
 
@@ -208,13 +208,13 @@ Model validation on a dataset is streamlined as follows:
 
 !!! note
 
-    The YOLO-World models provided by Ultralytics come pre-configured with [COCO dataset](../datasets/detect/coco.md) categories as part of their offline vocabulary, enhancing efficiency for immediate application. This integration allows the YOLOv8-World models to directly recognize and predict the 80 standard categories defined in the COCO dataset without requiring additional setup or customization.
+    The YOLO-World models provided by Ultralytics come pre-configured with [COCO dataset](../datasets/detect/coco.md) categories as part of their offline vocabulary, so they are ready to use immediately. This allows the YOLOv8-World models to directly recognize and predict the 80 standard categories defined in the COCO dataset without requiring additional setup or customization.
 
 ### Set prompts
 
 ![YOLO-World prompt class names overview](https://cdn.ul.run/i/ed01ad040094f45b36920515dfe13245.avif)
 
-The YOLO-World framework allows for the dynamic specification of classes through custom prompts, empowering users to tailor the model to their specific needs **without retraining**. This feature is particularly useful for adapting the model to new domains or specific tasks that were not originally part of the [training data](https://www.ultralytics.com/glossary/training-data). By setting custom prompts, users can essentially guide the model's focus towards objects of interest, enhancing the relevance and [accuracy](https://www.ultralytics.com/glossary/accuracy) of the detection results.
+The YOLO-World framework allows dynamic specification of classes through custom prompts, letting users tailor the model to their specific needs **without retraining**. This feature is particularly useful for adapting the model to new domains or specific tasks that were not originally part of the [training data](https://www.ultralytics.com/glossary/training-data). By setting custom prompts, users guide the model toward objects of interest, improving the relevance and [accuracy](https://www.ultralytics.com/glossary/accuracy) of the detection results.
 
 For instance, if your application only requires detecting 'person' and 'bus' objects, you can specify these classes directly:
 
@@ -291,7 +291,7 @@ You can also save a model after setting custom classes. By doing this you create
 - **Simplicity**: Simplifies deployment by eliminating the need to repeatedly specify custom classes at runtime, making the model directly usable with its embedded vocabulary.
 - **Performance**: Enhances detection accuracy for specified classes by focusing the model's attention and resources on recognizing the defined objects.
 
-This approach provides a powerful means of customizing state-of-the-art [object detection](../tasks/detect.md) models for specific tasks, making advanced AI more accessible and applicable to a broader range of practical applications.
+This approach customizes [object detection](../tasks/detect.md) models for specific tasks without retraining, making open-vocabulary detection practical for a broader range of applications.
 
 ## Reproduce official results from scratch (Experimental)
 
@@ -315,7 +315,7 @@ This approach provides a powerful means of customizing state-of-the-art [object 
 
 !!! note
 
-    `WorldTrainerFromScratch` is highly customized to allow training yolo-world models on both detection datasets and grounding datasets simultaneously. For more details, see [ultralytics.models.yolo.world.train_world.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train_world.py).
+    `WorldTrainerFromScratch` is highly customized to allow training YOLO-World models on both detection datasets and grounding datasets simultaneously. For more details, see [ultralytics.models.yolo.world.train_world.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train_world.py).
 
 !!! example
 
@@ -388,11 +388,11 @@ For further reading, the original YOLO-World paper is available on [arXiv](https
 
 ### What is the YOLO-World model and how does it work?
 
-The YOLO-World model is an advanced, real-time object detection approach based on the [Ultralytics YOLOv8](yolov8.md) framework. It excels in Open-Vocabulary Detection tasks by identifying objects within an image based on descriptive texts. Using vision-language modeling and pre-training on large datasets, YOLO-World achieves high efficiency and performance with significantly reduced computational demands, making it ideal for real-time applications across various industries.
+The YOLO-World model is a real-time object detection approach based on the [Ultralytics YOLOv8](yolov8.md) framework. It performs Open-Vocabulary Detection by identifying objects within an image based on descriptive text. Using vision-language modeling and pre-training on large datasets, YOLO-World achieves high efficiency with reduced computational demands, making it well suited for real-time applications.
 
 ### How does YOLO-World handle inference with custom prompts?
 
-YOLO-World supports a "prompt-then-detect" strategy, which utilizes an offline vocabulary to enhance efficiency. Custom prompts like captions or specific object categories are pre-encoded and stored as offline vocabulary [embeddings](https://www.ultralytics.com/glossary/embeddings). This approach streamlines the detection process without the need for retraining. You can dynamically set these prompts within the model to tailor it to specific detection tasks, as shown below:
+YOLO-World supports a "prompt-then-detect" strategy, which uses an offline vocabulary to improve efficiency. Custom prompts like captions or specific object categories are pre-encoded and stored as offline vocabulary [embeddings](https://www.ultralytics.com/glossary/embeddings). This approach streamlines the detection process without the need for retraining. You can dynamically set these prompts within the model to tailor it to specific detection tasks, as shown below:
 
 ```python
 from ultralytics import YOLOWorld
@@ -414,14 +414,14 @@ results[0].show()
 
 YOLO-World provides several advantages over traditional Open-Vocabulary detection models:
 
-- **Real-Time Performance:** It leverages the computational speed of CNNs to offer quick, efficient detection.
+- **Real-Time Performance:** It uses fast CNNs for quick, efficient detection.
 - **Efficiency and Low Resource Requirement:** YOLO-World maintains high performance while significantly reducing computational and resource demands.
 - **Customizable Prompts:** The model supports dynamic prompt setting, allowing users to specify custom detection classes without retraining.
 - **Benchmark Excellence:** It outperforms other open-vocabulary detectors like MDETR and GLIP in both speed and efficiency on standard benchmarks.
 
 ### How do I train a YOLO-World model on my dataset?
 
-Training a YOLO-World model on your dataset is straightforward through the provided Python API or CLI commands. Here's how to start training using Python:
+Train a YOLO-World model on your dataset with the Python API or CLI. Here's how to start training using Python:
 
 ```python
 from ultralytics import YOLOWorld

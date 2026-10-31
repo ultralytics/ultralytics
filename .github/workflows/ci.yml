@@ -164,6 +164,10 @@ jobs:
             python: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0"
             torchvision: "0.9.0"
+          - os: ubuntu-latest
+            python: "3.15"
+            torch: latest
+            extras: solutions # onnxruntime and openvino have no cp315 wheels yet
     steps:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
@@ -177,7 +181,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install -e ".[export-base,export-openvino,solutions]" \
+          uv pip install -e ".[${{ matrix.extras || 'export-base,export-openvino,solutions' }}]" \
             $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
@@ -195,7 +199,11 @@ jobs:
           xdist="-n auto --dist=loadfile --max-worker-restart=0"
           [[ "${{ matrix.os }}" == "macos-26" ]] && xdist="-n 2 --dist=loadfile --max-worker-restart=0"
           [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] && xdist=""
-          pytest $xdist --cov=ultralytics/ --cov-report=xml tests/ --export-env base
+          # Python 3.15 skips ONNX Runtime and OpenVINO tests until cp315 wheels ship (then drop this and the 3.15 extras):
+          # https://github.com/microsoft/onnxruntime/issues/33271, https://github.com/openvinotoolkit/openvino/issues/38721
+          skip=""
+          [[ "${{ matrix.python }}" == "3.15" ]] && skip="not (test_export_onnx or test_onnx_int8 or test_export_openvino or test_utils_benchmarks or test_multichannel or test_grayscale)"
+          pytest $xdist --cov=ultralytics/ --cov-report=xml tests/ --export-env base -k "$skip"
         env:
           YOLO_AUTOINSTALL: "false"
       - name: Windows ML export and predict

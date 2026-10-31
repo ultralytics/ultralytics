@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Export Ultralytics YOLO detection, segmentation, depth, classification, pose, and OBB models to Hailo HEF for INT8 inference on Hailo-8, 8L, 10H, and 15.
+description: Export Ultralytics YOLO detection, segmentation, semantic segmentation, depth, classification, pose, and OBB models to Hailo HEF for INT8 inference on Hailo-8, 8L, 10H, and 15.
 keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, Hailo-15L, Raspberry Pi AI HAT+, Raspberry Pi AI HAT+ 2, Hailo Dataflow Compiler, Hailo DFC, HailoRT, Hailo AI accelerator, edge AI, embedded AI, computer vision, object detection, instance segmentation, pose estimation, oriented bounding box, image classification, monocular depth estimation, model quantization, INT8 quantization, Ultralytics YOLO, YOLO26, YOLO11, YOLOv8
 ---
 

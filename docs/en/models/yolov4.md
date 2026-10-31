@@ -13,7 +13,7 @@ YOLOv4 is a real-time object detector released in 2020 by Alexey Bochkovskiy, Ch
 
 ## Introduction
 
-YOLOv4 stands for You Only Look Once version 4. It is a real-time [object detection](https://www.ultralytics.com/glossary/object-detection) model developed to address the limitations of previous YOLO versions like [YOLOv3](yolov3.md) and other object detection models. Earlier [convolutional neural network](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNN) based detectors were mostly accurate enough for recommendation systems; YOLOv4's real-time accuracy also suits standalone process management and reducing human input. It runs in real time on a conventional [graphics processing unit (GPU)](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) and needs only one such GPU for training, which keeps it affordable to use at scale.
+YOLOv4 stands for You Only Look Once version 4. It is a real-time [object detection](https://www.ultralytics.com/glossary/object-detection) model developed to address the limitations of previous YOLO versions like [YOLOv3](yolov3.md) and other object detection models. Most earlier [convolutional neural network](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNN) based detectors were practical only for recommendation systems; YOLOv4's real-time accuracy also suits standalone process management and reducing human input. It runs in real time on a conventional [graphics processing unit (GPU)](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) and needs only one such GPU for training, which keeps it affordable to use at scale.
 
 ## Architecture
 

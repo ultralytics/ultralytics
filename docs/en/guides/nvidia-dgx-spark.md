@@ -181,8 +181,8 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
         # Load a YOLO26n PyTorch model
         model = YOLO("yolo26n.pt")
 
-        # Export the model to TensorRT
-        model.export(format="engine")  # creates 'yolo26n.engine'
+        # Export the model to TensorRT FP16
+        model.export(format="engine", quantize=16)  # creates 'yolo26n.engine'
 
         # Load the exported TensorRT model
         trt_model = YOLO("yolo26n.engine")
@@ -194,8 +194,8 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to TensorRT format
-        yolo export model=yolo26n.pt format=engine # creates 'yolo26n.engine'
+        # Export a YOLO26n PyTorch model to TensorRT FP16
+        yolo export model=yolo26n.pt format=engine quantize=16 # creates 'yolo26n.engine'
 
         # Run inference with the exported model
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -374,7 +374,7 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
 
 3. **Use TensorRT FP16**
 
-    At batch size 1 on DGX Spark, INT8 is not faster than FP16 for YOLO26 and loses accuracy, see [YOLO26 TensorRT Precision on DGX Spark](#yolo26-tensorrt-precision-on-dgx-spark):
+    At batch size 1 on DGX Spark, INT8 is not faster than FP16 for YOLO26n, YOLO26s and YOLO26m and loses accuracy, see [YOLO26 TensorRT Precision on DGX Spark](#yolo26-tensorrt-precision-on-dgx-spark):
 
     ```bash
     yolo export model=yolo26n.pt format=engine quantize=16 # FP16

@@ -1475,7 +1475,9 @@ class SemanticSegmentationLoss(nn.Module):
             logits = preds.permute(0, 2, 3, 1).reshape(-1, self.nc)
             target = flat.long()
             denominator = valid.sum() if self.ce.weight is None else self.ce.weight[target[valid]].sum()
-        return self.ce(logits, target) / denominator.clamp_min(1)
+        return self.ce(logits, target) / (
+            denominator.clamp_min(1) if self.ce.weight is None else denominator + (denominator == 0)
+        )
 
     def _dice_loss(self, preds, masks, valid):
         """Compute Dice loss excluding ignore pixels."""

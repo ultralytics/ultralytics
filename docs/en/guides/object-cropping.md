@@ -105,11 +105,11 @@ The `ObjectCropper` runs `predict` rather than `track`, so it supports the follo
 
 ### What is object cropping in Ultralytics YOLO26 and how does it work?
 
-Object cropping using [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLO26's detection capabilities. This process allows for focused analysis and reduced data volume by using YOLO26 to identify objects accurately and crop them accordingly. For an in-depth tutorial, refer to the [object cropping example](#crop-objects-with-yolo26).
+Object cropping using [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) involves isolating and extracting specific objects from an image or video based on YOLO26's detection capabilities. This process allows for focused analysis and reduced data volume by using YOLO26 to identify objects accurately and [crop them](#crop-objects-with-yolo26) accordingly.
 
 ### Why should I use Ultralytics YOLO26 for object cropping over other solutions?
 
-Ultralytics YOLO26 combines accurate detection, fast inference, and a simple API, so cropping takes only a few lines of code and supports [focused analysis](#advantages-of-object-cropping). YOLO26 also exports to formats such as [OpenVINO](../integrations/openvino.md) and [TensorRT](../integrations/tensorrt.md) for real-time deployments on diverse hardware. Explore the benefits in the [guide on model export](../modes/export.md).
+Ultralytics YOLO26 combines accurate detection, fast inference, and a simple API, so cropping takes only a few lines of code and supports [focused analysis](#advantages-of-object-cropping). YOLO26 also [exports](../modes/export.md) to formats such as [OpenVINO](../integrations/openvino.md) and [TensorRT](../integrations/tensorrt.md) for real-time deployments on diverse hardware.
 
 ### How can I reduce the data volume of my dataset using object cropping?
 
@@ -117,7 +117,7 @@ By using Ultralytics YOLO26 to crop only relevant objects from your images or vi
 
 ### Can I use Ultralytics YOLO26 for real-time video analysis and object cropping?
 
-Yes, Ultralytics YOLO26 can process real-time video feeds to detect and crop objects dynamically. Its fast inference suits real-time applications such as [surveillance](security-alarm-system.md), sports analysis, and automated inspection systems. Check out the [tracking](../modes/track.md) and [prediction modes](../modes/predict.md) to understand how to implement real-time processing.
+Yes, Ultralytics YOLO26 can process real-time video feeds to [detect](../modes/predict.md) and crop objects dynamically. Its fast inference suits real-time applications such as [surveillance](security-alarm-system.md), sports analysis, and automated inspection systems.
 
 ### What are the hardware requirements for efficiently running YOLO26 for object cropping?
 

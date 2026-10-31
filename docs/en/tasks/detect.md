@@ -28,7 +28,7 @@ The output of an [object detector](https://academy.ultralytics.com/courses/compu
 
     YOLO26 Detect models are the default YOLO26 models, e.g., `yolo26n.pt`, and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
+## Models
 
 YOLO26 Detect models pretrained on the [COCO](../datasets/detect/coco.md) dataset are shown below.
 
@@ -44,7 +44,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+[Train](../usage/cfg.md#train-settings) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640.
 
 !!! example
 

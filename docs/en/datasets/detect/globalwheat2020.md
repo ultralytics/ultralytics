@@ -54,7 +54,7 @@ A YAML file is used to define the dataset configuration. It defines the dataset'
 
 ## Usage
 
-To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Global Wheat Head Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. The dataset (~7.0 GB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Global Wheat Head Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. The dataset (~7.0 GB) downloads automatically on first use.
 
 !!! example "Train Example"
 
@@ -138,8 +138,6 @@ To train a YOLO26n model on the Global Wheat Head Dataset, you can use the follo
         # Start training from a pretrained *.pt model
         yolo detect train data=GlobalWheat2020.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
-
-For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 ### How do I download the Global Wheat Head Dataset?
 

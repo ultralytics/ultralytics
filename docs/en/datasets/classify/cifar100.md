@@ -55,7 +55,7 @@ CIFAR-100 is widely used to train and evaluate image classification models, from
 
 ## Usage
 
-Train a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on CIFAR-100 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 32. For the full list of available arguments, see the [Training](../../modes/train.md) page and the [image classification](../../tasks/classify.md) task guide.
+[Train](../../modes/train.md) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on CIFAR-100 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 32.
 
 !!! example "Train Example"
 
@@ -103,7 +103,7 @@ If you use the CIFAR-100 dataset in your research or development work, please ci
         }
         ```
 
-We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-100 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the CIFAR-100 dataset and its creator, visit the [CIFAR-100 dataset website](https://cave.cs.toronto.edu/kriz/cifar.html).
+We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-100 dataset as a valuable resource for the machine learning and computer vision research community.
 
 ## FAQ
 

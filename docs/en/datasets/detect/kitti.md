@@ -25,7 +25,7 @@ The Ultralytics KITTI dataset is a 2D [object detection](../../tasks/detect.md) 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO on the KITTI Dataset | Object Detection, Inference & ONNX Export
+  <strong>Watch:</strong> How to Train Ultralytics YOLO on the KITTI Dataset | Object Detection, Inference & ONNX Export 🚀
 </p>
 
 The broader KITTI Vision Benchmark Suite also spans [depth estimation](../depth/kitti.md), optical flow, stereo vision, and visual odometry, but the Ultralytics `kitti.yaml` configuration here is set up for 2D object detection with [Ultralytics YOLO26](../../models/yolo26.md).
@@ -81,7 +81,7 @@ Ultralytics defines the KITTI dataset configuration using a YAML file. This file
 
 ## Usage
 
-To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the KITTI dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following commands. The dataset (390.5 MB) downloads automatically on first use. For more details, refer to the [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the KITTI dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following commands. The dataset (390.5 MB) downloads automatically on first use.
 
 !!! example "Train Example"
 

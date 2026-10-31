@@ -196,7 +196,7 @@ To improve GPU utilization, set the `batch` parameter to the maximum size suppor
 
 ### What is mixed precision training, and how do I enable it in YOLO26?
 
-Mixed precision training uses both 16-bit (FP16) and 32-bit (FP32) floating-point types to balance computational speed and precision. In YOLO26 it is enabled by default through `amp=True`; set `amp=False` to force FP32. AMP is skipped on CPU and Apple silicon. For more details, see the [Train mode arguments](../modes/train.md).
+Mixed precision training uses both 16-bit (FP16) and 32-bit (FP32) floating-point types to balance computational speed and precision. In YOLO26 it is enabled by default through `amp=True`; set `amp=False` to force FP32. AMP is skipped on CPU and Apple silicon.
 
 ### How does multi-scale training enhance YOLO26 model performance?
 

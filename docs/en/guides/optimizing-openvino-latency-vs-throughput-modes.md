@@ -93,9 +93,7 @@ results = ov_model("https://ultralytics.com/images/bus.jpg", verbose=True)
 
 ## Conclusion
 
-Optimizing Ultralytics YOLO models for latency or throughput with OpenVINO can significantly improve your application's performance. The choice between optimizing for latency or throughput depends on your specific application needs and the characteristics of the deployment environment.
-
-For more detailed technical information and the latest updates, refer to the [OpenVINO documentation](https://docs.openvino.ai/) and [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics). These resources provide in-depth guides, tutorials, and community support.
+Optimizing [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models for latency or throughput with [OpenVINO](https://docs.openvino.ai/) can significantly improve your application's performance. The choice between optimizing for latency or throughput depends on your specific application needs and the characteristics of the deployment environment.
 
 Whether you're optimizing for [real-time responses](https://www.ultralytics.com/blog/real-time-inferences-in-vision-ai-solutions-are-making-an-impact) or maximizing throughput for large-scale processing, start from your application's requirements, choose the matching performance hint, and benchmark on the target hardware.
 

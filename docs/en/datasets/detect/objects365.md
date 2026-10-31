@@ -125,7 +125,7 @@ The `Objects365.yaml` file defines the dataset configuration — the dataset pat
 
     Objects365 downloads automatically on first use and requires about 712 GB of free disk space — 345 GB of downloaded zip archives plus 367 GB for the extracted dataset. The download script installs the `faster-coco-eval` package and converts the annotations to YOLO format, which can take a long time depending on your connection and hardware.
 
-To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Objects365 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Objects365 dataset for 100 epochs with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

@@ -79,7 +79,7 @@ pip install "onnx>=1.12.0"      # Install ONNX for exporting
 
 With the setup complete, you can now train, validate, perform inference, and export your YOLOv5 model.
 
-- **Train** the model on a dataset like [COCO128](https://platform.ultralytics.com/ultralytics/datasets/coco128). See the [Train Custom Data](../tutorials/train-custom-data.md) tutorial for more details.
+- **Train** the model on a [dataset](../tutorials/train-custom-data.md) like [COCO128](https://platform.ultralytics.com/ultralytics/datasets/coco128).
 
     ```bash
     # Start training using yolov5s pretrained weights on the COCO128 dataset
@@ -142,7 +142,7 @@ After creating the kernel, refresh your browser. When you open or create a `.ipy
     python val.py --weights yolov5s.pt --data coco128.yaml --img 640
     ```
 
-You've now set up and run Ultralytics YOLOv5 on AzureML. For further exploration, consider checking out other [Ultralytics Integrations](../../integrations/index.md) or the detailed [YOLOv5 documentation](../index.md). You might also find the [AzureML documentation](https://learn.microsoft.com/en-us/azure/machine-learning/?view=azureml-api-2) useful for advanced scenarios like distributed training or model deployment as an endpoint.
+You've now set up and run [Ultralytics YOLOv5](../index.md) on AzureML. You might also find the [AzureML documentation](https://learn.microsoft.com/en-us/azure/machine-learning/?view=azureml-api-2) useful for advanced scenarios like distributed training or model deployment as an endpoint.
 
 ## FAQ
 
@@ -160,4 +160,4 @@ Files under the workspace file share mounted at `~/cloudfiles` persist across st
 
 ### Can I use the `ultralytics` package on AzureML instead?
 
-Yes. `pip install ultralytics` gives you [YOLO26](../../models/yolo26.md) training, validation, and export with the `yolo` CLI in the same Conda environment. See the [AzureML Quickstart](../../guides/azureml-quickstart.md) for the package-based walkthrough.
+Yes. [`pip install ultralytics`](../../guides/azureml-quickstart.md) gives you [YOLO26](../../models/yolo26.md) training, validation, and export with the `yolo` CLI in the same Conda environment.

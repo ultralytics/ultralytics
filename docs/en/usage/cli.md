@@ -98,7 +98,7 @@ Where:
 
 ## Train
 
-Train YOLO on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) dataset for 100 epochs at image size 640. For a full list of available arguments, see the [Configuration](cfg.md) page.
+[Train](cfg.md#train-settings) YOLO on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) dataset for 100 epochs at image size 640.
 
 !!! example
 

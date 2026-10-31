@@ -86,7 +86,6 @@ SAM 3 consists of a **detector** and **tracker** that share a Perception Encoder
 - **Tracker**: Memory-based video segmentation inherited from SAM 2
     - Prompt encoder, mask decoder, memory encoder
     - Memory bank for storing object appearance across frames
-    - Temporal disambiguation aided by techniques like a [Kalman filter](https://www.ultralytics.com/glossary/kalman-filter-kf) in multi-object settings
 
 - **Presence Token**: A learned global token that predicts whether the target concept is present in the image/frame, improving detection by separating recognition from localization.
 

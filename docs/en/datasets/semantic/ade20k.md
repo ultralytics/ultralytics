@@ -59,7 +59,7 @@ A dataset YAML file defines the ADE20K paths, classes, mask directory, and label
 
 ## Usage
 
-To train a YOLO26n-sem model on the ADE20K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a YOLO26n-sem model on the ADE20K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 
@@ -101,7 +101,7 @@ If you use the ADE20K dataset in your research or development work, please cite 
         }
         ```
 
-We acknowledge the MIT CSAIL Computer Vision Group for creating and maintaining this valuable resource for the computer vision community. For more information about the ADE20K dataset and its creators, visit the [ADE20K dataset website](http://sceneparsing.csail.mit.edu/).
+We acknowledge the MIT CSAIL Computer Vision Group for creating and maintaining this valuable resource for the computer vision community.
 
 ## FAQ
 

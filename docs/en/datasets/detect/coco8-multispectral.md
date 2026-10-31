@@ -31,7 +31,7 @@ COCO8-Multispectral works with [Ultralytics Platform](https://platform.ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO on Grayscale and Multispectral Datasets | Multi-Channel VisionAI
+  <strong>Watch:</strong> How to Train Ultralytics YOLO on Grayscale and Multispectral Datasets | Multi-Channel VisionAI 🚀
 </p>
 
 ## Dataset Structure
@@ -88,7 +88,7 @@ The COCO8-Multispectral dataset is configured using a YAML file, which defines d
 
 ## Usage
 
-The COCO8-Multispectral dataset (20.2 MB) downloads automatically the first time you start training. To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on COCO8-Multispectral for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a comprehensive list of training options, refer to the [YOLO Training documentation](../../modes/train.md).
+The COCO8-Multispectral dataset (20.2 MB) downloads automatically the first time you start training. To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on COCO8-Multispectral for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples.
 
 !!! example "Train Example"
 
@@ -148,7 +148,7 @@ Special thanks to the [COCO Consortium](https://cocodataset.org/#home) for their
 
 ### What Is the Ultralytics COCO8-Multispectral Dataset Used For?
 
-The Ultralytics COCO8-Multispectral dataset is designed for rapid testing and debugging of multispectral [object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your YOLO26 training pipelines and ensuring everything works as expected before scaling to larger datasets. For more datasets to experiment with, visit the [Ultralytics Datasets Catalog](../index.md).
+The Ultralytics COCO8-Multispectral dataset is designed for rapid testing and debugging of multispectral [object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your YOLO26 training pipelines and ensuring everything works as expected before scaling to [larger datasets](../index.md).
 
 ### How Does Multispectral Data Improve Object Detection?
 

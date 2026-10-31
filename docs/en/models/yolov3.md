@@ -99,7 +99,7 @@ Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
 
 ### What are the differences between YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?
 
-YOLOv3 is the third iteration of the YOLO (You Only Look Once) object detection algorithm developed by Joseph Redmon, known for its balance of [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, predicting at three different scales (13x13, 26x26, and 52x52 grids for a 416x416 input). YOLOv3-Ultralytics is Ultralytics' adaptation of YOLOv3 that adds support for more pretrained models and facilitates easier model customization. YOLOv3u is an upgraded variant of YOLOv3-Ultralytics, integrating the anchor-free, objectness-free split head from YOLOv8, improving detection robustness and accuracy for various object sizes. For more details on the variants, refer to the [YOLOv3 series](https://github.com/ultralytics/yolov3).
+YOLOv3 is the third iteration of the YOLO (You Only Look Once) object detection algorithm developed by Joseph Redmon, known for its balance of [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, predicting at three different scales (13x13, 26x26, and 52x52 grids for a 416x416 input). [YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3) is Ultralytics' adaptation of YOLOv3 that adds support for more pretrained models and facilitates easier model customization. YOLOv3u is an upgraded variant of YOLOv3-Ultralytics, integrating the anchor-free, objectness-free split head from YOLOv8, improving detection robustness and accuracy for various object sizes.
 
 ### How can I train a YOLOv3 model using Ultralytics?
 
@@ -161,7 +161,7 @@ Refer to the [Inference mode documentation](../modes/predict.md) for more detail
 
 ### What tasks are supported by YOLOv3 and its variants?
 
-YOLOv3, YOLOv3-Tiny and YOLOv3-SPP primarily support object detection tasks. These models support the Training, Validation, Inference, and Export modes. For a comprehensive set of tasks supported and more in-depth details, visit our [Object Detection tasks documentation](../tasks/detect.md).
+YOLOv3, YOLOv3-Tiny and YOLOv3-SPP primarily support [object detection](../tasks/detect.md) tasks. These models support the Training, Validation, Inference, and Export modes.
 
 ### Where can I find resources to cite YOLOv3 in my research?
 

@@ -975,7 +975,7 @@ Ready to move past a pretrained model? [Confirm your task fits your problem](../
 
 ### What is Ultralytics YOLO and its predict mode for real-time inference?
 
-Ultralytics YOLO is a family of state-of-the-art models for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box (OBB) detection](../tasks/obb.md). Its **predict mode** runs high-speed inference on data sources such as images, videos, and live streams, with batch processing and streaming support. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
+Ultralytics YOLO is a family of state-of-the-art models for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box (OBB) detection](../tasks/obb.md). Its [**predict mode**](#key-features-of-predict-mode) runs high-speed inference on data sources such as images, videos, and live streams, with batch processing and streaming support.
 
 ### How can I run inference using Ultralytics YOLO on different data sources?
 

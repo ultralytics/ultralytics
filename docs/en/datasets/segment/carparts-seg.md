@@ -65,7 +65,7 @@ A [YAML](https://www.ultralytics.com/glossary/yaml) file defines the dataset con
 
 ## Usage
 
-To train an Ultralytics [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) model on the Carparts Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. Refer to the model [Training guide](../../modes/train.md) for a comprehensive list of available arguments and explore [model training tips](../../guides/model-training-tips.md) for best practices.
+To [train](../../modes/train.md) an Ultralytics [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) model on the Carparts Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets.
 
 !!! example "Train Example"
 

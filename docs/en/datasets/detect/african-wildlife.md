@@ -23,7 +23,7 @@ The Ultralytics African Wildlife Dataset is an [object detection](../../tasks/de
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on the African Wildlife Dataset | Inference, Metrics & ONNX Export
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on the African Wildlife Dataset | Inference, Metrics & ONNX Export 🐘
 </p>
 
 ## Dataset Structure
@@ -61,7 +61,7 @@ A YAML file defines the dataset configuration, including paths, classes, and oth
 
 ## Usage
 
-To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the African Wildlife Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the African Wildlife Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples.
 
 !!! example "Train Example"
 

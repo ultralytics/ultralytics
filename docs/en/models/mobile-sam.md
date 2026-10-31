@@ -108,11 +108,11 @@ The key difference is the image encoder: MobileSAM replaces the original ViT-H e
 
 The performance of MobileSAM and the original SAM is illustrated below using both point and box prompts.
 
-![MobileSAM and original SAM segmentation results from a point prompt](https://cdn.ul.run/i/9c372cef6bc33fa515bb2f5284d67c7b.avif)
+![MobileSAM and original SAM segmentation results from a point prompt](https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_point.jpg)
 
 ![MobileSAM and original SAM segmentation results from a box prompt](https://cdn.ul.run/i/9c372cef6bc33fa515bb2f5284d67c7b.avif)
 
-In the MobileSAM paper's GPU benchmarks, MobileSAM is approximately 7 times smaller and 5 times faster than [FastSAM](fast-sam.md). For further details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
+In the MobileSAM paper's GPU benchmarks, [MobileSAM](https://github.com/ChaoningZhang/MobileSAM) is approximately 7 times smaller and 5 times faster than [FastSAM](fast-sam.md).
 
 ## Testing MobileSAM in Ultralytics
 
@@ -207,7 +207,7 @@ Read the full [MobileSAM paper on arXiv](https://arxiv.org/pdf/2306.14289).
 
 ### What Is MobileSAM and How Does It Differ from the Original SAM Model?
 
-MobileSAM is a lightweight, fast image segmentation model optimized for mobile and edge applications. It maintains the same pipeline as the original SAM but replaces the large ViT-H encoder (637M parameters) with a compact Tiny-ViT encoder (5M parameters). This makes the full MobileSAM pipeline about 66 times smaller than the original SAM (9.66M vs 641M parameters) and about 38 times faster, operating at roughly 12 ms per image versus SAM's 456 ms. Explore more about MobileSAM's implementation on the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM is a lightweight, fast image segmentation model optimized for mobile and edge applications. It maintains the same pipeline as the original SAM but replaces the large ViT-H encoder (637M parameters) with a compact Tiny-ViT encoder (5M parameters). This makes the full MobileSAM pipeline about 66 times smaller than the original SAM (9.66M vs 641M parameters) and about 38 times faster, operating at roughly 12 ms per image versus SAM's 456 ms.
 
 ### How Can I Test MobileSAM Using Ultralytics?
 

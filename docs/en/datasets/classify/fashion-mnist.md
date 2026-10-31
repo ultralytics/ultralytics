@@ -55,7 +55,7 @@ Fashion-MNIST is widely used to train and evaluate image classification models, 
 
 ## Usage
 
-Train a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on Fashion-MNIST for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 28. For the full list of available arguments, see the [Training](../../modes/train.md) page and the [image classification](../../tasks/classify.md) task guide.
+[Train](../../modes/train.md) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on Fashion-MNIST for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 28.
 
 !!! example "Train Example"
 
@@ -105,7 +105,7 @@ If you use the Fashion-MNIST dataset in your research or development work, pleas
         }
         ```
 
-We would like to acknowledge Zalando Research for creating and maintaining the Fashion-MNIST dataset as a valuable resource for the machine learning and computer vision research community. For more information about the Fashion-MNIST dataset and its creators, visit the [Fashion-MNIST GitHub repository](https://github.com/zalandoresearch/fashion-mnist).
+We would like to acknowledge Zalando Research for creating and maintaining the Fashion-MNIST dataset as a valuable resource for the machine learning and computer vision research community.
 
 ## FAQ
 

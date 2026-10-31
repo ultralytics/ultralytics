@@ -41,7 +41,7 @@ The ImageNet10 dataset is useful for quickly testing and debugging computer visi
 
 ## Usage
 
-To test a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) classification model on the ImageNet10 dataset at an image size of 224x224, use the code snippets below. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To test a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) classification model on the ImageNet10 dataset at an image size of 224x224, use the code snippets below.
 
 !!! example "Test Example"
 

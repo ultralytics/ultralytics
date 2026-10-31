@@ -104,11 +104,11 @@ if __name__ == "__main__":
 
 ## Parameters Explanation
 
-| Parameter Name   | Type    | Description                                              |
-| ---------------- | ------- | -------------------------------------------------------- |
-| `img`            | `Image` | The image on which object detection will be performed.   |
-| `conf_threshold` | `float` | Confidence threshold for detecting objects.              |
-| `iou_threshold`  | `float` | Intersection-over-union threshold for object separation. |
+| Parameter Name   | Type    | Description                                            |
+| ---------------- | ------- | ------------------------------------------------------ |
+| `img`            | `Image` | The image on which object detection will be performed. |
+| `conf_threshold` | `float` | Confidence threshold for detecting objects.            |
+| `iou_threshold`  | `float` | IoU threshold for non-maximum suppression.             |
 
 ### Gradio Interface Components
 

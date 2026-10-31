@@ -28,7 +28,7 @@ The output of an [image classifier](https://academy.ultralytics.com/courses/beyo
 
     YOLO26 Classify models use the `-cls` suffix, e.g., `yolo26n-cls.pt`, and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
+## Models
 
 YOLO26 Classify models pretrained on the [ImageNet](../datasets/classify/imagenet.md) dataset are shown below.
 
@@ -44,7 +44,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) on the [MNIST160](../datasets/classify/mnist.md) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+[Train](../usage/cfg.md#train-settings) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on the [MNIST160](../datasets/classify/mnist.md) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 64.
 
 !!! example
 

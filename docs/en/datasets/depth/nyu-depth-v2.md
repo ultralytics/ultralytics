@@ -51,7 +51,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To evaluate a YOLO26-Depth model on the NYU Depth V2 benchmark, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Validation](../../modes/val.md) page.
+To [evaluate](../../modes/val.md) a YOLO26-Depth model on the NYU Depth V2 benchmark, you can use the following code snippets.
 
 !!! example "Validation Example"
 
@@ -109,7 +109,7 @@ No. The released models are evaluated zero-shot, so the NYU training split is le
 
 ### How do I validate a model on NYU Depth V2?
 
-Run `yolo depth val data=nyu-depth.yaml model=yolo26x-depth.pt`, or use the Python example in the [Usage](#usage) section. The built-in validator uses single-scale inference with median alignment, so its scores are lower than the TTA numbers in [Results](#results); see the [task page](../../tasks/depth.md#models) for the reproducible values.
+Run `yolo depth val data=nyu-depth.yaml model=yolo26x-depth.pt`, or use the Python example in the [Usage](#usage) section. The built-in validator uses single-scale inference with median alignment, so its scores are lower than the TTA numbers in [Results](#results).
 
 ### Where can I browse NYU Depth V2 online?
 

@@ -228,7 +228,7 @@ model.export(format="engine")  # creates 'yolo26n.engine'
 
 For more information on TensorRT optimization, see the [TensorRT integration guide](../integrations/tensorrt.md).
 
-You can now deploy and run Ultralytics YOLO26 models on Triton Inference Server for scalable, high-performance inference. For more detail, see the [official Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) or ask the [Ultralytics community](https://community.ultralytics.com) for help. If you prefer managed hosting, Ultralytics Platform offers [dedicated deployment endpoints](../platform/deploy/endpoints.md).
+You can now deploy and run Ultralytics YOLO26 models on [Triton Inference Server](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) for scalable, high-performance inference. If you prefer managed hosting, Ultralytics Platform offers [dedicated deployment endpoints](../platform/deploy/endpoints.md).
 
 ## FAQ
 

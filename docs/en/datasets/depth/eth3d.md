@@ -43,7 +43,7 @@ ETH3D is not shipped with a bundled dataset YAML. It is evaluated through a dedi
 
 ## Usage
 
-ETH3D is an external benchmark, so models are typically run with `predict` on its images. For a comprehensive list of available arguments, refer to the model [Prediction](../../modes/predict.md) page.
+ETH3D is an external benchmark, so models are typically run with [`predict`](../../modes/predict.md) on its images.
 
 !!! example "Predict Example"
 

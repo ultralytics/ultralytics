@@ -215,7 +215,7 @@ If you use SAHI in your research or development work, please cite the original S
         }
         ```
 
-We extend our thanks to the SAHI research group for creating and maintaining this resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about SAHI and its creators, visit the [SAHI GitHub repository](https://github.com/obss/sahi).
+We extend our thanks to the SAHI research group for creating and maintaining this resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community.
 
 ## FAQ
 

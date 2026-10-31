@@ -54,7 +54,7 @@ The Caltech-256 dataset is widely used to train and evaluate image classificatio
 
 ## Usage
 
-Train a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on Caltech-256 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 416. For the full list of available arguments, see the [Training](../../modes/train.md) page and the [image classification](../../tasks/classify.md) task guide.
+[Train](../../modes/train.md) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on Caltech-256 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 416.
 
 !!! example "Train Example"
 
@@ -101,7 +101,7 @@ If you use the Caltech-256 dataset in your research or development work, please 
         }
         ```
 
-We would like to acknowledge Gregory Griffin, Alex Holub, and Pietro Perona for creating and maintaining the Caltech-256 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the Caltech-256 dataset and its creators, visit the [Caltech-256 dataset website](https://data.caltech.edu/records/nyy15-4j048).
+We would like to acknowledge Gregory Griffin, Alex Holub, and Pietro Perona for creating and maintaining the Caltech-256 dataset as a valuable resource for the machine learning and computer vision research community.
 
 ## FAQ
 

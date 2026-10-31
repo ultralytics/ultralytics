@@ -136,7 +136,7 @@ We express our gratitude to Deci AI's [SuperGradients](https://github.com/Deci-A
 
 ### What is YOLO-NAS and how does it improve over previous YOLO models?
 
-YOLO-NAS, developed by Deci AI, is an object detection model designed with Neural Architecture Search (NAS). It addresses limitations of previous YOLO models by introducing features like quantization-friendly basic blocks and advanced training schemes, which improve performance, particularly in environments with limited computational resources. YOLO-NAS also supports quantization, maintaining high accuracy even when converted to its INT8 version, enhancing its suitability for production environments. For more details, see the [Overview](#overview) section.
+YOLO-NAS, developed by Deci AI, is an object detection model designed with Neural Architecture Search (NAS). It addresses limitations of previous YOLO models by introducing [features](#key-features) like quantization-friendly basic blocks and advanced training schemes, which improve performance, particularly in environments with limited computational resources. YOLO-NAS also supports quantization, maintaining high accuracy even when converted to its INT8 version, enhancing its suitability for production environments.
 
 ### How can I integrate YOLO-NAS models into my Python application?
 
@@ -169,7 +169,7 @@ These features contribute to its high accuracy, efficient performance, and suita
 
 ### Which tasks and modes are supported by YOLO-NAS models?
 
-YOLO-NAS models support object detection in the validation, inference, and export modes. They do not support training. The supported models include YOLO-NAS-s, YOLO-NAS-m, and YOLO-NAS-l, each tailored to different computational capacities and performance needs. For a detailed overview, refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
+YOLO-NAS models support object detection in the validation, inference, and export [modes](#supported-tasks-and-modes). They do not support training. The supported models include YOLO-NAS-s, YOLO-NAS-m, and YOLO-NAS-l, each tailored to different computational capacities and performance needs.
 
 ### Are there pretrained YOLO-NAS models available and how do I access them?
 

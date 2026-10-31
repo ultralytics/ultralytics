@@ -13,7 +13,7 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned tracking support.
 
-!!! tip "New Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
+!!! tip "Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
 
     Starting with `ultralytics` 8.4.63, [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack) are available alongside BoT-SORT and ByteTrack.
 

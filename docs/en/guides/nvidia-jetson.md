@@ -404,7 +404,7 @@ YOLO26 benchmarks were run by the Ultralytics team on 11 different model formats
 
 ### Comparison Charts
 
-Even though all model exports work on NVIDIA Jetson, the comparison chart below includes only **PyTorch, TorchScript, and TensorRT** because they use the Jetson GPU and produce the best results. The other exports run only on the CPU and are slower. You can find benchmarks for all exports in the section after this chart.
+Even though all model exports work on NVIDIA Jetson, the comparison chart below includes only **PyTorch, TorchScript, and TensorRT**. You can find benchmarks for all exports in the section after this chart.
 
 #### NVIDIA Jetson AGX Thor Developer Kit
 
@@ -973,7 +973,7 @@ YOLO26 models have been benchmarked on NVIDIA Jetson AGX Thor, AGX Orin, Orin Na
 
 ### Why should I use TensorRT for deploying YOLO26 on NVIDIA Jetson?
 
-TensorRT is recommended for deploying YOLO26 models on NVIDIA Jetson because it delivers the fastest inference of all export formats by optimizing the model for the Jetson's GPU. Learn more about how to convert to TensorRT and run inference in the [Use TensorRT on NVIDIA Jetson](#use-tensorrt-on-nvidia-jetson) section.
+TensorRT is recommended for deploying YOLO26 models on NVIDIA Jetson because it delivers the fastest inference of all export formats by optimizing the model for the Jetson's GPU.
 
 ### How can I install PyTorch and Torchvision on NVIDIA Jetson?
 

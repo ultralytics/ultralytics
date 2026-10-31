@@ -432,7 +432,7 @@ EXPOSE 8080
 ENTRYPOINT ["python", "src/main.py"]
 ```
 
-In the example, the official Ultralytics Docker image `ultralytics:latest` is used as a base. It already contains the YOLO26 model and all necessary dependencies. The server's entrypoint is the same as we used to test the FastAPI application locally.
+In the example, the official Ultralytics Docker image `ultralytics:latest` is used as a base. It already contains all necessary dependencies. The server's entrypoint is the same as we used to test the FastAPI application locally.
 
 ### Build and test the Docker image
 
@@ -556,7 +556,7 @@ To deploy a model, you need to create an Endpoint in Vertex AI.
     </p>
 
 1.  Enter the Endpoint name.
-1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint; however, you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/choose-endpoint-type).
+1.  For Access, Vertex AI recommends using [private Vertex AI endpoints](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/choose-endpoint-type). Apart from security benefits, you get a higher payload limit if you select a private endpoint; however, you will need to configure your VPC network and firewall rules to allow access to the endpoint.
 1.  Click Continue.
 1.  On the Model settings dialog, select the model you imported earlier. Now you can configure the machine type, memory, and GPU settings for your model. Allow ample memory if you expect high inference loads, so I/O bottlenecks don't limit YOLO26 performance.
 1.  In Accelerator type, select the GPU type you want to use for inference. If you are not sure which GPU to select, you can start with NVIDIA T4, which is CUDA-supported.

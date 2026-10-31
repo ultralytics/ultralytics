@@ -467,13 +467,13 @@ For more comprehensive usage, refer to the [How to Use SAM 2](#how-to-use-sam-2-
 
 ### What datasets are used to train SAM 2, and how do they enhance its performance?
 
-SAM 2 is trained on the SA-V dataset, one of the largest and most diverse video segmentation datasets available. The SA-V dataset includes:
+SAM 2 is trained on the [SA-V dataset](#sa-v-dataset), one of the largest and most diverse video segmentation datasets available. The SA-V dataset includes:
 
 - **51,000+ Videos**: Captured across 47 countries, providing a wide range of real-world scenarios.
 - **600,000+ Mask Annotations**: Detailed spatio-temporal mask annotations, referred to as "masklets," covering whole objects and parts.
 - **Dataset Scale**: Features 4.5 times more videos and 53 times more annotations than previous largest datasets, offering unprecedented diversity and complexity.
 
-This dataset allows SAM 2 to achieve strong results on major video segmentation benchmarks and enhances its zero-shot generalization capabilities. For more information, see the [SA-V Dataset](#sa-v-dataset) section.
+This dataset allows SAM 2 to achieve strong results on major video segmentation benchmarks and enhances its zero-shot generalization capabilities.
 
 ### How does SAM 2 handle occlusions and object reappearances in video segmentation?
 

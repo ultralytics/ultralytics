@@ -28,7 +28,7 @@ The output of a pose estimation model is a set of points that represent the keyp
 
     YOLO26 Pose models use the `-pose` suffix, e.g., `yolo26n-pose.pt`, and are pretrained on [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml).
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
+## Models
 
 YOLO26 Pose models pretrained on the [COCO keypoints](https://platform.ultralytics.com/ultralytics/datasets/coco2017-pose) dataset are shown below.
 
@@ -44,7 +44,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) on the [COCO8-pose](https://platform.ultralytics.com/ultralytics/datasets/coco8-pose) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+[Train](../usage/cfg.md#train-settings) a [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) model on the [COCO8-pose](https://platform.ultralytics.com/ultralytics/datasets/coco8-pose) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640.
 
 !!! example
 

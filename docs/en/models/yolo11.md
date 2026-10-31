@@ -8,7 +8,7 @@ keywords: YOLO11, real-time object detection, YOLO series, Ultralytics, computer
 
 ## Overview
 
-YOLO11 was released by Ultralytics on September 27, 2024, improving [accuracy](https://www.ultralytics.com/glossary/accuracy), speed, and efficiency over previous versions. Building on earlier YOLO releases, YOLO11 introduces improvements in architecture and training methods, making it a versatile choice for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. For the latest Ultralytics model with end-to-end NMS-free inference and optimized edge deployment, see [YOLO26](yolo26.md).
+YOLO11 was released by Ultralytics on September 27, 2024, improving [accuracy](https://www.ultralytics.com/glossary/accuracy), speed, and efficiency over previous versions. Building on earlier YOLO releases, YOLO11 introduces improvements in architecture and training methods, making it a versatile choice for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. [YOLO26](yolo26.md), the latest Ultralytics model, adds end-to-end NMS-free inference and optimized edge deployment.
 
 ![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
 
@@ -119,7 +119,7 @@ This table provides an overview of the YOLO11 model variants, their tasks, and t
 
 This section provides simple YOLO11 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
-The example below trains a YOLO11 [Detect](../tasks/detect.md) model for [object detection](https://www.ultralytics.com/glossary/object-detection) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset. For additional supported tasks, see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) docs.
+The example below trains a YOLO11 [Detect](../tasks/detect.md) model for [object detection](https://www.ultralytics.com/glossary/object-detection) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset.
 
 !!! example
 
@@ -235,4 +235,4 @@ YOLO11 achieves greater accuracy with fewer parameters through advancements in m
 
 ### Can YOLO11 be deployed on edge devices?
 
-Yes. YOLO11's efficient architecture makes it suitable for deployment on edge devices, cloud platforms, and systems supporting NVIDIA GPUs, so it can be used in diverse applications, from real-time detection on mobile devices to complex segmentation tasks in cloud environments. For more details on deployment options, refer to the [Export](../modes/export.md) documentation.
+Yes. YOLO11's efficient architecture makes it suitable for [deployment](../modes/export.md) on edge devices, cloud platforms, and systems supporting NVIDIA GPUs, so it can be used in diverse applications, from real-time detection on mobile devices to complex segmentation tasks in cloud environments.

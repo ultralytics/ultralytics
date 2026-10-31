@@ -303,7 +303,7 @@ Check the full list of supported formats and instructions on the [Export](../mod
 Ultralytics YOLO26 provides fast, accurate models for object detection, instance segmentation, semantic segmentation, pose estimation, and the other supported tasks. Key advantages include:
 
 1. **Pretrained Models**: Use models pretrained on popular datasets like [COCO](../datasets/detect/coco.md) and [ImageNet](../datasets/classify/imagenet.md) for faster development.
-2. **High Accuracy**: Reaches 40.9-57.5 mAP<sup>val</sup> 50-95 on COCO across its five model sizes.
+2. **High Accuracy**: Achieves high mAP on COCO; see [Models](#models) for per-size results.
 3. **Speed**: Optimized for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) in latency-sensitive applications.
 4. **Flexibility**: Export models to various formats like ONNX and TensorRT for deployment across multiple platforms.
 

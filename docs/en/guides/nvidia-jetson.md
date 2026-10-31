@@ -1,7 +1,7 @@
 ---
 title: YOLO26 on NVIDIA Jetson Setup & Benchmarks
 comments: true
-description: Deploy Ultralytics YOLO26 on NVIDIA Jetson with JetPack, Docker or a native install, export to TensorRT and DLA, and compare Thor, Orin and Nano benchmarks.
+description: Deploy Ultralytics YOLO26 on NVIDIA Jetson with JetPack, Docker or a native install, export to TensorRT and DLA, and compare Jetson Thor and Orin benchmarks.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
 ---
 

@@ -280,7 +280,7 @@ This command generates predicted labels for each image in our test set, as well 
 Predicted .txt labels for each image are saved via the `save_txt=True` argument and the output images with bounding box overlays are generated through the `save=True` argument.
 The parameter `conf=0.5` tells the model to ignore all predictions with a confidence level of less than 50%.
 
-Lastly, `iou=.5` sets the [non-maximum suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) threshold: boxes of the same class that overlap a higher-scoring box by 50% or more are discarded. This reduces duplicate boxes generated for the same object.
+Lastly, `iou=.5` sets the [non-maximum suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) threshold: boxes of the same class that overlap a higher-scoring box by more than 50% are discarded. This reduces duplicate boxes generated for the same object.
 We can load the images with predicted bounding box overlays to view how our model performs on a handful of images.
 
 !!! example "Display Predictions"

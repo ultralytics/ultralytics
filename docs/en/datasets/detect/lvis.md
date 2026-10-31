@@ -12,7 +12,7 @@ keywords: LVIS dataset, object detection, instance segmentation, large vocabular
 
 # LVIS Dataset
 
-The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale [object detection](../../tasks/detect.md) and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) benchmark with 1,203 object categories across roughly 160,000 images. Developed and released by Facebook AI Research (FAIR), it reuses the [COCO](./coco.md) images but adds a much larger, long-tailed vocabulary — from common objects like cars and bicycles to rare categories that appear in as few as 1–10 training images — to push progress on recognizing infrequent categories.
+The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale [object detection](../../tasks/detect.md) and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) benchmark with 1,203 object categories across roughly 160,000 images. Developed and released by Facebook AI Research (FAIR), it reuses the [COCO](./coco.md) images but adds a much larger, long-tailed vocabulary — from common objects like cars and bicycles to rare categories with only 1–10 training images — to push progress on recognizing infrequent categories.
 
 <p align="center">
   <br>

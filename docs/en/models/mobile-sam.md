@@ -40,7 +40,7 @@ The following comparison highlights the differences between Meta's SAM variants,
 | Model                                                                                      | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
 | ------------------------------------------------------------------------------------------ | ----------------------- | ---------------------------- | --------------------------------- |
 | Meta SAM-b                                                                                 | 375                     | 93.7                         | 41703                             |
-| [Meta SAM2-b](sam-2.md)                                                                    | 162                     | 80.8                         | 28867                             |
+| Meta SAM2-b                                                                                | 162                     | 80.8                         | 28867                             |
 | Meta SAM2-t                                                                                | 78.1                    | 38.9                         | 23430                             |
 | MobileSAM                                                                                  | 40.7                    | 10.1                         | 23802                             |
 | FastSAM-s with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone)            | 23.9                    | 11.8                         | 58.0                              |

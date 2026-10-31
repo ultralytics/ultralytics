@@ -74,7 +74,7 @@ Run tracking on a video with the default TrackTrack tracker. Swap to another tra
         yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" tracker="bytetrack.yaml"
         ```
 
-To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model such as [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n), [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg), [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose), or [YOLO26n-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-obb). You can train custom models locally or with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
+To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model such as YOLO26n, YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb, all available in the [YOLO26 collection](https://platform.ultralytics.com/ultralytics/yolo26) on Ultralytics Platform. You can train custom models locally or with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 !!! example
 

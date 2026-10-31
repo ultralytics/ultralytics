@@ -316,7 +316,7 @@ See more detailed examples in our [Predict Mode](../modes/predict.md) section.
 
 ### What are the different modes available in YOLO?
 
-Ultralytics YOLO provides [six modes](https://www.ultralytics.com/blog/how-to-train-validate-predict-export-benchmark-with-ultralytics-yolo-models) for different [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows:
+Ultralytics YOLO provides [six modes](../modes/index.md) for different [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows:
 
 - **[Train](../modes/train.md)**: Train a model using custom datasets.
 - **[Val](../modes/val.md)**: Validate model performance on a validation set.

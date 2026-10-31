@@ -419,8 +419,6 @@ YOLO-World provides several advantages over traditional Open-Vocabulary detectio
 - **Customizable Prompts:** The model supports dynamic prompt setting, allowing users to specify custom detection classes without retraining.
 - **Benchmark Excellence:** It outperforms other open-vocabulary detectors like MDETR and GLIP in both speed and efficiency on standard benchmarks.
 
-To compare open-vocabulary detectors and vision language models on detection accuracy, cost, and speed, see the [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm).
-
 ### How do I train a YOLO-World model on my dataset?
 
 Train a YOLO-World model on your dataset with the Python API or CLI. Here's how to start training using Python:

@@ -1,7 +1,7 @@
 ---
 title: YOLO Object Detection & Segmentation
 comments: true
-description: Official Ultralytics YOLO docs to install, train, validate, predict, export and track YOLO26 models for detection, segmentation, depth, classification, pose and OBB.
+description: Official Ultralytics YOLO docs to install, train, validate, predict, export, and track YOLO26 models for detection, segmentation, depth, classification, pose, and OBB.
 keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentation, deep learning, computer vision, AI, machine learning, documentation, tutorial
 ---
 
@@ -187,7 +187,7 @@ Our licensing strategy is designed to ensure that any improvements to our open-s
 
 ### What is Ultralytics YOLO and how does it improve object detection?
 
-Ultralytics YOLO is a family of YOLO (You Only Look Once) models for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and image segmentation. The latest released model, [YOLO26](models/yolo26.md), builds on previous versions by introducing optional NMS-free end-to-end inference and optimized edge deployment. YOLO supports various [vision AI tasks](tasks/index.md) such as [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [depth estimation](tasks/depth.md), [classification](tasks/classify.md), [pose estimation](tasks/pose.md), and [oriented bounding boxes](tasks/obb.md), and can [track](modes/track.md) detected objects across video frames. Its efficient architecture balances speed and accuracy, making it suitable for applications from edge devices to cloud APIs.
+Ultralytics YOLO is a family of real-time You Only Look Once (YOLO) models for object detection and image segmentation. The latest released model, [YOLO26](models/yolo26.md), builds on previous versions by introducing optional NMS-free end-to-end inference and optimized edge deployment. YOLO supports various [vision AI tasks](tasks/index.md) such as [detection](tasks/detect.md), [instance segmentation](tasks/segment.md), [semantic segmentation](tasks/semantic.md), [depth estimation](tasks/depth.md), [classification](tasks/classify.md), [pose estimation](tasks/pose.md), and [oriented bounding boxes](tasks/obb.md), and can [track](modes/track.md) detected objects across video frames. Its efficient architecture balances speed and accuracy, making it suitable for applications from edge devices to cloud APIs.
 
 ### How can I get started with YOLO installation and setup?
 

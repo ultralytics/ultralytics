@@ -7,7 +7,7 @@ creator:
 license:
     name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
-description: COCO8-Grayscale is an 8-image, single-channel version of COCO8 for quickly testing Ultralytics YOLO grayscale object detection training with channels 1.
+description: COCO8-Grayscale is an 8-image, single-channel version of COCO8 for quickly testing Ultralytics YOLO grayscale object detection training with single-channel input.
 keywords: COCO8-Grayscale, Ultralytics, dataset, object detection, YOLO26, training, validation, machine learning, computer vision
 ---
 

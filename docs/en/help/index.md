@@ -35,7 +35,7 @@ Contributing to Ultralytics YOLO repositories is straightforward. Start by revie
 
 ### Why should I use Ultralytics Platform for my machine learning projects?
 
-Ultralytics Platform is a no-code solution for managing your machine learning projects. It lets you annotate data and train and deploy models like YOLO26 in one place, with cloud training, live training metrics, and dataset management. It covers the full workflow, from data preparation to [model deployment](https://www.ultralytics.com/glossary/model-deployment), for both beginners and advanced users.
+Ultralytics Platform is a no-code solution for managing your machine learning projects. It lets you annotate data, train, and deploy models like YOLO26 in one place, with cloud training, live training metrics, and dataset management. It covers the full workflow, from data preparation to [model deployment](https://www.ultralytics.com/glossary/model-deployment), for both beginners and advanced users.
 
 To get started, visit [Ultralytics Platform Quickstart](../platform/quickstart.md).
 

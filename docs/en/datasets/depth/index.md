@@ -69,7 +69,7 @@ Depth estimation datasets are configured with YAML files. The main fields are:
 
 ## Usage
 
-Train a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model with Python or CLI. For an overview of how YOLO26 predicts metric depth from a single RGB image, see the [YOLO26 depth estimation announcement](https://www.ultralytics.com/blog/ultralytics-yolo26-now-supports-monocular-depth-estimation).
+Train a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model with Python or CLI:
 
 !!! example
 

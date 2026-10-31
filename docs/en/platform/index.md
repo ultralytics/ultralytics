@@ -7,7 +7,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 # Ultralytics Platform
 
-[Ultralytics Platform](https://platform.ultralytics.com) is an end-to-end [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) platform that covers the full [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflow, from data preparation to [model deployment](https://www.ultralytics.com/glossary/model-deployment). It is built for teams and individuals who want to train and deploy production vision models without managing their own infrastructure. For an overview of its components, see [Ultralytics Platform: five tools, one environment](https://www.ultralytics.com/blog/ultralytics-platform-five-tools-one-computer-vision-platform).
+[Ultralytics Platform](https://platform.ultralytics.com) is an end-to-end [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) platform that covers the full machine learning workflow, from data preparation to model deployment. It is built for teams and individuals who want to train and deploy production vision models without managing their own infrastructure. For an overview of its components, see [Ultralytics Platform: five tools, one environment](https://www.ultralytics.com/blog/ultralytics-platform-five-tools-one-computer-vision-platform).
 
 ![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/2141b069efb0284ebee4bc23847f999c.avif)<!-- screenshot -->
 

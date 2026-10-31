@@ -69,7 +69,7 @@ For example, when running YOLO26 models on Intel Xeon CPUs, the OpenVINO-optimiz
 
 ## Practical Implementation
 
-To export and optimize your Ultralytics YOLO model for OpenVINO, use the [export](../modes/export.md) functionality (the Ultralytics Academy lesson on [OpenVINO on CPU](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu) covers this workflow step by step):
+To export and optimize your Ultralytics YOLO model for OpenVINO, use the [export](../modes/export.md) functionality:
 
 ```python
 from ultralytics import YOLO
@@ -90,6 +90,8 @@ ov_model = YOLO("yolo26n_openvino_model/")
 # Run inference (Ultralytics compiles OpenVINO models with the LATENCY performance hint)
 results = ov_model("https://ultralytics.com/images/bus.jpg", verbose=True)
 ```
+
+The Ultralytics Academy lesson on [OpenVINO on CPU](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu) walks through this workflow step by step.
 
 ## Conclusion
 

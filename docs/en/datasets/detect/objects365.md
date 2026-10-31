@@ -13,7 +13,7 @@ keywords: Objects365 dataset, object detection, Megvii, large-scale dataset, mod
 
 # Objects365 Dataset
 
-The [Objects365](https://www.objects365.org/) dataset is a large-scale [object detection](../../tasks/detect.md) benchmark with 1,742,289 training images and 80,000 validation images spanning 365 object classes — from people, cars, and chairs to bottles, dogs, and street lights. Created by [Megvii](https://en.megvii.com/) researchers and presented at ICCV 2019, it focuses on diverse objects in the wild and is widely used to [pretrain](https://www.ultralytics.com/glossary/transfer-learning) [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models that generalize better than ImageNet-pretrained ones.
+The [Objects365](https://www.objects365.org/) dataset is a large-scale [object detection](../../tasks/detect.md) benchmark with 1,742,289 training images and 80,000 validation images spanning 365 object classes — from people, cars, and chairs to bottles, dogs, and street lights. Created by [Megvii](https://en.megvii.com/) researchers and presented at ICCV 2019, it focuses on diverse objects in the wild and is widely used to pretrain [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models that generalize better than ImageNet-pretrained ones.
 
 <p align="center">
   <br>

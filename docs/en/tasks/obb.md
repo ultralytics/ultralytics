@@ -34,7 +34,7 @@ The output of an oriented object detector is a set of rotated [bounding boxes](h
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 OBB models pretrained on the [DOTAv1](../datasets/obb/dota-v2.md) dataset are shown below.
+YOLO26 OBB models pretrained on the [DOTAv1](../datasets/obb/dota-v2.md#dota-v10) dataset are shown below.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 

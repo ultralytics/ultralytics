@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Billing & Credits
 comments: true
-description: Manage credits, payments, and Free, Pro, or Enterprise plans on Ultralytics Platform, with per-hour GPU pricing for cloud training, annotation, and endpoints.
+description: Manage credits, payments, and Free, Pro, or Enterprise plans on Ultralytics Platform, with metered credits for GPU cloud training, batch annotation, and endpoint uptime.
 keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
 ---
 

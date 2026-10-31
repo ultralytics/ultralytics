@@ -538,7 +538,7 @@ Sony's MCT offers a range of features designed to optimize neural network models
     - **Outliers Filtering**: Uses z-score to detect and remove outliers.
     - **Clustering**: Uses non-uniform quantization grids for better distribution matching.
     - **Mixed-Precision Search**: Assigns different quantization bit-widths per layer based on sensitivity.
-4. **Visualization**: Use [TensorBoard](tensorboard.md) to observe model performance insights, quantization phases, and bit-width configurations.
+4. **Visualization**: Use TensorBoard to observe model performance insights, quantization phases, and bit-width configurations.
 
 #### Quantization
 

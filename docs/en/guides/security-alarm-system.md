@@ -9,7 +9,7 @@ keywords: YOLO26, Security Alarm System, real-time object detection, Ultralytics
 
 <img src="https://cdn.ul.run/i/77e52e705cc6d6a5c6b0c939c3710813.avif" alt="AI-powered security alarm system with object detection">
 
-This project uses Ultralytics YOLO26 [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) to build a [person-detection security alarm](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8). YOLO26 provides real-time [object detection](https://www.ultralytics.com/glossary/object-detection), allowing the system to identify and respond to potential security threats promptly. This project offers several advantages:
+This project uses Ultralytics YOLO26 [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) to build a [security alarm system](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8). YOLO26 provides real-time [object detection](https://www.ultralytics.com/glossary/object-detection), allowing the system to identify and respond to potential security threats promptly. This project offers several advantages:
 
 - **Real-time Detection:** YOLO26's efficiency enables the Security Alarm System to detect and respond to security incidents in real time, minimizing response time.
 - **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** YOLO26's accurate object detection reduces false positives and improves the reliability of the security alarm system.

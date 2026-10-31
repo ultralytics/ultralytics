@@ -19,7 +19,7 @@ Open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https:
 1. Open **Agents**, click **Add block > Templates**, and choose **YOLO → VLM Monitor**.
 2. Select the **Input image** block, choose an uploaded dataset, and select an image containing a person. Use an image of up to 4 megapixels for the shared trial.
 3. Keep the default [YOLO26 nano](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model. The condition passes when YOLO detects at least one person.
-4. Select **Describe the scene**, choose a vision-language model from the [supported models](https://platform.ultralytics.com/models), and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents-and-annotation) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
+4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents-and-annotation) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
 5. Keep **Shared trial · 60 seconds** selected for a small run, then click **Run**.
 6. Watch the blocks update and inspect the **Output**. If no person is detected, the condition finishes without running the description branch.
 

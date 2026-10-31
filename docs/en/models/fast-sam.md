@@ -25,7 +25,7 @@ The Fast Segment Anything Model (FastSAM) is a real-time, [CNN](https://www.ultr
 
 ## Overview
 
-FastSAM is designed to address the limitations of the [Segment Anything Model (SAM)](sam.md), a heavy [Transformer](https://www.ultralytics.com/glossary/transformer) model with substantial computational resource requirements. FastSAM decouples the segment anything task into two sequential stages: all-[instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and prompt-guided selection. The first stage uses [YOLOv8-seg](../tasks/segment.md) to produce the segmentation masks of all instances in the image. In the second stage, it outputs the region of interest corresponding to the prompt.
+FastSAM is designed to address the limitations of the [Segment Anything Model (SAM)](sam.md), a heavy [Transformer](https://www.ultralytics.com/glossary/transformer) model with substantial computational resource requirements. FastSAM decouples the segment anything task into two sequential stages: all-[instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and prompt-guided selection. The first stage uses [YOLOv8-seg](yolov8.md) to produce the segmentation masks of all instances in the image. In the second stage, it outputs the region of interest corresponding to the prompt.
 
 ## Key Features
 
@@ -35,7 +35,7 @@ FastSAM is designed to address the limitations of the [Segment Anything Model (S
 
 3. **Prompt-guided Segmentation:** FastSAM can segment any object within an image guided by various user interaction [prompts](https://www.ultralytics.com/glossary/visual-prompting), providing flexibility and adaptability in different scenarios.
 
-4. **Based on YOLOv8-seg:** FastSAM is based on [YOLOv8-seg](yolov8.md), an object detector equipped with an instance segmentation branch. This allows it to effectively produce the segmentation masks of all instances in an image.
+4. **Based on YOLOv8-seg:** FastSAM is based on YOLOv8-seg, an object detector equipped with an instance segmentation branch. This allows it to effectively produce the segmentation masks of all instances in an image.
 
 5. **Competitive Results on Benchmarks:** On the object proposal task on [MS COCO](../datasets/detect/coco.md), FastSAM achieves high scores at a significantly faster speed than SAM on a single NVIDIA RTX 3090, demonstrating its efficiency and capability.
 

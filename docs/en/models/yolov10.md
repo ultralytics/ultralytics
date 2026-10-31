@@ -231,7 +231,7 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 
 ## Conclusion
 
-At its release, YOLOv10 advanced real-time object detection by removing NMS post-processing and redesigning model components for both efficiency and accuracy. Its NMS-free approach pioneered end-to-end object detection in the YOLO family. For the latest Ultralytics model with improved performance and [NMS-free inference](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment), see [YOLO26](yolo26.md).
+At its release, YOLOv10 advanced real-time object detection by removing NMS post-processing and redesigning model components for both efficiency and accuracy. Its NMS-free approach pioneered end-to-end object detection in the YOLO family. [YOLO26](yolo26.md), the latest Ultralytics model, builds on this with improved performance and [NMS-free inference](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment).
 
 ## Citations and Acknowledgments
 

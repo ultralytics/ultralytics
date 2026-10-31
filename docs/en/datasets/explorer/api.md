@@ -328,7 +328,7 @@ Start creating your own CV dataset exploration reports using the Explorer API. F
 
 ## Apps Built Using Ultralytics Explorer
 
-Try the [GUI demo](dashboard.md), built on the Explorer API.
+The [Explorer GUI](dashboard.md) is built on the Explorer API.
 
 ## FAQ
 

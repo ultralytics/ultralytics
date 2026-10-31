@@ -45,7 +45,7 @@ Here is a brief overview of the typical steps you might take to use YOLOv4:
 
 The exact steps depend on your use case and the current state of the YOLOv4 repository, so follow the instructions provided in the YOLOv4 GitHub repository.
 
-For training and inference within the Ultralytics framework, see [YOLO26](yolo26.md) or [YOLO11](yolo11.md).
+For training and inference within the Ultralytics framework, use [YOLO26](yolo26.md) or [YOLO11](yolo11.md).
 
 ## Conclusion
 

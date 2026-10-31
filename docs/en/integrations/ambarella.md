@@ -269,7 +269,7 @@ Ultralytics YOLO models on Ambarella CVflow SoCs power always-on vision at the e
 
 ## Summary
 
-This guide outlined the current workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), [ONNX export](../modes/export.md) of the compressed checkpoint, offline compilation to an AmbaPB checkpoint with the SDK tools, host validation through Ultralytics, and conversion to a Cavalry binary for on-device deployment with the Ambarella SDK.
+This guide outlined the current workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), [ONNX export](onnx.md) of the compressed checkpoint, offline compilation to an AmbaPB checkpoint with the SDK tools, host validation through Ultralytics, and conversion to a Cavalry binary for on-device deployment with the Ambarella SDK.
 
 ## FAQ
 

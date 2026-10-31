@@ -197,4 +197,4 @@ By default, the Ultralytics YOLO12 implementation does _not_ require FlashAttent
 
 ### Where can I find usage examples and more detailed documentation for YOLO12?
 
-This page provides basic [usage examples](#usage-examples) for training and inference. YOLO12 uses the same [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) modes and [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) task interfaces as other Ultralytics models.
+This page provides basic [usage examples](#usage-examples) for training and inference. YOLO12 uses the same Train, Val, Predict, and Export [modes](../modes/index.md) and Segment, Classify, Pose, and OBB [task](../tasks/index.md) interfaces as other Ultralytics models.

@@ -426,7 +426,7 @@ SAM 3 provides accurate counting by segmenting all instances, a common requireme
 
 ## SAM 3 vs SAM 2 vs YOLO Comparison
 
-Here we compare SAM 3's capabilities with SAM 2 and [YOLO26](yolo26.md) models. For real-time open-vocabulary detection and segmentation from the same kinds of prompt, see [YOLOE](yoloe.md):
+Here we compare SAM 3's capabilities with SAM 2 and [YOLO26](yolo26.md) models:
 
 | Capability                   | SAM 3                                 | SAM 2                | YOLO26n-seg      |
 | ---------------------------- | ------------------------------------- | -------------------- | ---------------- |
@@ -440,7 +440,7 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO26](yolo26.md) models. 
 | **Speed (GPU, ms/im)**       | 2921                                  | 857                  | **8.4**          |
 | **Model Size**               | 3.45 GB                               | 162 MB (base)        | **6.4 MB**       |
 
-Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8.4.19`.
+Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8.4.19`. [YOLOE](yoloe.md) brings the same kinds of prompt to real-time open-vocabulary detection and segmentation.
 
 **Key Takeaways**:
 

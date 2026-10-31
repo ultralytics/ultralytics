@@ -211,7 +211,7 @@ model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False, pretrai
 
 ### Base64 Results
 
-Base64-encoded results are useful for API services such as the YOLOv5 [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example.
+Base64-encoded results are useful for API services, as in the YOLOv5 [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example.
 
 ```python
 import base64

@@ -307,7 +307,7 @@ First, ensure that the [NVIDIA Container Toolkit](#installing-nvidia-container-t
 sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest # all GPUs
 ```
 
-This command sets up a Docker container with [GPU access](#using-gpus).
+This command sets up a Docker container with [GPU access](#using-gpus), which you can limit to specific GPUs or switch to AMD ROCm.
 
 ### How do I visualize YOLO prediction results in a Docker container with a display server?
 

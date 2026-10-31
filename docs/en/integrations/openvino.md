@@ -510,7 +510,7 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
 
 The benchmarking results show the benefits of exporting YOLO26 models to the OpenVINO format. Across model sizes and Intel hardware, OpenVINO runs inference much faster than PyTorch while maintaining comparable accuracy.
 
-By converting models to the OpenVINO format, developers can achieve significant performance improvements on [Intel CPUs](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu), GPUs, and NPUs, making it easier to deploy these models in real-world applications.
+By [converting models to the OpenVINO format](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu), developers can achieve significant performance improvements on Intel CPUs, GPUs, and NPUs, making it easier to deploy these models in real-world applications.
 
 For more detailed information and instructions on using OpenVINO, refer to the [official OpenVINO documentation](https://docs.openvino.ai/).
 

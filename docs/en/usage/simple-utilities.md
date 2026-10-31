@@ -564,8 +564,6 @@ Also see the [`Annotator` Reference Page](../reference/utils/plotting.md#ultraly
     cv2.destroyAllWindows()
     ```
 
-Find additional details in the [`sweep_annotator` reference](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
-
 #### Adaptive Label Annotation
 
 `SolutionAnnotator.adaptive_label` draws a label whose shape is chosen with the `shape` argument (it replaces the older `circle_label` and `text_label` methods):

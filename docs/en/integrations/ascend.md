@@ -16,7 +16,7 @@ Because ATC runs entirely on the host, you can compile models on a regular x86-6
 
 ## Train on Ascend NPUs
 
-Ultralytics supports single- and multi-[NPU](https://www.ultralytics.com/glossary/neural-processing-unit-npu) training with `torch_npu`, including AMP, validation, checkpointing, resume, and AutoBatch. Select one NPU with `device=npu:0` or multiple NPUs with `device=npu:0,1`; distributed training uses HCCL. Install compatible CANN, PyTorch, and `torch_npu` versions and source the CANN environment first. See the [Ascend NPU training section](../modes/train.md#huawei-ascend-npu-training) for installation and usage examples.
+Ultralytics supports single- and multi-[NPU](https://www.ultralytics.com/glossary/neural-processing-unit-npu) training with `torch_npu`, including AMP, validation, checkpointing, resume, and AutoBatch. Select one NPU with `device=npu:0` or multiple NPUs with `device=npu:0,1`; distributed training uses HCCL. [Install compatible CANN, PyTorch, and `torch_npu` versions](../modes/train.md#huawei-ascend-npu-training) and source the CANN environment first.
 
 ## Ascend Export Format
 

@@ -50,7 +50,7 @@ The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/
 
 !!! note
 
-    Inference here only confirms that the exported model works as expected. For deployment and inference on the Raspberry Pi AI Camera, see the [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
+    Inference here only confirms that the exported model works as expected before [deploying it to the Raspberry Pi AI Camera](#using-imx500-export-in-deployment).
 
 !!! example "Object Detection"
 

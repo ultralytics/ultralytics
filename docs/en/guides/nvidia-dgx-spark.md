@@ -347,7 +347,7 @@ At batch size 1 on DGX Spark, TensorRT INT8 is slower than FP16 for YOLO26n and 
 | YOLO26m | TensorRT (FP16) | 41.1              | 0.5266      | 2.70                   |
 | YOLO26m | TensorRT (INT8) | 45.0              | 0.5156      | 2.74                   |
 
-Accuracy and speed come from validation on COCO val2017 (5000 images) at image size 640 and batch size 1. INT8 engines are calibrated on COCO128. Benchmarked with Ultralytics 8.4.192 in `ultralytics/ultralytics:latest-nvidia-arm64` (NVIDIA PyTorch 26.08, TensorRT 11.2.1.2, ModelOpt 0.45.0 with the ONNX packages that TensorRT export installs on first use).
+Accuracy and speed come from validation on COCO val2017 (5000 images) at image size 640 and batch size 1. INT8 engines are calibrated on COCO128. Benchmarked with Ultralytics 8.4.192 in `ultralytics/ultralytics:latest-nvidia-arm64` (NVIDIA PyTorch 26.08, TensorRT 11.2.1.2, ModelOpt 0.45.0).
 
 ## Best Practices for NVIDIA DGX Spark
 
@@ -374,7 +374,7 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
 
 3. **Use TensorRT FP16**
 
-    At batch size 1 on DGX Spark, INT8 is not faster than FP16 for YOLO26n, YOLO26s and YOLO26m and loses accuracy, see [YOLO26 TensorRT Precision on DGX Spark](#yolo26-tensorrt-precision-on-dgx-spark):
+    At batch size 1 on DGX Spark, INT8 is slower than FP16 for YOLO26n and YOLO26s, no faster for YOLO26m, and less accurate (see [YOLO26 TensorRT Precision on DGX Spark](#yolo26-tensorrt-precision-on-dgx-spark)):
 
     ```bash
     yolo export model=yolo26n.pt format=engine quantize=16 # FP16

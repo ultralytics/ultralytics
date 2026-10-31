@@ -181,8 +181,8 @@ The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) PyTor
         # Load a YOLO26n PyTorch model
         model = YOLO("yolo26n.pt")
 
-        # Export the model to TensorRT
-        model.export(format="engine")  # creates 'yolo26n.engine'
+        # Export the model to TensorRT FP16
+        model.export(format="engine", quantize=16)  # creates 'yolo26n.engine'
 
         # Load the exported TensorRT model
         trt_model = YOLO("yolo26n.engine")
@@ -194,8 +194,8 @@ The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) PyTor
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to TensorRT format
-        yolo export model=yolo26n.pt format=engine # creates 'yolo26n.engine'
+        # Export a YOLO26n PyTorch model to TensorRT FP16
+        yolo export model=yolo26n.pt format=engine quantize=16 # creates 'yolo26n.engine'
 
         # Run inference with the exported model
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -330,6 +330,21 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, e.g., `data='coco.yaml'` (5000 val images).
 
+## YOLO26 TensorRT Precision on DGX Spark
+
+At batch size 1 on DGX Spark, TensorRT INT8 is slower than FP16 for YOLO26n and YOLO26s, and about equal for YOLO26m (within 2% in both validation and `trtexec` GPU compute time). INT8 also loses 1.1 to 1.8 mAP, so FP16 is the better choice for these models. The YOLO11 table above shows the same pattern: TensorRT (INT8) is slower than TensorRT (FP16) for all five models.
+
+| Model   | Format          | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+| ------- | --------------- | ----------------- | ----------- | ---------------------- |
+| YOLO26n | TensorRT (FP16) | 6.7               | 0.4032      | 0.79                   |
+| YOLO26n | TensorRT (INT8) | 28.4              | 0.3849      | 1.43                   |
+| YOLO26s | TensorRT (FP16) | 20.3              | 0.4793      | 1.49                   |
+| YOLO26s | TensorRT (INT8) | 34.4              | 0.4644      | 1.73                   |
+| YOLO26m | TensorRT (FP16) | 41.1              | 0.5266      | 2.70                   |
+| YOLO26m | TensorRT (INT8) | 45.0              | 0.5156      | 2.74                   |
+
+Accuracy and speed come from validation on COCO val2017 (5000 images) at image size 640 and batch size 1. INT8 engines are calibrated on COCO128. Benchmarked with Ultralytics 8.4.192 in `ultralytics/ultralytics:latest-nvidia-arm64` (NVIDIA PyTorch 26.08, TensorRT 11.2.1.2, ModelOpt 0.45.0).
+
 ## Best Practices for NVIDIA DGX Spark
 
 When using NVIDIA DGX Spark, follow these best practices to get the best performance running YOLO26.
@@ -353,13 +368,12 @@ When using NVIDIA DGX Spark, follow these best practices to get the best perform
     results = model.predict(source="path/to/images", batch=16)
     ```
 
-3. **Use TensorRT with FP16 or INT8**
+3. **Use TensorRT FP16**
 
-    For best performance, export models with FP16 or INT8 precision:
+    At batch size 1 on DGX Spark, INT8 is slower than FP16 for YOLO26n and YOLO26s, no faster for YOLO26m, and less accurate (see [YOLO26 TensorRT Precision on DGX Spark](#yolo26-tensorrt-precision-on-dgx-spark)):
 
     ```bash
     yolo export model=yolo26n.pt format=engine quantize=16 # FP16
-    yolo export model=yolo26n.pt format=engine quantize=8  # INT8
     ```
 
 ## System Updates (Founders Edition)
@@ -402,7 +416,7 @@ Deploying Ultralytics YOLO26 on NVIDIA DGX Spark is straightforward. You can use
 
 ### What performance can I expect from YOLO26 on NVIDIA DGX Spark?
 
-YOLO models run fast on DGX Spark thanks to the GB10 Grace Blackwell Superchip. The TensorRT format provides the best inference performance. Check the [Detailed Comparison Table](#detailed-comparison-table) section for YOLO11 benchmark results on DGX Spark across different model sizes and formats.
+YOLO models run fast on DGX Spark thanks to the GB10 Grace Blackwell Superchip. The TensorRT format provides the best inference performance. Check the [Detailed Comparison Table](#detailed-comparison-table) section for YOLO11 benchmark results on DGX Spark across different model sizes and formats, and the [YOLO26 TensorRT Precision on DGX Spark](#yolo26-tensorrt-precision-on-dgx-spark) section for YOLO26 FP16 and INT8 results.
 
 ### Why should I use TensorRT for YOLO26 on DGX Spark?
 

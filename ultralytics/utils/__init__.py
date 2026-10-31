@@ -771,9 +771,8 @@ class YAML:
             self.lines[self.i] = c[4:]
             n, c = self._peek()
         v = None if n < 0 else self._node(n, c)
-        n, c = self._peek()
-        if n >= 0 and c != "...":
-            self._error(f"unexpected {c!r}")
+        if (m := self._peek())[0] >= 0:  # a single document only, so '...' and later content raise
+            self._error(f"unexpected {m[1]!r}")
         return v
 
     def _error(self, msg):
@@ -875,10 +874,12 @@ class YAML:
             return self._block_scalar(rest, n)
         if rest[0] in "&*!":
             self._error("anchors, aliases and tags are not supported")
-        s = self._COMMENT.split(rest, maxsplit=1)[0].rstrip(" \t") if "#" in rest else rest
-        while (m := self._peek())[0] > n:  # multi-line plain scalar
-            s += " " + (self._COMMENT.split(m[1], maxsplit=1)[0].rstrip(" \t") if "#" in m[1] else m[1])
-            self.i += 1
+        s, j = self._COMMENT.split(rest, maxsplit=1)[0].rstrip(" \t") if "#" in rest else rest, self.i
+        while (m := self._peek())[0] > n:  # multi-line plain scalar: a line break folds to a space, n blank lines to n
+            s += ("\n" * (self.i - j) or " ") + (
+                self._COMMENT.split(m[1], maxsplit=1)[0].rstrip(" \t") if "#" in m[1] else m[1]
+            )
+            self.i = j = self.i + 1
         if ": " in s or s.endswith(":"):
             self._error(f"mapping inside plain scalar {s!r}")
         return self._scalar(s)

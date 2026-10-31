@@ -576,6 +576,16 @@ def test_export_executorch(isolated_model):
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
+@pytest.mark.parametrize(("channels", "bias"), [(1, False), (64, True), (128, True), (129, False)])
+def test_litert_upsample_matches_transpose_convolution(channels, bias):
+    """Preserve transpose-convolution outputs when converting LiteRT upsampling for WebGPU."""
+    from ultralytics.utils.export.litert import _LiteRTUpsample
+
+    layer = torch.nn.ConvTranspose2d(4, channels, 2, 2, bias=bias).eval()
+    x = torch.randn(2, 4, 13, 17)
+    assert torch.allclose(_LiteRTUpsample(layer)(x), layer(x), rtol=1e-5, atol=1e-6)
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not (MACOS or (LINUX and not ARM64)), reason="LiteRT export only supported on Linux x86 and macOS")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="litert-torch requires Python>=3.10")

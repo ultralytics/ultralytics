@@ -167,4 +167,5 @@ COCO128 ships with object detection labels only. For other tasks, use the purpos
 
 - **Instance segmentation**: [COCO128-seg](../segment/coco128-seg.md) adds segmentation masks to the same first 128 COCO train2017 images
 - **Pose estimation**: [COCO8-pose](../pose/coco8-pose.md) provides person keypoint annotations for quick tests
-  COCO128 itself also works as a small fine-tuning target for testing custom training setups. See the [segmentation](../../tasks/segment.md) and [pose estimation](../../tasks/pose.md) task pages for training details.
+
+COCO128 itself also works as a small fine-tuning target for testing custom training setups. See the [segmentation](../../tasks/segment.md) and [pose estimation](../../tasks/pose.md) task pages for training details.

@@ -79,7 +79,7 @@ The `VisDrone.yaml` file defines the dataset configuration — the dataset paths
 
     VisDrone downloads automatically the first time you train — three archives totaling about 2 GB — and needs roughly 4 GB of free disk space during extraction and conversion.
 
-To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

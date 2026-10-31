@@ -27,11 +27,11 @@ Paperspace Gradient simplifies this. It is an [MLOps](https://www.ultralytics.co
 
 Paperspace Gradient is a suite of tools designed to make working with AI and machine learning in the cloud faster and easier. Gradient addresses the entire [machine learning lifecycle](../guides/steps-of-a-cv-project.md), from building and training models to deploying them.
 
-Within its toolkit, it includes support for Google's TPUs via a job runner, comprehensive support for Jupyter notebooks and containers, and new programming language integrations. These integrations let users adapt existing Python projects to run on modern GPU infrastructure.
+Within its toolkit, it includes comprehensive support for Jupyter notebooks and containers, and new programming language integrations. These integrations let users adapt existing Python projects to run on modern GPU infrastructure.
 
 ## Training YOLO26 Using Paperspace Gradient
 
-Paperspace Gradient makes training a YOLO26 model possible with a few clicks. Thanks to the integration, you can access the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO26 Model Training guide](../modes/train.md).
+Paperspace Gradient makes training a YOLO26 model possible with a few clicks. Thanks to the [integration](https://www.ultralytics.com/blog/ultralytics-x-paperspace-advancing-object-detection-capabilities-through-partnership), you can access the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO26 Model Training guide](../modes/train.md).
 
 Sign in and then click on the "Start Machine" button shown in the image below. In a few seconds, a managed GPU environment will start up, and then you can run the notebook's cells.
 
@@ -47,7 +47,7 @@ Explore more capabilities of Ultralytics YOLO and Paperspace Gradient in a discu
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics Live Session 7: It's All About the Environment: Optimizing YOLO26 Training With Gradient
+  <strong>Watch:</strong> Ultralytics Live Session 7: It's All About the Environment: Optimizing YOLO Training With Gradient
 </p>
 
 ## Key Features of Paperspace Gradient
@@ -56,7 +56,7 @@ As you explore the [Paperspace console](https://console.paperspace.com/github/ul
 
 - **One-Click Notebooks:** Gradient provides preconfigured [Jupyter Notebooks](jupyterlab.md) tailored for YOLO26, eliminating the need for environment setup and dependency management. Choose the desired notebook and start experimenting immediately.
 
-- **Hardware Flexibility:** Choose from a range of machine types with varying CPU, GPU, and TPU configurations to suit your training needs and budget. Gradient handles all the backend setup, allowing you to focus on model development.
+- **Hardware Flexibility:** Choose from a range of machine types with varying CPU and GPU configurations to suit your training needs and budget. Gradient handles all the backend setup, allowing you to focus on model development.
 
 - **Experiment Tracking:** Gradient automatically [tracks your experiments](https://www.ultralytics.com/glossary/experiment-tracking), including hyperparameters, metrics, and code changes. This allows you to compare different training runs, identify optimal configurations, and reproduce successful results.
 
@@ -72,7 +72,7 @@ Many options are available for training, deploying, and evaluating YOLO26 models
 
 - **Enhanced Collaboration:** Shared workspaces and version control support teamwork and reproducibility, allowing your team to work together effectively and maintain a clear history of your project.
 
-- **Low-Cost GPUs:** Gradient provides access to high-performance GPUs at competitive prices compared with major cloud providers or on-premises hardware. With per-second billing, you only pay for the resources you actually use.
+- **Low-Cost GPUs:** Gradient provides access to high-performance GPUs at competitive prices compared with major cloud providers or on-premises hardware.
 
 - **Predictable Costs:** Gradient's on-demand pricing ensures cost transparency and predictability. You can scale your resources up or down as needed and only pay for the time you use, avoiding unnecessary expenses.
 
@@ -80,7 +80,7 @@ Many options are available for training, deploying, and evaluating YOLO26 models
 
 ## Summary
 
-This guide explored the [Paperspace Gradient integration](https://www.ultralytics.com/blog/ultralytics-x-paperspace-advancing-object-detection-capabilities-through-partnership) for training YOLO26 models. Gradient provides the tools and infrastructure for model training, evaluation, and deployment.
+Gradient provides the tools and infrastructure for model training, evaluation, and deployment.
 
 For further exploration, visit [Paperspace's official documentation](https://docs.digitalocean.com/products/paperspace/).
 
@@ -94,7 +94,7 @@ Training a YOLO26 model with Paperspace Gradient is straightforward. First, sign
 
 Paperspace Gradient offers several advantages for training and deploying YOLO26 models:
 
-- **Hardware Flexibility:** Choose from various CPU, GPU, and TPU configurations.
+- **Hardware Flexibility:** Choose from various CPU and GPU configurations.
 - **One-Click Notebooks:** Use pre-configured Jupyter Notebooks for YOLO26 without worrying about environment setup.
 - **Experiment Tracking:** Automatic tracking of hyperparameters, metrics, and code changes.
 - **Dataset Management:** Manage your datasets within Gradient.

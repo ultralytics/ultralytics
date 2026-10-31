@@ -135,7 +135,7 @@ After creating the AWS CloudFormation Stack, the next step is to deploy YOLO26.
         return json.dumps(infer)
     ```
 
-- Deploy the Endpoint Using 1_DeployEndpoint.ipynb: In the Jupyter environment, open the 1_DeployEndpoint.ipynb notebook located in the sm-notebook directory. Follow the instructions in the notebook and run the cells to download the YOLO26 model, package it with the updated inference code, and upload it to an Amazon S3 bucket. The notebook will guide you through creating and deploying a SageMaker endpoint for the YOLO26 model.
+- Deploy the Endpoint Using 1_DeployEndpoint.ipynb: In the Jupyter environment, open the 1_DeployEndpoint.ipynb notebook located in the sm-notebook directory. Set `model_name` in the notebook to a YOLO26 checkpoint such as `yolo26n.pt` (it defaults to a YOLOv8 model), then run the cells to download the model, package it with the updated inference code, and upload it to an Amazon S3 bucket. The notebook will guide you through creating and deploying a SageMaker endpoint for the YOLO26 model.
 
 ### Step 6: Testing Your Deployment
 

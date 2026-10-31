@@ -213,14 +213,14 @@ Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive gu
 
 ### Why should I use Ultralytics Platform for my dataset?
 
-[Ultralytics Platform](https://platform.ultralytics.com) offers dataset management and analysis features, including:
+[Ultralytics Platform](https://platform.ultralytics.com) offers [dataset management and analysis features](../platform/data/index.md), including:
 
 - **Dataset Management**: Upload, organize, and manage your datasets in one place.
 - **Immediate Training Integration**: Use uploaded datasets directly for model training without additional setup.
 - **Visualization Tools**: Explore and visualize your dataset images and annotations.
 - **Dataset Analysis**: Get insights into your dataset distribution and characteristics.
 
-Datasets move straight from management to model training on the same platform. Learn more about [Ultralytics Platform Datasets](../platform/data/index.md).
+Datasets move straight from management to model training on the same platform.
 
 ### What are the unique features of Ultralytics YOLO models for computer vision?
 

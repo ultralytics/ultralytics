@@ -153,7 +153,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
     Minimum and Maximum cuda capability supported by this version of PyTorch is (8.0) - (12.0)
     ```
 
-    This warning can be safely ignored. To address this permanently, a fix has been submitted in PyTorch PR [#164590](https://github.com/pytorch/pytorch/pull/164590) which will be included in the PyTorch 2.10 release.
+    This warning can be safely ignored.
 
 ### Install `onnxruntime-gpu`
 
@@ -406,7 +406,7 @@ YOLO models run fast on DGX Spark thanks to the GB10 Grace Blackwell Superchip. 
 
 ### Why should I use TensorRT for YOLO26 on DGX Spark?
 
-TensorRT is recommended for deploying YOLO26 models on DGX Spark because it delivers the fastest inference of the supported export formats, using the Blackwell GPU's Tensor Cores with FP16 or INT8 precision. Learn more in the [Use TensorRT on NVIDIA DGX Spark](#use-tensorrt-on-nvidia-dgx-spark) section.
+TensorRT is recommended for deploying YOLO26 models on DGX Spark because it delivers the fastest inference of the supported export formats, using the Blackwell GPU's Tensor Cores with FP16 or INT8 precision.
 
 ### How does DGX Spark compare to Jetson devices for YOLO26?
 

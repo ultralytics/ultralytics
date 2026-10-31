@@ -424,7 +424,7 @@ For detailed instructions, refer to the [Start without Docker](#start-without-do
 
 ### Why should I use Ultralytics YOLO26's NCNN format on Raspberry Pi for AI tasks?
 
-NCNN is highly optimized for mobile and embedded platforms, making it a strong choice for running YOLO26 on Raspberry Pi devices. Its ARM-optimized kernels deliver faster inference on the Pi than the other export formats in the [benchmarks above](#raspberry-pi-5-yolo26-benchmarks). For more details on supported export formats, see the [model export options](model-deployment-options.md).
+NCNN is highly optimized for mobile and embedded platforms, making it a strong choice for running YOLO26 on Raspberry Pi devices. Its ARM-optimized kernels deliver faster inference on the Pi than the other export formats in the [benchmarks above](#raspberry-pi-5-yolo26-benchmarks).
 
 ### How can I convert a YOLO26 model to NCNN format for use on Raspberry Pi?
 

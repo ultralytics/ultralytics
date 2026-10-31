@@ -178,7 +178,7 @@ AzureML provides a managed environment for training YOLO26 models:
 - **MLOps Integration**: Use features like versioning, monitoring, and auditing to streamline ML operations.
 - **Collaboration**: Share and manage resources within teams, enhancing collaborative workflows.
 
-These features make AzureML a good fit for projects ranging from quick prototypes to large-scale deployments. For more tips, check out [AzureML Jobs](https://learn.microsoft.com/azure/machine-learning/how-to-train-model).
+These features make AzureML a good fit for projects ranging from quick prototypes to large-scale deployments.
 
 ### How do I troubleshoot common issues when running YOLO26 on AzureML?
 

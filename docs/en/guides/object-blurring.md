@@ -153,4 +153,4 @@ Yes. Train or fine-tune a YOLO26 [detection model](../tasks/detect.md) for faces
 
 ### How does YOLO26 compare to other object detection models like Faster R-CNN for object blurring?
 
-Ultralytics YOLO26 is typically faster than [two-stage detectors](https://www.ultralytics.com/glossary/two-stage-object-detectors) like Faster R-CNN, making it more suitable for real-time applications. While both models offer accurate detection, YOLO26's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLO26 documentation](../models/yolo26.md).
+Ultralytics YOLO26 is typically faster than [two-stage detectors](https://www.ultralytics.com/glossary/two-stage-object-detectors) like Faster R-CNN, making it more suitable for real-time applications. While both models offer accurate detection, [YOLO26's architecture](../models/yolo26.md) is optimized for rapid inference, which is critical for tasks like real-time object blurring.

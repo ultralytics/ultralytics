@@ -315,7 +315,7 @@ This approach customizes [object detection](../tasks/detect.md) models for speci
 
 !!! note
 
-    `WorldTrainerFromScratch` is highly customized to allow training YOLO-World models on both detection datasets and grounding datasets simultaneously. For more details, see [ultralytics.models.yolo.world.train_world.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train_world.py).
+    [`WorldTrainerFromScratch`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train_world.py) is highly customized to allow training YOLO-World models on both detection datasets and grounding datasets simultaneously.
 
 !!! example
 

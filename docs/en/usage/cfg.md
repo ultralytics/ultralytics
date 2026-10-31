@@ -89,7 +89,7 @@ Ultralytics YOLO models operate in different modes, each designed for a specific
 
 ## Train Settings
 
-Training settings for YOLO models include hyperparameters and configurations that affect the model's performance, speed, and accuracy. Key settings include [batch size](https://www.ultralytics.com/glossary/batch-size), [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. The choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and dataset composition also impact training. Tuning and experimentation are crucial for optimal performance. For more details, see the [Ultralytics entrypoint function](../reference/cfg/__init__.md).
+Training settings for YOLO models include hyperparameters and [configurations](../reference/cfg/__init__.md) that affect the model's performance, speed, and accuracy. Key settings include [batch size](https://www.ultralytics.com/glossary/batch-size), [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. The choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and dataset composition also impact training. Tuning and experimentation are crucial for optimal performance.
 
 {% include "macros/train-args.md" %}
 
@@ -100,7 +100,8 @@ Training settings for YOLO models include hyperparameters and configurations tha
     - **Fixed Batch Size**: Specify the number of images per batch with an integer (e.g., `batch=16`).
     - **Auto Mode (60% GPU Memory)**: Use `batch=-1` for automatic adjustment to approximately 60% of the CUDA memory available to training.
     - **Auto Mode with Utilization Fraction**: Set a fraction (e.g., `batch=0.70`) to adjust based on a specified fraction of available GPU memory.
-    - **No Fit Found**: If no candidate batch size produces a usable profile, AutoBatch raises a clear `RuntimeError` instead of silently falling back to an unrelated default.
+
+    If no candidate batch size produces a usable profile, AutoBatch raises a clear `RuntimeError` instead of silently falling back to an unrelated default.
 
 [Train Guide](../modes/train.md){ .md-button }
 
@@ -187,7 +188,7 @@ Load a saved YAML to reuse a full set of arguments without passing them inline. 
 
 ### How do I improve my YOLO model's performance during training?
 
-Improve performance by tuning hyperparameters like batch size, learning rate, momentum, and weight decay. Adjust data augmentation settings, select the right optimizer, and use techniques like early stopping or mixed precision. For details, see the [Train Guide](../modes/train.md).
+Improve performance by tuning hyperparameters like batch size, learning rate, momentum, and weight decay. Adjust data augmentation settings, select the right optimizer, and use techniques like early stopping or mixed precision.
 
 ### What are the key hyperparameters for YOLO model accuracy?
 
@@ -217,4 +218,4 @@ For a full overview, see [Predict Settings](#predict-settings) and the [Predict 
 
 ### Why use mixed precision training with YOLO models?
 
-[Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) training (`amp=True`, or `amp='bf16'` for BF16) reduces memory usage and speeds up training by combining half-precision and FP32 computation. It's beneficial for modern GPUs, allowing larger models and faster computations without significant accuracy loss. Learn more in the [Train Guide](../modes/train.md).
+[Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) training (`amp=True`, or `amp='bf16'` for BF16) reduces memory usage and speeds up [training](../modes/train.md) by combining half-precision and FP32 computation. It's beneficial for modern GPUs, allowing larger models and faster computations without significant accuracy loss.

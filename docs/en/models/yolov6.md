@@ -162,4 +162,4 @@ Anchor-Aided Training (AAT) in YOLOv6 combines elements of anchor-based and anch
 
 ### Which operational modes are supported by YOLOv6 models in Ultralytics?
 
-YOLOv6 supports the Training, Validation, Inference, and Export modes. Check out the [Supported Tasks and Modes](#supported-tasks-and-modes) section for a detailed overview of each mode.
+YOLOv6 supports the Training, Validation, Inference, and Export [modes](#supported-tasks-and-modes).

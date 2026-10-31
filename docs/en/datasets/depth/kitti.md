@@ -60,7 +60,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-depth model on the KITTI dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch), you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a YOLO26n-depth model on the KITTI dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch), you can use the following code snippets.
 
 !!! example "Train Example"
 

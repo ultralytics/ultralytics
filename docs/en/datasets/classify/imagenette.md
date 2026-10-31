@@ -38,7 +38,7 @@ The ImageNette dataset is widely used for training and evaluating [deep learning
 
 ## Usage
 
-To train a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on the ImageNette dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with a standard image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on the ImageNette dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with a standard image size of 224x224, you can use the following code snippets.
 
 !!! example "Train Example"
 

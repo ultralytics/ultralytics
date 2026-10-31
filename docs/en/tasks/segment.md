@@ -28,7 +28,7 @@ The output of an instance segmentation model is a set of masks or contours that 
 
     YOLO26 Segment models use the `-seg` suffix, e.g., `yolo26n-seg.pt`, and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
+## Models
 
 YOLO26 Segment models pretrained on the [COCO](../datasets/segment/coco.md) dataset are shown below.
 
@@ -46,7 +46,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) on the [COCO8-seg](https://platform.ultralytics.com/ultralytics/datasets/coco8-seg) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+[Train](../usage/cfg.md#train-settings) a [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) model on the [COCO8-seg](https://platform.ultralytics.com/ultralytics/datasets/coco8-seg) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640.
 
 !!! example
 

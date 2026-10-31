@@ -226,8 +226,8 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 | [TF GraphDef](../integrations/tf-graphdef.md)     | ✅             | ✅                       | Legacy TensorFlow format.                                                              |
 | [TF Edge TPU](../integrations/edge-tpu.md)        | ✅             | ✅                       | Specific to Google's Edge TPU devices.                                                 |
 | [LiteRT](../integrations/litert.md)               | ✅             | ✅                       | Optimized for mobile, embedded, and browser (LiteRT.js).                               |
-| [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌             | ❌                       | Popular in China; less global support.                                                 |
-| [NCNN](../integrations/ncnn.md)                   | ✅             | ❌                       | The `torch.topk` operator is not supported by the NCNN runtime.                        |
+| [PaddlePaddle](../integrations/paddlepaddle.md)   | ✅             | ✅                       | Popular in China; less global support.                                                 |
+| [NCNN](../integrations/ncnn.md)                   | ✅             | ✅                       | Optimized for mobile and embedded devices.                                             |
 
 ## Conclusion
 
@@ -260,7 +260,7 @@ For detailed implementation, architectural innovations, and experimental results
 
 ### What is YOLOv10 and how does it differ from previous YOLO versions?
 
-YOLOv10, developed by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces several key innovations to real-time object detection. It eliminates the need for non-maximum suppression (NMS) by employing consistent dual assignments during training, and optimizes model components to reduce computational overhead. For more details on its architecture and key features, check out the [YOLOv10 overview](#overview) section.
+YOLOv10, developed by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces several [key innovations](#overview) to real-time object detection. It eliminates the need for non-maximum suppression (NMS) by employing consistent dual assignments during training, and optimizes model components to reduce computational overhead.
 
 ### How can I get started with running inference using YOLOv10?
 

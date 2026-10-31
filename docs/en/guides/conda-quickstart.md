@@ -11,11 +11,11 @@ keywords: Ultralytics, YOLO, Conda, conda-forge, install Ultralytics, conda envi
   <img width="800" src="https://cdn.ul.run/i/59a3c831a2309a5822e4d5f5be52dbe5.avif" alt="Ultralytics package for Conda from conda-forge">
 </p>
 
-This guide walks through setting up a Conda environment for your Ultralytics projects. Conda is an open-source package and environment management system and an alternative to pip for installing packages and dependencies. Its isolated environments make it particularly well-suited for data science and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) work. For more details, visit the Ultralytics Conda package on [Anaconda](https://anaconda.org/conda-forge/ultralytics) and check out the Ultralytics feedstock repository for package updates on [GitHub](https://github.com/conda-forge/ultralytics-feedstock/).
+This guide walks through setting up a Conda environment for your Ultralytics projects. Conda is an open-source package and environment management system and an alternative to pip for installing packages and dependencies. Its isolated environments make it particularly well-suited for data science and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) work.
 
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge)](https://anaconda.org/conda-forge/ultralytics)
 [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
-[![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics)
+[![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://github.com/conda-forge/ultralytics-feedstock)
 [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
 
 This guide covers how to [create an environment with Ultralytics](#installing-ultralytics), [run inference](#using-ultralytics), use the [Conda Docker image](#ultralytics-conda-docker-image), and [speed up installs with libmamba](#speeding-up-installation-with-libmamba).

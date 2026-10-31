@@ -25,7 +25,7 @@ The Ultralytics Brain Tumor dataset is an [object detection](https://www.ultraly
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Brain Tumor Detection using Ultralytics Platform with Ultralytics YOLO26 | Object Detection
+  <strong>Watch:</strong> Brain Tumor Detection using Ultralytics Platform with Ultralytics YOLO26 | Object Detection 🚀
 </p>
 
 ## Dataset Structure
@@ -69,7 +69,7 @@ A YAML file defines the dataset configuration, including paths, classes, and oth
 
 ## Usage
 
-To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the code snippets below. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the code snippets below.
 
 !!! example "Train Example"
 

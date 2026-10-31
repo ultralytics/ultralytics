@@ -53,7 +53,7 @@ TorchScript offers various deployment options for [machine learning](https://www
 
 - **Mobile Deployment**: For low-latency, offline inference and [data privacy](https://www.ultralytics.com/glossary/data-privacy) on mobile devices, use [ExecuTorch](executorch.md), PyTorch's replacement for TorchScript Mobile.
 
-- **Cloud Deployment**: TorchScript models can be deployed to cloud-based servers using solutions like TorchServe. It provides features like model versioning, batching, and metrics monitoring for scalable deployment in production environments. Cloud deployment with TorchScript can make your models accessible via APIs or other web services.
+- **Cloud Deployment**: TorchScript models can be deployed to cloud-based servers using solutions like NVIDIA Triton Inference Server. It provides features like model versioning, batching, and metrics monitoring for scalable deployment in production environments. Cloud deployment with TorchScript can make your models accessible via APIs or other web services.
 
 ## Supported Tasks
 
@@ -169,7 +169,7 @@ After successfully exporting your Ultralytics YOLO26 models to TorchScript forma
 
 - **[Explore Mobile Deployment](https://docs.pytorch.org/executorch/)**: Use ExecuTorch's separate `torch.export()` → `.pte` pipeline for current PyTorch mobile deployment.
 
-- **[Master Server-Side Deployment](https://docs.pytorch.org/serve/getting_started.html)**: Learn how to deploy models server-side with TorchServe, offering a step-by-step tutorial for scalable, efficient model serving.
+- **[Master Server-Side Deployment](https://github.com/triton-inference-server/pytorch_backend)**: Learn how to serve TorchScript models with the PyTorch backend of NVIDIA Triton Inference Server for scalable, efficient model serving.
 
 - **[Implement C++ Deployment](https://docs.pytorch.org/tutorials/advanced/cpp_export.html)**: Dive into the Tutorial on Loading a TorchScript Model in C++, facilitating the integration of your TorchScript models into C++ applications for enhanced performance and versatility.
 
@@ -230,7 +230,7 @@ Using TorchScript for deploying YOLO26 models offers several advantages:
 - **Cross-Language Integration**: TorchScript models can be integrated into other programming languages, enhancing flexibility and expandability.
 - **Serialization**: Models can be serialized, allowing for platform-independent loading and inference.
 
-For more insights into deployment, visit the [TorchServe Documentation](https://docs.pytorch.org/serve/getting_started.html) and the [C++ Deployment Guide](https://docs.pytorch.org/tutorials/advanced/cpp_export.html). For on-device mobile deployment, PyTorch now recommends [ExecuTorch](https://docs.pytorch.org/executorch/), which uses its own separate `torch.export()` → `.pte` pipeline rather than TorchScript.
+For more insights into deployment, visit the [C++ Deployment Guide](https://docs.pytorch.org/tutorials/advanced/cpp_export.html). For on-device mobile deployment, PyTorch now recommends [ExecuTorch](https://docs.pytorch.org/executorch/), which uses its own separate `torch.export()` → `.pte` pipeline rather than TorchScript.
 
 ### What are the installation steps for exporting YOLO26 models to TorchScript?
 
@@ -253,4 +253,4 @@ After exporting YOLO26 models to the TorchScript format, you can deploy them acr
 
 - **C++ API**: Use [LibTorch](https://docs.pytorch.org/cppdocs/) for low-overhead, highly efficient production environments.
 - **Mobile Deployment**: Use [ExecuTorch](executorch.md), PyTorch's supported replacement with a separate `.pte` export pipeline.
-- **Cloud Deployment**: Use services like [TorchServe](https://docs.pytorch.org/serve/getting_started.html) for scalable server-side deployment.
+- **Cloud Deployment**: Use services like [NVIDIA Triton Inference Server](https://github.com/triton-inference-server/pytorch_backend) for scalable server-side deployment.

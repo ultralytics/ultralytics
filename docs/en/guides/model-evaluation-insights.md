@@ -127,7 +127,7 @@ To evaluate YOLO26 model performance, important metrics include Confidence Score
 
 ### How can I fine-tune a pretrained YOLO26 model for my specific dataset?
 
-Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then retrain from the pretrained weights on your own dataset. During evaluation, parameters like `rect=True` help handle varied image sizes effectively. For the training arguments to adjust, see the [fine-tuning guide](./finetuning-guide.md).
+Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then retrain from the pretrained weights on your own dataset. During evaluation, parameters like `rect=True` help handle varied image sizes effectively.
 
 ### How can I handle variable image sizes when evaluating my YOLO26 model?
 

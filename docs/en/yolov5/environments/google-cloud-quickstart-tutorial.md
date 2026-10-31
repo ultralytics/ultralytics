@@ -61,7 +61,7 @@ python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos
 python export.py --weights yolov5s.pt --include onnx coreml tflite
 ```
 
-With a few commands, you can train custom [object detection](../../tasks/detect.md) models tailored to your needs or start from pretrained weights for quick results. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
+With a few commands, you can train custom [object detection](../../tasks/detect.md) models tailored to your needs or start from pretrained weights for quick results.
 
 ![YOLOv5 model training on GCP VM](https://cdn.ul.run/i/57974b007600e7c2bfe7958f08cf4366.avif)
 
@@ -144,4 +144,4 @@ For small datasets use `gcloud compute scp`. For anything larger, upload to a Cl
 
 ### Can I use the `ultralytics` package on the same VM?
 
-Yes. The Deep Learning VM already has PyTorch, so `pip install ultralytics` adds [YOLO26](../../models/yolo26.md) training and export with the `yolo` CLI. See the [Quickstart](../../quickstart.md) for details.
+Yes. The Deep Learning VM already has PyTorch, so [`pip install ultralytics`](../../quickstart.md) adds [YOLO26](../../models/yolo26.md) training and export with the `yolo` CLI.

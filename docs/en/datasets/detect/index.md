@@ -376,7 +376,7 @@ from ultralytics.data.converter import convert_coco
 convert_coco(labels_dir="path/to/coco/annotations/")
 ```
 
-This code converts your COCO annotations to YOLO format so you can train Ultralytics YOLO models on them. For additional details, visit the [Port or Convert Label Formats](#port-or-convert-label-formats) section.
+This code [converts your COCO annotations to YOLO format](#port-or-convert-label-formats) so you can train Ultralytics YOLO models on them.
 
 ### Which datasets are supported by Ultralytics YOLO for object detection?
 

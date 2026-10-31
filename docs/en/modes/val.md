@@ -255,7 +255,7 @@ Using Ultralytics YOLO for validation provides several advantages:
 - **Flexibility:** You can validate against the same or different datasets and image sizes.
 - **Hyperparameter Tuning:** Validation metrics help in fine-tuning models for better performance.
 
-These benefits help you evaluate models thoroughly and optimize them. Learn more about these advantages in the [Why Validate with Ultralytics YOLO](#why-validate-with-ultralytics-yolo) section.
+These [benefits](#why-validate-with-ultralytics-yolo) help you evaluate models thoroughly and optimize them.
 
 ### Can I validate my YOLO26 model using a custom dataset?
 

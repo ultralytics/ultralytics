@@ -142,7 +142,7 @@ uploads.
 
 !!! warning "Use CDI for GPU access"
 
-    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. Platform detects the supported GPU path automatically on Linux and Windows, while macOS hosts train on CPU; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
+    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration uses Container Device Interface (CDI) device requests, which require Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. Platform detects the supported GPU path automatically on Linux and Windows, while macOS hosts train on CPU; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
 
 ## Add a Dataset
 

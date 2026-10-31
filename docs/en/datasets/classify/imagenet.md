@@ -51,7 +51,7 @@ The ImageNet dataset is widely used to train and evaluate deep learning models f
 
 ## Usage
 
-To train a YOLO classification model on ImageNet for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at a 224x224 image size, use the code snippets below. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a YOLO classification model on ImageNet for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at a 224x224 image size, use the code snippets below.
 
 !!! example "Train Example"
 
@@ -143,7 +143,7 @@ For more in-depth training instructions, refer to our [Training page](../../mode
 
 ### Why should I use the Ultralytics YOLO26 pretrained models for my ImageNet dataset projects?
 
-Ultralytics YOLO26 pretrained classification models offer a strong balance of speed and accuracy. For example, the YOLO26n-cls model, with a top-1 accuracy of 71.4% and a top-5 accuracy of 90.1%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLO26 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
+[Ultralytics YOLO26 pretrained classification models](#imagenet-pretrained-models) offer a strong balance of speed and accuracy. For example, the YOLO26n-cls model, with a top-1 accuracy of 71.4% and a top-5 accuracy of 90.1%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles.
 
 ### What role does the ImageNet Large Scale Visual Recognition Challenge (ILSVRC) play in computer vision?
 

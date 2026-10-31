@@ -82,7 +82,7 @@ The `xView.yaml` file defines the dataset configuration — the dataset paths, t
 
     Training expects the manual download described above to be extracted under `datasets/xView/`; annotation conversion and the train/val split then run automatically.
 
-To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a model on the xView dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

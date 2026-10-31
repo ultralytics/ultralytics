@@ -51,7 +51,7 @@ The [`tiger-pose.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ult
 
 ## Usage
 
-To train a [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) model on the Tiger-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) model on the Tiger-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

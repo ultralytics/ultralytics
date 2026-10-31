@@ -42,7 +42,7 @@ The VSCode-compatible protocols for viewing images in the integrated terminal ar
     pip install sixel
     ```
 
-3. Load a model and execute inference, then plot the results and store them in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
+3. Load a model and [execute inference](../modes/predict.md), then plot the results and store them in a variable.
 
     ```{ .py .annotate }
     from ultralytics import YOLO

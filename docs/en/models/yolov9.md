@@ -206,11 +206,11 @@ The official YOLOv9 paper was published in the [Springer ECCV 2024 proceedings](
 
 ### What innovations does YOLOv9 introduce for real-time object detection?
 
-YOLOv9 introduces two main techniques: Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN). These innovations address information loss challenges in deep neural networks, ensuring high efficiency, accuracy, and adaptability. PGI preserves essential data across network layers, while GELAN optimizes parameter utilization and computational efficiency. Learn more about [YOLOv9's core innovations](#core-innovations-of-yolov9) that set new benchmarks on the MS COCO dataset.
+YOLOv9 introduces [two main techniques](#core-innovations-of-yolov9): Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN). These innovations address information loss challenges in deep neural networks, ensuring high efficiency, accuracy, and adaptability. PGI preserves essential data across network layers, while GELAN optimizes parameter utilization and computational efficiency.
 
 ### How does YOLOv9 perform on the MS COCO dataset compared to other models?
 
-At release, YOLOv9 outperformed other state-of-the-art real-time object detectors in accuracy and efficiency. On the [COCO dataset](../datasets/detect/coco.md), YOLOv9 models achieve higher mAP scores across various sizes while maintaining or reducing computational overhead. For instance, YOLOv9c achieves comparable accuracy with 42% fewer parameters and 21% less computational demand than YOLOv7 AF. Explore [performance comparisons](#performance-on-ms-coco-dataset) for detailed metrics.
+At release, YOLOv9 outperformed other state-of-the-art real-time object detectors in accuracy and efficiency. On the [COCO dataset](../datasets/detect/coco.md), YOLOv9 models achieve [higher mAP scores](#performance-on-ms-coco-dataset) across various sizes while maintaining or reducing computational overhead. For instance, YOLOv9c achieves comparable accuracy with 42% fewer parameters and 21% less computational demand than YOLOv7 AF.
 
 ### How can I train a YOLOv9 model using Python and CLI?
 
@@ -238,4 +238,4 @@ YOLOv9 is designed to mitigate information loss, which is particularly important
 
 ### What tasks and modes does YOLOv9 support?
 
-YOLOv9 supports object detection and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) in the training, validation, inference, and export modes. Refer to the [supported tasks and modes](#supported-tasks-and-modes) section for more information.
+YOLOv9 supports object detection and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) in the training, validation, inference, and export [modes](#supported-tasks-and-modes).

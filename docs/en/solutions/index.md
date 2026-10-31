@@ -36,7 +36,7 @@ Each solution below has a dedicated guide:
 - [Object Counting in Regions](../guides/region-counting.md): Count objects inside multiple user-defined regions with YOLO26.
 - [Object Cropping](../guides/object-cropping.md): Crop detected objects from images and videos with YOLO26 and save each one as a separate image.
 - [Parking Management](../guides/parking-management.md): Monitor occupied and available parking spaces with YOLO26.
-- [Queue Management](../guides/queue-management.md): Count people waiting in a queue region with YOLO26 to monitor wait lines.
+- [Queue Management](../guides/queue-management.md): Count people waiting in a queue region with YOLO26 to monitor queue lengths.
 - [Security Alarm System](../guides/security-alarm-system.md): Build a security alarm system with YOLO26 that sends an email alert when the number of detected objects reaches a threshold.
 - [Similarity Search](../guides/similarity-search.md): Retrieve images with natural language queries such as "person holding a bag" or "vehicles in motion" by combining [OpenAI CLIP](https://www.ultralytics.com/glossary/clip-contrastive-language-image-pre-training) embeddings with cosine-similarity search.
 - [Speed Estimation](../guides/speed-estimation.md): Estimate object speed with YOLO26 and object tracking for applications such as traffic monitoring.

@@ -160,7 +160,7 @@ The two most common techniques are min-max scaling (rescaling pixels to a range 
 
 ### How should I split my annotated dataset for training?
 
-A common practice is 70% for training, 20% for validation, and 10% for testing. Maintain the class distribution across all three splits, and avoid [data leakage](https://www.ultralytics.com/glossary/data-leakage) by applying augmentation only to the training set after the split. Tools like scikit-learn or TensorFlow handle the split efficiently. See the [data collection and annotation guide](./data-collection-and-annotation.md) for upstream dataset preparation.
+A common practice is 70% for training, 20% for validation, and 10% for testing. Maintain the class distribution across all three splits, and avoid [data leakage](https://www.ultralytics.com/glossary/data-leakage) by applying augmentation only to the training set after the split. Tools like scikit-learn or TensorFlow handle the split efficiently.
 
 ### Can YOLO26 handle varying image sizes without manual resizing?
 

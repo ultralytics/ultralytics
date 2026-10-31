@@ -42,7 +42,7 @@ These tutorials guide you through different aspects of YOLOv5:
 - [Model Pruning/Sparsity](tutorials/model-pruning-and-sparsity.md): Understand pruning and sparsity concepts, and how to create a more efficient model.
 - [Hyperparameter Evolution](tutorials/hyperparameter-evolution.md): Discover the process of automated [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) for better model performance.
 - [Transfer Learning with Frozen Layers](tutorials/transfer-learning-with-frozen-layers.md): Learn how to implement [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by freezing layers in YOLOv5.
-- [Architecture Summary](tutorials/architecture-description.md): Delve into the structural details of the YOLOv5 model. Read the [YOLOv5 v6.0 blog post](https://www.ultralytics.com/blog/yolov5-v6-0-is-here) for more insights.
+- [Architecture Summary](tutorials/architecture-description.md): Delve into the structural details of the YOLOv5 model.
 - [ClearML Logging Integration](tutorials/clearml-logging-integration.md): Learn how to integrate [ClearML](https://clear.ml/) for logging during model training.
 - [YOLOv5 with Neural Magic](tutorials/neural-magic-pruning-quantization.md): Discover how to use [Neural Magic's DeepSparse](https://github.com/neuralmagic/deepsparse/blob/main/README.md) to prune and quantize your YOLOv5 model.
 - [Comet Logging Integration](tutorials/comet-logging-integration.md): Learn how to use [Comet](https://www.comet.com/site/) to log and visualize training runs.
@@ -98,7 +98,7 @@ Ultralytics YOLOv5 is known for fast, high-[accuracy](https://www.ultralytics.co
 
 ### Why should I use Ultralytics YOLOv5 over other object detection models like RCNN?
 
-Ultralytics YOLOv5 is often chosen over models like [R-CNN](https://www.ultralytics.com/blog/what-is-r-cnn-a-quick-overview) for its speed and accuracy in real-time object detection. As a [one-stage detector](https://www.ultralytics.com/glossary/one-stage-object-detectors), YOLOv5 processes the entire image in a single pass, making it significantly faster than the region-based approach of R-CNN, which involves multiple passes. Its support for many export formats and extensive documentation also make it a good choice for both beginners and professionals. Learn more about the architectural advantages in our [Architecture Summary](tutorials/architecture-description.md).
+Ultralytics YOLOv5 is often chosen over models like [R-CNN](https://www.ultralytics.com/blog/what-is-r-cnn-a-quick-overview) for its speed and accuracy in real-time object detection. As a [one-stage detector](https://www.ultralytics.com/glossary/one-stage-object-detectors), YOLOv5 processes the entire image in a [single pass](tutorials/architecture-description.md), making it significantly faster than the region-based approach of R-CNN, which involves multiple passes. Its support for many export formats and extensive documentation also make it a good choice for both beginners and professionals.
 
 ### How can I optimize YOLOv5 model performance during training?
 

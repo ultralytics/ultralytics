@@ -7,7 +7,7 @@ keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVIN
 
 # Comparative Analysis of YOLO26 Deployment Options
 
-YOLO26 supports more than 20 [model deployment](https://www.ultralytics.com/glossary/model-deployment) options, each tuned for a different runtime, [hardware target](https://academy.ultralytics.com/courses/yolo-in-production/choose-a-deployment-target), or platform — from PyTorch and [ONNX](../integrations/onnx.md) to [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and dedicated edge-NPU formats. Picking the right one balances inference speed, hardware constraints, and ease of integration. This guide compares every option so you can choose the best fit for your application, then move on to [model deployment best practices](./model-deployment-practices.md) to deploy it reliably.
+YOLO26 supports more than 20 [model deployment](https://www.ultralytics.com/glossary/model-deployment) options, each tuned for a different runtime, [hardware target](https://academy.ultralytics.com/courses/yolo-in-production/choose-a-deployment-target), or platform — from PyTorch and [ONNX](../integrations/onnx.md) to [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and dedicated edge-NPU formats. Picking the right one balances inference speed, hardware constraints, and ease of integration. This guide compares every option so you can choose the best fit for your application.
 
 <p align="center">
   <br>

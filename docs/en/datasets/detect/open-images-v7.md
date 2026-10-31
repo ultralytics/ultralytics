@@ -117,7 +117,7 @@ The `open-images-v7.yaml` file defines the dataset configuration — the dataset
 
     Open Images V7 downloads automatically on first use and requires about 561 GB of free disk space for its 1,743,042 training and 41,620 validation images. The download script installs the `fiftyone` package to fetch the images and converts the annotations to YOLO format, which can take a long time depending on your connection and hardware.
 
-To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Open Images V7 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Open Images V7 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

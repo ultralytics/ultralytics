@@ -135,9 +135,9 @@ dataset = project.version(VERSION)
 # Upload model weights for deployment
 # Ensure MODEL_PATH points to the directory containing 'best.pt'
 dataset.deploy(
-    model_type="yolov8",
+    model_type="yolo26n",
     model_path=MODEL_PATH,
-)  # Note: Use "yolov8" as model_type for YOLO26 compatibility in Roboflow deployment
+)  # Match model_type to your model size and task, e.g. "yolo26s" or "yolo26n-seg"
 
 print(f"Model from {MODEL_PATH} uploaded to Roboflow project {PROJECT_ID}, version {VERSION}.")
 print("Deployment may take up to 30 minutes.")

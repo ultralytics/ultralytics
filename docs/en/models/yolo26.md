@@ -159,7 +159,7 @@ _Params and FLOPs values are for the fused model after Conv/BatchNorm folding an
 
 This section provides simple YOLO26 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
-The example below trains a YOLO26 [Detect](../tasks/detect.md) model for [object detection](https://www.ultralytics.com/glossary/object-detection) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset. For additional supported tasks, see the [Segment](../tasks/segment.md), [Semantic Segmentation](../tasks/semantic.md), [Depth](../tasks/depth.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) docs.
+The example below trains a YOLO26 [Detect](../tasks/detect.md) model for [object detection](https://www.ultralytics.com/glossary/object-detection) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset.
 
 !!! example
 

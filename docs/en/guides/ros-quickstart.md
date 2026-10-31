@@ -13,7 +13,7 @@ Jump to [setting up YOLO with ROS](#setting-up-ultralytics-yolo-with-ros), then 
 
 ## What is ROS?
 
-The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in [robotics](https://www.ultralytics.com/glossary/robotics) research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications. ROS is designed to work with various [robotic platforms](https://robots.ros.org/), making it a flexible and powerful tool for roboticists. For a brief introduction, watch the three-minute [ROS Introduction](https://vimeo.com/639236696) video from Open Robotics.
+The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in [robotics](https://www.ultralytics.com/glossary/robotics) research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications. ROS is designed to work with various [robotic platforms](https://robots.ros.org/), making it a flexible and powerful tool for roboticists.
 
 ### Key Features of ROS
 
@@ -248,7 +248,7 @@ while True:
     1. `rostopic echo <TOPIC-NAME>` : This command allows you to view messages published on a specific topic, helping you inspect the data flow.
     2. `rostopic list`: Use this command to list all available topics in the ROS system, giving you an overview of the active data streams.
     3. `rqt_graph`: This visualization tool displays the communication graph between nodes, providing insights into how nodes are interconnected and how they interact.
-    4. For more complex visualizations, such as 3D representations, you can use [RViz](https://wiki.ros.org/rviz). RViz (ROS Visualization) is a 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real time. With RViz, you can view sensor data (e.g., `sensor_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
+    4. [RViz](https://wiki.ros.org/rviz) (ROS Visualization) is a 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real time. With RViz, you can view sensor data (e.g., `sensor_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
 
 ### Publish Detected Classes with `std_msgs/String`
 

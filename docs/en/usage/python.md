@@ -135,7 +135,8 @@ For example, users can load a model, train it, evaluate its performance on a val
 
         model = YOLO("model.pt")
         # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
-        results = model.predict(source="0")
+        for result in model.predict(source="0", stream=True):  # a webcam never ends on its own
+            break  # stop after the first frame
         results = model.predict(source="folder", show=True)  # Display preds. Accepts all YOLO predict arguments
 
         # from PIL

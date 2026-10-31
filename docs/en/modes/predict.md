@@ -111,7 +111,7 @@ YOLO26 can process different types of input sources for inference, as shown in t
 | ----------------------------------------------------- | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------------- |
 | image                                                 | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                           |
 | URL                                                   | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                             |
-| screenshot ✅                                         | `'screen'`                                 | `str`           | Capture the screen continuously until you stop.                                              |
+| screenshot ✅                                         | `'screen'`                                 | `str`           | Capture the screen continuously until stopped.                                               |
 | PIL                                                   | `Image.open('image.jpg')`                  | `PIL.Image`     | HWC format with RGB channels.                                                                |
 | [OpenCV](https://www.ultralytics.com/glossary/opencv) | `cv2.imread('image.jpg')`                  | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                                |
 | NumPy                                                 | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                                |
@@ -147,7 +147,7 @@ Below are code examples for using each source type:
 
     === "screenshot"
 
-        Run inference on the screen. This source keeps capturing until you stop, so use `stream=True` and leave the loop when you have what you need.
+        Run inference on the screen. This source captures continuously until stopped, so use `stream=True` to get a generator of results.
         ```python
         from ultralytics import YOLO
 
@@ -157,10 +157,8 @@ Below are code examples for using each source type:
         # Define the screen as source
         source = "screen"
 
-        # Run inference on the source and stop after the first capture
-        for result in model(source, stream=True):
-            print(result.boxes)
-            break
+        # Run inference on the source
+        results = model(source, stream=True)  # generator of Results objects
         ```
 
     === "URL"

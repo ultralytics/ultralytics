@@ -137,8 +137,8 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 
 ### Steps to Contribute a New Dataset
 
-1. **Collect Images**: Gather the images that belong to the dataset. These could be collected from various sources, such as public databases or your own collection. The free Academy lesson on [collecting high-quality, representative data](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/collect-representative-data) covers what to gather.
-2. **Annotate Images**: Annotate these images with bounding boxes, segments, or keypoints, depending on the task, for example with [Ultralytics Platform annotation](../platform/data/annotation.md).
+1. **Collect Images**: [Gather the images](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/collect-representative-data) that belong to the dataset. These could be collected from various sources, such as public databases or your own collection.
+2. **Annotate Images**: [Annotate these images](../platform/data/annotation.md) with bounding boxes, segments, or keypoints, depending on the task.
 3. **Export Annotations**: Convert these annotations into the YOLO `*.txt` file format which Ultralytics supports.
 4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `images/` and `labels/` top-level directories, and within each, a `train/` and `val/` subdirectory.
 
@@ -194,7 +194,7 @@ Ultralytics supports a wide variety of datasets for [object detection](https://w
 - [VisDrone](detect/visdrone.md): A dataset with object detection and multi-object tracking data from drone-captured imagery.
 - [SKU-110K](detect/sku-110k.md): Featuring dense object detection in retail environments with over 11K images.
 
-These datasets support training robust [Ultralytics YOLO](../models/index.md) models for various object detection applications. For a broader survey, see this guide to the [best computer vision datasets](https://www.ultralytics.com/blog/exploring-the-best-computer-vision-datasets-in-2025).
+These datasets support training robust [Ultralytics YOLO](../models/index.md) models for various object detection applications.
 
 ### How do I contribute a new dataset to Ultralytics?
 

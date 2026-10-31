@@ -152,4 +152,4 @@ Then configure Conda to use `libmamba` as the solver:
 conda config --set solver libmamba
 ```
 
-This setup provides faster and more efficient package management. For background on the solver, read Anaconda's [libmamba solver announcement](https://www.anaconda.com/blog/a-faster-conda-for-a-growing-community).
+This setup provides faster and more efficient package management.

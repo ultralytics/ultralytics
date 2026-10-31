@@ -80,7 +80,7 @@ Many options are available for training, deploying, and evaluating YOLO26 models
 
 ## Summary
 
-This guide explored the Paperspace Gradient integration for training YOLO26 models. Gradient provides the tools and infrastructure for model training, evaluation, and deployment. For background, read about the [Ultralytics and Paperspace partnership](https://www.ultralytics.com/blog/ultralytics-x-paperspace-advancing-object-detection-capabilities-through-partnership).
+This guide explored the [Paperspace Gradient integration](https://www.ultralytics.com/blog/ultralytics-x-paperspace-advancing-object-detection-capabilities-through-partnership) for training YOLO26 models. Gradient provides the tools and infrastructure for model training, evaluation, and deployment.
 
 For further exploration, visit [Paperspace's official documentation](https://docs.digitalocean.com/products/paperspace/).
 
@@ -105,7 +105,7 @@ Paperspace Gradient offers several advantages for training and deploying YOLO26 
 
 ### Why should I choose Ultralytics YOLO26 over other object detection models?
 
-Ultralytics YOLO26 combines real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy). Its integration with platforms like Paperspace Gradient simplifies training and deployment. YOLO26 supports various use cases, from security systems to retail inventory management. Discover the full range of YOLO26's capabilities in the [YOLO26 overview](https://www.ultralytics.com/yolo/yolo26).
+[Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26) combines real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy). Its integration with platforms like Paperspace Gradient simplifies training and deployment. YOLO26 supports various use cases, from security systems to retail inventory management.
 
 ### Can I deploy my YOLO26 model on edge devices using Paperspace Gradient?
 

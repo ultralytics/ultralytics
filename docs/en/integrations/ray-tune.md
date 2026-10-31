@@ -23,7 +23,7 @@ keywords: YOLO26, Ray Tune, hyperparameter tuning, model optimization, machine l
 
 ### Integration with Weights & Biases
 
-YOLO26 also supports optional integration with [Weights & Biases](https://wandb.ai/site) for monitoring the tuning process. See the [Weights & Biases integration guide](weights-biases.md) for setup details.
+YOLO26 also supports optional integration with [Weights & Biases](https://wandb.ai/site) for monitoring the tuning process.
 
 ## Installation
 
@@ -308,7 +308,7 @@ These hyperparameters can be customized to suit your specific needs. For a compl
 
 ### How can I integrate Weights & Biases with my YOLO26 model tuning?
 
-To integrate Weights & Biases (W&B) with your Ultralytics YOLO26 tuning process:
+To integrate [Weights & Biases (W&B)](weights-biases.md) with your Ultralytics YOLO26 tuning process:
 
 1. **Install W&B:**
 

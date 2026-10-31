@@ -6,7 +6,7 @@ keywords: YOLOv5 export, TFLite, ONNX, CoreML, TensorRT, model conversion, YOLOv
 
 # TFLite, ONNX, CoreML, TensorRT Export
 
-This guide explains how to export a trained [YOLOv5](../../models/yolov5.md) model from [PyTorch](https://www.ultralytics.com/glossary/pytorch) to various deployment formats including [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), TensorRT, CoreML and more. For the `ultralytics` package, see [Export mode](../../modes/export.md).
+This guide explains how to export a trained [YOLOv5](../../models/yolov5.md) model from [PyTorch](https://www.ultralytics.com/glossary/pytorch) to various deployment formats including [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), TensorRT, CoreML and more.
 
 ## Before You Start
 

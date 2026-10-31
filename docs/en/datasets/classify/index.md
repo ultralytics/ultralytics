@@ -121,7 +121,7 @@ Ultralytics supports the following datasets with automatic download. Most of the
 
 ### Adding your own dataset
 
-If you have your own dataset and would like to use it for training classification models with Ultralytics YOLO, ensure that it follows the format specified above under "Dataset Structure" and then point your `data` argument to the dataset directory when initializing your training script. For a beginner walkthrough, see the Ultralytics Academy lesson [Train an Image Classifier](https://academy.ultralytics.com/courses/beyond-detection/train-an-image-classifier).
+If you have your own dataset and would like to use it for [training classification models](https://academy.ultralytics.com/courses/beyond-detection/train-an-image-classifier) with Ultralytics YOLO, ensure that it follows the format specified above under "Dataset Structure" and then point your `data` argument to the dataset directory when initializing your training script.
 
 ## FAQ
 

@@ -159,7 +159,7 @@ gst-launch-1.0 vacompositor name=comp sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos
 
 ### How do I set up Ultralytics YOLO26 on an Intel platform with DL Streamer?
 
-Install DL Streamer following the [Installation Guide](https://github.com/open-edge-platform/dlstreamer/blob/main/docs/user-guide/install/install_guide_ubuntu.md), set up the environment with `source /opt/intel/dlstreamer/scripts/setup_dls_env.sh`, install Ultralytics and OpenVINO™, download models using `download_ultralytics_models.sh`. Then run inference with the DL Streamer sample application `yolo_detect.sh` that provides a ready-to-use script for running YOLO26 inference pipelines. See the [DL Streamer YOLO detection sample](https://github.com/open-edge-platform/dlstreamer/tree/main/samples/gstreamer/gst_launch/detection_with_yolo) for how to run it.
+Install DL Streamer following the [Installation Guide](https://github.com/open-edge-platform/dlstreamer/blob/main/docs/user-guide/install/install_guide_ubuntu.md), set up the environment with `source /opt/intel/dlstreamer/scripts/setup_dls_env.sh`, install Ultralytics and OpenVINO™, download models using `download_ultralytics_models.sh`. Then run inference with the DL Streamer [sample application](https://github.com/open-edge-platform/dlstreamer/tree/main/samples/gstreamer/gst_launch/detection_with_yolo) `yolo_detect.sh` that provides a ready-to-use script for running YOLO26 inference pipelines.
 
 ### What is the benefit of using OpenVINO™ with YOLO26 on Intel hardware?
 

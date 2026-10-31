@@ -145,7 +145,7 @@ To make the process of data labeling smoother and more effective, consider imple
 
 - **Clear Annotation Guidelines**: Provide detailed instructions with examples to ensure all annotators interpret tasks consistently. For instance, when labeling birds, specify whether to include the entire bird or just specific parts.
 - **Regular Quality Checks**: Set benchmarks and use specific metrics to review work, maintaining high standards through continuous feedback.
-- **Use Pre-annotation Tools**: Many modern annotation platforms offer AI-assisted pre-annotation features that can significantly speed up the process by automatically generating initial annotations that humans can then refine. The [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm) compares vision language models for auto-annotation by accuracy, cost, and speed.
+- **Use Pre-annotation Tools**: Many modern annotation platforms offer AI-assisted pre-annotation features that can significantly speed up the process by automatically generating initial annotations that humans can then refine.
 - **Implement [Active Learning](https://www.ultralytics.com/glossary/active-learning)**: This approach prioritizes labeling the most informative samples first, which can reduce the total number of annotations needed while maintaining model performance.
 - **Batch Processing**: Group similar images together for annotation to maintain consistency and improve efficiency.
 
@@ -153,7 +153,7 @@ These strategies can help maintain high-quality annotations while reducing the t
 
 ## Conclusion
 
-Collecting diverse, unbiased data and annotating it consistently with the right tools is the foundation of a reliable computer vision model. With your dataset collected and labeled, continue to the [steps of a computer vision project](./steps-of-a-cv-project.md) guide to move into training and evaluation. For a structured walkthrough of collection, annotation, and quality control, see the Ultralytics Academy course [Building High-Performance YOLO Datasets](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo). If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
+Collecting diverse, unbiased data and annotating it consistently with the right tools is the foundation of a reliable computer vision model. With your dataset collected and labeled, continue to the [steps of a computer vision project](./steps-of-a-cv-project.md) guide to move into training and evaluation. If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
 
 ## FAQ
 

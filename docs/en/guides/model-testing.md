@@ -40,7 +40,7 @@ Computer vision [datasets](./preprocessing-annotated-data.md) are usually divide
 
 ## How to Test a YOLO26 Model
 
-Testing a trained YOLO26 model involves two complementary workflows: validating on a labeled test split to get quantitative metrics, and predicting on new images to inspect behavior qualitatively.
+Testing a trained YOLO26 model involves two complementary workflows: [validating on a labeled test split](https://academy.ultralytics.com/courses/train-your-first-yolo/validate-and-diagnose) to get quantitative metrics, and predicting on new images to inspect behavior qualitatively.
 
 ### Validate on a Labeled Test Split
 
@@ -67,7 +67,7 @@ Testing a trained YOLO26 model involves two complementary workflows: validating 
         yolo val model=yolo26n.pt data=coco8.yaml
         ```
 
-By default, validation runs on the dataset's `val` split. To measure performance on a held-out test set, define a `test:` split in your dataset YAML and pass `split="test"`. The [Validate and Diagnose lesson](https://academy.ultralytics.com/courses/train-your-first-yolo/validate-and-diagnose) in Ultralytics Academy walks through this step for beginners.
+By default, validation runs on the dataset's `val` split. To measure performance on a held-out test set, define a `test:` split in your dataset YAML and pass `split="test"`.
 
 ### Predict on New Images
 
@@ -114,14 +114,14 @@ Once predictions and metrics are in hand, dig into where and why the model fails
 
 ## Overfitting and Underfitting in Machine Learning
 
-When testing a [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model, especially in computer vision, it's important to watch out for overfitting and [underfitting](https://www.ultralytics.com/glossary/underfitting). These issues can significantly affect how well your model works with new data.
+When testing a [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model, especially in computer vision, it's important to watch out for [overfitting](https://www.ultralytics.com/blog/what-is-overfitting-in-computer-vision-how-to-prevent-it) and [underfitting](https://www.ultralytics.com/glossary/underfitting). These issues can significantly affect how well your model works with new data.
 
 | Issue            | Common signs                                                                                                         | How to address it                                                                                                                                                       |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Overfitting**  | High training accuracy but low validation accuracy; oversensitivity to minor changes or irrelevant details in images | Apply [regularization](https://www.ultralytics.com/glossary/regularization) such as dropout, increase the size of the training dataset, simplify the model architecture |
 | **Underfitting** | Low accuracy even on the training set; consistent failure to recognize obvious features or objects                   | Use a more complex model, provide more relevant features, increase training [epochs](https://www.ultralytics.com/glossary/epoch)                                        |
 
-The key is to find a balance so the model performs well on both training and validation datasets. Regularly monitoring metrics and visually inspecting predictions during testing helps you catch a drift toward either extreme. For more prevention techniques, see [how to prevent overfitting in computer vision](https://www.ultralytics.com/blog/what-is-overfitting-in-computer-vision-how-to-prevent-it).
+The key is to find a balance so the model performs well on both training and validation datasets. Regularly monitoring metrics and visually inspecting predictions during testing helps you catch a drift toward either extreme.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/40f1ea3878f5b28e8919bb9fbeb1ce92.avif" alt="Comparison of underfitting, appropriate fitting, and overfitting on the same dataset">

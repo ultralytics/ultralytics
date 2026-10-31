@@ -14,7 +14,7 @@ Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision
   <img width="640" src="https://cdn.ul.run/i/e9365c5acf3cdcbfc6526467c3e58fcf.avif" alt="DEEPX NPU Inference">
 </p>
 
-[DEEPX](https://deepx.ai/) is an AI semiconductor company specializing in [Neural Processing Units](https://www.ultralytics.com/glossary/neural-processing-unit-npu) (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems. Learn more about the [Ultralytics and DEEPX partnership](https://www.ultralytics.com/partners/deepx) and its focus on [edge AI inference for physical AI](https://www.ultralytics.com/blog/ultralytics-yolo-partners-with-deepx-edge-ai-inference-for-physical-ai).
+[DEEPX](https://deepx.ai/) is an AI semiconductor company and [Ultralytics partner](https://www.ultralytics.com/partners/deepx) specializing in [Neural Processing Units](https://www.ultralytics.com/glossary/neural-processing-unit-npu) (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
 
 ## DEEPX Export Format
 
@@ -318,7 +318,7 @@ YOLO models deployed on DEEPX NPU hardware are well suited for a wide range of [
 
 In this guide, you've learned how to export Ultralytics YOLO models to DEEPX format and deploy them on DEEPX NPU hardware. The export pipeline uses INT8 calibration and the `dx_com` compiler to produce a hardware-optimized `.dxnn` binary, while the `dx_engine` runtime handles inference on the device.
 
-Together, [Ultralytics YOLO](https://www.ultralytics.com/yolo) and DEEPX NPUs run computer vision workloads on embedded and edge devices with high throughput and low power consumption for real-time applications.
+Together, [Ultralytics YOLO](https://www.ultralytics.com/yolo) and DEEPX NPUs run computer vision workloads on [embedded and edge devices](https://www.ultralytics.com/blog/ultralytics-yolo-partners-with-deepx-edge-ai-inference-for-physical-ai) with high throughput and low power consumption for real-time applications.
 
 For further details on usage, visit the [DEEPX official website](https://deepx.ai/).
 

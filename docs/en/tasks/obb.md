@@ -9,9 +9,9 @@ model_name: yolo26n-obb
 
 <img width="1024" src="https://cdn.ul.run/i/5358256c7e6abec4c69ca11be99143ba.avif" alt="Ultralytics YOLO oriented bounding box detection of boats in aerial imagery">
 
-Oriented object detection goes a step further than standard [object detection](https://www.ultralytics.com/glossary/object-detection) by introducing an extra angle to locate objects more accurately in an image.
+[Oriented object detection](https://www.ultralytics.com/blog/what-is-oriented-bounding-box-obb-detection-a-quick-guide) goes a step further than standard [object detection](https://www.ultralytics.com/glossary/object-detection) by introducing an extra angle to locate objects more accurately in an image.
 
-The output of an oriented object detector is a set of rotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) that precisely enclose the objects in the image, along with class labels and confidence scores for each box. Oriented bounding boxes are particularly useful when objects appear at various angles, such as in aerial imagery, where traditional axis-aligned bounding boxes may include unnecessary background. Typical uses are ship and vehicle detection from satellites and drones, building and infrastructure analysis for urban planning, crop monitoring, and solar panel or wind turbine inspection. For a primer on the task, read [what is oriented bounding box (OBB) detection?](https://www.ultralytics.com/blog/what-is-oriented-bounding-box-obb-detection-a-quick-guide)
+The output of an oriented object detector is a set of rotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) that precisely enclose the objects in the image, along with class labels and confidence scores for each box. [Oriented bounding boxes](https://academy.ultralytics.com/courses/beyond-detection/oriented-bounding-boxes) are particularly useful when objects appear at various angles, such as in aerial imagery, where traditional axis-aligned bounding boxes may include unnecessary background. Typical uses are ship and vehicle detection from satellites and drones, building and infrastructure analysis for urban planning, crop monitoring, and solar panel or wind turbine inspection.
 
 <p align="center">
   <br>
@@ -94,7 +94,7 @@ Train [YOLO26n-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-
   <strong>Watch:</strong> How to Train Ultralytics YOLO-OBB (Oriented Bounding Boxes) Models on DOTA Dataset using Ultralytics Platform
 </p>
 
-See full `train` mode details in the [Train](../modes/train.md) page. OBB models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md). For a guided exercise, see the Ultralytics Academy lesson [Oriented Bounding Boxes for Rotated Objects](https://academy.ultralytics.com/courses/beyond-detection/oriented-bounding-boxes).
+See full `train` mode details in the [Train](../modes/train.md) page. OBB models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 ### Dataset format
 

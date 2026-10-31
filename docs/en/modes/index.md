@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO26, machine learning, model training, validation, pre
 
 ## Introduction
 
-Ultralytics YOLO26 is more than an [object detection](https://www.ultralytics.com/glossary/object-detection) model: the Ultralytics framework covers the full lifecycle of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models, from training and validation to prediction, export, tracking, and benchmarking. Each mode serves a specific purpose in that workflow.
+Ultralytics YOLO26 is more than an [object detection](https://www.ultralytics.com/glossary/object-detection) model: the Ultralytics framework covers the [full lifecycle](https://www.ultralytics.com/blog/how-to-train-validate-predict-export-benchmark-with-ultralytics-yolo-models) of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models, from training and validation to prediction, export, tracking, and benchmarking. Each mode serves a specific purpose in that workflow.
 
 For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#usage-examples). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
 
@@ -36,11 +36,11 @@ Ultralytics YOLO26 supports the following **modes**:
 - **Track** mode: Track objects across video frames and live streams in real time.
 - **Benchmark** mode: Analyze the speed and accuracy of your model in diverse deployment environments.
 
-The sections below summarize each mode and link to its full guide. For a walkthrough of the whole workflow, see [how to train, validate, predict, export, and benchmark with Ultralytics YOLO models](https://www.ultralytics.com/blog/how-to-train-validate-predict-export-benchmark-with-ultralytics-yolo-models).
+The sections below summarize each mode and link to its full guide.
 
 ## Train
 
-Train mode is used for training a YOLO26 model on a custom dataset. In this mode, the model is trained using the specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can accurately predict the classes and locations of objects in an image. Training is essential for creating models that can recognize specific objects relevant to your application. If you are new to training, the free Ultralytics Academy course [Train your first YOLO model](https://academy.ultralytics.com/courses/train-your-first-yolo) covers the basics step by step.
+Train mode is used for [training a YOLO26 model](https://academy.ultralytics.com/courses/train-your-first-yolo) on a custom dataset. In this mode, the model is trained using the specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can accurately predict the classes and locations of objects in an image. Training is essential for creating models that can recognize specific objects relevant to your application.
 
 [Train Examples](train.md){ .md-button }
 

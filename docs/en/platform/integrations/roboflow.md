@@ -8,7 +8,7 @@ title: Roboflow Dataset Import - Ultralytics Platform
 
 # Roboflow Integration
 
-The Roboflow integration imports the supported datasets you select from your Roboflow workspace into [Ultralytics Platform](https://platform.ultralytics.com) at their latest version. Re-run it any time to pull in datasets you've added since your last import. To label and export Roboflow data for local training with the `ultralytics` package instead, see the [Roboflow integration guide](../../integrations/roboflow.md).
+The Roboflow integration imports the supported datasets you select from your Roboflow workspace into [Ultralytics Platform](https://platform.ultralytics.com) at their latest version. Re-run it any time to pull in datasets you've added since your last import.
 
 ## Import from Roboflow
 

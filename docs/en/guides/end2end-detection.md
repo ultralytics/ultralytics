@@ -7,7 +7,7 @@ keywords: YOLO26, end-to-end detection, NMS-free inference, NMS, model export, d
 
 # Understanding End-to-End Detection in Ultralytics YOLO26
 
-[YOLO26](../models/yolo26.md) trains both a **one-to-many** head and a **one-to-one** head. Prediction and validation use the one-to-many head with [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) by default. This favors accuracy using the same trained weights. Set `nms=False` to use the faster, NMS-free one-to-one head instead.
+[YOLO26](../models/yolo26.md) trains both a **one-to-many** head and a **one-to-one** head. Prediction and validation use the one-to-many head with [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) by default. This favors accuracy using the same trained weights. Set `nms=False` to use the faster, [NMS-free](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment) one-to-one head instead.
 
 One argument controls the choice across [prediction](../modes/predict.md), [validation](../modes/val.md), [tracking](../modes/track.md), [export](../modes/export.md), and [benchmarking](../modes/benchmark.md):
 
@@ -50,7 +50,7 @@ One argument controls the choice across [prediction](../modes/predict.md), [vali
 
 ## How End-to-End Detection Works
 
-Both heads share the [backbone](https://www.ultralytics.com/glossary/backbone) and neck and are optimized during [training](../modes/train.md). The one-to-many head provides multiple candidate predictions per object; NMS removes overlapping detections. The one-to-one head learns to produce a single prediction per object. Selecting the inference path does not disable dual-head supervision. Validation during training uses the selected inference head, so checkpoint selection and early stopping follow the same predictions as deployment. For the design rationale, see [why YOLO26 removes NMS and how that changes deployment](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment).
+Both heads share the [backbone](https://www.ultralytics.com/glossary/backbone) and neck and are optimized during [training](../modes/train.md). The one-to-many head provides multiple candidate predictions per object; NMS removes overlapping detections. The one-to-one head learns to produce a single prediction per object. Selecting the inference path does not disable dual-head supervision. Validation during training uses the selected inference head, so checkpoint selection and early stopping follow the same predictions as deployment.
 
 | Head                  | Detection output before external processing | Processing                               |
 | --------------------- | ------------------------------------------- | ---------------------------------------- |

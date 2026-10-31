@@ -703,4 +703,4 @@ for index, class_id in enumerate(classes):
     o3d.visualization.draw_geometries([pcd])
 ```
 
-This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation. For more on [computer vision in robotics](https://www.ultralytics.com/blog/understanding-the-integration-of-computer-vision-in-robotics), see our blog.
+This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](https://www.ultralytics.com/blog/understanding-the-integration-of-computer-vision-in-robotics).

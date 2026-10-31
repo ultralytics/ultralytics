@@ -9,7 +9,7 @@ keywords: YOLO26 performance metrics, mAP, IoU, F1 Score, Precision, Recall, obj
 
 ## Introduction
 
-Performance metrics are key tools to evaluate the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of [object detection](https://www.ultralytics.com/glossary/object-detection) models. They shed light on how effectively a model can identify and localize objects within images. Additionally, they help in understanding the model's handling of false positives and false negatives. These insights are crucial for evaluating and enhancing the model's performance. This guide explores the performance metrics associated with YOLO26, their significance, and how to interpret them. For a beginner-friendly introduction, see the Ultralytics Academy lesson [Reading Detection Metrics Honestly](https://academy.ultralytics.com/courses/computer-vision-foundations/reading-detection-metrics).
+Performance metrics are key tools to evaluate the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of [object detection](https://www.ultralytics.com/glossary/object-detection) models. They shed light on how effectively a model can identify and localize objects within images. Additionally, they help in understanding the model's handling of false positives and false negatives. These insights are crucial for evaluating and enhancing the model's performance. This guide explores the performance metrics associated with YOLO26, their significance, and [how to interpret them](https://academy.ultralytics.com/courses/computer-vision-foundations/reading-detection-metrics).
 
 <p align="center">
   <br>
@@ -101,7 +101,7 @@ For future reference, the results are saved to a directory, typically named `run
 
 ## Choosing the Right Metrics
 
-Choosing the right metrics to evaluate often depends on the specific application, as the guide on [when accuracy, precision, and recall each matter](https://www.ultralytics.com/blog/accuracy-precision-recall) explains.
+[Choosing the right metrics](https://www.ultralytics.com/blog/accuracy-precision-recall) to evaluate often depends on the specific application.
 
 - **mAP:** Suitable for a broad assessment of model performance.
 

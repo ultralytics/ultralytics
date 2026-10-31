@@ -305,7 +305,7 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 ## Use TensorRT on NVIDIA Jetson
 
-Among all the model export formats supported by Ultralytics, TensorRT offers the highest inference performance on NVIDIA Jetson devices, making it our top recommendation for Jetson deployments. Before exporting, install the TensorRT Python bindings supplied for your JetPack release and verify them with `python3 -c "import tensorrt; print(tensorrt.__version__)"`. Keep the supported TensorRT 10.x runtime on JetPack 6/7; do not replace it with TensorRT 11.2.1. For setup instructions and advanced usage, see our [dedicated TensorRT integration guide](../integrations/tensorrt.md), or follow the beginner-friendly [Optimize with TensorRT lesson](https://academy.ultralytics.com/courses/yolo-in-production/optimize-with-tensorrt) in Ultralytics Academy.
+Among all the model export formats supported by Ultralytics, TensorRT offers the highest inference performance on NVIDIA Jetson devices, making it our top recommendation for Jetson deployments. Before exporting, install the TensorRT Python bindings supplied for your JetPack release and verify them with `python3 -c "import tensorrt; print(tensorrt.__version__)"`. Keep the supported TensorRT 10.x runtime on JetPack 6/7; do not replace it with TensorRT 11.2.1. For setup instructions and advanced usage, see our [dedicated TensorRT integration guide](../integrations/tensorrt.md).
 
 You can also export from the browser without configuring the build environment locally. In the [Ultralytics Platform model Export tab](../platform/train/models.md#nvidia-jetson-tensorrt-targets), select TensorRT and the intended Jetson target. Thor selections are validated on physical Thor hardware. The six Orin selections currently produce AGX-Orin-built candidate engines; validate them on the intended Orin SKU before deployment.
 
@@ -315,7 +315,7 @@ You can also export from the browser without configuring the build environment l
 
 ### Convert Model to TensorRT and Run Inference
 
-The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model in PyTorch format is converted to TensorRT to run inference with the exported model.
+The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model in PyTorch format is [converted to TensorRT](https://academy.ultralytics.com/courses/yolo-in-production/optimize-with-tensorrt) to run inference with the exported model.
 
 !!! example
 
@@ -819,7 +819,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
         Inference time does not include pre/post-processing.
 
-[Explore more benchmarking efforts by Seeed Studio](https://www.seeedstudio.com/blog/2023/03/30/yolov8-performance-benchmarks-on-nvidia-jetson-devices/) running on different versions of NVIDIA Jetson hardware, or read about [YOLO11 benchmarks on the Jetson Orin Nano Super](https://www.ultralytics.com/blog/ultralytics-yolo11-on-nvidia-jetson-orin-nano-super-fast-and-efficient).
+[Explore more benchmarking efforts by Seeed Studio](https://www.seeedstudio.com/blog/2023/03/30/yolov8-performance-benchmarks-on-nvidia-jetson-devices/) running on different versions of NVIDIA Jetson hardware.
 
 ## Reproduce Our Results
 

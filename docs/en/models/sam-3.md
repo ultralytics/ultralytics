@@ -8,7 +8,7 @@ keywords: SAM 3, SAM 3.1, Segment Anything 3, SAM3, SAM3.1, SAM-3, Object Multip
 
 ![SAM 3 promptable concept segmentation overview](https://cdn.ul.run/i/48018c7df06e1f5b500ba441da1f22ec.avif)
 
-**SAM 3** (Segment Anything Model 3) is Meta's [foundation model](https://www.ultralytics.com/glossary/foundation-model) for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
+**SAM 3** ([Segment Anything Model 3](https://www.ultralytics.com/blog/exploring-sam-3-meta-ais-new-segment-anything-model)) is Meta's [foundation model](https://www.ultralytics.com/glossary/foundation-model) for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
 <p align="center">
   <br>
@@ -25,19 +25,19 @@ SAM 3 is fully integrated into the `ultralytics` package, providing native suppo
 
 ## Overview
 
-SAM 3 achieves a **2× performance gain** over existing systems in Promptable Concept Segmentation while maintaining and improving SAM 2's capabilities for interactive [visual segmentation](../tasks/segment.md). The model excels at open-vocabulary segmentation, allowing users to specify concepts using simple noun phrases (e.g., "yellow school bus", "striped cat") or by providing example images of the target object. In Ultralytics, SAM 3 runs through [predict](../modes/predict.md) mode, with dedicated video predictors for tracking. For a broader introduction, see [Exploring SAM 3, Meta AI's new Segment Anything Model](https://www.ultralytics.com/blog/exploring-sam-3-meta-ais-new-segment-anything-model).
+SAM 3 achieves a **2× performance gain** over existing systems in Promptable Concept Segmentation while maintaining and improving SAM 2's capabilities for interactive [visual segmentation](../tasks/segment.md). The model excels at open-vocabulary segmentation, allowing users to specify concepts using simple noun phrases (e.g., "yellow school bus", "striped cat") or by providing example images of the target object. In Ultralytics, SAM 3 runs through [predict](../modes/predict.md) mode, with dedicated video predictors for tracking.
 
 ![SAM 3 text-prompt segmentation examples](https://cdn.ul.run/i/d484414be765e8fb2e05c15a96cccdc5.avif)
 
 ### What is Promptable Concept Segmentation (PCS)?
 
-The PCS task takes a **concept prompt** as input and returns segmentation masks with unique identities for **all matching object instances**. Concept prompts can be:
+The [PCS task](https://www.ultralytics.com/blog/understanding-promptable-concept-segmentation) takes a **concept prompt** as input and returns segmentation masks with unique identities for **all matching object instances**. Concept prompts can be:
 
 - **Text**: Simple noun phrases like "red apple" or "person wearing a hat", similar to [zero-shot learning](https://www.ultralytics.com/glossary/zero-shot-learning)
 - **Image exemplars**: Bounding boxes around example objects (positive or negative) for fast generalization
 - **Combined**: Both text and image exemplars together for precise control
 
-This differs from traditional visual prompts (points, boxes, masks) which segment only a single specific object instance, as popularized by the original [SAM family](sam.md). For a step-by-step explanation, see [promptable concept segmentation explained](https://www.ultralytics.com/blog/understanding-promptable-concept-segmentation).
+This differs from traditional visual prompts (points, boxes, masks) which segment only a single specific object instance, as popularized by the original [SAM family](sam.md).
 
 ### Key Performance Metrics
 
@@ -555,7 +555,7 @@ SAM 3's concept segmentation capability enables new use cases:
 - **[Medical Imaging](https://www.ultralytics.com/glossary/medical-image-analysis)**: Identify all occurrences of specific tissue types or abnormalities
 - **Autonomous Systems**: Track all instances of traffic signs, pedestrians, or vehicles by category
 - **Video Analytics**: Count and track all people wearing specific clothing or performing actions
-- **[Dataset Annotation](https://www.ultralytics.com/annotate)**: Rapidly annotate all instances of rare object categories, for example with [SAM 3 Text](https://platform.ultralytics.com/models/sam3) on Ultralytics Platform
+- **[Dataset Annotation](https://www.ultralytics.com/annotate)**: Rapidly annotate all instances of rare object categories
 - **Scientific Research**: Quantify and analyze all specimens matching specific criteria
 
 ## SAM 3 Agent: Extended Language Reasoning

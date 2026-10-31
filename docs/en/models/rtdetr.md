@@ -209,7 +209,7 @@ Use the Ultralytics Python API to load the pretrained PaddlePaddle RT-DETR model
 
 ### Why should I choose Baidu's RT-DETR over other real-time object detectors?
 
-Baidu's RT-DETR combines an efficient hybrid encoder with IoU-aware query selection, which reduces computational cost while maintaining high accuracy. Its ability to adjust inference speed by using different decoder layers without retraining adds flexibility, which is useful for real-time applications on accelerated backends such as CUDA with TensorRT. The transformer architecture also captures more global context than traditional CNN-based detectors. For a broader comparison, see the [best object detection models of 2026](https://www.ultralytics.com/blog/best-object-detection-models), including YOLO and DETR variants.
+Baidu's RT-DETR combines an efficient hybrid encoder with IoU-aware query selection, which reduces computational cost while maintaining high accuracy. Its ability to adjust inference speed by using different decoder layers without retraining adds flexibility, which is useful for real-time applications on accelerated backends such as CUDA with TensorRT. The transformer architecture also captures more global context than traditional CNN-based detectors.
 
 ### How does RT-DETR support adaptable inference speed for different real-time applications?
 
@@ -223,4 +223,4 @@ Use `max_det` to reduce returned detections, for example `max_det=100`, when you
 
 ### Can I use RT-DETR models with other Ultralytics modes, such as training, validation, and export?
 
-Yes, RT-DETR models support the Ultralytics training, validation, prediction, and export modes. See the [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md) documentation for detailed instructions. The Ultralytics framework provides a consistent API across model architectures, so RT-DETR uses the same workflow as YOLO models.
+Yes, RT-DETR models support the Ultralytics [training](../modes/train.md), [validation](../modes/val.md), [prediction](../modes/predict.md), and [export](../modes/export.md) modes. The Ultralytics framework provides a consistent API across model architectures, so RT-DETR uses the same workflow as YOLO models.

@@ -114,8 +114,6 @@ This guide showed how to experiment with Ultralytics YOLO26 models on Google Col
 
 For more details, visit [Google Colab's FAQ page](https://research.google.com/colaboratory/faq.html).
 
-To explore more YOLO26 integrations, visit the [Ultralytics integration guide page](index.md). For other cloud-based options, see the [Kaggle integration](kaggle.md) or [cloud training on Ultralytics Platform](../platform/train/cloud-training.md).
-
 ## FAQ
 
 ### How do I start training Ultralytics YOLO26 models on Google Colab?

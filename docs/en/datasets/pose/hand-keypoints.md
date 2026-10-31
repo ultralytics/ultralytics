@@ -52,7 +52,7 @@ For a custom gesture vocabulary beyond generic hand landmarks, [Ultralytics Plat
 
 ## Applications
 
-Hand keypoints support several real-world applications:
+[Hand keypoints](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11) support several real-world applications:
 
 - **[Gesture recognition](https://www.ultralytics.com/blog/vision-ai-enables-touch-free-gesture-recognition-technology)**: human-computer interaction and touchless control interfaces.
 - **AR/VR controls**: precise interaction with virtual objects.
@@ -126,7 +126,7 @@ We would also like to acknowledge the creator of this dataset, [Rion Dsilva](htt
 
 ### How do I train a YOLO26 model on the Hand Keypoints dataset?
 
-Load `yolo26n-pose.pt` and call `model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)` — see the [Train Example](#usage) above for the full Python and CLI snippets, and the model [Training](../../modes/train.md) page for a comprehensive list of arguments. For a full walkthrough, see [hand keypoints estimation with Ultralytics YOLO](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11).
+Load `yolo26n-pose.pt` and call `model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)` — see the [Train Example](#usage) above for the full Python and CLI snippets, and the model [Training](../../modes/train.md) page for a comprehensive list of arguments.
 
 ### What are the benefits of using the Hand Keypoints dataset?
 

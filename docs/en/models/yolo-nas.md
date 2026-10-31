@@ -19,8 +19,8 @@ Developed by Deci AI, YOLO-NAS is an [object detection](https://www.ultralytics.
 
 ### Key Features
 
-- **Quantization-Friendly Basic Block:** YOLO-NAS introduces a new basic block that is friendly to quantization, addressing one of the significant limitations of previous YOLO models. For background, see [pruning and quantization in computer vision](https://www.ultralytics.com/blog/pruning-and-quantization-in-computer-vision-a-quick-guide).
-- **Advanced Training and Quantization:** YOLO-NAS uses advanced training schemes and post-training quantization to improve performance.
+- **Quantization-Friendly Basic Block:** YOLO-NAS introduces a new basic block that is friendly to quantization, addressing one of the significant limitations of previous YOLO models.
+- **Advanced Training and Quantization:** YOLO-NAS uses advanced training schemes and [post-training quantization](https://www.ultralytics.com/blog/pruning-and-quantization-in-computer-vision-a-quick-guide) to improve performance.
 - **AutoNAC Optimization and Pre-training:** YOLO-NAS uses AutoNAC optimization and is pretrained on datasets such as [COCO](../datasets/detect/coco.md), [Objects365](../datasets/detect/objects365.md), and [Roboflow 100](../datasets/detect/roboflow-100.md). This pre-training makes it well suited for downstream object detection tasks in production.
 
 ## Pretrained Models

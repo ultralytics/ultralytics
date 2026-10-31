@@ -11,7 +11,7 @@ model_name: yolo26n-cls
 
 [Image classification](https://www.ultralytics.com/glossary/image-classification) is the simplest of the supported tasks and involves classifying an entire image into one of a set of predefined classes.
 
-The output of an image classifier is a single class label and a confidence score. Image classification is useful when you need to know only what class an image belongs to and don't need to know where objects of that class are located or what their exact shape is.
+The output of an [image classifier](https://academy.ultralytics.com/courses/beyond-detection/train-an-image-classifier) is a single class label and a confidence score. Image classification is useful when you need to know only what class an image belongs to and don't need to know where objects of that class are located or what their exact shape is.
 
 <p align="center">
   <br>
@@ -75,7 +75,7 @@ Train [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-
         yolo classify train data=mnist160 model=yolo26n-cls.yaml pretrained=yolo26n-cls.pt epochs=100 imgsz=64
         ```
 
-See full `train` mode details in the [Train](../modes/train.md) page. Classification models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md). For a guided exercise, see the Ultralytics Academy lesson [Train an Image Classifier](https://academy.ultralytics.com/courses/beyond-detection/train-an-image-classifier).
+See full `train` mode details in the [Train](../modes/train.md) page. Classification models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 ### Dataset format
 
@@ -274,7 +274,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### What is the purpose of YOLO26 in image classification?
 
-YOLO26 models, such as `yolo26n-cls.pt`, are designed for efficient image classification. They assign a single class label to an entire image along with a confidence score. This is useful when knowing the class of an image is sufficient and you don't need the location or shape of objects within it. To see how YOLO26 compares with other architectures, read [image classification models compared](https://www.ultralytics.com/blog/best-image-classification-models).
+YOLO26 models, such as `yolo26n-cls.pt`, are designed for efficient [image classification](https://www.ultralytics.com/blog/best-image-classification-models). They assign a single class label to an entire image along with a confidence score. This is useful when knowing the class of an image is sufficient and you don't need the location or shape of objects within it.
 
 ### How do I train a YOLO26 model for image classification?
 

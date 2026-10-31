@@ -175,7 +175,7 @@ Keep the following in mind if you are facing issues related to model training.
 **Class Distribution**
 
 - Importance: The distribution of classes in your dataset can influence the model's prediction tendencies.
-- Recommendation: Regularly assess the distribution of classes within your dataset. If there's a class imbalance, there's a risk that the model will develop a bias toward the more prevalent class. This bias can be evident in the [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), where the model might predominantly predict the majority class. See [training on an imbalanced dataset](../modes/train.md#how-do-i-train-a-model-on-an-imbalanced-dataset) for mitigation options.
+- Recommendation: Regularly assess the distribution of classes within your dataset. If there's a [class imbalance](../modes/train.md#how-do-i-train-a-model-on-an-imbalanced-dataset), there's a risk that the model will develop a bias toward the more prevalent class. This bias can be evident in the [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), where the model might predominantly predict the majority class.
 
 **Cross-Check with Pretrained Weights**
 

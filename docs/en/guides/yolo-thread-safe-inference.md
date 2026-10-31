@@ -152,7 +152,7 @@ The `ThreadingLocked` decorator is particularly useful when you need to share a 
 
 When using YOLO models with Python's `threading`, give each thread its own dedicated model instance and never share one instance across threads. Instantiating the model inside the thread that uses it is the simplest way to guarantee this, avoiding race conditions and keeping your inference tasks reliable.
 
-For more advanced scenarios and to further optimize your multi-threaded inference performance, consider using process-based parallelism with [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) or leveraging a task queue with dedicated worker processes. The Ultralytics Academy lesson on [multi-stream inference](https://academy.ultralytics.com/courses/yolo-in-production/multi-stream-inference) covers serving several input streams in production.
+For more advanced scenarios and to further optimize your multi-threaded inference performance, consider using process-based parallelism with [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) or leveraging a task queue with dedicated worker processes.
 
 ## FAQ
 
@@ -227,5 +227,3 @@ For more about threading in Python, see the [Understanding Python Threading](#un
 ### Is it safer to use process-based parallelism instead of threading for YOLO model inference?
 
 Yes, using Python's `multiprocessing` module is safer and often more efficient for running YOLO model inference in parallel. Process-based parallelism creates separate memory spaces, avoiding the Global Interpreter Lock (GIL) and reducing the risk of concurrency issues. Each process will operate independently with its own YOLO model instance.
-
-For details on process pools and inter-process communication, see the Python [multiprocessing documentation](https://docs.python.org/3/library/multiprocessing.html).

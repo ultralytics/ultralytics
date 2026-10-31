@@ -126,7 +126,7 @@ Persistent settings such as the datasets, weights, and runs directories, the [Ul
 
 ## What's Next
 
-Browse the [modes](modes/index.md) YOLO runs in, the tasks it supports, and the [YOLO26](models/yolo26.md) model sizes, then [train on your own data](modes/train.md) after formatting it with the [Datasets guide](datasets/index.md). For a guided path from installation to export, take the free Ultralytics Academy course [Train your first YOLO model](https://academy.ultralytics.com/courses/train-your-first-yolo).
+Browse the [modes](modes/index.md) YOLO runs in, the tasks it supports, and the [YOLO26](models/yolo26.md) model sizes, then [train on your own data](modes/train.md) after formatting it with the [Datasets guide](datasets/index.md).
 
 For a look ahead, explore [YOLO27 (Coming Soon)](models/yolo27.md). Its models are not yet available; the examples above use the released YOLO26 family.
 

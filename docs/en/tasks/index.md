@@ -9,7 +9,7 @@ keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, de
 
 <img width="1024" src="https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif" alt="Ultralytics YOLO supported computer vision tasks">
 
-Ultralytics YOLO26 supports multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) **tasks**: [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [depth estimation](depth.md), [classification](classify.md), [pose](pose.md) estimation, and [OBB](obb.md). Each task has a different objective and use case, so you can address a range of computer vision problems with a single framework. For a beginner-friendly comparison, see the Ultralytics Academy lesson [The Seven Vision Tasks](https://academy.ultralytics.com/courses/computer-vision-foundations/vision-tasks).
+Ultralytics YOLO26 supports multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) **tasks**: [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [depth estimation](depth.md), [classification](classify.md), [pose](pose.md) estimation, and [OBB](obb.md). Each task has a different [objective and use case](https://academy.ultralytics.com/courses/computer-vision-foundations/vision-tasks), so you can address a range of computer vision problems with a single framework.
 
 For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
 

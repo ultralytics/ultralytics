@@ -65,7 +65,7 @@ Account management is organized into nine tabs within `Settings` (in order):
 
 ## Security
 
-Ultralytics Platform implements multiple security measures. See [Ultralytics Security](https://www.ultralytics.com/security) for certifications, and the Ultralytics Academy lesson [Privacy, Regions, and Compliance](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/regions-and-compliance) for how data regions affect a project.
+Ultralytics Platform implements multiple [security measures](https://www.ultralytics.com/security):
 
 ### Authentication
 
@@ -134,5 +134,5 @@ Yes, Ultralytics Platform implements:
 
 ### Can I change my data region?
 
-Your data region is selected during onboarding and can't be changed yourself. Contact support to request a region
+Your [data region](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/regions-and-compliance) is selected during onboarding and can't be changed yourself. Contact support to request a region
 change. Dedicated deployments use the deployment region selected when each endpoint is created.

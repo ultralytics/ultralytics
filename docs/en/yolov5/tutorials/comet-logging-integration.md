@@ -8,13 +8,13 @@ keywords: YOLOv5, Comet, machine learning, model tracking, hyperparameters, visu
 
 # YOLOv5 with Comet
 
-This guide covers how to use [YOLOv5](../../models/yolov5.md) with [Comet](https://bit.ly/yolov5-readme-comet2), a tool for [tracking](https://www.ultralytics.com/glossary/experiment-tracking), comparing, and optimizing machine learning experiments. For the `ultralytics` package, see the [Comet integration guide](../../integrations/comet.md).
+This guide covers how to use [YOLOv5](../../models/yolov5.md) with [Comet](https://bit.ly/yolov5-readme-comet2), a tool for [tracking](https://www.ultralytics.com/glossary/experiment-tracking), comparing, and optimizing machine learning experiments.
 
 ## About Comet
 
 [Comet](https://bit.ly/yolov5-readme-comet2) builds tools that help data scientists, engineers, and team leaders accelerate and optimize [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models.
 
-Track and visualize model metrics in real time, save your hyperparameters, datasets, and model checkpoints, and visualize your model predictions with [Comet Custom Panels](https://www.comet.com/docs/v2/guides/comet-dashboard/code-panels/about-panels/?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github). Comet keeps a record of your work and makes it easy to share results and collaborate across teams. For a walkthrough, see [how to use YOLOv5 with Comet](https://www.ultralytics.com/blog/how-to-use-yolov5-with-comet).
+Track and visualize model metrics in real time, save your hyperparameters, datasets, and model checkpoints, and visualize your model predictions with [Comet Custom Panels](https://www.comet.com/docs/v2/guides/comet-dashboard/code-panels/about-panels/?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github). Comet keeps a record of your work and makes it easy to share results and collaborate across teams.
 
 ## Getting Started
 

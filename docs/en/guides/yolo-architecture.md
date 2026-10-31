@@ -160,7 +160,7 @@ The neck reuses the backbone block of its generation — `C3` in YOLOv5, `C2f` i
 
 ## Detection Head: Anchor-Based → Anchor-Free → NMS-Free
 
-The head turns the three fused feature maps into predictions for the [detection task](../tasks/detect.md). Its design has changed across versions, from anchor-based to anchor-free to NMS-free.
+The head turns the three fused feature maps into predictions for the [detection task](../tasks/detect.md). Its design has changed across versions, from anchor-based to anchor-free to [NMS-free](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment).
 
 ### Anchor-free, decoupled `Detect`
 
@@ -171,7 +171,7 @@ The `Detect` head ([`head.py`](../reference/nn/modules/head.md)) is [anchor-free
 - **Box branch (`cv2`):** `Conv(x, c2, 3)` → `Conv(c2, c2, 3)` → `Conv2d(c2, 4 * reg_max, 1)`.
 - **Class branch (`cv3`):** in YOLO11 and YOLO26, two depthwise-separable blocks (`DWConv` + `1x1 Conv`) → `Conv2d(c3, nc, 1)`; YOLOv8 uses the legacy variant, two `3x3 Conv` layers → `Conv2d(c3, nc, 1)`.
 
-Each anchor point therefore emits `no = nc + 4 * reg_max` outputs. Removing predefined anchors drops the anchor box sizes and aspect ratios from the hyperparameters that must be tuned; the post on [anchor-free detection benefits](https://www.ultralytics.com/blog/benefits-ultralytics-yolo11-being-anchor-free-detector) covers the practical impact.
+Each anchor point therefore emits `no = nc + 4 * reg_max` outputs. [Removing predefined anchors](https://www.ultralytics.com/blog/benefits-ultralytics-yolo11-being-anchor-free-detector) drops the anchor box sizes and aspect ratios from the hyperparameters that must be tuned.
 
 ### Distribution Focal Loss (DFL)
 
@@ -184,7 +184,7 @@ YOLOv8 and YOLO11 regress each of the 4 box coordinates as a **distribution** ov
 - **`end2end: True`** — `Detect` deep-copies its branches into a one-to-one head (`one2one_cv2`/`one2one_cv3`) that learns a single prediction per object. This YAML setting creates both training heads; runtime `nms=False` selects the one-to-one head and removes the [Non-Maximum Suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) (NMS) post-processing step. See the [End-to-End Detection guide](end2end-detection.md) for inference and export details.
 - **`reg_max: 1`** — with one bin, `self.dfl` becomes `nn.Identity()` and `no = nc + 4`; the head regresses coordinates directly and no DFL operation appears in the exported [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange) graph.
 
-Across its five model sizes (n/s/m/l/x), YOLO26 reaches 40.9-57.5 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) on COCO at 1.7-11.8 ms T4 [TensorRT](https://www.ultralytics.com/glossary/tensorrt) latency, as reported in the [YOLO26 paper](https://arxiv.org/abs/2606.03748). For the deployment impact of the one-to-one head, read [why YOLO26 removes NMS](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment).
+Across its five model sizes (n/s/m/l/x), YOLO26 reaches 40.9-57.5 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) on COCO at 1.7-11.8 ms T4 [TensorRT](https://www.ultralytics.com/glossary/tensorrt) latency, as reported in the [YOLO26 paper](https://arxiv.org/abs/2606.03748).
 
 ## Version-by-Version Summary
 

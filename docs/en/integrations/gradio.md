@@ -125,7 +125,7 @@ if __name__ == "__main__":
 To use Gradio with Ultralytics YOLO26 for object detection, you can follow these steps:
 
 1. **Install Gradio:** Use the command `pip install gradio`.
-2. **Create Interface:** Write a Python script to initialize the Gradio interface. See the [Usage Example](#usage-example) for the full code.
+2. **Create Interface:** Write a [Python script](#usage-example) to initialize the Gradio interface.
 3. **Upload and Adjust:** Upload your image and adjust the confidence and IoU thresholds on the Gradio interface to get real-time object detection results.
 
 Here's a minimal code snippet for reference:
@@ -170,8 +170,6 @@ Using Gradio for Ultralytics YOLO26 object detection offers several benefits:
 - **User-Friendly Interface:** Gradio provides an intuitive interface for users to upload images and visualize detection results without any coding effort.
 - **Real-Time Adjustments:** You can dynamically adjust detection parameters such as confidence and IoU thresholds and see the effects immediately.
 - **Accessibility:** The web interface is accessible to anyone, making it useful for quick experiments, educational purposes, and demonstrations.
-
-For a similar browser-based approach, see [Run an Interactive AI App with Streamlit and Ultralytics YOLO11](https://www.ultralytics.com/blog/run-an-interactive-ai-app-with-streamlit-and-ultralytics-yolo11).
 
 ### Can I use Gradio and Ultralytics YOLO26 together for educational purposes?
 

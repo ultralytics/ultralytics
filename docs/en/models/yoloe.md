@@ -7,7 +7,7 @@ keywords: YOLOE, YOLOE-26, open-vocabulary detection, open-vocabulary segmentati
 
 # YOLOE: Real-Time Open-Vocabulary Detection and Segmentation
 
-**Ultralytics YOLOE** (Real-Time Seeing Anything) is an **open-vocabulary** detection and [instance segmentation](../tasks/segment.md) model: instead of a class list fixed at training time, it takes the categories you want at inference time, as a text prompt, a visual example, or a built-in 4,585-name vocabulary. Built on the Ultralytics YOLO architectures — YOLOv8, [YOLO11](yolo11.md) and [YOLO26](yolo26.md) — and inspired by [YOLO-World](yolo-world.md), YOLOE reaches high [zero-shot](https://www.ultralytics.com/glossary/zero-shot-learning) accuracy at close to closed-set YOLO speed. For a short introduction, see [What is YOLOE?](https://www.ultralytics.com/blog/what-is-yoloe-taking-computer-vision-models-further)
+**Ultralytics YOLOE** (Real-Time Seeing Anything) is an **open-vocabulary** detection and [instance segmentation](../tasks/segment.md) model: instead of a class list fixed at training time, it takes the categories you want at inference time, as a text prompt, a visual example, or a built-in 4,585-name vocabulary. Built on the Ultralytics YOLO architectures — YOLOv8, [YOLO11](yolo11.md) and [YOLO26](yolo26.md) — and inspired by [YOLO-World](yolo-world.md), YOLOE reaches high [zero-shot](https://www.ultralytics.com/glossary/zero-shot-learning) accuracy at close to closed-set YOLO speed.
 
 <p align="center">
   <br>
@@ -457,7 +457,7 @@ YOLOE sits between a closed-set detector and a heavyweight open-vocabulary model
 
 - **Against a closed-set YOLO.** Once the prompts are set, YOLOE predicts through the ordinary detect/segment path and exports like any other model. What it adds is the ability to change the class list at inference time instead of retraining; what it costs is zero-shot accuracy well below a model trained on your own classes.
 - **Against the earlier YOLOE families.** YOLOE-26 inherits [YOLO26](yolo26.md)'s NMS-free end-to-end head and covers five scales (n/s/m/l/x) against the earlier three (s/m/l), and leads at every matching scale in [Performance](#yoloe-performance-on-lvis).
-- **Against transformer-based open-vocabulary detectors.** GLIP and OWL-ViT run a vision-language transformer at inference. YOLOE encodes the prompts once and then compares them against region features inside a convolutional head. To see how hosted open-vocabulary detectors such as [OWLv2](https://platform.ultralytics.com/models/owlv2) and [Grounding DINO](https://platform.ultralytics.com/models/groundingdino) compare with vision language models on real-world detection, see the [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm).
+- **Against transformer-based open-vocabulary detectors.** GLIP and OWL-ViT run a vision-language transformer at inference. YOLOE encodes the prompts once and then compares them against region features inside a convolutional head.
 
 The nearest alternatives all take a text prompt, but only YOLOE and SAM 3 return masks, and the three answer different questions:
 

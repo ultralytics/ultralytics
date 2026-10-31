@@ -10,7 +10,7 @@ keywords: TrackZone, object tracking, YOLO26, Ultralytics, real-time object dete
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-track-the-objects-in-zone-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open TrackZone In Colab"></a>
 
-TrackZone specializes in monitoring objects within designated areas of a frame instead of the whole frame. Built on [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/), it integrates [object detection](https://www.ultralytics.com/glossary/object-detection) and [tracking](../modes/track.md) specifically within zones for videos and live camera feeds. Because YOLO26 runs [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) detection and tracking in real time, TrackZone suits applications like crowd monitoring and surveillance. For a primer on tracking, see [tracking moving objects in videos with Ultralytics YOLO models](https://www.ultralytics.com/blog/a-guide-on-tracking-moving-objects-in-videos-with-ultralytics-yolo-models).
+TrackZone specializes in monitoring objects within designated areas of a frame instead of the whole frame. Built on [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/), it integrates [object detection](https://www.ultralytics.com/glossary/object-detection) and [tracking](../modes/track.md) specifically within zones for videos and live camera feeds. Because YOLO26 runs [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) detection and tracking in real time, TrackZone suits applications like crowd monitoring and surveillance.
 
 <p align="center">
   <br>

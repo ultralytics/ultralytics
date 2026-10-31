@@ -9,7 +9,7 @@ keywords: YOLO26, SAHI, Sliced Inference, Object Detection, Ultralytics, High-re
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-with-sahi.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open SAHI for Sliced Inference In Colab"></a>
 
-This guide shows how to use YOLO26 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). It covers what SAHI is, why sliced inference helps detect small objects in large, high-resolution images, and how to run it with YOLO26 for better [object detection](https://www.ultralytics.com/glossary/object-detection) results.
+This guide shows how to use YOLO26 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). It covers what SAHI is, why sliced inference helps [detect small objects](https://www.ultralytics.com/blog/exploring-small-object-detection-with-ultralytics-yolo11) in large, high-resolution images, and how to run it with YOLO26 for better [object detection](https://www.ultralytics.com/glossary/object-detection) results.
 
 <p align="center">
   <video width="1024" src="https://cdn.ul.run/v/875e435c815f7be5e42d0d1af5627644.mp4" autoplay loop muted playsinline aria-label="SAHI tiled inference for small objects"></video>
@@ -17,7 +17,7 @@ This guide shows how to use YOLO26 with [SAHI](https://github.com/obss/sahi) (Sl
 
 ## Introduction to SAHI
 
-SAHI (Slicing Aided Hyper Inference) is a library designed to improve object detection on large-scale and high-resolution imagery. It partitions images into manageable slices, runs object detection on each slice, and then stitches the results back together. SAHI is compatible with a range of object detection models, including the YOLO series. For background on why small objects are hard to detect, see [exploring small object detection with Ultralytics YOLO11](https://www.ultralytics.com/blog/exploring-small-object-detection-with-ultralytics-yolo11).
+SAHI (Slicing Aided Hyper Inference) is a library designed to improve object detection on large-scale and high-resolution imagery. It partitions images into manageable slices, runs object detection on each slice, and then stitches the results back together. SAHI is compatible with a range of object detection models, including the YOLO series.
 
 <p align="center">
   <br>

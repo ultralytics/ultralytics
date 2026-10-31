@@ -9,7 +9,7 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 
 <img width="1024" src="https://cdn.ul.run/i/f30f62b4f5592a70ec688ae46cce61b1.avif" alt="YOLO multi-object tracking with trajectory paths">
 
-[Multi-object tracking](https://www.ultralytics.com/glossary/multi-object-tracking-mot) in video analytics identifies the location and class of objects within each frame and also maintains a unique ID for each detected object as the video progresses. Applications range from surveillance and security to real-time sports analytics. For a beginner-friendly walkthrough, see the Ultralytics Academy lesson [Track Objects with ByteTrack, BoT-SORT, and TrackTrack](https://academy.ultralytics.com/courses/yolo-in-production/tracking-with-bytetrack-and-botsort).
+[Multi-object tracking](https://www.ultralytics.com/glossary/multi-object-tracking-mot) in video analytics identifies the location and class of objects within each frame and also maintains a unique ID for each detected object as the video progresses. Applications range from surveillance and security to real-time sports analytics.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned tracking support.
 
@@ -19,10 +19,10 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-mode
 
 ## Why Choose Ultralytics YOLO for Object Tracking?
 
-The output from Ultralytics trackers is consistent with standard [object detection](https://www.ultralytics.com/glossary/object-detection) but has the added value of object IDs. This makes it easy to track objects in video streams and perform subsequent analytics. Key reasons to use Ultralytics YOLO for object tracking:
+The output from Ultralytics trackers is consistent with standard [object detection](https://www.ultralytics.com/glossary/object-detection) but has the added value of object IDs. This makes it easy to [track objects in video streams](https://academy.ultralytics.com/courses/yolo-in-production/tracking-with-bytetrack-and-botsort) and perform subsequent analytics. Key reasons to use Ultralytics YOLO for object tracking:
 
 - **Efficiency:** Process video streams in real-time without compromising [accuracy](https://www.ultralytics.com/glossary/accuracy).
-- **Flexibility:** Supports multiple tracking algorithms and configurations.
+- **Flexibility:** Supports [multiple tracking algorithms](https://www.ultralytics.com/blog/top-8-open-source-object-tracking-tools-and-algorithms) and configurations.
 - **Ease of Use:** Simple Python API and CLI options for quick integration and deployment.
 - **Customizability:** Easy to use with custom-trained YOLO models, allowing integration into domain-specific applications.
 
@@ -109,7 +109,7 @@ To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB
 
 ## Supported Trackers
 
-Ultralytics YOLO ships with six built-in trackers. Enable one by passing its YAML config file to the `tracker` argument. For background on these and other algorithms, see [open-source object tracking tools and algorithms](https://www.ultralytics.com/blog/top-8-open-source-object-tracking-tools-and-algorithms).
+Ultralytics YOLO ships with six built-in trackers. Enable one by passing its YAML config file to the `tracker` argument.
 
 | Tracker                           | Config file       | Motion model               | Appearance / ReID      | Camera motion compensation  | Occlusion handling                              |
 | --------------------------------- | ----------------- | -------------------------- | ---------------------- | --------------------------- | ----------------------------------------------- |

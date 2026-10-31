@@ -33,7 +33,7 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 !!! tip "SAM on Ultralytics Platform"
 
-    SAM-family models (SAM 2.1, SAM 3, and SAM 3.1) power the [smart annotation feature](https://www.ultralytics.com/annotate) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based masking for fast dataset labeling. See the [annotation guide](../platform/data/annotation.md) for details.
+    SAM-family models (SAM 2.1, SAM 3, and SAM 3.1) power the [smart annotation feature](https://www.ultralytics.com/annotate) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based masking for [fast dataset labeling](https://www.ultralytics.com/blog/how-ultralytics-platform-uses-ai-to-automate-annotation). See the [annotation guide](../platform/data/annotation.md) for details.
 
 ## Available Models, Supported Tasks, and Operating Modes
 
@@ -209,7 +209,7 @@ SAM speeds measured with PyTorch, YOLO speeds measured with ONNX Runtime. Tests 
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
 
-Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](../datasets/segment/index.md) using a pretrained detection model. This feature enables rapid annotation of large numbers of images, bypassing time-consuming manual labeling. For a no-code alternative, [Ultralytics Platform automates annotation](https://www.ultralytics.com/blog/how-ultralytics-platform-uses-ai-to-automate-annotation) with SAM-family and hosted vision language models, and the [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm) compares their detection accuracy, cost and speed.
+Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](../datasets/segment/index.md) using a pretrained detection model. This feature enables rapid annotation of large numbers of images, bypassing time-consuming manual labeling.
 
 ### Generate Your Segmentation Dataset Using a Detection Model
 

@@ -10,7 +10,7 @@ keywords: YOLO26, Model Export, ONNX, TensorRT, CoreML, OpenVINO, Ultralytics, q
 
 ## Introduction
 
-The goal of training a model is usually to [deploy](https://www.ultralytics.com/glossary/model-deployment) it in real-world applications. Export mode in Ultralytics YOLO26 converts your trained model to different formats so it can run across various platforms and devices. This guide covers export usage, arguments, supported formats, and quantization options. If you are new to exporting, the Ultralytics Academy lesson [Export for Deployment](https://academy.ultralytics.com/courses/train-your-first-yolo/export-for-deployment) walks through the basics.
+The goal of training a model is usually to [deploy](https://www.ultralytics.com/glossary/model-deployment) it in real-world applications. Export mode in Ultralytics YOLO26 converts your trained model to different formats so it can run across various platforms and devices. This guide covers export usage, arguments, supported formats, and quantization options.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned export support.
 

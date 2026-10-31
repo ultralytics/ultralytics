@@ -109,7 +109,7 @@ We thank the team behind the DOTA datasets for curating them. For full details o
 
 ### What is the DOTA8 dataset and how can it be used?
 
-The DOTA8 dataset is a small oriented object detection dataset made up of the first 8 images from the DOTAv1 split set, with 4 images designated for training and 4 for validation. It's ideal for testing and debugging object detection models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before training on larger datasets. Learn more about [OBB detection](../../tasks/obb.md) with Ultralytics YOLO26.
+The DOTA8 dataset is a small [oriented object detection](../../tasks/obb.md) dataset made up of the first 8 images from the DOTAv1 split set, with 4 images designated for training and 4 for validation. It's ideal for testing and debugging object detection models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before training on larger datasets.
 
 ### How do I train a YOLO26 model using the DOTA8 dataset?
 
@@ -142,8 +142,8 @@ The DOTA dataset is known for its large-scale benchmark and the challenges it pr
 
 ### How does mosaicing enhance model training with the DOTA8 dataset?
 
-Mosaicing combines multiple images into one during training, increasing the variety of objects and contexts within each batch. This improves a model's ability to generalize to different object sizes, aspect ratios, and scenes. The [Sample Images and Annotations](#sample-images-and-annotations) section shows a mosaiced DOTA8 training batch. Learn more about mosaicing and other augmentations in the [YOLO data augmentation guide](../../guides/yolo-data-augmentation.md).
+[Mosaicing](../../guides/yolo-data-augmentation.md#mosaic-mosaic) combines multiple images into one during training, increasing the variety of objects and contexts within each batch. This improves a model's ability to generalize to different object sizes, aspect ratios, and scenes.
 
 ### Why should I use Ultralytics YOLO26 for object detection tasks?
 
-Ultralytics YOLO26 supports real-time object detection, including oriented bounding boxes (OBB), alongside other tasks such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), all through one training pipeline. Its pretrained models make [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) efficient. Learn more in the [Ultralytics YOLO26 documentation](../../models/yolo26.md).
+[Ultralytics YOLO26](../../models/yolo26.md) supports real-time object detection, including oriented bounding boxes (OBB), alongside other tasks such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), all through one training pipeline. Its pretrained models make [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) efficient.

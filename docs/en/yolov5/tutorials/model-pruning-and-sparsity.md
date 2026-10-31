@@ -17,7 +17,7 @@ This guide explains how to apply **pruning** to [YOLOv5](../../models/yolov5.md)
 - Lower memory usage and energy consumption
 - Improved overall efficiency for real-time applications
 
-Pruning works by identifying and removing parameters that contribute minimally to the model's performance, resulting in a more lightweight model with similar accuracy. For a broader overview, see [pruning and quantization in computer vision](https://www.ultralytics.com/blog/pruning-and-quantization-in-computer-vision-a-quick-guide).
+[Pruning](https://www.ultralytics.com/blog/pruning-and-quantization-in-computer-vision-a-quick-guide) works by identifying and removing parameters that contribute minimally to the model's performance, resulting in a more lightweight model with similar accuracy.
 
 ## Before You Start
 

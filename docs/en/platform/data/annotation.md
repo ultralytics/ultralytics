@@ -150,7 +150,7 @@ Draw rectangular boxes around objects:
 
 ### Polygon (Segment)
 
-Draw precise polygon masks (the [polygon annotation guide](https://www.ultralytics.com/blog/a-guide-to-polygon-annotation-with-ultralytics-platform) walks through a full example):
+Draw precise [polygon masks](https://www.ultralytics.com/blog/a-guide-to-polygon-annotation-with-ultralytics-platform):
 
 1. Select a class in the class sidebar
 2. In the default `Draw` mode, click to add vertices, or hold `Shift` and move the mouse to freehand-draw dense points
@@ -237,7 +237,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor (see [how Ultralytics Platform automates annotation with AI](https://www.ultralytics.com/blog/how-ultralytics-platform-uses-ai-to-automate-annotation) for an overview). In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: eight hosted open-source models (one more with [Early access](../account/settings.md#early-access) on), hosted text-prompted [SAM 3](https://platform.ultralytics.com/models/sam3) and [SAM 3.1](https://platform.ultralytics.com/models/sam3.1), and paid vision models from eleven providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
+Smart annotation adds [model-assisted annotation](https://www.ultralytics.com/blog/how-ultralytics-platform-uses-ai-to-automate-annotation) to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: eight hosted open-source models (one more with [Early access](../account/settings.md#early-access) on), hosted text-prompted [SAM 3](https://platform.ultralytics.com/models/sam3) and [SAM 3.1](https://platform.ultralytics.com/models/sam3.1), and paid vision models from eleven providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
 
 ### SAM Smart Annotation
 
@@ -333,7 +333,7 @@ With a YOLO model selected, Smart annotation can add predictions from [pretraine
 
 ### Class-Prompted Smart Annotation
 
-On a detection dataset with 1–200 classes, select a class-prompted model and click `Predict` (or press `P`): it detects the dataset's classes across the whole image with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected. The [VLM Leaderboard](https://www.ultralytics.com/benchmarks/vlm) compares these models' detection accuracy, cost, and speed.
+On a detection dataset with 1–200 classes, select a class-prompted model and click `Predict` (or press `P`): it detects the dataset's classes across the whole image with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
 
 Hosted models run on Ultralytics Platform with no provider key; Moondream 3.1 is the default:
 

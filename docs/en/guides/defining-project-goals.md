@@ -20,11 +20,11 @@ To define a computer vision project, write a problem statement that names the co
   <strong>Watch:</strong> How to define Computer Vision Project's Goal | Problem Statement and VisionAI Tasks Connection 🚀
 </p>
 
-For an overview of the full workflow from data collection to deployment, see our guide on [the key steps in a computer vision project](./steps-of-a-cv-project.md). For a beginner-friendly lesson on the same planning step, see [Frame the Problem](https://academy.ultralytics.com/courses/computer-vision-foundations/frame-the-problem) in Ultralytics Academy.
+For an overview of the full workflow from data collection to deployment, see our guide on [the key steps in a computer vision project](./steps-of-a-cv-project.md).
 
 ## How to Write a Computer Vision Problem Statement
 
-A clear problem statement is the first big step toward finding the most effective solution. It has four parts:
+A clear [problem statement](https://academy.ultralytics.com/courses/computer-vision-foundations/frame-the-problem) is the first big step toward finding the most effective solution. It has four parts:
 
 - **Identify the Core Issue:** Pinpoint the specific challenge your computer vision project aims to solve.
 - **Determine the Scope:** Define the boundaries of your problem.

@@ -245,11 +245,7 @@ os.environ["COMET_MAX_CONFIDENCE_SCORE"] = "1.0"  # log raw [0, 1] scores
 
 This guide has walked you through integrating Comet with Ultralytics YOLO26. From installation to customization, you've learned to streamline experiment management, gain real-time insights, and adapt logging to your project's needs.
 
-Explore [Comet's official YOLOv8 integration documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/), which also applies to YOLO26 projects, and the Ultralytics blog post [YOLOv5 + Comet: Track & Optimize Models](https://www.ultralytics.com/blog/how-to-use-yolov5-with-comet) for an earlier walkthrough of the same workflow.
-
-For a practical [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) example, the Comet blog post [Fine-Tuning YOLOv8 for Image Segmentation with Comet](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) walks through a segmentation fine-tuning project step by step; the same workflow applies to YOLO26.
-
-To explore other Ultralytics integrations, visit the [Ultralytics integrations guide](../integrations/index.md).
+Explore [Comet's official YOLOv8 integration documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/), which also applies to YOLO26 projects.
 
 ## FAQ
 

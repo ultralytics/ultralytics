@@ -75,7 +75,7 @@ Before modifying anything, **first train with default settings to establish a pe
 
 ## Further Reading
 
-If you'd like to know more, a good place to start is Karpathy's [A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/), which has ideas for training that apply broadly across all ML domains. For the `ultralytics` package, see the [Model Training Tips guide](../../guides/model-training-tips.md).
+If you'd like to know more, a good place to start is Karpathy's [A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/), which has ideas for training that apply broadly across all ML domains.
 
 Good luck, and let us know if you have any other questions.
 
@@ -83,7 +83,7 @@ Good luck, and let us know if you have any other questions.
 
 ### How do I know if my model is overfitting?
 
-Your model may be overfitting if the training loss continues to decrease while validation loss starts to increase. Monitor the validation mAP - if it plateaus or decreases while training loss keeps improving, that's a sign of overfitting. Solutions include adding more training data, increasing data augmentation, or applying [regularization](https://www.ultralytics.com/glossary/regularization) techniques. For more detail, see [how to prevent overfitting in computer vision](https://www.ultralytics.com/blog/what-is-overfitting-in-computer-vision-how-to-prevent-it).
+Your model may be [overfitting](https://www.ultralytics.com/blog/what-is-overfitting-in-computer-vision-how-to-prevent-it) if the training loss continues to decrease while validation loss starts to increase. Monitor the validation mAP - if it plateaus or decreases while training loss keeps improving, that's a sign of overfitting. Solutions include adding more training data, increasing data augmentation, or applying [regularization](https://www.ultralytics.com/glossary/regularization) techniques.
 
 ### What's the optimal batch size for training YOLOv5?
 

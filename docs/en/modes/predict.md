@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-t
 
 ## Introduction
 
-In [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), making sense of visual data with a trained model is called inference or prediction. Ultralytics YOLO26 **predict mode** runs fast, [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) across a wide range of data sources. If you are just getting started, the Ultralytics Academy lesson [Predict on an Image](https://academy.ultralytics.com/courses/train-your-first-yolo/predict-on-image) walks through a first prediction.
+In [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), making sense of visual data with a trained model is called inference or prediction. Ultralytics YOLO26 **predict mode** runs fast, [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) across a wide range of data sources.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for planned inference examples.
 
@@ -48,7 +48,7 @@ YOLO26's predict mode includes:
 
 - **Multiple Data Source Compatibility:** Predict mode accepts individual images, collections of images, video files, and real-time video streams.
 - **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method. Unlike the default behavior (`stream=False`), which returns a list containing all results, `stream=True` yields results one at a time, making it especially useful for long videos and live streams.
-- **Batch Processing:** Process multiple images or video frames in a single batch, further reducing total inference time (see [batch inference with Ultralytics YOLO](https://www.ultralytics.com/blog/using-ultralytics-yolo11-to-run-batch-inferences)).
+- **Batch Processing:** Process multiple images or video frames in a [single batch](https://www.ultralytics.com/blog/using-ultralytics-yolo11-to-run-batch-inferences), further reducing total inference time.
 - **Integration Friendly:** Integrate with existing data pipelines and other software components through a flexible API.
 
 Ultralytics YOLO models return either a Python list of `Results` objects or a memory-efficient generator of `Results` objects when `stream=True` is passed to the model during inference:
@@ -131,7 +131,7 @@ Below are code examples for using each source type:
 
     === "image"
 
-        Run inference on an image file.
+        [Run inference on an image file](https://academy.ultralytics.com/courses/train-your-first-yolo/predict-on-image).
         ```python
         from ultralytics import YOLO
 

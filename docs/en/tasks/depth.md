@@ -11,7 +11,7 @@ model_name: yolo26n-depth
 
 Monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation) predicts a per-pixel depth map from a single RGB image. Each output pixel holds a depth value in meters representing the estimated distance from the camera to that surface point.
 
-The output of a depth model is a dense float map of shape `(H, W)` aligned to the input image. This per-pixel representation makes monocular depth estimation well-suited for [3D scene reconstruction](https://www.ultralytics.com/glossary/3d-reconstruction), robot navigation, AR/VR content creation, and any application that requires spatial layout from a single camera. For an overview of the YOLO26 depth models, read the [YOLO26 depth estimation announcement](https://www.ultralytics.com/blog/ultralytics-yolo26-now-supports-monocular-depth-estimation).
+The output of a depth model is a dense float map of shape `(H, W)` aligned to the input image. This per-pixel representation makes monocular depth estimation well-suited for [3D scene reconstruction](https://www.ultralytics.com/glossary/3d-reconstruction), robot navigation, AR/VR content creation, and any application that requires spatial layout from a single camera.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ The output of a depth model is a dense float map of shape `(H, W)` aligned to th
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~2.19M images) are shown below. The metrics columns are reported on the [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) Eigen test split.
+[YOLO26 depth models](https://www.ultralytics.com/blog/ultralytics-yolo26-now-supports-monocular-depth-estimation) pretrained on a broad multi-dataset mix (indoor + outdoor, ~2.19M images) are shown below. The metrics columns are reported on the [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) Eigen test split.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -47,7 +47,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ### Speed compared to Depth Anything V2
 
-Depth Anything V2 is a widely used open baseline for monocular depth. Its DINOv2 [vision transformer](https://www.ultralytics.com/glossary/vision-transformer-vit) backbone and DPT decoder are compute-heavy, so on the same Tesla T4 under TensorRT fp16 the smallest released Depth Anything V2 model is slower than every YOLO26 depth model — including YOLO26x-depth, which carries more than twice the parameters. For a broader survey of depth architectures, see [monocular depth estimation models compared](https://www.ultralytics.com/blog/best-depth-estimation-models).
+Depth Anything V2 is a [widely used open baseline](https://www.ultralytics.com/blog/best-depth-estimation-models) for monocular depth. Its DINOv2 [vision transformer](https://www.ultralytics.com/glossary/vision-transformer-vit) backbone and DPT decoder are compute-heavy, so on the same Tesla T4 under TensorRT fp16 the smallest released Depth Anything V2 model is slower than every YOLO26 depth model — including YOLO26x-depth, which carries more than twice the parameters.
 
 At ~768 px — `imgsz=768` for YOLO26, the resolution its released weights are trained at, and 770 px for Depth Anything V2, whose DINOv2 backbone requires a multiple of its patch size of 14:
 

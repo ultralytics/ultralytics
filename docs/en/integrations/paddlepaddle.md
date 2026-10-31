@@ -20,7 +20,7 @@ Bridging the gap between developing and deploying [computer vision](https://www.
   <strong>Watch:</strong> How to Export Ultralytics YOLO26 Models to PaddlePaddle Format | Key Features of PaddlePaddle Format
 </p>
 
-The ability to export to PaddlePaddle model format allows you to optimize your [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) models for use within the PaddlePaddle framework. PaddlePaddle is known for facilitating industrial deployments and is a good choice for deploying computer vision applications in real-world settings across various domains.
+The ability to [export to PaddlePaddle model format](https://www.ultralytics.com/blog/exporting-ultralytics-yolo11-using-the-paddlepaddle-integration) allows you to optimize your [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) models for use within the PaddlePaddle framework. PaddlePaddle is known for facilitating industrial deployments and is a good choice for deploying computer vision applications in real-world settings across various domains.
 
 ## Why should you export to PaddlePaddle?
 
@@ -178,7 +178,7 @@ However, for in-depth instructions on deploying your PaddlePaddle models in vari
 
 ## Summary
 
-In this guide, we explored the process of exporting Ultralytics YOLO26 models to the PaddlePaddle format. By following these steps, you can use PaddlePaddle's strengths in diverse deployment scenarios and optimize your models for different hardware and software environments. For another walkthrough, see the blog post on [using the PaddlePaddle integration with Ultralytics YOLO11](https://www.ultralytics.com/blog/exporting-ultralytics-yolo11-using-the-paddlepaddle-integration).
+In this guide, we explored the process of exporting Ultralytics YOLO26 models to the PaddlePaddle format. By following these steps, you can use PaddlePaddle's strengths in diverse deployment scenarios and optimize your models for different hardware and software environments.
 
 For further details on usage, visit the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html).
 

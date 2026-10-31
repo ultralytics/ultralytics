@@ -6,11 +6,11 @@ keywords: Axelera AI, Metis AIPU, Voyager SDK, Edge AI, YOLOv8, YOLO11, YOLO26, 
 
 # Axelera AI Export and Deployment
 
-Ultralytics partners with [Axelera AI](https://axelera.ai/) to enable high-performance, energy-efficient inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices. Export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** using the **Voyager SDK**.
+Ultralytics [partners](https://www.ultralytics.com/partners/axelera) with [Axelera AI](https://axelera.ai/) to enable high-performance, energy-efficient inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices. Export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** using the **Voyager SDK**.
 
 ![Axelera AI edge deployment ecosystem for YOLO](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
-Axelera AI provides dedicated hardware acceleration for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) at the edge, using a proprietary dataflow architecture and in-memory computing to deliver up to **856 TOPS** with low power consumption. For background on the partnership, see [Ultralytics YOLO Meets Axelera AI](https://www.ultralytics.com/blog/bringing-ultralytics-yolo-models-to-axelera-ai-hardware-for-edge-ai) and the [Ultralytics Axelera AI partner page](https://www.ultralytics.com/partners/axelera).
+Axelera AI provides dedicated hardware acceleration for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) at the edge, using a proprietary dataflow architecture and in-memory computing to deliver up to **856 TOPS** with low power consumption.
 
 ## Selecting the Right Hardware
 
@@ -269,7 +269,7 @@ These are host throughput figures, measured by the [model zoo](https://docs.axel
 
 ## Real-World Applications
 
-Ultralytics YOLO on Axelera hardware supports [edge computing](https://www.ultralytics.com/glossary/edge-computing) applications such as:
+[Ultralytics YOLO on Axelera hardware](https://www.ultralytics.com/blog/bringing-ultralytics-yolo-models-to-axelera-ai-hardware-for-edge-ai) supports [edge computing](https://www.ultralytics.com/glossary/edge-computing) applications such as:
 
 - **Smart Retail**: Real-time [object counting](../guides/object-counting.md) and [heatmap analytics](../guides/heatmaps.md) for store optimization.
 - **Industrial Safety**: Low-latency [PPE detection](../datasets/detect/construction-ppe.md) in manufacturing environments.

@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 
 # Projects
 
-[Ultralytics Platform](https://platform.ultralytics.com) projects group related models so you can manage them, compare results, and [track experiments](https://www.ultralytics.com/glossary/experiment-tracking) in one place.
+[Ultralytics Platform](https://platform.ultralytics.com) projects group related models so you can manage them, [compare results](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/track-experiments), and [track experiments](https://www.ultralytics.com/glossary/experiment-tracking) in one place.
 
 ```mermaid
 flowchart TD
@@ -148,8 +148,7 @@ Clone a public project to your own account:
 ## Compare Models
 
 Click **Compare with AI** to have [Ask AI](autotrain.md) compare the project's trained models, recommend the best fit,
-and say whether another training run is worth it. It asks before starting any training. For a guided exercise, see the
-Ultralytics Academy lesson [Compare Runs and Pick a Winner](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/track-experiments).
+and say whether another training run is worth it. It asks before starting any training.
 
 ### Charts Dashboard
 

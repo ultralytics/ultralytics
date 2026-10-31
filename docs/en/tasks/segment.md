@@ -11,7 +11,7 @@ model_name: yolo26n-seg
 
 [Instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) goes a step further than object detection and involves identifying individual objects in an image and segmenting them from the rest of the image.
 
-The output of an instance segmentation model is a set of masks or contours that outline each object in the image, along with class labels and confidence scores for each object. Instance segmentation is useful when you need to know not only where objects are in an image, but also what their exact shape is. To decide whether your project needs masks or boxes, see the Ultralytics Academy lesson [Boxes vs Masks: When You Actually Need Segmentation](https://academy.ultralytics.com/courses/computer-vision-foundations/instance-segmentation).
+The output of an instance segmentation model is a set of masks or contours that outline each object in the image, along with class labels and confidence scores for each object. Instance segmentation is useful when you need to know not only where objects are in an image, but also what their [exact shape](https://academy.ultralytics.com/courses/computer-vision-foundations/instance-segmentation) is.
 
 <p align="center">
   <br>
@@ -218,7 +218,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I train a YOLO26 segmentation model on a custom dataset?
 
-To train a YOLO26 segmentation model on a custom dataset, you first need to prepare your dataset in the YOLO segmentation format. You can use the built-in [`convert_coco`](../guides/coco-to-yolo.md) utility to convert COCO JSON datasets. Once your dataset is ready, you can train the model using Python or CLI commands. For an end-to-end walkthrough, see [how to custom-train Ultralytics YOLO26 for instance segmentation](https://www.ultralytics.com/blog/how-to-custom-train-ultralytics-yolo26-for-instance-segmentation).
+To [train a YOLO26 segmentation model on a custom dataset](https://www.ultralytics.com/blog/how-to-custom-train-ultralytics-yolo26-for-instance-segmentation), you first need to prepare your dataset in the YOLO segmentation format. You can use the built-in [`convert_coco`](../guides/coco-to-yolo.md) utility to convert COCO JSON datasets. Once your dataset is ready, you can train the model using Python or CLI commands:
 
 !!! example
 

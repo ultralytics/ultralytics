@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO26, model validation, machine learning, object detect
 
 ## Introduction
 
-Validation is a critical step in the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) pipeline, allowing you to assess the quality of your trained models. Val mode in Ultralytics YOLO26 provides tools and metrics for evaluating [object detection](https://www.ultralytics.com/glossary/object-detection) models and every other supported task. This guide explains how to use Val mode to confirm that your models are accurate and reliable. For a beginner walkthrough, see the Ultralytics Academy lesson [Validate and Diagnose](https://academy.ultralytics.com/courses/train-your-first-yolo/validate-and-diagnose).
+Validation is a critical step in the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) pipeline, allowing you to [assess the quality of your trained models](https://academy.ultralytics.com/courses/train-your-first-yolo/validate-and-diagnose). Val mode in Ultralytics YOLO26 provides tools and metrics for evaluating [object detection](https://www.ultralytics.com/glossary/object-detection) models and every other supported task. This guide explains how to use Val mode to confirm that your models are accurate and reliable.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary validation results.
 
@@ -230,7 +230,7 @@ For further customization, you can adjust various arguments like `imgsz`, `batch
 
 YOLO26 model validation provides several key metrics to assess model performance. These include:
 
-- mAP50 (mean Average Precision at [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold 0.5)
+- mAP50 ([mean Average Precision](https://www.ultralytics.com/blog/mean-average-precision-map-in-object-detection) at [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold 0.5)
 - mAP75 (mean Average Precision at IoU threshold 0.75)
 - mAP50-95 (mean Average Precision across multiple IoU thresholds from 0.5 to 0.95)
 
@@ -246,7 +246,7 @@ print(metrics.box.ap_class_index)  # class indices that were actually evaluated
 print(metrics.box.image_metrics)  # per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
 ```
 
-Review all of these metrics for a complete performance evaluation. For how they are computed and interpreted, read [Mean Average Precision (mAP) in object detection](https://www.ultralytics.com/blog/mean-average-precision-map-in-object-detection).
+Review all of these metrics for a complete performance evaluation.
 
 ### What are the advantages of using Ultralytics YOLO for validation?
 

@@ -9,7 +9,7 @@ keywords: Ultralytics YOLO26, speed estimation, object tracking, vehicle speed, 
 
 ## What is Speed Estimation?
 
-Speed estimation is the process of calculating the rate of movement of an object within a given context, often employed in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. With [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) you can calculate the speed of objects using [object tracking](../modes/track.md) alongside distance and time data, which is useful for tasks like traffic monitoring and surveillance. For a beginner walkthrough, see the Ultralytics Academy lesson on [counting, heatmaps, and speed estimation](https://academy.ultralytics.com/courses/yolo-in-production/counting-heatmaps-and-speed).
+[Speed estimation](https://academy.ultralytics.com/courses/yolo-in-production/counting-heatmaps-and-speed) is the process of calculating the rate of movement of an object within a given context, often employed in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. With [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) you can calculate the speed of objects using [object tracking](../modes/track.md) alongside distance and time data, which is useful for tasks like traffic monitoring and surveillance.
 
 <p align="center">
   <br>

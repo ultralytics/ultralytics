@@ -68,7 +68,7 @@ However, scaling locally can be tough, and maintenance can be time-consuming. Us
 
 ### Implementing Docker for YOLO26 Deployment
 
-To containerize your YOLO26 model, you can create a Dockerfile that specifies all the necessary dependencies and configurations. Here's a basic example:
+To [containerize your YOLO26 model](https://www.ultralytics.com/blog/containerization-using-docker-to-streamline-model-deployment), you can create a Dockerfile that specifies all the necessary dependencies and configurations. Here's a basic example:
 
 ```dockerfile
 FROM ultralytics/ultralytics:latest
@@ -86,11 +86,11 @@ ENV MODEL_PATH=/app/models/yolo26n.pt
 CMD ["python", "/app/scripts/predict.py"]
 ```
 
-This approach ensures that your model deployment is reproducible and consistent across development, testing, and production. For a longer walkthrough, see [Dockerizing YOLO models to streamline deployment](https://www.ultralytics.com/blog/containerization-using-docker-to-streamline-model-deployment).
+This approach ensures that your model deployment is reproducible and consistent across development, testing, and production.
 
 ## Model Optimization Techniques
 
-Optimizing your computer vision model helps it run efficiently, especially when deploying in environments with limited resources like edge devices. Here are some key techniques for optimizing your model; [pruning and quantization in computer vision](https://www.ultralytics.com/blog/pruning-and-quantization-in-computer-vision-a-quick-guide) covers the first two in more depth.
+Optimizing your computer vision model helps it run efficiently, especially when deploying in environments with limited resources like edge devices. Here are some [key techniques for optimizing your model](https://www.ultralytics.com/blog/pruning-and-quantization-in-computer-vision-a-quick-guide).
 
 ### Model Pruning
 

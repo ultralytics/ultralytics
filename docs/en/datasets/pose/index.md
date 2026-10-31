@@ -74,7 +74,7 @@ The `train`, `val`, and `test` fields point to the training, validation, and tes
 
 (Optional) `flip_idx` maps each keypoint to its mirror image, so horizontal-flip augmentation keeps left and right consistent on symmetric skeletons such as a human body or face. For five facial landmarks indexed as [left eye, right eye, nose, left mouth, right mouth] = [0, 1, 2, 3, 4], `flip_idx` is [1, 0, 2, 4, 3]: the left-right pairs 0-1 and 3-4 swap, and the nose keeps its own index.
 
-(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](../../guides/yolo-performance-metrics.md) sigmas used during training and validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise. The free Academy lesson on [custom keypoints and OKS metrics](https://academy.ultralytics.com/courses/beyond-detection/custom-keypoints-and-oks) explains how these settings affect training and evaluation.
+(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](../../guides/yolo-performance-metrics.md) sigmas used during training and validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise.
 
 ## Usage
 
@@ -129,7 +129,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Label Format**: Follows the Ultralytics YOLO format, with annotations for multiple keypoints specific to dog anatomy.
 - **Number of Classes**: 1 (dog).
 - **Keypoints**: 24 keypoints, each with a visibility dimension, tailored to dog poses such as limbs, joints, and head positions.
-- **Usage**: Ideal for training models to estimate dog poses in various scenarios, from research to real-world applications; see the [dog pose estimation training tutorial](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation).
+- **Usage**: Ideal for training models to [estimate dog poses](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation) in various scenarios, from research to real-world applications.
 - **Additional Notes**: Source images are drawn from the [Stanford Dogs Dataset](http://vision.stanford.edu/aditya86/ImageNetDogs/).
 - [Read more about Dog-Pose](dog-pose.md)
 

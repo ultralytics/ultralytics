@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO26, object counting, object blurring, security system
 
 # Ultralytics Solutions: Harness YOLO26 to Solve Real-World Problems
 
-Ultralytics Solutions are ready-to-use applications of Ultralytics YOLO models for common [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) problems such as object counting, heatmaps, speed estimation, queue management, and object blurring. Most solutions wrap detection, [tracking](../modes/track.md), or pose estimation in a configurable class that you can run from Python or the `yolo solutions` CLI. For fine-tuned example models such as PCB defect and retail product detection, browse the [Ultralytics Platform solutions project](https://platform.ultralytics.com/ultralytics/solutions).
+Ultralytics Solutions are ready-to-use applications of Ultralytics YOLO models for common [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) problems such as [object counting, heatmaps, speed estimation](https://academy.ultralytics.com/courses/yolo-in-production/counting-heatmaps-and-speed), queue management, and object blurring. Most solutions wrap detection, [tracking](../modes/track.md), or pose estimation in a configurable class that you can run from Python or the `yolo solutions` CLI.
 
 ![Ultralytics Solutions Thumbnail](https://cdn.ul.run/i/af2a06dd04b546ae345e818580d16e7e.avif)
 
@@ -24,7 +24,7 @@ Ultralytics Solutions are ready-to-use applications of Ultralytics YOLO models f
 
 ## Solutions
 
-Each solution below has a dedicated guide, and the free Ultralytics Academy lesson [Counting, Heatmaps, and Speed Estimation](https://academy.ultralytics.com/courses/yolo-in-production/counting-heatmaps-and-speed) covers several of them hands-on:
+Each solution below has a dedicated guide:
 
 - [Analytics](../guides/analytics.md): Generate line, bar, pie, and area charts from YOLO26 detections to analyze trends over time.
 - [Distance Calculation](../guides/distance-calculation.md): Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO26 for spatial analysis.
@@ -165,11 +165,11 @@ To get started, read the [Contributing Guide](../help/contributing.md) for guide
 
 ### How can I use Ultralytics YOLO for real-time object counting?
 
-Ultralytics YOLO26 counts objects in real time by combining detection with tracking, so each object is counted once as it crosses a line or enters a region. Follow the [Object Counting](../guides/object-counting.md) guide to set up YOLO26 for live video stream analysis: install `ultralytics`, load a model, and pass video frames to `solutions.ObjectCounter`.
+Ultralytics YOLO26 [counts objects](../guides/object-counting.md) in real time by combining detection with tracking, so each object is counted once as it crosses a line or enters a region. To set up YOLO26 for live video stream analysis, install `ultralytics`, load a model, and pass video frames to `solutions.ObjectCounter`.
 
 ### What are the benefits of using Ultralytics YOLO for security systems?
 
-Ultralytics YOLO26 adds real-time object detection and alerting to camera-based security systems. With the [Security Alarm System](../guides/security-alarm-system.md) solution, YOLO26 sends an email alert when the number of detected objects in the surveillance area reaches a threshold. For a project walkthrough, see [building a person detection security alarm with Ultralytics YOLO](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8).
+Ultralytics YOLO26 adds real-time object detection and alerting to [camera-based security systems](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8). With the [Security Alarm System](../guides/security-alarm-system.md) solution, YOLO26 sends an email alert when the number of detected objects in the surveillance area reaches a threshold.
 
 ### How can Ultralytics YOLO improve queue management systems?
 

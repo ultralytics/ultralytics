@@ -9,7 +9,7 @@ keywords: fine-tune YOLO, finetune YOLO custom dataset, YOLO transfer learning, 
 
 [Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) adapts a pretrained model to recognize new classes by starting from learned weights rather than random initialization. Instead of training from scratch for hundreds of epochs, fine-tuning reuses pretrained [COCO](../datasets/detect/coco.md) features and converges on custom data in a fraction of the time.
 
-This guide covers fine-tuning [YOLO26](../models/yolo26.md) on custom datasets, from basic usage to advanced techniques like [layer freezing](#freezing-layers) and [two-stage training](#two-stage-fine-tuning). For a beginner-friendly lesson on the same workflow, see [First Fine-Tune and the Iteration Loop](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/first-fine-tune-and-iterate) in Ultralytics Academy.
+This guide covers fine-tuning [YOLO26](../models/yolo26.md) on custom datasets, from basic usage to advanced techniques like [layer freezing](#freezing-layers) and [two-stage training](#two-stage-fine-tuning).
 
 ## Fine-Tuning vs Training from Scratch
 

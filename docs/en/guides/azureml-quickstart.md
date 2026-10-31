@@ -78,8 +78,6 @@ yolo predict model=yolo26n.pt source='https://ultralytics.com/images/bus.jpg'
 yolo train data=coco8.yaml model=yolo26n.pt epochs=10
 ```
 
-See the [Ultralytics CLI quickstart](../quickstart.md#use-ultralytics-with-cli) for more commands.
-
 ## Quickstart from a Notebook
 
 ### Create a New IPython Kernel
@@ -114,7 +112,7 @@ pip install ultralytics onnx
 
     Run `source activate yolo26env` at the top of every `%%bash` cell so the cell uses the intended environment.
 
-Run some predictions using the Ultralytics CLI:
+Run some predictions using the [Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli):
 
 ```bash
 %%bash
@@ -172,8 +170,6 @@ To run YOLO26 on AzureML for training, create a compute instance, set up a Conda
     yolo train data=coco8.yaml model=yolo26n.pt epochs=10
     ```
 
-For more commands, see the [Terminal quickstart](#quickstart-from-terminal) above.
-
 ### What are the benefits of using AzureML for YOLO26 training?
 
 AzureML provides a managed environment for training YOLO26 models:
@@ -217,10 +213,8 @@ For step-by-step instructions, refer to the [CLI quickstart guide](../quickstart
 
 ### What is the advantage of using Ultralytics YOLO26 over other object detection models?
 
-Ultralytics YOLO26 offers several advantages over competing [object detection](https://www.ultralytics.com/glossary/object-detection) models:
+[Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26) offers several advantages over competing [object detection](https://www.ultralytics.com/glossary/object-detection) models:
 
 - **Speed**: Faster inference and training times compared to models like Faster R-CNN and SSD.
 - **[Accuracy](https://www.ultralytics.com/glossary/accuracy)**: High accuracy in detection tasks with features like [anchor-free](https://www.ultralytics.com/glossary/anchor-free-detectors) design and enhanced augmentation strategies.
 - **Ease of Use**: Intuitive API and CLI for quick setup, making it accessible both to beginners and experts.
-
-To explore more about YOLO26's features, visit the [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26) page.

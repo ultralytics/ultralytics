@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 # Datasets
 
-[Ultralytics Platform](https://platform.ultralytics.com) datasets hold the images, labels, and splits that make up your [training data](https://www.ultralytics.com/glossary/training-data). After upload, the platform processes images, labels, and statistics automatically. For an overview of the workflow, see [smart dataset management with Ultralytics Platform](https://www.ultralytics.com/blog/smart-dataset-management-in-computer-vision-with-ultralytics-platform).
+[Ultralytics Platform](https://platform.ultralytics.com) datasets hold the images, labels, and splits that make up your [training data](https://www.ultralytics.com/glossary/training-data). After upload, the platform processes images, labels, and statistics automatically.
 
 A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
 
@@ -18,7 +18,7 @@ Use [Agents](../agents.md#collect-images-for-review) to add images to a dataset 
 
 ## Upload Dataset
 
-Ultralytics Platform accepts images, videos, archives, and NDJSON files. For a guided walkthrough, see the [Add and Prepare Data](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/upload-and-prepare-data) lesson in Ultralytics Academy.
+Ultralytics Platform accepts images, videos, archives, and NDJSON files.
 
 !!! tip "Already have data elsewhere?"
 

@@ -104,7 +104,7 @@ For detailed instructions and best practices related to the installation process
 
 Before you start, review the range of [models offered by Ultralytics](../models/index.md) to choose the most appropriate one for your project.
 
-The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or [validate its accuracy](https://academy.ultralytics.com/courses/yolo-in-production/export-to-onnx).
 
 !!! example "Export"
 
@@ -243,7 +243,7 @@ Ultralytics runs exported ONNX models on AMD GPUs through the ONNX Runtime [MIGr
 
 ## Summary
 
-In this guide, you've learned how to export Ultralytics YOLO26 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options. For a hands-on lesson, see [Export to ONNX (and Verify Parity)](https://academy.ultralytics.com/courses/yolo-in-production/export-to-onnx) in Ultralytics Academy, and the blog post on [using the ONNX integration to export Ultralytics YOLO models](https://www.ultralytics.com/blog/using-the-onnx-integration-to-export-ultralytics-yolo-models).
+In this guide, you've learned how to export Ultralytics YOLO26 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.
 
 ONNX export is just one of many [export formats](../modes/export.md) supported by Ultralytics YOLO26, allowing you to deploy your models in virtually any environment. Depending on your specific needs, you might also want to explore other export options like [TensorRT](tensorrt.md) for maximum GPU performance or [CoreML](coreml.md) for Apple devices.
 
@@ -321,8 +321,6 @@ Using ONNX format for Ultralytics YOLO26 models provides several benefits:
 - **Performance Optimization**: ONNX Runtime can enhance model performance by utilizing hardware-specific optimizations.
 - **Flexibility**: ONNX supports various deployment environments, enabling you to use the same model on different platforms without modification.
 - **Standardization**: ONNX provides a standardized format that is widely supported across the industry, ensuring long-term compatibility.
-
-See the [Usage](#usage) section above for export, prediction, and validation examples.
 
 ### How can I troubleshoot issues when exporting YOLO26 models to ONNX?
 

@@ -41,14 +41,14 @@ Here are some best practices to keep in mind while monitoring your computer visi
 
 ### Monitoring with Ultralytics Platform
 
-The [Ultralytics Platform](../platform/index.md) provides built-in [model monitoring](https://www.ultralytics.com/glossary/model-monitoring) for deployed YOLO endpoints, so you can watch your model in production without assembling a separate monitoring stack. The [Deploy dashboard](../platform/deploy/monitoring.md) tracks key signals in real time:
+The [Ultralytics Platform](../platform/index.md) provides built-in [model monitoring](https://www.ultralytics.com/glossary/model-monitoring) for deployed YOLO endpoints, so you can [watch your model in production](https://www.ultralytics.com/blog/ultralytics-platform-monitoring-keep-vision-ai-deployments-on-track) without assembling a separate monitoring stack. The [Deploy dashboard](../platform/deploy/monitoring.md) tracks key signals in real time:
 
 - **Request metrics**: Total request volume, error rate, and P95 latency for each endpoint, with 24-hour sparkline trends in the dashboard and ranges from 1 hour to 30 days through the metrics API.
 - **Health checks**: Endpoint health checks that flag unhealthy deployments and report response latency.
 - **Logs**: Severity-filtered request logs (from DEBUG to CRITICAL) for diagnosing failed requests and latency spikes.
 - **Global view**: An interactive world map and overview cards that summarize every deployment across regions in a single view.
 
-Because monitoring is exposed through standard endpoint URLs and a `/health` check, you can also fold these signals into your existing observability setup when you need deeper analysis. For setup details, see the [deployment monitoring guide](../platform/deploy/monitoring.md) or the overview of [monitoring deployed YOLO models in Ultralytics Platform](https://www.ultralytics.com/blog/ultralytics-platform-monitoring-keep-vision-ai-deployments-on-track).
+Because monitoring is exposed through standard endpoint URLs and a `/health` check, you can also fold these signals into your existing observability setup when you need deeper analysis. For setup details, see the [deployment monitoring guide](../platform/deploy/monitoring.md).
 
 ### Anomaly Detection and Alert Systems
 
@@ -66,7 +66,7 @@ When you are setting up your alert systems, keep these best practices in mind:
 
 ### Data Drift Detection
 
-Data drift detection identifies when the statistical properties of the input data change over time, which can degrade model performance. Before you decide to retrain or adjust your models, this technique helps spot that there is an issue. Data drift deals with changes in the overall data landscape over time, while [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) focuses on identifying rare or unexpected data points that may require immediate attention.
+[Data drift detection](https://academy.ultralytics.com/courses/yolo-in-production/observability-and-drift) identifies when the statistical properties of the input data change over time, which can degrade model performance. Before you decide to retrain or adjust your models, this technique helps spot that there is an issue. Data drift deals with changes in the overall data landscape over time, while [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) focuses on identifying rare or unexpected data points that may require immediate attention.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/3fc6868a7bf10726a97f3f64ecab4f1d.avif" alt="Data drift detection monitoring pipeline">
@@ -120,7 +120,7 @@ These are some of the key elements that should be included in project documentat
 
 ## Conclusion
 
-Monitoring, maintaining, and documenting your model is what keeps a computer vision project successful long after deployment: continuous monitoring catches issues early, regular retraining adapts the model to new data and drift, and clear documentation makes every future update easier. Treat it as an ongoing loop and revisit the [stages of your computer vision project](./steps-of-a-cv-project.md) as your data and requirements evolve. For hands-on practice, work through the [Observability and Drift lesson](https://academy.ultralytics.com/courses/yolo-in-production/observability-and-drift) in Ultralytics Academy.
+Monitoring, maintaining, and documenting your model is what keeps a computer vision project successful long after deployment: continuous monitoring catches issues early, regular retraining adapts the model to new data and drift, and clear documentation makes every future update easier. Treat it as an ongoing loop and revisit the [stages of your computer vision project](./steps-of-a-cv-project.md) as your data and requirements evolve.
 
 ## FAQ
 

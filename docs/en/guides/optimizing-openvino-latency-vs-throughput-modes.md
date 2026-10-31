@@ -63,13 +63,13 @@ OpenVINO's multi-device mode simplifies scaling throughput by automatically bala
 
 ## Real-World Performance Gains
 
-Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](../integrations/openvino.md#openvino-yolo26-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with even greater accelerations possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and NPUs. For a recent example, see [YOLO26 accelerated with OpenVINO on Intel Core Ultra Series 3](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake).
+Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](../integrations/openvino.md#openvino-yolo26-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with [even greater accelerations](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake) possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and NPUs.
 
 For example, when running YOLO26 models on Intel Xeon CPUs, the OpenVINO-optimized versions consistently outperform their PyTorch counterparts in terms of inference time per image, without compromising on [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 ## Practical Implementation
 
-To export and optimize your Ultralytics YOLO model for OpenVINO, use the [export](../modes/export.md) functionality:
+To export and [optimize your Ultralytics YOLO model for OpenVINO](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu), use the [export](../modes/export.md) functionality:
 
 ```python
 from ultralytics import YOLO
@@ -90,8 +90,6 @@ ov_model = YOLO("yolo26n_openvino_model/")
 # Run inference (Ultralytics compiles OpenVINO models with the LATENCY performance hint)
 results = ov_model("https://ultralytics.com/images/bus.jpg", verbose=True)
 ```
-
-The Ultralytics Academy lesson on [OpenVINO on CPU](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu) walks through this workflow step by step.
 
 ## Conclusion
 

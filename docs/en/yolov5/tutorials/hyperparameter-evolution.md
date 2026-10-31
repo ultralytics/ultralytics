@@ -6,7 +6,7 @@ keywords: YOLOv5, hyperparameter evolution, genetic algorithms, machine learning
 
 # Hyperparameter Evolution for YOLOv5
 
-This guide explains **hyperparameter evolution** for [YOLOv5](../../models/yolov5.md). Hyperparameter evolution is a method of [hyperparameter optimization](https://www.ultralytics.com/glossary/hyperparameter-tuning) using a [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (GA) for optimization. For the `ultralytics` package, see the [Hyperparameter Tuning guide](../../guides/hyperparameter-tuning.md).
+This guide explains **hyperparameter evolution** for [YOLOv5](../../models/yolov5.md). Hyperparameter evolution is a method of [hyperparameter optimization](https://www.ultralytics.com/glossary/hyperparameter-tuning) using a [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (GA) for optimization.
 
 Hyperparameters in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) control various aspects of training, and finding optimal values for them can be a challenge. Traditional methods like grid searches can quickly become intractable due to:
 
@@ -14,7 +14,7 @@ Hyperparameters in [machine learning](https://www.ultralytics.com/glossary/machi
 2. Unknown correlations among the dimensions
 3. Expensive nature of evaluating the fitness at each point
 
-This makes genetic algorithms, a type of [evolutionary algorithm](https://www.ultralytics.com/blog/what-is-an-evolutionary-algorithm-a-quick-guide), a suitable candidate for hyperparameter searches.
+This makes [genetic algorithms](https://www.ultralytics.com/blog/what-is-an-evolutionary-algorithm-a-quick-guide) a suitable candidate for hyperparameter searches.
 
 ## Before You Start
 

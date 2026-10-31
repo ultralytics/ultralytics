@@ -7,7 +7,7 @@ keywords: Ultralytics Platform, AutoTrain, Ask AI, Platform CLI, ul cloud, agent
 
 # AutoTrain with Ask AI
 
-**AutoTrain uses Ask AI to help you train, compare, and improve models through a conversation.** Start with a baseline, review its results, and ask for the next experiment. Ask AI can also find datasets, annotate images, export models, and deploy them. See [Introducing Ultralytics AutoTrain](https://www.ultralytics.com/blog/introducing-ultralytics-autotrain-simplify-vision-ai-model-training) for an overview of the workflow.
+**[AutoTrain](https://www.ultralytics.com/blog/introducing-ultralytics-autotrain-simplify-vision-ai-model-training) uses Ask AI to help you train, compare, and improve models through a conversation.** Start with a baseline, review its results, and ask for the next experiment. Ask AI can also find datasets, annotate images, export models, and deploy them.
 
 Sign in to [Ultralytics Platform](https://platform.ultralytics.com), open your dataset or project, and click **Ask AI**.
 

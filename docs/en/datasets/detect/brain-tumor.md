@@ -44,11 +44,11 @@ Every image is labeled with one of 2 classes:
 
 The dataset downloads automatically (4.21 MB) from Ultralytics GitHub assets the first time you train, so no manual setup is required.
 
-Explore [Brain Tumor on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/brain-tumor) to browse the images with their annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud. To see a trained result first, try the fine-tuned [YOLO26s brain tumor detection model](https://platform.ultralytics.com/ultralytics/solutions/brain-tumor-detection-yolo26s).
+Explore [Brain Tumor on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/brain-tumor) to browse the images with their annotation overlays, view the class distribution and bounding-box heatmaps in the **Charts** tab, and clone it to train your own model in the cloud.
 
 ## Applications
 
-Brain tumor [detection](../../tasks/detect.md) with computer vision enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and tumor-progression monitoring. By analyzing MRI or CT scans, detection models locate tumors, supporting timely medical intervention and personalized treatment.
+Brain tumor [detection](../../tasks/detect.md) with computer vision enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and tumor-progression monitoring. By analyzing MRI or CT scans, [detection models](https://platform.ultralytics.com/ultralytics/solutions/brain-tumor-detection-yolo26s) locate tumors, supporting timely medical intervention and personalized treatment.
 
 Medical professionals can use this technology to:
 
@@ -184,7 +184,7 @@ For a detailed list of available arguments, refer to the [Training](../../modes/
 
 ### What are the benefits of using the brain tumor dataset for AI in healthcare?
 
-Using the brain tumor dataset in AI projects enables early diagnosis and treatment planning for brain tumors. It helps in automating brain tumor identification through computer vision, facilitating accurate and timely medical interventions, and supporting personalized treatment strategies. It can help improve patient outcomes and clinical efficiency. For a practical walkthrough, see [YOLO tumor detection in medical imaging](https://www.ultralytics.com/blog/using-yolo11-for-tumor-detection-in-medical-imaging).
+Using the brain tumor dataset in AI projects enables early diagnosis and treatment planning for brain tumors. It helps in [automating brain tumor identification](https://www.ultralytics.com/blog/using-yolo11-for-tumor-detection-in-medical-imaging) through computer vision, facilitating accurate and timely medical interventions, and supporting personalized treatment strategies. It can help improve patient outcomes and clinical efficiency.
 
 ### How do I perform inference using a fine-tuned YOLO26 model on the brain tumor dataset?
 

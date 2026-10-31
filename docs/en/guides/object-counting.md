@@ -11,7 +11,7 @@ keywords: object counting, YOLO26, Ultralytics, real-time object detection, obje
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-count-the-objects-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Object Counting In Colab"></a>
 
-Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) involves identifying and counting specific objects in videos and camera streams. Because YOLO26 runs [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) detection and tracking in real time, it suits counting scenarios such as [crowd and occupancy analysis](https://www.ultralytics.com/blog/people-counting-occupancy-analytics) and surveillance.
+Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) involves [identifying and counting specific objects](https://academy.ultralytics.com/courses/yolo-in-production/counting-heatmaps-and-speed) in videos and camera streams. Because YOLO26 runs [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) detection and tracking in real time, it suits counting scenarios such as [crowd and occupancy analysis](https://www.ultralytics.com/blog/people-counting-occupancy-analytics) and surveillance.
 
 <p align="center">
   <br>
@@ -39,7 +39,7 @@ Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Count Objects with YOLO26
 
-Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter [tracks each object](https://www.ultralytics.com/glossary/object-tracking) across frames and tallies IN/OUT counts when tracked objects cross the line or pass through the region, returning an annotated frame you can write to an output video. For a beginner walkthrough, see the Ultralytics Academy lesson on [counting, heatmaps, and speed estimation](https://academy.ultralytics.com/courses/yolo-in-production/counting-heatmaps-and-speed).
+Define a counting `region` — two points for a line or three or more for a polygon — and pass it to the `ObjectCounter` solution. The counter [tracks each object](https://www.ultralytics.com/glossary/object-tracking) across frames and tallies IN/OUT counts when tracked objects cross the line or pass through the region, returning an annotated frame you can write to an output video.
 
 !!! example "Object Counting using Ultralytics YOLO"
 

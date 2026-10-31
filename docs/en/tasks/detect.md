@@ -11,7 +11,7 @@ model_name: yolo26n
 
 [Object detection](https://www.ultralytics.com/glossary/object-detection) is a task that involves identifying the location and class of objects in an image or video stream.
 
-The output of an object detector is a set of [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) that enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know their exact shape. For a beginner-friendly introduction, see the Ultralytics Academy lesson [Understand Object Detection](https://academy.ultralytics.com/courses/computer-vision-foundations/object-detection).
+The output of an [object detector](https://academy.ultralytics.com/courses/computer-vision-foundations/object-detection) is a set of [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) that enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know their exact shape.
 
 <p align="center">
   <br>
@@ -300,11 +300,9 @@ Check the full list of supported formats and instructions on the [Export](../mod
 
 ### Why should I use Ultralytics YOLO26 for object detection?
 
-Ultralytics YOLO26 provides fast, accurate models for object detection, instance segmentation, semantic segmentation, pose estimation, and the other supported tasks. Key advantages include:
+Ultralytics YOLO26 provides [fast, accurate models](https://www.ultralytics.com/blog/meet-ultralytics-yolo26-a-better-faster-smaller-yolo-model) for object detection, instance segmentation, semantic segmentation, pose estimation, and the other supported tasks. Key advantages include:
 
 1. **Pretrained Models**: Use models pretrained on popular datasets like [COCO](../datasets/detect/coco.md) and [ImageNet](../datasets/classify/imagenet.md) for faster development.
-2. **High Accuracy**: Achieves high mAP on COCO; see [Models](#models) for per-size results.
+2. **High Accuracy**: Achieves high [mAP on COCO](#models).
 3. **Speed**: Optimized for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) in latency-sensitive applications.
 4. **Flexibility**: Export models to various formats like ONNX and TensorRT for deployment across multiple platforms.
-
-For an overview of the YOLO26 architecture and benchmarks, read [Meet Ultralytics YOLO26](https://www.ultralytics.com/blog/meet-ultralytics-yolo26-a-better-faster-smaller-yolo-model).

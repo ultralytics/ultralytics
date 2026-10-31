@@ -28,7 +28,7 @@ Jump to [setting up Ultralytics](#set-up-ultralytics), [exporting to NCNN and ru
 
 ## What is Raspberry Pi?
 
-Raspberry Pi is a small, affordable, single-board computer. It has become popular for a wide range of projects and applications, from hobbyist home automation to industrial uses. Raspberry Pi boards are capable of running a variety of operating systems, and they offer GPIO (General Purpose Input/Output) pins that allow for easy integration with sensors, actuators, and other hardware components. They come in different models with varying specifications, but they all share the same basic design philosophy of being low-cost, compact, and versatile. See the [Ultralytics Raspberry Pi partner page](https://www.ultralytics.com/partners/raspberry-pi) for more on running Ultralytics YOLO on Raspberry Pi hardware.
+Raspberry Pi is a small, affordable, single-board computer. It has become popular for a wide range of projects and applications, from hobbyist home automation to industrial uses. [Raspberry Pi boards](https://www.ultralytics.com/partners/raspberry-pi) are capable of running a variety of operating systems, and they offer GPIO (General Purpose Input/Output) pins that allow for easy integration with sensors, actuators, and other hardware components. They come in different models with varying specifications, but they all share the same basic design philosophy of being low-cost, compact, and versatile.
 
 ## Raspberry Pi Series Comparison
 
@@ -401,7 +401,7 @@ Follow these best practices to get maximum performance from YOLO26 on Raspberry 
 
 ## Next Steps
 
-You have successfully set up YOLO26 on your Raspberry Pi. To go further, explore [Predict mode](../modes/predict.md) for more inference options, [Export mode](../modes/export.md) for additional deployment formats, the [Coral Edge TPU guide](coral-edge-tpu-on-raspberry-pi.md) to add a USB accelerator, or the [NVIDIA Jetson guide](nvidia-jetson.md) if you need more compute at the edge. For the complete documentation, visit the [Ultralytics YOLO26 Docs](../index.md).
+You have successfully set up YOLO26 on your Raspberry Pi. To go further, explore [Predict mode](../modes/predict.md) for more inference options, [Export mode](../modes/export.md) for additional deployment formats, or the [NVIDIA Jetson guide](nvidia-jetson.md) if you need more compute at the edge. For the complete documentation, visit the [Ultralytics YOLO26 Docs](../index.md).
 
 ## Acknowledgments and Citations
 

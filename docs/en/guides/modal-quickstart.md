@@ -183,7 +183,7 @@ You have now set up Ultralytics YOLO26 on Modal. For further learning:
 
 ### How do I choose the right GPU for my YOLO26 workload?
 
-For inference, an NVIDIA T4 (16 GB) is typically sufficient and cost-effective. For training or larger models like [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x), consider A10G or A100 GPUs. For a broader look at matching GPU memory and cost to a training job, see [how to pick a cloud GPU for vision AI training](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform).
+For inference, an NVIDIA T4 (16 GB) is typically sufficient and cost-effective. For training or larger models like [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x), consider A10G or A100 GPUs.
 
 ### How much does it cost to run YOLO26 on Modal?
 

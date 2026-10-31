@@ -18,7 +18,7 @@ use two complementary designs: a streamlined CNN architecture for the compact N 
 NMS-free architecture for the larger M and L models. Both designs deploy through the same interface.
 N and S detection models default to the one-to-many head with NMS; use `nms=False` to select their NMS-free head.
 
-YOLO27 is the upcoming model family in the Ultralytics YOLO series, succeeding [YOLO26](yolo26.md). It comes in four
+YOLO27 is the [upcoming model family](https://www.ultralytics.com/blog/key-highlights-from-ultralytics-yolo-vision-2026) in the Ultralytics YOLO series, succeeding [YOLO26](yolo26.md). It comes in four
 sizes — N, S, M and L — and supports [object detection](../tasks/detect.md),
 [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md),
 [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md),
@@ -297,7 +297,7 @@ feature fusion, and a query-based detector that produces final detections direct
 
 ### When will YOLO27 be available?
 
-YOLO27 is undergoing final R&D, with a launch anticipated later this year. No launch date has been set. Model weights and implementation code are not publicly available yet. For the preview announcement, see the [YOLO Vision 2026 highlights](https://www.ultralytics.com/blog/key-highlights-from-ultralytics-yolo-vision-2026).
+YOLO27 is undergoing final R&D, with a launch anticipated later this year. No launch date has been set. Model weights and implementation code are not publicly available yet.
 
 ### How do I get started with YOLO27?
 

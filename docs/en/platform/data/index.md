@@ -7,7 +7,7 @@ keywords: Ultralytics Platform, data management, datasets, annotation, YOLO, com
 
 # Data Preparation
 
-Data preparation is the foundation of successful [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. [Ultralytics Platform](https://platform.ultralytics.com) provides tools for managing your [training data](https://www.ultralytics.com/glossary/training-data), from upload through annotation to analysis. For guidance on building datasets that train well, see the free [Building High-Performance YOLO Datasets](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo) course in Ultralytics Academy.
+[Data preparation](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo) is the foundation of successful [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. [Ultralytics Platform](https://platform.ultralytics.com) provides tools for managing your [training data](https://www.ultralytics.com/glossary/training-data), from upload through annotation to analysis.
 
 <p align="center">
   <br>

@@ -169,8 +169,6 @@ This guide took you step by step through deploying YOLO26 on Amazon SageMaker En
 
 For more technical details, read [Hosting YOLOv8 PyTorch models on Amazon SageMaker Endpoints](https://aws.amazon.com/blogs/machine-learning/hosting-yolov8-pytorch-model-on-amazon-sagemaker-endpoints/) on the AWS Machine Learning Blog. The official [Amazon SageMaker real-time endpoints documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints.html) covers endpoint features and configuration in depth.
 
-To explore other YOLO26 integrations, visit the [Ultralytics integrations guide](../integrations/index.md).
-
 ## FAQ
 
 ### How do I deploy the Ultralytics YOLO26 model on Amazon SageMaker Endpoints?
@@ -219,8 +217,6 @@ Using Ultralytics YOLO26 on Amazon SageMaker offers several advantages:
 2. **Integration with AWS Services**: Integrate with other AWS services, such as S3 for data storage, CloudFormation for infrastructure as code, and CloudWatch for monitoring.
 3. **Ease of Deployment**: Simplified setup using AWS CDK scripts and streamlined deployment processes.
 4. **Performance**: Use Amazon SageMaker's managed infrastructure to run large-scale inference workloads.
-
-Learn more about SageMaker in the [Amazon SageMaker overview](#amazon-sagemaker).
 
 ### Can I customize the inference logic for YOLO26 on Amazon SageMaker?
 

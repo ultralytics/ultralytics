@@ -124,7 +124,7 @@ yolo settings mlflow=False
 
 ## Conclusion
 
-MLflow logging integration with Ultralytics YOLO offers a simple way to keep track of your machine learning experiments. It lets you monitor performance metrics and manage artifacts throughout model development and deployment. For a walkthrough, read the blog post on [logging Ultralytics YOLO experiments with MLflow](https://www.ultralytics.com/blog/log-ultralytics-yolo-experiments-using-mlflow-integration). For further details, visit the MLflow [official documentation](https://mlflow.org/docs/latest/index.html).
+MLflow logging integration with Ultralytics YOLO offers a simple way to keep track of your [machine learning experiments](https://www.ultralytics.com/blog/log-ultralytics-yolo-experiments-using-mlflow-integration). It lets you monitor performance metrics and manage artifacts throughout model development and deployment. For further details, visit the MLflow [official documentation](https://mlflow.org/docs/latest/index.html).
 
 ## FAQ
 

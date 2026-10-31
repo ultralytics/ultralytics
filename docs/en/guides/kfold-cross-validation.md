@@ -14,7 +14,7 @@ This guide shows how to implement [K-Fold Cross Validation](https://www.ultralyt
   <img width="800" src="https://cdn.ul.run/i/24679d9b2406fea3afbf6a4bd0f175fa.avif" alt="K-fold cross validation data splitting">
 </p>
 
-Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial helps you understand and apply K-Fold Cross Validation to improve the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project. K-Fold Cross Validation delivers the most value when your dataset is small, noisy, or highly variable; for large, diverse datasets, a well-constructed train/val/test split is usually sufficient.
+Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial helps you understand and apply K-Fold Cross Validation to improve the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project. K-Fold Cross Validation delivers the most value when your dataset is small, noisy, or highly variable; for large, diverse datasets, a [well-constructed train/val/test split](https://academy.ultralytics.com/courses/computer-vision-foundations/splits-that-tell-the-truth) is usually sufficient.
 
 ## Setup
 
@@ -280,7 +280,7 @@ The workflow in this guide targets the YOLO detection format, but the same appro
 | `pose`     | Split by subject or sequence so the same person or animal never appears on both sides of a fold.                                                                           |
 | `obb`      | Split at the image level, keeping tiles or crops from the same scene together — especially important for aerial imagery.                                                   |
 
-Whatever the task, keep near-duplicate and related samples out of opposing folds: that kind of [leakage](https://www.ultralytics.com/glossary/data-leakage) inflates validation metrics well beyond what the model will achieve in production. The [Splits that Tell the Truth lesson](https://academy.ultralytics.com/courses/computer-vision-foundations/splits-that-tell-the-truth) in Ultralytics Academy covers this in more depth.
+Whatever the task, keep near-duplicate and related samples out of opposing folds: that kind of [leakage](https://www.ultralytics.com/glossary/data-leakage) inflates validation metrics well beyond what the model will achieve in production.
 
 ### Why should I use Ultralytics YOLO for object detection?
 

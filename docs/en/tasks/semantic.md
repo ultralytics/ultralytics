@@ -9,7 +9,7 @@ model_name: yolo26n-sem
 
 <img width="1024" src="https://cdn.ul.run/i/600e47d05ee9fb678bb0d761f6bbbd48.avif" alt="Semantic segmentation of a city street into road, sidewalk, car, person, bicycle, vegetation, building, and sky classes">
 
-[Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) assigns a class label to every pixel in an image, producing a dense class map that covers the entire scene. Unlike [instance segmentation](segment.md), which separates individual objects, semantic segmentation groups all pixels of the same class together regardless of how many distinct objects are present.
+[Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) assigns a class label to every pixel in an image, producing a [dense class map](https://academy.ultralytics.com/courses/beyond-detection/semantic-segmentation) that covers the entire scene. Unlike [instance segmentation](segment.md), which separates individual objects, semantic segmentation groups all pixels of the same class together regardless of how many distinct objects are present.
 
 <p align="center">
   <br>
@@ -83,7 +83,7 @@ Train [YOLO26n-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-
         yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.yaml pretrained=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
-See full `train` mode details in the [Train](../modes/train.md) page. Semantic segmentation models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md). For a guided exercise, see the Ultralytics Academy lesson [Semantic Segmentation: Label Every Pixel](https://academy.ultralytics.com/courses/beyond-detection/semantic-segmentation).
+See full `train` mode details in the [Train](../modes/train.md) page. Semantic segmentation models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 ### Dataset format
 
@@ -252,12 +252,12 @@ Check the [Configuration](../usage/cfg.md) page for more available arguments.
 
 ### What is the difference between instance segmentation and semantic segmentation?
 
-Instance segmentation and semantic segmentation are both pixel-level tasks but differ in a key way:
+Instance segmentation and semantic segmentation are both pixel-level tasks but [differ in a key way](https://www.ultralytics.com/blog/semantic-vs-instance-segmentation):
 
 - **Semantic segmentation** assigns a class label to every pixel but does not distinguish between individual objects of the same class. For example, all cars in a scene share the same class label.
 - **[Instance segmentation](segment.md)** identifies each individual object separately, producing distinct masks for each object even if they belong to the same class.
 
-Semantic segmentation is best suited for scene understanding tasks like autonomous driving and land-cover mapping, while instance segmentation is preferred when counting or tracking individual objects matters. For more guidance on choosing between them, read [semantic vs instance segmentation](https://www.ultralytics.com/blog/semantic-vs-instance-segmentation).
+Semantic segmentation is best suited for scene understanding tasks like autonomous driving and land-cover mapping, while instance segmentation is preferred when counting or tracking individual objects matters.
 
 ### Can I use instance segmentation data to train semantic segmentation?
 

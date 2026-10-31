@@ -41,7 +41,7 @@ Explore [Medical Pills on Ultralytics Platform](https://platform.ultralytics.com
 
 ## Applications
 
-Using computer vision for medical pill detection enables automation in the pharmaceutical industry, supporting tasks like:
+Using computer vision for [medical pill detection](https://www.ultralytics.com/blog/a-deep-dive-into-detecting-pills-using-ultralytics-yolo11) enables automation in the pharmaceutical industry, supporting tasks like:
 
 - **Pharmaceutical Sorting**: Automating the sorting of pills based on size, shape, or color to enhance production efficiency.
 - **AI Research and Development**: Serving as a benchmark for developing and testing computer vision algorithms in pharmaceutical use cases.
@@ -147,7 +147,7 @@ The Medical Pills dataset contains 115 images total — 92 for training and 23 f
 
 ### How can I train a YOLO26 model on the Medical Pills dataset?
 
-You can train a YOLO26 model for 100 epochs with an image size of 640px using the Python or CLI methods provided. Refer to the [Training Example](#usage) section for detailed instructions and check the [YOLO26 documentation](../../models/yolo26.md) for more information on model capabilities. For an end-to-end walkthrough, see this [deep dive into detecting pills with Ultralytics YOLO](https://www.ultralytics.com/blog/a-deep-dive-into-detecting-pills-using-ultralytics-yolo11).
+You can train a YOLO26 model for 100 epochs with an image size of 640px using the Python or CLI methods provided. Refer to the [Training Example](#usage) section for detailed instructions and check the [YOLO26 documentation](../../models/yolo26.md) for more information on model capabilities.
 
 ### What are the benefits of using the Medical Pills dataset in AI projects?
 

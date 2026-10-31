@@ -9,7 +9,7 @@ keywords: Streamlit, YOLO26, Real-time Object Detection, Streamlit Application, 
 
 ## Introduction
 
-[Streamlit](https://streamlit.io/) makes it simple to build and deploy interactive web applications. Combining it with Ultralytics YOLO26 allows for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and analysis directly in your browser. YOLO26's speed and accuracy make it suitable for live video streams in applications such as security and retail. For a walkthrough of the app, see [running an interactive AI app with Streamlit and Ultralytics YOLO11](https://www.ultralytics.com/blog/run-an-interactive-ai-app-with-streamlit-and-ultralytics-yolo11).
+[Streamlit](https://streamlit.io/) makes it simple to build and deploy interactive web applications. [Combining it with Ultralytics YOLO26](https://www.ultralytics.com/blog/run-an-interactive-ai-app-with-streamlit-and-ultralytics-yolo11) allows for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and analysis directly in your browser. YOLO26's speed and accuracy make it suitable for live video streams in applications such as security and retail.
 
 <p align="center">
   <br>

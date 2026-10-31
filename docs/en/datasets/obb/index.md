@@ -125,7 +125,7 @@ Validate that the converted dataset follows the YOLO OBB format conventions befo
 
 ### What are Oriented Bounding Boxes (OBB) and how are they used in Ultralytics YOLO models?
 
-Oriented Bounding Boxes (OBB) are a type of bounding box annotation where the box can be rotated to align more closely with the object being detected, rather than just being axis-aligned. This is particularly useful in aerial or satellite imagery where objects might not be aligned with the image axes. In [Ultralytics YOLO](../../tasks/obb.md) models, OBBs are represented by their four corner points in the YOLO OBB format. This allows for more accurate object detection since the bounding boxes can rotate to fit the objects better. For a broader introduction, see [what oriented bounding box detection is](https://www.ultralytics.com/blog/what-is-oriented-bounding-box-obb-detection-a-quick-guide).
+[Oriented Bounding Boxes (OBB)](https://www.ultralytics.com/blog/what-is-oriented-bounding-box-obb-detection-a-quick-guide) are a type of bounding box annotation where the box can be rotated to align more closely with the object being detected, rather than just being axis-aligned. This is particularly useful in aerial or satellite imagery where objects might not be aligned with the image axes. In [Ultralytics YOLO](../../tasks/obb.md) models, OBBs are represented by their four corner points in the YOLO OBB format. This allows for more accurate object detection since the bounding boxes can rotate to fit the objects better.
 
 ### How do I convert my existing DOTA dataset labels to YOLO OBB format for use with Ultralytics YOLO26?
 

@@ -7,7 +7,7 @@ keywords: YOLO26, TensorBoard, model training, visualization, machine learning, 
 
 # Gain Visual Insights with YOLO26's Integration with TensorBoard
 
-Understanding and fine-tuning [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models like [Ultralytics YOLO26](../models/yolo26.md) becomes more straightforward when you take a closer look at their training processes. Model training visualization helps with getting insights into the model's learning patterns, performance metrics, and overall behavior. YOLO26's integration with TensorBoard makes this process of visualization and analysis easier and enables more efficient and informed adjustments to the model.
+Understanding and fine-tuning [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models like [Ultralytics YOLO26](../models/yolo26.md) becomes more straightforward when you take a closer look at their training processes. Model training visualization helps with getting insights into the model's learning patterns, performance metrics, and overall behavior. [YOLO26's integration with TensorBoard](https://www.ultralytics.com/blog/visualizing-training-metrics-with-the-tensorboard-integration) makes this process of visualization and analysis easier and enables more efficient and informed adjustments to the model.
 
 This guide covers how to use TensorBoard with YOLO26. You'll learn about various visualizations, from tracking metrics to analyzing model graphs. These tools will help you understand your YOLO26 model's performance better.
 
@@ -162,9 +162,7 @@ Graphs are particularly useful for debugging the model, especially in complex ar
 
 This guide aims to help you use TensorBoard with YOLO26 for visualization and analysis of machine learning model training. It focuses on explaining how key TensorBoard features can provide insights into training metrics and model performance during YOLO26 training sessions.
 
-For a more detailed exploration of these features and effective utilization strategies, you can refer to TensorFlow's official [TensorBoard documentation](https://www.tensorflow.org/tensorboard/get_started) and their [GitHub repository](https://github.com/tensorflow/tensorboard). For a walkthrough with Ultralytics models, see [visualizing YOLO training metrics with TensorBoard](https://www.ultralytics.com/blog/visualizing-training-metrics-with-the-tensorboard-integration).
-
-To learn about other Ultralytics integrations, see the [Ultralytics integrations overview](index.md).
+For a more detailed exploration of these features and effective utilization strategies, you can refer to TensorFlow's official [TensorBoard documentation](https://www.tensorflow.org/tensorboard/get_started) and their [GitHub repository](https://github.com/tensorflow/tensorboard).
 
 ## FAQ
 

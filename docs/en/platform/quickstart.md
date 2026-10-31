@@ -7,7 +7,7 @@ keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model t
 
 # Ultralytics Platform Quickstart
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides a guided workflow to upload datasets, train new YOLO models from pretrained weights, test completed models in the browser, and configure dedicated inference endpoints.
+[Ultralytics Platform](https://platform.ultralytics.com) provides a [guided workflow](https://academy.ultralytics.com/courses/build-with-ultralytics-platform) to upload datasets, train new YOLO models from pretrained weights, test completed models in the browser, and configure dedicated inference endpoints.
 
 <p align="center">
   <br>
@@ -413,7 +413,6 @@ If you need more help:
 
 - **AI Chat**: Click the floating chat widget on any page for instant help
 - **Documentation**: Browse these docs for detailed guides on [datasets](data/datasets.md), [annotation](data/annotation.md), [training](train/cloud-training.md), [deployment](deploy/endpoints.md), and [billing](account/billing.md)
-- **Ultralytics Academy**: Take the free [Build with Ultralytics Platform](https://academy.ultralytics.com/courses/build-with-ultralytics-platform) course for a guided walkthrough from data to deployment
 - **Discord**: Join our [Discord community](https://discord.com/invite/ultralytics) for discussions
 - **GitHub**: Report issues on [GitHub](https://github.com/ultralytics/ultralytics/issues)
 - **REST API and Python SDK**: See the [API reference](api/index.md), install the [`ultralytics-platform`](https://pypi.org/project/ultralytics-platform/) client, or try the [interactive API docs](https://platform.ultralytics.com/api/docs) for programmatic access to all Platform features

@@ -22,7 +22,7 @@ keywords: YOLO26, Weights & Biases, model training, experiment tracking, Ultraly
 
 This guide showcases Ultralytics YOLO26 integration with Weights & Biases for [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking), best-model artifacts, and visualization of model performance. It also includes instructions for setting up the integration, training, and visualizing results using Weights & Biases' interactive features.
 
-Already have YOLO checkpoints logged in W&B? [Import their projects into Ultralytics Platform](../platform/integrations/weights-biases.md) from **Settings > Integrations > Weights & Biases**, as described in [importing YOLO models from W&B into Ultralytics Platform](https://www.ultralytics.com/blog/migrate-yolo-models-from-wandb).
+Already have [YOLO checkpoints logged in W&B](https://www.ultralytics.com/blog/migrate-yolo-models-from-wandb)? [Import their projects into Ultralytics Platform](../platform/integrations/weights-biases.md) from **Settings > Integrations > Weights & Biases**.
 
 ## Weights & Biases
 
@@ -168,8 +168,6 @@ By using these features, you can track, analyze, and optimize your YOLO26 model'
 This guide covered the Ultralytics YOLO integration with Weights & Biases, which tracks and visualizes model training results. With W&B, you can streamline your machine learning workflow, make data-driven decisions, and improve your model's performance.
 
 For further details, explore [Soumik Rakshit's presentation](https://www.ultralytics.com/blog/supercharging-ultralytics-with-weights-biases) from YOLO VISION 2023 on this integration.
-
-To learn about other integrations such as [MLflow](mlflow.md) and [Comet ML](comet.md), see the [Ultralytics integrations overview](index.md).
 
 ## FAQ
 

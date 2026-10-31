@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU traini
 
 # Model Training
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides tools for [training YOLO models](../../modes/train.md), from organizing experiments to running cloud training jobs with real-time metrics streaming. For an overview, see [faster model training with Ultralytics Platform](https://www.ultralytics.com/blog/train-yolo-models-faster-with-ultralytics-platform).
+[Ultralytics Platform](https://platform.ultralytics.com) provides tools for [training YOLO models](../../modes/train.md), from organizing experiments to [running cloud training jobs](https://www.ultralytics.com/blog/train-yolo-models-faster-with-ultralytics-platform) with real-time metrics streaming.
 
 <p align="center">
   <br>
@@ -137,7 +137,6 @@ Get started with cloud training in under a minute:
 - [**Models**](models.md): Manage trained checkpoints
 - [**Cloud Training**](cloud-training.md): Train on cloud GPUs
 - [**AutoTrain**](autotrain.md): Use Ask AI to run experiments and compare models
-- [**Ultralytics Academy**](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/cloud-training): Free lesson on training, reading, and fine-tuning Platform runs
 
 ## FAQ
 
@@ -176,5 +175,3 @@ If training fails:
 | Most training jobs            | RTX PRO 6000     |
 | Large datasets or batch sizes | H100 SXM or H200 |
 | Budget-conscious              | RTX 4090         |
-
-See [how to pick a cloud GPU for training on Ultralytics Platform](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform) for more guidance.

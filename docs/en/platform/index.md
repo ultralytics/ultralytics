@@ -7,13 +7,13 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 # Ultralytics Platform
 
-[Ultralytics Platform](https://platform.ultralytics.com) is an end-to-end [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) platform that covers the full machine learning workflow, from data preparation to model deployment. It is built for teams and individuals who want to train and deploy production vision models without managing their own infrastructure. For an overview of its components, see [Ultralytics Platform: five tools, one environment](https://www.ultralytics.com/blog/ultralytics-platform-five-tools-one-computer-vision-platform).
+[Ultralytics Platform](https://platform.ultralytics.com) is an end-to-end [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) platform that covers the full machine learning workflow, from data preparation to model deployment. It is built for teams and individuals who want to train and deploy production vision models without managing their own infrastructure.
 
 ![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/2141b069efb0284ebee4bc23847f999c.avif)<!-- screenshot -->
 
 ## What is Ultralytics Platform?
 
-Ultralytics Platform brings dataset management and annotation, [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking), cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
+Ultralytics Platform brings dataset management and annotation, [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking), cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring [into one workspace](https://www.ultralytics.com/blog/ultralytics-platform-five-tools-one-computer-vision-platform). It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
 
 ## Workflow: Upload → Annotate → Train → Export or Deploy
 
@@ -76,7 +76,7 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 - **Dataset Management**: Create datasets from local files, a URL, connected [cloud storage](integrations/index.md), or an [on-premise host](integrations/on-premise.md), with automatic processing
 - **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation tools for 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported task types](data/annotation.md#supported-task-types))
 - **Skeleton Templates**: Built-in (Person, Hand, Dog, Face, Box) and custom skeleton templates for one-click pose annotation
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) from the annotation toolbar for detect, segment, semantic, and OBB tasks, pretrained Ultralytics YOLO models and your own fine-tuned YOLO models for those tasks and pose, or class-prompted models on detection datasets with 1–200 classes: eight hosted open-source models ([Moondream 3.1](https://platform.ultralytics.com/models/moondream) by default, one more with [Early access](account/settings.md#early-access) on), hosted text-prompted [SAM 3](https://platform.ultralytics.com/models/sam3) and [SAM 3.1](https://platform.ultralytics.com/models/sam3.1), or paid vision models from OpenAI, Anthropic, Google, Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, and MiniMax with a provider key from **Settings > API Keys**. The [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm) compares these models on detection accuracy, cost, and speed
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) from the annotation toolbar for detect, segment, semantic, and OBB tasks, pretrained Ultralytics YOLO models and your own fine-tuned YOLO models for those tasks and pose, or class-prompted models on detection datasets with 1–200 classes: eight hosted open-source models ([Moondream 3.1](https://platform.ultralytics.com/models/moondream) by default, one more with [Early access](account/settings.md#early-access) on), hosted text-prompted [SAM 3](https://platform.ultralytics.com/models/sam3) and [SAM 3.1](https://platform.ultralytics.com/models/sam3.1), or paid vision models from OpenAI, Anthropic, Google, Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, and MiniMax with a provider key from **Settings > API Keys**
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions, then download or restore any version for reproducible training
 - **Statistics**: Class distribution, split distribution, location heatmaps, and bounding box dimension analysis
 
@@ -339,7 +339,7 @@ To get started with [Ultralytics Platform](https://platform.ultralytics.com):
 4. **Train Model**: Create a project and start training on cloud GPUs
 5. **Deploy**: Test your model and deploy to a dedicated endpoint
 
-For a detailed guide, see the [Quickstart](quickstart.md) page or the free [Build with Ultralytics Platform](https://academy.ultralytics.com/courses/build-with-ultralytics-platform) course in Ultralytics Academy.
+For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 ### What are the benefits of Ultralytics Platform?
 

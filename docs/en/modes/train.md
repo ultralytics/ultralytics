@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO26, model training, deep learning, object detection, 
 
 ## Introduction
 
-Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 trains [object detection](https://www.ultralytics.com/glossary/object-detection) and other vision task models efficiently on modern hardware. This guide covers the details you need to start training your own models with YOLO26. If you haven't installed Ultralytics yet, start with the [Quickstart guide](../quickstart.md), or follow the beginner Ultralytics Academy lesson [Train Your First Model](https://academy.ultralytics.com/courses/train-your-first-yolo/train-your-first-model).
+Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 trains [object detection](https://www.ultralytics.com/glossary/object-detection) and other vision task models efficiently on modern hardware. This guide covers the details you need to start [training your own models](https://academy.ultralytics.com/courses/train-your-first-yolo/train-your-first-model) with YOLO26. If you haven't installed Ultralytics yet, start with the [Quickstart guide](../quickstart.md).
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for planned training examples.
 
@@ -286,7 +286,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 
 ### MuSGD Optimizer
 
-In YOLO26, **MuSGD** is a hybrid optimizer that combines standard **SGD** updates with **Muon-style orthogonalized updates**.
+In YOLO26, **MuSGD** is a [hybrid optimizer](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd) that combines standard **SGD** updates with **Muon-style orthogonalized updates**.
 
 It is **recommended for longer YOLO26 training runs and larger datasets**, where orthogonalized Muon updates can help stabilize optimization.
 
@@ -300,7 +300,7 @@ Example usage:
 yolo train model=yolo26n.pt data=coco8.yaml optimizer=MuSGD
 ```
 
-See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-selection logic in `BaseTrainer.build_optimizer`. For background on how MuSGD works alongside ProgLoss and STAL, read [YOLO26: Smarter Training with ProgLoss, STAL & MuSGD](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd).
+See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-selection logic in `BaseTrainer.build_optimizer`.
 
 {% include "macros/train-args.md" %}
 
@@ -320,7 +320,7 @@ See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-sel
 
 {% include "macros/augmentation-args.md" %}
 
-These settings can be adjusted to meet the specific requirements of the dataset and task at hand. Experimenting with different values can help find the best augmentation strategy; the [YOLO data augmentation guide](../guides/yolo-data-augmentation.md) shows the effect of each setting.
+These settings can be adjusted to meet the specific requirements of the dataset and task at hand. Experimenting with different values can help find the best [augmentation strategy](../guides/yolo-data-augmentation.md).
 
 !!! info
 

@@ -7,7 +7,7 @@ keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVIN
 
 # Comparative Analysis of YOLO26 Deployment Options
 
-YOLO26 supports more than 20 [model deployment](https://www.ultralytics.com/glossary/model-deployment) options, each tuned for a different runtime, hardware target, or platform — from PyTorch and [ONNX](../integrations/onnx.md) to [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and dedicated edge-NPU formats. Picking the right one balances inference speed, hardware constraints, and ease of integration. This guide compares every option so you can choose the best fit for your application, then move on to [model deployment best practices](./model-deployment-practices.md) to deploy it reliably.
+YOLO26 supports more than 20 [model deployment](https://www.ultralytics.com/glossary/model-deployment) options, each tuned for a different runtime, [hardware target](https://academy.ultralytics.com/courses/yolo-in-production/choose-a-deployment-target), or platform — from PyTorch and [ONNX](../integrations/onnx.md) to [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and dedicated edge-NPU formats. Picking the right one balances inference speed, hardware constraints, and ease of integration. This guide compares every option so you can choose the best fit for your application, then move on to [model deployment best practices](./model-deployment-practices.md) to deploy it reliably.
 
 <p align="center">
   <br>
@@ -26,7 +26,7 @@ Deployment is the stage in the [computer vision project workflow](./steps-of-a-c
 
 When it's time to deploy your YOLO26 model, choosing the right export format matters. As outlined in the [Ultralytics YOLO26 export documentation](../modes/export.md#usage-examples), the `model.export()` function converts your trained model into a variety of formats tailored to diverse environments and performance requirements.
 
-The ideal format depends on your model's intended operational context and hardware. For chip-specific advice, see [making Ultralytics YOLO models faster on your favorite chip](https://www.ultralytics.com/blog/how-to-make-yolo-models-fast-on-your-favorite-chip).
+The ideal format depends on your model's intended operational context and [hardware](https://www.ultralytics.com/blog/how-to-make-yolo-models-fast-on-your-favorite-chip).
 
 !!! tip "Skip the manual export"
 
@@ -96,7 +96,7 @@ This comparison gives you a high-level overview. For deployment, weigh the speci
 
 ## Conclusion
 
-YOLO26's wide range of export formats lets you tailor a model to almost any environment, from a cloud GPU server to an on-sensor edge camera. Once you have picked a format, follow [model deployment best practices](./model-deployment-practices.md) for optimization, troubleshooting, and security, and lean on the [Ultralytics community](https://github.com/orgs/ultralytics/discussions) when you hit a snag. For a guided walkthrough, see the [Choose a Deployment Target lesson](https://academy.ultralytics.com/courses/yolo-in-production/choose-a-deployment-target) in Ultralytics Academy.
+YOLO26's wide range of export formats lets you tailor a model to almost any environment, from a cloud GPU server to an on-sensor edge camera. Once you have picked a format, follow [model deployment best practices](./model-deployment-practices.md) for optimization, troubleshooting, and security, and lean on the [Ultralytics community](https://github.com/orgs/ultralytics/discussions) when you hit a snag.
 
 ## FAQ
 
@@ -114,12 +114,10 @@ Each format has unique advantages. For a detailed walkthrough, see our [export p
 
 ### How do I improve the inference speed of my YOLO26 model on an Intel CPU?
 
-To enhance inference speed on Intel CPUs, you can deploy your YOLO26 model using Intel's OpenVINO toolkit. OpenVINO optimizes models for Intel CPUs, integrated GPUs, and NPUs.
+To enhance inference speed on Intel CPUs, you can deploy your YOLO26 model using Intel's OpenVINO toolkit. OpenVINO optimizes models for [Intel CPUs, integrated GPUs, and NPUs](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake).
 
 1. Convert your YOLO26 model to the OpenVINO format using the `model.export()` function.
 2. Follow the detailed setup guide in the [Intel OpenVINO Export documentation](../integrations/openvino.md).
-
-For a YOLO26 example on recent Intel hardware, read about [accelerating Ultralytics YOLO26 with OpenVINO on Intel Core Ultra Series 3](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake).
 
 ### Can I deploy YOLO26 models on mobile devices?
 

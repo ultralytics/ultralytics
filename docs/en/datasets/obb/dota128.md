@@ -141,7 +141,7 @@ DOTA128 provides a good middle ground, offering more diversity than DOTA8 while 
 
 ### How does mosaicing enhance model training with the DOTA128 dataset?
 
-Mosaicing combines multiple images into one during training, increasing the variety of objects and contexts within each batch. This improves a model's ability to generalize to different object sizes, aspect ratios, and scenes. The [Sample Images and Annotations](#sample-images-and-annotations) section shows a mosaiced DOTA128 training batch. Learn more about mosaicing and other augmentations in the [YOLO data augmentation guide](../../guides/yolo-data-augmentation.md).
+[Mosaicing](../../guides/yolo-data-augmentation.md#mosaic-mosaic) combines multiple images into one during training, increasing the variety of objects and contexts within each batch. This improves a model's ability to generalize to different object sizes, aspect ratios, and scenes.
 
 ### Why should I use Ultralytics YOLO26 for oriented object detection tasks?
 

@@ -34,7 +34,7 @@ Data augmentation serves multiple critical purposes in training computer vision 
 - **Reduced Overfitting**: By introducing variability in the training data, models are less likely to memorize specific image characteristics.
 - **Enhanced Performance**: Models trained with proper augmentation typically achieve better [accuracy](https://www.ultralytics.com/glossary/accuracy) on validation and test sets.
 
-Ultralytics YOLO's implementation provides a comprehensive suite of augmentation techniques, each serving specific purposes and contributing to model performance in different ways. This guide explores the augmentation settings below, helping you understand when and how to use them effectively in your projects. For a broader overview of augmentation strategies, see [the ultimate guide to data augmentation](https://www.ultralytics.com/blog/the-ultimate-guide-to-data-augmentation-in-2025).
+Ultralytics YOLO's implementation provides a comprehensive suite of augmentation techniques, each serving specific purposes and contributing to model performance in different ways. This guide explores the augmentation settings below, helping you understand when and how to use them effectively in your projects.
 
 ### Example Configurations
 
@@ -369,8 +369,7 @@ Then launch training with the Python API or the CLI:
     - **AugMix**: AugMix is a data augmentation method that enhances model robustness by creating diverse image variations through random combinations of simple transformations. See the [AugMix paper](https://arxiv.org/abs/1912.02781).
 - **Ultralytics' implementation**: [classify_augmentations()](../reference/data/augment.md#ultralytics.data.augment.classify_augmentations)
 - **Note**:
-    - Essentially, the main difference between the three methods is the way the augmentation policies are defined and applied.
-    - Sebastian Raschka's [comparison of PyTorch data augmentation methods](https://sebastianraschka.com/blog/2023/data-augmentation-pytorch.html) covers the three methods in detail.
+    - Essentially, the main [difference between the three methods](https://sebastianraschka.com/blog/2023/data-augmentation-pytorch.html) is the way the augmentation policies are defined and applied.
 
 ### Random Erasing (`erasing`)
 
@@ -392,7 +391,7 @@ Then launch training with the Python API or the CLI:
 
 - **Type**: `list` of Albumentations transforms
 - **Default**: `None`
-- **Usage**: Allows you to provide custom [Albumentations](https://albumentations.ai/) transforms for data augmentation using the Python API, as shown in [this Albumentations walkthrough for Ultralytics YOLO](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data). This parameter accepts a list of Albumentations transform objects that will be applied during training instead of the default Albumentations transforms.
+- **Usage**: Allows you to provide custom [Albumentations](https://albumentations.ai/) transforms for data augmentation using the Python API. This parameter accepts a list of Albumentations transform objects that will be applied during training instead of the default Albumentations transforms.
 - **Purpose**: Provides fine-grained control over data augmentation strategies by leveraging the extensive library of Albumentations transforms. This is particularly useful when you need specialized augmentations beyond the built-in YOLO options, such as elastic deformations and grid distortions for medical imaging, transforms tuned for overhead aerial and satellite perspectives, noise and brightness shifts that simulate low-light conditions, or defect-like texture variations for industrial inspection.
 - **Ultralytics' implementation**: [Albumentations](../reference/data/augment.md#ultralytics.data.augment.Albumentations)
 - **Note**:
@@ -486,7 +485,7 @@ Choosing the right augmentations depends on your specific use case and dataset. 
 - If the camera's point of view is consistent and won't change once the model is deployed, you can likely skip geometric transformations such as `degrees` (rotation), `translate`, `scale`, `shear`, or `perspective`. However, if the camera angle may vary, and you need the model to be more robust, it's better to keep these augmentations.
 - Use the `mosaic` augmentation only if having partially occluded objects or multiple objects per image is acceptable and does not change the label value. Alternatively, you can keep `mosaic` active but increase the `close_mosaic` value to disable it earlier in the training process.
 
-In short: keep it simple. Start with a small set of augmentations and gradually add more as needed; the Ultralytics Academy lesson [Use Augmentation Carefully](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/use-augmentation-carefully) walks through this process. The goal is to improve the model's generalization and robustness, not to overcomplicate the training process. Also, make sure the augmentations you apply reflect the same data distribution your model will encounter in production.
+In short: keep it simple. Start with a small set of augmentations and gradually add more as needed. The goal is to improve the model's generalization and robustness, not to overcomplicate the training process. Also, make sure the augmentations you apply reflect the same data distribution your model will encounter in production.
 
 ### When starting a training, I see an `albumentations: Blur[...]` reference. Does that mean Ultralytics YOLO runs additional augmentation like blurring?
 

@@ -136,7 +136,7 @@ ClearML offers several advanced features to enhance your MLOps experience.
 
 #### Remote Execution
 
-ClearML's remote execution feature facilitates the reproduction and manipulation of experiments on different machines. It logs essential details like installed packages and uncommitted changes. When a task is enqueued, the [ClearML Agent](https://docs.clear.ml/docs/latest/docs/clearml_agent/) pulls it, recreates the environment, and runs the experiment, reporting back with detailed results. For a walkthrough of this workflow, see [Train YOLOv5 Remotely with ClearML](https://www.ultralytics.com/blog/remotely-train-and-monitor-yolov5-using-clearml).
+ClearML's [remote execution feature](https://www.ultralytics.com/blog/remotely-train-and-monitor-yolov5-using-clearml) facilitates the reproduction and manipulation of experiments on different machines. It logs essential details like installed packages and uncommitted changes. When a task is enqueued, the [ClearML Agent](https://docs.clear.ml/docs/latest/docs/clearml_agent/) pulls it, recreates the environment, and runs the experiment, reporting back with detailed results.
 
 Deploying a ClearML Agent is straightforward and can be done on various machines using the following command:
 
@@ -180,8 +180,6 @@ This command will create a versioned dataset in ClearML that can be referenced i
 This guide has led you through the process of integrating ClearML with Ultralytics' YOLO26. Covering everything from initial setup to advanced model management, you've seen how to use ClearML for efficient training, [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking), and workflow optimization in your machine learning projects.
 
 For further details on usage, visit [ClearML's official YOLOv8 integration guide](https://docs.clear.ml/docs/latest/docs/integrations/yolov8/), which also applies to YOLO26 workflows.
-
-To explore more Ultralytics integrations, visit the [Ultralytics integrations guide](../integrations/index.md).
 
 ## FAQ
 

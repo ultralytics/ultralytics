@@ -9,7 +9,7 @@ keywords: YOLO26, object blurring, real-time processing, privacy protection, fac
 
 ## What is Object Blurring?
 
-Object blurring with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) involves applying a blurring effect to specific detected objects in an image or video. YOLO26 locates the objects in each frame, and the blur is applied only to the detected regions. For background and use cases, see [how object blurring works in computer vision](https://www.ultralytics.com/blog/how-yolov8-blurring-works-and-its-real-time-applications).
+Object blurring with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) involves [applying a blurring effect](https://www.ultralytics.com/blog/how-yolov8-blurring-works-and-its-real-time-applications) to specific detected objects in an image or video. YOLO26 locates the objects in each frame, and the blur is applied only to the detected regions.
 
 <p align="center">
   <br>
@@ -149,7 +149,7 @@ For more detailed applications, check the [advantages of object blurring section
 
 ### Can I use Ultralytics YOLO26 to blur faces in a video for privacy reasons?
 
-Yes. Train or fine-tune a YOLO26 face detector, for example on the [WIDER FACE dataset](https://platform.ultralytics.com/ultralytics/datasets/wider-face), then pass the trained weights to `ObjectBlurrer` with the `model` argument. Every detected face is then blurred with [OpenCV](https://www.ultralytics.com/glossary/opencv). See the [object detection task guide](../tasks/detect.md) for training details. To blur faces across a whole dataset without writing code, use [Blur Faces on Ultralytics Platform](../platform/data/datasets.md#blur-faces).
+Yes. Train or fine-tune a YOLO26 [face detector](../tasks/detect.md), for example on the [WIDER FACE dataset](https://platform.ultralytics.com/ultralytics/datasets/wider-face), then pass the trained weights to `ObjectBlurrer` with the `model` argument. Every detected face is then blurred with [OpenCV](https://www.ultralytics.com/glossary/opencv). To blur faces across a whole dataset without writing code, use [Blur Faces on Ultralytics Platform](../platform/data/datasets.md#blur-faces).
 
 ### How does YOLO26 compare to other object detection models like Faster R-CNN for object blurring?
 

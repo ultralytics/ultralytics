@@ -66,7 +66,7 @@ TensorRT export supports all seven Ultralytics tasks. Semantic segmentation and 
 
 ## Exporting YOLO26 Models to TensorRT
 
-You can improve execution efficiency and optimize performance by converting YOLO26 models to TensorRT format. The Ultralytics Academy lesson [Optimize with TensorRT](https://academy.ultralytics.com/courses/yolo-in-production/optimize-with-tensorrt) covers the same workflow step by step.
+You can improve execution efficiency and optimize performance by [converting YOLO26 models to TensorRT format](https://academy.ultralytics.com/courses/yolo-in-production/optimize-with-tensorrt).
 
 ### Installation
 
@@ -530,9 +530,7 @@ Having successfully exported your Ultralytics YOLO26 models to TensorRT format, 
 
 This guide covered converting Ultralytics YOLO26 models to NVIDIA's TensorRT model format. This conversion improves the efficiency and speed of YOLO26 models on NVIDIA hardware across diverse deployment environments.
 
-For more information on usage details, take a look at the [TensorRT official documentation](https://docs.nvidia.com/deeplearning/tensorrt/). For practical background, read [optimizing Ultralytics YOLO models with the TensorRT integration](https://www.ultralytics.com/blog/optimizing-ultralytics-yolo-models-with-the-tensorrt-integration).
-
-To learn about other Ultralytics YOLO26 integrations, see the [integrations overview](index.md).
+For more information on usage details, take a look at the [TensorRT official documentation](https://docs.nvidia.com/deeplearning/tensorrt/).
 
 ## FAQ
 

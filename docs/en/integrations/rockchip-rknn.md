@@ -233,9 +233,9 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
 In this guide, you've learned how to export Ultralytics YOLO26 models to RKNN format for deployment on Rockchip platforms. You were also introduced to the RKNN Toolkit and the specific advantages of using RKNN models for edge AI applications.
 
-The combination of [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) and Rockchip's NPU technology provides an efficient solution for running advanced computer vision tasks on embedded devices. This approach enables real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and other vision AI applications with low power consumption.
+The combination of [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) and Rockchip's NPU technology provides an efficient solution for running advanced [computer vision tasks on embedded devices](https://www.ultralytics.com/blog/deploy-ultralytics-yolo11-on-rockship-for-efficient-edge-ai). This approach enables real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and other vision AI applications with low power consumption.
 
-For further details on usage, visit the [RKNN official documentation](https://github.com/airockchip/rknn-toolkit2). For a deployment walkthrough, see [deploying Ultralytics YOLO11 on Rockchip for edge AI](https://www.ultralytics.com/blog/deploy-ultralytics-yolo11-on-rockship-for-efficient-edge-ai).
+For further details on usage, visit the [RKNN official documentation](https://github.com/airockchip/rknn-toolkit2).
 
 To learn about other Ultralytics YOLO26 integrations, visit the [integrations overview](index.md).
 

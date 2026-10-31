@@ -9,7 +9,7 @@ keywords: parking management, YOLO26, Ultralytics, vehicle detection, real-time 
 
 ## What Is a Parking Management System?
 
-A parking management system built with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) detects vehicles in real time to track which parking spaces are occupied or available, then reports live lot occupancy. It pairs YOLO26 [object detection](https://www.ultralytics.com/glossary/object-detection) with a JSON-defined parking layout so you can monitor a whole lot from a single video stream or camera feed. For background on smart parking use cases, see [YOLOv8 for smarter parking management systems](https://www.ultralytics.com/blog/ultralytics-yolov8-for-smarter-parking-management-systems).
+A parking management system built with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) detects vehicles in real time to track which parking spaces are occupied or available, then reports live lot occupancy. It pairs YOLO26 [object detection](https://www.ultralytics.com/glossary/object-detection) with a JSON-defined parking layout so you can monitor a whole lot from a single video stream or camera feed.
 
 <p align="center">
   <br>
@@ -144,7 +144,7 @@ Ultralytics YOLO26 provides **real-time [vehicle detection](../tasks/detect.md)*
 
 ### What are the benefits of using Ultralytics YOLO26 for smart parking?
 
-Using Ultralytics YOLO26 for smart parking yields numerous benefits:
+Using Ultralytics YOLO26 for [smart parking](https://www.ultralytics.com/blog/ultralytics-yolov8-for-smarter-parking-management-systems) yields numerous benefits:
 
 - **Efficiency**: Optimizes the use of parking spaces and decreases congestion.
 - **Safety and Security**: Enhances surveillance and ensures the safety of vehicles and pedestrians.

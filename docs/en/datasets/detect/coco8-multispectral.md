@@ -152,7 +152,7 @@ The Ultralytics COCO8-Multispectral dataset is designed for rapid testing and de
 
 ### How Does Multispectral Data Improve Object Detection?
 
-Multispectral data provides additional spectral information beyond standard RGB, enabling models to distinguish objects based on subtle differences in reflectance across wavelengths. This can improve detection accuracy, especially in challenging scenarios such as low light or camouflage. For a related technique that captures many more narrow bands, see [hyperspectral imaging](https://www.ultralytics.com/glossary/hyperspectral-imaging).
+Multispectral data provides additional spectral information beyond standard RGB, enabling models to distinguish objects based on subtle differences in reflectance across wavelengths. This can improve detection accuracy, especially in challenging scenarios such as low light or camouflage.
 
 ### Is COCO8-Multispectral Compatible With Ultralytics Platform and YOLO Models?
 

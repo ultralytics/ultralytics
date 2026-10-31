@@ -14,7 +14,7 @@ Knowing what went into the official checkpoints — not just the architecture, b
 
 !!! note "Read the paper for the full picture"
 
-    This page covers the hyperparameters recorded in the released checkpoints. For the reasoning behind them, including the architecture, the loss and label assignment changes, and the ablations, read [Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models](https://arxiv.org/abs/2606.03748). For a shorter overview, see [how YOLO26 trains smarter with ProgLoss, STAL, and MuSGD](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd).
+    This page covers the hyperparameters recorded in the released checkpoints. For the reasoning behind them, including the architecture, the loss and label assignment changes, and the ablations, read [Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models](https://arxiv.org/abs/2606.03748).
 
 ## Training Overview
 

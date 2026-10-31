@@ -56,7 +56,7 @@ The COCO8 dataset configuration is defined in a YAML file, which specifies datas
 
 ## Usage
 
-The COCO8 dataset (1 MB) downloads automatically the first time you start training. To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on COCO8 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md). New to training? The Ultralytics Academy lesson [Train Your First Model](https://academy.ultralytics.com/courses/train-your-first-yolo/train-your-first-model) walks through a complete first run.
+The COCO8 dataset (1 MB) downloads automatically the first time you start training. To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on COCO8 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
 
 !!! example "Train Example"
 

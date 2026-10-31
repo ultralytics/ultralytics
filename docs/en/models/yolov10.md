@@ -213,7 +213,7 @@ The YOLOv10 model series offers a range of models, each optimized for [object de
 
 ## Exporting YOLOv10
 
-Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table lists the formats that Ultralytics has successfully converted for YOLOv10. Pull requests that add export support for additional formats are welcome; see the [contributing guide](../help/contributing.md).
+Due to the new operations introduced with YOLOv10, not all export formats provided by Ultralytics are currently supported. The following table lists the formats that Ultralytics has successfully converted for YOLOv10. [Pull requests](../help/contributing.md) that add export support for additional formats are welcome.
 
 | Export Format                                     | Export Support | Exported Model Inference | Notes                                                                                  |
 | ------------------------------------------------- | -------------- | ------------------------ | -------------------------------------------------------------------------------------- |
@@ -231,7 +231,7 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 
 ## Conclusion
 
-At its release, YOLOv10 advanced real-time object detection by removing NMS post-processing and redesigning model components for both efficiency and accuracy. Its NMS-free approach pioneered end-to-end object detection in the YOLO family. For the latest Ultralytics model with improved performance and NMS-free inference, see [YOLO26](yolo26.md) and read [why YOLO26 removes NMS and how that changes deployment](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment).
+At its release, YOLOv10 advanced real-time object detection by removing NMS post-processing and redesigning model components for both efficiency and accuracy. Its NMS-free approach pioneered end-to-end object detection in the YOLO family. For the latest Ultralytics model with improved performance and [NMS-free inference](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment), see [YOLO26](yolo26.md).
 
 ## Citations and Acknowledgments
 

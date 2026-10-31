@@ -115,8 +115,6 @@ Ultralytics YOLO is a state-of-the-art [object detection](https://www.ultralytic
 - **Ease of use:** Simple API integration with both Python and CLI makes setting up tracking pipelines straightforward.
 - **Extensive documentation and community support:** Ultralytics provides comprehensive documentation and an active community forum to troubleshoot issues and enhance your tracking models.
 
-For a hands-on walkthrough, see the Ultralytics Academy lesson [Track Objects with ByteTrack, BoT-SORT, and TrackTrack](https://academy.ultralytics.com/courses/yolo-in-production/tracking-with-bytetrack-and-botsort).
-
 ### Can I use custom datasets for multi-object tracking with Ultralytics YOLO?
 
 Yes. Train a detection, segmentation, pose, or OBB model on your custom dataset, then pass its weights to `model.track()`. The tracker itself runs during inference and does not require separate training data.

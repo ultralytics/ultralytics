@@ -7,7 +7,7 @@ keywords: YOLO26, DeepSparse, Neural Magic, model optimization, object detection
 
 # Optimizing YOLO26 Inferences with Neural Magic's DeepSparse Engine
 
-When deploying [object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO26](../models/yolo26.md) on various hardware, optimizing inference speed can be a challenge. Neural Magic's DeepSparse Engine addresses this on CPUs, using sparsity and quantization to approach GPU-class inference speeds without a GPU.
+When deploying [object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO26](../models/yolo26.md) on various hardware, optimizing inference speed can be a challenge. Neural Magic's DeepSparse Engine addresses this on CPUs, using sparsity and quantization to approach [GPU-class inference speeds](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus) without a GPU.
 
 This guide shows you how to deploy YOLO26 using Neural Magic's DeepSparse, how to run inferences, and also how to benchmark performance to ensure it is optimized.
 
@@ -158,11 +158,9 @@ After running the eval command, you will receive detailed output metrics such as
 
 ## Summary
 
-This guide explored integrating Ultralytics YOLO26 with Neural Magic's DeepSparse Engine and how its sparsity techniques speed up inference on CPU platforms. For background, see the blog post on [deploying YOLOv5 with Neural Magic's DeepSparse for GPU-class performance on CPUs](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).
+This guide explored integrating Ultralytics YOLO26 with Neural Magic's DeepSparse Engine and how its sparsity techniques speed up inference on CPU platforms.
 
 For more detailed information and advanced usage, visit the [DeepSparse repository by Neural Magic](https://github.com/neuralmagic/deepsparse). You can also [explore the YOLOv8 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
-
-For other deployment options, visit the [Ultralytics integrations overview](index.md).
 
 ## FAQ
 

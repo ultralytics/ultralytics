@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, Agents, workflows, YOLO26, VLM, confidence filte
 
 # Agents
 
-[Agents](https://platform.ultralytics.com/agents) connects images, models, conditions, and actions in a visual workflow. Use YOLO to decide which images need a closer look, ask a [vision-language model](https://www.ultralytics.com/glossary/vision-language-model-vlm) to explain them, or collect selected images in a dataset for review. For an overview of what Agents can automate, read [Ultralytics Agents: Turn Vision Predictions into Actions](https://www.ultralytics.com/blog/introducing-ultralytics-agents-build-visual-ai-workflows-faster).
+[Agents](https://platform.ultralytics.com/agents) connects images, models, conditions, and actions in a [visual workflow](https://www.ultralytics.com/blog/introducing-ultralytics-agents-build-visual-ai-workflows-faster). Use YOLO to decide which images need a closer look, ask a [vision-language model](https://www.ultralytics.com/glossary/vision-language-model-vlm) to explain them, or collect selected images in a dataset for review.
 
 Open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https://platform.ultralytics.com/agents). Agents appears in the sidebar for every signed-in user, in personal and team workspaces, with no Early access setting to enable.
 

@@ -17,7 +17,7 @@ Integrating DVCLive with [Ultralytics YOLO26](../models/yolo26.md) automatically
   <img width="640" src="https://cdn.ul.run/i/51f227a2cf9c3008135aa0c7cfeaec95.avif" alt="DVCLive experiment tracking integration">
 </p>
 
-[DVCLive](https://doc.dvc.org/dvclive), developed by DVC, is an open-source tool for experiment tracking in machine learning. It works with Git and DVC to automate the logging of experiment data like model parameters and training metrics, and makes it easy to compare and analyze multiple runs with [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis tools.
+[DVCLive](https://doc.dvc.org/dvclive), developed by DVC, is an open-source tool for [experiment tracking](https://www.ultralytics.com/blog/experiment-tracking-with-ultralytics-yolo11-and-dvc) in machine learning. It works with Git and DVC to automate the logging of experiment data like model parameters and training metrics, and makes it easy to compare and analyze multiple runs with [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis tools.
 
 ## YOLO26 Training with DVCLive
 
@@ -167,9 +167,7 @@ Based on your analysis, iterate on your experiments. Adjust model configurations
 
 This guide has led you through integrating DVCLive with Ultralytics YOLO26, from setup to experiment monitoring, visualization, and analysis.
 
-For further details on usage, visit [DVCLive's official documentation](https://doc.dvc.org/dvclive/ml-frameworks/yolo), or read [Track YOLO11 Experiments with DVCLive](https://www.ultralytics.com/blog/experiment-tracking-with-ultralytics-yolo11-and-dvc) on the Ultralytics blog.
-
-To explore more Ultralytics integrations, visit the [Ultralytics integrations guide](../integrations/index.md).
+For further details on usage, visit [DVCLive's official documentation](https://doc.dvc.org/dvclive/ml-frameworks/yolo).
 
 ## FAQ
 
@@ -276,4 +274,4 @@ from IPython.display import HTML
 HTML(filename="./dvc_plots/index.html")
 ```
 
-These visualizations help identify trends and optimize model performance. See [Analyzing Results](#analyzing-results) for more steps and examples.
+These visualizations help identify trends and optimize model performance.

@@ -5,7 +5,7 @@
 
 # Start FROM ROCm PyTorch image https://hub.docker.com/r/rocm/pytorch
 # See https://hub.docker.com/r/rocm/pytorch/tags for available tags
-FROM rocm/pytorch:rocm10.0_ubuntu24.04_py3.12_pytorch_release_2.13.0
+FROM rocm/pytorch:rocm10.1.0_ubuntu24.04_py3.12_pytorch_release_2.13.0
 
 # Set environment variables
 # Suppress TensorFlow and PyTorch warnings
@@ -36,14 +36,15 @@ COPY . .
 RUN sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
-# Install pip packages into the base image's /opt/venv, which already holds ROCm PyTorch (no --system)
-# migraphx-libs provides the MIGraphX EP plugin's C library; libamdhip64.so.7 comes from the base image
-RUN python -m pip install --no-cache-dir uv && \
-    uv pip install --no-cache -e "." albumentations faster-coco-eval && \
-    uv pip install --no-cache "onnxruntime-ep-migraphx==1.0.0+rocm10.0.0" "migraphx-libs==2.17.0+rocm10.0.0" \
+# Install pip packages into the base image's system Python, which already holds ROCm PyTorch but ships only `python3`
+# The MIGraphX EP plugin pulls its migraphx-libs C library; libamdhip64.so.7 comes from the base image
+RUN ln -sf /usr/bin/python3 /usr/local/bin/python && \
+    python -m pip install --no-cache-dir uv && \
+    uv pip install --system --no-cache -e "." albumentations faster-coco-eval && \
+    uv pip install --system --no-cache "onnxruntime-ep-migraphx==1.0.0+rocm10.1.0" \
       --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
       --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/ --index-strategy unsafe-best-match && \
-    uv pip install --no-cache "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82" && \
+    uv pip install --system --no-cache "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82" && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------

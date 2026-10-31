@@ -122,7 +122,7 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
 
     ![YOLOv5 MixUp data augmentation blending two images](https://cdn.ul.run/i/afdbd5ce80e044c88f3cad1aa03178d1.avif)
 
-- **Albumentations**: An image augmentation library that supports a wide variety of augmentation techniques. Learn more about [using Albumentations augmentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
+- **Albumentations**: An image augmentation library that supports a wide variety of [augmentation techniques](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
 
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 

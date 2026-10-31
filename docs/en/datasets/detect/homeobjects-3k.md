@@ -25,7 +25,7 @@ The Ultralytics HomeObjects-3K dataset is an indoor [object detection](../../tas
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on HomeObjects-3K Dataset | Detection, Validation & ONNX Export
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on HomeObjects-3K Dataset | Detection, Validation & ONNX Export 🚀
 </p>
 
 ## Dataset Structure
@@ -86,7 +86,7 @@ The `HomeObjects-3K.yaml` file defines the dataset configuration — the train a
 
 ## Usage
 
-You can train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the HomeObjects-3K dataset for 100 epochs using an image size of 640. The dataset (390 MB) downloads automatically on first use. The examples below show how to get started. For more training options and detailed settings, check the [Training](../../modes/train.md) guide.
+You can [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the HomeObjects-3K dataset for 100 epochs using an image size of 640. The dataset (390 MB) downloads automatically on first use. The examples below show how to get started.
 
 !!! example "Train Example"
 

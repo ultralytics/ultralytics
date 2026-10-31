@@ -440,4 +440,4 @@ The performance of YOLO11 models on NVIDIA Jetson Orin NX 16GB varies based on T
 - **FP16 Precision**: 7.91 ms/im, 126 FPS
 - **INT8 Precision**: 6.05 ms/im, 165 FPS
 
-These results show how much FP16 and INT8 TensorRT engines speed up YOLO11 models on NVIDIA Jetson hardware. For further details, see our [Benchmark Results](#benchmark-results) section.
+These results show how much FP16 and INT8 TensorRT engines speed up YOLO11 models on NVIDIA Jetson hardware.

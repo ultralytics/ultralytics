@@ -368,7 +368,7 @@ The official YOLOv7 paper was published at CVPR 2023 and is available through [C
 
 ### What is YOLOv7 and why is it considered a breakthrough in real-time object detection?
 
-YOLOv7, released in July 2022, was a real-time object detection model that achieved state-of-the-art speed and accuracy at its time of release. It surpassed contemporary models such as YOLOX, YOLOv5, and PPYOLOE in both parameter usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs. For more technical details about its architecture and comparison metrics with other state-of-the-art object detectors, refer to the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696).
+YOLOv7, released in July 2022, was a real-time object detection model that achieved [state-of-the-art speed and accuracy](https://arxiv.org/pdf/2207.02696) at its time of release. It surpassed contemporary models such as YOLOX, YOLOv5, and PPYOLOE in both parameter usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs.
 
 ### How does YOLOv7 improve on previous YOLO models like YOLOv4 and YOLOv5?
 

@@ -52,9 +52,7 @@ Minimum requirements:
 
 Recommended setup:
 
-- Python 3.8+
-- PyTorch 1.10+
-- NVIDIA GPU with CUDA 11.2+
+- NVIDIA GPU
 - 8GB+ RAM
 - 50GB+ free disk space (for dataset storage and model training)
 

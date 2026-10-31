@@ -28,7 +28,7 @@ The output of a semantic segmentation model is a single height-by-width class ma
 
     Use `task=semantic` or the `yolo semantic` CLI task for semantic segmentation. YOLO26 semantic segmentation model files use the `-sem` suffix, such as `yolo26n-sem.pt`.
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
+## Models
 
 YOLO26 Semantic models pretrained on the [Cityscapes](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml) dataset are shown below.
 
@@ -52,7 +52,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train [YOLO26n-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-sem) on the [Cityscapes8](https://platform.ultralytics.com/ultralytics/datasets/cityscapes8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 1024. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+[Train](../usage/cfg.md#train-settings) a [YOLO26n-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-sem) model on the [Cityscapes8](https://platform.ultralytics.com/ultralytics/datasets/cityscapes8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 1024.
 
 !!! example
 

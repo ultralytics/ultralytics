@@ -32,7 +32,7 @@ The output of an oriented object detector is a set of rotated [bounding boxes](h
 | :--------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------: |
 | ![Ships Detection using OBB](https://cdn.ul.run/i/c6591549a27062e19a12e83e6c139728.avif) | ![Vehicle Detection using OBB](https://cdn.ul.run/i/bdc446c744810812060cea58a16d9065.avif) |
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
+## Models
 
 YOLO26 OBB models pretrained on the [DOTAv1](../datasets/obb/dota-v2.md#dota-v10) dataset are shown below.
 
@@ -48,7 +48,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train [YOLO26n-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-obb) on the [DOTA8](https://platform.ultralytics.com/ultralytics/datasets/dota8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+[Train](../usage/cfg.md#train-settings) a [YOLO26n-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-obb) model on the [DOTA8](https://platform.ultralytics.com/ultralytics/datasets/dota8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640.
 
 !!! note
 

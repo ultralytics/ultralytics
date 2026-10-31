@@ -25,7 +25,7 @@ The Ultralytics Construction-PPE dataset is an [object detection](https://www.ul
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Detect Personal Protective Equipment with Ultralytics YOLO26 | Workplace Safety Monitoring
+  <strong>Watch:</strong> How to Detect Personal Protective Equipment with Ultralytics YOLO26 | Workplace Safety Monitoring 🦺
 </p>
 
 ## Dataset Structure
@@ -78,7 +78,7 @@ The Construction-PPE dataset includes a YAML configuration file that defines the
 
 ## Usage
 
-You can train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly. For more options and advanced configurations, see the [Training guide](../../modes/train.md).
+You can [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly.
 
 !!! example "Train Example"
 

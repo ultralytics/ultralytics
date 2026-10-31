@@ -54,7 +54,7 @@ Some common applications include:
 
 ## Usage
 
-Train a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) classification model on MNIST for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 28. The dataset downloads and caches automatically on first use; if you prefer full control over preprocessing, the original gzip archives are also available from the [MNIST database](https://en.wikipedia.org/wiki/MNIST_database). For the full list of available arguments, see the [Training](../../modes/train.md) page and the [image classification](../../tasks/classify.md) task guide.
+[Train](../../modes/train.md) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) classification model on MNIST for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 28. The dataset downloads and caches automatically on first use; if you prefer full control over preprocessing, the original gzip archives are also available from the [MNIST database](https://en.wikipedia.org/wiki/MNIST_database).
 
 !!! example "Train Example"
 

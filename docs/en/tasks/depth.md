@@ -28,7 +28,7 @@ The output of a depth model is a dense float map of shape `(H, W)` aligned to th
 
     Use `task=depth` or the `yolo depth` CLI task for monocular depth estimation. YOLO26 depth model files use the `-depth` suffix, such as `yolo26n-depth.pt`.
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
+## Models
 
 [YOLO26 depth models](https://www.ultralytics.com/blog/ultralytics-yolo26-now-supports-monocular-depth-estimation) pretrained on a broad multi-dataset mix (indoor + outdoor, ~2.19M images) are shown below. The metrics columns are reported on the [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) Eigen test split.
 
@@ -110,7 +110,7 @@ The largest gains are on the longer-range outdoor benchmarks (KITTI, ETH3D) — 
 
 ## Train
 
-Train [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) on the [Depth8](https://platform.ultralytics.com/ultralytics/datasets/depth8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+[Train](../usage/cfg.md#train-settings) a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the [Depth8](https://platform.ultralytics.com/ultralytics/datasets/depth8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640.
 
 !!! example
 
@@ -557,7 +557,7 @@ The depth map is stored as a `torch.Tensor` of shape `(H, W)` where each value i
 
 ### What datasets are supported for depth estimation?
 
-Ultralytics YOLO26 provides built-in dataset YAML configurations for several depth estimation datasets including [NYU Depth V2](../datasets/depth/nyu-depth-v2.md), [KITTI](../datasets/depth/kitti.md), [Hypersim](../datasets/depth/hypersim.md), [SUN RGB-D](../datasets/depth/sunrgbd.md), and [ARKitScenes](../datasets/depth/arkitscenes.md). See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full list and format details.
+Ultralytics YOLO26 provides built-in dataset YAML configurations for [several depth estimation datasets](../datasets/depth/index.md) including [NYU Depth V2](../datasets/depth/nyu-depth-v2.md), [KITTI](../datasets/depth/kitti.md), [Hypersim](../datasets/depth/hypersim.md), [SUN RGB-D](../datasets/depth/sunrgbd.md), and [ARKitScenes](../datasets/depth/arkitscenes.md).
 
 ### How do I validate a pretrained YOLO26 depth estimation model?
 

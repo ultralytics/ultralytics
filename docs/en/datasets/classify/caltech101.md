@@ -54,7 +54,7 @@ Caltech-101 is widely used to train and evaluate image classification and object
 
 ## Usage
 
-Train a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on Caltech-101 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 416. For the full list of available arguments, see the [Training](../../modes/train.md) page and the [image classification](../../tasks/classify.md) task guide.
+[Train](../../modes/train.md) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on Caltech-101 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 416.
 
 !!! example "Train Example"
 

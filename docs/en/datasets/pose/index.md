@@ -238,4 +238,4 @@ from ultralytics.data.converter import convert_coco
 convert_coco(labels_dir="path/to/coco/annotations/", use_keypoints=True)
 ```
 
-This tool lets you bring COCO-format datasets into YOLO projects. For details, refer to the [Conversion Tool](#conversion-tool) section and the [data preprocessing guide](../../guides/preprocessing-annotated-data.md).
+This [tool](#conversion-tool) lets you bring COCO-format datasets into YOLO projects.

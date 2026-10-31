@@ -53,7 +53,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) model on the COCO-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) model on the COCO-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 
@@ -103,7 +103,7 @@ If you use the COCO-Seg dataset in your research or development work, please cit
         }
         ```
 
-We extend our thanks to the COCO Consortium for creating and maintaining this valuable resource for the computer vision community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).
+We extend our thanks to the [COCO Consortium](https://cocodataset.org/#home) for creating and maintaining this valuable resource for the computer vision community.
 
 ## FAQ
 
@@ -151,7 +151,7 @@ The COCO-Seg dataset supports multiple pretrained YOLO26 segmentation models wit
 
 {% include "macros/yolo-seg-perf.md" %}
 
-These models range from the lightweight [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) to the more accurate [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg), offering different trade-offs between speed and accuracy to suit various application requirements. For more information on model selection, visit the [Ultralytics models page](../../models/index.md).
+These models range from the lightweight [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) to the more accurate [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg), offering different [trade-offs between speed and accuracy](../../models/index.md) to suit various application requirements.
 
 ### How is the COCO-Seg dataset structured and what subsets does it contain?
 

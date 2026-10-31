@@ -27,11 +27,11 @@ IBM Watsonx is made of three main components: `watsonx.ai`, `watsonx.data`, and 
 
 ### Watsonx.ai
 
-[Watsonx.ai](https://www.ibm.com/products/watsonx-ai) provides tools for AI development and offers access to IBM-supported custom models, third-party models like [Llama 3](https://www.ultralytics.com/blog/getting-to-know-metas-llama-3), and IBM's own Granite models. It includes the Prompt Lab for experimenting with AI prompts, the Tuning Studio for improving model performance with labeled data, and the Flows Engine for simplifying generative AI application development. Also, it offers comprehensive tools for automating the AI model lifecycle and connecting to various APIs and libraries.
+[Watsonx.ai](https://www.ibm.com/products/watsonx-ai) provides tools for AI development and offers access to IBM-supported custom models, third-party models like [Llama 3](https://www.ultralytics.com/blog/getting-to-know-metas-llama-3), and IBM's own Granite models. It includes the Prompt Lab for experimenting with AI prompts and the Tuning Studio for improving model performance with labeled data. Also, it offers comprehensive tools for automating the AI model lifecycle and connecting to various APIs and libraries.
 
 ### Watsonx.data
 
-[Watsonx.data](https://www.ibm.com/products/watsonx-data) supports both cloud and on-premises deployments through the IBM Storage Fusion HCI integration. Its user-friendly console provides centralized access to data across environments and makes data exploration easy with common SQL. It optimizes workloads with efficient query engines like Presto and Spark, accelerates data insights with an AI-powered semantic layer, includes a [vector database](https://www.ultralytics.com/glossary/vector-database) for AI relevance, and supports open data formats for easy sharing of analytics and AI data.
+[Watsonx.data](https://www.ibm.com/products/watsonx-data) supports both cloud and on-premises deployments. Its user-friendly console provides centralized access to data across environments and makes data exploration easy with common SQL. It optimizes workloads with efficient query engines like Presto and Spark, accelerates data insights with an AI-powered semantic layer, includes a [vector database](https://www.ultralytics.com/glossary/vector-database) for AI relevance, and supports open data formats for easy sharing of analytics and AI data.
 
 ### Watsonx.governance
 
@@ -343,7 +343,7 @@ For detailed instructions, refer to our [YOLO26 Model Training guide](../modes/t
 
 IBM Watsonx offers several key features for AI model training:
 
-- **Watsonx.ai**: Provides tools for AI development, including access to IBM-supported custom models and third-party models like Llama 3. It includes the Prompt Lab, Tuning Studio, and Flows Engine for comprehensive AI lifecycle management.
+- **Watsonx.ai**: Provides tools for AI development, including access to IBM-supported custom models and third-party models like Llama 3. It includes the Prompt Lab and Tuning Studio for comprehensive AI lifecycle management.
 - **Watsonx.data**: Supports cloud and on-premises deployments, offering centralized data access, efficient query engines like Presto and Spark, and an AI-powered semantic layer.
 - **Watsonx.governance**: Automates compliance, manages risk with alerts, and provides tools for detecting issues like bias and drift. It also includes dashboards and reporting tools for collaboration.
 
@@ -356,7 +356,7 @@ IBM Watsonx suits [Ultralytics YOLO26](../models/yolo26.md) training because its
 - **Scalability**: Easily scale your model training with IBM Cloud services.
 - **Integration**: Connect to various data sources and APIs.
 - **User-Friendly Interface**: Simplifies the development process with a collaborative and intuitive interface.
-- **Advanced Tools**: Access tools like the Prompt Lab, Tuning Studio, and Flows Engine for enhancing model performance.
+- **Advanced Tools**: Access tools like the Prompt Lab and Tuning Studio for enhancing model performance.
 
 ### How can I preprocess my dataset for YOLO26 training on IBM Watsonx?
 

@@ -49,7 +49,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the Virtual KITTI 2 dataset with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the Virtual KITTI 2 dataset with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

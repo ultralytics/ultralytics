@@ -17,7 +17,7 @@ Bridging the gap between developing and deploying [computer vision](https://www.
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Export Ultralytics YOLO26 Models to PaddlePaddle Format | Key Features of PaddlePaddle Format
+  <strong>Watch:</strong> How to Export Ultralytics YOLO Models to PaddlePaddle Format | Key Features of PaddlePaddle Format
 </p>
 
 The ability to [export to PaddlePaddle model format](https://www.ultralytics.com/blog/exporting-ultralytics-yolo11-using-the-paddlepaddle-integration) allows you to optimize your [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) models for use within the PaddlePaddle framework. PaddlePaddle is known for facilitating industrial deployments and is a good choice for deploying computer vision applications in real-world settings across various domains.

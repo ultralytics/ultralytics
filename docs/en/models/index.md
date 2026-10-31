@@ -158,4 +158,4 @@ Ultralytics natively supports YOLOv3, YOLOv5, YOLOv6, YOLOv8, YOLOv9, YOLOv10, Y
 
 ### What types of tasks can Ultralytics YOLO models perform?
 
-Ultralytics YOLO models can perform tasks including object detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented object detection (OBB). The latest model, YOLO26, supports all seven tasks plus open-vocabulary detection. For details on specific tasks, refer to the [Task pages](../tasks/index.md).
+Ultralytics YOLO models can perform [tasks](../tasks/index.md) including object detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented object detection (OBB). The latest model, YOLO26, supports all seven tasks plus open-vocabulary detection.

@@ -72,7 +72,7 @@ The `SKU-110K.yaml` file defines the dataset configuration — the dataset paths
 
     SKU-110K downloads automatically the first time you train and requires about 13.6 GB of free disk space for its 11,743 images. The download script also fetches the original annotations and converts them to YOLO format, which can take a few minutes.
 
-To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the SKU-110K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the SKU-110K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 
@@ -166,5 +166,3 @@ Training a YOLO26 model on the SKU-110K dataset is straightforward. Here's an ex
         # Start training from a pretrained *.pt model
         yolo detect train data=SKU-110K.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
-
-For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page and [model training tips](../../guides/model-training-tips.md).

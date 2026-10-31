@@ -68,7 +68,7 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-The `tfjs` argument now exports a LiteRT `.tflite` model, which supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes locally and runs in the browser via LiteRT.js. See the [LiteRT export guide](litert.md) for the current browser and on-device deployment path.
+The `tfjs` argument now exports a [LiteRT](litert.md) `.tflite` model, which supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes locally and runs in the browser via LiteRT.js.
 
 !!! example "Export"
 

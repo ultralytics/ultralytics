@@ -23,7 +23,7 @@ keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Export Ultralytics YOLO26 to MNN Format | Speed up Inference on Mobile Devices📱
+  <strong>Watch:</strong> How to Export Ultralytics YOLO to MNN Format | Speed up Inference on Mobile Devices📱
 </p>
 
 ## Supported Tasks

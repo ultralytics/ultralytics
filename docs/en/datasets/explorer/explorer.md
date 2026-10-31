@@ -140,7 +140,7 @@ In LanceDB, a metric describes the distance between a pair of vectors. It curren
 
 Explorer's similarity search uses L2 by default. You can run queries on tables directly, or use the lance format to build custom utilities to manage datasets. More details on available LanceDB table ops are in the [LanceDB docs](https://lancedb.github.io/lancedb/).
 
-![Explorer raw SQL queries results table](https://cdn.ul.run/i/5bcdb200f50f4ce74e201e7bcfc1711b.avif)
+![Explorer raw vector search results table](https://cdn.ul.run/i/5bcdb200f50f4ce74e201e7bcfc1711b.avif)
 
 ```python
 dummy_img_embedding = [i for i in range(256)]

@@ -19,7 +19,7 @@ X-ray, MRI, ultrasound, microscopy, and synthetic aperture radar (SAR).
 
 The curated datasets are hosted on [Ultralytics Platform](../../platform/data/datasets.md). The
 [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm) ranks vision language models and open-vocabulary
-detectors on similar real-world detection datasets by accuracy, cost, and speed.
+detectors on images from 36 of these datasets by accuracy, cost, and speed.
 
 Candidate datasets were checked for exact and near-duplicate images across the training and validation splits. Flagged
 pairs were reviewed, and confirmed split leaks were removed or the affected dataset was replaced.

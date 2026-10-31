@@ -284,7 +284,7 @@ Whatever the task, keep near-duplicate and related samples out of opposing folds
 
 ### Why should I use Ultralytics YOLO for object detection?
 
-Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Additionally, it integrates with tools like [Ultralytics Platform](../platform/index.md) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
+[Ultralytics YOLO](https://www.ultralytics.com/yolo) offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Additionally, it integrates with tools like [Ultralytics Platform](../platform/index.md) for no-code model training and deployment.
 
 ### How can I ensure my annotations are in the correct format for Ultralytics YOLO?
 

@@ -73,7 +73,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) model on the Hand Keypoints dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) model on the Hand Keypoints dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 
@@ -130,7 +130,7 @@ Load `yolo26n-pose.pt` and call `model.train(data="hand-keypoints.yaml", epochs=
 
 ### What are the benefits of using the Hand Keypoints dataset?
 
-With 26,768 annotated images and 21 keypoints per hand generated via Google MediaPipe, the Hand Keypoints dataset gives pose estimation models the scale and annotation accuracy needed for advanced pose estimation tasks. See the [Keypoints](#keypoints) section for the full landmark breakdown.
+With 26,768 annotated images and [21 keypoints](#keypoints) per hand generated via Google MediaPipe, the Hand Keypoints dataset gives pose estimation models the scale and annotation accuracy needed for advanced pose estimation tasks.
 
 ### What applications can benefit from using the Hand Keypoints dataset?
 
@@ -138,12 +138,10 @@ Hand Keypoints supports gesture recognition, AR/VR controls, robotic manipulatio
 
 ### How is the Hand Keypoints dataset structured?
 
-The Hand Keypoints dataset is divided into two subsets:
+The Hand Keypoints dataset is divided into [two subsets](#dataset-structure):
 
 1. **Train**: Contains 18,776 images for training pose estimation models.
 2. **Val**: Contains 7,992 images for validation purposes during model training.
-
-For more details, see the [Dataset Structure](#dataset-structure) section.
 
 ### How do I use the dataset YAML file for training?
 

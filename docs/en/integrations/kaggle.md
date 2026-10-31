@@ -69,14 +69,6 @@ Sometimes, you need to restart the kernel after installation to resolve import i
 # Then click "Restart Kernel" from the notebook menu
 ```
 
-#### Method 3: Use Specific Package Versions
-
-If you encounter specific version conflicts, you can pin compatible versions:
-
-```bash
-!pip install ultralytics opencv-python==4.8.1.78 numpy==1.24.3
-```
-
 #### Common Error Solutions
 
 **Error: "No module named 'ultralytics'"**

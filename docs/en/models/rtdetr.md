@@ -156,7 +156,7 @@ For RTDETRv2, you can cite the [2024 paper](https://arxiv.org/abs/2407.17140):
 
         ```bibtex
         @misc{lv2024rtdetrv2,
-              title={RTDETRv2: All-in-One Detection Transformer Beats YOLO and DINO},
+              title={RT-DETRv2: Improved Baseline with Bag-of-Freebies for Real-Time Detection Transformer},
               author={Wenyu Lv and Yian Zhao and Qinyao Chang and Kui Huang and Guanzhong Wang and Yi Liu},
               year={2024},
               eprint={2407.17140},
@@ -171,7 +171,7 @@ We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/Pad
 
 ### What is Baidu's RT-DETR model and how does it work?
 
-Baidu's RT-DETR (Real-Time Detection Transformer) is a real-time, transformer-based object detector. It efficiently processes multiscale features by decoupling intra-scale interaction and cross-scale fusion through its efficient hybrid encoder. By employing IoU-aware query selection, the model focuses on the most relevant objects, enhancing detection accuracy. Its adaptable inference speed, achieved by adjusting decoder layers without retraining, makes RT-DETR suitable for various real-time object detection scenarios. Learn more about RT-DETR features in the [RT-DETR arXiv paper](https://arxiv.org/pdf/2304.08069).
+Baidu's RT-DETR (Real-Time Detection Transformer) is a real-time, transformer-based object detector. It efficiently processes multiscale features by decoupling intra-scale interaction and cross-scale fusion through its efficient hybrid encoder. By employing IoU-aware query selection, the model focuses on the most relevant objects, enhancing detection accuracy. Its adaptable inference speed, achieved by adjusting decoder layers without retraining, makes RT-DETR suitable for various real-time object detection scenarios.
 
 ### How can I use the pretrained RT-DETR models provided by Ultralytics?
 

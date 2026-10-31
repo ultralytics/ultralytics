@@ -152,18 +152,18 @@ Model testing confirms your model performs well on completely unseen data, verif
 
 It's important to thoroughly test and debug any common issues that may arise. Test your model on a separate test dataset that was not used during training or validation. This dataset should represent real-world scenarios to ensure the model's performance is consistent and reliable.
 
-Also, address common problems such as overfitting, [underfitting](https://www.ultralytics.com/glossary/underfitting), and [data leakage](https://www.ultralytics.com/glossary/data-leakage). Use techniques like [cross-validation](https://www.ultralytics.com/glossary/cross-validation) and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) to identify and fix these issues. For comprehensive testing strategies, refer to our [model testing guide](./model-testing.md).
+Also, address common problems such as overfitting, [underfitting](https://www.ultralytics.com/glossary/underfitting), and [data leakage](https://www.ultralytics.com/glossary/data-leakage). Use techniques like [cross-validation](https://www.ultralytics.com/glossary/cross-validation) to identify these issues. For comprehensive testing strategies, refer to our [model testing guide](./model-testing.md).
 
 ## Step 7: Model Deployment
 
-Once your model has been thoroughly tested, it's time to deploy it. [Model deployment](https://www.ultralytics.com/glossary/model-deployment) involves making your model available for use in a production environment. Here are the steps to deploy a computer vision model:
+Once your model has been thoroughly tested, it's time to deploy it. [Model deployment](https://www.ultralytics.com/glossary/model-deployment) involves making your model available for use in a production environment. Here are the [steps to deploy a computer vision model](./model-deployment-practices.md):
 
 - **Setting Up the Environment:** Configure the necessary infrastructure for your chosen deployment option, whether it's cloud-based (AWS, Google Cloud, Azure) or edge-based (local devices, IoT).
 - **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLO26) to ensure compatibility with your deployment platform.
 - **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
 - **Ensuring Scalability:** Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
 
-For more detailed guidance on deployment strategies and best practices, check out our [model deployment practices guide](./model-deployment-practices.md). Ultralytics Platform also provides managed [deployment endpoints](../platform/deploy/endpoints.md) in 42 global regions with scale-to-zero by default, handling infrastructure setup automatically.
+Ultralytics Platform also provides managed [deployment endpoints](../platform/deploy/endpoints.md) in 42 global regions with scale-to-zero by default, handling infrastructure setup automatically.
 
 ## Step 8: Monitoring, Maintenance, and Documentation
 
@@ -196,7 +196,7 @@ You now have a roadmap for every stage of a computer vision project, from defini
 
 ### How do I choose the right computer vision task for my project?
 
-Choosing the right computer vision task depends on your project's end goal. For instance, if you want to monitor traffic, **object detection** is suitable as it can locate and identify multiple vehicle types in real time. For medical imaging, **image segmentation** is ideal for providing detailed boundaries of tumors, aiding in diagnosis and treatment planning. Learn more about specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [image classification](../tasks/classify.md).
+Choosing the right computer vision task depends on your project's end goal. For instance, if you want to monitor traffic, [object detection](../tasks/detect.md) is suitable as it can locate and identify multiple vehicle types in real time. For medical imaging, [image segmentation](../tasks/segment.md) is ideal for providing detailed boundaries of tumors, aiding in diagnosis and treatment planning.
 
 ### Why is data annotation crucial in computer vision projects?
 
@@ -206,7 +206,7 @@ Data annotation is vital for teaching your model to recognize patterns. The type
 - **Object Detection**: Bounding boxes drawn around objects.
 - **Image Segmentation**: Each pixel labeled according to the object it belongs to.
 
-The built-in [annotation editor](../platform/data/annotation.md) in Ultralytics Platform can assist in this process. For more details, refer to our [data collection and annotation guide](./data-collection-and-annotation.md).
+The built-in [annotation editor](../platform/data/annotation.md) in Ultralytics Platform can assist in this process.
 
 ### What steps should I follow to augment and split my dataset effectively?
 

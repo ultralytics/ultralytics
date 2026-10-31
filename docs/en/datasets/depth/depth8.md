@@ -46,7 +46,7 @@ The Depth8 dataset configuration is defined in a dataset YAML file, which specif
 
 ## Usage
 
-To train a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the Depth8 dataset with an image size of 640, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
+To [train](../../modes/train.md) a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the Depth8 dataset with an image size of 640, use the following examples.
 
 !!! example "Train Example"
 

@@ -145,7 +145,7 @@ After coding your Streamlit application integrating Ultralytics YOLO26, you can 
 streamlit run path/to/file.py
 ```
 
-This command will launch the application in your default web browser, enabling you to select YOLO26 models, set confidence and IoU thresholds, and start real-time object detection with a simple click. For a detailed guide, refer to the [Streamlit Application Code](#streamlit-application-code) section.
+This command will launch the application in your default web browser, enabling you to select YOLO26 models, set confidence and IoU thresholds, and start real-time object detection with a simple click.
 
 ### What are some use cases for real-time object detection using Streamlit and Ultralytics YOLO26?
 

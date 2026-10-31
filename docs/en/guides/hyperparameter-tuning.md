@@ -375,4 +375,4 @@ These metrics help you understand different aspects of your [model's performance
 
 Yes, Ultralytics YOLO26 integrates with [Ray Tune](https://docs.ray.io/en/latest/tune/index.html) for advanced hyperparameter optimization. Ray Tune offers search algorithms like [Bayesian optimization](https://www.ultralytics.com/glossary/bayesian-optimization) and Hyperband, along with parallel execution capabilities to speed up the tuning process.
 
-To use Ray Tune with YOLO26, set the `use_ray=True` parameter in your `model.tune()` method call. For more details and examples, check out the [Ray Tune integration guide](../integrations/ray-tune.md).
+To use Ray Tune with YOLO26, set the `use_ray=True` parameter in your `model.tune()` method call.

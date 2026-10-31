@@ -70,7 +70,7 @@ visualize_image_annotations(
 
 ![Segmentation Masks to YOLO Format](https://cdn.ul.run/i/f19e424efa2177fa76251d68ea5d1f73.avif)
 
-Use this to convert a dataset of segmentation mask images to the [Ultralytics YOLO](../models/yolo26.md) segmentation format. This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
+Use this to convert a dataset of segmentation mask images to the [Ultralytics YOLO](../models/yolo26.md) segmentation format. This function takes the directory containing grayscale mask images, where each pixel value is the class index + 1 and 0 is background, and converts them into YOLO segmentation format.
 
 The converted masks will be saved in the specified output directory.
 

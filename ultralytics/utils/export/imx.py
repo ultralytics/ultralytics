@@ -346,8 +346,7 @@ def torch2imx(
         )
 
     output_dir = Path(output_dir).resolve()  # rmtree refuses a symlinked directory
-    if output_dir.exists():
-        rmtree(output_dir)  # a re-export would keep an older export's <stem>_imx.onnx
+    rmtree(output_dir, ignore_errors=True)  # a re-export would keep an older export's <stem>_imx.onnx
     output_dir.mkdir(parents=True)
     onnx_model = output_dir / "model_imx.onnx"
 

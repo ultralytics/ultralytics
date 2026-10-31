@@ -48,8 +48,7 @@ def onnx2ascend(
     """
     _check_atc()
     output_dir = Path(output_dir).resolve()
-    if output_dir.exists():
-        shutil.rmtree(output_dir)  # a re-export would keep another chip's model
+    shutil.rmtree(output_dir, ignore_errors=True)  # a re-export would keep another chip's model
     output_dir.mkdir(parents=True)
 
     cmd = [

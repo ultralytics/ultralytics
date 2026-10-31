@@ -70,8 +70,7 @@ def torch2executorch(
         partitioner=[XnnpackPartitioner()],
     ).to_executorch()
     output_dir = Path(output_dir).resolve()  # rmtree refuses a symlinked directory
-    if output_dir.exists():
-        shutil.rmtree(output_dir)  # a re-export would keep an older export's <stem>.pte
+    shutil.rmtree(output_dir, ignore_errors=True)  # a re-export would keep an older export's <stem>.pte
     output_dir.mkdir(parents=True)
     (output_dir / "model.pte").write_bytes(et_program.buffer)
 

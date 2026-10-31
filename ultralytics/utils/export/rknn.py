@@ -107,8 +107,7 @@ def onnx2rknn(
         build_kwargs.update(dataset=str(dataset), auto_hybrid=not int8_only)  # INT8-only NPUs have no FP16 layers
     _check_rknn_return(rknn.build(**build_kwargs, rknn_batch_size=batch), "build")
     output_dir = Path(output_dir).resolve()  # rmtree refuses a symlinked directory
-    if output_dir.exists():
-        shutil.rmtree(output_dir)  # a re-export would keep another chip's model and INT8 tail
+    shutil.rmtree(output_dir, ignore_errors=True)  # a re-export would keep another chip's model and INT8 tail
     output_dir.mkdir(parents=True)
     _check_rknn_return(rknn.export_rknn(str(output_dir / f"{Path(onnx_file).stem}-{name}.rknn")), "export_rknn")
     if outputs:

@@ -583,7 +583,7 @@ def test_litert_upsample_matches_transpose_convolution(channels, bias):
 
     layer = torch.nn.ConvTranspose2d(4, channels, 2, 2, bias=bias).eval()
     x = torch.randn(2, 4, 13, 17)
-    torch.testing.assert_close(_LiteRTUpsample(layer)(x), layer(x), rtol=1e-5, atol=1e-6)
+    assert torch.allclose(_LiteRTUpsample(layer)(x), layer(x), rtol=1e-5, atol=1e-6)
 
 
 @pytest.mark.slow

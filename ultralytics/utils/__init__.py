@@ -606,7 +606,7 @@ class YAML:
     _COMMENT = re.compile(r"[ \t]#")
     _QUOTED = re.compile(r""""(?:[^"\\]|\\[\s\S])*"|'(?:[^']|'')*'(?!')""")
     _FLOW = re.compile(  # flow token: quoted scalar | indicator | comment | plain scalar
-        rf"\s*(?:({_QUOTED.pattern})|([\[\]{{}},:])|(#.*)|([^\s,\[\]{{}}#](?:[^,\[\]{{}}:#\n]|:(?=[^\s,\[\]{{}}])|(?<=\S)#)*))"
+        rf"\s*(?:({_QUOTED.pattern})|([\[\]{{}},:])|(#.*)|([^\s,\[\]{{}}#](?:[^,\[\]{{}}:#]|:(?=[^\s,\[\]{{}}])|(?<=\S)#)*))"
     )
     _FOLD = r"[ \t]*\n((?:[ \t]*\n)*)[ \t]*"  # quoted line break: one folds to a space, n + 1 to n newlines
     _DQ = re.compile(rf"\\(x[0-9A-Fa-f]{{2}}|u[0-9A-Fa-f]{{4}}|U[0-9A-Fa-f]{{8}}|\n[ \t]*|[\s\S])|{_FOLD}")
@@ -740,9 +740,7 @@ class YAML:
         """Decode a quoted scalar, including its quotes, by folding line breaks and resolving escapes."""
         q, s = s[0], s[1:-1]
         if q == "'":
-            return (re.sub(cls._FOLD, lambda m: "\n" * m[1].count("\n") or " ", s) if "\n" in s else s).replace(
-                "''", "'"
-            )
+            return (re.sub(cls._FOLD, cls._fold, s) if "\n" in s else s).replace("''", "'")
         return cls._DQ.sub(cls._escape, s) if "\\" in s or "\n" in s else s
 
     @classmethod
@@ -750,8 +748,17 @@ class YAML:
         """Replace one double-quoted escape sequence or folded line break."""
         e = m[1]
         if e is None:
-            return "\n" * m[2].count("\n") or " "
-        return "" if e[0] == "\n" else chr(int(e[1:], 16)) if len(e) > 1 else cls._ESC[e]
+            return cls._fold(m, 2)
+        if e[0] == "\n" or len(e) > 1:  # escaped line break, or \x, \u, \U code point
+            return "" if e[0] == "\n" else chr(int(e[1:], 16))
+        if e not in cls._ESC:
+            raise ValueError(f"unknown escape '\\{e}' in a double-quoted string, use single quotes for Windows paths")
+        return cls._ESC[e]
+
+    @staticmethod
+    def _fold(m, group: int = 1) -> str:
+        """Fold a matched line break: one break becomes a space, n + 1 breaks become n newlines."""
+        return "\n" * m[group].count("\n") or " "
 
     def parse(self):
         r"""Parse the YAML document passed to the constructor.
@@ -887,6 +894,8 @@ class YAML:
     def _block_scalar(self, header, n):
         """Read a literal '|' or folded '>' block scalar with optional chomping and indentation indicators."""
         h, lines, ind = header.split("#", 1)[0].strip(" \t"), [], None
+        if not re.fullmatch(r"[|>]([1-9]?[+-]?|[+-][1-9])", h):
+            self._error(f"invalid block scalar header {header!r}, quote values that start with '|' or '>'")
         while self.i < len(self.lines):
             raw = self.lines[self.i]
             if raw.strip(" \t"):
@@ -932,7 +941,7 @@ class YAML:
             if plain and plain[0] in "&*!":
                 self._error("anchors, aliases and tags are not supported")
             if q or plain:
-                return self._unquote(q) if q else self._scalar(plain.rstrip(" \t"))
+                return self._unquote(q) if q else self._scalar(re.sub(self._FOLD, self._fold, plain.rstrip(" \t\n")))
             if ind not in {"[", "{"}:
                 self._error(f"unexpected {ind!r} in {text!r}")
             close, out = ("]", []) if ind == "[" else ("}", {})

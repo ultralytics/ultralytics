@@ -14,6 +14,29 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.export.engine import _NormalizeCoords
 
 
+class _LiteRTUpsample(torch.nn.Module):
+    """Replace a 2x2 stride-2 transpose convolution with an equivalent subpixel convolution."""
+
+    def __init__(self, layer: torch.nn.ConvTranspose2d):
+        super().__init__()
+        self.conv = torch.nn.Conv2d(layer.in_channels, layer.out_channels * 4, 1, bias=layer.bias is not None).to(
+            layer.weight
+        )
+        with torch.no_grad():
+            self.conv.weight.copy_(layer.weight.permute(1, 2, 3, 0).reshape_as(self.conv.weight))
+            if layer.bias is not None:
+                self.conv.bias.copy_(layer.bias.repeat_interleave(4))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Interleave the four output phases, limiting transpose dispatches to WebGPU's minimum limit."""
+        pixels = x.shape[0] * x.shape[2] * x.shape[3] * 4
+        channels = max(1, min(64, 65535 * 32 // pixels))
+        x = self.conv(x)
+        if x.shape[1] <= channels * 4:
+            return torch.nn.functional.pixel_shuffle(x, 2)
+        return torch.cat([torch.nn.functional.pixel_shuffle(part, 2) for part in x.split(channels * 4, 1)], 1)
+
+
 def _litert_grouped_topk(x: torch.Tensor, k: int, groups: int) -> tuple[torch.Tensor, torch.Tensor]:
     """Select the top k of x along dim 1 with int32 indices, which GPU delegates accept and int64 they do not."""
     values, index = Detect._grouped_topk(x, k, groups)
@@ -89,6 +112,16 @@ def torch2litert(
         if isinstance(m, Detect):
             m._grouped_topk = _litert_grouped_topk
             m._gather = types.MethodType(_litert_gather, m)
+        for name, layer in m.named_children():
+            if (
+                type(layer) is torch.nn.ConvTranspose2d
+                and layer.kernel_size == layer.stride == (2, 2)
+                and layer.padding == layer.output_padding == (0, 0)
+                and layer.dilation == (1, 1)
+                and layer.groups == 1
+            ):
+                # LiteRT's WebGPU transpose-convolution shader is rejected by Safari.
+                setattr(m, name, _LiteRTUpsample(layer))
 
     # Lower index_select to tfl.gather: the default lowering emits GATHER_ND, which GPU delegates do not implement
     litert_torch.fx_infra.decomp.add_pre_lower_decomp(

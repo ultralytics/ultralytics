@@ -31,7 +31,7 @@ Ultralytics provides pretrained YOLO-NAS models in three sizes, each with a diff
 
     === "Detection (COCO)"
 
-        | Model            | mAP       | Latency (ms) |
+        | Model            | mAP<sub>50-95</sub> | Latency (ms) |
         | ---------------- | --------- | ------------ |
         | YOLO-NAS S       | 47.5      | 3.21         |
         | YOLO-NAS M       | 51.55     | 5.85         |

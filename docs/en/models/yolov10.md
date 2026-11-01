@@ -64,7 +64,7 @@ At release, YOLOv10 outperformed previous YOLO versions and other state-of-the-a
 
         Latency measured with TensorRT FP16 on T4 GPU.
 
-        | Model         | Input Size | AP<sup>val</sup> | FLOPs (G) | Latency (ms) |
+        | Model         | Input Size | AP<sup>val</sup><sub>50-95</sub> | FLOPs (G) | Latency (ms) |
         | ------------- | ---------- | ---------------- | --------- | ------------ |
         | [YOLOv10n][1] | 640        | 38.5             | **6.7**   | **1.84**     |
         | [YOLOv10s][2] | 640        | 46.3             | 21.6      | 2.49         |

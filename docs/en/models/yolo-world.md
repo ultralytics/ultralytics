@@ -66,7 +66,7 @@ This section details the models available with their specific pretrained weights
 
     === "Detection (COCO)"
 
-        | Model Type      | mAP      | mAP<sub>50</sub> | mAP<sub>75</sub> |
+        | Model Type      | mAP<sub>50-95</sub> | mAP<sub>50</sub> | mAP<sub>75</sub> |
         | --------------- | -------- | ---------------- | ---------------- |
         | yolov8s-world   | 37.4     | 52.0             | 40.6             |
         | yolov8s-worldv2 | 37.7     | 52.2             | 41.0             |

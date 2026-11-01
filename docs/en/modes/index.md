@@ -165,7 +165,7 @@ Detailed steps for each export format can be found in the [Export Guide](../mode
 
 ### What is the purpose of the benchmark mode in Ultralytics YOLO26?
 
-Benchmark mode in Ultralytics YOLO26 is used to analyze the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of various export formats such as ONNX, TensorRT, and OpenVINO. It provides metrics like model size, `mAP50-95` for object detection, and inference time across different hardware setups, helping you choose the most suitable format for your deployment needs.
+Benchmark mode in Ultralytics YOLO26 is used to analyze the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of various export formats such as ONNX, TensorRT, and OpenVINO. It provides metrics like model size, mAP<sub>50-95</sub> for object detection, and inference time across different hardware setups, helping you choose the most suitable format for your deployment needs.
 
 !!! example
 

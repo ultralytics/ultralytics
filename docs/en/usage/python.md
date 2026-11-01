@@ -242,7 +242,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 ## Benchmark
 
-[Benchmark mode](../modes/benchmark.md) is used to profile the speed and accuracy of various export formats for YOLO. The benchmarks provide information on the size of the exported format, its task metric (`mAP50-95` for detection, segmentation, pose and OBB, `mIoU` for semantic segmentation, `delta1` for depth estimation, or `accuracy_top1` for classification), and the inference time in milliseconds per image across various export formats like ONNX, [OpenVINO](../integrations/openvino.md), TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
+[Benchmark mode](../modes/benchmark.md) is used to profile the speed and accuracy of various export formats for YOLO. The benchmarks provide information on the size of the exported format, its task metric (mAP<sub>50-95</sub> for detection, segmentation, pose and OBB, `mIoU` for semantic segmentation, δ<sub>1</sub> for depth estimation, or `accuracy_top1` for classification), and the inference time in milliseconds per image across various export formats like ONNX, [OpenVINO](../integrations/openvino.md), TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
 
 !!! example "Benchmark"
 

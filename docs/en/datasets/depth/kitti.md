@@ -36,7 +36,7 @@ KITTI is a key example of why the depth head is unbounded (`log` mode): a fixed 
 
 ## Results
 
-KITTI Eigen `delta1` accuracy by model size (higher is better):
+KITTI Eigen δ<sub>1</sub> accuracy by model size (higher is better):
 
 | Model         | KITTI Eigen δ<sub>1</sub> |
 | ------------- | ------------------------- |

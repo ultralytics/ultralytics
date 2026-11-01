@@ -1588,6 +1588,22 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
+def test_yaml_save_numpy_float(tmp_path):
+    """Test that NumPy float64 values are saved as numbers that a reused args.yaml still validates."""
+    file = tmp_path / "args.yaml"
+    YAML.save(
+        file,
+        {
+            "lr0": np.float64(0.01),
+            "decay": np.float64(1e-5),
+            "inf": np.float64("inf"),
+            "nested": {"x": [np.float64(0.5)]},
+        },
+    )
+    assert YAML.load(file) == {"lr0": 0.01, "decay": 1e-5, "inf": float("inf"), "nested": {"x": [0.5]}}
+    assert get_cfg(file).lr0 == 0.01
+
+
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
     from ultralytics.utils import get_ubuntu_version, is_github_action_running

@@ -189,8 +189,7 @@ class BaseDataset(Dataset):
     def get_img_files(self, img_path: str | list[str]) -> list[str]:
         """Read image files from the specified path.
 
-        A text file lists one image path per line, UTF-8 with or without a byte-order mark, and paths starting with `./`
-        resolve relative to the text file.
+        A text file lists one image path per line, and paths starting with `./` resolve relative to the text file.
 
         Args:
             img_path (str | list[str]): Path or list of paths to image directories, image files, or text files.
@@ -210,7 +209,7 @@ class BaseDataset(Dataset):
                 elif p.is_file() and p.suffix[1:].lower() in IMG_FORMATS:  # image file
                     f.append(str(p))
                 elif p.is_file():  # text file
-                    with open(p, encoding="utf-8-sig") as t:
+                    with open(p, encoding="utf-8") as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
                         f += [x.replace("./", parent, 1) if x.startswith("./") else x for x in t]  # local to global

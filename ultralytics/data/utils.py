@@ -430,7 +430,7 @@ def verify_image_mask(args: tuple) -> tuple:
 
 
 def verify_image_label(args: tuple) -> tuple | list:
-    """Verify one image-label pair, accepting UTF-8 labels with or without a byte-order mark.
+    """Verify one image-label pair.
 
     Args:
         args (tuple): Tuple of (im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls).
@@ -452,7 +452,7 @@ def verify_image_label(args: tuple) -> tuple | list:
         # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
-            with open(lb_file, encoding="utf-8-sig") as f:
+            with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if x.strip()]
                 if nkpt and not keypoint:  # pose labels for a box task: keep the box, drop the keypoints
                     lb = [x[:5] if len(x) == 5 + nkpt * ndim else x for x in lb]
@@ -534,7 +534,7 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
     img = np.array(ImageOps.exif_transpose(Image.open(image_path)))  # upright, as dataloaders read it for training
     img_height, img_width = img.shape[:2]
     annotations = []
-    with open(txt_path, encoding="utf-8-sig") as file:
+    with open(txt_path, encoding="utf-8") as file:
         for line in file:
             class_id, x_center, y_center, width, height = map(float, line.split())
             x = (x_center - width / 2) * img_width

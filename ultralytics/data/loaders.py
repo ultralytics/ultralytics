@@ -8,10 +8,9 @@ import math
 import os
 import time
 import urllib
-from codecs import BOM_UTF8
 from dataclasses import dataclass
 from functools import partial
-from io import BytesIO, TextIOWrapper
+from io import BytesIO
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from threading import Thread
@@ -113,10 +112,8 @@ class LoadStreams:
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         if os.path.isfile(sources):
-            with open(sources, "rb") as f:
-                encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
-                with TextIOWrapper(f, encoding=encoding) as reader:
-                    sources = reader.read().rsplit()
+            with open(sources) as f:
+                sources = f.read().rsplit()
             if not sources:
                 raise FileNotFoundError(f"No streams found in {f.name}. {FORMATS_HELP_MSG}")
         else:
@@ -381,11 +378,7 @@ class LoadImagesAndVideos:
         source_path = path
         parent = None
         if isinstance(path, (str, Path)) and Path(path).suffix.lower() in {".txt", ".csv"}:  # txt/csv file with sources
-            parent = Path(path).parent
-            with open(path, "rb") as f:
-                encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
-                with TextIOWrapper(f, encoding=encoding) as reader:
-                    content = reader.read()
+            parent, content = Path(path).parent, Path(path).read_text()
             if Path(path).suffix.lower() == ".txt":
                 path = content.splitlines()
             else:

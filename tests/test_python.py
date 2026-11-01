@@ -137,28 +137,6 @@ def test_build_yolo_dataset_hyp_isolated():
     assert cfg.mosaic == DEFAULT_CFG.mosaic
 
 
-@pytest.mark.parametrize("task", ["detect", "segment"])
-def test_yolo_dataset_label_encoding(tmp_path, task):
-    """Test that UTF-8 label signatures do not discard images from detection or segmentation datasets."""
-    from ultralytics.data.dataset import YOLODataset
-
-    for directory in ("images", "labels"):
-        (tmp_path / directory).mkdir()
-    label = "0 0.5 0.5 0.5 0.5\n" if task == "detect" else "0 0.25 0.25 0.75 0.25 0.75 0.75 0.25 0.75\n"
-    for name, codec in (("plain", "utf-8"), ("bom", "utf-8-sig")):
-        Image.new("RGB", (32, 32)).save(tmp_path / "images" / f"{name}.png")
-        (tmp_path / "labels" / f"{name}.txt").write_text(label, encoding=codec)
-    dataset = YOLODataset(
-        img_path=str(tmp_path / "images"), data={"names": {0: "object"}}, task=task, imgsz=32, augment=False
-    )
-    assert len(dataset) == 2
-    for sample in dataset:
-        assert sample["cls"].tolist() == [[0.0]]
-        assert sample["bboxes"].tolist() == [[0.5, 0.5, 0.5, 0.5]]
-        if task == "segment":
-            assert sample["masks"].any()
-
-
 def test_cfg_rejects_fuzzed_values():
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
@@ -2424,7 +2402,7 @@ def test_verify_image_label_whitespace_lines(tmp_path):
 
 
 def test_load_yolo_dota_whitespace_lines(tmp_path):
-    """Test whitespace-only lines and a UTF-8 BOM in DOTA label files no longer crash the loader."""
+    """Test whitespace-only lines in DOTA label files no longer crash the loader."""
     from ultralytics.data.split_dota import load_yolo_dota
 
     images, labels = tmp_path / "images" / "train", tmp_path / "labels" / "train"
@@ -2432,7 +2410,7 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     labels.mkdir(parents=True)
     cv2.imwrite(str(images / "a.jpg"), np.zeros((64, 64, 3), dtype=np.uint8))
     (labels / "a.txt").write_text(
-        "0.1 0.1 0.3 0.1 0.3 0.3 0.1 0.3 0\n \t\n0.4 0.4 0.6 0.4 0.6 0.6 0.4 0.6 1\n", encoding="utf-8-sig"
+        "0.1 0.1 0.3 0.1 0.3 0.3 0.1 0.3 0\n \t\n0.4 0.4 0.6 0.4 0.6 0.6 0.4 0.6 1\n", encoding="utf-8"
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed

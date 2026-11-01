@@ -20,7 +20,7 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
     --8<-- "ultralytics/cfg/datasets/coco8.yaml"
     ```
 
-Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a UTF-8 `*.txt` file, with or without a byte-order mark, listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a UTF-8 `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
 
 !!! example "Image paths as a `*.txt` file"
 

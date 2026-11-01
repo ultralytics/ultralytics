@@ -55,7 +55,7 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models.
-# 1.0.12: Accept UTF-8 byte-order marks in labels.
+# 1.0.12: Accept UTF-8 byte-order marks in labels (since removed, version kept to avoid cache rescans).
 # 1.0.11: Reject negative box dimensions.
 # 1.0.10: EXIF-rotated image shapes match the decoded image.
 DATASET_CACHE_VERSION = "1.0.12"

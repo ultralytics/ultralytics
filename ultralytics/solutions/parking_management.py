@@ -216,7 +216,7 @@ class ParkingManagement(BaseSolution):
             LOGGER.warning("ParkingManagement requires `json_file` with parking region coordinates.")
             raise ValueError("❌ JSON file path cannot be empty.")
 
-        with open(self.json_file, encoding="utf-8") as f:
+        with open(self.json_file, encoding="utf-8-sig") as f:
             self.json = json.load(f)
 
         self.pr_info = {"Occupancy": 0, "Available": 0}  # Dictionary for parking information

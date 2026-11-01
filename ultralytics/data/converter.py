@@ -284,7 +284,7 @@ def convert_coco(
     for json_file in sorted(Path(labels_dir).resolve().glob("*.json")):
         lname = "" if lvis else json_file.stem.replace("instances_", "")
         fn = Path(save_dir) / "labels" / lname  # folder name
-        with open(json_file, encoding="utf-8") as f:
+        with open(json_file, encoding="utf-8-sig") as f:
             data = json.load(f)
 
         # Create image dict

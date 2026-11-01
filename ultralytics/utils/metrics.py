@@ -685,7 +685,7 @@ def plot_pr_curve(
     Args:
         px (np.ndarray): Recall values (x-axis) for the PR curve, shape (1000,).
         py (np.ndarray): Precision values for each class, shape (nc, 1000).
-        ap (np.ndarray): Average precision values, shape (nc, 10); the first column (mAP@0.5) is shown.
+        ap (np.ndarray): Average precision values, shape (nc, 10); the first column (mAP50) is shown.
         save_dir (Path, optional): Path to save the plot.
         names (dict[int, str], optional): Dictionary mapping class indices to class names.
         on_plot (callable, optional): Function to call after plot is saved.
@@ -702,7 +702,7 @@ def plot_pr_curve(
     else:
         ax.plot(px, py, linewidth=1, color="gray")  # plot(recall, precision)
 
-    ax.plot(px, py.mean(1), linewidth=3, color="blue", label=f"all classes {ap[:, 0].mean():.3f} mAP@0.5")
+    ax.plot(px, py.mean(1), linewidth=3, color="blue", label=f"all classes {ap[:, 0].mean():.3f} mAP50")
     ax.set_xlabel("Recall")
     ax.set_ylabel("Precision")
     ax.set_xlim(0, 1)
@@ -870,7 +870,7 @@ def ap_per_class(
         for j in range(tp.shape[1]):
             ap[ci, j], mpre, mrec = compute_ap(recall[:, j], precision[:, j])
             if j == 0:
-                prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP@0.5
+                prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP50
 
     prec_values = np.array(prec_values) if prec_values else np.zeros((1, 1000))  # (nc, 1000)
 
@@ -1010,7 +1010,7 @@ class Metric(SimpleClass):
 
     def fitness(self) -> float:
         """Return model fitness as a weighted combination of metrics."""
-        w = [0.0, 0.0, 0.0, 1.0]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+        w = [0.0, 0.0, 0.0, 1.0]  # weights for [P, R, mAP50, mAP50-95]
         return float((np.nan_to_num(np.array(self.mean_results())) * w).sum())
 
     def update(self, results: tuple):

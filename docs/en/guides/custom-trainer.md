@@ -138,10 +138,10 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 
 
 class CustomSaveTrainer(DetectionTrainer):
-    """Trainer that saves the best model based on mAP@0.5 instead of default fitness."""
+    """Trainer that saves the best model based on mAP50 instead of default fitness."""
 
     def validate(self):
-        """Override fitness to use mAP@0.5 for best model selection."""
+        """Override fitness to use mAP50 for best model selection."""
         previous_best = self.best_fitness
         metrics, fitness = super().validate()
         if metrics is None:

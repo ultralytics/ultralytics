@@ -37,7 +37,7 @@ Model Summary: 476 layers, 87730285 parameters, 0 gradients
 
 val: Scanning '../datasets/coco/val2017' images and labels...4952 found, 48 missing, 0 empty, 0 corrupted: 100% 5000/5000 [00:01<00:00, 2846.03it/s]
 val: New cache created: ../datasets/coco/val2017.cache
-               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95: 100% 157/157 [02:30<00:00,  1.05it/s]
+               Class     Images     Labels          P          R      mAP50   mAP50-95: 100% 157/157 [02:30<00:00,  1.05it/s]
                  all       5000      36335      0.746      0.626       0.68       0.49
 Speed: 0.1ms pre-process, 22.4ms inference, 1.4ms NMS per image at shape (32, 3, 640, 640)  # <--- baseline speed
 
@@ -77,7 +77,7 @@ Fusing layers...
 Model Summary: 476 layers, 87730285 parameters, 0 gradients
 val: Scanning '../datasets/coco/val2017' images and labels...4952 found, 48 missing, 0 empty, 0 corrupted: 100% 5000/5000 [00:01<00:00, 2885.61it/s]
 val: New cache created: ../datasets/coco/val2017.cache
-               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95: 100% 157/157 [07:29<00:00,  2.86s/it]
+               Class     Images     Labels          P          R      mAP50   mAP50-95: 100% 157/157 [07:29<00:00,  2.86s/it]
                  all       5000      36335      0.718      0.656      0.695      0.503
 Speed: 0.2ms pre-process, 80.6ms inference, 2.7ms NMS per image at shape (32, 3, 832, 832)  # <--- TTA speed
 

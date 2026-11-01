@@ -382,7 +382,7 @@ class ProfileModels:
                 model = YOLO(str(file))
                 model.fuse(verbose=False)
                 model_info = model.info(imgsz=self.imgsz)
-                if self.trt and self.device.type != "cpu" and not engine_file.is_file():
+                if self.trt and self.device.type != "cpu":
                     engine_file = model.export(
                         format="engine",
                         quantize=self.quantize,

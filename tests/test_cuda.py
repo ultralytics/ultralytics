@@ -241,8 +241,6 @@ def test_utils_benchmarks(isolated_model):
     """Profile YOLO models for performance benchmarks."""
     from ultralytics.utils.benchmarks import ProfileModels
 
-    # Pre-export a dynamic engine model to use dynamic inference
-    YOLO(isolated_model).export(format="engine", imgsz=32, dynamic=True, batch=1, device=DEVICES[0])
     ProfileModels(
         [isolated_model],
         imgsz=32,

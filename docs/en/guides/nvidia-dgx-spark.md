@@ -207,99 +207,99 @@ YOLO11 benchmarks were run by the Ultralytics team on multiple model formats mea
 
 ### Detailed Comparison Table
 
-The table below shows the benchmark results for five different models (YOLO11n, YOLO11s, YOLO11m, YOLO11l, YOLO11x) across multiple formats, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The table below shows the benchmark results for five different models (YOLO11n, YOLO11s, YOLO11m, YOLO11l, YOLO11x) across multiple formats, giving us the status, size, mAP<sub>50-95</sub>(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
     === "YOLO11n"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
-        | --------------- | ------ | ----------------- | ----------- | ---------------------- |
-        | PyTorch         | ✅     | 5.4               | 0.5071      | 2.67                   |
-        | TorchScript     | ✅     | 10.5              | 0.5083      | 2.62                   |
-        | ONNX            | ✅     | 10.2              | 0.5074      | 5.92                   |
-        | OpenVINO        | ✅     | 10.4              | 0.5058      | 14.95                  |
-        | TensorRT (FP32) | ✅     | 12.8              | 0.5085      | 1.95                   |
-        | TensorRT (FP16) | ✅     | 7.0               | 0.5068      | 1.01                   |
-        | TensorRT (INT8) | ✅     | 18.6              | 0.4880      | 1.62                   |
-        | TF SavedModel   | ✅     | 25.7              | 0.5076      | 36.39                  |
-        | TF GraphDef     | ✅     | 10.3              | 0.5076      | 41.06                  |
-        | TF Lite         | ✅     | 10.3              | 0.5075      | 64.36                  |
-        | MNN             | ✅     | 10.1              | 0.5075      | 12.14                  |
-        | NCNN            | ✅     | 10.2              | 0.5041      | 12.31                  |
-        | ExecuTorch      | ✅     | 10.2              | 0.5075      | 27.61                  |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
+        | --------------- | ------ | ----------------- | ---------------------- | ---------------------- |
+        | PyTorch         | ✅     | 5.4               | 0.5071                 | 2.67                   |
+        | TorchScript     | ✅     | 10.5              | 0.5083                 | 2.62                   |
+        | ONNX            | ✅     | 10.2              | 0.5074                 | 5.92                   |
+        | OpenVINO        | ✅     | 10.4              | 0.5058                 | 14.95                  |
+        | TensorRT (FP32) | ✅     | 12.8              | 0.5085                 | 1.95                   |
+        | TensorRT (FP16) | ✅     | 7.0               | 0.5068                 | 1.01                   |
+        | TensorRT (INT8) | ✅     | 18.6              | 0.4880                 | 1.62                   |
+        | TF SavedModel   | ✅     | 25.7              | 0.5076                 | 36.39                  |
+        | TF GraphDef     | ✅     | 10.3              | 0.5076                 | 41.06                  |
+        | TF Lite         | ✅     | 10.3              | 0.5075                 | 64.36                  |
+        | MNN             | ✅     | 10.1              | 0.5075                 | 12.14                  |
+        | NCNN            | ✅     | 10.2              | 0.5041                 | 12.31                  |
+        | ExecuTorch      | ✅     | 10.2              | 0.5075                 | 27.61                  |
 
     === "YOLO11s"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
-        | --------------- | ------ | ----------------- | ----------- | ---------------------- |
-        | PyTorch         | ✅     | 18.4              | 0.5767      | 5.38                   |
-        | TorchScript     | ✅     | 36.5              | 0.5781      | 5.48                   |
-        | ONNX            | ✅     | 36.3              | 0.5784      | 8.17                   |
-        | OpenVINO        | ✅     | 36.4              | 0.5809      | 27.12                  |
-        | TensorRT (FP32) | ✅     | 39.8              | 0.5783      | 3.59                   |
-        | TensorRT (FP16) | ✅     | 20.1              | 0.5800      | 1.85                   |
-        | TensorRT (INT8) | ✅     | 17.5              | 0.5664      | 1.88                   |
-        | TF SavedModel   | ✅     | 90.8              | 0.5782      | 66.63                  |
-        | TF GraphDef     | ✅     | 36.3              | 0.5782      | 71.67                  |
-        | TF Lite         | ✅     | 36.3              | 0.5782      | 187.36                 |
-        | MNN             | ✅     | 36.2              | 0.5775      | 27.05                  |
-        | NCNN            | ✅     | 36.2              | 0.5806      | 26.26                  |
-        | ExecuTorch      | ✅     | 36.2              | 0.5782      | 54.73                  |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
+        | --------------- | ------ | ----------------- | ---------------------- | ---------------------- |
+        | PyTorch         | ✅     | 18.4              | 0.5767                 | 5.38                   |
+        | TorchScript     | ✅     | 36.5              | 0.5781                 | 5.48                   |
+        | ONNX            | ✅     | 36.3              | 0.5784                 | 8.17                   |
+        | OpenVINO        | ✅     | 36.4              | 0.5809                 | 27.12                  |
+        | TensorRT (FP32) | ✅     | 39.8              | 0.5783                 | 3.59                   |
+        | TensorRT (FP16) | ✅     | 20.1              | 0.5800                 | 1.85                   |
+        | TensorRT (INT8) | ✅     | 17.5              | 0.5664                 | 1.88                   |
+        | TF SavedModel   | ✅     | 90.8              | 0.5782                 | 66.63                  |
+        | TF GraphDef     | ✅     | 36.3              | 0.5782                 | 71.67                  |
+        | TF Lite         | ✅     | 36.3              | 0.5782                 | 187.36                 |
+        | MNN             | ✅     | 36.2              | 0.5775                 | 27.05                  |
+        | NCNN            | ✅     | 36.2              | 0.5806                 | 26.26                  |
+        | ExecuTorch      | ✅     | 36.2              | 0.5782                 | 54.73                  |
 
     === "YOLO11m"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
-        | --------------- | ------ | ----------------- | ----------- | ---------------------- |
-        | PyTorch         | ✅     | 38.8              | 0.6254      | 11.14                  |
-        | TorchScript     | ✅     | 77.3              | 0.6304      | 12.00                  |
-        | ONNX            | ✅     | 76.9              | 0.6304      | 13.83                  |
-        | OpenVINO        | ✅     | 77.1              | 0.6284      | 62.44                  |
-        | TensorRT (FP32) | ✅     | 79.9              | 0.6305      | 6.96                   |
-        | TensorRT (FP16) | ✅     | 40.6              | 0.6313      | 3.14                   |
-        | TensorRT (INT8) | ✅     | 26.6              | 0.6204      | 3.30                   |
-        | TF SavedModel   | ✅     | 192.4             | 0.6306      | 139.85                 |
-        | TF GraphDef     | ✅     | 76.9              | 0.6306      | 146.76                 |
-        | TF Lite         | ✅     | 76.9              | 0.6306      | 568.18                 |
-        | MNN             | ✅     | 76.8              | 0.6306      | 67.67                  |
-        | NCNN            | ✅     | 76.8              | 0.6308      | 60.49                  |
-        | ExecuTorch      | ✅     | 76.9              | 0.6306      | 120.37                 |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
+        | --------------- | ------ | ----------------- | ---------------------- | ---------------------- |
+        | PyTorch         | ✅     | 38.8              | 0.6254                 | 11.14                  |
+        | TorchScript     | ✅     | 77.3              | 0.6304                 | 12.00                  |
+        | ONNX            | ✅     | 76.9              | 0.6304                 | 13.83                  |
+        | OpenVINO        | ✅     | 77.1              | 0.6284                 | 62.44                  |
+        | TensorRT (FP32) | ✅     | 79.9              | 0.6305                 | 6.96                   |
+        | TensorRT (FP16) | ✅     | 40.6              | 0.6313                 | 3.14                   |
+        | TensorRT (INT8) | ✅     | 26.6              | 0.6204                 | 3.30                   |
+        | TF SavedModel   | ✅     | 192.4             | 0.6306                 | 139.85                 |
+        | TF GraphDef     | ✅     | 76.9              | 0.6306                 | 146.76                 |
+        | TF Lite         | ✅     | 76.9              | 0.6306                 | 568.18                 |
+        | MNN             | ✅     | 76.8              | 0.6306                 | 67.67                  |
+        | NCNN            | ✅     | 76.8              | 0.6308                 | 60.49                  |
+        | ExecuTorch      | ✅     | 76.9              | 0.6306                 | 120.37                 |
 
     === "YOLO11l"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
-        | --------------- | ------ | ----------------- | ----------- | ---------------------- |
-        | PyTorch         | ✅     | 49.0              | 0.6366      | 13.95                  |
-        | TorchScript     | ✅     | 97.6              | 0.6399      | 15.67                  |
-        | ONNX            | ✅     | 97.0              | 0.6399      | 16.62                  |
-        | OpenVINO        | ✅     | 97.3              | 0.6377      | 78.80                  |
-        | TensorRT (FP32) | ✅     | 99.2              | 0.6407      | 8.86                   |
-        | TensorRT (FP16) | ✅     | 50.8              | 0.6350      | 3.85                   |
-        | TensorRT (INT8) | ✅     | 32.5              | 0.6224      | 4.52                   |
-        | TF SavedModel   | ✅     | 242.7             | 0.6409      | 187.45                 |
-        | TF GraphDef     | ✅     | 97.0              | 0.6409      | 193.92                 |
-        | TF Lite         | ✅     | 97.0              | 0.6409      | 728.61                 |
-        | MNN             | ✅     | 96.9              | 0.6369      | 85.21                  |
-        | NCNN            | ✅     | 96.9              | 0.6373      | 77.62                  |
-        | ExecuTorch      | ✅     | 97.0              | 0.6409      | 153.56                 |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
+        | --------------- | ------ | ----------------- | ---------------------- | ---------------------- |
+        | PyTorch         | ✅     | 49.0              | 0.6366                 | 13.95                  |
+        | TorchScript     | ✅     | 97.6              | 0.6399                 | 15.67                  |
+        | ONNX            | ✅     | 97.0              | 0.6399                 | 16.62                  |
+        | OpenVINO        | ✅     | 97.3              | 0.6377                 | 78.80                  |
+        | TensorRT (FP32) | ✅     | 99.2              | 0.6407                 | 8.86                   |
+        | TensorRT (FP16) | ✅     | 50.8              | 0.6350                 | 3.85                   |
+        | TensorRT (INT8) | ✅     | 32.5              | 0.6224                 | 4.52                   |
+        | TF SavedModel   | ✅     | 242.7             | 0.6409                 | 187.45                 |
+        | TF GraphDef     | ✅     | 97.0              | 0.6409                 | 193.92                 |
+        | TF Lite         | ✅     | 97.0              | 0.6409                 | 728.61                 |
+        | MNN             | ✅     | 96.9              | 0.6369                 | 85.21                  |
+        | NCNN            | ✅     | 96.9              | 0.6373                 | 77.62                  |
+        | ExecuTorch      | ✅     | 97.0              | 0.6409                 | 153.56                 |
 
     === "YOLO11x"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
-        | --------------- | ------ | ----------------- | ----------- | ---------------------- |
-        | PyTorch         | ✅     | 109.3             | 0.6992      | 23.19                  |
-        | TorchScript     | ✅     | 218.1             | 0.6900      | 25.75                  |
-        | ONNX            | ✅     | 217.5             | 0.6900      | 27.43                  |
-        | OpenVINO        | ✅     | 217.8             | 0.6872      | 149.44                 |
-        | TensorRT (FP32) | ✅     | 222.7             | 0.6902      | 13.87                  |
-        | TensorRT (FP16) | ✅     | 111.1             | 0.6883      | 6.19                   |
-        | TensorRT (INT8) | ✅     | 62.9              | 0.6793      | 6.62                   |
-        | TF SavedModel   | ✅     | 543.9             | 0.6900      | 335.10                 |
-        | TF GraphDef     | ✅     | 217.5             | 0.6900      | 348.86                 |
-        | TF Lite         | ✅     | 217.5             | 0.6900      | 1578.66                |
-        | MNN             | ✅     | 217.3             | 0.6874      | 168.95                 |
-        | NCNN            | ✅     | 217.4             | 0.6901      | 132.13                 |
-        | ExecuTorch      | ✅     | 217.4             | 0.6900      | 297.17                 |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
+        | --------------- | ------ | ----------------- | ---------------------- | ---------------------- |
+        | PyTorch         | ✅     | 109.3             | 0.6992                 | 23.19                  |
+        | TorchScript     | ✅     | 218.1             | 0.6900                 | 25.75                  |
+        | ONNX            | ✅     | 217.5             | 0.6900                 | 27.43                  |
+        | OpenVINO        | ✅     | 217.8             | 0.6872                 | 149.44                 |
+        | TensorRT (FP32) | ✅     | 222.7             | 0.6902                 | 13.87                  |
+        | TensorRT (FP16) | ✅     | 111.1             | 0.6883                 | 6.19                   |
+        | TensorRT (INT8) | ✅     | 62.9              | 0.6793                 | 6.62                   |
+        | TF SavedModel   | ✅     | 543.9             | 0.6900                 | 335.10                 |
+        | TF GraphDef     | ✅     | 217.5             | 0.6900                 | 348.86                 |
+        | TF Lite         | ✅     | 217.5             | 0.6900                 | 1578.66                |
+        | MNN             | ✅     | 217.3             | 0.6874                 | 168.95                 |
+        | NCNN            | ✅     | 217.4             | 0.6901                 | 132.13                 |
+        | ExecuTorch      | ✅     | 217.4             | 0.6900                 | 297.17                 |
 
     Benchmarked with Ultralytics 8.3.249
 
@@ -334,14 +334,14 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
 
 At batch size 1 on DGX Spark, TensorRT INT8 is slower than FP16 for YOLO26n and YOLO26s, and about equal for YOLO26m (within 2% in both validation and `trtexec` GPU compute time). INT8 also loses 1.1 to 1.8 mAP, so FP16 is the better choice for these models. The YOLO11 table above shows the same pattern: TensorRT (INT8) is slower than TensorRT (FP16) for all five models.
 
-| Model   | Format          | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | --------------- | ----------------- | ----------- | ---------------------- |
-| YOLO26n | TensorRT (FP16) | 6.7               | 0.4032      | 0.79                   |
-| YOLO26n | TensorRT (INT8) | 28.4              | 0.3849      | 1.43                   |
-| YOLO26s | TensorRT (FP16) | 20.3              | 0.4793      | 1.49                   |
-| YOLO26s | TensorRT (INT8) | 34.4              | 0.4644      | 1.73                   |
-| YOLO26m | TensorRT (FP16) | 41.1              | 0.5266      | 2.70                   |
-| YOLO26m | TensorRT (INT8) | 45.0              | 0.5156      | 2.74                   |
+| Model   | Format          | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
+| ------- | --------------- | ----------------- | ---------------------- | ---------------------- |
+| YOLO26n | TensorRT (FP16) | 6.7               | 0.4032                 | 0.79                   |
+| YOLO26n | TensorRT (INT8) | 28.4              | 0.3849                 | 1.43                   |
+| YOLO26s | TensorRT (FP16) | 20.3              | 0.4793                 | 1.49                   |
+| YOLO26s | TensorRT (INT8) | 34.4              | 0.4644                 | 1.73                   |
+| YOLO26m | TensorRT (FP16) | 41.1              | 0.5266                 | 2.70                   |
+| YOLO26m | TensorRT (INT8) | 45.0              | 0.5156                 | 2.74                   |
 
 Accuracy and speed come from validation on COCO val2017 (5000 images) at image size 640 and batch size 1. INT8 engines are calibrated on COCO128. Benchmarked with Ultralytics 8.4.192 in `ultralytics/ultralytics:latest-nvidia-arm64` (NVIDIA PyTorch 26.08, TensorRT 11.2.1.2, ModelOpt 0.45.0).
 

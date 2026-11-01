@@ -73,7 +73,7 @@ By default, Comet will log the following items:
 ### Metrics
 
 - Box Loss, Object Loss, Classification Loss for the training and [validation data](https://www.ultralytics.com/glossary/validation-data)
-- mAP_0.5, mAP_0.5:0.95 metrics for the validation data
+- mAP<sub>50</sub>, mAP<sub>50-95</sub> metrics for the validation data
 - [Precision](https://www.ultralytics.com/glossary/precision) and [Recall](https://www.ultralytics.com/glossary/recall) for the validation data
 
 ### Parameters

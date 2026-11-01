@@ -640,7 +640,7 @@ class ProfileModels:
         headers = [
             "Model",
             "size<br><sup>(pixels)",
-            "mAP<sup>val<br>50-95",
+            "mAP<sup>val</sup><sub>50-95</sub>",
             f"Speed<br><sup>CPU ({get_cpu_info()}) ONNX<br>(ms)",
             f"Speed<br><sup>{gpu} TensorRT<br>(ms)",
             "params<br><sup>(M)",

@@ -602,15 +602,15 @@ Charts appear in this order, and each one is omitted when the dataset has no dat
 
 View all models trained on this dataset in a searchable table:
 
-| Column  | Description                                                                                                           |
-| ------- | --------------------------------------------------------------------------------------------------------------------- |
-| Model   | Parent project and model name, with links                                                                             |
-| Version | Immutable dataset version used for training, shown when any listed model used one                                     |
-| Status  | Training status badge                                                                                                 |
-| Task    | YOLO task type                                                                                                        |
-| Epochs  | Best epoch / total epochs                                                                                             |
-| Metrics | Two headline metrics for each task in the table, such as mAP50 and mAP50-95 for detection or Top-1 and Top-5 Accuracy |
-| Created | Creation date                                                                                                         |
+| Column  | Description                                                                                                                                 |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Model   | Parent project and model name, with links                                                                                                   |
+| Version | Immutable dataset version used for training, shown when any listed model used one                                                           |
+| Status  | Training status badge                                                                                                                       |
+| Task    | YOLO task type                                                                                                                              |
+| Epochs  | Best epoch / total epochs                                                                                                                   |
+| Metrics | Two headline metrics for each task in the table, such as mAP<sub>50</sub> and mAP<sub>50-95</sub> for detection or Top-1 and Top-5 Accuracy |
+| Created | Creation date                                                                                                                               |
 
 ![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.ul.run/i/c68f167c5eff1f7fff6a2c8b1772ad7a.avif)<!-- screenshot -->
 

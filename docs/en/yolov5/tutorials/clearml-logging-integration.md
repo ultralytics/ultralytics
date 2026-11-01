@@ -72,14 +72,14 @@ Each run captures:
 - Hyperparameters
 - Model checkpoints (use `--save-period n` to save every `n` epochs)
 - Console output
-- Scalars (mAP_0.5, mAP_0.5:0.95, precision, recall, losses, learning rates)
+- Scalars (mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, recall, losses, learning rates)
 - Machine details, runtime, and creation date
 - Generated plots such as the label correlogram and [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix)
 - Images with bounding boxes per [epoch](https://www.ultralytics.com/glossary/epoch)
 - Mosaic visualizations per epoch
 - Validation images per epoch
 
-Everything appears in the ClearML UI so you can monitor training in one place. Add custom columns (for example, `mAP_0.5`) to sort by the best-performing model, or select multiple experiments to compare them side by side.
+Everything appears in the ClearML UI so you can monitor training in one place. Add custom columns (for example, `mAP50`) to sort by the best-performing model, or select multiple experiments to compare them side by side.
 
 Keep reading for [hyperparameter optimization](https://www.ultralytics.com/glossary/hyperparameter-tuning) and remote execution.
 

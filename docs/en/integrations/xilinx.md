@@ -273,20 +273,20 @@ flowchart TD
 
 The table compares the exported INT8 model with the FP32 ONNX model on [COCO](../datasets/detect/coco.md) val2017 (5,000 images) at 640, both run with ONNX Runtime on the host CPU. The INT8 models were calibrated on the default `coco128.yaml` dataset; calibrating on your own deployment images usually narrows the gap.
 
-| Model                                                                  | FP32 mAP50-95 | AMD Xilinx INT8 mAP50-95 |
-| :--------------------------------------------------------------------- | :------------ | :----------------------- |
-| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) | 40.3          | 36.7                     |
-| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s) | 47.9          | 42.5                     |
-| [YOLO11n](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n) | 38.8          | 35.5                     |
+| Model                                                                  | FP32 mAP<sub>50-95</sub> | AMD Xilinx INT8 mAP<sub>50-95</sub> |
+| :--------------------------------------------------------------------- | :----------------------- | :---------------------------------- |
+| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) | 40.3                     | 36.7                                |
+| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s) | 47.9                     | 42.5                                |
+| [YOLO11n](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n) | 38.8                     | 35.5                                |
 
 These host results run the quantized model with ONNX Runtime on the CPU, the baseline AMD's [accuracy methodology](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_compilation/accuracy_methodology.html) compares NPU results against. AMD's published YOLOv8m results on the VEK385 show the same mixed-precision approach on the NPU:
 
-| YOLOv8m configuration      | Hardware   | mAP50-95 (COCO) |
-| :------------------------- | :--------- | :-------------- |
-| FP32 ONNX                  | Host CPU   | 49.95           |
-| BF16                       | VEK385 NPU | 50.29           |
-| VINT8 quantized, FP32 tail | Host CPU   | 48.75           |
-| VINT8 with BF16 tail       | VEK385 NPU | 48.38           |
+| YOLOv8m configuration      | Hardware   | mAP<sub>50-95</sub> (COCO) |
+| :------------------------- | :--------- | :------------------------- |
+| FP32 ONNX                  | Host CPU   | 49.95                      |
+| BF16                       | VEK385 NPU | 50.29                      |
+| VINT8 quantized, FP32 tail | Host CPU   | 48.75                      |
+| VINT8 with BF16 tail       | VEK385 NPU | 48.38                      |
 
 Source: AMD [YOLOv8m tutorial for Versal AI Edge Gen 2](https://github.com/amd/Vitis-AI/tree/release/6.3/versal_2ve/examples/tutorials/yolov8m), which also reports a 10.69 ms average inference time over 100 VART runs at `dp_size=1`.
 

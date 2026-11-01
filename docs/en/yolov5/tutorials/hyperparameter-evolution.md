@@ -69,12 +69,12 @@ copy_paste: 0.0 # segment copy-paste (probability)
 
 ## 2. Define Fitness
 
-Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness function as a weighted combination of metrics: `mAP@0.5` contributes 10% of the weight and `mAP@0.5:0.95` contributes the remaining 90%, with [precision (P)](https://www.ultralytics.com/glossary/precision) and [recall (R)](https://www.ultralytics.com/glossary/recall) absent. You may adjust these as you see fit or use the default fitness definition in utils/metrics.py (recommended). This fitness decides which result is saved to `hyp_evolve.yaml`; the genetic algorithm itself ranks parents and elites by `mAP@0.5` alone, so changing these weights does not change parent selection.
+Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness function as a weighted combination of metrics: mAP<sub>50</sub> contributes 10% of the weight and mAP<sub>50-95</sub> contributes the remaining 90%, with [precision (P)](https://www.ultralytics.com/glossary/precision) and [recall (R)](https://www.ultralytics.com/glossary/recall) absent. You may adjust these as you see fit or use the default fitness definition in utils/metrics.py (recommended). This fitness decides which result is saved to `hyp_evolve.yaml`; the genetic algorithm itself ranks parents and elites by mAP<sub>50</sub> alone, so changing these weights does not change parent selection.
 
 ```python
 def fitness(x):
-    """Return model fitness as the sum of weighted metrics [P, R, mAP@0.5, mAP@0.5:0.95]."""
-    w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+    """Return model fitness as the sum of weighted metrics [P, R, mAP50, mAP50-95]."""
+    w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP50, mAP50-95]
     return (x[:, :4] * w).sum(1)
 ```
 
@@ -113,13 +113,13 @@ done
 
 The default evolution settings run for 300 generations, and every generation trains the base scenario once for each of the 50 individuals in the population. You can modify generations via the `--evolve` argument, e.g. `python train.py --evolve 1000`.
 
-The main genetic operators are **crossover** and **mutation**. Each generation trains every individual and scores it by `mAP@0.5`, selects parents by tournament selection with the fittest elites added to the parent pool, and builds the next population through crossover and mutation, with rates that adapt as evolution progresses. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
+The main genetic operators are **crossover** and **mutation**. Each generation trains every individual and scores it by mAP<sub>50</sub>, selects parents by tournament selection with the fittest elites added to the parent pool, and builds the next population through crossover and mutation, with rates that adapt as evolution progresses. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
 
 ```yaml
 # YOLOv5 Hyperparameter Evolution Results
 # Best generation: 287
 # Last generation: 300
-#    metrics/precision,       metrics/recall,      metrics/mAP_0.5, metrics/mAP_0.5:0.95,         val/box_loss,         val/obj_loss,         val/cls_loss
+#    metrics/precision,       metrics/recall,        metrics/mAP50,     metrics/mAP50-95,         val/box_loss,         val/obj_loss,         val/cls_loss
 #              0.54634,              0.55625,              0.58201,              0.33665,             0.056451,             0.042892,             0.013441
 
 lr0: 0.01 # initial learning rate (SGD=1E-2, Adam=1E-3)

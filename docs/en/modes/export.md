@@ -160,7 +160,7 @@ The INT8 exports above are [post-training quantization](https://www.ultralytics.
 
 Use a small learning rate when fine-tuning a pretrained checkpoint. QAT can initially reduce accuracy, and its benefit over post-training quantization depends on the model, dataset, and training budget. Validate the exported model against both the original checkpoint and a post-training quantized export; fake-quantization scores during training do not establish deployment accuracy.
 
-How much QAT is worth depends on how well the export backend's own calibration handles the model. The values below are mAP50-95 on COCO val2017, measured with TensorRT 10.16 engines at `imgsz=640` and batch 1, where each QAT checkpoint was trained with `epochs=20 patience=3`:
+How much QAT is worth depends on how well the export backend's own calibration handles the model. The values below are mAP<sub>50-95</sub> on COCO val2017, measured with TensorRT 10.16 engines at `imgsz=640` and batch 1, where each QAT checkpoint was trained with `epochs=20 patience=3`:
 
 | Model     | FP32 engine | PTQ INT8 engine | QAT INT8 engine |
 | --------- | ----------- | --------------- | --------------- |
@@ -170,7 +170,7 @@ How much QAT is worth depends on how well the export backend's own calibration h
 | `yolo26l` | 0.5440      | 0.4889          | 0.5307          |
 | `yolo26x` | 0.5701      | 0.5138          | 0.5527          |
 
-QAT costs 0.008 to 0.017 mAP50-95 against FP32 across the range, while post-training quantization costs 0.010 on `yolo26n` and 0.038 to 0.057 on the larger models. So QAT buys almost nothing on the smallest model, where calibration already works well, and 0.030 to 0.044 on the rest. Expect different figures on another dataset, export format, or TensorRT version, and measure your own.
+QAT costs 0.008 to 0.017 mAP<sub>50-95</sub> against FP32 across the range, while post-training quantization costs 0.010 on `yolo26n` and 0.038 to 0.057 on the larger models. So QAT buys almost nothing on the smallest model, where calibration already works well, and 0.030 to 0.044 on the rest. Expect different figures on another dataset, export format, or TensorRT version, and measure your own.
 
 QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
 

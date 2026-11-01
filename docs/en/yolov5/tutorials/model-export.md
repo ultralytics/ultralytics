@@ -61,7 +61,7 @@ YOLOv5 🚀 v6.1-135-g7926afc torch 1.10.0+cu111 CUDA:0 (Tesla V100-SXM2-16GB, 1
 Setup complete ✅ (8 CPUs, 51.0 GB RAM, 46.7/166.8 GB disk)
 
 Benchmarks complete (458.07s)
-                   Format  mAP@0.5:0.95  Inference time (ms)
+                   Format      mAP50-95  Inference time (ms)
 0                 PyTorch        0.4623                10.19
 1             TorchScript        0.4623                 6.85
 2                    ONNX        0.4623                14.63
@@ -84,7 +84,7 @@ YOLOv5 🚀 v6.1-135-g7926afc torch 1.10.0+cu111 CPU
 Setup complete ✅ (8 CPUs, 51.0 GB RAM, 41.5/166.8 GB disk)
 
 Benchmarks complete (241.20s)
-                   Format  mAP@0.5:0.95  Inference time (ms)
+                   Format      mAP50-95  Inference time (ms)
 0                 PyTorch        0.4623               127.61
 1             TorchScript        0.4623               131.23
 2                    ONNX        0.4623                69.34

@@ -30,13 +30,13 @@ keywords: Open Images V7, Google dataset, object detection, 601 classes, YOLOv8 
 
 Ultralytics publishes five [YOLOv8](../../models/yolov8.md) models pretrained on Open Images V7, so you can detect its 601 classes without downloading the dataset:
 
-| Model                                                          | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| -------------------------------------------------------------- | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-| [YOLOv8n](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 18.4                       | 142.4                                | 1.21                                      | 3.5                      | 10.4                    |
-| [YOLOv8s](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 27.7                       | 183.1                                | 1.40                                      | 11.4                     | 29.7                    |
-| [YOLOv8m](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 33.6                       | 408.5                                | 2.26                                      | 26.2                     | 80.6                    |
-| [YOLOv8l](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 34.9                       | 596.9                                | 2.43                                      | 44.1                     | 167.4                   |
-| [YOLOv8x](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 36.3                       | 860.6                                | 3.56                                      | 68.7                     | 260.6                   |
+| Model                                                          | size<br><sup>(pixels)</sup> | mAP<sup>val</sup><sub>50-95</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| -------------------------------------------------------------- | --------------------------- | --------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+| [YOLOv8n](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 18.4                              | 142.4                                | 1.21                                      | 3.5                      | 10.4                    |
+| [YOLOv8s](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 27.7                              | 183.1                                | 1.40                                      | 11.4                     | 29.7                    |
+| [YOLOv8m](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 33.6                              | 408.5                                | 2.26                                      | 26.2                     | 80.6                    |
+| [YOLOv8l](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 34.9                              | 596.9                                | 2.43                                      | 44.1                     | 167.4                   |
+| [YOLOv8x](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 36.3                              | 860.6                                | 3.56                                      | 68.7                     | 260.6                   |
 
 The visualization below shows the range of object classes these models can detect:
 

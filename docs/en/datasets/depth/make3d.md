@@ -21,21 +21,21 @@ keywords: Ultralytics, YOLO, depth estimation, Make3D, outdoor depth, laser scan
 
 ## Role in YOLO26-Depth
 
-Make3D is a **zero-shot evaluation benchmark** for the YOLO26-Depth family; the published models are not trained on it. As an out-of-distribution outdoor set, it is the hardest benchmark for all models, and absolute `delta1` values are low across the board, which is expected for this dataset.
+Make3D is a **zero-shot evaluation benchmark** for the YOLO26-Depth family; the published models are not trained on it. As an out-of-distribution outdoor set, it is the hardest benchmark for all models, and absolute δ<sub>1</sub> values are low across the board, which is expected for this dataset.
 
 Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), followed by log-least-squares scale alignment between the predicted and ground-truth depth maps before metrics are computed.
 
 ## Results
 
-The table below reports the `delta1` accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the Make3D test set by model size.
+The table below reports the δ<sub>1</sub> accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the Make3D test set by model size.
 
-| Model         | delta1 |
-| ------------- | ------ |
-| YOLO26n-depth | 0.307  |
-| YOLO26s-depth | 0.311  |
-| YOLO26m-depth | 0.293  |
-| YOLO26l-depth | 0.297  |
-| YOLO26x-depth | 0.299  |
+| Model         | δ<sub>1</sub> |
+| ------------- | ------------- |
+| YOLO26n-depth | 0.307         |
+| YOLO26s-depth | 0.311         |
+| YOLO26m-depth | 0.293         |
+| YOLO26l-depth | 0.297         |
+| YOLO26x-depth | 0.299         |
 
 ## Evaluation
 
@@ -95,9 +95,9 @@ We would like to acknowledge the authors for creating and maintaining this valua
 
 Make3D is a zero-shot, out-of-distribution outdoor benchmark of 134 campus images with custom laser-scanner depth to roughly 70 m. The released YOLO26-Depth models are not trained on it, so it measures how well they generalize to unfamiliar outdoor scenes.
 
-### Why are the Make3D delta1 scores so low?
+### Why are the Make3D δ<sub>1</sub> scores so low?
 
-Make3D is the hardest of the five evaluation benchmarks for every model because its scenes and depth statistics differ strongly from the training data. Absolute delta1 values around 0.3 are expected for this dataset, and the relative comparison between models is what matters.
+Make3D is the hardest of the five evaluation benchmarks for every model because its scenes and depth statistics differ strongly from the training data. Absolute δ<sub>1</sub> values around 0.3 are expected for this dataset, and the relative comparison between models is what matters.
 
 ### Is there a dataset YAML for Make3D?
 

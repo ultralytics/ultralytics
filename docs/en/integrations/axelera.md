@@ -61,13 +61,13 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 Axelera export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-YOLO26 detection, instance segmentation, pose and OBB models export their [NMS-free](../guides/end2end-detection.md) one-to-one head by default, and the Axelera runtime decodes it on the host. Passing `nms=True` exports the one-to-many head instead, which scores lower on Metis: YOLO26n detection reaches mAP50-95 0.212 on [COCO128](../datasets/detect/coco128.md) that way, against 0.453 with the NMS-free head.
+YOLO26 detection, instance segmentation, pose and OBB models export their [NMS-free](../guides/end2end-detection.md) one-to-one head by default, and the Axelera runtime decodes it on the host. Passing `nms=True` exports the one-to-many head instead, which scores lower on Metis: YOLO26n detection reaches mAP<sub>50-95</sub> 0.212 on [COCO128](../datasets/detect/coco128.md) that way, against 0.453 with the NMS-free head.
 
 {% include "macros/supported-tasks.md" %}
 
 !!! tip "Calibrate depth models on images from your own scenes"
 
-    Quantization ranges come from the calibration images, and the default for depth, `depth8.yaml`, holds four indoor frames. On the 654-image [NYU Depth V2](../datasets/depth/nyu-depth-v2.md) val split, YOLO26n depth calibrated on that default scores delta1 0.742 on Metis against 0.783 for the PyTorch model, while 100 NYU training frames give 0.780. Pass `data=` with a dataset YAML whose `val` split holds at least 100 images from the scenes the model will see; calibration reads the `val` split.
+    Quantization ranges come from the calibration images, and the default for depth, `depth8.yaml`, holds four indoor frames. On the 654-image [NYU Depth V2](../datasets/depth/nyu-depth-v2.md) val split, YOLO26n depth calibrated on that default scores δ<sub>1</sub> 0.742 on Metis against 0.783 for the PyTorch model, while 100 NYU training frames give 0.780. Pass `data=` with a dataset YAML whose `val` split holds at least 100 images from the scenes the model will see; calibration reads the `val` split.
 
 ## Installation
 

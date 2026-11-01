@@ -70,7 +70,7 @@ Track mode extends YOLO26's object detection capabilities to [track objects](htt
 
 ## Benchmark
 
-Benchmark mode profiles the speed and accuracy of various export formats for YOLO26. This mode provides comprehensive metrics on model size, accuracy (mAP50-95 for detection, segmentation, pose, and OBB; mIoU for semantic segmentation; delta1 for depth; or accuracy_top1 for classification), and inference time across different formats like ONNX, [OpenVINO](../integrations/openvino.md), and TensorRT. Benchmarking helps you select the optimal export format based on your specific requirements for speed and accuracy in your deployment environment.
+Benchmark mode profiles the speed and accuracy of various export formats for YOLO26. This mode provides comprehensive metrics on model size, accuracy (mAP<sub>50-95</sub> for detection, segmentation, pose, and OBB; mIoU for semantic segmentation; δ<sub>1</sub> for depth; or accuracy_top1 for classification), and inference time across different formats like ONNX, [OpenVINO](../integrations/openvino.md), and TensorRT. Benchmarking helps you select the optimal export format based on your specific requirements for speed and accuracy in your deployment environment.
 
 [Benchmark Examples](benchmark.md){ .md-button }
 
@@ -165,7 +165,7 @@ Detailed steps for each export format can be found in the [Export Guide](../mode
 
 ### What is the purpose of the benchmark mode in Ultralytics YOLO26?
 
-Benchmark mode in Ultralytics YOLO26 is used to analyze the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of various export formats such as ONNX, TensorRT, and OpenVINO. It provides metrics like model size, `mAP50-95` for object detection, and inference time across different hardware setups, helping you choose the most suitable format for your deployment needs.
+Benchmark mode in Ultralytics YOLO26 is used to analyze the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of various export formats such as ONNX, TensorRT, and OpenVINO. It provides metrics like model size, mAP<sub>50-95</sub> for object detection, and inference time across different hardware setups, helping you choose the most suitable format for your deployment needs.
 
 !!! example
 

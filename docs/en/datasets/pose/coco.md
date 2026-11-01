@@ -120,7 +120,7 @@ Load `yolo26n-pose.pt` and call `model.train(data="coco-pose.yaml", epochs=100, 
 
 ### What are the different metrics provided by the COCO-Pose dataset for evaluating model performance?
 
-The COCO-Pose dataset provides several standardized evaluation metrics for pose estimation tasks, similar to the original COCO dataset. Key metrics include the Object Keypoint Similarity (OKS), which evaluates the [accuracy](https://www.ultralytics.com/glossary/accuracy) of predicted keypoints against ground truth annotations. These metrics allow for thorough performance comparisons between different models. For instance, the COCO-Pose pretrained models such as YOLO26n-pose, YOLO26s-pose, and others have specific performance metrics listed in the documentation, like mAP<sup>pose</sup>50-95 and mAP<sup>pose</sup>50.
+The COCO-Pose dataset provides several standardized evaluation metrics for pose estimation tasks, similar to the original COCO dataset. Key metrics include the Object Keypoint Similarity (OKS), which evaluates the [accuracy](https://www.ultralytics.com/glossary/accuracy) of predicted keypoints against ground truth annotations. These metrics allow for thorough performance comparisons between different models. For instance, the COCO-Pose pretrained models such as YOLO26n-pose, YOLO26s-pose, and others have specific performance metrics listed in the documentation, like mAP<sup>pose</sup><sub>50-95</sub> and mAP<sup>pose</sup><sub>50</sub>.
 
 ### How is the dataset structured and split for the COCO-Pose dataset?
 

@@ -46,7 +46,7 @@ Ultralytics YOLO uses genetic algorithms, a family of [evolutionary algorithms](
 
 Before you begin the tuning process, it's important to:
 
-1. **Identify the Metrics**: The built-in tuner (`use_ray=False`) ranks trials by the task's `fitness` score, while `use_ray=True` uses the task metric. Decide which secondary metrics you will inspect, such as AP50 or [F1-score](https://www.ultralytics.com/glossary/f1-score).
+1. **Identify the Metrics**: The built-in tuner (`use_ray=False`) ranks trials by the task's `fitness` score, while `use_ray=True` uses the task metric. Decide which secondary metrics you will inspect, such as AP<sub>50</sub> or [F1-score](https://www.ultralytics.com/glossary/f1-score).
 2. **Set the Tuning Budget**: Define how much compute you're willing to allocate. Hyperparameter tuning can be computationally intensive.
 
 ## How the Tuning Loop Works
@@ -351,7 +351,7 @@ Genetic algorithms give Ultralytics YOLO26 a robust way to explore the hyperpara
 
 - **Efficient Search**: Fitness-weighted selection preserves strong configurations while range-normalized mutation explores new candidates.
 - **Avoiding Local Minima**: Random mutations help the search escape local minima that a purely greedy search could get stuck in.
-- **Performance Metrics**: They adapt based on a task-specific fitness score (mAP50-95 for detection).
+- **Performance Metrics**: They adapt based on a task-specific fitness score (mAP<sub>50-95</sub> for detection).
 
 To see how genetic algorithms can optimize hyperparameters, check out the [hyperparameter evolution guide](../yolov5/tutorials/hyperparameter-evolution.md).
 
@@ -365,7 +365,7 @@ To effectively manage tuning time, define a clear tuning budget beforehand, as c
 
 When evaluating model performance during hyperparameter tuning in YOLO, you can use several key metrics:
 
-- **AP50**: The average precision at IoU threshold of 0.50.
+- **AP<sub>50</sub>**: The average precision at IoU threshold of 0.50.
 - **F1-Score**: The harmonic mean of precision and recall.
 - **Precision and Recall**: Individual metrics indicating the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) in identifying true positives versus false positives and false negatives.
 

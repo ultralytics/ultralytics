@@ -44,7 +44,7 @@ Testing a trained YOLO26 model involves two complementary workflows: [validating
 
 ### Validate on a Labeled Test Split
 
-[Validation mode](../modes/val.md) compares the model's predictions against ground-truth labels and reports precision, recall, mAP50, and mAP50-95 for detection models. It also saves visual aids like a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) and a precision-recall curve, which help you spot specific areas where the model might not be performing well.
+[Validation mode](../modes/val.md) compares the model's predictions against ground-truth labels and reports precision, recall, mAP<sub>50</sub>, and mAP<sub>50-95</sub> for detection models. It also saves visual aids like a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) and a precision-recall curve, which help you spot specific areas where the model might not be performing well.
 
 !!! example "Usage"
 
@@ -99,10 +99,10 @@ By default, validation runs on the dataset's `val` split. To measure performance
 
 ### Validation vs. Prediction Mode
 
-| Mode                              | Purpose                                       | Requires labels | Output                                                          |
-| --------------------------------- | --------------------------------------------- | --------------- | --------------------------------------------------------------- |
-| [Validation](../modes/val.md)     | Quantify performance against ground truth     | Yes             | Precision, recall, mAP50, mAP50-95, confusion matrix, PR curves |
-| [Prediction](../modes/predict.md) | Inspect model behavior on new, unlabeled data | No              | Annotated images and prediction results, no metrics             |
+| Mode                              | Purpose                                       | Requires labels | Output                                                                                |
+| --------------------------------- | --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- |
+| [Validation](../modes/val.md)     | Quantify performance against ground truth     | Yes             | Precision, recall, mAP<sub>50</sub>, mAP<sub>50-95</sub>, confusion matrix, PR curves |
+| [Prediction](../modes/predict.md) | Inspect model behavior on new, unlabeled data | No              | Annotated images and prediction results, no metrics                                   |
 
 ## How to Analyze Test Results
 
@@ -167,7 +167,7 @@ Use [prediction mode](../modes/predict.md) and pass a folder path as the `source
 
 ### What metrics does YOLO26 validation report on a test set?
 
-For detection models, validation reports precision, recall, mAP50, and mAP50-95, and saves plots including a confusion matrix and a precision-recall curve. To validate on a dedicated test split rather than the default `val` split, define `test:` in your dataset YAML and pass `split="test"`. See the [performance metrics guide](./yolo-performance-metrics.md) for how to interpret each metric.
+For detection models, validation reports precision, recall, mAP<sub>50</sub>, and mAP<sub>50-95</sub>, and saves plots including a confusion matrix and a precision-recall curve. To validate on a dedicated test split rather than the default `val` split, define `test:` in your dataset YAML and pass `split="test"`. See the [performance metrics guide](./yolo-performance-metrics.md) for how to interpret each metric.
 
 ### What should I do if my computer vision model shows signs of overfitting or underfitting?
 

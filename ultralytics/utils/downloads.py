@@ -15,6 +15,7 @@ from pathlib import Path
 from urllib import parse
 from uuid import uuid4
 
+from ultralytics import __version__
 from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
@@ -401,7 +402,11 @@ def safe_download(
                             b"".join(re.findall(rb"(?im)^content-encoding:\s*(\S+)", final_headers)).decode().lower()
                         )
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
-                        headers = {"Accept-Encoding": "identity"}
+                        # A descriptive User-Agent, as hosts like upload.wikimedia.org reject the python-requests one
+                        headers = {
+                            "Accept-Encoding": "identity",
+                            "User-Agent": f"ultralytics/{__version__} (https://ultralytics.com)",
+                        }
                         if resume:
                             headers["Range"] = f"bytes={resume}-"
                         with requests.get(url, stream=True, headers=headers, timeout=(30, 300)) as response:

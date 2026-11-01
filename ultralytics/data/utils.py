@@ -871,6 +871,8 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
                 f'Classification datasets must be a directory (data="path/to/dir") not a file (data="{dataset}"), '
                 "See https://docs.ultralytics.com/datasets/classify"
             )
+        if str(dataset) != dataset.name:  # download only an official dataset by bare name, never a user path
+            raise FileNotFoundError(f"'{data_dir}' does not exist")
         LOGGER.info("")
         LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")
         t = time.time()

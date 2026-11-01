@@ -896,6 +896,9 @@ class YAML:
         h, lines, ind = header.split("#", 1)[0].strip(" \t"), [], None
         if not re.fullmatch(r"[|>]([1-9]?[+-]?|[+-][1-9])", h):
             self._error(f"invalid block scalar header {header!r}, quote values that start with '|' or '>'")
+        digits = "".join(x for x in h if x.isdigit())
+        if digits:  # an explicit indicator fixes the content indent for every line
+            ind = n + int(digits)
         while self.i < len(self.lines):
             raw = self.lines[self.i]
             if raw.strip(" \t"):
@@ -905,10 +908,11 @@ class YAML:
                 ind = m if ind is None else ind
             lines.append(raw)
             self.i += 1
-        digits = "".join(x for x in h if x.isdigit())
-        ind = n + int(digits) if digits else ind or 0
+        if ind is None and not any(x.strip(" \t") for x in lines):  # without a content indent every line is empty
+            lines = ["" for _ in lines]
+        ind = ind or 0
         lines, trailing = [x[ind:] for x in lines], -(self.i == len(self.lines))  # '' after the final break is no line
-        while lines and not lines[-1].strip(" \t"):
+        while lines and not lines[-1]:  # only empty lines chomp, spaces past the indent are content
             lines.pop()
             trailing += 1
         text = "\n".join(lines)

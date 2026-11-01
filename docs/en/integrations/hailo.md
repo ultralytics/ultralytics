@@ -90,7 +90,7 @@ Hailo export is INT8-only. Ultralytics automatically downloads a task-specific c
 
 !!! danger "Use at least 1,024 calibration images for best accuracy"
 
-    Ultralytics forces DFC optimization level 2 and configures fine-tuning to use the actual calibration dataset size. Hailo recommends at least 1,024 diverse images; the built-in lightweight datasets compile at level 2 but may not represent the production domain. For production HEF exports, pass a representative dataset using `data="path/to/dataset.yaml"`.
+    Ultralytics compiles with the Hailo Model Zoo recipe: DFC optimization level 4 without compression, and AdaRound over the full calibration set. AdaRound learns rounding from the calibration images, so Hailo recommends at least 1,024 diverse ones; the built-in lightweight datasets compile but may not represent the production domain. For production HEF exports, pass a representative dataset using `data="path/to/dataset.yaml"`.
 
 ```python
 model.export(format="hailo", name="hailo8", data="path/to/dataset.yaml")

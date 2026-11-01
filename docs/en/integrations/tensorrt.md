@@ -290,13 +290,13 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
         | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><sub>50</sub>(B) | mAP<sup>val</sup><sub>50-95</sub>(B) | `batch` | size<br><sup>(pixels)</sup> |
-        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
-        | FP32      | Predict            | 0.52         | 0.51 \| 0.56       |                            |                               | 8       | 640                         |
-        | FP32      | COCO<sup>val</sup> | 0.52         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | FP16      | Predict            | 0.34         | 0.34 \| 0.41       |                            |                               | 8       | 640                         |
-        | FP16      | COCO<sup>val</sup> | 0.33         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | INT8      | Predict            | 0.28         | 0.27 \| 0.31       |                            |                               | 8       | 640                         |
-        | INT8      | COCO<sup>val</sup> | 0.29         |                    | 0.47                       | 0.33                          | 1       | 640                         |
+        | --------- | ------------------ | ------------ | ------------------ | --------------------------------- | ------------------------------------ | ------- | --------------------------- |
+        | FP32      | Predict            | 0.52         | 0.51 \| 0.56       |                                   |                                      | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 0.52         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | FP16      | Predict            | 0.34         | 0.34 \| 0.41       |                                   |                                      | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 0.33         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | INT8      | Predict            | 0.28         | 0.27 \| 0.31       |                                   |                                      | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.29         |                    | 0.47                              | 0.33                                 | 1       | 640                         |
 
     === "Segmentation (COCO)"
 
@@ -307,13 +307,13 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-seg.engine`
 
         | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><sub>50</sub>(B) | mAP<sup>val</sup><sub>50-95</sub>(B) | mAP<sup>val</sup><sub>50</sub>(M) | mAP<sup>val</sup><sub>50-95</sub>(M) | `batch` | size<br><sup>(pixels)</sup> |
-        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | -------------------------- | ----------------------------- | ------- | --------------------------- |
-        | FP32      | Predict            | 0.62         | 0.61 \| 0.68       |                            |                               |                            |                               | 8       | 640                         |
-        | FP32      | COCO<sup>val</sup> | 0.63         |                    | 0.52                       | 0.36                          | 0.49                       | 0.31                          | 1       | 640                         |
-        | FP16      | Predict            | 0.40         | 0.39 \| 0.44       |                            |                               |                            |                               | 8       | 640                         |
-        | FP16      | COCO<sup>val</sup> | 0.43         |                    | 0.52                       | 0.36                          | 0.49                       | 0.30                          | 1       | 640                         |
-        | INT8      | Predict            | 0.34         | 0.33 \| 0.37       |                            |                               |                            |                               | 8       | 640                         |
-        | INT8      | COCO<sup>val</sup> | 0.36         |                    | 0.46                       | 0.32                          | 0.43                       | 0.27                          | 1       | 640                         |
+        | --------- | ------------------ | ------------ | ------------------ | --------------------------------- | ------------------------------------ | --------------------------------- | ------------------------------------ | ------- | --------------------------- |
+        | FP32      | Predict            | 0.62         | 0.61 \| 0.68       |                                   |                                      |                                   |                                      | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 0.63         |                    | 0.52                              | 0.36                                 | 0.49                              | 0.31                                 | 1       | 640                         |
+        | FP16      | Predict            | 0.40         | 0.39 \| 0.44       |                                   |                                      |                                   |                                      | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 0.43         |                    | 0.52                              | 0.36                                 | 0.49                              | 0.30                                 | 1       | 640                         |
+        | INT8      | Predict            | 0.34         | 0.33 \| 0.37       |                                   |                                      |                                   |                                      | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.36         |                    | 0.46                              | 0.32                                 | 0.43                              | 0.27                                 | 1       | 640                         |
 
     === "Classification (ImageNet)"
 
@@ -341,13 +341,13 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-pose.engine`
 
         | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><sub>50</sub>(B) | mAP<sup>val</sup><sub>50-95</sub>(B) | mAP<sup>val</sup><sub>50</sub>(P) | mAP<sup>val</sup><sub>50-95</sub>(P) | `batch` | size<br><sup>(pixels)</sup> |
-        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | -------------------------- | ----------------------------- | ------- | --------------------------- |
-        | FP32      | Predict            | 0.54         | 0.53 \| 0.58       |                            |                               |                            |                               | 8       | 640                         |
-        | FP32      | COCO<sup>val</sup> | 0.55         |                    | 0.91                       | 0.69                          | 0.80                       | 0.51                          | 1       | 640                         |
-        | FP16      | Predict            | 0.37         | 0.35 \| 0.41       |                            |                               |                            |                               | 8       | 640                         |
-        | FP16      | COCO<sup>val</sup> | 0.36         |                    | 0.91                       | 0.69                          | 0.80                       | 0.51                          | 1       | 640                         |
-        | INT8      | Predict            | 0.29         | 0.28 \| 0.33       |                            |                               |                            |                               | 8       | 640                         |
-        | INT8      | COCO<sup>val</sup> | 0.30         |                    | 0.90                       | 0.68                          | 0.78                       | 0.47                          | 1       | 640                         |
+        | --------- | ------------------ | ------------ | ------------------ | --------------------------------- | ------------------------------------ | --------------------------------- | ------------------------------------ | ------- | --------------------------- |
+        | FP32      | Predict            | 0.54         | 0.53 \| 0.58       |                                   |                                      |                                   |                                      | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 0.55         |                    | 0.91                              | 0.69                                 | 0.80                              | 0.51                                 | 1       | 640                         |
+        | FP16      | Predict            | 0.37         | 0.35 \| 0.41       |                                   |                                      |                                   |                                      | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 0.36         |                    | 0.91                              | 0.69                                 | 0.80                              | 0.51                                 | 1       | 640                         |
+        | INT8      | Predict            | 0.29         | 0.28 \| 0.33       |                                   |                                      |                                   |                                      | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.30         |                    | 0.90                              | 0.68                                 | 0.78                              | 0.47                                 | 1       | 640                         |
 
     === "OBB (DOTAv1)"
 
@@ -358,13 +358,13 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-obb.engine`
 
         | Precision | Eval test            | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><sub>50</sub>(B) | mAP<sup>val</sup><sub>50-95</sub>(B) | `batch` | size<br><sup>(pixels)</sup> |
-        | --------- | -------------------- | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
-        | FP32      | Predict              | 0.52         | 0.51 \| 0.59       |                            |                               | 8       | 640                         |
-        | FP32      | DOTAv1<sup>val</sup> | 0.76         |                    | 0.50                       | 0.36                          | 1       | 640                         |
-        | FP16      | Predict              | 0.34         | 0.33 \| 0.42       |                            |                               | 8       | 640                         |
-        | FP16      | DOTAv1<sup>val</sup> | 0.59         |                    | 0.50                       | 0.36                          | 1       | 640                         |
-        | INT8      | Predict              | 0.29         | 0.28 \| 0.33       |                            |                               | 8       | 640                         |
-        | INT8      | DOTAv1<sup>val</sup> | 0.32         |                    | 0.45                       | 0.32                          | 1       | 640                         |
+        | --------- | -------------------- | ------------ | ------------------ | --------------------------------- | ------------------------------------ | ------- | --------------------------- |
+        | FP32      | Predict              | 0.52         | 0.51 \| 0.59       |                                   |                                      | 8       | 640                         |
+        | FP32      | DOTAv1<sup>val</sup> | 0.76         |                    | 0.50                              | 0.36                                 | 1       | 640                         |
+        | FP16      | Predict              | 0.34         | 0.33 \| 0.42       |                                   |                                      | 8       | 640                         |
+        | FP16      | DOTAv1<sup>val</sup> | 0.59         |                    | 0.50                              | 0.36                                 | 1       | 640                         |
+        | INT8      | Predict              | 0.29         | 0.28 \| 0.33       |                                   |                                      | 8       | 640                         |
+        | INT8      | DOTAv1<sup>val</sup> | 0.32         |                    | 0.45                              | 0.32                                 | 1       | 640                         |
 
 ### Consumer GPUs
 
@@ -379,13 +379,13 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
         | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><sub>50</sub>(B) | mAP<sup>val</sup><sub>50-95</sub>(B) | `batch` | size<br><sup>(pixels)</sup> |
-        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
-        | FP32      | Predict            | 1.06         | 0.75 \| 1.88       |                            |                               | 8       | 640                         |
-        | FP32      | COCO<sup>val</sup> | 1.37         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | FP16      | Predict            | 0.62         | 0.75 \| 1.13       |                            |                               | 8       | 640                         |
-        | FP16      | COCO<sup>val</sup> | 0.85         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | INT8      | Predict            | 0.52         | 0.38 \| 1.00       |                            |                               | 8       | 640                         |
-        | INT8      | COCO<sup>val</sup> | 0.74         |                    | 0.47                       | 0.33                          | 1       | 640                         |
+        | --------- | ------------------ | ------------ | ------------------ | --------------------------------- | ------------------------------------ | ------- | --------------------------- |
+        | FP32      | Predict            | 1.06         | 0.75 \| 1.88       |                                   |                                      | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 1.37         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | FP16      | Predict            | 0.62         | 0.75 \| 1.13       |                                   |                                      | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 0.85         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | INT8      | Predict            | 0.52         | 0.38 \| 1.00       |                                   |                                      | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.74         |                    | 0.47                              | 0.33                                 | 1       | 640                         |
 
     === "RTX 3060 12 GB"
 
@@ -396,13 +396,13 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
         | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><sub>50</sub>(B) | mAP<sup>val</sup><sub>50-95</sub>(B) | `batch` | size<br><sup>(pixels)</sup> |
-        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
-        | FP32      | Predict            | 1.76         | 1.69 \| 1.87       |                            |                               | 8       | 640                         |
-        | FP32      | COCO<sup>val</sup> | 1.94         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | FP16      | Predict            | 0.86         | 0.75 \| 1.00       |                            |                               | 8       | 640                         |
-        | FP16      | COCO<sup>val</sup> | 1.43         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | INT8      | Predict            | 0.80         | 0.75 \| 1.00       |                            |                               | 8       | 640                         |
-        | INT8      | COCO<sup>val</sup> | 1.35         |                    | 0.47                       | 0.33                          | 1       | 640                         |
+        | --------- | ------------------ | ------------ | ------------------ | --------------------------------- | ------------------------------------ | ------- | --------------------------- |
+        | FP32      | Predict            | 1.76         | 1.69 \| 1.87       |                                   |                                      | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 1.94         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | FP16      | Predict            | 0.86         | 0.75 \| 1.00       |                                   |                                      | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 1.43         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | INT8      | Predict            | 0.80         | 0.75 \| 1.00       |                                   |                                      | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 1.35         |                    | 0.47                              | 0.33                                 | 1       | 640                         |
 
     === "RTX 2060 6 GB"
 
@@ -413,13 +413,13 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
         | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><sub>50</sub>(B) | mAP<sup>val</sup><sub>50-95</sub>(B) | `batch` | size<br><sup>(pixels)</sup> |
-        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
-        | FP32      | Predict            | 2.84         | 2.84 \| 2.85       |                            |                               | 8       | 640                         |
-        | FP32      | COCO<sup>val</sup> | 2.94         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | FP16      | Predict            | 1.09         | 1.09 \| 1.10       |                            |                               | 8       | 640                         |
-        | FP16      | COCO<sup>val</sup> | 1.20         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | INT8      | Predict            | 0.75         | 0.74 \| 0.75       |                            |                               | 8       | 640                         |
-        | INT8      | COCO<sup>val</sup> | 0.76         |                    | 0.47                       | 0.33                          | 1       | 640                         |
+        | --------- | ------------------ | ------------ | ------------------ | --------------------------------- | ------------------------------------ | ------- | --------------------------- |
+        | FP32      | Predict            | 2.84         | 2.84 \| 2.85       |                                   |                                      | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 2.94         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | FP16      | Predict            | 1.09         | 1.09 \| 1.10       |                                   |                                      | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 1.20         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | INT8      | Predict            | 0.75         | 0.74 \| 0.75       |                                   |                                      | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.76         |                    | 0.47                              | 0.33                                 | 1       | 640                         |
 
 ### Embedded Devices
 
@@ -434,13 +434,13 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
         | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><sub>50</sub>(B) | mAP<sup>val</sup><sub>50-95</sub>(B) | `batch` | size<br><sup>(pixels)</sup> |
-        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
-        | FP32      | Predict            | 6.11         | 6.10 \| 6.29       |                            |                               | 8       | 640                         |
-        | FP32      | COCO<sup>val</sup> | 6.17         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | FP16      | Predict            | 3.18         | 3.18 \| 3.20       |                            |                               | 8       | 640                         |
-        | FP16      | COCO<sup>val</sup> | 3.19         |                    | 0.52                       | 0.37                          | 1       | 640                         |
-        | INT8      | Predict            | 2.30         | 2.29 \| 2.35       |                            |                               | 8       | 640                         |
-        | INT8      | COCO<sup>val</sup> | 2.32         |                    | 0.46                       | 0.32                          | 1       | 640                         |
+        | --------- | ------------------ | ------------ | ------------------ | --------------------------------- | ------------------------------------ | ------- | --------------------------- |
+        | FP32      | Predict            | 6.11         | 6.10 \| 6.29       |                                   |                                      | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 6.17         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | FP16      | Predict            | 3.18         | 3.18 \| 3.20       |                                   |                                      | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 3.19         |                    | 0.52                              | 0.37                                 | 1       | 640                         |
+        | INT8      | Predict            | 2.30         | 2.29 \| 2.35       |                                   |                                      | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 2.32         |                    | 0.46                              | 0.32                                 | 1       | 640                         |
 
 !!! info
 

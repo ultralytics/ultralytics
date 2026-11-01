@@ -119,7 +119,7 @@ The main genetic operators are **crossover** and **mutation**. Each generation t
 # YOLOv5 Hyperparameter Evolution Results
 # Best generation: 287
 # Last generation: 300
-#    metrics/precision,       metrics/recall,      metrics/mAP50, metrics/mAP50-95,         val/box_loss,         val/obj_loss,         val/cls_loss
+#    metrics/precision,       metrics/recall,        metrics/mAP50,     metrics/mAP50-95,         val/box_loss,         val/obj_loss,         val/cls_loss
 #              0.54634,              0.55625,              0.58201,              0.33665,             0.056451,             0.042892,             0.013441
 
 lr0: 0.01 # initial learning rate (SGD=1E-2, Adam=1E-3)

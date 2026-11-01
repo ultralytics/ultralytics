@@ -79,7 +79,7 @@ Each run captures:
 - Mosaic visualizations per epoch
 - Validation images per epoch
 
-Everything appears in the ClearML UI so you can monitor training in one place. Add custom columns (for example, mAP<sub>50</sub>) to sort by the best-performing model, or select multiple experiments to compare them side by side.
+Everything appears in the ClearML UI so you can monitor training in one place. Add custom columns (for example, `mAP50`) to sort by the best-performing model, or select multiple experiments to compare them side by side.
 
 Keep reading for [hyperparameter optimization](https://www.ultralytics.com/glossary/hyperparameter-tuning) and remote execution.
 

@@ -41,7 +41,7 @@ Model Summary: 476 layers, 87730285 parameters, 0 gradients
 
 val: Scanning '../datasets/coco/val2017' images and labels...4952 found, 48 missing, 0 empty, 0 corrupted: 100% 5000/5000 [00:01<00:00, 2846.03it/s]
 val: New cache created: ../datasets/coco/val2017.cache
-               Class     Images     Labels          P          R      mAP50   mAP50-95: 100% 157/157 [02:30<00:00,  1.05it/s]
+               Class     Images  Instances          P          R      mAP50   mAP50-95: 100% 157/157 [02:30<00:00,  1.05it/s]
                  all       5000      36335      0.746      0.626       0.68       0.49
 Speed: 0.1ms pre-process, 22.4ms inference, 1.4ms NMS per image at shape (32, 3, 640, 640)  # <--- baseline speed
 
@@ -87,7 +87,7 @@ Model Summary: 501 layers, 77218620 parameters, 0 gradients  # Model 2
 Ensemble created with ['yolov5x.pt', 'yolov5l6.pt']  # Ensemble notice
 
 val: Scanning '../datasets/coco/val2017.cache' images and labels... 4952 found, 48 missing, 0 empty, 0 corrupted: 100% 5000/5000 [00:00<00:00, 49695545.02it/s]
-               Class     Images     Labels          P          R      mAP50   mAP50-95: 100% 157/157 [03:58<00:00,  1.52s/it]
+               Class     Images  Instances          P          R      mAP50   mAP50-95: 100% 157/157 [03:58<00:00,  1.52s/it]
                  all       5000      36335      0.747      0.637      0.692      0.502
 Speed: 0.1ms pre-process, 39.5ms inference, 2.0ms NMS per image at shape (32, 3, 640, 640)  # <--- ensemble speed
 

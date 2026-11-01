@@ -46,7 +46,7 @@ YOLOv5 🚀 v6.0-224-g4c40933 torch 1.10.0+cu111 CUDA:0 (Tesla V100-SXM2-16GB, 1
 Fusing layers...
 Model Summary: 444 layers, 86705005 parameters, 0 gradients
 val: Scanning '/content/datasets/coco/val2017.cache' images and labels... 4952 found, 48 missing, 0 empty, 0 corrupt: 100% 5000/5000 [00:00<?, ?it/s]
-               Class     Images     Labels          P          R      mAP50   mAP50-95: 100% 157/157 [01:12<00:00,  2.16it/s]
+               Class     Images  Instances          P          R      mAP50   mAP50-95: 100% 157/157 [01:12<00:00,  2.16it/s]
                  all       5000      36335      0.732      0.628      0.683      0.496
 Speed: 0.1ms pre-process, 5.2ms inference, 1.7ms NMS per image at shape (32, 3, 640, 640)  # <--- base speed
 
@@ -83,7 +83,7 @@ Fusing layers...
 Model Summary: 444 layers, 86705005 parameters, 0 gradients
 Pruning model...  0.3 global sparsity
 val: Scanning '/content/datasets/coco/val2017.cache' images and labels... 4952 found, 48 missing, 0 empty, 0 corrupt: 100% 5000/5000 [00:00<?, ?it/s]
-               Class     Images     Labels          P          R      mAP50   mAP50-95: 100% 157/157 [01:11<00:00,  2.19it/s]
+               Class     Images  Instances          P          R      mAP50   mAP50-95: 100% 157/157 [01:11<00:00,  2.19it/s]
                  all       5000      36335      0.724      0.614      0.671      0.478
 Speed: 0.1ms pre-process, 5.2ms inference, 1.7ms NMS per image at shape (32, 3, 640, 640)  # <--- prune speed
 

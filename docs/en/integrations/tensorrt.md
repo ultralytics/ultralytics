@@ -267,7 +267,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 #### Drawbacks of using YOLO with TensorRT INT8
 
-- **Decreases in evaluation metrics:** Using a lower precision will mean that `mAP`, `Precision`, `Recall` or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. Sigmoid layers are kept at higher precision to preserve score calibration, but INT8 can still shift confidence values, so select the operating threshold from the INT8 model's own [F1](https://www.ultralytics.com/glossary/f1-score) curve.
+- **Decreases in evaluation metrics:** Using a lower precision will mean that mAP, precision, recall or any [other metric used to evaluate model performance](../guides/yolo-performance-metrics.md) is likely to be somewhat worse. Sigmoid layers are kept at higher precision to preserve score calibration, but INT8 can still shift confidence values, so select the operating threshold from the INT8 model's own [F1](https://www.ultralytics.com/glossary/f1-score) curve.
 
 - **Increased development times:** Finding the "optimal" settings for INT8 calibration for dataset and device can take a significant amount of testing.
 

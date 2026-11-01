@@ -1076,7 +1076,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
                         # cls path doubled: training-time validation runs the loss at up to 2x batch
                         mem += x.shape[0] * anchors * 6 * (max_num_obj + 2 * len(m.names)) * 4 / 2**30  # (GiB)
-                try:  # after the timed pass: on older torch, thop's no_grad forward caches grad-less autocast casts
+                try:
                     flops = thop.profile(m, inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
                 except Exception:
                     flops = 0

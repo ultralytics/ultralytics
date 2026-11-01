@@ -29,13 +29,13 @@ Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), fo
 
 The table below reports the `delta1` accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the ETH3D evaluation images by model size.
 
-| Model         | delta1 |
-| ------------- | ------ |
-| YOLO26n-depth | 0.905  |
-| YOLO26s-depth | 0.876  |
-| YOLO26m-depth | 0.943  |
-| YOLO26l-depth | 0.945  |
-| YOLO26x-depth | 0.953  |
+| Model         | δ1    |
+| ------------- | ----- |
+| YOLO26n-depth | 0.905 |
+| YOLO26s-depth | 0.876 |
+| YOLO26m-depth | 0.943 |
+| YOLO26l-depth | 0.945 |
+| YOLO26x-depth | 0.953 |
 
 ## Evaluation
 
@@ -93,7 +93,7 @@ We would like to acknowledge the authors for creating and maintaining this valua
 
 ### How is ETH3D used in YOLO26-Depth?
 
-ETH3D is a zero-shot evaluation benchmark. The released YOLO26-Depth models are not trained on it, so its 423 indoor and outdoor images with survey-grade laser-scanner depth measure cross-domain generalization out to roughly 60 m. The largest model, YOLO26x-depth, reaches a delta1 of 0.953 on this benchmark.
+ETH3D is a zero-shot evaluation benchmark. The released YOLO26-Depth models are not trained on it, so its 423 indoor and outdoor images with survey-grade laser-scanner depth measure cross-domain generalization out to roughly 60 m. The largest model, YOLO26x-depth, reaches a δ1 of 0.953 on this benchmark.
 
 ### Is there a dataset YAML for ETH3D?
 

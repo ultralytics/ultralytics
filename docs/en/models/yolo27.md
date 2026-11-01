@@ -174,7 +174,7 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
 
         See [Depth Estimation Docs](../tasks/depth.md) for usage examples with these models pretrained on a broad multi-dataset mix and evaluated on [NYU Depth V2](../datasets/depth/nyu-depth-v2.md).
 
-        | Model         | size<br><sup>(pixels)</sup> | delta1<sup>NYU\*</sup> | delta1<sup>KITTI-580\*</sup> | delta1<sup>bench mean</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | Model         | size<br><sup>(pixels)</sup> | δ1<sup>NYU\*</sup> | δ1<sup>KITTI-580\*</sup> | δ1<sup>bench mean</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>RTX PRO 6000 TensorRT11<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ------------- | --------------------------- | ---------------------- | ---------------------------- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------------------------ | ----------------------- |
         | YOLO27n-depth | 768                         | 0.8314                 | 0.8256                       | 0.7238                      | 47.2 ± 4.0                           | 0.79 ± 0.00                                         | 5.4                      | 49.3                    |
         | YOLO27s-depth | 768                         | 0.8682                 | 0.7835                       | 0.7454                      | 72.1 ± 0.5                           | 0.97 ± 0.00                                         | 13.0                     | 77.3                    |

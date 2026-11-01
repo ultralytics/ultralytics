@@ -179,7 +179,7 @@ The YOLO26 and Ultralytics community is also a useful resource: engaging with ot
 
 ### What is the significance of Mean Average Precision (mAP) in evaluating YOLO26 model performance?
 
-Mean Average Precision (mAP) is crucial for evaluating YOLO26 models as it provides a single metric encapsulating precision and recall across multiple classes. mAP@0.50 measures precision at an IoU threshold of 0.50, focusing on the model's ability to detect objects correctly. mAP@0.50:0.95 averages precision across a range of IoU thresholds, offering a comprehensive assessment of detection performance. High mAP scores indicate that the model effectively balances precision and recall, essential for applications like [autonomous driving](https://www.ultralytics.com/solutions/computer-vision-in-automotive) and surveillance systems where both accurate detection and minimal false alarms are critical.
+Mean Average Precision (mAP) is crucial for evaluating YOLO26 models as it provides a single metric encapsulating precision and recall across multiple classes. mAP50 measures precision at an IoU threshold of 0.50, focusing on the model's ability to detect objects correctly. mAP50-95 averages precision across a range of IoU thresholds, offering a comprehensive assessment of detection performance. High mAP scores indicate that the model effectively balances precision and recall, essential for applications like [autonomous driving](https://www.ultralytics.com/solutions/computer-vision-in-automotive) and surveillance systems where both accurate detection and minimal false alarms are critical.
 
 ### How do I interpret the Intersection over Union (IoU) value for YOLO26 object detection?
 

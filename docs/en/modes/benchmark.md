@@ -40,7 +40,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 - **[mAP50-95](https://www.ultralytics.com/glossary/mean-average-precision-map):** For [object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, pose estimation, and OBB.
 - **mIoU:** For [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation).
-- **delta1:** For [depth estimation](https://www.ultralytics.com/glossary/depth-estimation).
+- **δ1:** For [depth estimation](https://www.ultralytics.com/glossary/depth-estimation).
 - **accuracy_top1:** For [image classification](https://www.ultralytics.com/glossary/image-classification).
 - **Inference Time:** Time taken for each image in milliseconds.
 

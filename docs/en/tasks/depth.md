@@ -36,8 +36,8 @@ The output of a depth model is a dense float map of shape `(H, W)` aligned to th
 
 {% include "macros/yolo-depth-perf.md" %}
 
-- **delta1<sup>NYU</sup>** is the fraction of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
-- Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: delta1 0.783 (n), 0.793 (s), 0.840 (m), 0.853 (l), 0.860 (x).
+- **δ1<sup>NYU</sup>** is the fraction of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
+- Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: δ1 0.783 (n), 0.793 (s), 0.840 (m), 0.853 (l), 0.860 (x).
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
 - **Speed** is inference-only latency (pre/post-processing excluded) at `imgsz=768`, `batch=1`, reported as mean ± std over timed runs after warmup. **CPU ONNX** is ONNX Runtime fp32 on a 32-core Intel Xeon (Skylake); **T4 TensorRT10** is TensorRT fp16 on a Tesla T4.
@@ -544,7 +544,7 @@ Check the [Configuration](../usage/cfg.md) page for more available arguments.
 
 Depth estimation validation reports the metric set used by Depth Anything and related monocular-depth work:
 
-- **delta1 / delta2 / delta3** — fraction of pixels where the ratio of predicted to ground-truth depth (or its inverse) is below 1.25, 1.25², and 1.25³ respectively. Higher is better.
+- **δ1 / δ2 / δ3** — fraction of pixels where the ratio of predicted to ground-truth depth (or its inverse) is below 1.25, 1.25², and 1.25³ respectively. Higher is better.
 - **abs_rel** — mean absolute relative error. Lower is better.
 - **rmse** — root mean squared error in meters. Lower is better.
 - **silog** — scale-invariant logarithmic error. Lower is better.

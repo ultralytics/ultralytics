@@ -95,7 +95,7 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
         w, h = exif_size(Image.open(im_file))
         lb = []  # an image without a label file is a background image
         if Path(lb_file).is_file():
-            with open(lb_file, encoding="utf-8-sig") as f:
+            with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if x.strip()]
         annos.append({"ori_size": (h, w), "label": np.array(lb, dtype=np.float32), "filepath": im_file})
     return annos

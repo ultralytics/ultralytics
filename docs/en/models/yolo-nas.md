@@ -32,13 +32,13 @@ Ultralytics provides pretrained YOLO-NAS models in three sizes, each with a diff
     === "Detection (COCO)"
 
         | Model            | mAP<sub>50-95</sub> | Latency (ms) |
-        | ---------------- | --------- | ------------ |
-        | YOLO-NAS S       | 47.5      | 3.21         |
-        | YOLO-NAS M       | 51.55     | 5.85         |
-        | YOLO-NAS L       | **52.22** | 7.87         |
-        | YOLO-NAS S INT-8 | 47.03     | **2.36**     |
-        | YOLO-NAS M INT-8 | 51.0      | 3.78         |
-        | YOLO-NAS L INT-8 | 52.1      | 4.78         |
+        | ---------------- | ------------------- | ------------ |
+        | YOLO-NAS S       | 47.5                | 3.21         |
+        | YOLO-NAS M       | 51.55               | 5.85         |
+        | YOLO-NAS L       | **52.22**           | 7.87         |
+        | YOLO-NAS S INT-8 | 47.03               | **2.36**     |
+        | YOLO-NAS M INT-8 | 51.0                | 3.78         |
+        | YOLO-NAS L INT-8 | 52.1                | 4.78         |
 
 Each model variant is designed to offer a balance between [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) and latency, helping you optimize your object detection tasks for both performance and speed.
 

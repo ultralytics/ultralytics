@@ -112,7 +112,7 @@ Compared to other state-of-the-art detectors:
 
         Figures below are as reported in the YOLOv10 [paper](https://arxiv.org/pdf/2405.14458), measured under its own protocol, so they are not directly comparable with the values on Ultralytics model pages:
 
-        | Model             | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | mAP<sup>val<br>50-95</sup> | Latency<br><sup>(ms)</sup> | Latency-forward<br><sup>(ms)</sup> |
+        | Model             | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | mAP<sup>val</sup><sub>50-95</sub> | Latency<br><sup>(ms)</sup> | Latency-forward<br><sup>(ms)</sup> |
         | ----------------- | ------------------------ | ----------------------- | -------------------------- | -------------------------- | ---------------------------------- |
         | YOLOv6-3.0-N      | 4.7                      | 11.4                    | 37.0                       | 2.69                       | **1.76**                           |
         | Gold-YOLO-N       | 5.6                      | 12.1                    | **39.6**                   | 2.92                       | 1.82                               |

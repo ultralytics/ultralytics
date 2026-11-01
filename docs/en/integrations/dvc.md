@@ -107,7 +107,7 @@ df.reset_index(drop=True, inplace=True)
 print(df)
 ```
 
-The output of the code snippet above provides a clear tabular view of the different experiments conducted with YOLO26 models. Each row represents a different training run, detailing the experiment's name, the number of epochs, image size (imgsz), the specific model used, and the [mAP50-95(B)](https://www.ultralytics.com/glossary/mean-average-precision-map) metric. This metric is crucial for evaluating the model's [accuracy](https://www.ultralytics.com/glossary/accuracy), with higher values indicating better performance.
+The output of the code snippet above provides a clear tabular view of the different experiments conducted with YOLO26 models. Each row represents a different training run, detailing the experiment's name, the number of epochs, image size (imgsz), the specific model used, and the [mAP<sub>50-95</sub>(B)](https://www.ultralytics.com/glossary/mean-average-precision-map) metric. This metric is crucial for evaluating the model's [accuracy](https://www.ultralytics.com/glossary/accuracy), with higher values indicating better performance.
 
 #### Visualizing Results with Plotly
 
@@ -123,7 +123,7 @@ fig = parallel_coordinates(df, columns, color="metrics.mAP50-95(B)")
 fig.show()
 ```
 
-The output of the code snippet above generates a plot that will visually represent the relationships between epochs, image size, model type, and their corresponding mAP50-95(B) scores, enabling you to spot trends and patterns in your experiment data.
+The output of the code snippet above generates a plot that will visually represent the relationships between epochs, image size, model type, and their corresponding mAP<sub>50-95</sub>(B) scores, enabling you to spot trends and patterns in your experiment data.
 
 #### Generating Comparative Visualizations with DVC
 

@@ -29,13 +29,13 @@ Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), fo
 
 The table below reports the `delta1` accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the Make3D test set by model size.
 
-| Model         | δ1    |
-| ------------- | ----- |
-| YOLO26n-depth | 0.307 |
-| YOLO26s-depth | 0.311 |
-| YOLO26m-depth | 0.293 |
-| YOLO26l-depth | 0.297 |
-| YOLO26x-depth | 0.299 |
+| Model         | δ<sub>1</sub> |
+| ------------- | ------------- |
+| YOLO26n-depth | 0.307         |
+| YOLO26s-depth | 0.311         |
+| YOLO26m-depth | 0.293         |
+| YOLO26l-depth | 0.297         |
+| YOLO26x-depth | 0.299         |
 
 ## Evaluation
 
@@ -95,9 +95,9 @@ We would like to acknowledge the authors for creating and maintaining this valua
 
 Make3D is a zero-shot, out-of-distribution outdoor benchmark of 134 campus images with custom laser-scanner depth to roughly 70 m. The released YOLO26-Depth models are not trained on it, so it measures how well they generalize to unfamiliar outdoor scenes.
 
-### Why are the Make3D delta1 scores so low?
+### Why are the Make3D δ<sub>1</sub> scores so low?
 
-Make3D is the hardest of the five evaluation benchmarks for every model because its scenes and depth statistics differ strongly from the training data. Absolute δ1 values around 0.3 are expected for this dataset, and the relative comparison between models is what matters.
+Make3D is the hardest of the five evaluation benchmarks for every model because its scenes and depth statistics differ strongly from the training data. Absolute δ<sub>1</sub> values around 0.3 are expected for this dataset, and the relative comparison between models is what matters.
 
 ### Is there a dataset YAML for Make3D?
 

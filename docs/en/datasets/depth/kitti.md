@@ -38,13 +38,13 @@ KITTI is a key example of why the depth head is unbounded (`log` mode): a fixed 
 
 KITTI Eigen `delta1` accuracy by model size (higher is better):
 
-| Model         | KITTI Eigen δ1 |
-| ------------- | -------------- |
-| YOLO26n-depth | 0.878          |
-| YOLO26s-depth | 0.879          |
-| YOLO26m-depth | 0.913          |
-| YOLO26l-depth | 0.926          |
-| YOLO26x-depth | 0.932          |
+| Model         | KITTI Eigen δ<sub>1</sub> |
+| ------------- | ------------------------- |
+| YOLO26n-depth | 0.878                     |
+| YOLO26s-depth | 0.879                     |
+| YOLO26m-depth | 0.913                     |
+| YOLO26l-depth | 0.926                     |
+| YOLO26x-depth | 0.932                     |
 
 Measured on the 652-frame canonical split with `imgsz=768` and `rect=False`. They are not directly comparable to published KITTI numbers: val stretches each image to a square `imgsz` and nearest-resamples the sparse ground truth onto it, where the reference evaluators instead resize the prediction back to the native ground-truth resolution; `DepthMetrics` masks ground truth against `max_depth` where the improved-ground-truth protocol masks `gt > 0` and caps only the prediction; and the released weights were trained with the previous split, which placed 72 of these test frames in the training set.
 

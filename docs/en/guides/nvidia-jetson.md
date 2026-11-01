@@ -436,7 +436,7 @@ Even though all model exports work on NVIDIA Jetson, the comparison chart below 
 
 ### Detailed Comparison Tables
 
-The table below shows the benchmark results for five different [YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) (YOLO26n, YOLO26s, YOLO26m, YOLO26l, YOLO26x) across 11 different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch), giving the status, size, [mAP50-95(B)](https://www.ultralytics.com/glossary/mean-average-precision-map) metric, and inference time for each combination.
+The table below shows the benchmark results for five different [YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) (YOLO26n, YOLO26s, YOLO26m, YOLO26l, YOLO26x) across 11 different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch), giving the status, size, [mAP<sub>50-95</sub>(B)](https://www.ultralytics.com/glossary/mean-average-precision-map) metric, and inference time for each combination.
 
 #### NVIDIA Jetson AGX Thor Developer Kit
 
@@ -444,7 +444,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26n"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 5.3               | 0.4798      | 7.39                   |
         | TorchScript     | ✅     | 9.8               | 0.4789      | 4.21                   |
@@ -460,7 +460,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26s"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 19.5              | 0.5738      | 7.99                   |
         | TorchScript     | ✅     | 36.8              | 0.5664      | 6.01                   |
@@ -476,7 +476,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26m"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 42.2              | 0.6237      | 10.76                  |
         | TorchScript     | ✅     | 78.5              | 0.6217      | 10.57                  |
@@ -492,7 +492,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26l"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 50.7              | 0.6258      | 13.34                  |
         | TorchScript     | ✅     | 95.5              | 0.6248      | 13.86                  |
@@ -508,7 +508,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26x"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 113.2             | 0.6565      | 20.92                  |
         | TorchScript     | ✅     | 213.5             | 0.6595      | 21.76                  |
@@ -534,7 +534,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26n"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 5.3               | 0.4790      | 11.58                  |
         | TorchScript     | ✅     | 9.8               | 0.4770      | 4.60                   |
@@ -551,7 +551,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26s"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 20.0              | 0.5730      | 13.18                  |
         | TorchScript     | ✅     | 36.8              | 0.5670      | 11.48                  |
@@ -568,7 +568,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26m"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 43.0              | 0.6220      | 19.36                  |
         | TorchScript     | ✅     | 78.5              | 0.6230      | 20.02                  |
@@ -585,7 +585,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26l"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 51.0              | 0.6230      | 23.53                  |
         | TorchScript     | ✅     | 95.5              | 0.6250      | 24.23                  |
@@ -602,7 +602,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26x"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 114               | 0.6610      | 38.37                  |
         | TorchScript     | ✅     | 213.5             | 0.6590      | 41.23                  |
@@ -629,7 +629,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26n"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 5.3               | 0.4790      | 15.60                  |
         | TorchScript     | ✅     | 9.8               | 0.4770      | 12.60                  |
@@ -646,7 +646,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26s"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 20.0              | 0.5730      | 22.83                  |
         | TorchScript     | ✅     | 36.8              | 0.5670      | 21.83                  |
@@ -663,7 +663,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26m"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 43.0              | 0.6220      | 44.43                  |
         | TorchScript     | ✅     | 78.5              | 0.6230      | 44.00                  |
@@ -680,7 +680,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26l"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 51.0              | 0.6230      | 60.97                  |
         | TorchScript     | ✅     | 95.5              | 0.6250      | 56.20                  |
@@ -697,7 +697,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26x"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 113.2             | 0.6561      | 98.44                  |
         | TorchScript     | ✅     | 214.0             | 0.6593      | 98.0                   |
@@ -724,7 +724,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26n"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 5.3               | 0.4799      | 13.90                  |
         | TorchScript     | ✅     | 9.8               | 0.4787      | 11.60                  |
@@ -741,7 +741,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26s"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 19.5              | 0.5738      | 20.40                  |
         | TorchScript     | ✅     | 36.8              | 0.5664      | 19.20                  |
@@ -758,7 +758,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26m"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 42.2              | 0.6237      | 38.60                  |
         | TorchScript     | ✅     | 78.5              | 0.6227      | 40.50                  |
@@ -775,7 +775,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26l"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 50.7              | 0.6258      | 48.60                  |
         | TorchScript     | ✅     | 95.5              | 0.6249      | 51.60                  |
@@ -792,7 +792,7 @@ The table below shows the benchmark results for five different [YOLO26 models](h
 
     === "YOLO26x"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 113.2             | 0.6561      | 84.40                  |
         | TorchScript     | ✅     | 213.5             | 0.6594      | 91.20                  |
@@ -969,7 +969,7 @@ To deploy Ultralytics YOLO26 on NVIDIA Jetson devices, first flash your Jetson d
 
 ### What performance benchmarks can I expect from YOLO26 models on NVIDIA Jetson devices?
 
-YOLO26 models have been benchmarked on NVIDIA Jetson AGX Thor, AGX Orin, Orin Nano Super, and Orin NX devices, and the TensorRT format delivers the best inference performance. The [Detailed Comparison Tables](#detailed-comparison-tables) section lists mAP50-95 and inference time for each model and export format.
+YOLO26 models have been benchmarked on NVIDIA Jetson AGX Thor, AGX Orin, Orin Nano Super, and Orin NX devices, and the TensorRT format delivers the best inference performance. The [Detailed Comparison Tables](#detailed-comparison-tables) section lists mAP<sub>50-95</sub> and inference time for each model and export format.
 
 ### Why should I use TensorRT for deploying YOLO26 on NVIDIA Jetson?
 

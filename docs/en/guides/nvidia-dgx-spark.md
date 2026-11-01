@@ -207,13 +207,13 @@ YOLO11 benchmarks were run by the Ultralytics team on multiple model formats mea
 
 ### Detailed Comparison Table
 
-The table below shows the benchmark results for five different models (YOLO11n, YOLO11s, YOLO11m, YOLO11l, YOLO11x) across multiple formats, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The table below shows the benchmark results for five different models (YOLO11n, YOLO11s, YOLO11m, YOLO11l, YOLO11x) across multiple formats, giving us the status, size, mAP<sub>50-95</sub>(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
     === "YOLO11n"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 5.4               | 0.5071      | 2.67                   |
         | TorchScript     | ✅     | 10.5              | 0.5083      | 2.62                   |
@@ -231,7 +231,7 @@ The table below shows the benchmark results for five different models (YOLO11n, 
 
     === "YOLO11s"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 18.4              | 0.5767      | 5.38                   |
         | TorchScript     | ✅     | 36.5              | 0.5781      | 5.48                   |
@@ -249,7 +249,7 @@ The table below shows the benchmark results for five different models (YOLO11n, 
 
     === "YOLO11m"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 38.8              | 0.6254      | 11.14                  |
         | TorchScript     | ✅     | 77.3              | 0.6304      | 12.00                  |
@@ -267,7 +267,7 @@ The table below shows the benchmark results for five different models (YOLO11n, 
 
     === "YOLO11l"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 49.0              | 0.6366      | 13.95                  |
         | TorchScript     | ✅     | 97.6              | 0.6399      | 15.67                  |
@@ -285,7 +285,7 @@ The table below shows the benchmark results for five different models (YOLO11n, 
 
     === "YOLO11x"
 
-        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format          | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | --------------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch         | ✅     | 109.3             | 0.6992      | 23.19                  |
         | TorchScript     | ✅     | 218.1             | 0.6900      | 25.75                  |
@@ -334,14 +334,14 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
 
 At batch size 1 on DGX Spark, TensorRT INT8 is slower than FP16 for YOLO26n and YOLO26s, and about equal for YOLO26m (within 2% in both validation and `trtexec` GPU compute time). INT8 also loses 1.1 to 1.8 mAP, so FP16 is the better choice for these models. The YOLO11 table above shows the same pattern: TensorRT (INT8) is slower than TensorRT (FP16) for all five models.
 
-| Model   | Format          | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | --------------- | ----------------- | ----------- | ---------------------- |
-| YOLO26n | TensorRT (FP16) | 6.7               | 0.4032      | 0.79                   |
-| YOLO26n | TensorRT (INT8) | 28.4              | 0.3849      | 1.43                   |
-| YOLO26s | TensorRT (FP16) | 20.3              | 0.4793      | 1.49                   |
-| YOLO26s | TensorRT (INT8) | 34.4              | 0.4644      | 1.73                   |
-| YOLO26m | TensorRT (FP16) | 41.1              | 0.5266      | 2.70                   |
-| YOLO26m | TensorRT (INT8) | 45.0              | 0.5156      | 2.74                   |
+| Model   | Format          | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
+| ------- | --------------- | ----------------- | ---------------------- | ---------------------- |
+| YOLO26n | TensorRT (FP16) | 6.7               | 0.4032                 | 0.79                   |
+| YOLO26n | TensorRT (INT8) | 28.4              | 0.3849                 | 1.43                   |
+| YOLO26s | TensorRT (FP16) | 20.3              | 0.4793                 | 1.49                   |
+| YOLO26s | TensorRT (INT8) | 34.4              | 0.4644                 | 1.73                   |
+| YOLO26m | TensorRT (FP16) | 41.1              | 0.5266                 | 2.70                   |
+| YOLO26m | TensorRT (INT8) | 45.0              | 0.5156                 | 2.74                   |
 
 Accuracy and speed come from validation on COCO val2017 (5000 images) at image size 640 and batch size 1. INT8 engines are calibrated on COCO128. Benchmarked with Ultralytics 8.4.192 in `ultralytics/ultralytics:latest-nvidia-arm64` (NVIDIA PyTorch 26.08, TensorRT 11.2.1.2, ModelOpt 0.45.0).
 

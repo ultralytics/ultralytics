@@ -27,7 +27,7 @@ Open the relevant dataset or project and ask:
 | Compare resolutions   | Train three models on this dataset at image sizes 640, 800, and 960. Keep all other settings and dataset splits fixed.             |
 | Explore a dataset     | Find container ships, shipping containers, and cranes in xView. Is it a good starting point for port logistics?                    |
 | Create a baseline     | Train YOLO26n on this dataset and name the run "xview-baseline".                                                                   |
-| Compare models        | Compare the completed models by validation mAP50-95. Explain the differences and propose the next experiment.                      |
+| Compare models        | Compare the completed models by validation mAP<sub>50-95</sub>. Explain the differences and propose the next experiment.           |
 | Deploy a model        | Deploy the completed model with the best validation mAP in this project. Give me its endpoint URL and status.                      |
 | Auto-annotate         | Use my best compatible model to annotate unlabeled images in this dataset. Preserve existing annotations.                          |
 | Review classification | Which model has the best classification accuracy? Which breeds remain confusing, and what should we try next?                      |

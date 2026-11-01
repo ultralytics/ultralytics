@@ -147,7 +147,7 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
 
     === "YOLO26 (ONNX)"
 
-        | Model   | mAP50-95(B) | Inference time (ms/im) |
+        | Model   | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | ------- | ----------- | ---------------------- |
         | YOLO26n | 40.1        | 128.42                 |
         | YOLO26s | 47.8        | 352.84                 |
@@ -157,7 +157,7 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
 
     === "YOLO11 (ONNX)"
 
-        | Model   | mAP50-95(B) | Inference time (ms/im) |
+        | Model   | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | ------- | ----------- | ---------------------- |
         | YOLO11n | 39.5        | 147.20                 |
         | YOLO11s | 47.0        | 366.83                 |
@@ -182,13 +182,13 @@ Only YOLO26n and YOLO26s are included because larger model sizes run too slowly 
 
 ### Detailed Comparison Table
 
-The table below shows the benchmark results for two different models (YOLO26n, YOLO26s) across eight different formats (PyTorch, TorchScript, ONNX, OpenVINO, LiteRT, MNN, NCNN, ExecuTorch), running on a Raspberry Pi 5, giving the status, size, mAP50-95(B) metric, and inference time for each combination.
+The table below shows the benchmark results for two different models (YOLO26n, YOLO26s) across eight different formats (PyTorch, TorchScript, ONNX, OpenVINO, LiteRT, MNN, NCNN, ExecuTorch), running on a Raspberry Pi 5, giving the status, size, mAP<sub>50-95</sub>(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
     === "YOLO26n"
 
-        | Format      | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format      | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | ----------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch     | ✅     | 5.3               | 0.4760      | 299.09                 |
         | TorchScript | ✅     | 9.8               | 0.4734      | 353.20                 |
@@ -201,7 +201,7 @@ The table below shows the benchmark results for two different models (YOLO26n, Y
 
     === "YOLO26s"
 
-        | Format      | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | Format      | Status | Size on disk (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
         | ----------- | ------ | ----------------- | ----------- | ---------------------- |
         | PyTorch     | ✅     | 19.5              | 0.5703      | 848.65                 |
         | TorchScript | ✅     | 36.8              | 0.5632      | 1053.24                |

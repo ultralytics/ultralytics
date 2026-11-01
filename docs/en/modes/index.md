@@ -70,7 +70,7 @@ Track mode extends YOLO26's object detection capabilities to [track objects](htt
 
 ## Benchmark
 
-Benchmark mode profiles the speed and accuracy of various export formats for YOLO26. This mode provides comprehensive metrics on model size, accuracy (mAP50-95 for detection, segmentation, pose, and OBB; mIoU for semantic segmentation; delta1 for depth; or accuracy_top1 for classification), and inference time across different formats like ONNX, [OpenVINO](../integrations/openvino.md), and TensorRT. Benchmarking helps you select the optimal export format based on your specific requirements for speed and accuracy in your deployment environment.
+Benchmark mode profiles the speed and accuracy of various export formats for YOLO26. This mode provides comprehensive metrics on model size, accuracy (mAP<sub>50-95</sub> for detection, segmentation, pose, and OBB; mIoU for semantic segmentation; δ<sub>1</sub> for depth; or accuracy_top1 for classification), and inference time across different formats like ONNX, [OpenVINO](../integrations/openvino.md), and TensorRT. Benchmarking helps you select the optimal export format based on your specific requirements for speed and accuracy in your deployment environment.
 
 [Benchmark Examples](benchmark.md){ .md-button }
 

@@ -29,7 +29,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 Reasons to use YOLO26's Val mode:
 
-- **Precision:** Get accurate metrics like mAP50, mAP75, and [mAP50-95](https://www.ultralytics.com/glossary/mean-average-precision-map) to evaluate your model comprehensively.
+- **Precision:** Get accurate metrics like mAP<sub>50</sub>, mAP<sub>75</sub>, and [mAP<sub>50-95</sub>](https://www.ultralytics.com/glossary/mean-average-precision-map) to evaluate your model comprehensively.
 - **Convenience:** Use built-in features that remember training settings, simplifying the validation process.
 - **Flexibility:** Validate your model with the same or different datasets and image sizes.
 - **[Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning):** Use validation metrics to fine-tune your model for better performance.
@@ -228,9 +228,9 @@ For further customization, you can adjust various arguments like `imgsz`, `batch
 
 YOLO26 model validation provides several key metrics to assess model performance. These include:
 
-- mAP50 ([mean Average Precision](https://www.ultralytics.com/blog/mean-average-precision-map-in-object-detection) at [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold 0.5)
-- mAP75 (mean Average Precision at IoU threshold 0.75)
-- mAP50-95 (mean Average Precision across multiple IoU thresholds from 0.5 to 0.95)
+- mAP<sub>50</sub> ([mean Average Precision](https://www.ultralytics.com/blog/mean-average-precision-map-in-object-detection) at [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold 0.5)
+- mAP<sub>75</sub> (mean Average Precision at IoU threshold 0.75)
+- mAP<sub>50-95</sub> (mean Average Precision across multiple IoU thresholds from 0.5 to 0.95)
 
 Using the Python API, you can access these metrics as follows:
 
@@ -250,7 +250,7 @@ Review all of these metrics for a complete performance evaluation.
 
 Using Ultralytics YOLO for validation provides several advantages:
 
-- **Precision:** YOLO26 offers accurate performance metrics including mAP50, mAP75, and mAP50-95.
+- **Precision:** YOLO26 offers accurate performance metrics including mAP<sub>50</sub>, mAP<sub>75</sub>, and mAP<sub>50-95</sub>.
 - **Convenience:** The models remember their training settings, making validation straightforward.
 - **Flexibility:** You can validate against the same or different datasets and image sizes.
 - **Hyperparameter Tuning:** Validation metrics help in fine-tuning models for better performance.

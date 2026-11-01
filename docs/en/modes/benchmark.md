@@ -38,9 +38,9 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ### Key Metrics in Benchmark Mode
 
-- **[mAP50-95](https://www.ultralytics.com/glossary/mean-average-precision-map):** For [object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, pose estimation, and OBB.
+- **[mAP<sub>50-95</sub>](https://www.ultralytics.com/glossary/mean-average-precision-map):** For [object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, pose estimation, and OBB.
 - **mIoU:** For [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation).
-- **δ1:** For [depth estimation](https://www.ultralytics.com/glossary/depth-estimation).
+- **δ<sub>1</sub>:** For [depth estimation](https://www.ultralytics.com/glossary/depth-estimation).
 - **accuracy_top1:** For [image classification](https://www.ultralytics.com/glossary/image-classification).
 - **Inference Time:** Time taken for each image in milliseconds.
 
@@ -122,7 +122,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I benchmark my YOLO26 model's performance using Ultralytics?
 
-Ultralytics YOLO26 offers a Benchmark mode to assess your model's performance across different export formats. This mode reports key metrics such as mean Average Precision (mAP50-95), accuracy, and inference time in milliseconds. To run benchmarks, you can use either Python or CLI commands. For example, to benchmark on a GPU:
+Ultralytics YOLO26 offers a Benchmark mode to assess your model's performance across different export formats. This mode reports key metrics such as mean Average Precision (mAP<sub>50-95</sub>), accuracy, and inference time in milliseconds. To run benchmarks, you can use either Python or CLI commands. For example, to benchmark on a GPU:
 
 !!! example
 
@@ -162,7 +162,7 @@ Benchmarking your YOLO26 models is essential for several reasons:
 - **Optimization:** Determine which export format offers the best performance for specific use cases.
 - **Cost Efficiency:** Optimize hardware usage based on benchmark results.
 
-Key metrics such as mAP50-95, Top-1 accuracy, and inference time help in making these evaluations. Refer to the [Key Metrics](#key-metrics-in-benchmark-mode) section for more information.
+Key metrics such as mAP<sub>50-95</sub>, Top-1 accuracy, and inference time help in making these evaluations. Refer to the [Key Metrics](#key-metrics-in-benchmark-mode) section for more information.
 
 ### Which export formats are supported by YOLO26, and what are their advantages?
 

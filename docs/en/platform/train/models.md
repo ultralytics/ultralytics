@@ -83,15 +83,15 @@ Above the tabs, the header shows the model color (editable), the name (click to 
 
 Directly below, one card per task metric shows the final value over a sparkline of its training progression — click any card to jump to the charts — alongside a card linking the dataset the model was trained on.
 
-| Task         | Summary metrics                                     |
-| ------------ | --------------------------------------------------- |
-| **Detect**   | mAP50, mAP50-95, precision, recall                  |
-| **Segment**  | The same four metrics, mask (M) variants            |
-| **Semantic** | mIoU, pixel accuracy                                |
-| **Depth**    | δ1, AbsRel ↓, RMSE ↓, SILog ↓ (↓ = lower is better) |
-| **Classify** | Top-1 accuracy, Top-5 accuracy                      |
-| **Pose**     | The four Detect metrics, keypoint (P) variants      |
-| **OBB**      | mAP50, mAP50-95, precision, recall                  |
+| Task         | Summary metrics                                                |
+| ------------ | -------------------------------------------------------------- |
+| **Detect**   | mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, recall       |
+| **Segment**  | The same four metrics, mask (M) variants                       |
+| **Semantic** | mIoU, pixel accuracy                                           |
+| **Depth**    | δ<sub>1</sub>, AbsRel ↓, RMSE ↓, SILog ↓ (↓ = lower is better) |
+| **Classify** | Top-1 accuracy, Top-5 accuracy                                 |
+| **Pose**     | The four Detect metrics, keypoint (P) variants                 |
+| **OBB**      | mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, recall       |
 
 ### Overview Tab
 

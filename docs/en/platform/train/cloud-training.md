@@ -201,11 +201,11 @@ View real-time training progress on the model page's **Train** tab:
 
 Charts are grouped by metric family, and the groups that appear depend on what the run reports:
 
-| Group             | Contents                                                                                                                  |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Metrics**       | Task metrics — mAP50, mAP50-95, precision, and recall for detection; see [Models](models.md#model-header) for other tasks |
-| **Loss**          | One chart per loss component, with the training series solid and the validation series dashed                             |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                                                    |
+| Group             | Contents                                                                                                                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Metrics**       | Task metrics — mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, and recall for detection; see [Models](models.md#model-header) for other tasks |
+| **Loss**          | One chart per loss component, with the training series solid and the validation series dashed                                                   |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                                                                          |
 
 Each group can be collapsed, individual charts can be hidden or shown from the group menu, and charts can be dragged and resized — the layout is remembered for next time.
 

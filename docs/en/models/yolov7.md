@@ -22,7 +22,7 @@ Compared with YOLOv5-L (r6.1) at 99 fps, YOLOv7-X runs at 114 fps and improves A
 
     === "Detection (COCO)"
 
-        | Model                 | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | Size<br><sup>(pixels)</sup> | FPS     | AP<sup>test / val<br>50-95</sup> | AP<sup>test<br>50</sup> | AP<sup>test<br>75</sup> | AP<sup>test<br>S</sup> | AP<sup>test<br>M</sup> | AP<sup>test<br>L</sup> |
+        | Model                 | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | Size<br><sup>(pixels)</sup> | FPS     | AP<sup>test / val<br>50-95</sup> | AP<sup>test</sup><sub>50</sub> | AP<sup>test</sup><sub>75</sub> | AP<sup>test<br>S</sup> | AP<sup>test<br>M</sup> | AP<sup>test<br>L</sup> |
         | --------------------- | ------------------------ | ----------------------- | --------------------------- | ------- | -------------------------------- | ----------------------- | ----------------------- | ---------------------- | ---------------------- | ---------------------- |
         | [YOLOX-S][1]          | **9.0**                  | **26.8**                | 640                         | **102** | 40.5% / 40.5%                    | -                       | -                       | -                      | -                      | -                      |
         | [YOLOX-M][1]          | 25.3                     | 73.8                    | 640                         | 81      | 47.2% / 46.9%                    | -                       | -                       | -                      | -                      | -                      |

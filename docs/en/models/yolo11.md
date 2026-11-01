@@ -59,7 +59,7 @@ This table provides an overview of the YOLO11 model variants, their tasks, and t
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
 
-        | Model                                                                  | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | Model                                                                  | size<br><sup>(pixels)</sup> | mAP<sup>val</sup><sub>50-95</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ---------------------------------------------------------------------- | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
         | [YOLO11n](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n) | 640                         | 39.5                       | **56.1 ± 0.8**                       | **1.5 ± 0.0**                             | **2.6**                  | **6.5**                 |
         | [YOLO11s](https://platform.ultralytics.com/ultralytics/yolo11/yolo11s) | 640                         | 47.0                       | 90.0 ± 1.2                           | 2.5 ± 0.0                                 | 9.4                      | 21.6                    |
@@ -71,7 +71,7 @@ This table provides an overview of the YOLO11 model variants, their tasks, and t
 
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>box</sup><sub>50-95</sub> | mAP<sup>mask</sup><sub>50-95</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ------------------------------------------------------------------------------ | --------------------------- | -------------------------- | --------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
         | [YOLO11n-seg](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n-seg) | 640                         | 38.9                       | 32.0                        | **65.9 ± 1.1**                       | **1.8 ± 0.0**                             | **2.9**                  | **9.8**                 |
         | [YOLO11s-seg](https://platform.ultralytics.com/ultralytics/yolo11/yolo11s-seg) | 640                         | 46.6                       | 37.8                        | 117.6 ± 4.9                          | 2.9 ± 0.0                                 | 10.1                     | 33.1                    |
@@ -95,7 +95,7 @@ This table provides an overview of the YOLO11 model variants, their tasks, and t
 
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pretrained class, 'person'.
 
-        | Model                                                                            | size<br><sup>(pixels)</sup> | mAP<sup>pose<br>50-95</sup> | mAP<sup>pose<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | Model                                                                            | size<br><sup>(pixels)</sup> | mAP<sup>pose</sup><sub>50-95</sub> | mAP<sup>pose</sup><sub>50</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | -------------------------------------------------------------------------------- | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
         | [YOLO11n-pose](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n-pose) | 640                         | 50.0                        | 81.0                     | **52.4 ± 0.5**                       | **1.7 ± 0.0**                             | **2.9**                  | **7.5**                 |
         | [YOLO11s-pose](https://platform.ultralytics.com/ultralytics/yolo11/yolo11s-pose) | 640                         | 58.9                        | 86.3                     | 90.5 ± 0.6                           | 2.6 ± 0.0                                 | 9.9                      | 23.2                    |
@@ -107,7 +107,7 @@ This table provides an overview of the YOLO11 model variants, their tasks, and t
 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>test<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>test</sup><sub>50</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ------------------------------------------------------------------------------ | --------------------------- | ------------------------ | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
         | [YOLO11n-obb](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n-obb) | 1024                        | 78.4                     | **117.6 ± 0.8**                      | **4.4 ± 0.0**                             | **2.7**                  | **17.2**                |
         | [YOLO11s-obb](https://platform.ultralytics.com/ultralytics/yolo11/yolo11s-obb) | 1024                        | 79.5                     | 219.4 ± 4.0                          | 5.1 ± 0.0                                 | 9.7                      | 57.9                    |

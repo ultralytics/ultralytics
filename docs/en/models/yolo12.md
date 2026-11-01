@@ -73,7 +73,7 @@ YOLO12 improves [accuracy](https://www.ultralytics.com/glossary/accuracy) at all
 
     === "Detection (COCO)"
 
-        | Model                                                                                | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> | Comparison<br><sup>(mAP/Speed)</sup> |
+        | Model                                                                                | size<br><sup>(pixels)</sup> | mAP<sup>val</sup><sub>50-95</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> | Comparison<br><sup>(mAP/Speed)</sup> |
         | ------------------------------------------------------------------------------------ | --------------------------- | -------------------------- | ------------------------------------ | --------------------------------------- | ------------------------ | ----------------------- | ------------------------------------ |
         | [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo12n.pt) | 640                         | 40.6                       | -                                    | **1.64**                                | **2.6**                  | **7.5**                 | +2.1%/-9% (vs. YOLOv10n)             |
         | [YOLO12s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo12s.pt) | 640                         | 48.0                       | -                                    | 2.61                                    | 9.3                      | 23.3                    | +0.1%/+42% (vs. RT-DETRv2)           |

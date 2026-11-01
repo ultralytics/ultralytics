@@ -48,10 +48,10 @@ Mean Average Precision (mAP) measures how well an object detection model perform
 
 Two mAP metrics are most commonly reported:
 
-- _mAP50:_ Measures the average precision at a single IoU threshold of 0.5. This metric checks if the model can correctly find objects with a looser accuracy requirement. It focuses on whether the object is roughly in the right place, not needing perfect placement, and helps see if the model is generally good at spotting objects.
-- _mAP50-95:_ Averages the mAP values calculated at multiple IoU thresholds, from 0.5 to 0.95 in 0.05 increments. This metric is more detailed and strict. It gives a fuller picture of how accurately the model can find objects at different levels of strictness and is especially useful for applications that need precise object detection.
+- _mAP<sub>50</sub>:_ Measures the average precision at a single IoU threshold of 0.5. This metric checks if the model can correctly find objects with a looser accuracy requirement. It focuses on whether the object is roughly in the right place, not needing perfect placement, and helps see if the model is generally good at spotting objects.
+- _mAP<sub>50-95</sub>:_ Averages the mAP values calculated at multiple IoU thresholds, from 0.5 to 0.95 in 0.05 increments. This metric is more detailed and strict. It gives a fuller picture of how accurately the model can find objects at different levels of strictness and is especially useful for applications that need precise object detection.
 
-Other mAP metrics include mAP75, which uses a stricter IoU threshold of 0.75, and AP<sub>S</sub>, AP<sub>M</sub>, and AP<sub>L</sub>, which evaluate precision on small, medium, and large objects.
+Other mAP metrics include mAP<sub>75</sub>, which uses a stricter IoU threshold of 0.75, and AP<sub>S</sub>, AP<sub>M</sub>, and AP<sub>L</sub>, which evaluate precision on small, medium, and large objects.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/f9ce0dffc074bde740386eaf4f955300.avif" alt="Three ways to improve mAP: data quality, model optimization, and annotation process">
@@ -123,7 +123,7 @@ Evaluating and fine-tuning are what turn a trained model into a dependable, depl
 
 ### What are the key metrics for evaluating YOLO26 model performance?
 
-To evaluate YOLO26 model performance, important metrics include Confidence Score, Intersection over Union (IoU), and Mean Average Precision (mAP). Confidence Score measures the model's certainty for each detected object class. IoU evaluates how well the predicted bounding box overlaps with the ground truth. Mean Average Precision (mAP) aggregates precision scores across classes, with mAP50 and mAP50-95 being two common types for varying IoU thresholds. Learn more about these metrics in our [YOLO26 performance metrics guide](./yolo-performance-metrics.md).
+To evaluate YOLO26 model performance, important metrics include Confidence Score, Intersection over Union (IoU), and Mean Average Precision (mAP). Confidence Score measures the model's certainty for each detected object class. IoU evaluates how well the predicted bounding box overlaps with the ground truth. Mean Average Precision (mAP) aggregates precision scores across classes, with mAP<sub>50</sub> and mAP<sub>50-95</sub> being two common types for varying IoU thresholds. Learn more about these metrics in our [YOLO26 performance metrics guide](./yolo-performance-metrics.md).
 
 ### How can I fine-tune a pretrained YOLO26 model for my specific dataset?
 

@@ -85,12 +85,12 @@ Available GPUs for cloud training on Ultralytics Cloud:
 
 On the model's **Train** tab, view live metrics and available validation results:
 
-| Subtab         | Metrics                                                                                          |
-| -------------- | ------------------------------------------------------------------------------------------------ |
-| **Metrics**    | Task metrics (mAP50, mAP50-95, precision, recall for detection), train/val losses, learning rate |
-| **Validation** | Recorded validation plots and per-image analysis, when available                                 |
-| **Console**    | Live training logs with ANSI color and automatic error detection                                 |
-| **System**     | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                      |
+| Subtab         | Metrics                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Metrics**    | Task metrics (mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, recall for detection), train/val losses, learning rate |
+| **Validation** | Recorded validation plots and per-image analysis, when available                                                       |
+| **Console**    | Live training logs with ANSI color and automatic error detection                                                       |
+| **System**     | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                                            |
 
 !!! info "Automatic Checkpoints"
 

@@ -31,13 +31,13 @@ Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), fo
 
 The table below reports the `delta1` accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the NYU Depth V2 Eigen test split by model size.
 
-| Model         | δ1    |
-| ------------- | ----- |
-| YOLO26n-depth | 0.882 |
-| YOLO26s-depth | 0.896 |
-| YOLO26m-depth | 0.921 |
-| YOLO26l-depth | 0.930 |
-| YOLO26x-depth | 0.933 |
+| Model         | δ<sub>1</sub> |
+| ------------- | ------------- |
+| YOLO26n-depth | 0.882         |
+| YOLO26s-depth | 0.896         |
+| YOLO26m-depth | 0.921         |
+| YOLO26l-depth | 0.930         |
+| YOLO26x-depth | 0.933         |
 
 ## Dataset YAML
 

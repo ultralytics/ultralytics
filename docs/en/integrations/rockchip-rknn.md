@@ -210,7 +210,7 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
 !!! tip "Performance"
 
-    | Model   | Format | Precision | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
+    | Model   | Format | Precision | Status | Size (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
     | ------- | ------ | --------- | ------ | --------- | ----------- | ---------------------- |
     | YOLO26n | `rknn` | FP16      | ✅     | 7.2       | 0.477       | 58.5                   |
     | YOLO26n | `rknn` | INT8      | ✅     | 4.1       | 0.463       | 41.2                   |

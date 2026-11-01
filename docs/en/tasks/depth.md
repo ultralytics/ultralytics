@@ -36,8 +36,8 @@ The output of a depth model is a dense float map of shape `(H, W)` aligned to th
 
 {% include "macros/yolo-depth-perf.md" %}
 
-- **δ1<sup>NYU</sup>** is the fraction of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
-- Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: δ1 0.783 (n), 0.793 (s), 0.840 (m), 0.853 (l), 0.860 (x).
+- **δ<sup>NYU</sup><sub>1</sub>** is the fraction of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
+- Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: δ<sub>1</sub> 0.783 (n), 0.793 (s), 0.840 (m), 0.853 (l), 0.860 (x).
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
 - **Speed** is inference-only latency (pre/post-processing excluded) at `imgsz=768`, `batch=1`, reported as mean ± std over timed runs after warmup. **CPU ONNX** is ONNX Runtime fp32 on a 32-core Intel Xeon (Skylake); **T4 TensorRT10** is TensorRT fp16 on a Tesla T4.
@@ -75,16 +75,16 @@ The depth head predicts `exp(logit)` — **unbounded** (~0.02–150 m) — and *
 
 **Controlled A/B — same data, same schedule, only the head differs.** Training both heads from scratch on an identical mix of indoor (≤10 m) and outdoor (≤80 m) data:
 
-| Head                         | Output range   | Mixed-range val δ1 | Training behavior       |
-| ---------------------------- | -------------- | -----------------: | ----------------------- |
-| `sigmoid × max_depth` (10 m) | bounded 0–10 m |              0.221 | **plateaus at epoch 1** |
-| `log` (unbounded)            | 0–~150 m       |   **0.367** (+66%) | improves throughout     |
+| Head                         | Output range   | Mixed-range val δ<sub>1</sub> | Training behavior       |
+| ---------------------------- | -------------- | ----------------------------: | ----------------------- |
+| `sigmoid × max_depth` (10 m) | bounded 0–10 m |                         0.221 | **plateaus at epoch 1** |
+| `log` (unbounded)            | 0–~150 m       |              **0.367** (+66%) | improves throughout     |
 
 The bounded head cannot represent the >10 m majority of outdoor pixels, so it stops improving almost immediately; the `log` head learns from the full range.
 
 **The failure mode it fixes — single-dataset fine-tuning, stratified by range.** Fine-tuning a bounded (10 m) head on individual datasets works when the data fits the cap and collapses when it exceeds it:
 
-| Dataset   | Depth range  |                                    Bounded-head δ1 |
+| Dataset   | Depth range  |                         Bounded-head δ<sub>1</sub> |
 | --------- | ------------ | -------------------------------------------------: |
 | SUN RGB-D | ≤10 m        |                                            0.78 ✅ |
 | Hypersim  | mostly ≤10 m |                                            0.74 ✅ |
@@ -93,7 +93,7 @@ The bounded head cannot represent the >10 m majority of outdoor pixels, so it st
 
 The collapse lands exactly at the cap boundary. The `log` head has no such boundary.
 
-**Released models — cross-range performance.** The shipped `log`-head family, evaluated across benchmarks spanning 10 m (NYU, iBims-1) to 80 m (KITTI), with scale-aligned δ1:
+**Released models — cross-range performance.** The shipped `log`-head family, evaluated across benchmarks spanning 10 m (NYU, iBims-1) to 80 m (KITTI), with scale-aligned δ<sub>1</sub>:
 
 | Benchmark   | Range | YOLO26x-depth (`log`) | prior bounded release |
 | ----------- | ----- | --------------------: | --------------------: |
@@ -199,7 +199,7 @@ Additional tips:
 
 ### Calibrating the depth scale
 
-The depth head separates **shape** (relative scene structure) from **scale** (absolute meters). If a model already produces good relative depth on your scenes but the absolute values are off for your camera, you can correct the scale in seconds with `model.calibrate()` — a closed-form, scale-only fit of the head's log-affine transform against a small labeled set, applied only when it scores best on cross-validated held-out δ1, with **no gradient training and no change to the network weights**, so it cannot degrade the relative structure.
+The depth head separates **shape** (relative scene structure) from **scale** (absolute meters). If a model already produces good relative depth on your scenes but the absolute values are off for your camera, you can correct the scale in seconds with `model.calibrate()` — a closed-form, scale-only fit of the head's log-affine transform against a small labeled set, applied only when it scores best on cross-validated held-out δ<sub>1</sub>, with **no gradient training and no change to the network weights**, so it cannot degrade the relative structure.
 
 !!! example "Scale calibration"
 
@@ -217,13 +217,13 @@ The depth head separates **shape** (relative scene structure) from **scale** (ab
 
 Calibration needs ground-truth depth to fit against, so it runs on a labeled split — it is not something that can happen at blind inference. It fits and scores on the same pixels the val metrics evaluate: GT at or beyond the dataset YAML's `max_depth` (default 100 m) is excluded. Use it when relative depth is already good and only the scale/range is wrong; if the relative structure itself needs to change for your domain, [fine-tune](#fine-tuning-on-your-own-data) instead.
 
-`model.calibrate()` scores three candidates by raw-scale δ1 on held-out images, using two-fold cross-validation over up to about 200 images from the labeled split, and writes the winner into the model:
+`model.calibrate()` scores three candidates by raw-scale δ<sub>1</sub> on held-out images, using two-fold cross-validation over up to about 200 images from the labeled split, and writes the winner into the model:
 
 - **identity**: the raw head output, with no calibration.
 - **current**: the calibration the model already carries, such as the one baked into the released checkpoints.
 - **scale-only**: a new global scale, refit on all of those images when selected.
 
-Identity is kept unless current or scale-only beats it by more than 0.002 δ1; otherwise the higher-scoring of the two wins, and a tie keeps current. A model therefore keeps its existing calibration unless the new scale scores higher, or unless neither calibration beats the raw output by that margin.
+Identity is kept unless current or scale-only beats it by more than 0.002 δ<sub>1</sub>; otherwise the higher-scoring of the two wins, and a tie keeps current. A model therefore keeps its existing calibration unless the new scale scores higher, or unless neither calibration beats the raw output by that margin.
 
 Training runs the same selection for you automatically: after `model.train(...)` completes, the best and last checkpoints are calibrated on the validation set so they output metric-scaled depth out of the box. A model trained from a YAML starts without calibration, so current equals identity. A model fine-tuned from a released checkpoint inherits that checkpoint's calibration, which competes as current.
 
@@ -544,7 +544,7 @@ Check the [Configuration](../usage/cfg.md) page for more available arguments.
 
 Depth estimation validation reports the metric set used by Depth Anything and related monocular-depth work:
 
-- **δ1 / δ2 / δ3** — fraction of pixels where the ratio of predicted to ground-truth depth (or its inverse) is below 1.25, 1.25², and 1.25³ respectively. Higher is better.
+- **δ<sub>1</sub> / δ<sub>2</sub> / δ<sub>3</sub>** — fraction of pixels where the ratio of predicted to ground-truth depth (or its inverse) is below 1.25, 1.25², and 1.25³ respectively. Higher is better.
 - **abs_rel** — mean absolute relative error. Lower is better.
 - **rmse** — root mean squared error in meters. Lower is better.
 - **silog** — scale-invariant logarithmic error. Lower is better.

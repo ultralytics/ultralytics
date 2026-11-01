@@ -13,7 +13,7 @@ keywords: Objects365 dataset, object detection, Megvii, large-scale dataset, mod
 
 # Objects365 Dataset
 
-The [Objects365](https://www.objects365.org/) dataset is a large-scale [object detection](../../tasks/detect.md) benchmark with 1,742,289 training images and 80,000 validation images spanning 365 object classes — from people, cars, and chairs to bottles, dogs, and street lights. Created by [Megvii](https://en.megvii.com/) researchers and presented at ICCV 2019, it focuses on diverse objects in the wild and is widely used to pretrain [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [models](../../models/index.md) that generalize better than ImageNet-pretrained ones.
+The [Objects365](https://www.objects365.org/) dataset is a large-scale [object detection](../../tasks/detect.md) benchmark with 1,742,289 training images and 80,000 validation images spanning 365 object classes — from people, cars, and chairs to bottles, dogs, and street lights. Created by [Megvii](https://en.megvii.com/) researchers and presented at ICCV 2019, it focuses on diverse objects in the wild and is widely used to pretrain [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models that generalize better than ImageNet-pretrained ones.
 
 <p align="center">
   <br>
@@ -85,7 +85,7 @@ You can run [prediction](../../modes/predict.md) or start fine-tuning from these
 - Objects365 defines 365 object classes, and the upstream release reports around 2 million images with 30 million bounding boxes in total.
 - The dataset includes diverse objects in various real-world scenarios, providing a rich and challenging benchmark for object detection tasks.
 - Annotations include bounding boxes for objects, making it suitable for training and evaluating object detection models.
-- According to the [ICCV 2019 paper](https://openaccess.thecvf.com/content_ICCV_2019/papers/Shao_Objects365_A_Large-Scale_High-Quality_Dataset_for_Object_Detection_ICCV_2019_paper.pdf), Objects365 pretraining outperforms [ImageNet](../classify/imagenet.md) pretraining by 5.6 points (42.0 vs 36.4 mAP) on the COCO benchmark.
+- According to the [ICCV 2019 paper](https://openaccess.thecvf.com/content_ICCV_2019/papers/Shao_Objects365_A_Large-Scale_High-Quality_Dataset_for_Object_Detection_ICCV_2019_paper.pdf), Objects365 pretraining outperforms [ImageNet](../classify/imagenet.md) pretraining by 5.6 points (42.0 vs 36.4 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map)) on the COCO benchmark.
 
 ## Dataset Structure
 
@@ -102,7 +102,7 @@ The download retrieves the train and validation splits — 1,822,289 images in t
 
 The Objects365 dataset supports a wide range of [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) applications in object detection:
 
-- **Pretraining detection backbones**: With 365 classes and dense box annotations, Objects365 pretraining improves downstream fine-tuning on smaller datasets such as [COCO](coco.md) and [VOC](voc.md).
+- **Pretraining detection backbones**: With 365 classes and dense box annotations, Objects365 pretraining improves downstream [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) on smaller datasets such as [COCO](coco.md) and [VOC](voc.md).
 - **Retail and inventory recognition**: Hundreds of everyday categories — bottles, cups, sneakers, handbags — support shelf monitoring and automated checkout systems.
 - **Robotics and smart environments**: Broad household and street-object coverage helps robots and smart cameras recognize objects in unstructured scenes.
 - **Detector benchmarking**: The long class list and in-the-wild imagery make it a demanding benchmark for evaluating how well detection models generalize.
@@ -125,7 +125,7 @@ The `Objects365.yaml` file defines the dataset configuration — the dataset pat
 
     Objects365 downloads automatically on first use and requires about 712 GB of free disk space — 345 GB of downloaded zip archives plus 367 GB for the extracted dataset. The download script installs the `faster-coco-eval` package and converts the annotations to YOLO format, which can take a long time depending on your connection and hardware.
 
-To train a YOLO26n model on the Objects365 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Objects365 dataset for 100 epochs with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 
@@ -221,4 +221,4 @@ Objects365's 365-class vocabulary and dense annotations make it one of the stron
 
 ### Where can I find the YAML configuration file for the Objects365 dataset?
 
-The YAML configuration file for the Objects365 dataset is available at [Objects365.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml). This file contains essential information such as dataset paths and class labels, crucial for setting up your training environment.
+The YAML configuration file for the Objects365 dataset is available at [Objects365.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Objects365.yaml). This file contains the dataset paths and class labels needed to set up training.

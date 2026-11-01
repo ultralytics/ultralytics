@@ -7,7 +7,7 @@ creator:
 license:
     name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
-description: Discover the versatile and manageable COCO8-Seg dataset by Ultralytics, an 8-image, ~1 MB segmentation set ideal for testing and debugging models.
+description: COCO8-Seg is an 8-image (4 train / 4 val), ~1 MB Ultralytics instance segmentation dataset from COCO train2017 for testing and debugging YOLO26 models.
 keywords: COCO8-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, model training, computer vision, dataset configuration
 ---
 
@@ -15,7 +15,7 @@ keywords: COCO8-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, model
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com) COCO8-Seg is a small but versatile [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging segmentation models, or for experimenting with new segmentation approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com) COCO8-Seg is a small [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging segmentation models, or for experimenting with new segmentation approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 ## Dataset Structure
 
@@ -38,7 +38,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-seg model on the COCO8-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) model on the COCO8-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 
@@ -94,7 +94,7 @@ We would like to acknowledge the COCO Consortium for creating and maintaining th
 
 ### What is the COCO8-Seg dataset, and how is it used in Ultralytics YOLO26?
 
-The **COCO8-Seg dataset** is a compact instance segmentation dataset by Ultralytics, consisting of the first 8 images from the COCO train 2017 set (4 for training, 4 for validation). This dataset is tailored for testing and debugging segmentation models or experimenting with new segmentation methods. It is particularly useful with Ultralytics [YOLO26](https://github.com/ultralytics/ultralytics) for rapid iteration and pipeline error-checking before scaling to larger datasets. For detailed usage, refer to the model [Training](../../modes/train.md) page.
+The **COCO8-Seg dataset** is a compact instance segmentation dataset by Ultralytics, consisting of the first 8 images from the COCO train 2017 set (4 for training, 4 for validation). This dataset is tailored for testing and debugging segmentation models or experimenting with new segmentation methods. It is particularly useful with [Ultralytics YOLO26](../../models/yolo26.md) for rapid iteration and pipeline error-checking before scaling to larger datasets.
 
 ### How can I train a YOLO26n-seg model using the COCO8-Seg dataset?
 

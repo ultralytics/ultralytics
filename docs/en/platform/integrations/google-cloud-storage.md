@@ -1,7 +1,7 @@
 ---
 plans: [pro, enterprise]
 comments: true
-description: Connect Google Cloud Storage to Ultralytics Platform and train YOLO models on images in your GCS buckets without uploading a copy.
+description: Connect Google Cloud Storage buckets to Ultralytics Platform to browse, annotate, and train YOLO models on your images in place, without uploading a copy.
 keywords: Ultralytics Platform, Google Cloud Storage, GCS, GCS bucket, service account, dataset import, YOLO, computer vision, cloud storage
 title: Google Cloud Storage Datasets - Ultralytics Platform
 ---
@@ -64,7 +64,7 @@ Each connected credential has an **AI features** switch in **Settings > Integrat
 - [Cloud training](../train/cloud-training.md)
 - [Image generation](#image-generation), on buckets with write access
 
-AI model providers are involved only for image generation, whose prompts Google Gemini plans from the source image, and for paid annotation models, which run on your workspace's own provider key. Platform keeps no copy of your images: features read them on demand, cloud training uses temporary copies for the duration of a run, and similar-image search keeps an embedding of each image, which is deleted when the image leaves Platform.
+AI model providers are involved only for image generation, whose prompts Google Gemini plans from the source image, and for paid annotation models, which run on your workspace's own provider key. Platform keeps no copy of your images: features read them on demand, cloud training uses temporary copies for the duration of a run, and similar-image search keeps an [embedding](https://www.ultralytics.com/glossary/embeddings) of each image, which is deleted when the image leaves Platform.
 
 Turn the switch off to keep images off Ultralytics GPUs and AI model providers. Turning it off stops new AI work; work already running finishes. Datasets on that credential then show **AI features off** with a link back to these settings, and each unavailable feature explains why. Manual annotation, sharing, and local training keep working, and the labels, models, and search results you already created are kept.
 

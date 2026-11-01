@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how to customize the Ultralytics YOLO trainer with custom metrics, class-weighted loss, custom model saving, backbone freezing, per-layer learning rates, SyncBatchNorm, and gradient clipping.
+description: Customize the Ultralytics YOLO trainer to log custom metrics, weight classes, freeze the backbone, set per-layer learning rates, sync BatchNorm, and clip gradients.
 keywords: Ultralytics, YOLO, Custom Trainer, DetectionTrainer, BaseTrainer, Custom Metrics, F1 Score, Class Weights, Backbone Freezing, Per-Layer Learning Rate, SyncBatchNorm, Gradient Clipping, Multi-GPU Training, Fine-Tuning, Transfer Learning
 ---
 
@@ -170,7 +170,7 @@ model.train(data="coco8.yaml", epochs=20, trainer=CustomSaveTrainer)
 
 ## Freezing and Unfreezing the Backbone
 
-[Transfer learning](https://www.ultralytics.com/glossary/transfer-learning) workflows often benefit from freezing the pretrained backbone for the first N epochs, allowing the detection head to adapt before [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) the entire network. Ultralytics provides a `freeze` parameter to freeze layers at the start of training, and you can use a [callback](../usage/callbacks.md) to unfreeze them after N epochs:
+[Transfer learning](https://www.ultralytics.com/glossary/transfer-learning) workflows often benefit from freezing the pretrained [backbone](https://www.ultralytics.com/glossary/backbone) for the first N epochs, allowing the detection head to adapt before [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) the entire network. Ultralytics provides a `freeze` parameter to freeze layers at the start of training, and you can use a [callback](../usage/callbacks.md) to unfreeze them after N epochs:
 
 ```python
 from ultralytics import YOLO
@@ -269,7 +269,7 @@ For RT-DETR, use the same override with `RTDETRTrainer` as the parent and load t
 
 ## Synchronized BatchNorm for Multi-GPU Training
 
-When training on multiple GPUs with DistributedDataParallel, the default `BatchNorm2d` layers compute statistics independently on each GPU. For RT-DETR fine-tuning and other recipes that use small per-GPU batch sizes, per-GPU batch statistics can be noisy. PyTorch's `SyncBatchNorm` synchronizes mean and variance across all ranks for a single global batch statistic, which often improves convergence at the cost of a small inter-GPU communication overhead.
+When [training on multiple GPUs](https://www.ultralytics.com/glossary/distributed-training) with DistributedDataParallel, the default `BatchNorm2d` layers compute statistics independently on each GPU. For RT-DETR fine-tuning and other recipes that use small per-GPU batch sizes, per-GPU batch statistics can be noisy. PyTorch's `SyncBatchNorm` synchronizes mean and variance across all ranks for a single global batch statistic, which often improves convergence at the cost of a small inter-GPU communication overhead.
 
 The conversion has to happen after the model is on the GPU but before DDP wraps it. The cleanest hook for this is `set_model_attributes()`, which `BaseTrainer` calls in exactly that window:
 

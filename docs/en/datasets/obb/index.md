@@ -1,13 +1,13 @@
 ---
 title: OBB Dataset Formats for YOLO
 comments: true
-description: Discover OBB dataset formats for Ultralytics YOLO models. Learn about their structure, application, and format conversions to enhance your object detection training.
+description: Learn the YOLO OBB label format, dataset YAML setup, DOTA-to-YOLO conversion, and supported oriented bounding box datasets such as DOTA for Ultralytics YOLO.
 keywords: Oriented Bounding Box, OBB Datasets, YOLO, Ultralytics, Object Detection, Dataset Formats
 ---
 
 # Oriented Bounding Box (OBB) Datasets Overview
 
-Training a precise [object detection](https://www.ultralytics.com/glossary/object-detection) model with oriented bounding boxes (OBB) requires a thorough dataset. This guide explains the various OBB dataset formats compatible with Ultralytics YOLO models, offering insights into their structure, application, and methods for format conversions.
+Training a precise [object detection](https://www.ultralytics.com/glossary/object-detection) model with [oriented bounding boxes (OBB)](https://academy.ultralytics.com/courses/beyond-detection/oriented-bounding-boxes) requires a thorough dataset. This guide explains the various OBB dataset formats compatible with Ultralytics YOLO models, offering insights into their structure, application, and methods for format conversions.
 
 ## Supported OBB Dataset Formats
 
@@ -117,19 +117,19 @@ Transitioning labels from the DOTA dataset format to the YOLO OBB format can be 
         convert_dota_to_yolo_obb("path/to/DOTA")
         ```
 
-This conversion mechanism is instrumental for datasets in the DOTA format, ensuring alignment with the [Ultralytics YOLO](../../models/yolo26.md) OBB format.
+This conversion makes DOTA-format datasets compatible with the [Ultralytics YOLO](../../models/yolo26.md) OBB format.
 
-It's imperative to validate the compatibility of the dataset with your model and adhere to the necessary format conventions. Properly structured datasets are pivotal for training efficient object detection models with oriented bounding boxes.
+Validate that the converted dataset follows the YOLO OBB format conventions before training; a correctly structured dataset is essential for training accurate object detection models with oriented bounding boxes.
 
 ## FAQ
 
 ### What are Oriented Bounding Boxes (OBB) and how are they used in Ultralytics YOLO models?
 
-Oriented Bounding Boxes (OBB) are a type of bounding box annotation where the box can be rotated to align more closely with the object being detected, rather than just being axis-aligned. This is particularly useful in aerial or satellite imagery where objects might not be aligned with the image axes. In [Ultralytics YOLO](../../tasks/obb.md) models, OBBs are represented by their four corner points in the YOLO OBB format. This allows for more accurate object detection since the bounding boxes can rotate to fit the objects better.
+[Oriented Bounding Boxes (OBB)](https://www.ultralytics.com/blog/what-is-oriented-bounding-box-obb-detection-a-quick-guide) are a type of bounding box annotation where the box can be rotated to align more closely with the object being detected, rather than just being axis-aligned. This is particularly useful in aerial or satellite imagery where objects might not be aligned with the image axes. In [Ultralytics YOLO](../../tasks/obb.md) models, OBBs are represented by their four corner points in the YOLO OBB format. This allows for more accurate object detection since the bounding boxes can rotate to fit the objects better.
 
 ### How do I convert my existing DOTA dataset labels to YOLO OBB format for use with Ultralytics YOLO26?
 
-You can convert DOTA dataset labels to YOLO OBB format using the [`convert_dota_to_yolo_obb`](../../reference/data/converter.md) function from Ultralytics. This conversion ensures compatibility with the Ultralytics YOLO models, enabling you to leverage the OBB capabilities for enhanced object detection. Here's a quick example:
+You can convert DOTA dataset labels to YOLO OBB format using the [`convert_dota_to_yolo_obb`](../../reference/data/converter.md) function from Ultralytics. This conversion makes the labels compatible with Ultralytics YOLO OBB models. Here's a quick example:
 
 ```python
 from ultralytics.data.converter import convert_dota_to_yolo_obb
@@ -164,19 +164,19 @@ Training a YOLO26 model with OBBs involves ensuring your dataset is in the YOLO 
         yolo obb train data=your_dataset.yaml model=yolo26n-obb.yaml epochs=100 imgsz=640
         ```
 
-This ensures your model leverages the detailed OBB annotations for improved detection [accuracy](https://www.ultralytics.com/glossary/accuracy).
+Training on OBB annotations lets the model fit rotated objects more tightly, improving detection [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 ### What datasets are currently supported for OBB training in Ultralytics YOLO models?
 
 Currently, Ultralytics supports the following datasets for OBB training:
 
-- [DOTA-v1](dota-v2.md): The first version of the DOTA dataset, providing a comprehensive set of aerial images with oriented bounding boxes for object detection.
-- [DOTA-v1.5](dota-v2.md): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.
-- [DOTA-v2](dota-v2.md): This dataset includes 1.7 million instances with oriented bounding boxes and 11,268 images, primarily focusing on aerial object detection.
+- [DOTA-v1](dota-v2.md#dota-v10): The first version of the DOTA dataset, providing a comprehensive set of aerial images with oriented bounding boxes for object detection.
+- [DOTA-v1.5](dota-v2.md#dota-v15): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.
+- [DOTA-v2](dota-v2.md#dota-v20): This dataset includes 1.7 million instances with oriented bounding boxes and 11,268 images, primarily focusing on aerial object detection.
 - [DOTA8](dota8.md): A smaller, 8-image subset of the DOTA dataset used for testing and [continuous integration](../../help/CI.md) (CI) checks.
 - [DOTA128](dota128.md): A 128-image subset with all images in the train folder (used for both train and val), offering more diversity than DOTA8 while remaining manageable for initial OBB model development and experimentation.
 
-These datasets are tailored for scenarios where OBBs offer a significant advantage, such as aerial and satellite image analysis.
+These datasets are tailored for scenarios where OBBs offer a significant advantage, such as aerial and [satellite image analysis](https://www.ultralytics.com/glossary/satellite-image-analysis).
 
 ### Can I use my own dataset with oriented bounding boxes for YOLO26 training, and if so, how?
 

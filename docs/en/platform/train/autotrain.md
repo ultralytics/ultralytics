@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Use AutoTrain with Ask AI to run training experiments, compare results, and refine YOLO models on Ultralytics Platform.
+description: AutoTrain on Ultralytics Platform uses Ask AI or your own coding agent to train YOLO models, compare experiments, and export or deploy the best one.
 keywords: Ultralytics Platform, AutoTrain, Ask AI, Platform CLI, ul cloud, agent skills, Claude Code, Codex
 ---
 
 # AutoTrain with Ask AI
 
-**AutoTrain uses Ask AI to help you train, compare, and improve models through a conversation.** Start with a baseline, review its results, and ask for the next experiment. Ask AI can also find datasets, annotate images, export models, and deploy them.
+**[AutoTrain](https://www.ultralytics.com/blog/introducing-ultralytics-autotrain-simplify-vision-ai-model-training) uses Ask AI to help you train, compare, and improve models through a conversation.** Start with a baseline, review its results, and ask for the next experiment. Ask AI can also find datasets, annotate images, export models, and deploy them.
 
 Sign in to [Ultralytics Platform](https://platform.ultralytics.com), open your dataset or project, and click **Ask AI**.
 
@@ -37,7 +37,7 @@ Open the relevant dataset or project and ask:
 
 ## Use Your Own Coding Agent
 
-Ask AI uses the [Platform CLI](https://github.com/ultralytics/sdk), `ul cloud`, and its companion [platform-cli skill](https://github.com/ultralytics/skills). You can use the same commands from Claude Code, Codex, or another compatible coding agent.
+Ask AI uses the [Platform CLI](https://github.com/ultralytics/sdk), `ul cloud`, and its companion [platform-cli skill](https://github.com/ultralytics/skills). You can use the same commands from Claude Code, Codex, or another compatible [coding agent](https://www.ultralytics.com/glossary/agentic-coding).
 
 ### Install and Connect
 

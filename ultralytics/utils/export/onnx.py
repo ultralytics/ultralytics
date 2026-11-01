@@ -60,9 +60,12 @@ def onnx_int8_quantize(
     # Quantize only weighted ops so the head decode stays float: one INT8 scale spanning box pixels (~0-640) and class
     # probs (0-1) rounds every score to 0. Excluding by node (not op_types) still calibrates all tensors, avoiding an
     # ONNX Runtime crash on the uncalibrated attention Softmax.
-    graph = onnx.load(onnx_file).graph
-    exclude = [n.name for n in graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
-    del graph
+    model = onnx.load(onnx_file)
+    exclude = [n.name for n in model.graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
+    # Per-channel weight scales keep small-magnitude output channels from rounding away under one per-tensor scale
+    # (INT8 depth maps go near-constant). Per-axis DequantizeLinear needs opset>=13, so opset 12 stays per-tensor.
+    per_channel = next(o.version for o in model.opset_import if o.domain in {"", "ai.onnx"}) >= 13
+    del model
 
     LOGGER.info(f"{prefix} quantizing INT8 with ONNX Runtime...")
     quantize_static(
@@ -70,5 +73,6 @@ def onnx_int8_quantize(
         output_file,
         onnx_calibration_reader(dataset, transform_fn, input_name),
         nodes_to_exclude=exclude,
+        per_channel=per_channel,
     )
     return str(output_file)

@@ -1,22 +1,22 @@
 ---
 comments: true
-description: Discover YOLOv7, the breakthrough real-time object detector with top speed and accuracy. Learn about key features, usage, and performance metrics.
+description: "YOLOv7 real-time object detector with trainable bag-of-freebies: re-parameterization, label assignment, COCO results, and ONNX or TensorRT inference."
 keywords: YOLOv7, real-time object detection, Ultralytics, AI, computer vision, model training, object detector
 ---
 
 # YOLOv7: Trainable Bag-of-Freebies
 
-YOLOv7, released in July 2022, was a significant advancement in real-time object detection at its time of release. It achieved 56.8% AP on GPU V100, setting new benchmarks when introduced. YOLOv7 outperformed contemporary object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, and YOLOv5 in speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). The model is trained on the MS COCO dataset from scratch without using any other datasets or pretrained weights. Source code for YOLOv7 is available on GitHub. Note that newer models like [YOLO11](yolo11.md) and [YOLO26](yolo26.md) have since achieved higher accuracy with improved efficiency.
+YOLOv7, released in July 2022, was a significant advancement in real-time [object detection](https://www.ultralytics.com/glossary/object-detection) at its time of release. It achieved 56.8% AP, the highest accuracy among real-time detectors running at 30 FPS or higher on a V100 GPU when it was introduced. YOLOv7 outperformed contemporary object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, and YOLOv5 in speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). The model is trained on the [MS COCO](../datasets/detect/coco.md) dataset from scratch without using any other datasets or pretrained weights. Source code for YOLOv7 is available on [GitHub](https://github.com/WongKinYiu/yolov7). Note that newer models like [YOLO26](yolo26.md) and [YOLO11](yolo11.md) have since achieved higher accuracy with improved efficiency.
 
 ![YOLOv7 comparison with SOTA object detectors](https://cdn.ul.run/i/627e9f34d8f584e9d76fe8cd6a4a0eb6.avif)
 
 ## Comparison of SOTA object detectors
 
-From the results in the YOLO comparison table we know that the proposed method has the best speed-accuracy trade-off comprehensively. If we compare YOLOv7-tiny-SiLU with YOLOv5-N (r6.1), our method is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 has 51.4% AP at frame rate of 161 fps, while PPYOLOE-L with the same AP has only 78 fps frame rate. In terms of parameter usage, YOLOv7 is 41% less than PPYOLOE-L.
+According to the comparison table in the YOLOv7 paper, YOLOv7 has the best overall speed-accuracy trade-off. Compared with YOLOv5-N (r6.1), YOLOv7-tiny-SiLU is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 reaches 51.4% AP at 161 fps, while PPYOLOE-L reaches the same AP at only 78 fps, and YOLOv7 uses 41% fewer parameters than PPYOLOE-L.
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv7"]'></canvas>
 
-If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms of the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
+Compared with YOLOv5-L (r6.1) at 99 fps, YOLOv7-X runs at 114 fps and improves AP by 3.9%. Compared with YOLOv5-X (r6.1) of similar scale, YOLOv7-X is 31 fps faster, uses 22% fewer parameters and 8% less computation, and improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
 
 !!! tip "Performance"
 
@@ -70,7 +70,7 @@ If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 f
 
 ## Overview
 
-Real-time object detection is an important component in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems, including multi-[object tracking](https://www.ultralytics.com/glossary/object-tracking), autonomous driving, [robotics](https://www.ultralytics.com/glossary/robotics), and [medical image analysis](https://www.ultralytics.com/glossary/medical-image-analysis). In recent years, real-time object detection development has focused on designing efficient architectures and improving the inference speed of various CPUs, GPUs, and neural processing units (NPUs). YOLOv7 supports both mobile GPU and GPU devices, from the edge to the cloud.
+Real-time object detection is an important component in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems, including multi-[object tracking](https://www.ultralytics.com/glossary/object-tracking), autonomous driving, [robotics](https://www.ultralytics.com/glossary/robotics), and [medical image analysis](https://www.ultralytics.com/glossary/medical-image-analysis). In recent years, real-time object detection development has focused on designing efficient architectures and improving the inference speed of various CPUs, GPUs, and [neural processing units (NPUs)](https://www.ultralytics.com/glossary/neural-processing-unit-npu). YOLOv7 supports both mobile GPU and GPU devices, from the edge to the cloud.
 
 Unlike traditional real-time object detectors that focus on architecture optimization, YOLOv7 introduces a focus on the optimization of the training process. This includes modules and optimization methods designed to improve the accuracy of object detection without increasing the inference cost, a concept known as the "trainable bag-of-freebies".
 
@@ -84,7 +84,7 @@ YOLOv7 introduces several key features:
 
 3. **Extended and Compound Scaling**: YOLOv7 proposes "extend" and "compound scaling" methods for the real-time object detector that can effectively utilize parameters and computation.
 
-4. **Efficiency**: The method proposed by YOLOv7 can effectively reduce about 40% parameters and 50% computation of state-of-the-art real-time object detector, and has faster inference speed and higher detection accuracy.
+4. **Efficiency**: The method proposed by YOLOv7 reduces about 40% of the parameters and 50% of the computation of state-of-the-art real-time object detectors, while achieving faster inference and higher detection accuracy.
 
 ## Usage Examples
 
@@ -92,7 +92,7 @@ Ultralytics does not publish `yolov7.pt` pretrained weights or `ultralytics/cfg/
 
 ### ONNX Export
 
-To use YOLOv7 ONNX model with Ultralytics:
+To use a YOLOv7 ONNX model with Ultralytics:
 
 1. (Optional) Install Ultralytics and export an ONNX model to have the required dependencies automatically installed:
 
@@ -326,7 +326,7 @@ To use YOLOv7 ONNX model with Ultralytics:
     pip install tensorrt
     ```
 
-3. Run the following script to convert the modified ONNX model to TensorRT engine:
+3. Run the following script to convert the modified ONNX model to a TensorRT engine:
 
     ```python
     from ultralytics.utils.export import onnx2engine
@@ -362,13 +362,13 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
         }
         ```
 
-The official YOLOv7 paper was published in the [CVF 2023 Open Access](https://openaccess.thecvf.com/content/CVPR2023/papers/Wang_YOLOv7_Trainable_Bag-of-Freebies_Sets_New_State-of-the-Art_for_Real-Time_Object_Detectors_CVPR_2023_paper.pdf), with a preprint on [arXiv](https://arxiv.org/pdf/2207.02696). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The official YOLOv7 paper was published at CVPR 2023 and is available through [CVF Open Access](https://openaccess.thecvf.com/content/CVPR2023/papers/Wang_YOLOv7_Trainable_Bag-of-Freebies_Sets_New_State-of-the-Art_for_Real-Time_Object_Detectors_CVPR_2023_paper.pdf), with a preprint on [arXiv](https://arxiv.org/pdf/2207.02696). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 
-### What is YOLOv7 and why is it considered a breakthrough in real-time [object detection](https://www.ultralytics.com/glossary/object-detection)?
+### What is YOLOv7 and why is it considered a breakthrough in real-time object detection?
 
-YOLOv7, released in July 2022, was a significant real-time object detection model that achieved excellent speed and accuracy at its time of release. It surpassed contemporary models such as YOLOX, YOLOv5, and PPYOLOE in both parameters usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs. For more technical details about its architecture and comparison metrics with other state-of-the-art object detectors, refer to the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696).
+YOLOv7, released in July 2022, was a real-time object detection model that achieved [state-of-the-art speed and accuracy](https://arxiv.org/pdf/2207.02696) at its time of release. It surpassed contemporary models such as YOLOX, YOLOv5, and PPYOLOE in both parameter usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs.
 
 ### How does YOLOv7 improve on previous YOLO models like YOLOv4 and YOLOv5?
 
@@ -392,17 +392,14 @@ To install and train a custom YOLOv7 model, follow these steps:
     pip install -r requirements.txt
     ```
 3. Prepare your dataset and configure the model parameters according to the [usage instructions](https://github.com/WongKinYiu/yolov7) provided in the repository.
-   For further guidance, visit the YOLOv7 GitHub repository for the latest information and updates.
 
 4. After training, you can export the model to ONNX or TensorRT for use in Ultralytics as shown in [Usage Examples](#usage-examples).
 
 ### What are the key features and optimizations introduced in YOLOv7?
 
-YOLOv7 offers several key features that revolutionize real-time object detection:
+YOLOv7 introduces several key features for real-time object detection:
 
 - **Model Re-parameterization**: Enhances the model's performance by optimizing gradient propagation paths.
 - **Dynamic Label Assignment**: Uses a coarse-to-fine lead guided method to assign dynamic targets for outputs across different branches, improving accuracy.
 - **Extended and Compound Scaling**: Efficiently utilizes parameters and computation to scale the model for various real-time applications.
 - **Efficiency**: Reduces parameter count by 40% and computation by 50% compared to other state-of-the-art models while achieving faster inference speeds.
-
-For further details on these features, see the [YOLOv7 Overview](#overview) section.

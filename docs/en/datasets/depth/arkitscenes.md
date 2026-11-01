@@ -3,13 +3,13 @@ comments: true
 license:
     name: Other
     url: https://github.com/apple/ARKitScenes/blob/main/LICENSE
-description: Explore the ARKitScenes depth dataset for monocular depth estimation. Learn about its structure, usage, pretrained models, and role in YOLO26-Depth training.
+description: ARKitScenes is a real indoor RGB-D dataset captured with iPad Pro LiDAR and the largest real-world source in YOLO26-Depth pretraining. Download, convert, and train.
 keywords: Ultralytics, YOLO, depth estimation, ARKitScenes, indoor RGB-D, LiDAR, monocular depth, depth dataset
 ---
 
 # ARKitScenes Depth Dataset
 
-[ARKitScenes](https://github.com/apple/ARKitScenes) is a large-scale real-world indoor RGB-D dataset captured with Apple's ARKit on iPad Pro devices equipped with a LiDAR scanner. It is the largest real-world indoor RGB-D dataset of its kind, providing diverse, naturally captured indoor scenes with accurate depth ground truth for [monocular depth estimation](index.md).
+[ARKitScenes](https://github.com/apple/ARKitScenes) is a large-scale real-world indoor RGB-D dataset captured with Apple's ARKit on iPad Pro devices equipped with a LiDAR scanner. It is the largest real-world indoor RGB-D dataset of its kind, providing diverse, naturally captured indoor scenes with accurate depth ground truth for monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation).
 
 ## Key Features
 
@@ -40,7 +40,7 @@ python3 download_data.py raw --video_id_csv raw/raw_train_val_splits.csv \
 
 Frames land in `data/raw/{Training,Validation}/<video_id>/{lowres_wide,lowres_depth}/`. Budget roughly 2.5 TB of disk: the raw streams run at ~60 FPS, and the conversion below keeps every 30th frame (~2 Hz).
 
-Depth frames are `uint16` PNGs in **millimeters** (0 = invalid), and RGB/depth filenames are capture timestamps that do not match exactly — pair each RGB frame with the nearest-timestamp depth frame. Reference conversion to the [Ultralytics depth dataset format](index.md):
+Depth frames are `uint16` PNGs in **millimeters** (0 = invalid), and RGB/depth filenames are capture timestamps that do not match exactly — pair each RGB frame with the nearest-timestamp depth frame. Reference conversion to the Ultralytics depth dataset format:
 
 ```python
 import shutil
@@ -83,7 +83,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-depth model on the ARKitScenes dataset with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the ARKitScenes dataset with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

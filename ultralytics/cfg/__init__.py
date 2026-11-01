@@ -907,11 +907,13 @@ def handle_yolo_solutions(args: list[str]) -> None:
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
         if solution_name != "crop":
             # extract width, height and fps of the video file, create save directory and initialize video writer
-            w, h, fps = (
-                round(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
-            )
-            if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1280, h=720
-                w, h = 1280, 720
+            w, h = (round(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            fps = fps if 0 < fps < 1000 else 30  # 30 FPS fallback for 0, nan and 90 kHz RTP clock rates
+            if solution_name == "speed" and "fps" not in overrides:
+                solution.fps = fps
+            if solution_name == "analytics":  # output frames are the chart canvas, not the source video
+                w, h = solution.canvas.get_width_height()
             save_dir = get_save_dir(SimpleNamespace(task="solutions", name="exp", exist_ok=False, project=None))
             save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory i.e. runs/solutions/exp
             vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))

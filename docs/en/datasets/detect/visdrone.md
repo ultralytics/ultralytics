@@ -54,7 +54,7 @@ The dataset annotates 10 object classes: pedestrian, people, bicycle, car, van, 
 
 ## Applications
 
-VisDrone's dense scenes and tiny targets make it a standard benchmark for [small-object detection](https://www.ultralytics.com/glossary/object-detection) from aerial viewpoints. Common applications include:
+VisDrone's dense scenes and tiny targets make it a standard benchmark for [small-object detection](https://www.ultralytics.com/blog/exploring-small-object-detection-with-ultralytics-yolo11) from aerial viewpoints. Common [drone computer vision applications](https://www.ultralytics.com/blog/computer-vision-applications-ai-drone-uav-operations) include:
 
 - Traffic monitoring and vehicle counting from UAVs
 - Crowd analysis and public-safety surveillance
@@ -79,7 +79,7 @@ The `VisDrone.yaml` file defines the dataset configuration — the dataset paths
 
     VisDrone downloads automatically the first time you train — three archives totaling about 2 GB — and needs roughly 4 GB of free disk space during extraction and conversion.
 
-To train a YOLO26n model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the VisDrone dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

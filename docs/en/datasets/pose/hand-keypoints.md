@@ -8,14 +8,14 @@ creator:
 license:
     name: CC-BY-NC-SA-4.0
 description: "Explore the Ultralytics Hand Keypoints dataset: 26,768 hand images with 21 keypoints each, for gesture recognition and pose estimation with YOLO26."
-keywords: Hand KeyPoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, deep learning, computer vision
+keywords: hand keypoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, deep learning, computer vision
 ---
 
 # Hand Keypoints Dataset
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com) Hand Keypoints dataset contains 26,768 images of hands annotated with 21 keypoints each, generated using the [Google MediaPipe](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker) library for high [accuracy](https://www.ultralytics.com/glossary/accuracy) and consistency. It's compatible with [Ultralytics YOLO26](../../models/yolo26.md) formats for training pose estimation models.
+The [Ultralytics](https://www.ultralytics.com) Hand Keypoints dataset contains 26,768 images of hands annotated with 21 [keypoints](https://www.ultralytics.com/glossary/keypoints) each, generated using the [Google MediaPipe](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker) library for high [accuracy](https://www.ultralytics.com/glossary/accuracy) and consistency. It's compatible with [Ultralytics YOLO26](../../models/yolo26.md) formats for training [pose estimation](../../tasks/pose.md) models.
 
 <p align="center">
   <br>
@@ -52,10 +52,10 @@ For a custom gesture vocabulary beyond generic hand landmarks, [Ultralytics Plat
 
 ## Applications
 
-Hand keypoints support several real-world applications:
+[Hand keypoints](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11) support several real-world applications:
 
-- **[Gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11)**: human-computer interaction and touchless control interfaces.
-- **[AR/VR controls](../../tasks/pose.md)**: precise interaction with virtual objects.
+- **[Gesture recognition](https://www.ultralytics.com/blog/vision-ai-enables-touch-free-gesture-recognition-technology)**: human-computer interaction and touchless control interfaces.
+- **AR/VR controls**: precise interaction with virtual objects.
 - **Robotic manipulation**: fine-grained control of robotic hands.
 - **Healthcare**: hand movement analysis for medical diagnostics.
 - **Animation**: motion capture for realistic hand movement.
@@ -73,7 +73,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-pose model on the Hand Keypoints dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) model on the Hand Keypoints dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 
@@ -120,7 +120,7 @@ If you use the Hand Keypoints dataset in your research or development work, plea
 
     The images were collected and used under the respective licenses provided by each platform and are distributed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-We would also like to acknowledge the creator of this dataset, [Rion Dsilva](https://www.linkedin.com/in/rion-dsilva-043464229/), for his great contribution to Vision AI research.
+We would also like to acknowledge the creator of this dataset, [Rion Dsilva](https://www.linkedin.com/in/rion-dsilva-043464229/), for contributing it to the Vision AI research community.
 
 ## FAQ
 
@@ -130,7 +130,7 @@ Load `yolo26n-pose.pt` and call `model.train(data="hand-keypoints.yaml", epochs=
 
 ### What are the benefits of using the Hand Keypoints dataset?
 
-With 26,768 annotated images and 21 keypoints per hand generated via Google MediaPipe, the Hand Keypoints dataset gives pose estimation models the scale and annotation accuracy needed for [advanced pose estimation](../../tasks/pose.md) tasks. See the [Keypoints](#keypoints) section for the full landmark breakdown.
+With 26,768 annotated images and [21 keypoints](#keypoints) per hand generated via Google MediaPipe, the Hand Keypoints dataset gives pose estimation models the scale and annotation accuracy needed for advanced pose estimation tasks.
 
 ### What applications can benefit from using the Hand Keypoints dataset?
 
@@ -138,12 +138,10 @@ Hand Keypoints supports gesture recognition, AR/VR controls, robotic manipulatio
 
 ### How is the Hand Keypoints dataset structured?
 
-The Hand Keypoints dataset is divided into two subsets:
+The Hand Keypoints dataset is divided into [two subsets](#dataset-structure):
 
 1. **Train**: Contains 18,776 images for training pose estimation models.
 2. **Val**: Contains 7,992 images for validation purposes during model training.
-
-This structure ensures a comprehensive training and validation process. For more details, see the [Dataset Structure](#dataset-structure) section.
 
 ### How do I use the dataset YAML file for training?
 

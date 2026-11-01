@@ -1,17 +1,17 @@
 ---
 title: YOLO26 on NVIDIA Jetson Setup & Benchmarks
 comments: true
-description: Learn to deploy Ultralytics YOLO26 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
+description: Deploy Ultralytics YOLO26 on NVIDIA Jetson with JetPack, Docker or a native install, export to TensorRT and DLA, and compare Jetson Thor and Orin benchmarks.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
 ---
 
 # Quick Start Guide: NVIDIA Jetson with Ultralytics YOLO26
 
-This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO26 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLO26 on these small and powerful devices.
+This guide walks through deploying Ultralytics YOLO26 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices and includes performance benchmarks that show what YOLO26 can do on these compact, power-efficient devices.
 
 !!! tip "New product support"
 
-    We have updated this guide with the latest [NVIDIA Jetson AGX Thor Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor) which delivers up to 2070 FP4 TFLOPS of AI compute and 128 GB of memory with power configurable between 40 W and 130 W. It delivers over 7.5x higher AI compute than NVIDIA Jetson AGX Orin, with 3.5x better energy efficiency to seamlessly run the most popular AI models.
+    We have updated this guide with the latest [NVIDIA Jetson AGX Thor Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor) which delivers up to 2070 FP4 TFLOPS of AI compute and 128 GB of memory with power configurable between 40 W and 130 W. It delivers over 7.5x higher AI compute than NVIDIA Jetson AGX Orin, with 3.5x better energy efficiency for running the most popular AI models.
 
 <p align="center">
   <br>
@@ -32,11 +32,11 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 ## What is NVIDIA Jetson?
 
-NVIDIA Jetson is a series of embedded computing boards designed to bring accelerated AI (artificial intelligence) computing to edge devices. These compact and powerful devices are built around NVIDIA's GPU architecture and can run complex AI algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models directly on the device, without relying on [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) resources. Jetson boards are often used in robotics, autonomous vehicles, industrial automation, and other applications where AI inference needs to be performed locally with low latency and high efficiency. Additionally, these boards are based on the ARM64 architecture and run at lower power compared to traditional GPU computing devices.
+NVIDIA Jetson is a series of embedded computing boards designed to bring accelerated AI (artificial intelligence) computing to [edge devices](https://www.ultralytics.com/glossary/edge-ai). These compact and powerful devices are built around NVIDIA's GPU architecture and can run complex AI algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models directly on the device, without relying on [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) resources. Jetson boards are often used in robotics, autonomous vehicles, industrial automation, and other applications where AI inference needs to be performed locally with [low latency](https://www.ultralytics.com/glossary/inference-latency) and high efficiency. Additionally, these boards are based on the ARM64 architecture and run at lower power compared to traditional GPU computing devices.
 
 ## NVIDIA Jetson Series Comparison
 
-[NVIDIA Jetson AGX Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/) is the latest iteration of the NVIDIA Jetson family based on NVIDIA Blackwell architecture which brings drastically improved AI performance when compared to the previous generations. The table below compares a few of the Jetson devices in the ecosystem.
+[NVIDIA Jetson AGX Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/) is the latest iteration of the NVIDIA Jetson family based on the NVIDIA Blackwell architecture, which delivers significantly higher AI performance than previous generations. The table below compares a few of the [Jetson devices](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems) in the ecosystem.
 
 |                   | Jetson AGX Thor (T5000)                                          | Jetson AGX Orin 64GB                                             | Jetson Orin NX 16GB                                             | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                             | Jetson Nano                                 |
 | ----------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
@@ -47,11 +47,9 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 | CPU Max Frequency | 2.6 GHz                                                          | 2.2 GHz                                                          | 2.0 GHz                                                         | 1.7 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                      | 1.43GHz                                     |
 | Memory            | 128GB 256-bit LPDDR5X 273GB/s                                    | 64GB 256-bit LPDDR5 204.8GB/s                                    | 16GB 128-bit LPDDR5 102.4GB/s                                   | 8GB 128-bit LPDDR5 102 GB/s                                   | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                 | 4GB 64-bit LPDDR4 25.6GB/s                  |
 
-For a more detailed comparison table, please visit the **Compare Specifications** section of [official NVIDIA Jetson page](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems).
-
 ## What is NVIDIA JetPack?
 
-[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powering the Jetson modules is the most comprehensive solution and provides full development environment for building end-to-end accelerated AI applications and shortens time to market. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as [DeepStream](deepstream-nvidia-jetson.md) for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
+[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powers the Jetson modules and provides a full development environment for building end-to-end accelerated AI applications. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as [DeepStream](deepstream-nvidia-jetson.md) for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
 
 ## Flash JetPack to NVIDIA Jetson
 
@@ -65,7 +63,7 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 
 !!! note
 
-    For methods 1, 4 and 5 above, after flashing the system and booting the device, please enter "sudo apt update && sudo apt install nvidia-jetpack -y" on the device terminal to install all the remaining JetPack components needed.
+    For methods 1, 4 and 5 above, after flashing the system and booting the device, run `sudo apt update && sudo apt install nvidia-jetpack -y` in the device terminal to install all the remaining JetPack components needed.
 
 ## JetPack Support Based on Jetson Device
 
@@ -84,7 +82,7 @@ The below table highlights NVIDIA JetPack versions supported by different NVIDIA
 
 ## Quick Start with Docker
 
-The fastest way to get started with Ultralytics YOLO26 on NVIDIA Jetson is to run with pre-built docker images for Jetson. Refer to the table above and choose the JetPack version according to the Jetson device you own.
+The fastest way to get started with Ultralytics YOLO26 on NVIDIA Jetson is to run the pre-built [Docker](docker-quickstart.md) images for Jetson. Refer to the table above and choose the JetPack version according to the Jetson device you own.
 
 === "JetPack 4"
 
@@ -128,7 +126,7 @@ For a native installation without Docker, please refer to the steps below.
 
 #### Install Ultralytics Package
 
-Here we will install the Ultralytics package on the Jetson. Export dependencies are installed automatically the first time you export a model, so only the base package is needed here. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the Jetson devices.
+Install the Ultralytics package on the Jetson. Export dependencies are installed automatically the first time you export a model, so only the base package is needed here. This guide focuses on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT delivers the best performance on Jetson devices.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -152,7 +150,7 @@ Here we will install the Ultralytics package on the Jetson. Export dependencies 
 
 #### Install PyTorch and Torchvision
 
-The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on JetPack 7.2 devices with CUDA 13. Therefore, we need to manually install them.
+The above ultralytics installation will install Torch and Torchvision. However, these two packages installed via pip are not compatible with JetPack 7.2 devices running CUDA 13, so they need to be installed manually.
 
 Install `torch` and `torchvision` according to JP7.2
 
@@ -164,7 +162,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 
 Use an ONNX Runtime GPU wheel matched to your JetPack, Python, and CUDA versions. Current PyPI releases include ARM64 wheels, but they do not replace the device-specific packages for every JetPack release.
 
-Here we will download and install `onnxruntime-gpu 1.24.0` with `Python3.12` support.
+Download and install `onnxruntime-gpu 1.24.0` with `Python3.12` support.
 
 ```bash
 pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl
@@ -174,7 +172,7 @@ pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxr
 
 #### Install Ultralytics Package
 
-Here we will install the Ultralytics package on the Jetson. Export dependencies are installed automatically the first time you export a model, so only the base package is needed here. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the Jetson devices.
+Install the Ultralytics package on the Jetson. Export dependencies are installed automatically the first time you export a model, so only the base package is needed here. This guide focuses on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT delivers the best performance on Jetson devices.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -198,7 +196,7 @@ Here we will install the Ultralytics package on the Jetson. Export dependencies 
 
 #### Install PyTorch and Torchvision
 
-The above ultralytics installation will install Torch and Torchvision. However, these two packages installed via pip are not compatible with the Jetson platform, which is based on ARM64 architecture. Therefore, we need to manually install a pre-built PyTorch pip wheel and compile or install Torchvision from source.
+The above ultralytics installation will install Torch and Torchvision. However, these two packages installed via pip are not compatible with the Jetson platform, which is based on ARM64 architecture, so you need to manually install a pre-built PyTorch pip wheel and compile or install Torchvision from source.
 
 Install `torch 2.10.0` and `torchvision 0.25.0` according to JP6.1
 
@@ -243,7 +241,7 @@ pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxr
 
 #### Install Ultralytics Package
 
-Here we will install the Ultralytics package on the Jetson. Export dependencies are installed automatically the first time you export a model, so only the base package is needed here. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the Jetson devices.
+Install the Ultralytics package on the Jetson. Export dependencies are installed automatically the first time you export a model, so only the base package is needed here. This guide focuses on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT delivers the best performance on Jetson devices.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -267,7 +265,7 @@ Here we will install the Ultralytics package on the Jetson. Export dependencies 
 
 #### Install PyTorch and Torchvision
 
-The above ultralytics installation will install Torch and Torchvision. However, these two packages installed via pip are not compatible with the Jetson platform, which is based on ARM64 architecture. Therefore, we need to manually install a pre-built PyTorch pip wheel and compile or install Torchvision from source.
+The above ultralytics installation will install Torch and Torchvision. However, these two packages installed via pip are not compatible with the Jetson platform, which is based on ARM64 architecture, so you need to manually install a pre-built PyTorch pip wheel and compile or install Torchvision from source.
 
 1. Uninstall currently installed PyTorch and Torchvision
 
@@ -290,7 +288,7 @@ The above ultralytics installation will install Torch and Torchvision. However, 
 
 Use an ONNX Runtime GPU wheel matched to your JetPack, Python, and CUDA versions. Current PyPI releases include ARM64 wheels, but they do not replace the device-specific packages for every JetPack release.
 
-You can find all available `onnxruntime-gpu` packages—organized by JetPack version, Python version, and other compatibility details—in the [Jetson Zoo ONNX Runtime compatibility matrix](https://elinux.org/Jetson_Zoo#ONNX_Runtime). Here we will download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support.
+You can find all available `onnxruntime-gpu` packages—organized by JetPack version, Python version, and other compatibility details—in the [Jetson Zoo ONNX Runtime compatibility matrix](https://elinux.org/Jetson_Zoo#ONNX_Runtime). Download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support.
 
 ```bash
 wget https://nvidia.box.com/shared/static/zostg6agm00fb6t5uisw51qi6kpcuwzd.whl -O onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
@@ -299,7 +297,7 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 !!! note
 
-    `onnxruntime-gpu` will automatically revert back the NumPy version to latest. So we need to reinstall NumPy to `1.23.5` to fix an issue by executing:
+    `onnxruntime-gpu` automatically upgrades NumPy to the latest version, so reinstall NumPy `1.23.5` to fix the resulting issue:
 
     `pip install numpy==1.23.5`
 
@@ -311,11 +309,11 @@ You can also export from the browser without configuring the build environment l
 
 !!! warning "TensorRT engines are device-specific"
 
-    TensorRT profiles and tunes an engine on its build GPU. Match the target's GPU architecture and TensorRT/CUDA runtime, and validate every downloaded engine on the deployment device. Same-architecture Orin SKUs are not an automatic portability guarantee, and INT8 calibration should use the target device for best results.
+    TensorRT profiles and tunes an engine on its build GPU. Match the target's GPU architecture and TensorRT/CUDA runtime, and validate every downloaded engine on the deployment device. Same-architecture Orin SKUs are not an automatic portability guarantee, and [INT8 calibration](https://www.ultralytics.com/glossary/model-quantization) should use the target device for best results.
 
 ### Convert Model to TensorRT and Run Inference
 
-The YOLO26n model in PyTorch format is converted to TensorRT to run inference with the exported model.
+The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model in PyTorch format is [converted to TensorRT](https://academy.ultralytics.com/courses/yolo-in-production/optimize-with-tensorrt) to run inference with the exported model.
 
 !!! example
 
@@ -346,10 +344,6 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
         # Run inference with the exported model
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
-
-!!! note
-
-    Visit the [Export page](../modes/export.md#arguments) to access additional arguments when exporting models to different model formats
 
 ### Use NVIDIA Deep Learning Accelerator (DLA)
 
@@ -406,11 +400,11 @@ The following Jetson devices are equipped with DLA hardware:
 
 ## NVIDIA Jetson YOLO26 Benchmarks
 
-YOLO26 benchmarks were run by the Ultralytics team on 11 different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on NVIDIA Jetson AGX Thor Developer Kit, NVIDIA Jetson AGX Orin Developer Kit (64GB), NVIDIA Jetson Orin Nano Super Developer Kit and Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO26 benchmarks were run by the Ultralytics team on 11 different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on NVIDIA Jetson AGX Thor Developer Kit, NVIDIA Jetson AGX Orin Developer Kit (64GB), NVIDIA Jetson Orin Nano Super Developer Kit and Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 precision with the default input image size of 640.
 
 ### Comparison Charts
 
-Even though all model exports work on NVIDIA Jetson, we have only included **PyTorch, TorchScript, TensorRT** for the comparison chart below because they make use of the GPU on the Jetson and are guaranteed to produce the best results. All the other exports only utilize the CPU and the performance is not as good as the above three. You can find benchmarks for all exports in the section after this chart.
+Even though all model exports work on NVIDIA Jetson, the comparison chart below includes only **PyTorch, TorchScript, and TensorRT**. You can find benchmarks for all exports in the section after this chart.
 
 #### NVIDIA Jetson AGX Thor Developer Kit
 
@@ -442,7 +436,7 @@ Even though all model exports work on NVIDIA Jetson, we have only included **PyT
 
 ### Detailed Comparison Tables
 
-The below table represents the benchmark results for five different models (YOLO26n, YOLO26s, YOLO26m, YOLO26l, YOLO26x) across 11 different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The table below shows the benchmark results for five different [YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) (YOLO26n, YOLO26s, YOLO26m, YOLO26l, YOLO26x) across 11 different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch), giving the status, size, [mAP50-95(B)](https://www.ultralytics.com/glossary/mean-average-precision-map) metric, and inference time for each combination.
 
 #### NVIDIA Jetson AGX Thor Developer Kit
 
@@ -850,11 +844,11 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
 
 ## Best Practices when using NVIDIA Jetson
 
-When using NVIDIA Jetson, there are a couple of best practices to follow in order to enable maximum performance on the NVIDIA Jetson running YOLO26.
+Follow these best practices to get maximum performance from YOLO26 on NVIDIA Jetson.
 
 1. Enable MAX Power Mode
 
-    Enabling MAX Power Mode on the Jetson will make sure all CPU, GPU cores are turned on.
+    Enabling MAX Power Mode on the Jetson makes sure all CPU and GPU cores are turned on.
 
     ```bash
     sudo nvpmodel -m 0
@@ -862,7 +856,7 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 2. Enable Jetson Clocks
 
-    Enabling Jetson Clocks will make sure all CPU, GPU cores are clocked at their maximum frequency.
+    Enabling Jetson Clocks makes sure all CPU and GPU cores are clocked at their maximum frequency.
 
     ```bash
     sudo jetson_clocks
@@ -870,7 +864,7 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 3. Install Jetson Stats Application
 
-    We can use jetson stats application to monitor the temperatures of the system components and check other system details such as view CPU, GPU, RAM utilization, change power modes, set to max clocks, check JetPack information
+    Use the jetson-stats application to monitor the temperatures of system components, view CPU, GPU, and RAM utilization, change power modes, set max clocks, and check JetPack information.
 
     ```bash
     sudo apt update
@@ -879,7 +873,7 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
     jtop
     ```
 
-<img width="1024" src="https://cdn.ul.run/i/b7606d1afc83731483747c3def51ce0c.avif" alt="Jetson Stats">
+<img width="1024" src="https://cdn.ul.run/i/b7606d1afc83731483747c3def51ce0c.avif" alt="jtop dashboard from jetson-stats showing Jetson CPU, GPU, and memory utilization">
 
 ## Memory Optimization Tips for NVIDIA Jetson
 
@@ -971,15 +965,15 @@ For further learning and support, see the [Ultralytics YOLO26 Docs](../index.md)
 
 ### How do I deploy Ultralytics YOLO26 on NVIDIA Jetson devices?
 
-Deploying Ultralytics YOLO26 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation).
+To deploy Ultralytics YOLO26 on NVIDIA Jetson devices, first flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a [pre-built Docker image](#quick-start-with-docker) for quick setup or [manually install the required packages](#start-with-native-installation).
 
 ### What performance benchmarks can I expect from YOLO26 models on NVIDIA Jetson devices?
 
-YOLO26 models have been benchmarked on various NVIDIA Jetson devices showing significant performance improvements. For example, the TensorRT format delivers the best inference performance. The table in the [Detailed Comparison Tables](#detailed-comparison-tables) section provides a comprehensive view of performance metrics like mAP50-95 and inference time across different model formats.
+YOLO26 models have been benchmarked on NVIDIA Jetson AGX Thor, AGX Orin, Orin Nano Super, and Orin NX devices, and the TensorRT format delivers the best inference performance. The [Detailed Comparison Tables](#detailed-comparison-tables) section lists mAP50-95 and inference time for each model and export format.
 
 ### Why should I use TensorRT for deploying YOLO26 on NVIDIA Jetson?
 
-TensorRT is highly recommended for deploying YOLO26 models on NVIDIA Jetson due to its optimal performance. It accelerates inference by leveraging the Jetson's GPU capabilities, ensuring maximum efficiency and speed. Learn more about how to convert to TensorRT and run inference in the [Use TensorRT on NVIDIA Jetson](#use-tensorrt-on-nvidia-jetson) section.
+TensorRT is recommended for deploying YOLO26 models on NVIDIA Jetson because it delivers the fastest inference of all export formats by optimizing the model for the Jetson's GPU.
 
 ### How can I install PyTorch and Torchvision on NVIDIA Jetson?
 

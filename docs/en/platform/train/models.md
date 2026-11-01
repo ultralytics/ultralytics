@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 22 deployment formats.
+description: Manage trained YOLO models on Ultralytics Platform. Upload weights, review metrics and validation plots, export to 22 formats, clone, move, and deploy.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
 # Models
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
+[Ultralytics Platform](https://platform.ultralytics.com) provides model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
 
 ![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/54e0474716ba6a34834ae9168f4c6297.avif)<!-- screenshot -->
 
@@ -175,7 +175,7 @@ The **Validation** subtab shows a detailed analysis when validation results are 
 
 ### Confusion Matrix
 
-Interactive heatmap showing prediction accuracy per class:
+Interactive [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) heatmap comparing predicted and true classes:
 
 ![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/54d1acf67ececc569c73a27cf49bb035.avif)<!-- screenshot -->
 
@@ -196,7 +196,7 @@ When the training run provides them, the **Validation** view also displays perfo
 
 Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis under **Validation insights** in the **Validation** view, which points at the data behind a disappointing score:
 
-- **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
+- **Worst- and best-performing images**, ranked by per-image [F1 score](https://www.ultralytics.com/glossary/f1-score) and drawn with their ground-truth boxes
 - **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
 - **Classes associated with failures**, ranking which classes appear most often in the weakest images
 - **Find similar**, on the worst-performing gallery, on a single image in its fullscreen view, and on a class row, which searches public datasets and your own and team datasets for images like the captured failures and adds the ones you select to the training dataset as unlabeled `train` images (see [Find Similar Images](../data/datasets.md#find-similar-images)); shown when you can edit the project and the training dataset is a non-connected dataset of the same workspace
@@ -220,7 +220,7 @@ flowchart TD
     F --> G
 ```
 
-Export your model to 22 deployment formats:
+[Export your model](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to 22 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -243,7 +243,7 @@ The Platform supports export to [22 deployment formats](../../modes/export.md#ex
 | ------------------ | ------------------- | -------------------------------------------------------------- |
 | **NVIDIA GPUs**    | TensorRT            | Select the same GPU family as the deployment device            |
 | **NVIDIA Jetson**  | TensorRT            | Select the intended target and check its validation status     |
-| **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs                                           |
+| **Intel Hardware** | OpenVINO            | CPUs, GPUs, and NPUs                                           |
 | **Apple Devices**  | CoreML or Core AI   | iOS, macOS, Apple Silicon                                      |
 | **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM            |
 | **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
@@ -389,7 +389,7 @@ Models can be linked to their source dataset:
 
 - View which dataset was used for training
 - Click the dataset card on the Overview tab to navigate to it
-- Track data lineage
+- Track [data lineage](https://www.ultralytics.com/glossary/data-provenance)
 
 When training with Platform datasets using the [`ul://` URI format](../data/datasets.md#dataset-uri), linking is automatic.
 
@@ -444,7 +444,7 @@ Remove a model you no longer need:
 
 ### What model architectures are supported?
 
-Ultralytics Platform fully supports all YOLO architectures with dedicated projects:
+Ultralytics Platform supports the following YOLO architectures, each with an official project:
 
 - [**YOLO26**](../../models/yolo26.md): n, s, m, l, x variants (latest, recommended) — [platform.ultralytics.com/ultralytics/yolo26](https://platform.ultralytics.com/ultralytics/yolo26)
 - [**YOLO11**](../../models/yolo11.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolo11](https://platform.ultralytics.com/ultralytics/yolo11)
@@ -475,7 +475,7 @@ Uploaded `.pt` model files are limited to 1 GB, and models near that limit may t
 ### How do I keep training a model with new images or classes?
 
 Add the new images to your dataset (and any new classes), then click **New Model** and pick your existing model from
-**My Models** in the training dialog as the starting point. This fine-tunes a new model from your checkpoint; it does
+**My Models** in the training dialog as the starting point. This [fine-tunes](https://www.ultralytics.com/glossary/fine-tuning) a new model from your checkpoint; it does
 not continue the old run, which stays unchanged. The class list can change: the new model reuses the features your
 model has already learned and learns the new classes during training. You can also start from any official YOLO26,
 YOLO11, YOLOv8 or YOLOv5 model, or from a `.pt` file you [uploaded](#upload-model).

@@ -72,6 +72,8 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
+# Hosts like upload.wikimedia.org reject the python-requests default User-Agent
+REQUEST_HEADERS = {"User-Agent": f"ultralytics/{__version__} (https://ultralytics.com)"}
 # Configurable Platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
 PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"

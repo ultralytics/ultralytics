@@ -22,7 +22,7 @@ import torch
 from PIL import Image, ImageOps
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, NUM_THREADS, ops
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, NUM_THREADS, REQUEST_HEADERS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
 
@@ -716,7 +716,7 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
             if str(im).lower().startswith(("https://", "http://")):  # requests: urllib pre-3.11 lacks 308 redirects
                 import requests  # scoped as slow import
 
-                im = BytesIO(requests.get(im, timeout=30).content)
+                im = BytesIO(requests.get(im, headers=REQUEST_HEADERS, timeout=30).content)
             im = Image.open(im)
             filename = im.filename
             im = ImageOps.exif_transpose(im)

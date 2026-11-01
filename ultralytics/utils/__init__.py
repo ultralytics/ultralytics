@@ -189,6 +189,7 @@ os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output
 
 # Centralized warning suppression
 warnings.filterwarnings("ignore", message="torch.distributed.reduce_op is deprecated")  # PyTorch deprecation
+warnings.filterwarnings("ignore", message="TRITON_DEFAULT_FP_FUSION is unset")  # torch 2.15 eager bmm, Triton 3.9
 warnings.filterwarnings("ignore", message="The figure layout has changed to tight")  # matplotlib>=3.7.2
 warnings.filterwarnings("ignore", category=FutureWarning, module="timm")  # mobileclip timm.layers deprecation
 warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings

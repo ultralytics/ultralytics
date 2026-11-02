@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.data.utils import get_split_fraction, read_mask
+from ultralytics.data.utils import get_hash, get_split_fraction, read_mask
 from ultralytics.utils import (
     ASSETS_URL,
     DATASETS_DIR,
@@ -998,6 +998,7 @@ async def _convert_ndjson_to_yolo(
                 if source_name != Path(source_name).name:
                     raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
                 r["url"] = (ndjson_path.parent / local_path / "images" / split / source_name).resolve()
+                _h.update(get_hash([r["url"]]).encode())
             # Preserve safe content hashes already present in the filename or URL while indexes prevent collisions.
             # Depth targets use the same stem, so image and target URLs follow the same output mechanics.
             suffix = source_name.rsplit(".", 1)[-1]

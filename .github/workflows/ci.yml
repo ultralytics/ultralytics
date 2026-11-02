@@ -656,7 +656,8 @@ jobs:
         timeout-minutes: 20
         # Solve python with the rest: a pre-created env keeps setuptools>=82, which current pytorch rejects (<82), so
         # conda falls back to pytorch 2.6.0 cpu_generic, whose oneDNN conv backward hangs pose training
-        run: conda install --yes python=${{ matrix.python }} pytorch-cpu torchvision ultralytics openvino
+        # mkl<2026.2: conda-forge mkl 2026.2.0 dropped libmkl_gf_lp64.so.3 (conda-forge/intel_repack-feedstock#145), aborting numpy on import (#26836)
+        run: conda install --yes python=${{ matrix.python }} pytorch-cpu torchvision ultralytics openvino "mkl<2026.2"
       - name: Install pip packages
         run: |
           VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")

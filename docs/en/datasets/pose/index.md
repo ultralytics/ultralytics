@@ -47,7 +47,7 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
     --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
     ```
 
-The `train`, `val`, and `test` fields point to the training, validation, and test images. Each accepts a directory, a list of directories, or a UTF-8 `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
+The `train`, `val`, and `test` fields point to the training, validation, and test images. Each accepts a directory, an image file, a list of directories or image files, or a UTF-8 `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file). A `*.txt` file is useful to train on a subset of a directory, skip unlabeled images, or combine images from multiple sources into one split.
 
 !!! example "Image paths as a `*.txt` file"
 
@@ -55,7 +55,7 @@ The `train`, `val`, and `test` fields point to the training, validation, and tes
 
         ```yaml
         path: datasets/coco8-pose # dataset root
-        train: train.txt # a directory, a list e.g. [images/a, images/b], or a *.txt file
+        train: train.txt # a directory, an image, a list e.g. [images/a, images/b], or a *.txt file
         val: val.txt
         kpt_shape: [17, 3] # required for pose datasets
         names:

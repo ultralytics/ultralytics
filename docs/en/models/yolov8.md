@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Discover Ultralytics YOLOv8, an advancement in real-time object detection, optimizing performance with an array of pretrained models for diverse tasks.
-keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer vision, advanced object detection, AI, machine learning, deep learning
+description: "Ultralytics YOLOv8 for detection, segmentation, classification, pose, and OBB: anchor-free head, pretrained weights, COCO benchmarks, and usage."
+keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer vision, instance segmentation, pose estimation, machine learning, deep learning
 ---
 
 # Explore Ultralytics YOLOv8
 
 ## Overview
 
-YOLOv8 was released by Ultralytics on January 10, 2023, offering cutting-edge performance in terms of accuracy and speed. Building upon the advancements of previous YOLO versions, YOLOv8 introduced new features and optimizations that make it an ideal choice for various [object detection](https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025) tasks in a wide range of applications.
+YOLOv8 was released by Ultralytics on January 10, 2023, offering improved accuracy and speed over previous YOLO versions. Building upon those versions, YOLOv8 introduced new features and optimizations that made it a strong choice for [object detection](https://www.ultralytics.com/glossary/object-detection) and other vision tasks across a wide range of applications. For new projects, Ultralytics recommends [YOLO26](yolo26.md).
 
 ![YOLOv8 performance comparison charts](https://cdn.ul.run/i/7dd03f050503e5700d4cf85d6ea7ae3f.avif)
 
@@ -29,16 +29,16 @@ YOLOv8 was released by Ultralytics on January 10, 2023, offering cutting-edge pe
 
 ## Key Features of YOLOv8
 
-- **Advanced Backbone and Neck Architectures:** YOLOv8 employs state-of-the-art backbone and neck architectures, resulting in improved [feature extraction](https://www.ultralytics.com/glossary/feature-extraction) and [object detection](https://www.ultralytics.com/glossary/object-detection) performance.
-- **Anchor-free Split Ultralytics Head:** YOLOv8 adopts an anchor-free split Ultralytics head, which contributes to better accuracy and a more efficient detection process compared to anchor-based approaches.
+- **Advanced Backbone and Neck Architectures:** YOLOv8 employs state-of-the-art [backbone](https://www.ultralytics.com/glossary/backbone) and neck architectures, resulting in improved [feature extraction](https://www.ultralytics.com/glossary/feature-extraction) and object detection performance.
+- **Anchor-free Split Ultralytics Head:** YOLOv8 adopts an [anchor-free](https://www.ultralytics.com/glossary/anchor-free-detectors) split Ultralytics head, which contributes to better accuracy and a more efficient detection process compared to anchor-based approaches.
 - **Optimized Accuracy-Speed Tradeoff:** With a focus on maintaining an optimal balance between accuracy and speed, YOLOv8 is suitable for real-time object detection tasks in diverse application areas.
 - **Variety of Pretrained Models:** YOLOv8 offers a range of pretrained models to cater to various tasks and performance requirements, making it easier to find the right model for your specific use case.
 
 ## Supported Tasks and Modes
 
-The YOLOv8 series offers a diverse range of models, each specialized for specific tasks in computer vision. These models are designed to cater to various requirements, from object detection to more complex tasks like [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), classification, pose/keypoints detection, and oriented object detection.
+The YOLOv8 series offers a diverse range of models, each specialized for specific tasks in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). These models are designed to cater to various requirements, from object detection to more complex tasks like [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), classification, pose/keypoints detection, and oriented object detection.
 
-Each variant of the YOLOv8 series is optimized for its respective task, ensuring high performance and accuracy. Additionally, these models are compatible with various operational modes including [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), facilitating their use in different stages of deployment and development.
+Each variant of the YOLOv8 series is optimized for its respective task. All variants support the [Training](../modes/train.md), [Validation](../modes/val.md), [Inference](../modes/predict.md), and [Export](../modes/export.md) modes, covering every stage from development to deployment.
 
 | Model       | Filenames                                                                                                      | Task                                         | Training | Validation | Inference | Export |
 | ----------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
@@ -48,7 +48,7 @@ Each variant of the YOLOv8 series is optimized for its respective task, ensuring
 | YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [Pose/Keypoints](../tasks/pose.md)           | ✅       | ✅         | ✅        | ✅     |
 | YOLOv8-obb  | `yolov8n-obb.pt` `yolov8s-obb.pt` `yolov8m-obb.pt` `yolov8l-obb.pt` `yolov8x-obb.pt`                           | [Oriented Detection](../tasks/obb.md)        | ✅       | ✅         | ✅        | ✅     |
 
-This table provides an overview of the YOLOv8 model variants, highlighting their applicability in specific tasks and their compatibility with various operational modes such as Inference, Validation, Training, and Export. It showcases the versatility and robustness of the YOLOv8 series, making them suitable for a variety of applications in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
+This table summarizes the YOLOv8 model variants, the task each one performs, and their support for the Training, Validation, Inference, and Export modes.
 
 ## Performance Metrics
 
@@ -60,37 +60,37 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
 
-        | Model                                                                  | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ---------------------------------------------------------------------- | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLOv8n](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n) | 640                         | 37.3                       | **80.4**                             | **0.99**                                  | **3.2**                  | **8.7**                 |
-        | [YOLOv8s](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s) | 640                         | 44.9                       | 128.4                                | 1.20                                      | 11.2                     | 28.6                    |
-        | [YOLOv8m](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m) | 640                         | 50.2                       | 234.7                                | 1.83                                      | 25.9                     | 78.9                    |
-        | [YOLOv8l](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l) | 640                         | 52.9                       | 375.2                                | 2.39                                      | 43.7                     | 165.1                   |
-        | [YOLOv8x](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x) | 640                         | **53.9**                   | 479.1                                | 3.53                                      | 68.2                     | 257.8                   |
+        | Model                                                                  | size<br><sup>(pixels)</sup> | mAP<sup>val</sup><sub>50-95</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ---------------------------------------------------------------------- | --------------------------- | --------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+        | [YOLOv8n](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n) | 640                         | 37.3                              | **80.4**                             | **0.99**                                  | **3.2**                  | **8.7**                 |
+        | [YOLOv8s](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s) | 640                         | 44.9                              | 128.4                                | 1.20                                      | 11.2                     | 28.6                    |
+        | [YOLOv8m](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m) | 640                         | 50.2                              | 234.7                                | 1.83                                      | 25.9                     | 78.9                    |
+        | [YOLOv8l](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l) | 640                         | 52.9                              | 375.2                                | 2.39                                      | 43.7                     | 165.1                   |
+        | [YOLOv8x](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x) | 640                         | **53.9**                          | 479.1                                | 3.53                                      | 68.2                     | 257.8                   |
 
     === "Detection (Open Images V7)"
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [Open Images V7](../datasets/detect/open-images-v7.md), which include 600 pretrained classes.
 
-        | Model                                                          | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | -------------------------------------------------------------- | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLOv8n](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 18.4                       | **142.4**                            | **1.21**                                  | **3.5**                  | **10.4**                |
-        | [YOLOv8s](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 27.7                       | 183.1                                | 1.40                                      | 11.4                     | 29.7                    |
-        | [YOLOv8m](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 33.6                       | 408.5                                | 2.26                                      | 26.2                     | 80.6                    |
-        | [YOLOv8l](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | 34.9                       | 596.9                                | 2.43                                      | 44.1                     | 167.4                   |
-        | [YOLOv8x](https://platform.ultralytics.com/ultralytics/yolov8) | 640                         | **36.3**                   | 860.6                                | 3.56                                      | 68.7                     | 260.6                   |
+        | Model                                                                                     | size<br><sup>(pixels)</sup> | mAP<sup>val</sup><sub>50-95</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ----------------------------------------------------------------------------------------- | --------------------------- | --------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+        | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8n-oiv7.pt) | 640                         | 18.4                              | **142.4**                            | **1.21**                                  | **3.5**                  | **10.4**                |
+        | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8s-oiv7.pt) | 640                         | 27.7                              | 183.1                                | 1.40                                      | 11.4                     | 29.7                    |
+        | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8m-oiv7.pt) | 640                         | 33.6                              | 408.5                                | 2.26                                      | 26.2                     | 80.6                    |
+        | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8l-oiv7.pt) | 640                         | 34.9                              | 596.9                                | 2.43                                      | 44.1                     | 167.4                   |
+        | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8x-oiv7.pt) | 640                         | **36.3**                          | 860.6                                | 3.56                                      | 68.7                     | 260.6                   |
 
     === "Segmentation (COCO)"
 
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | -------------------------- | --------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLOv8n-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n-seg) | 640                         | 36.7                       | 30.5                        | **96.1**                             | **1.21**                                  | **3.4**                  | **12.0**                |
-        | [YOLOv8s-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s-seg) | 640                         | 44.6                       | 36.8                        | 155.7                                | 1.47                                      | 11.8                     | 40.1                    |
-        | [YOLOv8m-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m-seg) | 640                         | 49.9                       | 40.8                        | 317.0                                | 2.18                                      | 27.3                     | 104.5                   |
-        | [YOLOv8l-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l-seg) | 640                         | 52.3                       | 42.6                        | 572.4                                | 2.79                                      | 46.0                     | 210.4                   |
-        | [YOLOv8x-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x-seg) | 640                         | **53.4**                   | **43.4**                    | 712.1                                | 4.02                                      | 71.8                     | 328.4                   |
+        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>box</sup><sub>50-95</sub> | mAP<sup>mask</sup><sub>50-95</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------------------------------------------------------------------------------ | --------------------------- | --------------------------------- | ---------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+        | [YOLOv8n-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n-seg) | 640                         | 36.7                              | 30.5                               | **96.1**                             | **1.21**                                  | **3.4**                  | **12.0**                |
+        | [YOLOv8s-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s-seg) | 640                         | 44.6                              | 36.8                               | 155.7                                | 1.47                                      | 11.8                     | 40.1                    |
+        | [YOLOv8m-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m-seg) | 640                         | 49.9                              | 40.8                               | 317.0                                | 2.18                                      | 27.3                     | 104.5                   |
+        | [YOLOv8l-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l-seg) | 640                         | 52.3                              | 42.6                               | 572.4                                | 2.79                                      | 46.0                     | 210.4                   |
+        | [YOLOv8x-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x-seg) | 640                         | **53.4**                          | **43.4**                           | 712.1                                | 4.02                                      | 71.8                     | 328.4                   |
 
     === "Classification (ImageNet)"
 
@@ -108,30 +108,30 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pretrained class, 'person'.
 
-        | Model                                                                            | size<br><sup>(pixels)</sup> | mAP<sup>pose<br>50-95</sup> | mAP<sup>pose<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | -------------------------------------------------------------------------------- | --------------------------- | --------------------------- | ------------------------ | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLOv8n-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n-pose) | 640                         | 50.4                        | 80.1                     | **131.8**                            | **1.18**                                  | **3.3**                  | **9.2**                 |
-        | [YOLOv8s-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s-pose) | 640                         | 60.0                        | 86.2                     | 233.2                                | 1.42                                      | 11.6                     | 30.2                    |
-        | [YOLOv8m-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m-pose) | 640                         | 65.0                        | 88.8                     | 456.3                                | 2.00                                      | 26.4                     | 81.0                    |
-        | [YOLOv8l-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l-pose) | 640                         | 67.6                        | 90.0                     | 784.5                                | 2.59                                      | 44.5                     | 168.5                   |
-        | [YOLOv8x-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x-pose) | 640                         | 69.2                        | 90.2                     | 1607.1                               | 3.73                                      | 69.5                     | 263.2                   |
-        | [YOLOv8x-pose-p6](https://platform.ultralytics.com/ultralytics/yolov8)           | 1280                        | **71.6**                    | **91.2**                 | 4088.7                               | 10.04                                     | 99.1                     | 1066.4                  |
+        | Model                                                                                                | size<br><sup>(pixels)</sup> | mAP<sup>pose</sup><sub>50-95</sub> | mAP<sup>pose</sup><sub>50</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ---------------------------------------------------------------------------------------------------- | --------------------------- | ---------------------------------- | ------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+        | [YOLOv8n-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n-pose)                     | 640                         | 50.4                               | 80.1                            | **131.8**                            | **1.18**                                  | **3.3**                  | **9.2**                 |
+        | [YOLOv8s-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s-pose)                     | 640                         | 60.0                               | 86.2                            | 233.2                                | 1.42                                      | 11.6                     | 30.2                    |
+        | [YOLOv8m-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m-pose)                     | 640                         | 65.0                               | 88.8                            | 456.3                                | 2.00                                      | 26.4                     | 81.0                    |
+        | [YOLOv8l-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l-pose)                     | 640                         | 67.6                               | 90.0                            | 784.5                                | 2.59                                      | 44.5                     | 168.5                   |
+        | [YOLOv8x-pose](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x-pose)                     | 640                         | 69.2                               | 90.2                            | 1607.1                               | 3.73                                      | 69.5                     | 263.2                   |
+        | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8x-pose-p6.pt) | 1280                        | **71.6**                           | **91.2**                        | 4088.7                               | 10.04                                     | 99.1                     | 1066.4                  |
 
     === "OBB (DOTAv1)"
 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pretrained classes.
 
-        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>test<br>50</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        | ------------------------------------------------------------------------------ | --------------------------- | ------------------------ | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | [YOLOv8n-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n-obb) | 1024                        | 78.0                     | **204.77**                           | **3.57**                                  | **3.1**                  | **21.4**                |
-        | [YOLOv8s-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s-obb) | 1024                        | 79.5                     | 424.88                               | 4.07                                      | 11.4                     | 75.4                    |
-        | [YOLOv8m-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m-obb) | 1024                        | 80.5                     | 763.48                               | 7.61                                      | 26.4                     | 207.0                   |
-        | [YOLOv8l-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l-obb) | 1024                        | 80.7                     | 1278.42                              | 11.83                                     | 44.5                     | 431.5                   |
-        | [YOLOv8x-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x-obb) | 1024                        | **81.36**                | 1759.10                              | 13.23                                     | 69.5                     | 673.8                   |
+        | Model                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>test</sup><sub>50</sub> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------------------------------------------------------------------------------ | --------------------------- | ------------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+        | [YOLOv8n-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n-obb) | 1024                        | 78.0                            | **204.77**                           | **3.57**                                  | **3.1**                  | **21.4**                |
+        | [YOLOv8s-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s-obb) | 1024                        | 79.5                            | 424.88                               | 4.07                                      | 11.4                     | 75.4                    |
+        | [YOLOv8m-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m-obb) | 1024                        | 80.5                            | 763.48                               | 7.61                                      | 26.4                     | 207.0                   |
+        | [YOLOv8l-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l-obb) | 1024                        | 80.7                            | 1278.42                              | 11.83                                     | 44.5                     | 431.5                   |
+        | [YOLOv8x-obb](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x-obb) | 1024                        | **81.36**                       | 1759.10                              | 13.23                                     | 69.5                     | 673.8                   |
 
 ## YOLOv8 Usage Examples
 
-This example provides simple YOLOv8 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv8 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for object detection. For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) docs.
 
@@ -193,25 +193,25 @@ If you use the YOLOv8 model or any other software from this repository in your w
         }
         ```
 
-Please note that the DOI is pending and will be added to the citation once it is available. YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
+YOLOv8 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
 
 ## FAQ
 
 ### What is YOLOv8 and how does it differ from previous YOLO versions?
 
-YOLOv8 is designed to improve real-time object detection performance with advanced features. Unlike earlier versions, YOLOv8 incorporates an **anchor-free split Ultralytics head**, state-of-the-art [backbone](https://www.ultralytics.com/glossary/backbone) and neck architectures, and offers optimized [accuracy](https://www.ultralytics.com/glossary/accuracy)-speed tradeoff, making it ideal for diverse applications. For more details, check the [Overview](#overview) and [Key Features](#key-features-of-yolov8) sections.
+YOLOv8 is designed to improve real-time object detection performance. Unlike earlier versions, YOLOv8 incorporates an **anchor-free split Ultralytics head** and [state-of-the-art backbone and neck architectures](#key-features-of-yolov8), and offers an optimized [accuracy](https://www.ultralytics.com/glossary/accuracy)-speed tradeoff for diverse applications.
 
 ### How can I use YOLOv8 for different computer vision tasks?
 
-YOLOv8 supports a wide range of computer vision tasks, including object detection, instance segmentation, classification, pose/keypoints detection, and oriented object detection. Each model variant is optimized for its specific task and compatible with various operational modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section for more information.
+YOLOv8 supports a wide range of computer vision [tasks](#supported-tasks-and-modes), including object detection, instance segmentation, classification, pose/keypoints detection, and oriented object detection. Each model variant is optimized for its specific task and supports the [Training](../modes/train.md), [Validation](../modes/val.md), [Inference](../modes/predict.md), and [Export](../modes/export.md) modes.
 
 ### What are the performance metrics for YOLOv8 models?
 
-YOLOv8 models achieve state-of-the-art performance across various benchmarking datasets. For instance, the YOLOv8n model achieves a mAP (mean Average Precision) of 37.3 on the COCO dataset and a speed of 0.99 ms on A100 TensorRT. Detailed performance metrics for each model variant across different tasks and datasets can be found in the [Performance Metrics](#performance-metrics) section.
+YOLOv8 models achieved state-of-the-art performance on several benchmark datasets at release. For instance, the YOLOv8n model achieves a [mean Average Precision (mAP)](https://www.ultralytics.com/glossary/mean-average-precision-map) of 37.3 on the COCO dataset and a speed of 0.99 ms on A100 TensorRT. Detailed performance metrics for each model variant across different tasks and datasets can be found in the [Performance Metrics](#performance-metrics) section.
 
 ### How do I train a YOLOv8 model?
 
-Training a YOLOv8 model can be done using either Python or CLI. Below are examples for training a model using a COCO-pretrained YOLOv8 model on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch):
+You can train a YOLOv8 model with either Python or the CLI. Below are examples for training a COCO-pretrained YOLOv8n model on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch):
 
 !!! example
 
@@ -237,7 +237,7 @@ For further details, visit the [Training](../modes/train.md) documentation.
 
 ### Can I benchmark YOLOv8 models for performance?
 
-Yes, YOLOv8 models can be benchmarked for performance in terms of speed and accuracy across various export formats. You can use PyTorch, ONNX, TensorRT, and more for benchmarking. Below are example commands for benchmarking using Python and CLI:
+Yes, YOLOv8 models can be [benchmarked](../modes/benchmark.md) for speed and accuracy across export formats such as PyTorch, ONNX, and TensorRT. Below are example commands for benchmarking using Python and CLI:
 
 !!! example
 

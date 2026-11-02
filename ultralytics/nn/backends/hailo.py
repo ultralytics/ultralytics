@@ -42,7 +42,7 @@ class HailoBackend(BaseBackend):
         except ImportError as e:
             raise ImportError(
                 "Hailo inference requires HailoRT. "
-                "See https://docs.ultralytics.com/integrations/hailo#run-hailo-inference"
+                "See https://docs.ultralytics.com/integrations/hailo#run-inference-on-hailo-hardware"
             ) from e
 
         w = Path(weight)

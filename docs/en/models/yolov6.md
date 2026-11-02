@@ -1,15 +1,15 @@
 ---
 title: Meituan YOLOv6 Detector
 comments: true
-description: Explore Meituan YOLOv6, a top-tier object detector balancing speed and accuracy. Learn about its unique features and performance metrics on Ultralytics Docs.
-keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, Anchor-Aided Training, COCO dataset, high-performance models, Ultralytics Docs
+description: "Meituan YOLOv6 real-time object detector: BiC module, anchor-aided training, self-distillation, COCO speed-accuracy results, and Ultralytics usage."
+keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, Anchor-Aided Training, COCO dataset, self-distillation, Ultralytics
 ---
 
 # Meituan YOLOv6
 
 ## Overview
 
-[Meituan](https://www.meituan.com/) YOLOv6, released in 2022, offers a strong balance between speed and accuracy, making it a popular choice for real-time applications. This model introduces several notable enhancements on its architecture and training scheme, including the implementation of a Bi-directional Concatenation (BiC) module, an anchor-aided training (AAT) strategy, and an improved [backbone](https://www.ultralytics.com/glossary/backbone) and neck design for high accuracy on the [COCO dataset](../datasets/detect/coco.md).
+[Meituan](https://www.meituan.com/) YOLOv6, released in 2022, is an [object detection](https://www.ultralytics.com/glossary/object-detection) model that offers a strong balance between speed and accuracy, making it a popular choice for real-time applications. This model introduces several notable enhancements on its architecture and training scheme, including the implementation of a Bi-directional Concatenation (BiC) module, an anchor-aided training (AAT) strategy, and an improved [backbone](https://www.ultralytics.com/glossary/backbone) and neck design for high accuracy on the [COCO dataset](../datasets/detect/coco.md).
 
 ![YOLOv6 real-time object detection model by Meituan](https://cdn.ul.run/i/da2de9a2aa3add9df7e3de608be132a6.avif)
 ![YOLOv6 model architecture diagram](https://cdn.ul.run/i/0624abd59dc7a41f6829b665b73de6e8.avif) **Overview of YOLOv6.** Model architecture diagram showing the redesigned network components and training strategies that have led to significant performance improvements. (a) The neck of YOLOv6 (N and S are shown). Note for M/L, RepBlocks is replaced with CSPStackRep. (b) The structure of a BiC module. (c) A SimCSPSPPF block. ([source](https://arxiv.org/pdf/2301.05586)).
@@ -17,9 +17,9 @@ keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, 
 ### Key Features
 
 - **Bidirectional Concatenation (BiC) Module:** YOLOv6 introduces a BiC module in the neck of the detector, enhancing localization signals and delivering performance gains with negligible speed degradation.
-- **Anchor-Aided Training (AAT) Strategy:** This model proposes AAT to enjoy the benefits of both [anchor-based](https://www.ultralytics.com/glossary/anchor-based-detectors) and [anchor-free](https://www.ultralytics.com/glossary/anchor-free-detectors) paradigms without compromising inference efficiency.
+- **Anchor-Aided Training (AAT) Strategy:** AAT combines the benefits of both [anchor-based](https://www.ultralytics.com/glossary/anchor-based-detectors) and [anchor-free](https://www.ultralytics.com/glossary/anchor-free-detectors) paradigms without compromising inference efficiency.
 - **Enhanced Backbone and Neck Design:** By deepening YOLOv6 to include another stage in the backbone and neck, this model achieved strong performance on the COCO dataset at high-resolution input when released.
-- **Self-Distillation Strategy:** A new self-distillation strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline.
+- **Self-Distillation Strategy:** A new [self-distillation](https://www.ultralytics.com/glossary/knowledge-distillation) strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline.
 
 ## Performance Metrics
 
@@ -33,11 +33,11 @@ YOLOv6 provides various pretrained models with different scales:
 - YOLOv6-L: 52.8% AP at 116 FPS.
 - YOLOv6-L6: State-of-the-art accuracy in real-time.
 
-YOLOv6 also provides quantized models for different [precisions](https://www.ultralytics.com/glossary/precision) and models optimized for mobile platforms.
+YOLOv6 also provides [quantized](https://www.ultralytics.com/glossary/model-quantization) models at different numerical precisions and models optimized for mobile platforms.
 
 ## Usage Examples
 
-This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv6 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 !!! example
 
@@ -75,7 +75,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
 
 ## Supported Tasks and Modes
 
-The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and [accuracy](https://www.ultralytics.com/glossary/accuracy) requirements, making them versatile for a wide array of applications.
+The YOLOv6 series offers a range of models, each optimized for [object detection](../tasks/detect.md), covering a range of computational budgets and [accuracy](https://www.ultralytics.com/glossary/accuracy) requirements.
 
 | Model    | Filenames      | Tasks                                  | Training | Validation | Inference | Export |
 | -------- | -------------- | -------------------------------------- | -------- | ---------- | --------- | ------ |
@@ -85,7 +85,7 @@ The YOLOv6 series offers a range of models, each optimized for high-performance 
 | YOLOv6-L | `yolov6l.yaml` | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 | YOLOv6-X | `yolov6x.yaml` | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 
-This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in [object detection](https://www.ultralytics.com/glossary/object-detection) tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
+This table summarizes the YOLOv6 model variants and their support for the Training, Validation, Inference, and Export modes. Ultralytics provides YOLOv6 model YAMLs only, so models are trained from scratch.
 
 ## Citations and Acknowledgments
 
@@ -162,4 +162,4 @@ Anchor-Aided Training (AAT) in YOLOv6 combines elements of anchor-based and anch
 
 ### Which operational modes are supported by YOLOv6 models in Ultralytics?
 
-YOLOv6 supports various operational modes including Inference, Validation, Training, and Export. This flexibility allows users to fully exploit the model's capabilities in different scenarios. Check out the [Supported Tasks and Modes](#supported-tasks-and-modes) section for a detailed overview of each mode.
+YOLOv6 supports the Training, Validation, Inference, and Export [modes](#supported-tasks-and-modes).

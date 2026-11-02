@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Harness the power of Ultralytics YOLO26 for real-time, high-speed inference on various data sources. Learn about predict mode, key features, and practical applications.
-keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-time inference, computer vision, machine learning, streaming, high performance
+description: Run Ultralytics YOLO26 inference on images, videos, streams, and webcams with predict mode, and learn its sources, arguments, Results objects, and plotting.
+keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-time inference, computer vision, machine learning, streaming, Results object
 ---
 
 # Model Prediction with Ultralytics YOLO
@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-t
 
 ## Introduction
 
-In the world of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), the process of making sense of visual data is often called inference or prediction. Ultralytics YOLO26 offers a powerful feature known as **predict mode**, tailored for high-performance, real-time inference across a wide range of data sources.
+In [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), making sense of visual data with a trained model is called inference or prediction. Ultralytics YOLO26 **predict mode** runs fast, [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) across a wide range of data sources.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for planned inference examples.
 
@@ -34,9 +34,9 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for plan
 
 ## Why Use Ultralytics YOLO for Inference?
 
-Here's why you should consider YOLO26's predict mode for your various inference needs:
+Key reasons to use YOLO26's predict mode:
 
-- **Versatility:** Capable of running inference on images, videos, and even live streams.
+- **Versatility:** Run inference on images, videos, and live streams.
 - **Performance:** Engineered for real-time, high-speed processing without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy).
 - **Ease of Use:** Intuitive Python and CLI interfaces for rapid deployment and testing.
 - **Highly Customizable:** Various settings and parameters to tune the model's inference behavior according to your specific requirements.
@@ -44,12 +44,12 @@ Here's why you should consider YOLO26's predict mode for your various inference 
 
 ### Key Features of Predict Mode
 
-YOLO26's predict mode is designed to be robust and versatile, featuring:
+YOLO26's predict mode includes:
 
-- **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
+- **Multiple Data Source Compatibility:** Predict mode accepts individual images, collections of images, video files, and real-time video streams.
 - **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method. Unlike the default behavior (`stream=False`), which returns a list containing all results, `stream=True` yields results one at a time, making it especially useful for long videos and live streams.
-- **Batch Processing:** Process multiple images or video frames in a single batch, further reducing total inference time.
-- **Integration Friendly:** Easily integrate with existing data pipelines and other software components, thanks to its flexible API.
+- **Batch Processing:** Process multiple images or video frames in a [single batch](https://www.ultralytics.com/blog/using-ultralytics-yolo11-to-run-batch-inferences), further reducing total inference time.
+- **Integration Friendly:** Integrate with existing data pipelines and other software components through a flexible API.
 
 Ultralytics YOLO models return either a Python list of `Results` objects or a memory-efficient generator of `Results` objects when `stream=True` is passed to the model during inference:
 
@@ -111,7 +111,7 @@ YOLO26 can process different types of input sources for inference, as shown in t
 | ----------------------------------------------------- | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------------- |
 | image                                                 | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                           |
 | URL                                                   | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                             |
-| screenshot                                            | `'screen'`                                 | `str`           | Capture a screenshot.                                                                        |
+| screenshot ✅                                         | `'screen'`                                 | `str`           | Capture the screen continuously until stopped.                                               |
 | PIL                                                   | `Image.open('image.jpg')`                  | `PIL.Image`     | HWC format with RGB channels.                                                                |
 | [OpenCV](https://www.ultralytics.com/glossary/opencv) | `cv2.imread('image.jpg')`                  | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                                |
 | NumPy                                                 | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                                |
@@ -131,7 +131,7 @@ Below are code examples for using each source type:
 
     === "image"
 
-        Run inference on an image file.
+        [Run inference on an image file](https://academy.ultralytics.com/courses/train-your-first-yolo/predict-on-image).
         ```python
         from ultralytics import YOLO
 
@@ -147,18 +147,18 @@ Below are code examples for using each source type:
 
     === "screenshot"
 
-        Run inference on the current screen content as a screenshot.
+        Run inference on the screen. This source captures continuously until stopped, so use `stream=True` to get a generator of results.
         ```python
         from ultralytics import YOLO
 
         # Load a pretrained YOLO26n model
         model = YOLO("yolo26n.pt")
 
-        # Define current screenshot as source
+        # Define the screen as source
         source = "screen"
 
         # Run inference on the source
-        results = model(source)  # list of Results objects
+        results = model(source, stream=True)  # generator of Results objects
         ```
 
     === "URL"
@@ -895,7 +895,7 @@ The `plot()` method supports various arguments to customize the output:
 
 ## Thread-Safe Inference
 
-Ensuring thread safety during inference is crucial when you are running multiple YOLO models in parallel across different threads. Thread-safe inference guarantees that each thread's predictions are isolated and do not interfere with one another, avoiding race conditions and ensuring consistent and reliable outputs.
+Ensuring [thread safety during inference](../guides/yolo-thread-safe-inference.md) is crucial when you are running multiple YOLO models in parallel across different threads. Thread-safe inference guarantees that each thread's predictions are isolated and do not interfere with one another, avoiding race conditions and ensuring consistent and reliable outputs.
 
 When using YOLO models in a multi-threaded application, it's important to instantiate separate model objects for each thread or employ thread-local storage to prevent conflicts:
 
@@ -919,8 +919,6 @@ When using YOLO models in a multi-threaded application, it's important to instan
     Thread(target=thread_safe_predict, args=("yolo26n.pt", "image1.jpg")).start()
     Thread(target=thread_safe_predict, args=("yolo26n.pt", "image2.jpg")).start()
     ```
-
-For an in-depth look at thread-safe inference with YOLO models and step-by-step instructions, please refer to our [YOLO Thread-Safe Inference Guide](../guides/yolo-thread-safe-inference.md). This guide will provide you with all the necessary information to avoid common pitfalls and ensure that your multi-threaded inference runs smoothly.
 
 ## Streaming Source `for`-loop
 
@@ -977,7 +975,7 @@ Ready to move past a pretrained model? [Confirm your task fits your problem](../
 
 ### What is Ultralytics YOLO and its predict mode for real-time inference?
 
-Ultralytics YOLO is a state-of-the-art model for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box (OBB) detection](../tasks/obb.md). Its **predict mode** allows users to perform high-speed inference on various data sources such as images, videos, and live streams. Designed for performance and versatility, it also offers batch processing and streaming modes. For more details on its features, check out the [Ultralytics YOLO predict mode](#key-features-of-predict-mode).
+Ultralytics YOLO is a family of state-of-the-art models for real-time [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box (OBB) detection](../tasks/obb.md). Its [**predict mode**](#key-features-of-predict-mode) runs high-speed inference on data sources such as images, videos, and live streams, with batch processing and streaming support.
 
 ### How can I run inference using Ultralytics YOLO on different data sources?
 

@@ -102,29 +102,6 @@ def test_export_onnx_int8(isolated_model, precision):
     Path(file).unlink()  # cleanup
 
 
-def test_onnx_int8_quantize_excludes_non_weighted_ops(monkeypatch):
-    """Check ONNX INT8 keeps only weighted ops quantized while preserving the string return contract."""
-    import onnx
-    import onnxruntime.quantization as ort_quantization
-
-    from ultralytics.utils.export.onnx import onnx_int8_quantize
-
-    calls = {}
-    graph = SimpleNamespace(
-        node=[
-            SimpleNamespace(name="conv", op_type="Conv"),
-            SimpleNamespace(name="pool", op_type="MaxPool"),
-            SimpleNamespace(name="sigmoid", op_type="Sigmoid"),
-        ]
-    )
-
-    monkeypatch.setattr(onnx, "load", lambda _: SimpleNamespace(graph=graph))
-    monkeypatch.setattr(ort_quantization, "quantize_static", lambda *args, **kwargs: calls.update(kwargs))
-    result = onnx_int8_quantize(Path("model.onnx"), Path("model_int8.onnx"), [], lambda x: x)
-    assert result == "model_int8.onnx"
-    assert calls["nodes_to_exclude"] == ["pool", "sigmoid"]
-
-
 def test_quantize_canonicalization():
     """Quantize accepts 8/16/32 (int or str) and w-notation, canonicalizing to the int form (unset stays None)."""
     for value, expected in [

@@ -1,21 +1,21 @@
 ---
 title: YOLO26 on Intel DL Streamer & OpenVINO
 comments: true
-description: Learn how to deploy Ultralytics YOLO26 on Intel Core Ultra Series 3 platforms using DL Streamer Pipeline Framework and OpenVINO™ for optimized inference.
+description: Deploy Ultralytics YOLO26 on Intel Core Ultra Series 3 with the DL Streamer Pipeline Framework and OpenVINO™ for GStreamer video analytics on CPU, GPU, and NPU.
 keywords: Ultralytics, YOLO26, Intel, Intel Core Ultra, DL Streamer, OpenVINO, deep learning, inference, computer vision, GStreamer
 ---
 
 # Ultralytics YOLO26 on Intel Core Ultra Series 3 using DL Streamer Pipeline Framework and OpenVINO™
 
-This comprehensive guide provides a detailed walkthrough for deploying [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26) on Intel Core Ultra Series 3 platforms using [DL Streamer Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) and [OpenVINO™ toolkit](https://docs.openvino.ai/). Here we use OpenVINO™ to maximize inference performance on Intel CPUs, integrated and discrete GPUs, and NPUs.
+This guide walks through deploying [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26) on Intel Core Ultra Series 3 platforms using [DL Streamer Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) and [OpenVINO™ toolkit](https://docs.openvino.ai/). Here we use OpenVINO™ to maximize inference performance on Intel CPUs, integrated and discrete GPUs, and NPUs.
 
-<img src="https://cdn.ul.run/i/442cc1f69a8581156d521e16cc671e9e.avif" alt="Intel DL Streamer">
+<img src="https://cdn.ul.run/i/442cc1f69a8581156d521e16cc671e9e.avif" alt="Intel DL Streamer Pipeline Framework with Ultralytics YOLO26">
 
 **Contents:** [What is Intel DL Streamer?](#what-is-intel-dl-streamer) • [Prerequisites](#prerequisites) • [YOLO26 Model Preparation](#yolo26-model-preparation) • [Running Inference with YOLO26](#running-inference-with-yolo26) • [Multi-Stream Setup](#multi-stream-setup) • [FAQ](#faq)
 
 ## What is Intel DL Streamer?
 
-[Deep Learning Streamer (DL Streamer) Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) is an open-source streaming media analytics framework based on the [GStreamer](https://github.com/GStreamer/gstreamer) multimedia framework, designed for creating complex media analytics pipelines for the Cloud or at the Edge.
+[Deep Learning Streamer (DL Streamer) Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) is an open-source streaming media analytics framework based on the [GStreamer](https://github.com/GStreamer/gstreamer) multimedia framework, designed for creating complex media analytics pipelines in the cloud or at the [edge](https://www.ultralytics.com/glossary/edge-ai).
 
 DL Streamer enables analysis of audio and video streams to detect, classify, track, identify, and count objects, events, and people. It is optimized for Intel hardware and provides interoperability between GStreamer plugins built on various backend libraries:
 
@@ -27,21 +27,21 @@ DL Streamer enables analysis of audio and video streams to detect, classify, tra
 
 DL Streamer supports many AI models including the full Ultralytics YOLO family (YOLOv5 through YOLO26) all in OpenVINO™ format.
 
-DL Streamer is being regularly validated with systems provided on [System Requirements — Open Edge Platform Documentation](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/system_requirements.html)
+DL Streamer is regularly validated on the systems listed in the [DL Streamer system requirements](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/system_requirements.html).
 
 ## Prerequisites
 
 Before you begin, ensure the following are installed and configured on your Intel system:
 
-- **Ubuntu 24.04** with Intel GPU/NPU drivers installed (check [installation guide](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/install/install_guide_ubuntu.html))
+- **Ubuntu 24.04** with [Intel GPU/NPU drivers](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/install/install_guide_ubuntu.html) installed
 
-- **docker engine** (check [installation guide](https://docs.docker.com/engine/install/ubuntu/))
+- **[Docker Engine](https://docs.docker.com/engine/install/ubuntu/)**
 
 ## YOLO26 Model Preparation
 
-DL Streamer uses models in [OpenVINO™ IR format](https://docs.openvino.ai/2026/documentation/openvino-ir-format.html). Ultralytics YOLO26 models are exported from PyTorch to OpenVINO™ IR using the Ultralytics exporter. DL Streamer leverages the official [Ultralytics OpenVINO™ integration](https://docs.ultralytics.com/integrations/openvino), which provides optimized export and inference capabilities for Intel hardware.
+DL Streamer uses models in [OpenVINO™ IR format](https://docs.openvino.ai/2026/documentation/openvino-ir-format.html). Ultralytics YOLO26 models are exported from PyTorch to OpenVINO™ IR using the Ultralytics exporter. DL Streamer uses the official [Ultralytics OpenVINO™ integration](../integrations/openvino.md), which provides optimized export and inference capabilities for Intel hardware.
 
-1.  Create `~/intel/dlstreamer_demo` folder and install OpenVINO™ and Ultralytics in virtual environment
+1.  Create the `~/intel/dlstreamer_demo` folder and install OpenVINO™ and Ultralytics in a virtual environment
 
 ```bash
 mkdir -p ~/intel/dlstreamer_demo && cd ~/intel/dlstreamer_demo
@@ -49,7 +49,7 @@ python3 -m venv .dls-venv && source .dls-venv/bin/activate
 pip install openvino==2026.2.0 ultralytics==8.4.92
 ```
 
-2.  Download the PyTorch YOLO26s model from Ultralytics, convert it to OpenVINO™ IR format, and generate an INT8 precision variant.
+2.  Download the PyTorch [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s) model from Ultralytics, convert it to OpenVINO™ IR format, and generate an INT8 precision variant.
 
 ```bash
 yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml
@@ -76,14 +76,13 @@ The examples below use the INT8 model exported in the [preparation step](#yolo26
 
 ## Running Inference with YOLO26
 
-Before running DL Streamer YOLO26 inference detection pipeline, run the DL Streamer Docker image in interactive mode.
-Make sure you followed [YOLO26 Model Preparation](#yolo26-model-preparation) step and download the following video file from Pexels database.
+Before running the DL Streamer YOLO26 detection pipeline, complete the [YOLO26 Model Preparation](#yolo26-model-preparation) step and download the following sample video from Pexels.
 
 ```bash
 curl -L https://videos.pexels.com/video-files/1192116/1192116-sd_640_360_30fps.mp4 --output ~/intel/dlstreamer_demo/video1.mp4
 ```
 
-Run DL Streamer docker image in the interactive mode.
+Then run the DL Streamer Docker image in interactive mode.
 
 !!! note
 
@@ -106,7 +105,7 @@ docker run -it --rm \
 
 ### INT8 Precision (Maximum Performance)
 
-INT8 quantization delivers the highest throughput by reducing model weights to 8-bit integers. The Ultralytics exporter handles calibration automatically.
+INT8 [quantization](https://www.ultralytics.com/glossary/model-quantization) delivers the highest throughput by reducing model weights to 8-bit integers. The Ultralytics exporter handles calibration automatically.
 
 ### Run YOLO26s with INT8 on GPU
 
@@ -114,7 +113,7 @@ INT8 quantization delivers the highest throughput by reducing model weights to 8
 gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=GPU ! queue ! vapostproc ! gvawatermark ! gvafpscounter ! autovideosink sync=false
 ```
 
-<img src="https://cdn.ul.run/i/5bbfdc15b1ea8aa2ee9879db25573123.avif" alt="Intel DL Streamer GPU">
+<img src="https://cdn.ul.run/i/5bbfdc15b1ea8aa2ee9879db25573123.avif" alt="YOLO26s INT8 detections in a DL Streamer pipeline on an Intel GPU">
 
 ### Run YOLO26s with INT8 on GPU and save the output to a video file
 
@@ -128,7 +127,7 @@ gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! 
 gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=NPU ! queue ! vapostproc ! gvawatermark ! gvafpscounter ! autovideosink sync=false
 ```
 
-<img src="https://cdn.ul.run/i/79c5839b6ff903dce0feb2aeb257a423.avif" alt="Intel DL Streamer NPU">
+<img src="https://cdn.ul.run/i/79c5839b6ff903dce0feb2aeb257a423.avif" alt="YOLO26s INT8 detections in a DL Streamer pipeline on an Intel NPU">
 
 ## Multi-Stream Setup
 
@@ -144,7 +143,7 @@ gst-launch-1.0 vacompositor name=comp sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos
   filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=GPU model-instance-id=inf0 scheduling-policy="latency" ! queue ! gvawatermark ! gvafpscounter ! comp.sink_3
 ```
 
-<img src="https://cdn.ul.run/i/0caade37bce29c78fda38d4730dde046.avif" alt="Intel DL Streamer Multistream GPU">
+<img src="https://cdn.ul.run/i/0caade37bce29c78fda38d4730dde046.avif" alt="Four-stream DL Streamer YOLO26 detection grid on an Intel GPU">
 
 ## Additional Resources
 
@@ -160,7 +159,7 @@ gst-launch-1.0 vacompositor name=comp sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos
 
 ### How do I set up Ultralytics YOLO26 on an Intel platform with DL Streamer?
 
-Install DL Streamer following the [Installation Guide](https://github.com/open-edge-platform/dlstreamer/blob/main/docs/user-guide/install/install_guide_ubuntu.md), set up the environment with `source /opt/intel/dlstreamer/scripts/setup_dls_env.sh`, install Ultralytics and OpenVINO™, download models using `download_ultralytics_models.sh`. Then run inference with the DL Streamer sample application `yolo_detect.sh` that provides a ready-to-use script for running YOLO26 inference pipelines. Check the [short tutorial](https://github.com/open-edge-platform/dlstreamer/tree/main/samples/gstreamer/gst_launch/detection_with_yolo) how to run it.
+Install DL Streamer following the [Installation Guide](https://github.com/open-edge-platform/dlstreamer/blob/main/docs/user-guide/install/install_guide_ubuntu.md), set up the environment with `source /opt/intel/dlstreamer/scripts/setup_dls_env.sh`, install Ultralytics and OpenVINO™, download models using `download_ultralytics_models.sh`. Then run inference with the DL Streamer [sample application](https://github.com/open-edge-platform/dlstreamer/tree/main/samples/gstreamer/gst_launch/detection_with_yolo) `yolo_detect.sh` that provides a ready-to-use script for running YOLO26 inference pipelines.
 
 ### What is the benefit of using OpenVINO™ with YOLO26 on Intel hardware?
 
@@ -168,22 +167,22 @@ OpenVINO™ optimizes the YOLO26 model specifically for Intel hardware through t
 
 ### Can I run YOLO26 with DL Streamer on different Intel devices?
 
-Yes. DL Streamer supports inference on Intel CPUs (Core, Core Ultra, Xeon), integrated GPUs (Iris Xe, Arc), discrete GPUs (Arc A-Series, B-Series), and NPUs (AI Boost) across multiple Intel platform generations. Simply change the `device` property of `gvadetect` to `CPU`, `GPU`, or `NPU`.
+Yes. DL Streamer supports inference on Intel CPUs (Core, Core Ultra, Xeon), integrated GPUs (Iris Xe, Arc), discrete GPUs (Arc A-Series, B-Series), and NPUs (AI Boost) across multiple Intel platform generations. Change the `device` property of `gvadetect` to `CPU`, `GPU`, or `NPU`.
 
 ### How do I choose between FP16 and INT8 precision?
 
-- **FP16** is recommended as the default for GPU inference — it provides near-FP32 accuracy with approximately 2x throughput improvement.
-- **INT8** delivers the highest performance (2–3x over FP32) with a small accuracy trade-off and is ideal when maximum throughput is the priority. INT8 models are automatically calibrated during Ultralytics export.
+- **FP16** is recommended as the default for GPU inference — it provides near-FP32 accuracy at higher throughput.
+- **INT8** delivers the highest performance with a small accuracy trade-off and is ideal when maximum throughput is the priority. INT8 models are automatically calibrated during Ultralytics export.
 
 ### What YOLO26 tasks are supported?
 
-DL Streamer supports all YOLO26 task variants:
+DL Streamer supports these YOLO26 task variants:
 
 - **Detection**: yolo26n, yolo26s, yolo26m, yolo26l, yolo26x
-- **Oriented Bounding Box (OBB)**: yolo26s-obb (and all size variants)
 - **Instance Segmentation**: yolo26s-seg (and all size variants)
-- **Pose Estimation**: yolo26s-pose (and all size variants)
 - **Classification**: yolo26s-cls (composite pipeline with detection)
+- **Pose Estimation**: yolo26s-pose (and all size variants)
+- **Oriented Bounding Box (OBB)**: yolo26s-obb (and all size variants)
 
 ### How can I export detections as structured data?
 

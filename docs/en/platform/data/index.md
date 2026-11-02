@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Learn about data management in Ultralytics Platform including dataset upload, annotation tools, and statistics visualization for YOLO model training.
+description: Prepare computer vision data in Ultralytics Platform. Upload, import, annotate, analyze, version, and export datasets for YOLO model training.
 keywords: Ultralytics Platform, data management, datasets, annotation, YOLO, computer vision, data preparation, labeling
 ---
 
 # Data Preparation
 
-Data preparation is the foundation of successful [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for managing your training data, from upload through annotation to analysis.
+[Data preparation](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo) is the foundation of successful [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. [Ultralytics Platform](https://platform.ultralytics.com) provides tools for managing your [training data](https://www.ultralytics.com/glossary/training-data), from upload through annotation to analysis.
 
 <p align="center">
   <br>
@@ -28,11 +28,11 @@ The Data section of Ultralytics Platform helps you:
 - **Import from a URL** by pasting a direct link to an archive or NDJSON export, or from [Roboflow](../integrations/roboflow.md)
 - **Connect** [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) and use your data in place without uploading a copy
 - **Keep pixels on premise** with Enterprise [On Premise](../integrations/on-premise.md) CPU/GPU workers
-- **Annotate** with manual drawing tools and Smart annotation with SAM ([SAM 2.1](../../models/sam-2.md), [SAM 3](../../models/sam-3.md), or the default [SAM 3.1](../../models/sam-3.md#sam-31)), YOLO models, or class-prompted models — hosted open-source or paid provider models — on detection datasets with 1–200 classes
+- **Annotate** with manual drawing tools and Smart annotation with SAM ([SAM 2.1](../../models/sam-2.md), [SAM 3](../../models/sam-3.md), or the default [SAM 3.1](../../models/sam-3.md#sam-31)), YOLO models, or [class-prompted models](https://platform.ultralytics.com/models) — hosted open-source or paid provider models — on detection datasets with 1–200 classes
 - **Manage classes** by renaming, recoloring, merging, and deleting them across the whole dataset
 - **Expand** datasets with [Find Similar Images](datasets.md#find-similar-images) or [Generate Similar Images](datasets.md#generate-similar-images), then annotate the images you keep
 - **Blur faces** in [existing images or future uploads](datasets.md#blur-faces)
-- **Analyze** your data with statistics, visualizations, and embedding-based clustering
+- **Analyze** your data with statistics, visualizations, and clustering based on image [embeddings](https://www.ultralytics.com/glossary/embeddings)
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
 ![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.ul.run/i/a349cc731c3f6ac36ccac5617ab02d61.avif)<!-- screenshot -->
@@ -79,7 +79,7 @@ Ultralytics Platform manages storage efficiently:
 
 - **Deduplication**: Identical images in the same data region are stored once
 - **Integrity**: Uploads are verified for data integrity
-- **Efficiency**: Optimized storage and fast processing
+- **Efficiency**: Clones reuse stored images instead of copying them, while still counting toward the destination workspace's storage quota
 
 ### Dataset URIs
 
@@ -171,7 +171,7 @@ Individual file limits: Images 50MB, Videos 1GB, datasets 10GB on Free / 20GB on
 
 ### Can I use my Platform datasets for local training?
 
-Yes! Use the dataset URI format to train locally:
+Yes. Use the dataset URI format to train locally:
 
 === "CLI"
 

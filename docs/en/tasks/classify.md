@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Master image classification using YOLO26. Learn to train, validate, predict, and export models efficiently.
+description: Image classification with Ultralytics YOLO26. Explore ImageNet-pretrained models, then train, validate, predict, and export classifiers in Python or CLI.
 keywords: YOLO26, image classification, AI, machine learning, pretrained models, ImageNet, model export, predict, train, validate
 model_name: yolo26n-cls
 ---
@@ -11,7 +11,7 @@ model_name: yolo26n-cls
 
 [Image classification](https://www.ultralytics.com/glossary/image-classification) is the simplest of the supported tasks and involves classifying an entire image into one of a set of predefined classes.
 
-The output of an image classifier is a single class label and a confidence score. Image classification is useful when you need to know only what class an image belongs to and don't need to know where objects of that class are located or what their exact shape is.
+The output of an [image classifier](https://academy.ultralytics.com/courses/beyond-detection/train-an-image-classifier) is a single class label and a confidence score. Image classification is useful when you need to know only what class an image belongs to and don't need to know where objects of that class are located or what their exact shape is.
 
 <p align="center">
   <br>
@@ -26,11 +26,11 @@ The output of an image classifier is a single class label and a confidence score
 
 !!! tip
 
-    YOLO26 Classify models use the `-cls` suffix, i.e., `yolo26n-cls.pt`, and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
+    YOLO26 Classify models use the `-cls` suffix, e.g., `yolo26n-cls.pt`, and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
+## Models
 
-YOLO26 Classify models pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset are shown below.
+YOLO26 Classify models pretrained on the [ImageNet](../datasets/classify/imagenet.md) dataset are shown below.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -44,7 +44,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train YOLO26n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+[Train](../usage/cfg.md#train-settings) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on the [MNIST160](../datasets/classify/mnist.md) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 64.
 
 !!! example
 
@@ -264,7 +264,7 @@ Export a YOLO26n-cls model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx # export custom model
         ```
 
-Available YOLO26-cls export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-cls.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26-cls export formats are in the table below. You can export to any format using the `format` argument, e.g., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, e.g., `yolo predict model=yolo26n-cls.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -274,7 +274,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### What is the purpose of YOLO26 in image classification?
 
-YOLO26 models, such as `yolo26n-cls.pt`, are designed for efficient image classification. They assign a single class label to an entire image along with a confidence score. This is particularly useful for applications where knowing the specific class of an image is sufficient, rather than identifying the location or shape of objects within the image.
+YOLO26 models, such as `yolo26n-cls.pt`, are designed for efficient [image classification](https://www.ultralytics.com/blog/best-image-classification-models). They assign a single class label to an entire image along with a confidence score. This is useful when knowing the class of an image is sufficient and you don't need the location or shape of objects within it.
 
 ### How do I train a YOLO26 model for image classification?
 
@@ -304,7 +304,7 @@ For more configuration options, visit the [Configuration](../usage/cfg.md) page.
 
 ### Where can I find pretrained YOLO26 classification models?
 
-Pretrained YOLO26 classification models can be found in the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26) section. Models like `yolo26n-cls.pt`, `yolo26s-cls.pt`, `yolo26m-cls.pt`, etc., are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset and can be easily downloaded and used for various image classification tasks.
+You can browse, test, and download pretrained YOLO26 classification models on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). Models like `yolo26n-cls.pt`, `yolo26s-cls.pt`, and `yolo26m-cls.pt` are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset and download automatically on first use.
 
 ### How do I validate a trained YOLO26 classification model?
 

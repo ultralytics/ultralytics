@@ -415,9 +415,7 @@ class BaseTrainer:
         self.amp = self.args.amp not in {False, "fp32"}
         self.amp = torch.tensor(self.amp).to(self.device)
         if self.amp and self.args.amp != "bf16" and RANK in {-1, 0}:  # Single-GPU and DDP
-            callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
-            callbacks.default_callbacks = callbacks_backup  # restore callbacks
         if RANK > -1 and self.world_size > 1:  # DDP
             self.amp = self.amp.int()  # gloo errors with boolean
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
@@ -711,8 +709,14 @@ class BaseTrainer:
             if hasattr(loader, "close"):
                 loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
 
-    def auto_batch(self, max_num_obj=0, dataset_size=0):
-        """Calculate optimal batch size based on model and device memory constraints."""
+    def auto_batch(self):
+        """Calculate optimal batch size based on model, dataset and device memory constraints."""
+        with override_configs(self.args, overrides={"cache": False}):
+            dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
+        dataset_size = len(dataset)
+        dataset = getattr(dataset, "datasets", [dataset])  # concatenated datasets keep labels per subset
+        max_num_obj = max((len(lb["cls"]) for d in dataset for lb in getattr(d, "labels", ())), default=0) * 4  # mosaic
+        del dataset  # free memory before profiling
         # Stride-aligned to match the true multi-scale max size; pyramid heads require stride-multiple inputs
         max_imgsz = math.ceil(self.args.imgsz * (1 + self.args.multi_scale) / self.stride) * self.stride
         return check_train_batch_size(

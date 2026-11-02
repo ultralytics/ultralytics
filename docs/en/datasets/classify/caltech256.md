@@ -6,7 +6,7 @@ creator:
     url: https://data.caltech.edu/records/nyy15-4j048
 license:
     name: CC-BY-4.0
-description: Train YOLO image classification models on Caltech-256, a benchmark of 30,607 images across 256 object categories plus a background class, with automatic 80/20 splitting.
+description: Train YOLO image classification models on Caltech-256, a benchmark of 30,607 images in 256 object categories plus a clutter class, split 80/20 automatically.
 keywords: Caltech-256, dataset, image classification, object recognition, machine learning, computer vision, YOLO, deep learning, AI
 ---
 
@@ -24,7 +24,7 @@ Explore [Caltech-256 on Ultralytics Platform](https://platform.ultralytics.com/u
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics YOLO26
+  <strong>Watch:</strong> How to Train an Image Classification Model using Caltech-256 Dataset with Ultralytics YOLO26
 </p>
 
 !!! note "Automatic Data Splitting"
@@ -37,7 +37,7 @@ Explore [Caltech-256 on Ultralytics Platform](https://platform.ultralytics.com/u
 - The categories span a wide variety of real-world objects, including animals, vehicles, household items, and people.
 - Each category holds at least 80 images, with the largest holding up to about 800, so class sizes are imbalanced.
 - Images are of variable sizes and resolutions.
-- Caltech-256 is widely used to benchmark [image classification](https://www.ultralytics.com/glossary/image-classification) and object recognition algorithms.
+- Caltech-256 is widely used to benchmark image classification and object recognition algorithms.
 
 ## Dataset Structure
 
@@ -50,11 +50,11 @@ Caltech-256 is distributed as 257 folders — one per class, covering 256 object
 
 ## Applications
 
-The Caltech-256 dataset is widely used to train and evaluate [image classification](https://www.ultralytics.com/glossary/image-classification) and object recognition models, including [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs). Its large category count and high-quality images make it a popular benchmark for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research and prototyping.
+The Caltech-256 dataset is widely used to train and evaluate image classification and object recognition models, including [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs). Its large category count and high-quality images make it a popular benchmark for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research and prototyping.
 
 ## Usage
 
-Train a YOLO model on Caltech-256 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 416. For the full list of available arguments, see the [Training](../../modes/train.md) page and the [image classification](../../tasks/classify.md) task guide.
+[Train](../../modes/train.md) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) model on Caltech-256 for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 416.
 
 !!! example "Train Example"
 
@@ -79,7 +79,7 @@ Train a YOLO model on Caltech-256 for 100 [epochs](https://www.ultralytics.com/g
 
 ## Sample Images and Annotations
 
-The Caltech-256 dataset contains high-quality color images of various objects, providing a well-structured dataset for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks. Here are some examples of images from the dataset ([credit](https://ml4a.github.io/demos/tsne_viewer.html)):
+The Caltech-256 dataset contains high-quality color images of various objects, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset ([credit](https://ml4a.github.io/demos/tsne_viewer.html)):
 
 ![Caltech-256 image classification dataset samples](https://cdn.ul.run/i/f8d04e02a43b5c41b2373fc4e7bc61c6.avif)
 
@@ -101,13 +101,13 @@ If you use the Caltech-256 dataset in your research or development work, please 
         }
         ```
 
-We would like to acknowledge Gregory Griffin, Alex Holub, and Pietro Perona for creating and maintaining the Caltech-256 dataset as a valuable resource for the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision research community. For more information about the Caltech-256 dataset and its creators, visit the [Caltech-256 dataset website](https://data.caltech.edu/records/nyy15-4j048).
+We would like to acknowledge Gregory Griffin, Alex Holub, and Pietro Perona for creating and maintaining the Caltech-256 dataset as a valuable resource for the machine learning and computer vision research community.
 
 ## FAQ
 
 ### What is the Caltech-256 dataset used for in machine learning?
 
-The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is widely used to train and benchmark [image classification](https://www.ultralytics.com/glossary/image-classification) and object recognition models. It contains 30,607 images across 256 object categories plus a background class, providing a larger and more challenging benchmark than Caltech-101 for algorithms such as Convolutional [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) (CNNs) and Support Vector Machines (SVMs).
+The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is widely used to train and benchmark [image classification](https://www.ultralytics.com/glossary/image-classification) and object recognition models. It contains 30,607 images across 256 object categories plus a background class, providing a larger and more challenging benchmark than Caltech-101 for algorithms such as Convolutional Neural Networks (CNNs) and Support Vector Machines (SVMs).
 
 ### How can I train an Ultralytics YOLO model on the Caltech-256 dataset?
 

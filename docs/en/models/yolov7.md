@@ -1,66 +1,66 @@
 ---
 comments: true
-description: Discover YOLOv7, the breakthrough real-time object detector with top speed and accuracy. Learn about key features, usage, and performance metrics.
+description: "YOLOv7 real-time object detector with trainable bag-of-freebies: re-parameterization, label assignment, COCO results, and ONNX or TensorRT inference."
 keywords: YOLOv7, real-time object detection, Ultralytics, AI, computer vision, model training, object detector
 ---
 
 # YOLOv7: Trainable Bag-of-Freebies
 
-YOLOv7, released in July 2022, was a significant advancement in real-time object detection at its time of release. It achieved 56.8% AP on GPU V100, setting new benchmarks when introduced. YOLOv7 outperformed contemporary object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, and YOLOv5 in speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). The model is trained on the MS COCO dataset from scratch without using any other datasets or pretrained weights. Source code for YOLOv7 is available on GitHub. Note that newer models like [YOLO11](yolo11.md) and [YOLO26](yolo26.md) have since achieved higher accuracy with improved efficiency.
+YOLOv7, released in July 2022, was a significant advancement in real-time [object detection](https://www.ultralytics.com/glossary/object-detection) at its time of release. It achieved 56.8% AP, the highest accuracy among real-time detectors running at 30 FPS or higher on a V100 GPU when it was introduced. YOLOv7 outperformed contemporary object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, and YOLOv5 in speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). The model is trained on the [MS COCO](../datasets/detect/coco.md) dataset from scratch without using any other datasets or pretrained weights. Source code for YOLOv7 is available on [GitHub](https://github.com/WongKinYiu/yolov7). Note that newer models like [YOLO26](yolo26.md) and [YOLO11](yolo11.md) have since achieved higher accuracy with improved efficiency.
 
 ![YOLOv7 comparison with SOTA object detectors](https://cdn.ul.run/i/627e9f34d8f584e9d76fe8cd6a4a0eb6.avif)
 
 ## Comparison of SOTA object detectors
 
-From the results in the YOLO comparison table we know that the proposed method has the best speed-accuracy trade-off comprehensively. If we compare YOLOv7-tiny-SiLU with YOLOv5-N (r6.1), our method is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 has 51.4% AP at frame rate of 161 fps, while PPYOLOE-L with the same AP has only 78 fps frame rate. In terms of parameter usage, YOLOv7 is 41% less than PPYOLOE-L.
+According to the comparison table in the YOLOv7 paper, YOLOv7 has the best overall speed-accuracy trade-off. Compared with YOLOv5-N (r6.1), YOLOv7-tiny-SiLU is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 reaches 51.4% AP at 161 fps, while PPYOLOE-L reaches the same AP at only 78 fps, and YOLOv7 uses 41% fewer parameters than PPYOLOE-L.
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv7"]'></canvas>
 
-If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms of the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
+Compared with YOLOv5-L (r6.1) at 99 fps, YOLOv7-X runs at 114 fps and improves AP by 3.9%. Compared with YOLOv5-X (r6.1) of similar scale, YOLOv7-X is 31 fps faster, uses 22% fewer parameters and 8% less computation, and improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
 
 !!! tip "Performance"
 
     === "Detection (COCO)"
 
-        | Model                 | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | Size<br><sup>(pixels)</sup> | FPS     | AP<sup>test / val<br>50-95</sup> | AP<sup>test<br>50</sup> | AP<sup>test<br>75</sup> | AP<sup>test<br>S</sup> | AP<sup>test<br>M</sup> | AP<sup>test<br>L</sup> |
-        | --------------------- | ------------------------ | ----------------------- | --------------------------- | ------- | -------------------------------- | ----------------------- | ----------------------- | ---------------------- | ---------------------- | ---------------------- |
-        | [YOLOX-S][1]          | **9.0**                  | **26.8**                | 640                         | **102** | 40.5% / 40.5%                    | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOX-M][1]          | 25.3                     | 73.8                    | 640                         | 81      | 47.2% / 46.9%                    | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOX-L][1]          | 54.2                     | 155.6                   | 640                         | 69      | 50.1% / 49.7%                    | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOX-X][1]          | 99.1                     | 281.9                   | 640                         | 58      | **51.5%** / **51.1%**            | -                       | -                       | -                      | -                      | -                      |
-        |                       |                          |                         |                             |         |                                  |                         |                         |                        |                        |                        |
-        | [PPYOLOE-S][2]        | **7.9**                  | **17.4**                | 640                         | **208** | 43.1% / 42.7%                    | 60.5%                   | 46.6%                   | 23.2%                  | 46.4%                  | 56.9%                  |
-        | [PPYOLOE-M][2]        | 23.4                     | 49.9                    | 640                         | 123     | 48.9% / 48.6%                    | 66.5%                   | 53.0%                   | 28.6%                  | 52.9%                  | 63.8%                  |
-        | [PPYOLOE-L][2]        | 52.2                     | 110.1                   | 640                         | 78      | 51.4% / 50.9%                    | 68.9%                   | 55.6%                   | 31.4%                  | 55.3%                  | 66.1%                  |
-        | [PPYOLOE-X][2]        | 98.4                     | 206.6                   | 640                         | 45      | **52.2%** / **51.9%**            | **69.9%**               | **56.5%**               | **33.3%**              | **56.3%**              | **66.4%**              |
-        |                       |                          |                         |                             |         |                                  |                         |                         |                        |                        |                        |
-        | [YOLOv5-N (r6.1)][3]  | **1.9**                  | **4.5**                 | 640                         | **159** | - / 28.0%                        | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOv5-S (r6.1)][3]  | 7.2                      | 16.5                    | 640                         | 156     | - / 37.4%                        | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOv5-M (r6.1)][3]  | 21.2                     | 49.0                    | 640                         | 122     | - / 45.4%                        | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOv5-L (r6.1)][3]  | 46.5                     | 109.1                   | 640                         | 99      | - / 49.0%                        | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOv5-X (r6.1)][3]  | 86.7                     | 205.7                   | 640                         | 83      | - / **50.7%**                    | -                       | -                       | -                      | -                      | -                      |
-        |                       |                          |                         |                             |         |                                  |                         |                         |                        |                        |                        |
-        | [YOLOR-CSP][4]        | 52.9                     | 120.4                   | 640                         | 106     | 51.1% / 50.8%                    | 69.6%                   | 55.7%                   | 31.7%                  | 55.3%                  | 64.7%                  |
-        | [YOLOR-CSP-X][4]      | 96.9                     | 226.8                   | 640                         | 87      | 53.0% / 52.7%                    | **71.4%**               | **57.9%**               | 33.7%                  | **57.1%**              | 66.8%                  |
-        | [YOLOv7-tiny-SiLU][5] | **6.2**                  | **13.8**                | 640                         | **286** | 38.7% / 38.7%                    | 56.7%                   | 41.7%                   | 18.8%                  | 42.4%                  | 51.9%                  |
-        | [YOLOv7][5]           | 36.9                     | 104.7                   | 640                         | 161     | 51.4% / 51.2%                    | 69.7%                   | 55.9%                   | 31.8%                  | 55.5%                  | 65.0%                  |
-        | [YOLOv7-X][5]         | 71.3                     | 189.9                   | 640                         | 114     | **53.1%** / **52.9%**            | 71.2%                   | 57.8%                   | **33.8%**              | **57.1%**              | **67.4%**              |
-        |                       |                          |                         |                             |         |                                  |                         |                         |                        |                        |                        |
-        | [YOLOv5-N6 (r6.1)][3] | **3.2**                  | **18.4**                | 1280                        | **123** | - / 36.0%                        | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOv5-S6 (r6.1)][3] | 12.6                     | 67.2                    | 1280                        | 122     | - / 44.8%                        | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOv5-M6 (r6.1)][3] | 35.7                     | 200.0                   | 1280                        | 90      | - / 51.3%                        | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOv5-L6 (r6.1)][3] | 76.8                     | 445.6                   | 1280                        | 63      | - / 53.7%                        | -                       | -                       | -                      | -                      | -                      |
-        | [YOLOv5-X6 (r6.1)][3] | 140.7                    | 839.2                   | 1280                        | 38      | - / **55.0%**                    | -                       | -                       | -                      | -                      | -                      |
-        |                       |                          |                         |                             |         |                                  |                         |                         |                        |                        |                        |
-        | [YOLOR-P6][4]         | **37.2**                 | **325.6**               | 1280                        | **76**  | 53.9% / 53.5%                    | 71.4%                   | 58.9%                   | 36.1%                  | 57.7%                  | 65.6%                  |
-        | [YOLOR-W6][4]         | 79.8                     | 453.2                   | 1280                        | 66      | 55.2% / 54.8%                    | 72.7%                   | 60.5%                   | 37.7%                  | 59.1%                  | 67.1%                  |
-        | [YOLOR-E6][4]         | 115.8                    | 683.2                   | 1280                        | 45      | 55.8% / 55.7%                    | 73.4%                   | 61.1%                   | 38.4%                  | 59.7%                  | 67.7%                  |
-        | [YOLOR-D6][4]         | 151.7                    | 935.6                   | 1280                        | 34      | **56.5%** / **56.1%**            | **74.1%**               | **61.9%**               | **38.9%**              | **60.4%**              | **68.7%**              |
-        |                       |                          |                         |                             |         |                                  |                         |                         |                        |                        |                        |
-        | [YOLOv7-W6][5]        | **70.4**                 | **360.0**               | 1280                        | **84**  | 54.9% / 54.6%                    | 72.6%                   | 60.1%                   | 37.3%                  | 58.7%                  | 67.1%                  |
-        | [YOLOv7-E6][5]        | 97.2                     | 515.2                   | 1280                        | 56      | 56.0% / 55.9%                    | 73.5%                   | 61.2%                   | 38.0%                  | 59.9%                  | 68.4%                  |
-        | [YOLOv7-D6][5]        | 154.7                    | 806.8                   | 1280                        | 44      | 56.6% / 56.3%                    | 74.0%                   | 61.8%                   | 38.8%                  | 60.1%                  | **69.5%**              |
-        | [YOLOv7-E6E][5]       | 151.7                    | 843.2                   | 1280                        | 36      | **56.8%** / **56.8%**            | **74.4%**               | **62.1%**               | **39.3%**              | **60.5%**              | 69.0%                  |
+        | Model                 | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | Size<br><sup>(pixels)</sup> | FPS     | AP<sup>test / val</sup><sub>50-95</sub> | AP<sup>test</sup><sub>50</sub> | AP<sup>test</sup><sub>75</sub> | AP<sup>test</sup><sub>S</sub> | AP<sup>test</sup><sub>M</sub> | AP<sup>test</sup><sub>L</sub> |
+        | --------------------- | ------------------------ | ----------------------- | --------------------------- | ------- | --------------------------------------- | ------------------------------ | ------------------------------ | ----------------------------- | ----------------------------- | ----------------------------- |
+        | [YOLOX-S][1]          | **9.0**                  | **26.8**                | 640                         | **102** | 40.5% / 40.5%                           | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOX-M][1]          | 25.3                     | 73.8                    | 640                         | 81      | 47.2% / 46.9%                           | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOX-L][1]          | 54.2                     | 155.6                   | 640                         | 69      | 50.1% / 49.7%                           | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOX-X][1]          | 99.1                     | 281.9                   | 640                         | 58      | **51.5%** / **51.1%**                   | -                              | -                              | -                             | -                             | -                             |
+        |                       |                          |                         |                             |         |                                         |                                |                                |                               |                               |                               |
+        | [PPYOLOE-S][2]        | **7.9**                  | **17.4**                | 640                         | **208** | 43.1% / 42.7%                           | 60.5%                          | 46.6%                          | 23.2%                         | 46.4%                         | 56.9%                         |
+        | [PPYOLOE-M][2]        | 23.4                     | 49.9                    | 640                         | 123     | 48.9% / 48.6%                           | 66.5%                          | 53.0%                          | 28.6%                         | 52.9%                         | 63.8%                         |
+        | [PPYOLOE-L][2]        | 52.2                     | 110.1                   | 640                         | 78      | 51.4% / 50.9%                           | 68.9%                          | 55.6%                          | 31.4%                         | 55.3%                         | 66.1%                         |
+        | [PPYOLOE-X][2]        | 98.4                     | 206.6                   | 640                         | 45      | **52.2%** / **51.9%**                   | **69.9%**                      | **56.5%**                      | **33.3%**                     | **56.3%**                     | **66.4%**                     |
+        |                       |                          |                         |                             |         |                                         |                                |                                |                               |                               |                               |
+        | [YOLOv5-N (r6.1)][3]  | **1.9**                  | **4.5**                 | 640                         | **159** | - / 28.0%                               | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOv5-S (r6.1)][3]  | 7.2                      | 16.5                    | 640                         | 156     | - / 37.4%                               | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOv5-M (r6.1)][3]  | 21.2                     | 49.0                    | 640                         | 122     | - / 45.4%                               | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOv5-L (r6.1)][3]  | 46.5                     | 109.1                   | 640                         | 99      | - / 49.0%                               | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOv5-X (r6.1)][3]  | 86.7                     | 205.7                   | 640                         | 83      | - / **50.7%**                           | -                              | -                              | -                             | -                             | -                             |
+        |                       |                          |                         |                             |         |                                         |                                |                                |                               |                               |                               |
+        | [YOLOR-CSP][4]        | 52.9                     | 120.4                   | 640                         | 106     | 51.1% / 50.8%                           | 69.6%                          | 55.7%                          | 31.7%                         | 55.3%                         | 64.7%                         |
+        | [YOLOR-CSP-X][4]      | 96.9                     | 226.8                   | 640                         | 87      | 53.0% / 52.7%                           | **71.4%**                      | **57.9%**                      | 33.7%                         | **57.1%**                     | 66.8%                         |
+        | [YOLOv7-tiny-SiLU][5] | **6.2**                  | **13.8**                | 640                         | **286** | 38.7% / 38.7%                           | 56.7%                          | 41.7%                          | 18.8%                         | 42.4%                         | 51.9%                         |
+        | [YOLOv7][5]           | 36.9                     | 104.7                   | 640                         | 161     | 51.4% / 51.2%                           | 69.7%                          | 55.9%                          | 31.8%                         | 55.5%                         | 65.0%                         |
+        | [YOLOv7-X][5]         | 71.3                     | 189.9                   | 640                         | 114     | **53.1%** / **52.9%**                   | 71.2%                          | 57.8%                          | **33.8%**                     | **57.1%**                     | **67.4%**                     |
+        |                       |                          |                         |                             |         |                                         |                                |                                |                               |                               |                               |
+        | [YOLOv5-N6 (r6.1)][3] | **3.2**                  | **18.4**                | 1280                        | **123** | - / 36.0%                               | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOv5-S6 (r6.1)][3] | 12.6                     | 67.2                    | 1280                        | 122     | - / 44.8%                               | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOv5-M6 (r6.1)][3] | 35.7                     | 200.0                   | 1280                        | 90      | - / 51.3%                               | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOv5-L6 (r6.1)][3] | 76.8                     | 445.6                   | 1280                        | 63      | - / 53.7%                               | -                              | -                              | -                             | -                             | -                             |
+        | [YOLOv5-X6 (r6.1)][3] | 140.7                    | 839.2                   | 1280                        | 38      | - / **55.0%**                           | -                              | -                              | -                             | -                             | -                             |
+        |                       |                          |                         |                             |         |                                         |                                |                                |                               |                               |                               |
+        | [YOLOR-P6][4]         | **37.2**                 | **325.6**               | 1280                        | **76**  | 53.9% / 53.5%                           | 71.4%                          | 58.9%                          | 36.1%                         | 57.7%                         | 65.6%                         |
+        | [YOLOR-W6][4]         | 79.8                     | 453.2                   | 1280                        | 66      | 55.2% / 54.8%                           | 72.7%                          | 60.5%                          | 37.7%                         | 59.1%                         | 67.1%                         |
+        | [YOLOR-E6][4]         | 115.8                    | 683.2                   | 1280                        | 45      | 55.8% / 55.7%                           | 73.4%                          | 61.1%                          | 38.4%                         | 59.7%                         | 67.7%                         |
+        | [YOLOR-D6][4]         | 151.7                    | 935.6                   | 1280                        | 34      | **56.5%** / **56.1%**                   | **74.1%**                      | **61.9%**                      | **38.9%**                     | **60.4%**                     | **68.7%**                     |
+        |                       |                          |                         |                             |         |                                         |                                |                                |                               |                               |                               |
+        | [YOLOv7-W6][5]        | **70.4**                 | **360.0**               | 1280                        | **84**  | 54.9% / 54.6%                           | 72.6%                          | 60.1%                          | 37.3%                         | 58.7%                         | 67.1%                         |
+        | [YOLOv7-E6][5]        | 97.2                     | 515.2                   | 1280                        | 56      | 56.0% / 55.9%                           | 73.5%                          | 61.2%                          | 38.0%                         | 59.9%                         | 68.4%                         |
+        | [YOLOv7-D6][5]        | 154.7                    | 806.8                   | 1280                        | 44      | 56.6% / 56.3%                           | 74.0%                          | 61.8%                          | 38.8%                         | 60.1%                         | **69.5%**                     |
+        | [YOLOv7-E6E][5]       | 151.7                    | 843.2                   | 1280                        | 36      | **56.8%** / **56.8%**                   | **74.4%**                      | **62.1%**                      | **39.3%**                     | **60.5%**                     | 69.0%                         |
 
         [1]: https://github.com/Megvii-BaseDetection/YOLOX
         [2]: https://github.com/PaddlePaddle/PaddleDetection
@@ -70,7 +70,7 @@ If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 f
 
 ## Overview
 
-Real-time object detection is an important component in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems, including multi-[object tracking](https://www.ultralytics.com/glossary/object-tracking), autonomous driving, [robotics](https://www.ultralytics.com/glossary/robotics), and [medical image analysis](https://www.ultralytics.com/glossary/medical-image-analysis). In recent years, real-time object detection development has focused on designing efficient architectures and improving the inference speed of various CPUs, GPUs, and neural processing units (NPUs). YOLOv7 supports both mobile GPU and GPU devices, from the edge to the cloud.
+Real-time object detection is an important component in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems, including multi-[object tracking](https://www.ultralytics.com/glossary/object-tracking), autonomous driving, [robotics](https://www.ultralytics.com/glossary/robotics), and [medical image analysis](https://www.ultralytics.com/glossary/medical-image-analysis). In recent years, real-time object detection development has focused on designing efficient architectures and improving the inference speed of various CPUs, GPUs, and [neural processing units (NPUs)](https://www.ultralytics.com/glossary/neural-processing-unit-npu). YOLOv7 supports both mobile GPU and GPU devices, from the edge to the cloud.
 
 Unlike traditional real-time object detectors that focus on architecture optimization, YOLOv7 introduces a focus on the optimization of the training process. This includes modules and optimization methods designed to improve the accuracy of object detection without increasing the inference cost, a concept known as the "trainable bag-of-freebies".
 
@@ -84,7 +84,7 @@ YOLOv7 introduces several key features:
 
 3. **Extended and Compound Scaling**: YOLOv7 proposes "extend" and "compound scaling" methods for the real-time object detector that can effectively utilize parameters and computation.
 
-4. **Efficiency**: The method proposed by YOLOv7 can effectively reduce about 40% parameters and 50% computation of state-of-the-art real-time object detector, and has faster inference speed and higher detection accuracy.
+4. **Efficiency**: The method proposed by YOLOv7 reduces about 40% of the parameters and 50% of the computation of state-of-the-art real-time object detectors, while achieving faster inference and higher detection accuracy.
 
 ## Usage Examples
 
@@ -92,7 +92,7 @@ Ultralytics does not publish `yolov7.pt` pretrained weights or `ultralytics/cfg/
 
 ### ONNX Export
 
-To use YOLOv7 ONNX model with Ultralytics:
+To use a YOLOv7 ONNX model with Ultralytics:
 
 1. (Optional) Install Ultralytics and export an ONNX model to have the required dependencies automatically installed:
 
@@ -326,7 +326,7 @@ To use YOLOv7 ONNX model with Ultralytics:
     pip install tensorrt
     ```
 
-3. Run the following script to convert the modified ONNX model to TensorRT engine:
+3. Run the following script to convert the modified ONNX model to a TensorRT engine:
 
     ```python
     from ultralytics.utils.export import onnx2engine
@@ -362,13 +362,13 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
         }
         ```
 
-The official YOLOv7 paper was published in the [CVF 2023 Open Access](https://openaccess.thecvf.com/content/CVPR2023/papers/Wang_YOLOv7_Trainable_Bag-of-Freebies_Sets_New_State-of-the-Art_for_Real-Time_Object_Detectors_CVPR_2023_paper.pdf), with a preprint on [arXiv](https://arxiv.org/pdf/2207.02696). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The official YOLOv7 paper was published at CVPR 2023 and is available through [CVF Open Access](https://openaccess.thecvf.com/content/CVPR2023/papers/Wang_YOLOv7_Trainable_Bag-of-Freebies_Sets_New_State-of-the-Art_for_Real-Time_Object_Detectors_CVPR_2023_paper.pdf), with a preprint on [arXiv](https://arxiv.org/pdf/2207.02696). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 
-### What is YOLOv7 and why is it considered a breakthrough in real-time [object detection](https://www.ultralytics.com/glossary/object-detection)?
+### What is YOLOv7 and why is it considered a breakthrough in real-time object detection?
 
-YOLOv7, released in July 2022, was a significant real-time object detection model that achieved excellent speed and accuracy at its time of release. It surpassed contemporary models such as YOLOX, YOLOv5, and PPYOLOE in both parameters usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs. For more technical details about its architecture and comparison metrics with other state-of-the-art object detectors, refer to the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696).
+YOLOv7, released in July 2022, was a real-time object detection model that achieved [state-of-the-art speed and accuracy](https://arxiv.org/pdf/2207.02696) at its time of release. It surpassed contemporary models such as YOLOX, YOLOv5, and PPYOLOE in both parameter usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs.
 
 ### How does YOLOv7 improve on previous YOLO models like YOLOv4 and YOLOv5?
 
@@ -392,17 +392,14 @@ To install and train a custom YOLOv7 model, follow these steps:
     pip install -r requirements.txt
     ```
 3. Prepare your dataset and configure the model parameters according to the [usage instructions](https://github.com/WongKinYiu/yolov7) provided in the repository.
-   For further guidance, visit the YOLOv7 GitHub repository for the latest information and updates.
 
 4. After training, you can export the model to ONNX or TensorRT for use in Ultralytics as shown in [Usage Examples](#usage-examples).
 
 ### What are the key features and optimizations introduced in YOLOv7?
 
-YOLOv7 offers several key features that revolutionize real-time object detection:
+YOLOv7 introduces several key features for real-time object detection:
 
 - **Model Re-parameterization**: Enhances the model's performance by optimizing gradient propagation paths.
 - **Dynamic Label Assignment**: Uses a coarse-to-fine lead guided method to assign dynamic targets for outputs across different branches, improving accuracy.
 - **Extended and Compound Scaling**: Efficiently utilizes parameters and computation to scale the model for various real-time applications.
 - **Efficiency**: Reduces parameter count by 40% and computation by 50% compared to other state-of-the-art models while achieving faster inference speeds.
-
-For further details on these features, see the [YOLOv7 Overview](#overview) section.

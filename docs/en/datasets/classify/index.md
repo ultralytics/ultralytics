@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how to structure datasets for YOLO classification tasks. Detailed folder structure and usage examples for effective training.
+description: Structure image classification datasets for Ultralytics YOLO, with the train/val folder layout, automatic 80/20 splitting, and supported datasets like ImageNet.
 keywords: YOLO, image classification, dataset structure, CIFAR-10, Ultralytics, machine learning, training data, model evaluation
 ---
 
@@ -121,7 +121,7 @@ Ultralytics supports the following datasets with automatic download. Most of the
 
 ### Adding your own dataset
 
-If you have your own dataset and would like to use it for training classification models with Ultralytics YOLO, ensure that it follows the format specified above under "Dataset Structure" and then point your `data` argument to the dataset directory when initializing your training script.
+If you have your own dataset and would like to use it for [training classification models](https://academy.ultralytics.com/courses/beyond-detection/train-an-image-classifier) with Ultralytics YOLO, ensure that it follows the format specified above under "Dataset Structure" and then point your `data` argument to the dataset directory when initializing your training script.
 
 ## FAQ
 
@@ -176,15 +176,15 @@ Ultralytics YOLO offers several benefits for image classification, including:
 
 - **Pretrained Models**: Load pretrained models like `yolo26n-cls.pt` to jump-start your training process.
 - **Ease of Use**: Simple API and CLI commands for training and evaluation.
-- **High Performance**: State-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, ideal for real-time applications.
-- **Support for Multiple Datasets**: Seamless integration with various popular datasets like [CIFAR-10](cifar10.md), [ImageNet](imagenet.md), and more.
+- **High Performance**: Strong [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, suitable for real-time applications.
+- **Support for Multiple Datasets**: Built-in support for popular datasets like [CIFAR-10](cifar10.md), [ImageNet](imagenet.md), and more.
 - **Community and Support**: Access to extensive documentation and an active community for troubleshooting and improvements.
 
 For additional insights and real-world applications, you can explore [Ultralytics YOLO](https://www.ultralytics.com/yolo).
 
 ### How can I train a model using Ultralytics YOLO?
 
-Training a model using Ultralytics YOLO can be done easily in both Python and CLI. Here's an example:
+You can train a model with Ultralytics YOLO from either Python or the CLI. Here's an example:
 
 !!! example
 

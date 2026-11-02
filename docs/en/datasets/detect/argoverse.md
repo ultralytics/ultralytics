@@ -12,7 +12,7 @@ keywords: Argoverse dataset, Argoverse-HD, object detection, 2D detection, auton
 
 # Argoverse Dataset
 
-The Ultralytics Argoverse dataset (Argoverse-HD) is a 2D [object detection](../../tasks/detect.md) dataset of 54,446 labeled autonomous-driving images — 39,384 for training and 15,062 for validation — across 8 classes: person, bicycle, car, motorcycle, bus, truck, traffic light, and stop sign. The images are captured from a vehicle's ring-front-center camera, and the annotations come from Carnegie Mellon University's streaming-perception project, built on [Argo AI](https://www.argoverse.org/)'s Argoverse 1.1 driving data. It is a large, real-world benchmark for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models to detect road objects in self-driving scenarios.
+The Ultralytics Argoverse dataset (Argoverse-HD) is a 2D [object detection](../../tasks/detect.md) dataset of 54,446 labeled autonomous-driving images — 39,384 for training and 15,062 for validation — across 8 classes: person, bicycle, car, motorcycle, bus, truck, traffic light, and stop sign. The images are captured from a vehicle's ring-front-center camera, and the annotations come from Carnegie Mellon University's streaming-perception project, built on [Argo AI](https://www.argoverse.org/)'s Argoverse 1.1 driving data. It is a large, real-world benchmark for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models to detect road objects in [self-driving scenarios](https://www.ultralytics.com/blog/ai-in-self-driving-cars).
 
 Explore [Argoverse-HD on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/argoverse) to preview annotated samples, inspect dataset statistics, and clone it for training.
 
@@ -45,7 +45,7 @@ All images share the same 8 object classes (indices 0–7): person, bicycle, car
 
 ## Applications
 
-The Argoverse-HD dataset supports a range of [object detection](../../tasks/detect.md) applications in autonomous driving:
+The Argoverse-HD dataset supports a range of object detection applications in autonomous driving:
 
 - **Self-driving perception** — detect vehicles, pedestrians, and cyclists from a forward-facing camera to support [autonomous-vehicle](https://www.ultralytics.com/solutions/computer-vision-in-automotive) navigation.
 - **Advanced driver-assistance systems (ADAS)** — recognize traffic lights and stop signs for real-time driver alerts.
@@ -64,7 +64,7 @@ A YAML file defines the dataset configuration, including paths, classes, and oth
 
 ## Usage
 
-To train a YOLO26n model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code samples. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code samples.
 
 !!! example "Train Example"
 
@@ -87,7 +87,7 @@ To train a YOLO26n model on the Argoverse dataset for 100 [epochs](https://www.u
         yolo detect train data=Argoverse.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
-Once trained, run [inference](../../modes/predict.md) with the fine-tuned model on new driving images or video:
+Once trained, run inference with the fine-tuned model on new driving images or video:
 
 !!! example "Inference Example"
 
@@ -162,7 +162,7 @@ In Ultralytics it is a **2D object detection** dataset (Argoverse-HD camera fram
 
 ### How do I train a YOLO26 model using the Argoverse dataset?
 
-Download the dataset manually first (see below), then train with the `Argoverse.yaml` configuration file:
+Download the dataset manually first (see the next question), then train with the `Argoverse.yaml` configuration file:
 
 !!! example
 

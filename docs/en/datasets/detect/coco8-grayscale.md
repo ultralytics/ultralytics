@@ -7,7 +7,7 @@ creator:
 license:
     name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
-description: Explore the Ultralytics COCO8-Grayscale dataset, a versatile and manageable set of 8 images perfect for testing object detection models and training pipelines.
+description: COCO8-Grayscale is an 8-image, single-channel version of COCO8 for quickly testing Ultralytics YOLO grayscale object detection training with single-channel input.
 keywords: COCO8-Grayscale, Ultralytics, dataset, object detection, YOLO26, training, validation, machine learning, computer vision
 ---
 
@@ -15,7 +15,7 @@ keywords: COCO8-Grayscale, Ultralytics, dataset, object detection, YOLO26, train
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com) COCO8-Grayscale dataset is a compact yet powerful [object detection](https://www.ultralytics.com/glossary/object-detection) dataset, consisting of the first 8 images from the COCO train 2017 set and converted to grayscale format—4 for training and 4 for validation. This dataset is specifically designed for rapid testing, debugging, and experimentation with [YOLO](../../models/yolo26.md) grayscale models and training pipelines. Its small size makes it highly manageable, while its diversity ensures it serves as an effective sanity check before scaling up to larger datasets.
+The [Ultralytics](https://www.ultralytics.com) COCO8-Grayscale dataset is a compact [object detection](https://www.ultralytics.com/glossary/object-detection) dataset, consisting of the first 8 images from the COCO train 2017 set and converted to grayscale format—4 for training and 4 for validation. This dataset is specifically designed for rapid testing, debugging, and experimentation with [YOLO](../../models/yolo26.md) grayscale models and training pipelines. Its small size makes it highly manageable, while its diversity ensures it serves as an effective sanity check before scaling up to larger datasets.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ The [Ultralytics](https://www.ultralytics.com) COCO8-Grayscale dataset is a comp
 
 ## Dataset Structure
 
-COCO8-Grayscale mirrors [COCO8](coco8.md)—the first 8 images from the COCO train 2017 set, split into 4 for training and 4 for validation and labeled with the 80 COCO class names—but each image is stored as a single-channel (`channels: 1`) grayscale image in [YOLO label format](../index.md):
+COCO8-Grayscale mirrors [COCO8](coco8.md)—the first 8 images from the COCO train 2017 set, split into 4 for training and 4 for validation and labeled with the 80 COCO class names—but each image is stored as a single-channel (`channels: 1`) grayscale image in [YOLO label format](index.md#ultralytics-yolo-format):
 
 ```text
 coco8-grayscale/
@@ -50,7 +50,7 @@ The COCO8-Grayscale dataset configuration is defined in a YAML file, which speci
 
 !!! note
 
-    To train your RGB images in grayscale, you could simply add `channels: 1` to your dataset YAML file. This converts all images to grayscale during training, enabling you to utilize grayscale benefits without requiring a separate dataset.
+    To train on RGB images in grayscale, add `channels: 1` to your dataset YAML file. This converts all images to grayscale during training, so you do not need a separate grayscale dataset.
 
 !!! example "ultralytics/cfg/datasets/coco8-grayscale.yaml"
 
@@ -60,7 +60,7 @@ The COCO8-Grayscale dataset configuration is defined in a YAML file, which speci
 
 ## Usage
 
-The COCO8-Grayscale dataset (1 MB) downloads automatically the first time you start training. To train a YOLO26n model on COCO8-Grayscale for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
+The COCO8-Grayscale dataset (1 MB) downloads automatically the first time you start training. To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on COCO8-Grayscale for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples.
 
 !!! example "Train Example"
 
@@ -89,7 +89,7 @@ Below is an example of a mosaiced training batch from the COCO8-Grayscale datase
 
 <img src="https://cdn.ul.run/i/c5cd2cbda030086ff84555dc8c484cd1.avif" alt="COCO8 grayscale dataset mosaic training batch" width="800">
 
-- **Mosaiced Image**: This image illustrates a training batch where multiple dataset images are combined using mosaic augmentation. Mosaic augmentation increases the diversity of objects and scenes within each batch, helping the model generalize better to various object sizes, aspect ratios, and backgrounds.
+- **Mosaiced Image**: This image illustrates a training batch where multiple dataset images are combined using mosaic augmentation. [Mosaic augmentation](https://www.ultralytics.com/glossary/data-augmentation) increases the diversity of objects and scenes within each batch, helping the model generalize better to various object sizes, aspect ratios, and backgrounds.
 
 This technique is especially useful for small datasets like COCO8-Grayscale, as it maximizes the value of each image during training.
 
@@ -118,7 +118,7 @@ Special thanks to the [COCO Consortium](https://cocodataset.org/#home) for their
 
 ### What Is the Ultralytics COCO8-Grayscale Dataset Used For?
 
-The Ultralytics COCO8-Grayscale dataset is designed for rapid testing and debugging of [object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your [YOLO](../../models/yolo26.md) training pipelines and ensuring everything works as expected before scaling to larger datasets. Explore the [COCO8-Grayscale YAML configuration](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-grayscale.yaml) for more details.
+The Ultralytics COCO8-Grayscale dataset is designed for rapid testing and debugging of [object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your YOLO training pipelines and ensuring everything works as expected before scaling to larger datasets.
 
 ### How Do I Train a YOLO26 Model Using the COCO8-Grayscale Dataset?
 
@@ -148,7 +148,7 @@ For additional training options, refer to the [YOLO Training documentation](../.
 
 ### What Are the Benefits of Using Mosaic Augmentation in Training With the COCO8-Grayscale Dataset?
 
-Mosaic augmentation, as used in COCO8-Grayscale training, combines multiple images into one during each batch. This increases the diversity of objects and backgrounds, helping your [YOLO](../../models/yolo26.md) model generalize better to new scenarios. Mosaic augmentation is especially valuable for small datasets, as it maximizes the information available in each training step. For more on this, see the [training guide](#usage).
+Mosaic augmentation, as used in [COCO8-Grayscale training](#usage), combines multiple images into one during each batch. This increases the diversity of objects and backgrounds, helping your YOLO model generalize better to new scenarios. Mosaic augmentation is especially valuable for small datasets, as it maximizes the information available in each training step.
 
 ### How Can I Validate My YOLO26 Model Trained on the COCO8-Grayscale Dataset?
 

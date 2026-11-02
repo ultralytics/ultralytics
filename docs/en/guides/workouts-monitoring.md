@@ -1,7 +1,7 @@
 ---
 title: Workout Monitoring with YOLO26 Pose
 comments: true
-description: Optimize your fitness routine with real-time workouts monitoring using Ultralytics YOLO26. Track and improve your exercise form and performance.
+description: Monitor workouts with Ultralytics YOLO26 pose estimation and the AIGym solution to count exercise reps and check form in real time from video.
 keywords: workouts monitoring, Ultralytics YOLO26, pose estimation, fitness tracking, exercise assessment, real-time feedback, exercise form, performance metrics
 ---
 
@@ -9,7 +9,7 @@ keywords: workouts monitoring, Ultralytics YOLO26, pose estimation, fitness trac
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-monitor-workouts-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Workouts Monitoring In Colab"></a>
 
-Monitoring workouts through pose estimation with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) enhances exercise assessment by accurately tracking key body landmarks and joints in real-time. This technology provides instant feedback on exercise form, tracks workout routines, and measures performance metrics, optimizing training sessions for users and trainers alike.
+Monitoring workouts through [pose estimation](https://www.ultralytics.com/glossary/pose-estimation) with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) improves exercise assessment by accurately tracking key body landmarks and joints in real time. This technology provides instant feedback on exercise form, tracks workout routines, and measures performance metrics, optimizing training sessions for users and trainers alike.
 
 <p align="center">
   <br>
@@ -30,16 +30,16 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO26](https://gi
 - **Health Awareness:** Early detection of patterns indicating health issues or over-training.
 - **Informed Decisions:** Data-driven decisions for adjusting routines and setting realistic goals.
 
-## Real World Applications
+## Real-World Applications
 
 |                                            Workouts Monitoring                                             |                                            Workouts Monitoring                                             |
 | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
 | ![YOLO push-ups counting with pose estimation](https://cdn.ul.run/i/06540a95f1b69df0a9be6d123120cc36.avif) | ![YOLO pull-ups counting with pose estimation](https://cdn.ul.run/i/a2cf99202738097f0d6e3b7dc3334683.avif) |
-|                                              PushUps Counting                                              |                                              PullUps Counting                                              |
+|                                             Push-Ups Counting                                              |                                             Pull-Ups Counting                                              |
 
 ## Monitor Workouts with YOLO26
 
-The `AIGym` solution runs [pose estimation](../tasks/pose.md) and counts repetitions by measuring the angle formed by three keypoints as a limb moves between the `up_angle` and `down_angle` thresholds. Pick the keypoints for the exercise you want to track with `kpts`, then run the solution over your video with the Python API or the CLI.
+The `AIGym` solution runs [pose estimation](../tasks/pose.md) with a model such as [YOLO26n-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-pose) and counts repetitions by measuring the angle formed by three [keypoints](https://www.ultralytics.com/glossary/keypoints) as a limb moves between the `up_angle` and `down_angle` thresholds. Pick the keypoints for the exercise you want to track with `kpts`, then run the solution over your video with the Python API or the CLI.
 
 !!! example "Workouts Monitoring using Ultralytics YOLO"
 
@@ -97,7 +97,7 @@ The `AIGym` solution runs [pose estimation](../tasks/pose.md) and counts repetit
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### KeyPoints Map
+### Keypoints Map
 
 ![YOLO pose estimation keypoints order diagram](https://cdn.ul.run/i/498f468d15cb311aab12de0c25f2968d.avif)
 
@@ -121,7 +121,7 @@ Additionally, the following visualization settings can be applied:
 
 ### How do I monitor my workouts using Ultralytics YOLO26?
 
-To monitor your workouts using Ultralytics YOLO26, you can utilize the [pose estimation capabilities](../tasks/pose.md) to track and analyze key body landmarks and joints in real-time. This allows you to receive instant feedback on your exercise form, count repetitions, and measure performance metrics. You can start by using the provided example code for push-ups, pull-ups, or ab workouts as shown:
+To monitor your workouts using Ultralytics YOLO26, you can utilize the [pose estimation capabilities](../tasks/pose.md) to track and analyze key body landmarks and joints in real time. This allows you to receive instant feedback on your exercise form, count repetitions, and measure performance metrics. You can start by using the provided example code for push-ups, pull-ups, or ab workouts as shown:
 
 ```python
 import cv2
@@ -149,8 +149,6 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-For further customization and settings, you can refer to the [AIGym](#aigym-arguments) section in the documentation.
-
 ### What are the benefits of using Ultralytics YOLO26 for workout monitoring?
 
 Using Ultralytics YOLO26 for workout monitoring provides several key benefits:
@@ -165,11 +163,11 @@ You can watch a [YouTube video demonstration](https://www.youtube.com/watch?v=LG
 
 ### How accurate is Ultralytics YOLO26 in detecting and tracking exercises?
 
-Ultralytics YOLO26 is highly accurate in detecting and tracking exercises due to its state-of-the-art [pose estimation](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-pose-estimation) capabilities. It can accurately track key body landmarks and joints, providing real-time feedback on exercise form and performance metrics. The model's pretrained weights and robust architecture ensure high [precision](https://www.ultralytics.com/glossary/precision) and reliability. For real-world examples, check out the [real-world applications](#real-world-applications) section in the documentation, which showcases push-ups and pull-ups counting.
+Ultralytics YOLO26 pose models accurately track key body landmarks and joints in real time, providing reliable feedback on exercise form and [repetition counts](#real-world-applications). In practice, accuracy also depends on camera angle, lighting, occlusion, and choosing suitable `kpts`, `up_angle`, and `down_angle` values for each exercise.
 
 ### Can I use Ultralytics YOLO26 for custom workout routines?
 
-Yes, Ultralytics YOLO26 can be adapted for custom workout routines. The `AIGym` class detects exercise repetitions using the `up_angle`, `down_angle`, and `kpts` arguments. You can specify keypoints and angles to detect specific exercises. Here is an example setup:
+Yes, Ultralytics YOLO26 can be adapted for custom workout routines. The `AIGym` class detects exercise repetitions using the `up_angle`, `down_angle`, and `kpts` [arguments](#aigym-arguments). You can specify keypoints and angles to detect specific exercises. Here is an example setup:
 
 ```python
 from ultralytics import solutions
@@ -181,7 +179,7 @@ gym = solutions.AIGym(
 )
 ```
 
-For more details on setting arguments, refer to the [Arguments `AIGym`](#aigym-arguments) section. This flexibility allows you to monitor various exercises and customize routines based on your [fitness goals](https://www.ultralytics.com/blog/ai-in-our-day-to-day-health-and-fitness).
+This flexibility allows you to monitor various exercises and customize routines based on your fitness goals.
 
 ### How can I save the workout monitoring output using Ultralytics YOLO26?
 

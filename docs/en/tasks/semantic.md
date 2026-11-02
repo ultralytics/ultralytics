@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn about semantic segmentation using YOLO26. Assign class labels to every pixel for dense scene understanding with Cityscapes and ADE20K support.
+description: Semantic segmentation with Ultralytics YOLO26. Label every pixel with Cityscapes- and ADE20K-pretrained models, then train, validate, predict, and export.
 keywords: semantic segmentation, YOLO26, pixel-wise classification, scene parsing, Cityscapes, ADE20K, VOC, dense prediction, Ultralytics
 model_name: yolo26n-sem
 ---
@@ -9,7 +9,7 @@ model_name: yolo26n-sem
 
 <img width="1024" src="https://cdn.ul.run/i/600e47d05ee9fb678bb0d761f6bbbd48.avif" alt="Semantic segmentation of a city street into road, sidewalk, car, person, bicycle, vegetation, building, and sky classes">
 
-[Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) assigns a class label to every pixel in an image, producing a dense class map that covers the entire scene. Unlike [instance segmentation](segment.md), which separates individual objects, semantic segmentation groups all pixels of the same class together regardless of how many distinct objects are present.
+[Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) assigns a class label to every pixel in an image, producing a [dense class map](https://academy.ultralytics.com/courses/beyond-detection/semantic-segmentation) that covers the entire scene. Unlike [instance segmentation](segment.md), which separates individual objects, semantic segmentation groups all pixels of the same class together regardless of how many distinct objects are present.
 
 <p align="center">
   <br>
@@ -22,13 +22,13 @@ model_name: yolo26n-sem
   <strong>Watch:</strong> Semantic Segmentation with Ultralytics YOLO26 | Quickstart Tutorial
 </p>
 
-The output of a semantic segmentation model is a single height-by-width class map where each pixel value corresponds to a predicted class ID. This makes semantic segmentation ideal for scene parsing tasks such as autonomous driving, medical imaging, and land-cover mapping.
+The output of a semantic segmentation model is a single height-by-width class map where each pixel value corresponds to a predicted class ID. This makes semantic segmentation well-suited for scene parsing tasks such as autonomous driving, medical imaging, and land-cover mapping.
 
 !!! tip
 
     Use `task=semantic` or the `yolo semantic` CLI task for semantic segmentation. YOLO26 semantic segmentation model files use the `-sem` suffix, such as `yolo26n-sem.pt`.
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
+## Models
 
 YOLO26 Semantic models pretrained on the [Cityscapes](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml) dataset are shown below.
 
@@ -52,7 +52,7 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 ## Train
 
-Train YOLO26n-sem on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 1024. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+[Train](../usage/cfg.md#train-settings) a [YOLO26n-sem](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-sem) model on the [Cityscapes8](https://platform.ultralytics.com/ultralytics/datasets/cityscapes8) dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 1024.
 
 !!! example
 
@@ -91,7 +91,7 @@ Semantic segmentation datasets use single-channel mask images, typically PNG, wh
 
 ## Val
 
-Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a semantic segmentation dataset. Pass `data` explicitly so validation uses the intended dataset YAML.
+Validate trained YOLO26n-sem model accuracy, measured as mean [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (mIoU), on a semantic segmentation dataset. Pass `data` explicitly so validation uses the intended dataset YAML.
 
 !!! example
 
@@ -216,7 +216,7 @@ Export a YOLO26n-sem model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx # export custom model
         ```
 
-Available YOLO26 semantic segmentation export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-sem.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26 semantic segmentation export formats are in the table below. You can export to any format using the `format` argument, e.g., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, e.g., `yolo predict model=yolo26n-sem.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -252,9 +252,9 @@ Check the [Configuration](../usage/cfg.md) page for more available arguments.
 
 ### What is the difference between instance segmentation and semantic segmentation?
 
-Instance segmentation and semantic segmentation are both pixel-level tasks but differ in a key way:
+Instance segmentation and semantic segmentation are both pixel-level tasks but [differ in a key way](https://www.ultralytics.com/blog/semantic-vs-instance-segmentation):
 
-- **[Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation)** assigns a class label to every pixel but does not distinguish between individual objects of the same class. For example, all cars in a scene share the same class label.
+- **Semantic segmentation** assigns a class label to every pixel but does not distinguish between individual objects of the same class. For example, all cars in a scene share the same class label.
 - **[Instance segmentation](segment.md)** identifies each individual object separately, producing distinct masks for each object even if they belong to the same class.
 
 Semantic segmentation is best suited for scene understanding tasks like autonomous driving and land-cover mapping, while instance segmentation is preferred when counting or tracking individual objects matters.

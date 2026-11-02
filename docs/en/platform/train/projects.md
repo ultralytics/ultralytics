@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Project Management
 comments: true
-description: Learn how to organize and manage projects in Ultralytics Platform for efficient model development.
+description: Organize YOLO models into projects on Ultralytics Platform. Compare runs with overlaid charts and diff tables, clone public projects, and set visibility.
 keywords: Ultralytics Platform, projects, model management, experiment tracking, YOLO
 ---
 
 # Projects
 
-[Ultralytics Platform](https://platform.ultralytics.com) projects provide an effective solution for organizing and managing your models. Group related models together to facilitate easier management, comparison, and development.
+[Ultralytics Platform](https://platform.ultralytics.com) projects group related models so you can manage them, [compare results](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/track-experiments), and [track experiments](https://www.ultralytics.com/glossary/experiment-tracking) in one place.
 
 ```mermaid
 flowchart TD
@@ -85,7 +85,7 @@ Toggle between three view modes using the view controls. The selected mode is re
 
 - **Cards**: Full-size model cards in the sidebar with the Charts dashboard on the right — loss curves and metric comparisons for checked models.
 - **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
-- **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to show only the columns where values differ across models.
+- **Table**: Comparison table showing training arguments and final metrics side by side. Enable **Diff** to show only the columns where values differ across models.
 
 ![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/37fcd9ad499485c91fdaab7089f2c7b9.avif)<!-- screenshot -->
 
@@ -161,11 +161,11 @@ Compare model performance using the charts dashboard:
 
 Available chart groups:
 
-| Group             | Charts                                                                           |
-| ----------------- | -------------------------------------------------------------------------------- |
-| **Metrics**       | Task metrics, such as mAP50, mAP50-95, precision, and recall for detection       |
-| **Loss**          | One chart per loss component (box, cls, …), training solid and validation dashed |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                           |
+| Group             | Charts                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------ |
+| **Metrics**       | Task metrics, such as mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, and recall for detection |
+| **Loss**          | One chart per loss component (box, cls, …), training solid and validation dashed                 |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                           |
 
 Comparing models trained for different tasks works, but each model only draws on the charts for metrics it actually reported.
 

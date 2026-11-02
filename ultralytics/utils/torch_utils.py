@@ -1058,23 +1058,14 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
             m = m.half() if hasattr(m, "half") and isinstance(x, torch.Tensor) and x.dtype is torch.float16 else m
             tf, tb, t = 0, 0, [0, 0, 0]  # dt forward, backward
             try:
-                flops = thop.profile(m, inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
-            except Exception:
-                flops = 0
-
-            try:
                 mem = 0
                 for _ in range(n):
                     with cuda_memory_usage(device) as cuda_info:
                         t[0] = time_sync(device)
                         y = m(x)
                         t[1] = time_sync(device)
-                        try:
-                            sum(yi.sum() for yi in tree_flatten(y)[0] if isinstance(yi, torch.Tensor)).backward()
-                            t[2] = time_sync(device)
-                        except Exception:  # no backward method
-                            # print(e)  # for debug
-                            t[2] = float("nan")
+                        sum(yi.sum() for yi in tree_flatten(y)[0] if isinstance(yi, torch.Tensor)).backward()
+                        t[2] = time_sync(device)
                     mem = cuda_info["memory"] / 2**30  # (GiB)
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
@@ -1085,6 +1076,10 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
                         # cls path doubled: training-time validation runs the loss at up to 2x batch
                         mem += x.shape[0] * anchors * 6 * (max_num_obj + 2 * len(m.names)) * 4 / 2**30  # (GiB)
+                try:
+                    flops = thop.profile(m, inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
+                except Exception:
+                    flops = 0
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
                 LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{s_in!s:>24s}{s_out!s:>24s}")

@@ -55,7 +55,7 @@ The `signature.yaml` file defines the dataset configuration — the dataset path
 
 ## Usage
 
-To train a [YOLO26n](../../models/yolo26.md) model on the Signature Detection Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Signature Detection Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples.
 
 !!! example "Train Example"
 
@@ -105,9 +105,9 @@ Once trained, you can run [inference](../../modes/predict.md) on documents or vi
 
 The dataset covers a variety of document formats, helping trained models generalize across contracts, forms, and letters. Below is a training batch from the dataset:
 
-![Signature detection dataset sample image](https://cdn.ul.run/i/371b8e9022c575e19d92d66bbe261941.avif)
+![Signature detection dataset mosaiced training batch of annotated documents](https://cdn.ul.run/i/371b8e9022c575e19d92d66bbe261941.avif)
 
-- **Mosaiced Image**: Here, we present a training batch consisting of mosaiced dataset images. Mosaicing, a training technique, combines multiple images into one, enriching batch diversity. This method helps enhance the model's ability to generalize across different signature sizes, aspect ratios, and contexts.
+- **Mosaiced Image**: This training batch combines multiple dataset images through mosaicing, a training technique that enriches batch diversity and helps the model generalize across different signature sizes, aspect ratios, and contexts.
 
 ## Citations and Acknowledgments
 
@@ -133,7 +133,7 @@ If you use the Signature Detection Dataset in your research or development work,
 
 ### What is the Signature Detection Dataset used for?
 
-The Signature Detection Dataset is a collection of 178 annotated document images for training models to detect handwritten signatures. It supports document verification, fraud detection, and archival research, and is a practical base for building [smart document analysis](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-smart-document-analysis) systems with [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml).
+The Signature Detection Dataset is a collection of 178 annotated document images for training models to [detect handwritten signatures](https://platform.ultralytics.com/ultralytics/solutions/document-signature-detection-yolo26n). It supports document verification, fraud detection, and archival research, and is a practical base for building [smart document analysis](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-smart-document-analysis) systems with [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml).
 
 ### How do I download the Signature Detection Dataset?
 

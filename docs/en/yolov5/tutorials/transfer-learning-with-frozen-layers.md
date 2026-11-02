@@ -1,13 +1,13 @@
 ---
 title: YOLOv5 Transfer Learning Frozen Layers
 comments: true
-description: Learn to freeze YOLOv5 layers for efficient transfer learning, reducing resources and speeding up training while maintaining accuracy.
+description: Freeze Ultralytics YOLOv5 backbone or head layers with --freeze for faster transfer learning on less GPU memory, with VOC accuracy and resource results.
 keywords: YOLOv5, transfer learning, freeze layers, machine learning, deep learning, model training, PyTorch, Ultralytics
 ---
 
 # Transfer Learning with Frozen Layers in YOLOv5
 
-📚 This guide explains how to **freeze** [YOLOv5](https://github.com/ultralytics/yolov5) 🚀 layers when implementing [transfer learning](https://www.ultralytics.com/glossary/transfer-learning). Transfer learning is a powerful [machine learning (ML)](https://www.ultralytics.com/glossary/machine-learning-ml) technique that allows you to quickly retrain a model on new data without retraining the entire network from scratch. By freezing the weights of initial layers and only updating the parameters of later layers, you can significantly reduce computational resource requirements and training time. However, this approach might slightly impact the final model [accuracy](https://www.ultralytics.com/glossary/accuracy).
+This guide explains how to **freeze** [YOLOv5](https://github.com/ultralytics/yolov5) layers when implementing [transfer learning](https://www.ultralytics.com/glossary/transfer-learning). Transfer learning is a [machine learning (ML)](https://www.ultralytics.com/glossary/machine-learning-ml) technique that allows you to quickly retrain a model on new data without retraining the entire network from scratch. By freezing the weights of initial layers and only updating the parameters of later layers, you can significantly reduce computational resource requirements and training time. However, this approach might slightly impact the final model [accuracy](https://www.ultralytics.com/glossary/accuracy). In the `ultralytics` package, the `freeze` [training argument](../../modes/train.md#train-settings) does the same.
 
 ## Before You Start
 
@@ -110,7 +110,7 @@ This approach is useful when you primarily need to adjust the model for a differ
 
 ## Performance Comparison
 
-To illustrate the effects of freezing layers, we trained YOLOv5m on the [Pascal VOC dataset](../../datasets/detect/voc.md) for 50 [epochs](https://www.ultralytics.com/glossary/epoch), starting from the official COCO pretrained [weights](https://www.ultralytics.com/glossary/model-weights) (`yolov5m.pt`). We compared three scenarios: training all layers (`--freeze 0`), freezing the backbone (`--freeze 10`), and freezing all but the final detection layers (`--freeze 24`).
+To illustrate the effects of freezing layers, we trained YOLOv5m on the [Pascal VOC dataset](https://platform.ultralytics.com/ultralytics/datasets/voc) for 50 [epochs](https://www.ultralytics.com/glossary/epoch), starting from the official COCO pretrained [weights](https://www.ultralytics.com/glossary/model-weights) (`yolov5m.pt`). We compared three scenarios: training all layers (`--freeze 0`), freezing the backbone (`--freeze 10`), and freezing all but the final detection layers (`--freeze 24`).
 
 ```bash
 # Example command for training with backbone frozen
@@ -122,10 +122,10 @@ python train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --ca
 The results show that freezing layers can accelerate training significantly but may lead to a slight reduction in final [mAP (mean Average Precision)](https://www.ultralytics.com/glossary/mean-average-precision-map). Training all layers generally yields the best accuracy, while freezing more layers offers faster training at the cost of potentially lower performance.
 
 ![Training mAP50 results comparing different freezing strategies](https://cdn.ul.run/i/71851f7c0d19cd27797bbc4c427b0d64.avif)
-_mAP50 comparison during training_
+_mAP<sub>50</sub> comparison during training_
 
 ![Training mAP50-95 results comparing different freezing strategies](https://cdn.ul.run/i/693fc195c0e8db72ccddb4c7f7cd3e12.avif)
-_mAP50-95 comparison during training_
+_mAP<sub>50-95</sub> comparison during training_
 
 <img width="922" alt="YOLOv5 frozen layer training performance" src="https://cdn.ul.run/i/9e30a29b7a35f86ac7d5fa0ba106ce85.avif">
 *Summary table of performance metrics*
@@ -149,11 +149,11 @@ Layer freezing during transfer learning is particularly advantageous in several 
 3.  **Rapid Prototyping**: When you need to quickly adapt an existing model to a new task or domain for initial evaluation.
 4.  **Similar Feature Domains**: If the low-level features in your new dataset are very similar to those in the dataset the model was pretrained on.
 
-Explore more about the nuances of transfer learning in our [glossary entry](https://www.ultralytics.com/glossary/transfer-learning) and consider [hyperparameter evolution](hyperparameter-evolution.md) for optimizing performance.
+To optimize performance further, consider [hyperparameter evolution](hyperparameter-evolution.md).
 
 ## Supported Environments
 
-Ultralytics offers various ready-to-use environments with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [CuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/) pre-installed.
+Ultralytics offers various ready-to-use environments with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/) pre-installed.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from functools import partial
 from pathlib import Path
 
@@ -64,15 +65,14 @@ def torch2executorch(
 
     LOGGER.info(f"\n{prefix} starting export with ExecuTorch {executorch_version.__version__}...")
 
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    pte_file = output_dir / "model.pte"
     et_program = to_edge_transform_and_lower(
         torch.export.export(model, (im,)),
         partitioner=[XnnpackPartitioner()],
     ).to_executorch()
-    pte_file.write_bytes(et_program.buffer)
+    output_dir = Path(output_dir).resolve()  # rmtree refuses a symlinked directory
+    shutil.rmtree(output_dir, ignore_errors=True)  # a re-export would keep an older export's <stem>.pte
+    output_dir.mkdir(parents=True)
+    (output_dir / "model.pte").write_bytes(et_program.buffer)
 
     if metadata is not None:
         YAML.save(output_dir / "metadata.yaml", metadata)

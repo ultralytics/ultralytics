@@ -6,11 +6,11 @@ keywords: Sony, IMX500, IMX 500, AITRIOS, MCT, model export, quantization, pruni
 
 # Sony IMX500 Export for Ultralytics YOLO11
 
-This guide covers exporting and deploying Ultralytics YOLO11 models to Raspberry Pi AI Cameras that feature the Sony IMX500 sensor.
+This guide covers exporting and deploying Ultralytics [YOLOv8n](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n) and [YOLO11n](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n) models to Raspberry Pi AI Cameras that feature the Sony IMX500 sensor.
 
-Deploying computer vision models on devices with limited computational power, such as [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/), can be tricky. Using a model format optimized for faster performance makes a huge difference.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on devices with limited computational power, such as the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/), can be tricky. Using a model format optimized for faster performance makes a significant difference.
 
-The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through exporting and deploying your models to the IMX500 format while making it easier for your models to perform well on the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/).
+The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLO11](../models/yolo11.md) models for high-speed and low-power inference. This guide walks you through exporting your models to the IMX500 format and deploying them on the Raspberry Pi AI Camera.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/206ebf34f868bfca400757f6d3caff71.avif" alt="Raspberry Pi AI Camera with Sony IMX500 sensor">
@@ -18,22 +18,22 @@ The IMX500 model format is designed to use minimal power while delivering fast p
 
 ## Why Should You Export to IMX500?
 
-Sony's [IMX500 Intelligent Vision Sensor](https://www.aitrios.sony-semicon.com/edge-ai-devices/raspberry-pi-ai-camera) is a game-changing piece of hardware in edge AI processing. It's the world's first intelligent vision sensor with on-chip AI capabilities. This sensor helps overcome many challenges in edge AI, including data processing bottlenecks, privacy concerns, and performance limitations.
-While other sensors merely pass along images and frames, the IMX500 tells a whole story. It processes data directly on the sensor, allowing devices to generate insights in real-time.
+Sony's [IMX500 Intelligent Vision Sensor](https://www.aitrios.sony-semicon.com/edge-ai-devices/raspberry-pi-ai-camera) runs AI processing on the sensor itself, which Sony describes as a world first for an intelligent vision sensor. It helps overcome common [edge AI](https://www.ultralytics.com/glossary/edge-ai) challenges, including data processing bottlenecks, privacy concerns, and performance limitations.
+While conventional sensors only pass along images and frames, the IMX500 [interprets what it captures](https://www.ultralytics.com/blog/empowering-edge-ai-with-sony-imx500-and-aitrios), allowing devices to generate insights in real time.
 
 ## Sony's IMX500 Export for YOLO11 Models
 
-The IMX500 is designed to transform how devices handle data directly on the sensor, without needing to send it off to the cloud for processing.
+The IMX500 is designed to process data directly on the sensor, without sending it to the cloud for processing.
 
-The IMX500 works with quantized models. Quantization makes models smaller and faster without losing much [accuracy](https://www.ultralytics.com/glossary/accuracy). It is ideal for the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server.
+The IMX500 works with quantized models. [Quantization](https://www.ultralytics.com/glossary/model-quantization) makes models smaller and faster without losing much [accuracy](https://www.ultralytics.com/glossary/accuracy). It suits the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server.
 
 **IMX500 Key Features:**
 
 - **Metadata Output:** Instead of transmitting images only, the IMX500 can output both image and metadata (inference result), and can output metadata only for minimizing data size, reducing bandwidth, and lowering costs.
-- **Addresses Privacy Concerns:** By processing data on the device, the IMX500 addresses privacy concerns, ideal for human-centric applications like person counting and occupancy tracking.
-- **Real-time Processing:** Fast, on-sensor processing supports real-time decisions, perfect for edge AI applications such as autonomous systems.
+- **Addresses Privacy Concerns:** By processing data on the device, the IMX500 addresses privacy concerns, making it well suited to human-centric applications like [people counting and occupancy tracking](https://www.ultralytics.com/blog/people-counting-occupancy-analytics).
+- **Real-time Processing:** Fast, on-sensor processing supports real-time decisions for edge AI applications such as autonomous systems.
 
-**Before You Begin:** For best results, ensure your YOLO11 model is well-prepared for export by following our [Model Training Guide](../modes/train.md), [Data Preparation Guide](../datasets/index.md), and [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md).
+**Before You Begin:** For best results, ensure your YOLO11 model is well-prepared for export by following our [Model Training Guide](../modes/train.md), [Datasets Overview](../datasets/index.md), and [Hyperparameter Tuning Guide](../guides/hyperparameter-tuning.md).
 
 ## Supported Tasks
 
@@ -50,7 +50,7 @@ The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/
 
 !!! note
 
-    Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
+    Inference here only confirms that the exported model works as expected before [deploying it to the Raspberry Pi AI Camera](#using-imx500-export-in-deployment).
 
 !!! example "Object Detection"
 
@@ -209,13 +209,9 @@ The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/
 | `nms`      | `bool`, optional          | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). IMX requires `nms=True` for detect, segment and pose and selects it automatically.                                                                 |
 | `device`   | `str`                     | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                      |
 
-!!! tip
-
-    If you are exporting on a GPU with CUDA support, please pass the argument `device=0` for faster export.
-
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-The export process will create a directory named `<model-name>_imx_model`. This directory contains `model_imx.onnx` for quantization validation and the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
+The export process creates a directory named `<model-name>_imx_model`. This directory contains `model_imx.onnx` for quantization validation and the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
 
 !!! example "Folder Structure"
 
@@ -269,22 +265,22 @@ The export process will create a directory named `<model-name>_imx_model`. This 
 
 ## Using IMX500 Export in Deployment
 
-After exporting Ultralytics YOLO11n model to IMX500 format, it can be deployed to Raspberry Pi AI Camera for inference.
+After exporting an Ultralytics YOLO11n model to IMX500 format, you can deploy it to the Raspberry Pi AI Camera for inference.
 
 ### Hardware Prerequisites
 
-Make sure you have the below hardware:
+Make sure you have the following hardware:
 
 1. Raspberry Pi 5 or Raspberry Pi 4 Model B
 2. Raspberry Pi AI Camera
 
-Connect the Raspberry Pi AI camera to the 15-pin MIPI CSI connector on the Raspberry Pi and power on the Raspberry Pi
+Connect the Raspberry Pi AI Camera to the 15-pin MIPI CSI connector on the Raspberry Pi and power on the Raspberry Pi.
 
 ### Software Prerequisites
 
 !!! note
 
-    This guide has been tested with Raspberry Pi OS Bookworm running on a Raspberry Pi 5
+    This guide has been tested with Raspberry Pi OS Bookworm running on a [Raspberry Pi 5](../guides/raspberry-pi.md).
 
 Step 1: Open a terminal window and execute the following commands to update the Raspberry Pi software to the latest version.
 
@@ -298,19 +294,19 @@ Step 2: Install IMX500 firmware which is required to operate the IMX500 sensor.
 sudo apt install imx500-all
 ```
 
-Step 3: Reboot Raspberry Pi for the changes to take into effect
+Step 3: Reboot the Raspberry Pi for the changes to take effect.
 
 ```bash
 sudo reboot
 ```
 
-Step 4: Install [Aitrios Raspberry Pi application module library](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library)
+Step 4: Install the [AITRIOS Raspberry Pi application module library](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library)
 
 ```bash
 pip install git+https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library.git
 ```
 
-Step 5: Run YOLO11 object detection, pose estimation, classification and segmentation by using the below scripts which are available in [aitrios-rpi-application-module-library examples](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library/tree/main/examples/aicam).
+Step 5: Run YOLO11 object detection, pose estimation, classification, and segmentation using the following scripts, which are available in [aitrios-rpi-application-module-library examples](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library/tree/main/examples/aicam).
 
 !!! note
 
@@ -505,12 +501,12 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
 
 YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
 
-| Model        | Format | Size (pixels) | Size of `packerOut.zip` (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------------ | ------ | ------------- | ---------------------------- | ----------- | ---------------------- |
-| YOLOv8n      | imx    | 640           | 2.1                          | 0.470       | 58.79                  |
-| YOLO11n      | imx    | 640           | 2.2                          | 0.517       | 58.82                  |
-| YOLOv8n-pose | imx    | 640           | 2.0                          | 0.687       | 58.79                  |
-| YOLO11n-pose | imx    | 640           | 2.1                          | 0.788       | 62.50                  |
+| Model        | Format | Size (pixels) | Size of `packerOut.zip` (MB) | mAP<sub>50-95</sub>(B) | Inference time (ms/im) |
+| ------------ | ------ | ------------- | ---------------------------- | ---------------------- | ---------------------- |
+| YOLOv8n      | imx    | 640           | 2.1                          | 0.470                  | 58.79                  |
+| YOLO11n      | imx    | 640           | 2.2                          | 0.517                  | 58.82                  |
+| YOLOv8n-pose | imx    | 640           | 2.0                          | 0.687                  | 58.79                  |
+| YOLO11n-pose | imx    | 640           | 2.1                          | 0.788                  | 62.50                  |
 
 | Model       | Format | Size (pixels) | Size of `packerOut.zip` (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
 | ----------- | ------ | ------------- | ---------------------------- | ---------- | ---------- | ---------------------- |
@@ -519,7 +515,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchm
 
 !!! note
 
-    Validation for the above benchmarks was done using the COCO128 dataset for detection models, COCO8-Pose dataset for pose estimation models and ImageNet10 for classification models.
+    Validation for the above benchmarks was done using the [COCO128](https://platform.ultralytics.com/ultralytics/datasets/coco128) dataset for detection models, the [COCO8-Pose](https://platform.ultralytics.com/ultralytics/datasets/coco8-pose) dataset for pose estimation models, and [ImageNet10](https://platform.ultralytics.com/ultralytics/datasets/imagenet10) for classification models.
 
 ## What's Under the Hood?
 
@@ -529,18 +525,18 @@ YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchm
 
 ### Sony Model Compression Toolkit (MCT)
 
-[Sony's Model Compression Toolkit (MCT)](https://github.com/SonySemiconductorSolutions/mct-model-optimization) is a powerful tool for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, ensuring efficient inference and reduced latency.
+[Sony's Model Compression Toolkit (MCT)](https://github.com/SonySemiconductorSolutions/mct-model-optimization) is a toolkit for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, where it enables efficient inference and reduced latency.
 
 ### Supported Features of MCT
 
-Sony's MCT offers a range of features designed to optimize neural network models:
+Sony's MCT offers a range of features designed to [optimize neural network models](https://www.ultralytics.com/blog/sonys-mct-bridging-ai-research-to-real-time-edge):
 
-1. **Graph Optimizations**: Transforms models into more efficient versions by folding layers like batch normalization into preceding layers.
+1. **Graph Optimizations**: Transforms models into more efficient versions by folding layers like [batch normalization](https://www.ultralytics.com/glossary/batch-normalization) into preceding layers.
 2. **Quantization Parameter Search**: Minimizes quantization noise using metrics like Mean-Square-Error, No-Clipping, and Mean-Average-Error.
 3. **Advanced Quantization Algorithms**:
     - **Shift Negative Correction**: Addresses performance issues from symmetric activation quantization.
     - **Outliers Filtering**: Uses z-score to detect and remove outliers.
-    - **Clustering**: Utilizes non-uniform quantization grids for better distribution matching.
+    - **Clustering**: Uses non-uniform quantization grids for better distribution matching.
     - **Mixed-Precision Search**: Assigns different quantization bit-widths per layer based on sensitivity.
 4. **Visualization**: Use TensorBoard to observe model performance insights, quantization phases, and bit-width configurations.
 
@@ -556,7 +552,7 @@ MCT supports several quantization methods to reduce model size and improve infer
     - Available via Keras and PyTorch APIs.
     - Complexity: Medium
     - Computational Cost: Moderate (2-3 GPU hours)
-3. **Quantization-Aware Training (QAT)**:
+3. **[Quantization-Aware Training (QAT)](https://www.ultralytics.com/glossary/quantization-aware-training-qat)**:
     - Complexity: High
     - Computational Cost: High (12-36 GPU hours)
 
@@ -568,11 +564,11 @@ MCT also supports various quantization schemes for weights and activations:
 
 #### Structured Pruning
 
-MCT introduces structured, hardware-aware model pruning designed for specific hardware architectures. This technique leverages the target platform's Single Instruction, Multiple Data (SIMD) capabilities by pruning SIMD groups. This reduces model size and complexity while optimizing channel utilization, aligned with the SIMD architecture for targeted resource utilization of weights memory footprint. Available via Keras and PyTorch APIs.
+MCT introduces structured, hardware-aware [model pruning](https://www.ultralytics.com/glossary/model-pruning) designed for specific hardware architectures. This technique leverages the target platform's Single Instruction, Multiple Data (SIMD) capabilities by pruning SIMD groups. This reduces model size and complexity while optimizing channel utilization, aligned with the SIMD architecture for targeted resource utilization of weights memory footprint. Available via Keras and PyTorch APIs.
 
 ### IMX500 Converter Tool (Compiler)
 
-The IMX500 Converter Tool is integral to the IMX500 toolset, allowing the compilation of models for deployment on Sony's IMX500 sensor (for instance, Raspberry Pi AI Cameras). This tool facilitates the transition of Ultralytics YOLO11 models processed through Ultralytics software, ensuring they are compatible and perform efficiently on the specified hardware. The export procedure following model quantization involves the generation of binary files that encapsulate essential data and device-specific configurations, streamlining the deployment process on the Raspberry Pi AI Camera.
+The IMX500 Converter Tool is integral to the IMX500 toolset, allowing the compilation of models for deployment on Sony's IMX500 sensor (for instance, Raspberry Pi AI Cameras). It compiles quantized Ultralytics YOLO11 models into a form that runs efficiently on the target hardware. After quantization, the export generates binary files containing the model data and device-specific configuration needed for deployment on the Raspberry Pi AI Camera.
 
 ## Real-World Use Cases
 
@@ -585,7 +581,7 @@ Export to IMX500 format has wide applicability across industries. Here are some 
 
 ## Conclusion
 
-Exporting Ultralytics YOLO11 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
+Exporting Ultralytics YOLO11 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. Quantization reduces model size and improves inference speed with only a small loss in accuracy.
 
 For more information and detailed guidelines, refer to Sony's [IMX500 website](https://www.aitrios.sony-semicon.com/edge-ai-devices/raspberry-pi-ai-camera).
 
@@ -633,7 +629,7 @@ Software:
 Based on Ultralytics benchmarks on Raspberry Pi AI Camera:
 
 - YOLO11n achieves 58.82ms inference time per image
-- mAP50-95 of 0.517 on COCO128 dataset
+- mAP<sub>50-95</sub> of 0.517 on COCO128 dataset
 - Model size of only 2.2MB after quantization
 
 This demonstrates that IMX500 format provides efficient real-time inference while maintaining good accuracy for edge AI applications.

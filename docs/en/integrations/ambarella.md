@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Deploy Ultralytics YOLO models on Ambarella CVflow SoCs like the CV72 with SpongeTorch compression-aware training, ONNX export, SDK compilation to AmbaPB, and on-device Cavalry binary deployment.
+description: Deploy Ultralytics YOLO on Ambarella CVflow SoCs like the CV72 with SpongeTorch compression-aware training, ONNX export, AmbaPB compilation, and Cavalry binaries.
 keywords: Ambarella, Ambarella YOLO, deploy YOLO on Ambarella, Ambarella object detection, CVflow, Ambarella CVflow, CV72, CV75, CV5, CV52, N1-655, SpongeTorch, SpongeKit, AmbaPB, Cavalry binary, SDK compilation tools, Cooper Developer Platform, model compression, pruning, quantization, edge AI, NPU, AI camera, security camera, smart camera, Ultralytics, YOLO26, YOLO11, ONNX export, embedded AI, edge deployment
 ---
 
@@ -22,7 +22,7 @@ The AmbaPB checkpoint format is an Ambarella-specific extension of the ONNX IR s
 
 ## Who is Ambarella?
 
-[Ambarella](https://www.ambarella.com/), headquartered in Santa Clara, California, is a semiconductor company that designs edge AI SoCs. Its processors combine image signal processing, video encoding, and on-chip AI compute, and are used in security, automotive, robotics, industrial, and consumer devices.
+[Ambarella](https://www.ambarella.com/), headquartered in Santa Clara, California, is a semiconductor company that designs [edge AI](https://www.ultralytics.com/glossary/edge-ai) SoCs. Its processors combine image signal processing, video encoding, and on-chip AI compute, and are used in security, automotive, robotics, industrial, and consumer devices.
 
 ## What is CVflow?
 
@@ -38,22 +38,22 @@ Current CVflow SoC families and their typical applications:
 
 ## Why Deploy YOLO on Ambarella?
 
-- **Performance per watt**: CVflow SoCs are designed for always-on edge AI, running real-time [object detection](https://www.ultralytics.com/glossary/object-detection) within camera-grade power budgets.
-- **Compression-aware training**: SpongeTorch applies pruning during training to help the model retain accuracy while becoming sparser and more efficient for CVflow deployment.
+- **Performance per watt**: CVflow SoCs are designed for always-on edge AI, running real-time object detection within camera-grade power budgets.
+- **Compression-aware training**: SpongeTorch applies [pruning](https://www.ultralytics.com/glossary/model-pruning) during training to help the model retain accuracy while becoming sparser and more efficient for CVflow deployment.
 - **Integrated camera pipeline**: Ambarella SoCs combine an image signal processor (ISP), ultra-HD video encoding, and CVflow to enable a variety of camera systems at low power consumption, so a single Ambarella SoC handles the full AI camera pipeline.
 
 ## Workflow Overview
 
 The pipeline has six stages:
 
-1. **Compression-aware training** — train with a SpongeKit config (`amba_config`) so SpongeTorch applies unstructured pruning progressively during training. Where post-training quantization (PTQ) accuracy is not acceptable, SpongeTorch also supports quantization-aware training (QAT), but that path is not yet wired into this Ultralytics integration and is planned for a future release.
+1. **Compression-aware training** — train with a SpongeKit config (`amba_config`) so SpongeTorch applies unstructured pruning progressively during training. Where post-training [quantization](https://www.ultralytics.com/glossary/model-quantization) (PTQ) accuracy is not acceptable, SpongeTorch also supports [quantization-aware training](https://www.ultralytics.com/glossary/quantization-aware-training-qat) (QAT), but that path is not yet wired into this Ultralytics integration and is planned for a future release.
 2. **ONNX export** — export the compressed checkpoint with the same `amba_config`, preserving the compression structure in the ONNX graph.
 3. **Compilation** — compile the ONNX model to an AmbaPB checkpoint with the SDK compilation tools, which apply PTQ for the CVflow engine.
-4. **Host validation** — run the compiled `*.ambapb.ckpt.onnx` model through Ultralytics `predict`/`val` via the AmbaPB backend to verify accuracy before deployment.
+4. **Host validation** — run the compiled `*.ambapb.ckpt.onnx` model through the fork's `predict`/`val` via the AmbaPB backend to verify accuracy before deployment.
 5. **Cavalry conversion** — convert the validated AmbaPB checkpoint into a Cavalry binary with the SDK tools.
 6. **Run on device** — run the Cavalry binary on the device with Ambarella's SDK runtime library.
 
-SpongeTorch train and export workflow is optional and can be replaced by a plain ONNX export (see [Exporting Without SpongeTorch](#exporting-without-spongetorch)).
+The SpongeTorch train and export workflow is optional and can be replaced by a [plain ONNX export](#exporting-without-spongetorch).
 
 ## Prerequisites
 
@@ -77,7 +77,7 @@ Install [this Ultralytics fork](https://github.com/Ambarella-Inc/ultralytics/tre
         pip install /path/to/spongetorch-*.whl
         ```
 
-The AutoBackend locates `cvflowbackend` through the SDK compilation tools' `tv2` command (`tv2 -libpath cvflowbackend`), so the SDK compilation tools must be installed and on your `PATH` before running inference or validation with compiled models.
+The fork's AutoBackend locates `cvflowbackend` through the SDK compilation tools' `tv2` command (`tv2 -libpath cvflowbackend`), so the SDK compilation tools must be installed and on your `PATH` before running inference or validation with compiled models.
 
 ### SpongeKit Configuration File
 
@@ -133,7 +133,7 @@ When `amba_config` is set, the trainer wraps the model and optimizer with `spong
 
 !!! tip "Fine-tune instead of training from scratch"
 
-    For best accuracy, first train your model normally (or start from a pretrained checkpoint), then run a shorter compression fine-tune with `amba_config` on the trained weights.
+    For best accuracy, first train your model normally (or start from a [pretrained YOLO26 checkpoint](https://platform.ultralytics.com/ultralytics/yolo26)), then run a shorter compression fine-tune with `amba_config` on the trained weights.
 
 ### Validating the Compressed Checkpoint
 
@@ -206,11 +206,11 @@ PTQ applies INT8 quantization using calibration images (prepared as described in
 
 !!! note
 
-    For Ultralytics to recognize the compiled model, its filename must end with `.ambapb.ckpt.onnx` or `.ambapb.fastckpt.onnx`.
+    For the fork to recognize the compiled model, its filename must end with `.ambapb.ckpt.onnx` or `.ambapb.fastckpt.onnx`.
 
 ## Run Inference with the Compiled Model
 
-The compiled AmbaPB model loads directly through the Ultralytics API — [AutoBackend](../reference/nn/autobackend.md) detects the `.ambapb` suffix and routes inference through `cvflowbackend`, executing the model as it will run on the AI engine:
+The compiled AmbaPB model loads directly through the fork's Ultralytics API — its [AutoBackend](https://github.com/Ambarella-Inc/ultralytics/blob/amba_v8.4.46/ultralytics/nn/autobackend.py) detects the `.ambapb` suffix and routes inference through `cvflowbackend`, executing the model as it will run on the AI engine:
 
 !!! example "Usage"
 
@@ -269,9 +269,7 @@ Ultralytics YOLO models on Ambarella CVflow SoCs power always-on vision at the e
 
 ## Summary
 
-This guide outlined the current workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), ONNX export of the compressed checkpoint, offline compilation to an AmbaPB checkpoint with the SDK tools, host validation through Ultralytics, and conversion to a Cavalry binary for on-device deployment with the Ambarella SDK.
-
-For other edge AI targets, see the related [Hailo](hailo.md), [Rockchip RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), [Qualcomm QNN](qnn.md), [DEEPX](deepx.md), and [Axelera](axelera.md) guides. For the full list of export formats, visit the [Export mode](../modes/export.md) documentation and the [integrations page](index.md).
+This guide outlined the current workflow to deploy Ultralytics YOLO models on Ambarella CVflow SoCs: compression-aware training with SpongeTorch (`amba_config`/`amba_chipset`), [ONNX export](onnx.md) of the compressed checkpoint, offline compilation to an AmbaPB checkpoint with the SDK tools, host validation through Ultralytics, and conversion to a Cavalry binary for on-device deployment with the Ambarella SDK.
 
 ## FAQ
 

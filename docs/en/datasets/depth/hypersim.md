@@ -3,7 +3,7 @@ comments: true
 license:
     name: CC-BY-SA-3.0
     url: https://creativecommons.org/licenses/by-sa/3.0/
-description: Explore the Hypersim depth dataset for monocular depth estimation, a photorealistic synthetic indoor dataset with dense per-pixel ground truth used to train Ultralytics YOLO26-Depth models.
+description: Hypersim is a photorealistic synthetic indoor dataset with exact per-pixel depth, used to train Ultralytics YOLO26-Depth. Download, convert, and train on it.
 keywords: Ultralytics, YOLO, depth estimation, Hypersim, synthetic indoor dataset, photorealistic, dense depth, monocular depth
 ---
 
@@ -39,7 +39,7 @@ git clone https://github.com/apple/ml-hypersim && cd ml-hypersim
 python code/python/tools/dataset_download_images.py --downloads_dir ./downloads --decompress_dir ./scenes
 ```
 
-RGB frames are the `frame.*.tonemap.jpg` previews and depth lives in `frame.*.depth_meters.hdf5`. The stored values are **ray distances to the camera center, not planar depth** — convert before saving, and map the NaN pixels (windows, sky) to 0 (invalid). Use the official `metadata_images_split_scene_v1.csv` scene split for train/val assignment. Reference conversion to the [Ultralytics depth dataset format](index.md):
+RGB frames are the `frame.*.tonemap.jpg` previews and depth lives in `frame.*.depth_meters.hdf5`. The stored values are **ray distances to the camera center, not planar depth** — convert before saving, and map the NaN pixels (windows, sky) to 0 (invalid). Use the official `metadata_images_split_scene_v1.csv` scene split for train/val assignment. Reference conversion to the Ultralytics depth dataset format:
 
 ```python
 import shutil
@@ -86,7 +86,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-Depth model on the Hypersim dataset with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the Hypersim dataset with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

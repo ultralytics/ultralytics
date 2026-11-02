@@ -52,6 +52,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -68,7 +69,6 @@ dependencies = [
     "matplotlib>=3.3.0",
     "opencv-python>=4.7.0,!=4.13.0.90", # 4.13.0.90 FIPS selftest crash https://github.com/ultralytics/ultralytics/issues/23373
     "pillow>=7.1.2",
-    "pyyaml>=5.3.1",
     "requests>=2.23.0",
     "torch>=1.8.0",
     "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
@@ -76,8 +76,8 @@ dependencies = [
     "psutil>=5.8.0", # system utilization
     "polars>=0.20.0",
     "nvidia-ml-py>=12.0.0", # NVIDIA GPU monitoring https://pypi.org/project/nvidia-ml-py
-    "ultralytics-thop>=2.2.3", # FLOPs computation https://github.com/ultralytics/thop
-    "ultralytics-platform>=0.1.45; python_version >= '3.11'",
+    "ultralytics-thop>=2.2.4", # FLOPs computation https://github.com/ultralytics/thop
+    "ultralytics-platform>=0.1.102; python_version >= '3.11'",
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
@@ -176,7 +176,6 @@ extra = [
 typing = [
     "types-pillow",
     "types-psutil",
-    "types-pyyaml",
     "types-requests",
     "types-shapely",
 ]

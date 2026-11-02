@@ -31,7 +31,7 @@ After evaluation, you test the model using images from a pet store to see how we
 
 ## Preparing for Model Testing
 
-Computer vision [datasets](./preprocessing-annotated-data.md) are usually divided into training and testing sets to simulate real-world conditions: [training data](https://www.ultralytics.com/glossary/training-data) teaches the model, while testing data verifies its behavior on examples it has never seen. The [Ultralytics Platform](https://platform.ultralytics.com) keeps dataset organization and annotation in one place, which helps when building a labeled test set.
+Computer vision [datasets](./preprocessing-annotated-data.md) are usually divided into training and testing sets to simulate real-world conditions: [training data](https://www.ultralytics.com/glossary/training-data) teaches the model, while [test data](https://www.ultralytics.com/glossary/test-data) verifies its behavior on examples it has never seen. The [Ultralytics Platform](https://platform.ultralytics.com) keeps dataset organization and annotation in one place, which helps when building a labeled test set.
 
 !!! tip "Before you test"
 
@@ -40,11 +40,11 @@ Computer vision [datasets](./preprocessing-annotated-data.md) are usually divide
 
 ## How to Test a YOLO26 Model
 
-Testing a trained YOLO26 model involves two complementary workflows: validating on a labeled test split to get quantitative metrics, and predicting on new images to inspect behavior qualitatively.
+Testing a trained YOLO26 model involves two complementary workflows: [validating on a labeled test split](https://academy.ultralytics.com/courses/train-your-first-yolo/validate-and-diagnose) to get quantitative metrics, and predicting on new images to inspect behavior qualitatively.
 
 ### Validate on a Labeled Test Split
 
-[Validation mode](../modes/val.md) compares the model's predictions against ground-truth labels and reports precision, recall, mAP50, and mAP50-95 for detection models. It also saves visual aids like a confusion matrix and a precision-recall curve, which help you spot specific areas where the model might not be performing well.
+[Validation mode](../modes/val.md) compares the model's predictions against ground-truth labels and reports precision, recall, mAP<sub>50</sub>, and mAP<sub>50-95</sub> for detection models. It also saves visual aids like a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) and a precision-recall curve, which help you spot specific areas where the model might not be performing well.
 
 !!! example "Usage"
 
@@ -95,14 +95,14 @@ By default, validation runs on the dataset's `val` split. To measure performance
 
 !!! tip "Testing a pretrained model before custom training"
 
-    To check whether YOLO26 suits your application before investing in custom training, run prediction mode with a pretrained checkpoint on your own images. The models are pretrained on datasets like [COCO](../datasets/detect/coco.md), so the results give a quick sense of how well the model might perform in your specific context.
+    To check whether YOLO26 suits your application before investing in custom training, run prediction mode with a [pretrained checkpoint](https://platform.ultralytics.com/ultralytics/yolo26) on your own images. The models are pretrained on datasets like [COCO](../datasets/detect/coco.md), so the results give a quick sense of how well the model might perform in your specific context.
 
 ### Validation vs. Prediction Mode
 
-| Mode                              | Purpose                                       | Requires labels | Output                                                          |
-| --------------------------------- | --------------------------------------------- | --------------- | --------------------------------------------------------------- |
-| [Validation](../modes/val.md)     | Quantify performance against ground truth     | Yes             | Precision, recall, mAP50, mAP50-95, confusion matrix, PR curves |
-| [Prediction](../modes/predict.md) | Inspect model behavior on new, unlabeled data | No              | Annotated images and prediction results, no metrics             |
+| Mode                              | Purpose                                       | Requires labels | Output                                                                                |
+| --------------------------------- | --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- |
+| [Validation](../modes/val.md)     | Quantify performance against ground truth     | Yes             | Precision, recall, mAP<sub>50</sub>, mAP<sub>50-95</sub>, confusion matrix, PR curves |
+| [Prediction](../modes/predict.md) | Inspect model behavior on new, unlabeled data | No              | Annotated images and prediction results, no metrics                                   |
 
 ## How to Analyze Test Results
 
@@ -110,11 +110,11 @@ Once predictions and metrics are in hand, dig into where and why the model fails
 
 - **Misclassified images:** Identify and review images that the model misclassified to understand where it is going wrong.
 - **Error analysis:** Perform a thorough error analysis to understand the types of errors (e.g., false positives vs. false negatives) and their potential causes.
-- **Bias and fairness:** Check for any biases in the model's predictions. Ensure that the model performs equally well across different subsets of the data, especially if it includes sensitive attributes like race, gender, or age.
+- **Bias and fairness:** Check for any [biases](https://www.ultralytics.com/glossary/bias-in-ai) in the model's predictions. Ensure that the model performs equally well across different subsets of the data, especially if it includes sensitive attributes like race, gender, or age.
 
 ## Overfitting and Underfitting in Machine Learning
 
-When testing a [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model, especially in computer vision, it's important to watch out for overfitting and [underfitting](https://www.ultralytics.com/glossary/underfitting). These issues can significantly affect how well your model works with new data.
+When testing a [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model, especially in computer vision, it's important to watch out for [overfitting](https://www.ultralytics.com/blog/what-is-overfitting-in-computer-vision-how-to-prevent-it) and [underfitting](https://www.ultralytics.com/glossary/underfitting). These issues can significantly affect how well your model works with new data.
 
 | Issue            | Common signs                                                                                                         | How to address it                                                                                                                                                       |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -129,9 +129,9 @@ The key is to find a balance so the model performs well on both training and val
 
 ## Data Leakage in Computer Vision and How to Avoid It
 
-Data leakage happens when information from outside the training dataset accidentally gets used to train the model. The model may seem very accurate during training, but it won't perform well on new, unseen data when data leakage occurs.
+[Data leakage](https://www.ultralytics.com/glossary/data-leakage) happens when information from outside the training dataset accidentally gets used to train the model. The model may seem very accurate during training, but it won't perform well on new, unseen data when data leakage occurs.
 
-Leakage can be tricky to spot and often comes from hidden biases in the training data:
+Leakage can be tricky to spot and often comes from hidden [biases in the training data](https://www.ultralytics.com/glossary/dataset-bias):
 
 | Bias type                 | What it looks like                                                                                                                                         |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -167,7 +167,7 @@ Use [prediction mode](../modes/predict.md) and pass a folder path as the `source
 
 ### What metrics does YOLO26 validation report on a test set?
 
-For detection models, validation reports precision, recall, mAP50, and mAP50-95, and saves plots including a confusion matrix and a precision-recall curve. To validate on a dedicated test split rather than the default `val` split, define `test:` in your dataset YAML and pass `split="test"`. See the [performance metrics guide](./yolo-performance-metrics.md) for how to interpret each metric.
+For detection models, validation reports precision, recall, mAP<sub>50</sub>, and mAP<sub>50-95</sub>, and saves plots including a confusion matrix and a precision-recall curve. To validate on a dedicated test split rather than the default `val` split, define `test:` in your dataset YAML and pass `split="test"`. See the [performance metrics guide](./yolo-performance-metrics.md) for how to interpret each metric.
 
 ### What should I do if my computer vision model shows signs of overfitting or underfitting?
 

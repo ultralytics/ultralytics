@@ -723,7 +723,7 @@ class YAML:
         v = str(v)
         if v.isprintable() and cls._PLAIN.fullmatch(v) and cls._scalar(v) is v and v.lower() not in cls._YAML11:
             return v
-        return re.sub(r"[\x7f-\x9f]", lambda m: f"\\x{ord(m[0]):02x}", json.dumps(v, ensure_ascii=False))
+        return re.sub(r"[\x7f-\x9f  ]", lambda m: f"\\u{ord(m[0]):04x}", json.dumps(v, ensure_ascii=False))
 
     @classmethod
     def _scalar(cls, s: str):

@@ -351,7 +351,7 @@ class ProfileModels:
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.min_time = min_time
-        self.imgsz = imgsz
+        self.imgsz = check_imgsz(imgsz)
         self.quantize = quantize
         self.trt = trt  # run TensorRT profiling
         self.device = select_device(device, verbose=False)

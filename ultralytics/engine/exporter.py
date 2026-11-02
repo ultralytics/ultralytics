@@ -85,6 +85,7 @@ import torch
 from ultralytics import __version__
 from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
+from ultralytics.data.build import InfiniteDataLoader
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
 from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
@@ -1063,7 +1064,7 @@ class Exporter:
             prefix (str): Prefix for log messages.
 
         Returns:
-            (InfiniteDataLoader): Calibration dataloader that drops the last incomplete batch.
+            (InfiniteDataLoader): Calibration dataloader of full batches, repeating images when fewer than `batch`.
         """
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
@@ -1095,16 +1096,16 @@ class Exporter:
         n = len(dataset)
         if n < 1:
             raise ValueError(f"The calibration dataset must have at least 1 image, but found {n} images.")
-        batch = min(self.args.batch, n)
-        if n < self.args.batch:
-            LOGGER.warning(
-                f"{prefix} calibration dataset has only {n} images, reducing calibration batch size to {batch}."
-            )
         if self.args.format == "axelera" and n < 100:
             LOGGER.warning(f"{prefix} >100 images required for Axelera calibration, found {n} images.")
         elif self.args.format != "axelera" and n < 300:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
+        if n < self.args.batch:  # repeat images to fill one batch, static graphs and TensorRT calibrators need it
+            sampler = [i % n for i in range(self.args.batch)]
+            return InfiniteDataLoader(
+                dataset, self.args.batch, sampler=sampler, collate_fn=getattr(dataset, "collate_fn", None)
+            )
+        return build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)  # required for batch loading
 
     def _int8_calibration_images(self, prefix=""):
         """Collect calibration batches directly into one BHWC float32 array."""
@@ -1853,18 +1854,11 @@ class Exporter:
             zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
 
     def _transform_fn(self, data_item) -> np.ndarray:
-        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN).
-
-        Calibration datasets smaller than the export batch yield undersized batches that static-batch graphs reject, so
-        images are tiled up to exactly the export batch.
-        """
+        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
         assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
         im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to float32 and 0 - 255 to 0.0 - 1.0
-        im = im[None] if im.ndim == 3 else im
-        if not self.args.dynamic and len(im) < self.args.batch:  # tile up to the static batch dimension
-            im = np.tile(im, (-(-self.args.batch // len(im)), 1, 1, 1))[: self.args.batch]
-        return im
+        return im[None] if im.ndim == 3 else im
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""

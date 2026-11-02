@@ -188,6 +188,14 @@ Create a deployment:
 | **Rate limits** | 20 requests/minute           | No Platform rate limit on direct calls      |
 | **Auth**        | Any workspace API key        | Only the API key bound to the deployment    |
 
+### How do I let someone else test my model?
+
+Share the model page, not a deployment. When the model's project is [public](../train/projects.md#visibility-settings),
+anyone with the link can run the model from its `Predict` tab in their browser, without an account or API key: open the
+`Predict` tab, then click **Share** > **Copy link**. Anonymous predictions are [rate limited](inference.md#rate-limits)
+per IP address. Deployment pages are visible only to your workspace, and a dedicated endpoint accepts only its bound API
+key.
+
 ### How long does deployment take?
 
 The deployment remains in a creating or deploying state while its service starts. It becomes usable when the status

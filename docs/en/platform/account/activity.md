@@ -145,8 +145,7 @@ The Activity feed supports pagination:
 
 - Default page size: 20 events, up to 100 per page
 - Navigate between pages and change the page size using the pagination controls
-- The tab, page, page size, search, and date range are all reflected in the URL, so a filtered view can be bookmarked
-  or shared
+- The tab and search query are reflected in the URL, so a search can be bookmarked or shared
 
 ## Export Activity
 

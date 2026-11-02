@@ -723,9 +723,11 @@ class YAML:
         v = str(v)
         if v.isprintable() and cls._PLAIN.fullmatch(v) and cls._scalar(v) is v and v.lower() not in cls._YAML11:
             return v
-        return re.sub(r"[\x7f-\x9f  ]", lambda m: f"\\u{ord(m[0]):04x}", json.dumps(v, ensure_ascii=False))
+        return re.sub(r"[\x7f-\x9f
 
-    @classmethod
+]", lambda m: f"\\u{ord(m[0]):04x}", json.dumps(v, ensure_ascii=False))
+
+    @cla"""Resolve a plain scalar to None, bool, int, float or str."""
     def _scalar(cls, s: str):
         """Resolve a plain scalar to None, bool, int, float or str."""
         if s in cls._CONST:
@@ -738,7 +740,7 @@ class YAML:
                     pass
         return s
 
-    @classmethod
+    @cla"""Decode a quoted scalar, including its quotes, by folding line breaks and resolving escapes."""
     def _unquote(cls, s: str) -> str:
         """Decode a quoted scalar, including its quotes, by folding line breaks and resolving escapes."""
         q, s = s[0], s[1:-1]
@@ -746,7 +748,7 @@ class YAML:
             return (re.sub(cls._FOLD, cls._fold, s) if "\n" in s else s).replace("''", "'")
         return cls._DQ.sub(cls._escape, s) if "\\" in s or "\n" in s else s
 
-    @classmethod
+    @cla"""Replace one double-quoted escape sequence or folded line break."""
     def _escape(cls, m) -> str:
         """Replace one double-quoted escape sequence or folded line break."""
         e = m[1]
@@ -758,13 +760,11 @@ class YAML:
             raise ValueError(f"unknown escape '\\{e}' in a double-quoted string, use single quotes for Windows paths")
         return cls._ESC[e]
 
-    @staticmethod
+    @sta"""Fold a matched line break: one break becomes a space, n + 1 breaks become n newlines."""
     def _fold(m, group: int = 1) -> str:
         """Fold a matched line break: one break becomes a space, n + 1 breaks become n newlines."""
         return "\n" * m[group].count("\n") or " "
-
-    def parse(self):
-        r"""Parse the YAML document passed to the constructor.
+"""Parse the YAML document passed to the constructor.
 
         Returns:
             (Any): The top-level node, usually a dict, or None for an empty document.
@@ -775,6 +775,8 @@ class YAML:
         Examples:
             >>> YAML("names:\n  0: person\nnc: 1").parse()
             {'names': {0: 'person'}, 'nc': 1}
+        """ >>> YAML("names:\n  0: person\nnc: 1").parse()
+            {'names': {0: 'person'}, 'nc': 1}
         """
         n, c = self._peek()
         if c == "---" or c.startswith("--- "):  # document start, possibly with content on the same line
@@ -784,11 +786,11 @@ class YAML:
         if (m := self._peek())[0] >= 0:  # a single document only, so '...' and later content raise
             self._error(f"unexpected {m[1]!r}")
         return v
-
+"""Raise a ValueError for the current line."""
     def _error(self, msg):
         """Raise a ValueError for the current line."""
         raise ValueError(f"line {self.i + 1}: {msg}")
-
+"""Advance past blank and comment lines, returning (indent, content) of the next line or (-1, '') at the end."""
     def _peek(self):
         """Advance past blank and comment lines, returning (indent, content) of the next line or (-1, '') at the end."""
         while self.i < len(self.lines):
@@ -802,7 +804,7 @@ class YAML:
             self.i += 1
         return -1, ""
 
-    @classmethod
+    @cla"""Split a 'key: value' line into (key, rest), or return None if it is not a mapping entry."""
     def _key(cls, c):
         """Split a 'key: value' line into (key, rest), or return None if it is not a mapping entry."""
         if c[0] in "\"'":
@@ -815,7 +817,7 @@ class YAML:
         if j <= 0 or not k or c[0] in "[{&*!" or c[:2] == "- " or cls._COMMENT.search(k):
             return None
         return cls._scalar(k), c[j + 1 :].strip(" \t")
-
+"""Parse the block node whose first line has indent n and content c, inside a parent node at indent p."""
     def _node(self, n, c, p):
         """Parse the block node whose first line has indent n and content c, inside a parent node at indent p."""
         if c == "-" or c.startswith("- "):
@@ -824,7 +826,7 @@ class YAML:
             return self._map(n)
         self.i += 1
         return self._value(c, p)
-
+"""Parse a block mapping at indent n."""
     def _map(self, n):
         """Parse a block mapping at indent n."""
         d = {}
@@ -837,7 +839,7 @@ class YAML:
                 self._error(f"expected 'key: value' at indent {n}, got {c!r}")
             self.i += 1
             d[kv[0]] = self._value(kv[1], n)
-
+"""Parse a block sequence whose '-' indicators are at indent n."""
     def _seq(self, n):
         """Parse a block sequence whose '-' indicators are at indent n."""
         out = []
@@ -859,7 +861,7 @@ class YAML:
             else:
                 self.i += 1
                 out.append(self._value(rest, n))
-
+"""Parse a value starting with text rest, on a line that belongs to a parent node at indent n."""
     def _value(self, rest, n):
         """Parse a value starting with text rest, on a line that belongs to a parent node at indent n."""
         if not rest or rest[0] == "#":  # nested block, indentless sequence or null
@@ -893,7 +895,7 @@ class YAML:
         if ": " in s or s.endswith(":"):
             self._error(f"mapping inside plain scalar {s!r}")
         return self._scalar(s)
-
+"""Read a literal '|' or folded '>' block scalar with optional chomping and indentation indicators."""
     def _block_scalar(self, header, n):
         """Read a literal '|' or folded '>' block scalar with optional chomping and indentation indicators."""
         h = header.split("#", 1)[0].strip(" \t")
@@ -921,7 +923,7 @@ class YAML:
             return text
         return (text + "\n" if text else "") + "\n" * (trailing if "+" in h else 0)
 
-    @classmethod
+    @cla"""Return the index just past the flow collection that opens text, or -1 if it continues on the next line."""
     def _flow_end(cls, text):
         """Return the index just past the flow collection that opens text, or -1 if it continues on the next line."""
         depth = 0
@@ -930,12 +932,12 @@ class YAML:
             if not depth:
                 return m.end()
         return -1
-
+"""Parse a complete flow collection."""
     def _flow(self, text):
         """Parse a complete flow collection."""
         toks = [(m[1], m[2], m[4]) for m in self._FLOW.finditer(text) if not m[3]]
         pos = 0
-
+"""Parse the flow node at the current token."""
         def node():
             """Parse the flow node at the current token."""
             nonlocal pos
@@ -975,20 +977,20 @@ DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
-
-def read_device_model() -> str:
-    """Read the device model information from the system.
+"""Read the device model information from the system.
 
     Returns:
+        (str): Platform release string in lowercase, used to identify device models like Jetson or Raspberry Pi.
+    """urns:
         (str): Platform release string in lowercase, used to identify device models like Jetson or Raspberry Pi.
     """
     return platform.release().lower()
 
-
-def is_ubuntu() -> bool:
-    """Check if the OS is Ubuntu.
+"""Check if the OS is Ubuntu.
 
     Returns:
+        (bool): True if OS is Ubuntu, False otherwise.
+    """urns:
         (bool): True if OS is Ubuntu, False otherwise.
     """
     try:
@@ -997,9 +999,7 @@ def is_ubuntu() -> bool:
     except FileNotFoundError:
         return False
 
-
-def is_debian(codenames: list[str] | str | None = None) -> list[bool] | bool:
-    """Check if the OS is Debian.
+"""Check if the OS is Debian.
 
     Args:
         codenames (list[str] | None | str): Specific Debian codename to check for (e.g., 'buster', 'bullseye'). If None,
@@ -1007,6 +1007,8 @@ def is_debian(codenames: list[str] | str | None = None) -> list[bool] | bool:
 
     Returns:
         (list[bool] | bool): List of booleans indicating if OS matches each Debian codename, or a single boolean if no
+            codenames provided.
+    """ (list[bool] | bool): List of booleans indicating if OS matches each Debian codename, or a single boolean if no
             codenames provided.
     """
     try:
@@ -1023,27 +1025,25 @@ def is_debian(codenames: list[str] | str | None = None) -> list[bool] | bool:
     except FileNotFoundError:
         return [False] * len(codenames) if codenames else False
 
-
-def is_colab():
-    """Check if the current script is running inside a Google Colab notebook.
+"""Check if the current script is running inside a Google Colab notebook.
 
     Returns:
+        (bool): True if running inside a Colab notebook, False otherwise.
+    """urns:
         (bool): True if running inside a Colab notebook, False otherwise.
     """
     return "COLAB_RELEASE_TAG" in os.environ or "COLAB_BACKEND_VERSION" in os.environ
 
-
-def is_kaggle():
-    """Check if the current script is running inside a Kaggle kernel.
+"""Check if the current script is running inside a Kaggle kernel.
 
     Returns:
+        (bool): True if running inside a Kaggle kernel, False otherwise.
+    """urns:
         (bool): True if running inside a Kaggle kernel, False otherwise.
     """
     return os.environ.get("PWD") == "/kaggle/working" and os.environ.get("KAGGLE_URL_BASE") == "https://www.kaggle.com"
 
-
-def is_jupyter():
-    """Check if the current script is running inside a Jupyter Notebook.
+"""Check if the current script is running inside a Jupyter Notebook.
 
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
@@ -1051,23 +1051,25 @@ def is_jupyter():
     Notes:
         - Only works on Colab and Kaggle, other environments like Jupyterlab and Paperspace are not reliably detectable.
         - "get_ipython" in globals() method suffers false positives when IPython package installed manually.
+    """ - Only works on Colab and Kaggle, other environments like Jupyterlab and Paperspace are not reliably detectable.
+        - "get_ipython" in globals() method suffers false positives when IPython package installed manually.
     """
     return IS_COLAB or IS_KAGGLE
 
-
-def is_runpod():
-    """Check if the current script is running inside a RunPod container.
+"""Check if the current script is running inside a RunPod container.
 
     Returns:
+        (bool): True if running in RunPod, False otherwise.
+    """urns:
         (bool): True if running in RunPod, False otherwise.
     """
     return "RUNPOD_POD_ID" in os.environ
 
-
-def is_docker() -> bool:
-    """Determine if the script is running inside a Docker container.
+"""Determine if the script is running inside a Docker container.
 
     Returns:
+        (bool): True if the script is running inside a Docker container, False otherwise.
+    """urns:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
     try:
@@ -1075,24 +1077,24 @@ def is_docker() -> bool:
     except Exception:
         return False
 
-
-def is_raspberrypi() -> bool:
-    """Determine if the Python environment is running on a Raspberry Pi.
+"""Determine if the Python environment is running on a Raspberry Pi.
 
     Returns:
+        (bool): True if running on a Raspberry Pi, False otherwise.
+    """urns:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
     return "rpi" in DEVICE_MODEL
 
 
-@lru_cache(maxsize=3)
-def is_jetson(jetpack=None) -> bool:
-    """Determine if the Python environment is running on an NVIDIA Jetson device.
+@lru"""Determine if the Python environment is running on an NVIDIA Jetson device.
 
     Args:
         jetpack (int | None): If specified, check for specific JetPack version (4, 5, 6, 7).
 
     Returns:
+        (bool): True if running on an NVIDIA Jetson device, False otherwise.
+    """urns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
     jetson = "tegra" in DEVICE_MODEL
@@ -1105,11 +1107,11 @@ def is_jetson(jetpack=None) -> bool:
             return False
     return jetson
 
-
-def is_dgx() -> bool:
-    """Check if the current script is running inside a DGX (NVIDIA Data Center GPU), DGX-Ready or DGX Spark system.
+"""Check if the current script is running inside a DGX (NVIDIA Data Center GPU), DGX-Ready or DGX Spark system.
 
     Returns:
+        (bool): True if running in a DGX or DGX-Ready or DGX Spark system, False otherwise.
+    """urns:
         (bool): True if running in a DGX or DGX-Ready or DGX Spark system, False otherwise.
     """
     try:
@@ -1118,11 +1120,11 @@ def is_dgx() -> bool:
     except FileNotFoundError:
         return False
 
-
-def is_online() -> bool:
-    """Fast online check using DNS (v4/v6) resolution (Cloudflare + Google).
+"""Fast online check using DNS (v4/v6) resolution (Cloudflare + Google).
 
     Returns:
+        (bool): True if connection is successful, False otherwise.
+    """urns:
         (bool): True if connection is successful, False otherwise.
     """
     if env_bool("YOLO_OFFLINE"):
@@ -1136,14 +1138,14 @@ def is_online() -> bool:
             continue
     return False
 
-
-def is_pip_package(filepath: str = __name__) -> bool:
-    """Determine if the given module is importable from an installed package.
+"""Determine if the given module is importable from an installed package.
 
     Args:
         filepath (str): The dotted module name to check, e.g. 'ultralytics.utils'.
 
     Returns:
+        (bool): True if the module spec is found and has an origin, False otherwise.
+    """urns:
         (bool): True if the module spec is found and has an origin, False otherwise.
     """
     import importlib.util
@@ -1154,54 +1156,54 @@ def is_pip_package(filepath: str = __name__) -> bool:
     # Return whether the spec is not None and the origin is not None (indicating it is a package)
     return spec is not None and spec.origin is not None
 
-
-def is_dir_writeable(dir_path: str | Path) -> bool:
-    """Check if a directory is writable.
+"""Check if a directory is writable.
 
     Args:
         dir_path (str | Path): The path to the directory.
 
     Returns:
         (bool): True if the directory is writable, False otherwise.
+    """urns:
+        (bool): True if the directory is writable, False otherwise.
     """
     return os.access(str(dir_path), os.W_OK)
 
-
-def is_pytest_running():
-    """Determine whether pytest is currently running or not.
+"""Determine whether pytest is currently running or not.
 
     Returns:
+        (bool): True if pytest is running, False otherwise.
+    """urns:
         (bool): True if pytest is running, False otherwise.
     """
     return ("PYTEST_CURRENT_TEST" in os.environ) or ("pytest" in sys.modules) or ("pytest" in Path(ARGV[0]).stem)
 
-
-def is_github_action_running() -> bool:
-    """Determine if the current environment is a GitHub Actions runner.
+"""Determine if the current environment is a GitHub Actions runner.
 
     Returns:
+        (bool): True if the current environment is a GitHub Actions runner, False otherwise.
+    """urns:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
 
-
-def get_default_args(func):
-    """Return a dictionary of default arguments for a function.
+"""Return a dictionary of default arguments for a function.
 
     Args:
         func (callable): The function to inspect.
 
     Returns:
         (dict): A dictionary where each key is a parameter name, and each value is the default value of that parameter.
+    """urns:
+        (dict): A dictionary where each key is a parameter name, and each value is the default value of that parameter.
     """
     signature = inspect.signature(func)
     return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
-
-def get_ubuntu_version():
-    """Retrieve the Ubuntu version if the OS is Ubuntu.
+"""Retrieve the Ubuntu version if the OS is Ubuntu.
 
     Returns:
+        (str | None): Ubuntu version, e.g. '22.04', or None if not an Ubuntu OS.
+    """urns:
         (str | None): Ubuntu version, e.g. '22.04', or None if not an Ubuntu OS.
     """
     if is_ubuntu():
@@ -1211,9 +1213,7 @@ def get_ubuntu_version():
         except (FileNotFoundError, AttributeError):
             return None
 
-
-def get_user_config_dir(sub_dir="Ultralytics"):
-    """Return a writable config dir, preferring YOLO_CONFIG_DIR and being OS-aware.
+"""Return a writable config dir, preferring YOLO_CONFIG_DIR and being OS-aware.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.
@@ -1222,6 +1222,8 @@ def get_user_config_dir(sub_dir="Ultralytics"):
         (Path): The path to the user config directory.
 
     Raises:
+        ValueError: If the operating system is not supported and YOLO_CONFIG_DIR is not set.
+    """ses:
         ValueError: If the operating system is not supported and YOLO_CONFIG_DIR is not set.
     """
     if env_dir := os.getenv("YOLO_CONFIG_DIR"):
@@ -1269,9 +1271,7 @@ GIT = GitRepo()
 USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
-
-def colorstr(*input):
-    r"""Color a string based on the provided color and style arguments using ANSI escape codes.
+"""Color a string based on the provided color and style arguments using ANSI escape codes.
 
     This function can be called in two ways:
         - colorstr('color', 'style', 'your string')
@@ -1299,6 +1299,8 @@ def colorstr(*input):
 
     References:
         https://en.wikipedia.org/wiki/ANSI_escape_code
+    """erences:
+        https://en.wikipedia.org/wiki/ANSI_escape_code
     """
     *args, string = input if len(input) > 1 else ("blue", "bold", input[0])  # color arguments, string
     colors = {
@@ -1324,9 +1326,7 @@ def colorstr(*input):
     }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
-
-def remove_colorstr(input_string):
-    """Remove ANSI escape codes from a string, effectively un-coloring it.
+"""Remove ANSI escape codes from a string, effectively un-coloring it.
 
     Args:
         input_string (str): The string to remove color and style from.
@@ -1337,13 +1337,13 @@ def remove_colorstr(input_string):
     Examples:
         >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
         'hello world'
+    """ >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
+        'hello world'
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
 
-
-class TryExcept(contextlib.ContextDecorator):
-    """Ultralytics TryExcept class for handling exceptions gracefully.
+"""Ultralytics TryExcept class for handling exceptions gracefully.
 
     This class can be used as a decorator or context manager to catch exceptions and optionally print warning messages.
     It allows code to continue execution even when exceptions occur, which is useful for non-critical operations.
@@ -1363,25 +1363,25 @@ class TryExcept(contextlib.ContextDecorator):
         >>> with TryExcept(msg="Error occurred in block", verbose=True):
         ...     # Code block here
         ...     pass
+    """ ...     # Code block here
+        ...     pass
     """
-
+"""Initialize TryExcept class with optional message and verbosity settings."""
     def __init__(self, msg="", verbose=True):
         """Initialize TryExcept class with optional message and verbosity settings."""
         self.msg = msg
         self.verbose = verbose
-
+"""Execute when entering TryExcept context, initialize instance."""
     def __enter__(self):
         """Execute when entering TryExcept context, initialize instance."""
-
+"""Define behavior when exiting a 'with' block, print error message if necessary."""
     def __exit__(self, exc_type, value, traceback):
         """Define behavior when exiting a 'with' block, print error message if necessary."""
         if self.verbose and value:
             LOGGER.warning(f"{self.msg}{': ' if self.msg else ''}{value}")
         return True
 
-
-class Retry(contextlib.ContextDecorator):
-    """Retry class for function execution with exponential backoff.
+"""Retry class for function execution with exponential backoff.
 
     This decorator can be used to retry a function on exceptions, up to a specified number of times with an
     exponentially increasing delay between retries. It's useful for handling transient failures in network operations or
@@ -1398,18 +1398,20 @@ class Retry(contextlib.ContextDecorator):
         ... def test_func():
         ...     # Replace with function logic that may raise exceptions
         ...     return True
+    """ ...     # Replace with function logic that may raise exceptions
+        ...     return True
     """
-
+"""Initialize Retry class with specified number of retries and delay."""
     def __init__(self, times=3, delay=2, verbose=True):
         """Initialize Retry class with specified number of retries and delay."""
         self.times = times
         self.delay = delay
         self.verbose = verbose  # False when the caller's own logging would feed back into its retries
         self._attempts = 0
-
+"""Decorator implementation for Retry with exponential backoff."""
     def __call__(self, func):
         """Decorator implementation for Retry with exponential backoff."""
-
+"""Apply retries to the decorated function or method."""
         def wrapped_func(*args, **kwargs):
             """Apply retries to the decorated function or method."""
             self._attempts = 0
@@ -1426,9 +1428,7 @@ class Retry(contextlib.ContextDecorator):
 
         return wrapped_func
 
-
-def threaded(func):
-    """Multi-thread a target function by default and return the thread or function result.
+"""Multi-thread a target function by default and return the thread or function result.
 
     This decorator provides flexible execution of the target function, either in a separate thread or synchronously. By
     default, the function runs in a thread, but this can be controlled via the 'threaded=False' keyword argument which
@@ -1448,8 +1448,10 @@ def threaded(func):
         >>>
         >>> thread = process_data(my_data)  # Runs in background thread
         >>> result = process_data(my_data, threaded=False)  # Runs synchronously, returns function result
+    """ >>> thread = process_data(my_data)  # Runs in background thread
+        >>> result = process_data(my_data, threaded=False)  # Runs synchronously, returns function result
     """
-
+"""Multi-thread a given function based on 'threaded' kwarg and return the thread or function result."""
     def wrapper(*args, **kwargs):
         """Multi-thread a given function based on 'threaded' kwarg and return the thread or function result."""
         if kwargs.pop("threaded", True):  # run in thread
@@ -1463,9 +1465,7 @@ def threaded(func):
 
     return wrapper
 
-
-def set_sentry():
-    """Initialize the Sentry SDK for error tracking and reporting.
+"""Initialize the Sentry SDK for error tracking and reporting.
 
     Only used if sentry_sdk package is installed and sync=True in settings. Run 'yolo settings' to see and update
     settings.
@@ -1478,6 +1478,8 @@ def set_sentry():
         - running in a non-git directory
         - running with rank -1 or 0
         - online environment
+        - CLI used to run package (checked with 'yolo' as the name of the main CLI command)
+    """ - online environment
         - CLI used to run package (checked with 'yolo' as the name of the main CLI command)
     """
     if (
@@ -1495,15 +1497,15 @@ def set_sentry():
         import sentry_sdk
     except ImportError:
         return
-
-    def before_send(event, hint):
-        """Modify the event before sending it to Sentry based on specific exception types and messages.
+"""Modify the event before sending it to Sentry based on specific exception types and messages.
 
         Args:
             event (dict): The event dictionary containing information about the error.
             hint (dict): A dictionary containing additional information about the error.
 
         Returns:
+            (dict | None): The modified event or None if the event should not be sent to Sentry.
+        """urns:
             (dict | None): The modified event or None if the event should not be sent to Sentry.
         """
         if "exc_info" in hint:
@@ -1533,9 +1535,7 @@ def set_sentry():
     )
     sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 
-
-class JSONDict(dict):
-    """A dictionary-like class that provides JSON persistence for its contents.
+"""A dictionary-like class that provides JSON persistence for its contents.
 
     This class extends the built-in dictionary to automatically save its contents to a JSON file whenever they are
     modified. It ensures thread-safe operations using a lock and handles JSON serialization of Path objects.
@@ -1560,15 +1560,17 @@ class JSONDict(dict):
         >>> del json_dict["key"]
         >>> json_dict.update({"new_key": "new_value"})
         >>> json_dict.clear()
+    """ >>> json_dict.update({"new_key": "new_value"})
+        >>> json_dict.clear()
     """
-
+"""Initialize a JSONDict object with a specified file path for JSON persistence."""
     def __init__(self, file_path: str | Path = "data.json"):
         """Initialize a JSONDict object with a specified file path for JSON persistence."""
         super().__init__()
         self.file_path = Path(file_path)
         self.lock = Lock()
         self._load()
-
+"""Load the data from the JSON file into the dictionary."""
     def _load(self):
         """Load the data from the JSON file into the dictionary."""
         try:
@@ -1580,7 +1582,7 @@ class JSONDict(dict):
             LOGGER.warning(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
         except Exception as e:
             LOGGER.error(f"Error reading from {self.file_path}: {e}")
-
+"""Save the current state of the dictionary to the JSON file."""
     def _save(self):
         """Save the current state of the dictionary to the JSON file."""
         try:
@@ -1590,45 +1592,43 @@ class JSONDict(dict):
         except Exception as e:
             LOGGER.error(f"Error writing to {self.file_path}: {e}")
 
-    @staticmethod
+    @sta"""Handle JSON serialization of Path objects."""
     def _json_default(obj):
         """Handle JSON serialization of Path objects."""
         if isinstance(obj, Path):
             return str(obj)
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
-
+"""Store a key-value pair and persist to disk."""
     def __setitem__(self, key, value):
         """Store a key-value pair and persist to disk."""
         with self.lock:
             super().__setitem__(key, value)
             self._save()
-
+"""Remove an item and update the persistent storage."""
     def __delitem__(self, key):
         """Remove an item and update the persistent storage."""
         with self.lock:
             super().__delitem__(key)
             self._save()
-
+"""Return a pretty-printed JSON string representation of the dictionary."""
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
         contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
         return f'JSONDict("{self.file_path}"):\n{contents}'
-
+"""Update the dictionary and persist changes."""
     def update(self, *args, **kwargs):
         """Update the dictionary and persist changes."""
         with self.lock:
             super().update(*args, **kwargs)
             self._save()
-
+"""Clear all entries and update the persistent storage."""
     def clear(self):
         """Clear all entries and update the persistent storage."""
         with self.lock:
             super().clear()
             self._save()
 
-
-class SettingsManager(JSONDict):
-    """SettingsManager class for managing and persisting Ultralytics settings.
+"""SettingsManager class for managing and persisting Ultralytics settings.
 
     This class extends JSONDict to provide JSON persistence for settings, ensuring thread-safe operations and default
     values. It validates settings on initialization and provides methods to update or reset settings. The settings
@@ -1651,8 +1651,10 @@ class SettingsManager(JSONDict):
         >>> settings.update(runs_dir="/new/runs/dir")
         >>> print(settings["runs_dir"])
         /new/runs/dir
+    """ >>> print(settings["runs_dir"])
+        /new/runs/dir
     """
-
+"""Initialize the SettingsManager with default settings and load user settings."""
     def __init__(self, file=SETTINGS_FILE, version="0.0.8"):
         """Initialize the SettingsManager with default settings and load user settings."""
         import hashlib
@@ -1699,7 +1701,7 @@ class SettingsManager(JSONDict):
                 self.reset()
 
             self._validate_settings()
-
+"""Validate settings and migrate valid values to the current schema."""
     def _validate_settings(self):
         """Validate settings and migrate valid values to the current schema."""
         correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
@@ -1729,16 +1731,16 @@ class SettingsManager(JSONDict):
                 f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
                 f"Please change one to avoid possible issues during training. {self.help_msg}"
             )
-
+"""Update one key: value pair."""
     def __setitem__(self, key, value):
         """Update one key: value pair."""
         self.update({key: value})
-
-    def update(self, *args, **kwargs):
-        """Update settings, validating keys and types.
+"""Update settings, validating keys and types.
 
         Raises:
             KeyError: If a key is not a valid Ultralytics setting.
+            TypeError: If a value does not match the type of the setting's default.
+        """ KeyError: If a key is not a valid Ultralytics setting.
             TypeError: If a value does not match the type of the setting's default.
         """
         kwargs = dict(*args, **kwargs)  # every form dict.update() accepts
@@ -1751,13 +1753,13 @@ class SettingsManager(JSONDict):
                     f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
                 )
         super().update(kwargs)
-
+"""Reset the settings to default and save them."""
     def reset(self):
         """Reset the settings to default and save them."""
         self.clear()
         self.update(self.defaults)
 
-
+"""Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
 def deprecation_warn(arg, new_arg=None):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
     msg = f"'{arg}' is deprecated and will be removed in the future."
@@ -1765,18 +1767,18 @@ def deprecation_warn(arg, new_arg=None):
         msg += f" Use '{new_arg}' instead."
     LOGGER.warning(msg)
 
-
+"""Strip auth from URL, e.g. `https://example.com/path/file.txt?auth` -> `https://example.com/path/file.txt`."""
 def clean_url(url):
     """Strip auth from URL, e.g. `https://example.com/path/file.txt?auth` -> `https://example.com/path/file.txt`."""
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
     return unquote(url).split("?", 1)[0]  # '%2F' to '/', split authentication query strings
 
-
+"""Convert URL to filename, e.g. `https://example.com/path/file.txt?auth` -> `file.txt`."""
 def url2file(url):
     """Convert URL to filename, e.g. `https://example.com/path/file.txt?auth` -> `file.txt`."""
     return Path(clean_url(url)).name or "download"
 
-
+"""Return a message to install Ultralytics-Snippets for VS Code, or an empty string if already installed."""
 def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     """Return a message to install Ultralytics-Snippets for VS Code, or an empty string if already installed."""
     path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"

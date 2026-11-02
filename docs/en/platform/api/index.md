@@ -1797,8 +1797,8 @@ POST /api/models/{owner}/{project}/{model}/exports
 
 Each format honors only the options in its **Arguments** column of the export table below: a non-default `batch`,
 `dynamic`, `opset`, `simplify`, `workspace`, or `optimize` value for a format that does not support it returns `400`.
-`imx` exports are INT8 only and available for detect, segment, classify, and pose models; YOLO26 models and YOLOv8 or
-YOLO11 sizes other than nano return `400`.
+`imx` exports are INT8 only and available for detect, segment, classify, and pose models; a model whose name
+identifies a YOLO model other than YOLOv8n or YOLO11n returns `400`.
 
 **Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `region`, and `gpuType` for TensorRT exports.
 While an export of the same format is in flight for the model, a new request returns `409` whatever its `args`.

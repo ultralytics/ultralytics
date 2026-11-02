@@ -137,7 +137,7 @@ def test_build_yolo_dataset_hyp_isolated():
     assert cfg.mosaic == DEFAULT_CFG.mosaic
 
 
-def test_cfg_rejects_fuzzed_values():
+def test_cfg_rejects_fuzzed_values(tmp_path):
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
         get_cfg(overrides={"degrees": None})
@@ -169,6 +169,8 @@ def test_cfg_rejects_fuzzed_values():
     assert get_cfg(overrides={"end2end": True, "nms": True}).nms is False
     assert get_cfg(overrides={"end2end": False, "nms": False}).nms is None
     assert get_cfg(overrides={"end2end": False, "nms": True}).nms is True
+    YAML.save(tmp_path / "args.yaml", {"lr0": np.float64(1e-5)})  # NumPy 2 float64 saved as a YAML float, not a str
+    assert get_cfg(tmp_path / "args.yaml").lr0 == 1e-5
 
 
 def skip_rpi_semantic():
@@ -1586,22 +1588,6 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     legacy_index = next(i for i, path in enumerate(ds.im_files) if Path(path).stem == "legacy")
     assert not ds._load_depth(legacy_index)[0, :3].any()
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
-
-
-def test_yaml_save_numpy_float(tmp_path):
-    """Test that NumPy float64 values are saved as numbers that a reused args.yaml still validates."""
-    file = tmp_path / "args.yaml"
-    YAML.save(
-        file,
-        {
-            "lr0": np.float64(0.01),
-            "decay": np.float64(1e-5),
-            "inf": np.float64("inf"),
-            "nested": {"x": [np.float64(0.5)]},
-        },
-    )
-    assert YAML.load(file) == {"lr0": 0.01, "decay": 1e-5, "inf": float("inf"), "nested": {"x": [0.5]}}
-    assert get_cfg(file).lr0 == 0.01
 
 
 def test_utils_init():

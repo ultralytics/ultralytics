@@ -76,6 +76,7 @@ Each model page has the following tabs:
 | **Predict**  | Interactive browser inference                 |
 | **Export**   | Format conversion with GPU selection          |
 | **Deploy**   | Endpoint creation and management              |
+| **Comments** | Discussion thread on public models            |
 
 ### Model Header
 

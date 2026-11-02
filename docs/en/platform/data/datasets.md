@@ -514,7 +514,7 @@ An image without an embedding — in a dataset not yet analyzed, or added since 
 
 ## Dataset Tabs
 
-Each dataset page can show up to six tabs, depending on the dataset state and your permissions:
+Each dataset page can show up to seven tabs, depending on the dataset state and your permissions:
 
 ### Images Tab
 
@@ -613,6 +613,10 @@ View all models trained on this dataset in a searchable table:
 | Created | Creation date                                                                                                                               |
 
 ![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.ul.run/i/c68f167c5eff1f7fff6a2c8b1772ad7a.avif)<!-- screenshot -->
+
+### Comments Tab
+
+Public datasets and models in public projects show a discussion thread. Anyone can read it; posting, replying, editing, and voting require signing in.
 
 ### Errors Tab
 

@@ -19,8 +19,8 @@ class Box3D:
     Attributes:
         center_3d (tuple[float, float, float]): 3D center position (x, y, z) in meters.
             Coordinate system: Camera coordinate system (x: right, y: down, z: forward).
-        dimensions (tuple[float, float, float]): Object dimensions (length, width, height) in meters.
-            Length is along the object's x-axis (camera X at orientation 0), width along its z-axis, height up.
+        dimensions (tuple[float, float, float]): Object dimensions (length, width, height) in meters. Length is along
+            the object's x-axis (camera X at orientation 0), width along its z-axis, height up.
         orientation (float): Rotation angle around vertical (Y) axis in radians, range [-π, π].
         class_label (str): Object class name ("Car", "Pedestrian", "Cyclist").
         class_id (int): Numeric class identifier (0=Car, 1=Pedestrian, 2=Cyclist).

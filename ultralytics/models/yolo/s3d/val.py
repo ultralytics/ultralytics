@@ -80,9 +80,9 @@ def _reverse_letterbox_calib(
 def _level_frame(boxes: list[Box3D], R_tilt: np.ndarray | None) -> list[Box3D] | list[np.ndarray]:
     """Express boxes as [x, y, z, l, w, h, ry] in the level frame of a tilted camera, where they are upright.
 
-    The IoU routines assume boxes upright in the frame they are given (yaw about y, height along y). For a tilted
-    camera that frame is the level one: rotating both boxes' centers by R^T is a common rigid motion, so the IoU is
-    the true overlap of the tilted boxes. Level-camera boxes are returned unchanged.
+    The IoU routines assume boxes upright in the frame they are given (yaw about y, height along y). For a tilted camera
+    that frame is the level one: rotating both boxes' centers by R^T is a common rigid motion, so the IoU is the true
+    overlap of the tilted boxes. Level-camera boxes are returned unchanged.
     """
     if R_tilt is None:
         return boxes

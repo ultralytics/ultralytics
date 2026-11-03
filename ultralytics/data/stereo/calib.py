@@ -25,9 +25,9 @@ class CalibrationParameters:
         baseline (float): Distance between left and right camera centers (meters).
         image_width (int): Original image width in pixels.
         image_height (int): Original image height in pixels.
-        R_cam_tilt (np.ndarray | None): Optional (3, 3) rotation from the gravity-aligned (level) frame into the
-            camera frame, for a camera mounted with pitch/roll. Labels then place a box as
-            ``R_cam_tilt @ Ry(rotation_y) @ corners + location``. None means a level camera (KITTI).
+        R_cam_tilt (np.ndarray | None): Optional (3, 3) rotation from the gravity-aligned (level) frame into the camera
+            frame, for a camera mounted with pitch/roll. Labels then place a box as ``R_cam_tilt @ Ry(rotation_y) @
+            corners + location``. None means a level camera (KITTI).
     """
 
     fx: float
@@ -109,9 +109,9 @@ def tilt_center_offset(R: np.ndarray | None, height: float) -> np.ndarray:
 def level_ray_angle(R: np.ndarray | None, x: float, z: float, y: float = 0.0) -> float:
     """Horizontal viewing-ray angle of a camera-frame point, measured in the level frame (``atan2`` of ``R^T p``).
 
-    With no tilt this is the KITTI ``atan2(x, z)``. ``rotation_y`` is a yaw about the level vertical, so alpha
-    (= rotation_y - ray angle) must use the level-frame ray. If R embeds a yaw (e.g. a 180 deg flip) the ray angle
-    shifts by that yaw and so does rotation_y; callers wrap alpha, so encode/decode stay consistent.
+    With no tilt this is the KITTI ``atan2(x, z)``. ``rotation_y`` is a yaw about the level vertical, so alpha (=
+    rotation_y - ray angle) must use the level-frame ray. If R embeds a yaw (e.g. a 180 deg flip) the ray angle shifts
+    by that yaw and so does rotation_y; callers wrap alpha, so encode/decode stay consistent.
     """
     if R is None:
         return math.atan2(x, z)

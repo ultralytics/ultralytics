@@ -69,8 +69,8 @@ def encode_proj_offset(
 
     Args:
         location_3d (tuple): (X, Y, Z) bottom-center in camera frame (meters).
-        height (float): 3D box height (meters); centroid Y = Y - height/2 (camera y-down), or
-            location + R_cam_tilt @ [0, -height/2, 0] for a tilted camera.
+        height (float): 3D box height (meters); centroid Y = Y - height/2 (camera y-down), or location + R_cam_tilt @
+            [0, -height/2, 0] for a tilted camera.
         calib (dict): fx, fy, cx, cy (original-image pixels), optionally R_cam_tilt.
         box_center_norm (tuple): (u, v) 2D box center, letterbox-normalized [0,1].
         ratio_pad (tuple): (scale, pad_left, pad_top) of the letterbox applied to this sample.

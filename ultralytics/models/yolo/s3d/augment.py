@@ -27,8 +27,8 @@ def project_3d_box_to_2d(
     """Project a 3D bounding box to 2D image coordinates.
 
     Uses KITTI convention where location is at bottom-center of the object, Y points down, and dimensions are (length,
-    width, height) where length is along the object's x-axis and width along its z-axis, so at rotation_y=0 length
-    lies along camera X (right).
+    width, height) where length is along the object's x-axis and width along its z-axis, so at rotation_y=0 length lies
+    along camera X (right).
 
     Args:
         location_3d: (3,) array [X, Y, Z] in camera coordinates (meters).
@@ -522,8 +522,8 @@ class StereoHSV:
 def _mirror_cam_tilt(calibration: dict[str, Any]) -> None:
     """Mirror a tilted camera's level->camera rotation for a horizontal flip: R -> S R S with S = diag(-1, 1, 1).
 
-    Pitch is unchanged and roll changes sign; with yaw -> -yaw this keeps every flipped 3D corner equal to the mirror
-    of the original. No-op for a level camera.
+    Pitch is unchanged and roll changes sign; with yaw -> -yaw this keeps every flipped 3D corner equal to the mirror of
+    the original. No-op for a level camera.
     """
     R = cam_tilt(calibration)
     if R is not None:

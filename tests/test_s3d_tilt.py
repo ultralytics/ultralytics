@@ -82,8 +82,8 @@ def test_tilted_projection_matches_tilted_corners():
 def test_hflip_with_tilt_regenerates_the_mirror_of_the_old_right_box():
     """After a flip the new left view IS the mirrored old right view, so its regenerated box must be that mirror.
 
-    Under roll this only holds when the tilt is mirrored too (S R S): keeping R leaves the regenerated boxes
-    several pixels off the flipped pixels.
+    Under roll this only holds when the tilt is mirrored too (S R S): keeping R leaves the regenerated boxes several
+    pixels off the flipped pixels.
     """
     inst = Instances(
         bboxes=np.zeros((1, 4), dtype=np.float32),

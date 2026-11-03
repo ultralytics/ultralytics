@@ -903,7 +903,9 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     )  # data/test or data/val
     test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
     if split in {"val", "test"} and not (val_set or test_set):
-        raise FileNotFoundError(f"No 'val' or 'test' split in {data_dir}, add a 'val' directory of class directories")
+        raise FileNotFoundError(
+            f"No 'val' or 'test' split in {data_dir} ❌. Add a 'val' directory of class directories."
+        )
     if split == "val" and not val_set:
         LOGGER.warning("Dataset 'split=val' not found, using 'split=test' instead.")
         val_set = test_set

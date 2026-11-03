@@ -71,7 +71,7 @@ Install the required packages:
 
 **Requirements:**
 
-- NVIDIA GPU (compute capability 5.0+ / Maxwell or newer)
+- NVIDIA GPU (compute capability 5.0+ / Maxwell or newer; 7.5+ / Turing or newer for CUDA 13)
 - CUDA 11.0+, 12.0+ or 13.0+
 - Python 3.10-3.14
 - Linux operating system
@@ -233,7 +233,7 @@ This applies to all external preprocessing paths — direct tensor input, video 
 
 !!! tip "Zero Preprocessing Overhead"
 
-    When you pass a `torch.Tensor` to `model.predict()`, the image preprocessing step takes ~0.004ms (essentially zero) compared to ~1-10ms with CPU preprocessing. The tensor must be in BCHW format, float32 (or float16), and normalized to `[0, 1]`. Ultralytics will still handle device transfer and dtype casting automatically.
+    When you pass a `torch.Tensor` to `model.predict()`, the image preprocessing step takes ~0.004ms (essentially zero) compared to ~1-10ms with CPU preprocessing. The tensor must be in BCHW format, float32 (or float16), and normalized to `[0, 1]`. Ultralytics still handles device transfer and dtype casting automatically.
 
 ## DALI with Video Streams
 
@@ -567,7 +567,7 @@ DALI preprocessing works with all YOLO tasks that use the standard `LetterBox` p
 
 ### How does DALI preprocessing compare to CPU preprocessing speed?
 
-The benefit depends on your pipeline. When GPU inference is already fast with [TensorRT](../integrations/tensorrt.md), CPU preprocessing at 2-10ms can become the dominant cost. DALI eliminates this bottleneck by running preprocessing on the GPU. The biggest gains are seen with high-resolution inputs (1080p, 4K), large [batch sizes](https://www.ultralytics.com/glossary/batch-size), and systems with limited CPU cores per GPU.
+The benefit depends on your pipeline. When GPU inference is already fast with [TensorRT](../integrations/tensorrt.md), CPU preprocessing at 2-10ms can become the dominant cost. DALI eliminates this bottleneck by running preprocessing on the GPU. The biggest gains are seen with high-resolution inputs (1080p, 4K), large batch sizes, and systems with limited CPU cores per GPU.
 
 ### Can I use DALI with PyTorch models (not just TensorRT)?
 
@@ -579,8 +579,8 @@ Yes. Use `DALIGenericIterator` to get preprocessed `torch.Tensor` outputs, then 
 
 ### Does DALI produce pixel-identical results to CPU preprocessing?
 
-Nearly identical. Set `antialias=False` in `fn.resize` to match OpenCV's `cv2.INTER_LINEAR`. Minor floating-point differences (< 0.001) may occur due to GPU vs CPU arithmetic, but these have no measurable impact on detection [accuracy](https://www.ultralytics.com/glossary/accuracy).
+Nearly identical. Set `antialias=False` in `fn.resize` to match OpenCV's `cv2.INTER_LINEAR`. Minor floating-point differences (< 0.001) may occur due to GPU vs CPU arithmetic, but these have no measurable impact on detection accuracy.
 
 ### What about CV-CUDA as an alternative to DALI?
 
-[CV-CUDA](https://github.com/CVCUDA/CV-CUDA) is another NVIDIA library for GPU-accelerated vision processing. It provides per-operator control (like [OpenCV](https://www.ultralytics.com/glossary/opencv) but on GPU) rather than DALI's pipeline approach. CV-CUDA's `cvcuda.copymakeborder()` supports explicit per-side padding, making centered letterbox straightforward. Choose DALI for pipeline-based workflows (especially with [Triton](triton-inference-server.md)), and CV-CUDA for fine-grained operator-level control in custom inference code.
+[CV-CUDA](https://github.com/CVCUDA/CV-CUDA) is another NVIDIA library for GPU-accelerated vision processing. It provides per-operator control (like OpenCV but on GPU) rather than DALI's pipeline approach. CV-CUDA's `cvcuda.copymakeborder()` supports explicit per-side padding, making centered letterbox straightforward. Choose DALI for pipeline-based workflows (especially with [Triton](triton-inference-server.md)), and CV-CUDA for fine-grained operator-level control in custom inference code.

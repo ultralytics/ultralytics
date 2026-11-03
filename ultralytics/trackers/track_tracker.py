@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import sys
 from collections import deque
 from functools import wraps
-from itertools import count
 from typing import Any
 
 import numpy as np
@@ -299,7 +299,9 @@ class TTSTrack(BOTrack):
         self.frame_id = frame_id
         if new_id:
             self.track_id = self.next_id()
-        self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
+        self.cls, self.idx = new_track.cls, new_track.idx
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
 
     def update(self, new_track, frame_id: int) -> None:
         """Update a matched track with a new detection; promote to Tracked after min_track_len."""
@@ -327,7 +329,9 @@ class TTSTrack(BOTrack):
         if self.state == TrackState.Tracked or self.tracklet_len + 1 >= self.min_track_len:
             self.state = TrackState.Tracked
             self.is_activated = True
-        self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
+        self.cls, self.idx = new_track.cls, new_track.idx
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
 
     def __repr__(self) -> str:
         """Short string representation of the track."""
@@ -383,7 +387,7 @@ class TRACKTRACK:
         self.args = args
         self.max_time_lost = args.track_buffer
         self.kalman_filter = KalmanFilterXYWH()
-        self._ids = count(1)
+        self._ids = iter(range(1, sys.maxsize))
 
         self.match_thr = getattr(args, "match_thresh", 0.7)
         self.lost_match_thr = getattr(args, "lost_match_thr", 0.0)
@@ -599,5 +603,5 @@ class TRACKTRACK:
         self.removed_stracks = []
         self.frame_id = 0
         self.kalman_filter = KalmanFilterXYWH()
-        self._ids = count(1)
+        self._ids = iter(range(1, sys.maxsize))
         self.gmc.reset_params()

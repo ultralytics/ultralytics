@@ -7,7 +7,7 @@ import subprocess
 import sys
 import types
 from pathlib import Path
-from shutil import which
+from shutil import rmtree, which
 
 import numpy as np
 import torch
@@ -274,12 +274,12 @@ def torch2imx(
     check_requirements(
         (
             "model-compression-toolkit>=2.4.1",
-            "edge-mdt-cl<1.1.0",
+            "edge-mdt-cl>=1.1.0",
             "edge-mdt-tpc>=1.2.0",
             "pydantic<2.12",
+            "imx500-converter[pt]>=3.18.2",
         )
     )
-    check_requirements("imx500-converter[pt]>=3.17.3")
     dataset = dataset() if callable(dataset) else dataset  # resolve lazy dataloader
 
     import model_compression_toolkit as mct
@@ -345,8 +345,9 @@ def torch2imx(
             task=model.task,
         )
 
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = Path(output_dir).resolve()  # rmtree refuses a symlinked directory
+    rmtree(output_dir, ignore_errors=True)  # a re-export would keep an older export's <stem>_imx.onnx
+    output_dir.mkdir(parents=True)
     onnx_model = output_dir / "model_imx.onnx"
 
     with onnx_export_patch():

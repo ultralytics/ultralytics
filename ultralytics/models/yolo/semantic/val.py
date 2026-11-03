@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -63,7 +64,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         self.results_dir = None
         if self.args.save_json:
             self.results_dir = self.save_dir / "results"
-            self.results_dir.mkdir(parents=True, exist_ok=True)
+            self.mask_root = os.path.commonpath([os.path.dirname(f) for f in self.dataset.im_files])
         cm_nc = self.metrics.cm_nc
         if cm_nc == 2 and len(self.names) == 1:  # binary segmentation, expand to include background
             cm_names = {0: "background", 1: next(iter(self.names.values()))}
@@ -138,7 +139,12 @@ class SemanticSegmentationValidator(DetectionValidator):
             dist.gather_object(self.metrics.nt_per_image, None, dst=0)
 
     def save_pred_masks(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:
-        """Save semantic predictions as single-channel PNG masks at the original image size."""
+        """Save semantic predictions as single-channel PNG masks at the original image size.
+
+        Each mask keeps its image's path relative to the common parent directory of all validation images, so
+        `images/val/a/1.jpg` and `images/val/b/1.jpg` are saved as `results/a/1.png` and `results/b/1.png`. Masks use
+        the original dataset label IDs when the dataset defines `label_mapping`.
+        """
         if self.results_dir is None:
             return
         im_files = batch.get("im_file", [])
@@ -149,7 +155,8 @@ class SemanticSegmentationValidator(DetectionValidator):
             pred = pred[0, 0].byte().cpu().numpy()
             if isinstance(self.dataset, SemanticDataset) and self.dataset.label_mapping:
                 pred = self.dataset.convert_label(pred, inverse=True)
-            save_path = self.results_dir / Path(im_file).with_suffix(".png").name
+            save_path = self.results_dir / Path(im_file).relative_to(self.mask_root).with_suffix(".png")
+            save_path.parent.mkdir(parents=True, exist_ok=True)
             Image.fromarray(pred).save(save_path)
 
     def get_stats(self):

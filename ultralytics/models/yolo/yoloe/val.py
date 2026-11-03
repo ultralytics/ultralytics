@@ -61,6 +61,7 @@ class YOLOEDetectValidator(DetectionValidator):
             (torch.Tensor): Visual prompt embeddings with shape (1, num_classes, embed_dim).
         """
         assert isinstance(model, YOLOEModel)
+        assert not model.model[-1].is_fused, "Visual prompts need an unfused YOLOE model."
         names = [name.split("/", 1)[0] for name in list(dataloader.dataset.data["names"].values())]
         visual_pe = torch.zeros(len(names), model.model[-1].embed, device=self.device)
         cls_visual_num = torch.zeros(len(names))

@@ -23,7 +23,7 @@ if CUDA_IS_AVAILABLE:
     else:
         gpu_info = GPUInfo()
         gpu_info.print_status()
-        autodevice_fraction = __import__("os").environ.get("YOLO_AUTODEVICE_FRACTION_FREE", 0.3)
+        autodevice_fraction = float(__import__("os").environ.get("YOLO_AUTODEVICE_FRACTION_FREE", 0.3))
         if idle_gpus := gpu_info.select_idle_gpu(
             count=2,
             min_memory_fraction=autodevice_fraction,
@@ -43,6 +43,25 @@ def test_amp():
     """Test AMP training checks."""
     model = YOLO("yolo26n.pt").model.to(f"cuda:{DEVICES[0]}")
     assert check_amp(model)
+
+
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+def test_onnx_dynamic_spatial_outputs(tmp_path):
+    """Run a real feature backbone with fixed batch and dynamic spatial outputs on CUDA."""
+    from torchvision.models import resnet18
+
+    from ultralytics.nn.backends.onnx import ONNXBackend
+    from ultralytics.utils.export import torch2onnx
+
+    model = torch.nn.Sequential(*list(resnet18(weights=None).children())[:-2]).eval()
+    im = torch.randn(1, 3, 64, 96)
+    file = torch2onnx(model, im, tmp_path / "features.onnx", dynamic={"images": {2: "height", 3: "width"}})
+    backend = ONNXBackend(file, torch.device(f"cuda:{DEVICES[0]}"))
+    assert "CUDAExecutionProvider" in backend.session.get_providers()
+    for x in (im, im.transpose(2, 3)):
+        actual = torch.as_tensor(backend(x.to(backend.device))[0]).cpu()
+        expected = backend.session.run(backend.output_names, {"images": x.numpy()})[0]
+        torch.testing.assert_close(actual, torch.from_numpy(expected), rtol=0, atol=0)
 
 
 @pytest.mark.slow
@@ -222,8 +241,6 @@ def test_utils_benchmarks(isolated_model):
     """Profile YOLO models for performance benchmarks."""
     from ultralytics.utils.benchmarks import ProfileModels
 
-    # Pre-export a dynamic engine model to use dynamic inference
-    YOLO(isolated_model).export(format="engine", imgsz=32, dynamic=True, batch=1, device=DEVICES[0])
     ProfileModels(
         [isolated_model],
         imgsz=32,

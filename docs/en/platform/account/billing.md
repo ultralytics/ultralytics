@@ -2,20 +2,20 @@
 plans: [free, pro, enterprise]
 title: Billing & Credits
 comments: true
-description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent compute pricing for cloud training, batch annotation, and endpoints.
+description: Manage credits, payments, and Free, Pro, or Enterprise plans on Ultralytics Platform, with metered credits for GPU cloud training, batch annotation, and endpoint uptime.
 keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
 ---
 
 # Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, batch annotation, and custom-resource endpoint uptime. Add credits, track
+[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, [batch annotation](../data/annotation.md#batch-annotation), and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
 
 ## Plans
 
-Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
+Choose the plan that fits your needs. Compare plans in `Settings > Plans` or on the [Ultralytics pricing page](https://www.ultralytics.com/pricing):
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
 
@@ -38,9 +38,9 @@ Get started at no cost:
 
 !!! tip "Company Email Bonus"
 
-    Sign up with, or later add and verify, a company email address (not gmail.com, outlook.com, and similar consumer
-    domains) to top your signup credit up from $5 to $25. The bonus is granted once per account — add the address in
-    [`Settings > Profile`](settings.md#emails).
+    Sign up with a company email address (not gmail.com, outlook.com, and similar consumer domains), or later change your
+    account email to one and confirm it, to top your signup credit up from $5 to $25. The bonus is granted once per
+    account — change the address in [`Settings > Profile`](settings.md#email).
 
 ### Pro Plan
 
@@ -71,6 +71,7 @@ For organizations with advanced needs:
 - SSO / SAML authentication
 - [On Premise](../integrations/on-premise.md) data and compute
 - Custom SLAs on top of [ISO/IEC 27001:2022 and SOC 2 Type I compliance](https://www.ultralytics.com/security)
+- HIPAA Business Associate Agreement (BAA) for eligible customers
 - Dedicated onboarding and support
 
 Enterprise plans are provisioned by the Ultralytics team. Click **Request Enterprise Demo** on the Enterprise card in
@@ -144,7 +145,7 @@ Enable automatic credit purchases when your balance drops below a threshold:
 2. Toggle **Auto Top-Up** on
 3. Set **Threshold** (balance level that triggers a top-up)
 4. Set **Amount** (credits to purchase when triggered, $5 – $5,000)
-5. Click **Save**
+5. Click **Save changes**
 
 Default settings: threshold $20, amount $100.
 
@@ -216,7 +217,7 @@ flowchart TD
 
 ## Training Costs
 
-Cloud training costs depend on GPU selection:
+Cloud training costs depend on [GPU selection](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform):
 
 {% include "macros/platform-gpu-table.md" %}
 
@@ -259,13 +260,13 @@ After upgrading:
 - 10 cloud deployments
 - [Google Cloud Storage, Amazon S3, and Azure Blob Storage datasets](../integrations/index.md)
 - [Team collaboration](teams.md) (up to 5 members, including you)
-- Access to best GPUs (B200, B300)
+- Access to the best GPUs (B200, B300)
 - Priority support
 
 ### Renewals
 
 Ultralytics bills the Pro plan directly from your saved payment method. At the end of each billing period,
-your default payment method is charged for the seats currently in use. If the charge fails you're emailed, and the
+your default payment method is charged for the seats currently in use. If the charge fails, you're emailed, and the
 platform retries on the following days — after three failed attempts the workspace is downgraded to Free.
 
 ### Cancel Pro
@@ -378,8 +379,8 @@ no extra charge for the rest of the period. See [Teams](teams.md#inviting-member
 
 ### Is there a free trial?
 
-The Free plan includes $5 in signup credit, and no credit card is required. To raise it to $25, add and verify a company
-email address (not Gmail, Outlook or another consumer domain) from your personal workspace in
-[`Settings > Profile`](settings.md#emails); the extra
-$20 is added once per account. If you have a promo code you didn't use at signup, redeem it from your personal workspace
-under **Settings > Billing**. See [Redeem a Promo Code](#redeem-a-promo-code).
+The Free plan includes $5 in signup credit, and no credit card is required. To raise it to $25, change your account
+email to a company address (not Gmail, Outlook or another consumer domain) from your personal workspace in
+[`Settings > Profile`](settings.md#email) and confirm it; the extra $20 is added once per account. If you have a promo
+code you didn't use at signup, redeem it from your personal workspace under **Settings > Billing**. See
+[Redeem a Promo Code](#redeem-a-promo-code).

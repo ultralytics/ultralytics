@@ -457,10 +457,7 @@ class LayerNorm2d(nn.Module):
         Returns:
             (torch.Tensor): Normalized output tensor.
         """
-        u = x.mean(1, keepdim=True)
-        s = (x - u).pow(2).mean(1, keepdim=True)
-        x = (x - u) / torch.sqrt(s + self.eps)
-        return self.weight[:, None, None] * x + self.bias[:, None, None]
+        return F.layer_norm(x.permute(0, 2, 3, 1), x.shape[1:2], self.weight, self.bias, self.eps).permute(0, 3, 1, 2)
 
 
 class MSDeformAttn(nn.Module):

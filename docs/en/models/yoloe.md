@@ -7,7 +7,7 @@ keywords: YOLOE, YOLOE-26, open-vocabulary detection, open-vocabulary segmentati
 
 # YOLOE: Real-Time Open-Vocabulary Detection and Segmentation
 
-**Ultralytics YOLOE** (Real-Time Seeing Anything) is an **open-vocabulary** detection and [instance segmentation](../tasks/segment.md) model: instead of a class list fixed at training time, it takes the categories you want at inference time, as a text prompt, a visual example, or a built-in 4,585-name vocabulary. Built on the Ultralytics YOLO architectures — YOLOv8, [YOLO11](yolo11.md) and [YOLO26](yolo26.md) — and inspired by [YOLO-World](yolo-world.md), YOLOE reaches state-of-the-art zero-shot accuracy at close to closed-set YOLO speed.
+**Ultralytics YOLOE** (Real-Time Seeing Anything) is an **open-vocabulary** detection and [instance segmentation](../tasks/segment.md) model: instead of a class list fixed at training time, it takes the categories you want at inference time, as a text prompt, a visual example, or a built-in 4,585-name vocabulary. Built on the Ultralytics YOLO architectures — YOLOv8, [YOLO11](yolo11.md) and [YOLO26](yolo26.md) — and inspired by [YOLO-World](yolo-world.md), YOLOE reaches high [zero-shot](https://www.ultralytics.com/glossary/zero-shot-learning) accuracy at close to closed-set YOLO speed.
 
 <p align="center">
   <br>
@@ -17,12 +17,12 @@ keywords: YOLOE, YOLOE-26, open-vocabulary detection, open-vocabulary segmentati
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to use Ultralytics YOLOE-26 (New) | Open Vocabulary & Real-Time Seeing Anything 🚀
+  <strong>Watch:</strong> How to use Ultralytics YOLOE-26 (New) | Open Vocabulary & Real-Time Seeing Anything
 </p>
 
 ## Quick Start
 
-Name the classes you want and run. YOLOE-26 returns boxes and [instance segmentation](../tasks/segment.md) masks for categories it was never trained on.
+Name the classes you want and run. YOLOE-26 returns boxes and instance segmentation masks for categories it was never trained on.
 
 !!! example "Detect anything you can name"
 
@@ -90,20 +90,20 @@ To skip the text-encoder download at inference time entirely, bake the prompts i
 ## Architecture Overview
 
 <p align="center">
-  <img src="https://github.com/THU-MIG/yoloe/raw/main/figures/pipeline.svg" alt="YOLOE Architecture" width=90%>
+  <img src="https://github.com/THU-MIG/yoloe/raw/main/figures/pipeline.svg" alt="YOLOE architecture with RepRTA, SAVPE, and LRPC modules" width=90%>
 </p>
 
 YOLOE keeps the standard YOLO structure — a convolutional **backbone** for feature extraction, a **neck** for multi-scale fusion, and an **anchor-free, decoupled head** predicting classes and boxes — and adds three modules, one per prompting mode:
 
-- **Re-parameterizable Region-Text Alignment (RepRTA)** refines text [embeddings](https://www.ultralytics.com/glossary/embeddings) from CLIP through a small auxiliary network. That network runs once per `set_classes()` call and is folded away at export, so it costs nothing per frame. What does run on every forward pass is the comparison of the stored prompt embeddings against region features; see [Limitations](#limitations) for what that costs with a large prompt set.
+- **Re-parameterizable Region-Text Alignment (RepRTA)** refines text [embeddings](https://www.ultralytics.com/glossary/embeddings) from [CLIP](https://www.ultralytics.com/glossary/clip-contrastive-language-image-pre-training) through a small auxiliary network. That network runs once per `set_classes()` call and is folded away at export, so it costs nothing per frame. What does run on every forward pass is the comparison of the stored prompt embeddings against region features; see [Limitations](#limitations) for what that costs with a large prompt set.
 - **Semantic-Activated Visual Prompt Encoder (SAVPE)** encodes semantic and activation features from an example box, conditioning the model on objects that look like it. This is the one-shot path for targets that are hard to name, such as a logo or a specific part.
 - **Lazy Region-Prompt Contrast (LRPC)** matches region embeddings against a built-in 4,585-name vocabulary, so prompt-free checkpoints recognize objects with no external prompt and no text encoder.
 
-[Instance segmentation](../tasks/segment.md) comes from a mask branch on the detection head, as in YOLOv8-Seg, and every prediction carries a mask on `results[0].masks`. Once the model is [exported](#export-usage), the open-world modules are re-parameterized into a standard YOLO head, so the exported file runs the ordinary detect/segment path.
+Instance segmentation comes from a mask branch on the detection head, as in YOLOv8-Seg, and every prediction carries a mask on `results[0].masks`. Once the model is [exported](#export-usage), the open-world modules are re-parameterized into a standard YOLO head, so the exported file runs the ordinary detect/segment path.
 
 ## Available Models
 
-Every checkpoint below is an [instance segmentation](../tasks/segment.md) model and supports [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md) and [track](../modes/track.md). Load a `*-seg.pt` file for text or visual prompting and a `*-seg-pf.pt` file for prompt-free inference; they are not interchangeable, see [Choosing a Prompting Mode](#choosing-a-prompting-mode). Only the `*-seg.pt` files support [train](../modes/train.md); a prompt-free checkpoint is produced from a trained text-prompt model, see [Training the Official Models from Scratch](#training-the-official-models-from-scratch).
+Every checkpoint below is an instance segmentation model and supports [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md) and [track](../modes/track.md). Load a `*-seg.pt` file for text or visual prompting and a `*-seg-pf.pt` file for prompt-free inference; they are not interchangeable, see [Choosing a Prompting Mode](#choosing-a-prompting-mode). Only the `*-seg.pt` files support [train](../modes/train.md); a prompt-free checkpoint is produced from a trained text-prompt model, see [Training the Official Models from Scratch](#training-the-official-models-from-scratch).
 
 | Model     | Text / visual prompt                                                                                | Prompt-free                                                                                               |
 | --------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -161,11 +161,11 @@ Under text and visual prompts the YOLOE-26 models lead their YOLOE-11 and YOLOE-
 
 ## Usage Examples
 
-Every YOLOE example below runs from the [Python API](../usage/python.md). Text-prompt prediction, validation, export, tracking and plain training also work from the [CLI](../usage/cli.md); the fine-tuning recipes and visual prompting pass a trainer or predictor class as an argument, which only the Python API accepts.
+Every YOLOE example below runs from the [Python API](../usage/python.md). Text-prompt prediction, validation, export, tracking and plain training also work from the [CLI](../usage/cli.md); the fine-tuning recipes pass a trainer class and visual prompting passes NumPy prompt arrays, which only the Python API accepts.
 
 ### Train Usage
 
-Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names.
+Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer does not train against your class names. The resulting checkpoint predicts your dataset's classes directly: its head no longer reads prompts, so `set_classes()` raises an error if the classes change, and so do visual prompts. Prompt the original checkpoint for other classes.
 
 <p align="center">
   <br>
@@ -175,7 +175,7 @@ Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This most
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train YOLOE on Car Parts Segmentation Dataset | Open-Vocabulary Model, Prediction & Export 🚀
+  <strong>Watch:</strong> How to Train YOLOE on Car Parts Segmentation Dataset | Open-Vocabulary Model, Prediction & Export
 </p>
 
 !!! example
@@ -241,7 +241,7 @@ Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This most
 
 ### Predict Usage
 
-The text-prompt call is the one shown in [Quick Start](#quick-start). The remaining two modes each need an extra argument:
+The text-prompt call is the one shown in [Quick Start](#quick-start). Visual prompting adds a `visual_prompts` argument, and prompt-free prediction loads a `-pf` checkpoint instead:
 
 !!! example
 
@@ -255,7 +255,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26l-seg.pt")
 
@@ -268,7 +267,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         results = model.predict(
             "ultralytics/assets/bus.jpg",
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
         )
         results[0].show()
         ```
@@ -279,7 +277,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26l-seg.pt")
 
@@ -289,7 +286,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
             "ultralytics/assets/zidane.jpg",  # Target image
             refer_image="ultralytics/assets/bus.jpg",  # Where the example boxes live
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
         )
         results[0].show()
 
@@ -309,7 +305,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import torch
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-11l-seg.pt")
 
@@ -320,7 +315,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
             img_tensor,
             refer_image=img_tensor,
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
             imgsz=640,
         )
         ```
@@ -331,7 +325,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26l-seg.pt")
 
@@ -346,7 +339,6 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         results = model.predict(
             ["ultralytics/assets/bus.jpg", "ultralytics/assets/zidane.jpg"],
             visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
         )
         results[0].show()
         ```
@@ -379,6 +371,8 @@ Validation runs like any other model on a segmentation dataset:
 
     metrics = model.val(data="coco128-seg.yaml")
     ```
+
+`data` can also be an [NDJSON file](../datasets/detect/index.md#ultralytics-ndjson-format) or a Platform [`ul://` dataset URI](../platform/data/datasets.md#dataset-uri); it is converted to YOLO format before the text or visual prompts are built.
 
 Two variants of the same call cover the other prompting modes:
 
@@ -416,14 +410,12 @@ Prompt embeddings can be saved once and reused when producing static exports suc
         import numpy as np
 
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         model = YOLOE("yoloe-26n-seg.pt")
         model.predict(
             "path/to/image.jpg",
             refer_image="path/to/reference.jpg",
             visual_prompts={"bboxes": np.array([[50, 80, 180, 260]]), "cls": np.array([0])},
-            predictor=YOLOEVPSegPredictor,
         )
         model.save_prompt_embeddings("visual-object.npz")
 
@@ -595,7 +587,7 @@ model.set_vocab(vocab, names, one2one_vocab=one2one_model.get_vocab(names))
 
 If YOLOE has contributed to your research or project, please cite the original paper by **Ao Wang, Lihao Liu, Hui Chen, Zijia Lin, Jungong Han, and Guiguang Ding** from **Tsinghua University**:
 
-!!! quote ""
+!!! quote "Citation"
 
     === "BibTeX"
 
@@ -633,7 +625,7 @@ Labels like `object0` and `object1` mean the prediction came from a visual promp
 
 ### Why does set_classes() fail on a prompt-free checkpoint?
 
-Prompt-free checkpoints (`*-seg-pf.pt`) resolve classes through their own built-in vocabulary and reject external prompts with `AssertionError: Prompt-free model does not support setting classes. Please try with Text/Visual prompt models.` Load a `*-seg.pt` checkpoint when you need your own class list. See [Choosing a Prompting Mode](#choosing-a-prompting-mode).
+Prompt-free checkpoints (`*-seg-pf.pt`) resolve classes through their own built-in vocabulary and reject `set_classes()` with `AssertionError: Prompt-free model does not support setting classes. Please try with Text/Visual prompt models.` Visual prompts raise `AssertionError: Visual prompts need an unfused YOLOE model.` Load a `*-seg.pt` checkpoint when you need your own class list. See [Choosing a Prompting Mode](#choosing-a-prompting-mode).
 
 ### What does YOLOE download the first time I run a text prompt?
 

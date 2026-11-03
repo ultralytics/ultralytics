@@ -299,8 +299,9 @@ class OCSORT(BYTETracker):
     def _velocity_direction_cost(self, tracks: list[OCSortTrack], detections: list[OCSortTrack]) -> np.ndarray:
         """Compute OCM velocity direction consistency cost matrix (vectorized).
 
-        For each track-detection pair, measures the angular difference between
-        the track's historical motion direction and the direction to the candidate detection.
+        For each track-detection pair, measures the angular difference between the track's historical motion direction
+        and the direction to the candidate detection from the track's oldest observation within the last `delta_t`
+        frames, or from its last observation if none falls in that window.
 
         Args:
             tracks (list[OCSortTrack]): List of tracks.
@@ -315,12 +316,13 @@ class OCSORT(BYTETracker):
 
         # Pre-extract detection centers as (M, 2) array
         det_centers = np.array([OCSortTrack._xyxy_center(det.xyxy) for det in detections], dtype=np.float32)
+        window = range(self.frame_id - self.delta_t, self.frame_id)  # velocity span, so box jitter can't flip direction
 
         for i, track in enumerate(tracks):
             if track.velocity is None or track.last_observation[0] < 0:
                 continue
-            track_center = OCSortTrack._xyxy_center(track.last_observation)
-            directions = det_centers - track_center  # (M, 2)
+            prev = next((track.observations[f] for f in window if f in track.observations), track.last_observation)
+            directions = det_centers - OCSortTrack._xyxy_center(prev)  # (M, 2)
             norms = np.linalg.norm(directions, axis=1)  # (M,)
             valid = norms > 1e-6
             if not valid.any():

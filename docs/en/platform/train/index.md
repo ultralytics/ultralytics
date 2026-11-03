@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Cloud Model Training
 comments: true
-description: Learn about model training in Ultralytics Platform including project organization, cloud training, and real-time metrics streaming.
+description: Model training on Ultralytics Platform. Organize projects, train YOLO models on cloud GPUs or your own hardware, monitor live metrics, and export results.
 keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU training, machine learning, deep learning
 ---
 
 # Model Training
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for [training YOLO models](../../modes/train.md), from organizing experiments to running cloud training jobs with real-time metrics streaming.
+[Ultralytics Platform](https://platform.ultralytics.com) provides tools for [training YOLO models](../../modes/train.md), from organizing experiments to [running cloud training jobs](https://www.ultralytics.com/blog/train-yolo-models-faster-with-ultralytics-platform) with real-time metrics streaming.
 
 <p align="center">
   <br>
@@ -83,34 +83,14 @@ Available GPUs for cloud training on Ultralytics Cloud:
 
 ## Real-Time Metrics
 
-During training, view live metrics across three subtabs:
+On the model's **Train** tab, view live metrics and available validation results:
 
-```mermaid
-flowchart TD
-    subgraph charts["Charts"]
-        direction TB
-        A[Losses]
-        B[Task metrics]
-    end
-    subgraph console["Console"]
-        direction TB
-        C[Live logs]
-        D[Error detection]
-    end
-    subgraph system["System"]
-        direction TB
-        E[GPU stats]
-        F["CPU, RAM, I/O"]
-    end
-    charts ~~~ console
-    console ~~~ system
-```
-
-| Subtab      | Metrics                                                                                          |
-| ----------- | ------------------------------------------------------------------------------------------------ |
-| **Charts**  | Task metrics (mAP50, mAP50-95, precision, recall for detection), train/val losses, learning rate |
-| **Console** | Live training logs with ANSI color and automatic error detection                                 |
-| **System**  | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                      |
+| Subtab         | Metrics                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Metrics**    | Task metrics (mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, recall for detection), train/val losses, learning rate |
+| **Validation** | Recorded validation plots and per-image analysis, when available                                                       |
+| **Console**    | Live training logs with ANSI color and automatic error detection                                                       |
+| **System**     | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                                            |
 
 !!! info "Automatic Checkpoints"
 
@@ -182,8 +162,9 @@ Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro al
 If training fails:
 
 1. The model is marked failed and the compute instance is terminated
-2. The model page shows an error banner with the captured error, a link to the console output, and a **Retry
-   Training** action that reopens the training dialog with the same configuration
+2. The model page shows an error banner with the captured error, a link to the console output, and **Diagnose with
+   AI** and a **Retry Training** action (Editor role or higher) that reopens the training dialog with the same
+   configuration
 3. A run that stops reporting activity for 4 hours is automatically marked failed and its compute released
 4. If cloud compute had started, elapsed GPU time is charged; failures before compute starts have no GPU usage charge
 

@@ -1,7 +1,7 @@
 ---
 title: Minimum Reproducible Example (MRE)
 comments: true
-description: Learn how to create effective Minimum Reproducible Examples (MRE) for bug reports in Ultralytics YOLO repositories. Follow our guide for efficient issue resolution.
+description: Learn how to create a Minimum Reproducible Example (MRE) for Ultralytics YOLO bug reports so maintainers can reproduce and fix issues quickly.
 keywords: Ultralytics, YOLO, Minimum Reproducible Example, MRE, bug report, issue resolution, machine learning, deep learning
 ---
 
@@ -15,7 +15,7 @@ The first step in creating an MRE is to isolate the problem. Remove any unnecess
 
 ## 2. Use Public Models and Datasets
 
-When creating an MRE, use publicly available models and datasets to reproduce the issue. For example, use the `yolo26n.pt` model and the `coco8.yaml` dataset. This ensures that the maintainers and contributors can easily run your example and investigate the problem without needing access to proprietary data or custom models.
+When creating an MRE, use publicly available models and datasets to reproduce the issue. For example, use the [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model (`yolo26n.pt`) and the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) dataset (`coco8.yaml`). This ensures that the maintainers and contributors can easily run your example and investigate the problem without needing access to proprietary data or custom models.
 
 ## 3. Include All Necessary Dependencies
 
@@ -77,7 +77,7 @@ RuntimeError: Expected input[1, 0, 640, 640] to have 3 channels, but got 0 chann
 
 In this example, the MRE demonstrates the issue with a minimal amount of code, uses a public model (`"yolo26n.pt"`), includes all necessary dependencies, and provides a clear description of the problem along with the error message.
 
-By following these guidelines, you'll help the maintainers and [contributors](https://github.com/ultralytics/ultralytics/graphs/contributors) of Ultralytics YOLO repositories to understand and resolve your issue more efficiently.
+By following these guidelines, you'll help the maintainers and [contributors](https://github.com/ultralytics/ultralytics/graphs/contributors) of Ultralytics YOLO repositories understand and resolve your issue more efficiently.
 
 ## FAQ
 
@@ -86,7 +86,7 @@ By following these guidelines, you'll help the maintainers and [contributors](ht
 To create an effective Minimum Reproducible Example (MRE) for bug reports in Ultralytics YOLO repositories, follow these steps:
 
 1. **Isolate the Problem**: Remove any code or dependencies that are not directly related to the issue.
-2. **Use Public Models and Datasets**: Utilize public resources like `yolo26n.pt` and `coco8.yaml` for easier reproducibility.
+2. **Use Public Models and Datasets**: Use public resources like `yolo26n.pt` and `coco8.yaml` for easier reproducibility.
 3. **Include All Necessary Dependencies**: Specify required packages and their versions. You can list dependencies using `yolo checks` if you have `ultralytics` installed or `pip list`.
 4. **Write a Clear Description of the Issue**: Explain the expected and actual behavior, including any error messages or logs.
 5. **Format Your Code Properly**: Use code blocks to format your code, making it easier to read.

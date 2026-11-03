@@ -42,9 +42,9 @@ class OpenVINOBackend(BaseBackend):
         device_name = fallback_device
 
         if isinstance(self.device, str) and self.device.startswith("intel"):
-            device_name = self.device.split(":")[1].upper()
+            device_name = self.device.partition(":")[2].upper() or fallback_device
             self.device = torch.device("cpu")
-            if not any(d == device_name or d.startswith(f"{device_name}.") for d in core.available_devices):
+            if not any(d == device_name or d.startswith(f"{device_name}.") for d in [*core.available_devices, "AUTO"]):
                 LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using '{fallback_device}' instead.")
                 device_name = fallback_device
 
@@ -53,8 +53,6 @@ class OpenVINOBackend(BaseBackend):
             w = next(w.glob("*.xml"))
 
         ov_model = core.read_model(model=str(w), weights=w.with_suffix(".bin"))
-        if ov_model.get_parameters()[0].get_layout().empty:
-            ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
         self.apply_metadata(self.read_metadata(w))
 
@@ -81,12 +79,18 @@ class OpenVINOBackend(BaseBackend):
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
-        if (
-            self.task == "classify"
-            and device_name.startswith("NPU")
-            and "NPU_TURBO" in core.get_property(device_name, "SUPPORTED_PROPERTIES")
-        ):
-            config["NPU_TURBO"] = "YES"
+        if device_name.startswith("NPU"):  # NPU is wrong at batch>1, so compile batch 1 and AutoBackend splits batches
+            shape = list(ov_model.input().partial_shape)
+            if self.metadata.get("dynamic"):  # NPU needs static shapes, so pin dynamic exports to imgsz
+                shape[2:] = self.imgsz
+                self.dynamic = self.metadata["dynamic"] = False  # and run them as fixed letterbox models
+            ov_model.reshape([1, *shape[1:]])
+            self.batch = 1
+            if self.task == "depth":  # drop the final upsample NPU gets wrong; depth predict/val resize to input size
+                up = ov_model.output().get_node().input_value(0).get_node()
+                ov_model = ov.Model([up.input_value(0)], ov_model.get_parameters())
+            if self.task == "classify" and "NPU_TURBO" in core.get_property(device_name, "SUPPORTED_PROPERTIES"):
+                config["NPU_TURBO"] = "YES"
 
         self.compile_model = partial(core.compile_model, device_name=device_name, config=config)
         self.ov_compiled_model = self.compile_model(ov_model)
@@ -94,6 +98,9 @@ class OpenVINOBackend(BaseBackend):
             f"Using OpenVINO LATENCY mode for batch={self.batch} inference on "
             f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
         )
+        # Sync CPU inference leaves the main thread waiting, so the predictor can load the next batch meanwhile. Not
+        # AUTO, whose EXECUTION_DEVICES can report CPU while an accelerator is still compiling
+        self.prefetch = device_name == "CPU"
         self.ov = ov
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:

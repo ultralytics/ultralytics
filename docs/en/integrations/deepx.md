@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to export Ultralytics YOLO models to DEEPX format for efficient deployment on DEEPX NPU hardware with INT8 quantization and high-performance edge inference.
+description: Export Ultralytics YOLO models to the DEEPX .dxnn format for INT8 inference on DEEPX NPUs, with runtime setup and Raspberry Pi 5 benchmarks.
 keywords: DEEPX, NPU, model export, Ultralytics, YOLO, edge AI, INT8 quantization, embedded inference, dx_com, dx_engine, dxnn, deep learning, hardware acceleration
 ---
 
 # DEEPX Export for Ultralytics YOLO Models
 
-Deploying computer vision models on specialized NPU hardware requires a compatible and optimized model format. Exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to DEEPX format enables efficient, INT8-quantized inference on DEEPX NPU accelerators. This guide walks you through converting your YOLO models to DEEPX format and deploying them on DEEPX-powered hardware.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on specialized NPU hardware requires a compatible and optimized model format. Exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to DEEPX format enables efficient, INT8-quantized inference on DEEPX NPU accelerators. This guide walks you through converting your YOLO models to DEEPX format and deploying them on DEEPX-powered hardware.
 
 ## What is DEEPX?
 
@@ -14,7 +14,7 @@ Deploying computer vision models on specialized NPU hardware requires a compatib
   <img width="640" src="https://cdn.ul.run/i/e9365c5acf3cdcbfc6526467c3e58fcf.avif" alt="DEEPX NPU Inference">
 </p>
 
-[DEEPX](https://deepx.ai/) is an AI semiconductor company specializing in Neural Processing Units (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
+[DEEPX](https://deepx.ai/) is an AI semiconductor company and [Ultralytics partner](https://www.ultralytics.com/partners/deepx) specializing in [Neural Processing Units](https://www.ultralytics.com/glossary/neural-processing-unit-npu) (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
 
 ## DEEPX Export Format
 
@@ -146,7 +146,7 @@ The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/p
 | `imgsz`    | `int` or `tuple` | `640`     | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width.                                                                         |
 | `quantize` | `int` or `str`   | `8`/auto  | Quantization precision. `8` (INT8) is required for DEEPX export and auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.                                                                            |
 | `simplify` | `bool`           | `True`    | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                    |
-| `opset`    | `int`            | `None`    | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                           |
+| `opset`    | `int`            | `None`    | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses opset `18` (lower on PyTorch < 2.4), capped at the installed `onnx` version.                                                            |
 | `data`     | `str`            | `None`    | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
 | `device`   | `str`            | `None`    | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                |
 | `optimize` | `bool`           | `False`   | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                                                                                                       |
@@ -267,7 +267,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     !!! note
 
-        Validation for the above benchmarks was done using COCO128 for detection, COCO128-seg for segmentation, COCO8-pose for pose estimation, ImageNet100 for classification and DOTA128 for OBB models. Inference time does not include pre/post-processing.
+        Validation for the above benchmarks was done using COCO128 for detection, COCO128-seg for segmentation, ImageNet100 for classification, COCO8-pose for pose estimation and DOTA128 for OBB models. Inference time does not include pre/post-processing.
 
 !!! tip "Performance Optimization Tips"
 
@@ -318,11 +318,9 @@ YOLO models deployed on DEEPX NPU hardware are well suited for a wide range of [
 
 In this guide, you've learned how to export Ultralytics YOLO models to DEEPX format and deploy them on DEEPX NPU hardware. The export pipeline uses INT8 calibration and the `dx_com` compiler to produce a hardware-optimized `.dxnn` binary, while the `dx_engine` runtime handles inference on the device.
 
-The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and DEEPX's NPU technology provides an effective solution for running advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workloads on embedded and edge devices — delivering high throughput with low power consumption for real-time applications.
+Together, [Ultralytics YOLO](https://www.ultralytics.com/yolo) and [DEEPX NPUs](https://www.ultralytics.com/blog/ultralytics-yolo-partners-with-deepx-edge-ai-inference-for-physical-ai) run computer vision workloads on embedded and edge devices with high throughput and low power consumption for real-time applications.
 
 For further details on usage, visit the [DEEPX official website](https://deepx.ai/).
-
-Also, if you'd like to know more about other Ultralytics YOLO integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
 
 ## FAQ
 

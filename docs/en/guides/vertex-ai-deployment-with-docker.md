@@ -1,19 +1,19 @@
 ---
 title: YOLO26 on Vertex AI with Docker & FastAPI
 comments: true
-description: Learn how to deploy pretrained YOLO26 models on Google Cloud Vertex AI using Docker containers and FastAPI for scalable inference with complete control over preprocessing and postprocessing.
+description: Deploy pretrained Ultralytics YOLO26 models on Google Cloud Vertex AI with a Docker container and a FastAPI server, keeping full control over inference logic.
 keywords: YOLO26, Vertex AI, Docker, FastAPI, deployment, container, GCP, Artifact Registry, Ultralytics, cloud deployment
 ---
 
 # Deploy a pretrained YOLO model with Ultralytics on Vertex AI for inference
 
-This guide will show you how to containerize a pretrained YOLO26 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO26, but the same principles will apply for using [other YOLO tasks](../tasks/index.md).
+This guide shows you how to [containerize](https://www.ultralytics.com/glossary/containerization) a [pretrained YOLO26 model](https://platform.ultralytics.com/ultralytics/yolo26) with Ultralytics, build a FastAPI inference server for it, and deploy the model and its inference server on Google Cloud Vertex AI. The example implementation covers the [object detection](https://www.ultralytics.com/glossary/object-detection) use case for YOLO26, but the same principles apply to [other YOLO tasks](../tasks/index.md).
 
 Before we start, you will need to create a Google Cloud Platform (GCP) project. You get $300 in GCP credits to use for free as a new user, and this amount is enough to test a running setup that you can later extend for any other YOLO26 use case, including training, or batch and streaming inference.
 
 ## What you will learn
 
-1. Create an inference backend for Ultralytics YOLO26 model using FastAPI.
+1. Create an inference backend for an Ultralytics YOLO26 model using FastAPI.
 2. Create a GCP Artifact Registry repository to store your Docker image.
 3. Build and push the Docker image with the model to Artifact Registry.
 4. Import your model in Vertex AI.
@@ -23,7 +23,7 @@ Before we start, you will need to create a Google Cloud Platform (GCP) project. 
 
     - **Full model control with Ultralytics**: You can use custom inference logic with complete control over preprocessing, postprocessing, and response formatting.
     - **Vertex AI handles the rest**: It auto-scales, yet gives flexibility in configuring compute resources, memory, and GPU configurations.
-    - **Native GCP integrations and security**: Seamless setup with Cloud Storage, BigQuery, Cloud Functions, VPC controls, IAM policies, and audit logs.
+    - **Native GCP integrations and security**: Built-in integration with Cloud Storage, BigQuery, Cloud Functions, VPC controls, IAM policies, and audit logs.
 
 ## Prerequisites
 
@@ -39,7 +39,7 @@ First, you need to create a FastAPI application that will serve the YOLO26 model
 
 Vertex AI expects your container to implement two specific endpoints:
 
-1. **Health** endpoint (`/health`): Must return HTTP status `200 OK` when service is ready.
+1. **Health** endpoint (`/health`): Must return HTTP status `200 OK` when the service is ready.
 2. **Predict** endpoint (`/predict`): Accepts structured prediction requests with **base64-encoded** images and optional parameters. [Payload size limits](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/choose-endpoint-type) apply depending on the endpoint type.
 
     Request payloads for the `/predict` endpoint should follow this JSON structure:
@@ -101,7 +101,7 @@ build-backend = "setuptools.build_meta"
 
 ### Create inference logic with Ultralytics YOLO26
 
-Now that you have the project structure and dependencies set up, you can implement the core YOLO26 inference logic. Create a `src/app.py` file that will handle model loading, image processing, and prediction, using Ultralytics Python API.
+Now that you have the project structure and dependencies set up, you can implement the core YOLO26 inference logic. Create a `src/app.py` file that will handle model loading, image processing, and prediction, using the [Ultralytics Python API](../usage/python.md).
 
 ```python
 # src/app.py
@@ -249,7 +249,7 @@ logger.add(
 logger.add("log.log", rotation="1 MB", level="DEBUG", compression="zip")
 ```
 
-For a complete Vertex AI compliance, define the required endpoints in environment variables and set the size limit for requests. It is recommended to use [private Vertex AI endpoints](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/choose-endpoint-type) for production deployments. This way you will have a higher request payload limit (10 MB instead of 1.5 MB for public endpoints), together with robust security and access control.
+For full Vertex AI compliance, define the required endpoints in environment variables and set the size limit for requests. It is recommended to use [private Vertex AI endpoints](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/choose-endpoint-type) for production deployments. This way you will have a higher request payload limit (10 MB instead of 1.5 MB for public endpoints), together with robust security and access control.
 
 ```python
 # Vertex AI environment variables
@@ -286,7 +286,7 @@ def health_check():
     return {"status": "healthy"}
 ```
 
-You now have everything to implement the prediction endpoint that will handle the inference requests. It will accept an image file, run the inference, and return the results. Note that the image must be base64-encoded, which additionally increases the size of the payload by up to 33%.
+You now have everything to implement the prediction endpoint that will handle the inference requests. It will accept an image file, run the inference, and return the results. Note that the image must be base64-encoded, which increases the payload size by roughly 33%.
 
 ```python
 @app.post(AIP_PREDICT_ROUTE, response_model=PredictionResponse)
@@ -381,7 +381,7 @@ uv pip install -e .
 uv run src/main.py
 ```
 
-To test the server, you can query both the `/health` and `/predict` endpoints using cURL. Put a test image in the `tests` folder. Then, in your Terminal, run the following commands:
+To test the server, you can query both the `/health` and `/predict` endpoints using cURL. Put a test image in the `tests` folder. Then, in your terminal, run the following commands:
 
 ```bash
 # Test health endpoint
@@ -432,7 +432,7 @@ EXPOSE 8080
 ENTRYPOINT ["python", "src/main.py"]
 ```
 
-In the example, the official Ultralytics Docker image `ultralytics:latest` is used as a base. It already contains the YOLO26 model and all necessary dependencies. The server's entrypoint is the same as we used to test the FastAPI application locally.
+In the example, the official Ultralytics Docker image `ultralytics:latest` is used as a base. It already contains all necessary dependencies. The server's entrypoint is the same as we used to test the FastAPI application locally.
 
 ### Build and test the Docker image
 
@@ -517,7 +517,7 @@ For more specific instructions on how to work with images in Artifact Registry, 
 
 Using the Docker image you've just pushed, you can now import the model in Vertex AI.
 
-1. In Google Cloud navigation menu, go to Vertex AI > Model Registry. Alternatively, search for "Vertex AI" in the search bar at the top of the Google Cloud Console.
+1. In the Google Cloud navigation menu, go to Vertex AI > Model Registry. Alternatively, search for "Vertex AI" in the search bar at the top of the Google Cloud Console.
 
     <p align="center">
       <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry import interface">
@@ -549,23 +549,23 @@ Using the Docker image you've just pushed, you can now import the model in Verte
 
 To deploy a model, you need to create an Endpoint in Vertex AI.
 
-1.  In your Vertex AI navigation menu, go to Endpoints. Select your region you used when importing your model. Click Create.
+1.  In your Vertex AI navigation menu, go to Endpoints. Select the region you used when importing your model. Click Create.
 
     <p align="center">
       <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/endpoint-name.png" alt="Vertex AI create endpoint interface">
     </p>
 
 1.  Enter the Endpoint name.
-1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/choose-endpoint-type).
+1.  For Access, Vertex AI recommends using [private Vertex AI endpoints](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/choose-endpoint-type). Apart from security benefits, you get a higher payload limit if you select a private endpoint; however, you will need to configure your VPC network and firewall rules to allow access to the endpoint.
 1.  Click Continue.
-1.  On the Model settings dialog, select the model you imported earlier. Now you can configure the machine type, memory, and GPU settings for your model. Allow for ample memory if you are expecting high inference loads to ensure there are no I/O bottlenecks for the proper YOLO26 performance.
+1.  On the Model settings dialog, select the model you imported earlier. Now you can configure the machine type, memory, and GPU settings for your model. Allow ample memory if you expect high inference loads, so I/O bottlenecks don't limit YOLO26 performance.
 1.  In Accelerator type, select the GPU type you want to use for inference. If you are not sure which GPU to select, you can start with NVIDIA T4, which is CUDA-supported.
 
     !!! note "Region and machine type quotas"
 
         Remember that certain regions have very limited compute quotas, so you may not be able to select certain machine types or GPUs in your region. If this is critical, change the region of your deployment to one with a bigger quota. Find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/quotas).
 
-1.  Once the machine type is selected, you can click Continue. At this point, you can choose to enable model monitoring in Vertex AI—an extra service that will track your model's performance and provide insights into its behavior. This is optional and incurs additional costs, so select according to your needs. Click Create.
+1.  Once the machine type is selected, you can click Continue. At this point, you can choose to enable [model monitoring](https://www.ultralytics.com/glossary/model-monitoring) in Vertex AI, an extra service that will track your model's performance and provide insights into its behavior. This is optional and incurs additional costs, so select according to your needs. Click Create.
 
 Vertex AI will take several minutes (up to 30 min in some regions) to deploy the model. You will receive an email notification once the deployment is complete.
 
@@ -589,7 +589,7 @@ You have successfully deployed a pretrained YOLO26 model with Ultralytics on Goo
 
 ### Can I use Ultralytics YOLO models on Vertex AI without Docker?
 
-Yes; however, you will first need to export the model to a format compatible with Vertex AI, such as TensorFlow, Scikit-learn, or XGBoost. Google Cloud provides a guide on running `.pt` models on Vertex with a complete overview of the conversion process: [Run PyTorch models on Vertex AI](https://cloud.google.com/blog/topics/developers-practitioners/pytorch-google-cloud-how-deploy-pytorch-models-vertex-ai).
+Yes; however, you will first need to [export the model](../modes/export.md) to a format compatible with Vertex AI, such as TensorFlow, scikit-learn, or XGBoost. Google Cloud provides a guide on running `.pt` models on Vertex with a complete overview of the conversion process: [Run PyTorch models on Vertex AI](https://cloud.google.com/blog/topics/developers-practitioners/pytorch-google-cloud-how-deploy-pytorch-models-vertex-ai).
 
 Please note that the resulting setup will rely only on the Vertex AI standard serving layer and will not support the advanced Ultralytics framework features. Since Vertex AI fully supports containerized models and can scale them automatically according to your deployment configuration, it allows you to leverage the full capabilities of Ultralytics YOLO models without needing to convert them to a different format.
 
@@ -605,6 +605,6 @@ FastAPI also supports SSE (Server-Sent Events), which is useful for streaming in
 
 ### Why do I have to select a region so many times?
 
-This is actually a versatility feature of Google Cloud Platform, where you need to select a region for every service you use. For the task of deploying a containerized model on Vertex AI, your most important region selection is the one for the Model Registry. It will determine the availability of machine types and quotas for your model deployment.
+Google Cloud Platform scopes each service to a region, so you select a region for every service you use. For the task of deploying a containerized model on Vertex AI, your most important region selection is the one for the Model Registry. It will determine the availability of machine types and quotas for your model deployment.
 
 Additionally, if you will be extending the setup and storing prediction data or results in Cloud Storage or BigQuery, you will need to use the same region as for Model Registry to minimize latency and ensure high throughput for data access.

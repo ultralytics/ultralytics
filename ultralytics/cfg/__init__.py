@@ -31,7 +31,6 @@ from ultralytics.utils import (
     YAML,
     IterableSimpleNamespace,
     checks,
-    colorstr,
     deprecation_warn,
     vscode_msg,
 )
@@ -681,7 +680,7 @@ def check_dict_alignment(
             matches = get_close_matches(x, base_keys)  # key list
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
-            string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
+            string += f"'{x}' is not a valid YOLO argument. {match_str}\n"
         LOGGER.info(CLI_HELP_MSG)
         raise SyntaxError(string) from e
 
@@ -738,7 +737,7 @@ def merge_equals_args(args: list[str]) -> list[str]:
         i += 1
 
     if current:
-        raise SyntaxError(f"'{colorstr('red', 'bold', current[0])}' has an unmatched '[' or ']' bracket.")
+        raise SyntaxError(f"'{current[0]}' has an unmatched '[' or ']' bracket.")
 
     return new_args
 
@@ -908,11 +907,13 @@ def handle_yolo_solutions(args: list[str]) -> None:
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
         if solution_name != "crop":
             # extract width, height and fps of the video file, create save directory and initialize video writer
-            w, h, fps = (
-                round(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
-            )
-            if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1280, h=720
-                w, h = 1280, 720
+            w, h = (round(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            fps = fps if 0 < fps < 1000 else 30  # 30 FPS fallback for 0, nan and 90 kHz RTP clock rates
+            if solution_name == "speed" and "fps" not in overrides:
+                solution.fps = fps
+            if solution_name == "analytics":  # output frames are the chart canvas, not the source video
+                w, h = solution.canvas.get_width_height()
             save_dir = get_save_dir(SimpleNamespace(task="solutions", name="exp", exist_ok=False, project=None))
             save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory i.e. runs/solutions/exp
             vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
@@ -1057,7 +1058,7 @@ def entrypoint(debug: str = "") -> None:
         "solutions": lambda: handle_yolo_solutions(args[1:]),
         "help": lambda: LOGGER.info(CLI_HELP_MSG),
     }
-    full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
+    full_args_dict = {**DEFAULT_CFG_DICT, **dict.fromkeys((*TASKS, *MODES, *special))}
 
     # Define common misuses of special commands, i.e. -h, -help, --help
     special.update({k[0]: v for k, v in special.items()})  # singular
@@ -1099,7 +1100,7 @@ def entrypoint(debug: str = "") -> None:
             overrides[a] = True  # bare boolean flags whose defaults are missing or None
         elif a in DEFAULT_CFG_DICT:
             raise SyntaxError(
-                f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
+                f"'{a}' is a valid YOLO argument but is missing an '=' sign "
                 f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}"
             )
         else:
@@ -1154,10 +1155,10 @@ def entrypoint(debug: str = "") -> None:
 
         model = NAS(model)
     else:
-        from ultralytics import YOLO
+        from ultralytics import YOLO, YOLOE, YOLOWorld
 
         model = YOLO(model, task=task)
-        if "yoloe" in stem or "world" in stem:
+        if isinstance(model, (YOLOE, YOLOWorld)):
             cls_list = overrides.get("classes", DEFAULT_CFG.classes)
             if isinstance(cls_list, str):  # text prompts, i.e. "person, bus" -> ['person', 'bus']
                 model.set_classes([c.strip() for c in overrides.pop("classes", cls_list).split(",")])

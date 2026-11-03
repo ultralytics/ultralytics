@@ -1,7 +1,7 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Get started with Ultralytics Platform in minutes. Learn to create an account, upload datasets, train YOLO models, and deploy to production.
+description: Ultralytics Platform quickstart. Create an account, upload a dataset, train a YOLO model on cloud GPUs, test it in the browser, and deploy an endpoint.
 keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model training, cloud deployment, machine learning
 ---
 
@@ -36,9 +36,9 @@ flowchart TD
 
 ## Get Started
 
-[Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google or GitHub accounts, or with your email address.
+You can sign up and log in with a Google or GitHub account, or with your email address.
 
-![Ultralytics Platform Signup](https://cdn.ul.run/i/d1aa583f9f69a3bf49d503774779cb98.avif)<!-- screenshot -->
+![Ultralytics Platform Signup](https://cdn.ul.run/i/1683ea5d0337eeb6e9099ac434afaedb.avif)<!-- screenshot -->
 
 ### Region Selection
 
@@ -46,7 +46,7 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 region and recommends the closest one. This choice determines where your datasets, models, and managed training data are
 stored. Dedicated endpoint regions are selected separately when you deploy a model.
 
-![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.ul.run/i/d6b29d932b4dde9df4aab770f18fe1ae.avif)<!-- screenshot -->
+![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.ul.run/i/2c511d640b7de911f7a421724af49780.avif)<!-- screenshot -->
 
 {% include "macros/platform-data-regions.md" %}
 
@@ -65,7 +65,7 @@ Every new account receives free credits for cloud GPU training:
 
 !!! tip "Maximize Your Credits"
 
-    Sign up with a work email to receive $25 in credits. If you signed up with a personal email, you can verify a work email later to unlock the additional $20 in credits.
+    Sign up with a work email to receive $25 in credits. If you signed up with a personal email, you can change your account email to a work email later to unlock the additional $20 in credits.
 
 ### Complete Your Profile
 
@@ -75,7 +75,7 @@ The onboarding flow guides you through three steps:
 2. **Data Region** - Select US, EU, or AP with a visual world map showing latency
 3. **Complete** - Review your selections, optionally apply a promo code, and finish signup to claim your welcome credits
 
-![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/1bd588a6adfb2c7c1b335dd3b21c684d.avif)<!-- screenshot -->
+![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/99ffff96be666b6e19eb4ba525d6b554.avif)<!-- screenshot -->
 
 ??? tip "Update Later"
 
@@ -83,9 +83,9 @@ The onboarding flow guides you through three steps:
 
 ## Home Dashboard
 
-After signing in, you will be directed to the Home page of [Ultralytics Platform](https://platform.ultralytics.com), which provides a welcome card with workspace stats, an overview video, quick access to datasets, projects, and storage, and a recent activity feed.
+After signing in, you will be directed to the Home page of Ultralytics Platform, which provides a welcome card with workspace stats, an overview video, quick access to datasets, projects, and storage, and a recent activity feed.
 
-![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.ul.run/i/493d7d7962fba5fc226e802bf7d9469d.avif)<!-- screenshot -->
+![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.ul.run/i/319bf74b155700ff1366bf7a5dbd727d.avif)<!-- screenshot -->
 
 ### Sidebar Navigation
 
@@ -206,7 +206,7 @@ flowchart TD
 
 After upload, the platform automatically processes your data:
 
-1. Images larger than 4096px are resized (preserving aspect ratio; TIFF originals are stored as uploaded)
+1. Images larger than 4096px are resized (preserving aspect ratio; most TIFF originals are stored as uploaded)
 2. 256px thumbnails are generated for fast browsing
 3. YOLO, COCO, LabelMe, and Ultralytics or Labelbox NDJSON labels are parsed and validated
 4. Statistics are computed (class distribution, heatmaps, dimensions)
@@ -230,9 +230,7 @@ After upload, the platform automatically processes your data:
         └── labels/
     ```
 
-    For full syntax across tasks, see [detect](../datasets/detect/index.md#ultralytics-yolo-format), [segment](../datasets/segment/index.md#ultralytics-yolo-format), [pose](../datasets/pose/index.md#ultralytics-yolo-format), [OBB](../datasets/obb/index.md#yolo-obb-format), and [classify](../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks) dataset guides.
-
-Read more about [datasets](data/datasets.md) and supported formats for [detect](../datasets/detect/index.md), [segment](../datasets/segment/index.md), [pose](../datasets/pose/index.md), [OBB](../datasets/obb/index.md), and [classify](../datasets/classify/index.md).
+    Label syntax differs across [detect](../datasets/detect/index.md#ultralytics-yolo-format), [segment](../datasets/segment/index.md#ultralytics-yolo-format), [semantic](../datasets/semantic/index.md#png-mask-format), [depth](../datasets/depth/index.md#depth-map-format), [classify](../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks), [pose](../datasets/pose/index.md#ultralytics-yolo-format), and [OBB](../datasets/obb/index.md#yolo-obb-format) datasets.
 
 ## Create Your First Project
 
@@ -252,7 +250,7 @@ From your project, click `New Model` to open the **Train New Model** dialog. You
 
 ### Training Configuration
 
-1. **Base Model**: Select official Ultralytics weights or one of your own trained models. The dialog warns if the model task and dataset task don't match.
+1. **Base Model**: Select official Ultralytics weights (such as [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26)) or one of your own trained models. The dialog warns if the selected model cannot train the dataset task.
 2. **Dataset**: Choose a ready dataset with at least one train image, at least one validation or test image, and at least one labeled image
 3. **Parameters**: Set **Epochs** (default 100), **Batch Size** (blank means auto), **Image Size** (default 640), and an optional run **Name**. Expand **Advanced Settings** to edit any other Ultralytics training argument in a YAML editor.
 4. **Select GPU**: On the **Cloud Training** tab, choose compute based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell, $2.09/hr), which handles every YOLO26 variant. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
@@ -269,17 +267,18 @@ From your project, click `New Model` to open the **Train New Model** dialog. You
 
 ### Monitor Training
 
-Once training starts, open the model's `Train` tab to monitor progress in real time through three subtabs:
+Once training starts, open the model's `Train` tab to monitor progress in real time:
 
-| Subtab      | Content                                                 |
-| ----------- | ------------------------------------------------------- |
-| **Charts**  | Training/validation loss curves, mAP, precision, recall |
-| **Console** | Live training log output                                |
-| **System**  | GPU utilization, memory usage, hardware metrics         |
+| Subtab         | Content                                                 |
+| -------------- | ------------------------------------------------------- |
+| **Metrics**    | Training/validation loss curves, mAP, precision, recall |
+| **Validation** | Recorded validation results, when available             |
+| **Console**    | Live training log output                                |
+| **System**     | GPU utilization, memory usage, hardware metrics         |
 
-![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/533d461f043d83d7dad2b7483a56a3f5.avif)<!-- screenshot -->
+![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/13e91f2728627c825f8efcd8fe7916b4.avif)<!-- screenshot -->
 
-Metrics are streamed in real-time via SSE (Server-Sent Events). Once validation artifacts exist, the Charts subtab splits into **Training** and **Validation** views, with the confusion matrix, PR curves, and F1 curves under Validation.
+Metrics stream in real time via Server-Sent Events (SSE). The **Validation** subtab appears when validation results are available, including the [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), PR curves, and F1 curves produced by the run.
 
 !!! tip "Cancel Training"
 
@@ -295,7 +294,7 @@ After training completes, test your model directly in the browser:
 2. Upload an image, drag and drop, capture one from your webcam, or click an example image (auto-inference on drop)
 3. View task-appropriate prediction overlays, per-stage timings (preprocess, inference, postprocess, network), and the raw JSON response
 
-![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/0cdeafceca5ccaea1e11bfbebe0e4a21.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/7f20a14a7e6f05a1c43c42229d0e3745.avif)<!-- screenshot -->
 
 Adjust inference parameters:
 
@@ -340,7 +339,7 @@ Under **API Docs**, the `Predict` tab shows example code in Python, JavaScript, 
 
 !!! tip "Auto-Inference"
 
-    The Predict tab runs inference automatically when you drop an image — no need to click a button — and re-runs it whenever you change confidence, IoU, or image size. Example images (bus.jpg, zidane.jpg) are preloaded for instant testing.
+    The Predict tab runs inference automatically when you drop an image — no need to click a button — and re-runs it whenever you change confidence, IoU, or image size. Example images are preloaded for instant testing.
 
 Read more about [inference](deploy/inference.md).
 
@@ -436,4 +435,4 @@ Yes. Use the **Local Training** tab in the training dialog to copy a ready-made 
 
 ### How do I use a trained model outside Platform?
 
-Download the `best.pt` weights from the model page, [export](train/models.md#export-model) to formats such as ONNX, TensorRT, or CoreML, or call the model through a [dedicated endpoint](deploy/endpoints.md). You can also load it directly with `YOLO("ul://username/project/model")` in the `ultralytics` package.
+Download the PyTorch weights (`{model}.pt`, the best checkpoint) from the model page, [export](train/models.md#export-model) to formats such as ONNX, TensorRT, or CoreML, or call the model through a [dedicated endpoint](deploy/endpoints.md). You can also load it directly with `YOLO("ul://username/project/model")` in the `ultralytics` package.

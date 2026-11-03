@@ -111,7 +111,7 @@ angle: 1.0 # (float) oriented angle loss gain (obb tasks)
 dlog: 1.0 # (float) depth log (SILog) loss gain (depth tasks)
 dgrad: 0.5 # (float) depth gradient loss gain (depth tasks)
 dlam: 1.0 # (float) depth SILog variance focus: 1.0=scale-invariant, 0.0=log-RMSE (depth tasks)
-nbs: 64 # (int) nominal batch size used for loss normalization
+nbs: 64 # (int) nominal batch size; gradients accumulate over round(nbs / batch) batches per optimizer step
 hsv_h: 0.015 # (float) HSV hue augmentation fraction
 hsv_s: 0.7 # (float) HSV saturation augmentation fraction
 hsv_v: 0.4 # (float) HSV value (brightness) augmentation fraction

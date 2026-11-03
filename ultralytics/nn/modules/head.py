@@ -804,6 +804,7 @@ class Depth(nn.Module):
     """
 
     export = False  # export mode
+    format = None  # export format
 
     def __init__(self, c_mid: int = 256, ch: list[int] | tuple[int, ...] = ()):
         """Initialize Depth head.
@@ -857,15 +858,16 @@ class Depth(nn.Module):
             out = out + feats[i]
             out = self.refine[i](out)
 
-        out = self.head(out)  # (B, 1, H/4, W/4)
-        depth = torch.exp(out.clamp(-4.0, 5.0))
-
+        out = self.head(out).clamp(-4.0, 5.0)  # (B, 1, H/4, W/4) log-depth
         if self.training:
-            return {"depth": depth}
+            return {"depth": torch.exp(out)}
 
-        depth = depth.pow(self.cal_a) * self.cal_b.exp()
+        # exp(a * log d + b) equals d.pow(a) * exp(b); avoids Pow, which the Intel NPU computes wrongly
+        depth = torch.exp(self.cal_a * out + self.cal_b)
         if self.export:  # same align_corners=True resize as the depth loss, calibration and validator
             depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=True)
+            if self.format == "litert":  # no-op ReLU stops the Intel NPU compiler corrupting the final reshape
+                depth = depth.relu()
         return depth
 
 
@@ -1318,6 +1320,8 @@ class YOLOEDetect(Detect):
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
+        if self.is_fused:  # text embeddings are fused into cls_head, which then initializes like Detect
+            return super().bias_init()
         for i, (a, b, c) in enumerate(
             zip(self.one2many["box_head"], self.one2many["cls_head"], self.one2many["contrastive_head"])
         ):

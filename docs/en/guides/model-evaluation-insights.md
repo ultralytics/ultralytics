@@ -28,7 +28,7 @@ Various metrics measure how effectively a model performs. These [performance met
 
 ### Confidence Score
 
-The confidence score represents the model's certainty that a detected object belongs to a particular class. It ranges from 0 to 1, with higher scores indicating greater confidence. The confidence score helps filter predictions; only detections with confidence scores above a specified threshold are considered valid.
+The [confidence score](https://www.ultralytics.com/glossary/confidence) represents the model's certainty that a detected object belongs to a particular class. It ranges from 0 to 1, with higher scores indicating greater confidence. The confidence score helps filter predictions; only detections with confidence scores above a specified threshold are considered valid.
 
 !!! tip "Seeing no predictions?"
 
@@ -36,7 +36,7 @@ The confidence score represents the model's certainty that a detected object bel
 
 ### Intersection over Union
 
-[Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) is a metric in [object detection](https://www.ultralytics.com/glossary/object-detection) that measures how well the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) overlaps with the ground truth bounding box. IoU values range from 0 to 1, where one stands for a perfect match. IoU is essential because it measures how closely the predicted boundaries match the actual object boundaries.
+Intersection over Union (IoU) is a metric in [object detection](https://www.ultralytics.com/glossary/object-detection) that measures how well the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) overlaps with the ground truth bounding box. IoU values range from 0 to 1, where 1 stands for a perfect match. IoU is essential because it measures how closely the predicted boundaries match the actual object boundaries.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/178fd224a437a4d2acd73be593ffed6a.avif" alt="Intersection over Union Overview">
@@ -44,17 +44,17 @@ The confidence score represents the model's certainty that a detected object bel
 
 ### Mean Average Precision
 
-[Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) measures how well an object detection model performs overall. It looks at the precision of detecting each object class, averages these scores, and gives a single number that shows how accurately the model can identify and classify objects.
+Mean Average Precision (mAP) measures how well an object detection model performs overall. It looks at the precision of detecting each object class, averages these scores, and gives a single number that shows how accurately the model can identify and classify objects.
 
 Two mAP metrics are most commonly reported:
 
-- _mAP@.5:_ Measures the average precision at a single IoU threshold of 0.5. This metric checks if the model can correctly find objects with a looser accuracy requirement. It focuses on whether the object is roughly in the right place, not needing perfect placement, and helps see if the model is generally good at spotting objects.
-- _mAP@.5:.95:_ Averages the mAP values calculated at multiple IoU thresholds, from 0.5 to 0.95 in 0.05 increments. This metric is more detailed and strict. It gives a fuller picture of how accurately the model can find objects at different levels of strictness and is especially useful for applications that need precise object detection.
+- _mAP<sub>50</sub>:_ Measures the average precision at a single IoU threshold of 0.5. This metric checks if the model can correctly find objects with a looser accuracy requirement. It focuses on whether the object is roughly in the right place, not needing perfect placement, and helps see if the model is generally good at spotting objects.
+- _mAP<sub>50-95</sub>:_ Averages the mAP values calculated at multiple IoU thresholds, from 0.5 to 0.95 in 0.05 increments. This metric is more detailed and strict. It gives a fuller picture of how accurately the model can find objects at different levels of strictness and is especially useful for applications that need precise object detection.
 
-Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
+Other mAP metrics include mAP<sub>75</sub>, which uses a stricter IoU threshold of 0.75, and AP<sub>S</sub>, AP<sub>M</sub>, and AP<sub>L</sub>, which evaluate precision on small, medium, and large objects.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/d05182a0bc6cf4f2f45a598e9f414496.avif" alt="Mean average precision mAP metric">
+  <img width="100%" src="https://cdn.ul.run/i/f9ce0dffc074bde740386eaf4f955300.avif" alt="Three ways to improve mAP: data quality, model optimization, and annotation process">
 </p>
 
 ## Evaluating a YOLO26 Model
@@ -63,9 +63,9 @@ You can evaluate a trained YOLO26 model with the [validation mode](../modes/val.
 
 ### Handling Variable Image Sizes
 
-Evaluating your model on images of different sizes helps you understand its performance on diverse datasets. Validation uses rectangular batching by default (`rect=True` in `model.val()`): it groups images by aspect ratio and pads each batch to the smallest shape that fits, so rectangular images are evaluated without being forced into a square.
+Evaluating your model on images of different sizes helps you understand its performance on diverse datasets. Validation uses rectangular batching by default (`rect=True` in `model.val()`): it groups images by aspect ratio and pads each batch to a rectangular shape, so rectangular images are evaluated without being forced into a square.
 
-The `imgsz` parameter sets the image size used during validation, applied as a square. If you don't set it explicitly, YOLO26 reuses the value saved in the model's settings (640 for the official pretrained models, or whatever size a custom checkpoint was trained at). With `rect=true`, YOLO26 constrains the longer side to `imgsz` and pads the shorter side to a stride multiple, preserving the aspect ratio. Adjust `imgsz` based on your dataset's dimensions and the GPU memory available.
+The `imgsz` parameter sets the image size used during validation. If you don't set it explicitly, YOLO26 reuses the value saved in the model's settings (640 for the official pretrained models, or whatever size a custom checkpoint was trained at). With `rect=True`, validation shapes can differ from predict (see [`rect`](../modes/val.md#arguments-for-yolo-model-validation)). Adjust `imgsz` based on your dataset's dimensions and the GPU memory available.
 
 ### Accessing YOLO26 Metrics
 
@@ -94,7 +94,7 @@ To understand your model's performance in detail, you can access specific evalua
 
         # Per-class metrics
         print("Class indices evaluated:", results.box.ap_class_index)
-        print("Per-class mAP50-95:", results.box.maps)
+        print("Per-class mAP50-95:", results.box.maps)  # classes absent from the val set hold the overall mAP
 
         # Per-image precision, recall, F1, TP, FP, and FN
         print("Per-image metrics:", results.box.image_metrics)
@@ -109,11 +109,11 @@ The `results.box.image_metrics` attribute is a per-image dictionary keyed by abs
 
 ## Fine-Tuning Your Model
 
-Fine-tuning takes a pretrained model and adjusts its parameters to improve performance on a specific task or dataset. Also known as model retraining, it lets the model better understand and predict outcomes for the data it will encounter in real-world applications. Based on your evaluation results, you retrain the model on your own data, adjusting the training arguments covered in the [fine-tuning guide](./finetuning-guide.md).
+[Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) takes a pretrained model and adjusts its parameters to improve performance on a specific task or dataset. Also known as model retraining, it lets the model better understand and predict outcomes for the data it will encounter in real-world applications. Based on your evaluation results, you retrain the model on your own data, adjusting the training arguments covered in the [fine-tuning guide](./finetuning-guide.md).
 
 ### Image Tiling for Small Objects
 
-Image tiling can improve detection accuracy for small objects. By dividing larger images into smaller segments, such as splitting 1280x1280 images into multiple 640x640 segments, you preserve the original resolution and let the model learn from high-resolution fragments. Ultralytics supports this at inference time through [SAHI tiled inference](./sahi-tiled-inference.md). When training on tiled images, make sure to adjust your labels for each new segment correctly.
+Image tiling can [improve detection accuracy for small objects](https://www.ultralytics.com/blog/how-to-improve-model-map-on-small-objects-a-quick-guide). By dividing larger images into smaller segments, such as splitting 1280x1280 images into multiple 640x640 segments, you preserve the original resolution and let the model learn from high-resolution fragments. Ultralytics supports this at inference time through [SAHI tiled inference](./sahi-tiled-inference.md). When training on tiled images, make sure to adjust your labels for each new segment correctly.
 
 ## Conclusion
 
@@ -123,11 +123,11 @@ Evaluating and fine-tuning are what turn a trained model into a dependable, depl
 
 ### What are the key metrics for evaluating YOLO26 model performance?
 
-To evaluate YOLO26 model performance, important metrics include Confidence Score, Intersection over Union (IoU), and Mean Average Precision (mAP). Confidence Score measures the model's certainty for each detected object class. IoU evaluates how well the predicted bounding box overlaps with the ground truth. Mean Average Precision (mAP) aggregates precision scores across classes, with mAP@.5 and mAP@.5:.95 being two common types for varying IoU thresholds. Learn more about these metrics in our [YOLO26 performance metrics guide](./yolo-performance-metrics.md).
+To evaluate YOLO26 model performance, important metrics include Confidence Score, Intersection over Union (IoU), and Mean Average Precision (mAP). Confidence Score measures the model's certainty for each detected object class. IoU evaluates how well the predicted bounding box overlaps with the ground truth. Mean Average Precision (mAP) aggregates precision scores across classes, with mAP<sub>50</sub> and mAP<sub>50-95</sub> being two common types for varying IoU thresholds. Learn more about these metrics in our [YOLO26 performance metrics guide](./yolo-performance-metrics.md).
 
 ### How can I fine-tune a pretrained YOLO26 model for my specific dataset?
 
-Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then retrain from the pretrained weights on your own dataset. During evaluation, parameters like `rect=true` help handle varied image sizes effectively. For the training arguments to adjust, see the [fine-tuning guide](./finetuning-guide.md).
+Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then retrain from the pretrained weights on your own dataset. During evaluation, parameters like `rect=True` help handle varied image sizes effectively.
 
 ### How can I handle variable image sizes when evaluating my YOLO26 model?
 
@@ -137,7 +137,7 @@ To handle variable image sizes during evaluation, rely on rectangular validation
 
 Improving mean average precision (mAP) for a YOLO26 model involves several steps:
 
-1. **Tuning Hyperparameters**: Experiment with different learning rates, [batch sizes](https://www.ultralytics.com/glossary/batch-size), and image augmentations.
+1. **[Tuning Hyperparameters](hyperparameter-tuning.md)**: Experiment with different learning rates, [batch sizes](https://www.ultralytics.com/glossary/batch-size), and image augmentations.
 2. **[Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation)**: Use techniques like Mosaic and MixUp to create diverse training samples.
 3. **Image Tiling**: Split larger images into smaller tiles to improve detection accuracy for small objects.
 

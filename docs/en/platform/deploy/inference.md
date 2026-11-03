@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Inference API Testing
 comments: true
-description: Learn how to test YOLO models with the Ultralytics Platform inference API including browser testing and programmatic access.
+description: Test YOLO models in the Ultralytics Platform Predict tab with images, webcam, or IP camera, and call shared or dedicated inference endpoints over REST.
 keywords: Ultralytics Platform, inference, API, YOLO, object detection, prediction, testing
 ---
 
@@ -11,7 +11,7 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 [Ultralytics Platform](https://platform.ultralytics.com) provides browser-based inference for testing trained models
 and dedicated endpoints for programmatic access.
 
-![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/26f355aa5ed21d09b66d86fcf7fd1642.avif)<!-- screenshot -->
+![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/7f24f23d72050535fb1184ab78b99f0a.avif)<!-- screenshot -->
 
 ## Predict Tab
 
@@ -24,7 +24,7 @@ Every model with weights includes a `Predict` tab for browser-based inference:
 
 Models without weights show an empty state instead — train the model or upload weights first.
 
-![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.ul.run/i/2b0e88766b66799a0e0f11f6cf83e1ec.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.ul.run/i/d6707bfab821116f76af77008cc0cbea.avif)<!-- screenshot -->
 
 ### Input Methods
 
@@ -59,11 +59,11 @@ Drag and drop or click to upload:
 
 !!! note "Client-Side Resize"
 
-    Before uploading, the panel resizes the image so its longest side matches the selected `Image Size`, and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized.
+    Before uploading, the panel shrinks images whose longest side exceeds the selected `Image Size` to that size, and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized. Images the browser cannot decode, such as TIFF in Chrome, are sent at their original size.
 
 ### Example Images
 
-The predict panel shows up to two example images from your model's linked dataset, preferring the `val` split, then
+The predict panel shows up to four example images from your model's linked dataset, preferring the `val` split, then
 `test`, then `train`. If no dataset is linked, default examples are used:
 
 | Image        | Content                    |
@@ -95,7 +95,7 @@ Inference results display the output appropriate to the model task: boxes, masks
 classification scores, semantic coverage, or a depth map. Object results use the dataset class colors when available.
 The panel also shows preprocess, inference, postprocess, and network timing.
 
-![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/d404d43d1aec0a3b4e4536283b2312cc.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/200e9ac95d798975658c5c24baa10d33.avif)<!-- screenshot -->
 
 The results panel shows:
 
@@ -113,7 +113,7 @@ download button to save an annotated JPEG of the current result.
 
 Adjust inference behavior with the three sliders below the image (depth models show only **Image Size**):
 
-![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/03d15a005d5010026a35c8011406d520.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/a5c367ba079dc5d19ab3f02bd37f10bf.avif)<!-- screenshot -->
 
 | Parameter      | Range                     | Default | Description                  |
 | -------------- | ------------------------- | ------- | ---------------------------- |
@@ -127,7 +127,7 @@ Adjust inference behavior with the three sliders below the image (depth models s
 
 ### Confidence Threshold
 
-Filter predictions by confidence:
+Filter predictions by [confidence](https://www.ultralytics.com/glossary/confidence) score:
 
 - **Higher (0.5+)**: Fewer, more certain predictions
 - **Lower (0.1-0.25)**: More predictions, some noise
@@ -135,7 +135,7 @@ Filter predictions by confidence:
 
 ### IoU Threshold
 
-Control Non-Maximum Suppression:
+Control [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), which removes boxes whose [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) with a higher-confidence box exceeds this threshold:
 
 - **Higher (0.7+)**: Allow more overlapping boxes
 - **Lower (0.3-0.5)**: Suppress overlapping detections more aggressively
@@ -218,7 +218,7 @@ key, ready to copy and run.
 
 Include your API key in requests:
 
-```bash
+```http
 Authorization: Bearer YOUR_API_KEY
 ```
 
@@ -304,7 +304,7 @@ with open("image.jpg", "rb") as f:
     console.log(result);
     ```
 
-![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/80c9a77ce7d40e67c8ccfc7871addb85.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/c2abdd3d156fc453381fccb5e90e1569.avif)<!-- screenshot -->
 
 ### Request Parameters
 
@@ -340,7 +340,6 @@ with open("image.jpg", "rb") as f:
     ],
     "metadata": {
         "imageCount": 1,
-        "classNames": ["person", "bicycle", "car", "..."],
         "functionTimeAlive": 1284.51,
         "functionTimeCall": 0.018,
         "task": "detect",
@@ -354,23 +353,23 @@ with open("image.jpg", "rb") as f:
 }
 ```
 
-![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/23001d947c672836bf74347a0fadc8c1.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/f89c84fd648ba3aaad454ea9911b28a7.avif)<!-- screenshot -->
 
 ### Response Fields
 
-| Field                           | Type   | Description                                                         |
-| ------------------------------- | ------ | ------------------------------------------------------------------- |
-| `images`                        | array  | List of processed images, one entry per processed video frame       |
-| `images[].shape`                | array  | Image dimensions [height, width]                                    |
-| `images[].results`              | array  | List of detections                                                  |
-| `images[].results[].class`      | int    | Class index (integer ID)                                            |
-| `images[].results[].name`       | string | Class name                                                          |
-| `images[].results[].confidence` | float  | Detection confidence (0-1)                                          |
-| `images[].results[].box`        | object | Bounding box coordinates                                            |
-| `images[].semantic_mask`        | object | Per-pixel class map (semantic models only)                          |
-| `images[].depth`                | object | Per-pixel depth map (depth models only)                             |
-| `images[].speed`                | object | Processing times in milliseconds                                    |
-| `metadata`                      | object | Image count, model class names, service timings, task, and versions |
+| Field                           | Type   | Description                                                   |
+| ------------------------------- | ------ | ------------------------------------------------------------- |
+| `images`                        | array  | List of processed images, one entry per processed video frame |
+| `images[].shape`                | array  | Image dimensions [height, width]                              |
+| `images[].results`              | array  | List of detections                                            |
+| `images[].results[].class`      | int    | Class index (integer ID)                                      |
+| `images[].results[].name`       | string | Class name                                                    |
+| `images[].results[].confidence` | float  | Detection confidence (0-1)                                    |
+| `images[].results[].box`        | object | Bounding box coordinates                                      |
+| `images[].semantic_mask`        | object | Per-pixel class map (semantic models only)                    |
+| `images[].depth`                | object | Per-pixel depth map (depth models only)                       |
+| `images[].speed`                | object | Processing times in milliseconds                              |
+| `metadata`                      | object | Image count, service timings, task, and versions              |
 
 ### Task-Specific Responses
 
@@ -560,10 +559,8 @@ See the [Predict mode documentation](../../modes/predict.md) for the full result
 - **Predict tab limit**: 10 MB
 - **Shared inference API limit**: about 4.5 MB per request, including through the Python SDK
 - **Dedicated endpoint limit**: 32 MB per request sent directly to the endpoint URL
-- **Auto-resize in the Predict tab**: Images are resized to the selected `Image Size` before upload
 
-Large images are automatically resized in the browser while preserving aspect ratio. Requests you send yourself are not
-resized, so requests above the limit are rejected with `413`.
+Images whose longest side exceeds the selected `Image Size` are shrunk in the browser while preserving aspect ratio, unless the browser cannot decode them ([Upload Image](#upload-image)). Requests you send yourself are not resized, so requests above the limit are rejected with `413`.
 
 ### Can I run batch inference?
 
@@ -571,7 +568,7 @@ The current API processes one image per request. For batch:
 
 1. Send separate requests for each image
 2. Distribute requests across dedicated endpoints when appropriate
-3. Use local inference for large batches
+3. Use [local inference for large batches](https://www.ultralytics.com/blog/using-ultralytics-yolo11-to-run-batch-inferences)
 
 !!! example "Batch Inference with Python"
 

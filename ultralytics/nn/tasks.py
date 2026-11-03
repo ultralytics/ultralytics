@@ -95,6 +95,7 @@ from ultralytics.utils.loss import (
     DepthLoss26,
     E2ELoss,
     PoseLoss26,
+    SegmentLoss26,
     SemanticSegmentationLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
@@ -418,17 +419,25 @@ class BaseModel(torch.nn.Module):
 
         valid = idx >= 0
         state_dict = self.state_dict()
-        # Exact class-logit conv weight/bias keys from the detection head(s) — restricting to these avoids
-        # class-ordering tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
-        cls_keys = {
-            f"{name}.{attr}.{i}.{len(seq) - 1}.{p}"
-            for name, m in self.named_modules()
-            if isinstance(m, Detect)
-            for attr in ("cv3", "one2one_cv3")
-            for i, seq in enumerate(getattr(m, attr, ()))
-            if getattr(seq[-1], "out_channels", None) == tgt_nc
-            for p in ("weight", "bias")
-        }
+
+        # Only remap class-logit convs, never other tensors that happen to share the class dimension.
+        cls_keys = set()
+        for name, m in self.named_modules():
+            if isinstance(m, Detect):
+                branches = {
+                    f"{attr}.{i}": seq
+                    for attr in ("cv3", "one2one_cv3")
+                    for i, seq in enumerate(getattr(m, attr, None) or ())
+                }
+                branches["proto.semseg"] = getattr(getattr(m, "proto", None), "semseg", None)
+            elif isinstance(m, SemanticSegment):
+                branches = {"classifier": m.classifier, "aux_head": m.aux_head}
+            else:
+                continue
+            for prefix, seq in branches.items():
+                if seq is not None and getattr(seq[-1], "out_channels", None) == tgt_nc:
+                    cls_keys.update(f"{name}.{prefix}.{len(seq) - 1}.{p}" for p in ("weight", "bias"))
+
         remapped = 0
         for k in cls_keys & csd.keys():
             v_src, v_tgt = csd[k], state_dict[k]
@@ -705,11 +714,8 @@ class SegmentationModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
-        return (
-            E2ELoss(self, v8SegmentationLoss)
-            if getattr(self.model[-1], "one2one_cv2", None) is not None
-            else v8SegmentationLoss(self)
-        )
+        loss = SegmentLoss26 if isinstance(self.model[-1], Segment26) else v8SegmentationLoss
+        return E2ELoss(self, loss) if getattr(self.model[-1], "one2one_cv2", None) is not None else loss(self)
 
 
 class SemanticSegmentationModel(BaseModel):
@@ -1153,7 +1159,7 @@ class WorldModel(DetectionModel):
         self.clip_model = None  # CLIP model placeholder
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
-    def set_classes(self, text, batch=80, cache_clip_model=True):
+    def set_classes(self, text, batch=80, cache_clip_model=False):
         """Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
@@ -1164,7 +1170,7 @@ class WorldModel(DetectionModel):
         self.txt_feats = self.get_text_pe(text, batch=batch, cache_clip_model=cache_clip_model)
         self.model[-1].nc = len(text)
 
-    def get_text_pe(self, text, batch=80, cache_clip_model=True):
+    def get_text_pe(self, text, batch=80, cache_clip_model=False):
         """Get text prompt embeddings using the CLIP model.
 
         Args:
@@ -1416,7 +1422,12 @@ class YOLOEModel(DetectionModel):
             "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
         )
         assert embeddings.ndim == 3
-        self.names = check_class_names(names)  # validate before any state is written
+        names = check_class_names(names)  # validate before any state is written
+        if self.model[-1].is_fused:  # validators drop "/" synonyms
+            assert {i: n.split("/", 1)[0] for i, n in names.items()} == {
+                i: n.split("/", 1)[0] for i, n in self.names.items()
+            }, "Class embeddings are fused; use an unfused YOLOE model to change classes."
+        self.names = names
         self.pe = embeddings
         self.model[-1].nc = len(names)
 
@@ -1651,6 +1662,7 @@ def temporary_modules(modules=None, attributes=None):
 
     missing = object()
     previous = []  # (module, attribute, prior value) so exiting restores e.g. pathlib.WindowsPath
+    previous_modules = []  # (module path, prior value) so existing aliases survive the context
     with _temporary_modules_lock:
         try:
             # Set attributes in sys.modules under their old name
@@ -1663,14 +1675,17 @@ def temporary_modules(modules=None, attributes=None):
 
             # Set modules in sys.modules under their old name
             for old, new in modules.items():
+                previous_modules.append((old, sys.modules.get(old, missing)))
                 sys.modules[old] = import_module(new)
 
             yield
         finally:
-            # Remove the temporary module paths and attributes
-            for old in modules:
-                if old in sys.modules:
-                    del sys.modules[old]
+            # Restore the temporary module paths and attributes
+            for old, value in reversed(previous_modules):
+                if value is missing:
+                    sys.modules.pop(old, None)
+                else:
+                    sys.modules[old] = value
             for module, attr, value in previous:
                 if value is missing:
                     delattr(module, attr)
@@ -1679,7 +1694,7 @@ def temporary_modules(modules=None, attributes=None):
 
 
 class _SafeLoad:
-    """Opt-in restricted checkpoint loading that reconstructs only known model classes and builds models without eval.
+    """Opt-in restricted checkpoint loading that reconstructs only known model classes.
 
     Loading uses `weights_only=True` plus an allow-list of known classes. Enabled per-process by the
     `ULTRALYTICS_SAFE_LOAD` env flag, or per-call by `torch_safe_load(..., safe_only=True)`. Default loading (flag off)
@@ -1694,20 +1709,10 @@ class _SafeLoad:
     _lock = (
         threading.Lock()
     )  # add_safe_globals rebinds a process-global set; held across _build(), so no load may run at import
-    _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
     @classmethod
-    def restricted(cls):
-        """Return whether model construction should use the no-eval, known-layer path (env flag or in-progress load)."""
-        return cls.SUPPORTED and (SAFE_LOAD or getattr(cls._local, "active", False))
-
-    @classmethod
-    @contextlib.contextmanager
-    def loading(cls, weight):
-        """Prepare a `weights_only=True` load by registering the globals a checkpoint needs and marking the thread.
-
-        Marking the thread restricted means a checkpoint that reaches model construction (parse_model) also uses the
-        no-eval, known-layer path.
+    def register(cls, weight):
+        """Prepare a `weights_only=True` load by registering the globals a checkpoint needs.
 
         Globals are registered with `add_safe_globals` for the life of the process, never scoped per load: the
         `safe_globals()` context manager removes its entries from a process-global set on exit, so with concurrent
@@ -1726,18 +1731,17 @@ class _SafeLoad:
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
+            class_modules = {"ultralytics.nn.distill_model", "ultralytics.utils.loss", "ultralytics.utils.tal"}
             for name in needed:
                 module, _, attr = name.rpartition(".")
                 if name not in cls._registry and (
                     module in {"torch.nn.modules", "ultralytics.nn.modules", "ultralytics.nn.tasks"}
                     or module.rpartition(".")[0] in {"torch.nn.modules", "ultralytics.nn.modules"}
-                    or module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
+                    or module in class_modules
                 ):
                     obj = getattr(importlib.import_module(module), attr, None)
                     if isinstance(obj, type) and (
-                        obj.__module__ == module
-                        if module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
-                        else issubclass(obj, nn.Module)
+                        obj.__module__ == module if module in class_modules else issubclass(obj, nn.Module)
                     ):
                         cls._registry[name] = obj
             if any(name.startswith("torchvision.transforms.") for name in needed):
@@ -1745,7 +1749,10 @@ class _SafeLoad:
                 import torchvision.transforms.transforms as tvt
                 from torchvision.transforms.functional import InterpolationMode
 
-                for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
+                from ultralytics.data.augment import ClassifyLetterBox  # docs custom classify transforms letterbox
+
+                tfs = (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, tvt.ToPILImage)
+                for obj in (*tfs, InterpolationMode, ClassifyLetterBox, np.asarray):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
             if "ultralytics.nn.text_model.CLIP" in needed:
                 import clip
@@ -1768,11 +1775,6 @@ class _SafeLoad:
                 entries.append(type(np.dtype(np.float64)))  # Built dynamically, absent from the checkpoint global scan.
             if entries:
                 torch.serialization.add_safe_globals(entries)
-        cls._local.active = True
-        try:
-            yield
-        finally:
-            cls._local.active = False
 
     @staticmethod
     def activation(act):
@@ -1810,7 +1812,7 @@ class _SafeLoad:
             return klass(*args, **kwargs)
         except Exception as e:
             raise TypeError(
-                emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")
+                emojis(f"ERROR ❌️ unsupported activation '{act}', expected a torch.nn module e.g. 'nn.SiLU()'.")
             ) from e
 
     @classmethod
@@ -1906,8 +1908,8 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                with _SafeLoad.loading(file):  # weights_only load against the known-class allow-list
-                    return torch_load(file, map_location="cpu", weights_only=True)
+                _SafeLoad.register(file)  # weights_only load against the known-class allow-list
+                return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
     # weights_only=True raises on a TorchScript archive; the default path returns a ScriptModule instead.
@@ -2028,6 +2030,9 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
                 f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
             )
         )
+    if hasattr(candidate, "student_model"):  # mid-run distillation checkpoint: load its student
+        candidate._remove_feature_hooks()
+        candidate = candidate.student_model
     model = candidate.float()  # FP32 model
     if ckpt.get("modelopt"):  # QAT checkpoint: re-apply the fake-quantization it learned
         restore_qat(model, ckpt["modelopt"])
@@ -2079,12 +2084,9 @@ def parse_model(d, ch, verbose=True):
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
-    restricted = _SafeLoad.restricted()
     default_act = Conv.default_act  # restore before returning: Conv.default_act is process-wide state
     if act:
-        # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under restricted loading, resolve the
-        # spec without eval() (see _SafeLoad.activation).
-        Conv.default_act = _SafeLoad.activation(act) if restricted else eval(act)
+        Conv.default_act = _SafeLoad.activation(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 
@@ -2157,9 +2159,8 @@ def parse_model(d, ch, verbose=True):
             if m.startswith("torchvision.ops.")
             else globals()[m]
         )  # get module
-        if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
-            # Under restricted loading, only known model layers may be named here.
-            raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer under restricted loading."))
+        if not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
+            raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer."))
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):

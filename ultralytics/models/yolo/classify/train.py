@@ -19,8 +19,8 @@ from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_fi
 class ClassificationTrainer(BaseTrainer):
     """A trainer class extending BaseTrainer for training image classification models.
 
-    This trainer handles the training process for image classification tasks, supporting both YOLO classification models
-    and torchvision models with comprehensive dataset handling and validation.
+    This trainer handles image classification with YOLO models and TorchVision backbones configured in model YAMLs,
+    including dataset handling and validation.
 
     Attributes:
         model (ClassificationModel): The classification model to be trained.
@@ -59,7 +59,7 @@ class ClassificationTrainer(BaseTrainer):
             overrides = {}
         overrides["task"] = "classify"
         overrides["multi_scale"] = 0.0  # classification batches are never rescaled
-        if overrides.get("imgsz") is None:
+        if overrides.get("imgsz") is None and not overrides.get("resume"):
             overrides["imgsz"] = 224
         super().__init__(cfg, overrides, _callbacks)
 
@@ -97,15 +97,7 @@ class ClassificationTrainer(BaseTrainer):
         Returns:
             (Any): Model checkpoint if applicable, otherwise None.
         """
-        import torchvision  # scope for faster 'import ultralytics'
-
-        if str(self.model) in torchvision.models.__dict__:
-            self.model = torchvision.models.__dict__[self.model](
-                weights="IMAGENET1K_V1" if self.args.pretrained else None
-            )
-            ckpt = None
-        else:
-            ckpt = super().setup_model()
+        ckpt = super().setup_model()
         ClassificationModel.reshape_outputs(self.model, self.data["nc"])
         return ckpt
 

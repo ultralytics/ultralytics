@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Cloud GPU Training
 comments: true
-description: Learn how to train YOLO models on cloud GPUs with Ultralytics Platform, including remote training and real-time metrics streaming.
+description: Train YOLO models on cloud GPUs with Ultralytics Platform. Configure runs, pick a GPU, monitor live metrics, stream remote training, and manage billing.
 keywords: Ultralytics Platform, cloud training, GPU training, remote training, YOLO, model training, machine learning
 ---
 
 # Cloud Training
 
-[Ultralytics Platform](https://platform.ultralytics.com) Cloud Training offers single-click training on cloud GPUs, making model training accessible without complex setup. Train YOLO models with real-time metrics streaming and automatic checkpoint saving.
+[Ultralytics Platform](https://platform.ultralytics.com) Cloud Training runs YOLO training jobs on cloud GPUs from a single dialog, with no local environment to set up. Runs stream metrics in real time and save checkpoints automatically.
 
 ```mermaid
 flowchart TD
@@ -32,10 +32,10 @@ The dialog remembers the base model and any non-default parameters it held when 
 
 Choose an official Ultralytics model or one of your own completed models:
 
-| Tab           | Description                                                            |
-| ------------- | ---------------------------------------------------------------------- |
-| **Official**  | YOLO26 (recommended), YOLO11, YOLOv8, and YOLOv5 project models        |
-| **My Models** | Your completed or uploaded models, grouped by project, for fine-tuning |
+| Tab           | Description                                                                                                            |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Official**  | [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) (recommended), YOLO11, YOLOv8, and YOLOv5 project models |
+| **My Models** | Your completed or uploaded models, grouped by project, for fine-tuning                                                 |
 
 Within each tab, models are grouped by task in canonical order and sorted by size. Both tabs list only models whose task can train the selected dataset. YOLO26 includes [Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Depth](../../tasks/depth.md), [Classify](../../tasks/classify.md), [Pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md) variants in sizes from nano to xlarge.
 
@@ -43,7 +43,7 @@ Within each tab, models are grouped by task in canonical order and sorted by siz
 
     Depth datasets can be uploaded with float NPY targets in meters or uint16 PNG targets using the dataset's
     `depth_scale`. See the [depth dataset format](../../datasets/depth/index.md#depth-map-format). Depth models
-    default to a fine-tuning recipe (`optimizer: AdamW`, `lr0: 0.0001`, `warmup_bias_lr: 0.0001`) unless you set
+    default to a [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) recipe (`optimizer: AdamW`, `lr0: 0.0001`, `warmup_bias_lr: 0.0001`) unless you set
     those parameters yourself.
 
 ### Step 2: Select Dataset
@@ -64,7 +64,7 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 !!! warning "Task Mismatch"
 
-    A task mismatch warning appears when the selected model cannot train the dataset task, and **Start Training** remains disabled until you choose a compatible model. A segment dataset accepts segment or semantic models; other dataset tasks require the matching model task. See the [task guides](../../tasks/index.md).
+    A task mismatch warning appears when the selected model cannot train the dataset task, and **Start Training** remains disabled until you choose a compatible model. A segment dataset accepts detect, segment, semantic, or OBB models; other dataset tasks require the matching model task. Ultralytics derives boxes for detect models and minimum-area rotated boxes for OBB models from the polygon labels. See the [task guides](../../tasks/index.md).
 
 ### Step 3: Configure Parameters
 
@@ -72,7 +72,7 @@ Set core training parameters:
 
 | Parameter      | Description                                                                   | Default   |
 | -------------- | ----------------------------------------------------------------------------- | --------- |
-| **Epochs**     | Number of training iterations (1-10000)                                       | 100       |
+| **Epochs**     | Number of passes over the training data (1-10000)                             | 100       |
 | **Batch Size** | Samples per iteration (`-1` auto-fits available VRAM, or a fixed image count) | -1 (auto) |
 | **Image Size** | Input resolution slider, 32-1280 in steps of 32                               | 640       |
 | **Name**       | Optional name for the training run                                            | auto      |
@@ -104,7 +104,7 @@ Parameters are task-aware (e.g., `copy_paste` only shows for segment, semantic, 
 
 ??? example "Example: Tuning Augmentation for Small Datasets"
 
-    For small datasets (<1000 images), increase augmentation to reduce overfitting:
+    For small datasets (<1000 images), increase [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) to reduce [overfitting](https://www.ultralytics.com/glossary/overfitting):
 
     ```yaml
     mosaic: 1.0       # Keep mosaic on
@@ -127,7 +127,7 @@ This preserves the data used for the run even if you later add or remove images,
 
 ### Step 5: Select GPU (Cloud Tab)
 
-Choose your GPU from Ultralytics Cloud:
+[Choose your GPU](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform) from Ultralytics Cloud:
 
 ![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.ul.run/i/9a53e7f94acd24b99713e6c70d0e6f2f.avif)<!-- screenshot -->
 
@@ -139,7 +139,7 @@ Choose your GPU from Ultralytics Cloud:
     - **A100 SXM**: 80 GB HBM2e — strong choice for large batch sizes or bigger models
     - **H100 PCIe / H100 SXM / H100 NVL**: 80–94 GB Hopper for time-sensitive training (available on all plans)
     - **H200 NVL / H200 SXM**: 141–143 GB Hopper for high-memory workloads (available on all plans)
-    - **B200 / B300**: 180–288 GB NVIDIA Blackwell for cutting-edge workloads — requires [Pro or Enterprise](../account/billing.md#plans)
+    - **B200 / B300**: 180–288 GB NVIDIA Blackwell for the largest workloads — requires [Pro or Enterprise](../account/billing.md#plans)
 
 The dialog shows your current **balance** and a **Top Up** button. The cost card estimates the total duration and price for your configuration (model size, dataset images, epochs, image size, batch size, optimizer, and GPU speed) and also reports the estimated seconds per epoch and the dataset image count.
 
@@ -165,7 +165,7 @@ Click **Start Training** to launch your job. The Platform:
 2. Provisions a GPU instance
 3. Downloads your dataset
 4. Begins training
-5. Streams metrics in real-time
+5. Streams metrics in real time
 
 Retraining an existing model reuses the same model page and clears the previous run's charts, console output, system metrics, and error state once the new job is created. A run that fails before compute is provisioned leaves the earlier results untouched.
 
@@ -176,12 +176,12 @@ Training jobs progress through the following statuses:
 | Status        | Description                                                    |
 | ------------- | -------------------------------------------------------------- |
 | **Starting**  | Job submitted, provisioning GPU, downloading dataset and model |
-| **Running**   | Training in progress, metrics streaming in real-time           |
+| **Running**   | Training in progress, metrics streaming in real time           |
 | **Completed** | Training finished successfully                                 |
 | **Failed**    | Training failed (see console logs for details)                 |
 | **Cancelled** | Training was cancelled by the user                             |
 
-A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View full console logs** and **Retry Training** actions. Runs that stop reporting activity for 4 hours are automatically marked failed, and their compute is released.
+A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with a **View full console logs** action, plus **Diagnose with AI** and **Retry Training** (Editor role or higher). Runs that stop reporting activity for 4 hours are automatically marked failed, and their compute is released.
 
 To receive the completed and failed results without keeping this page open, connect [Slack alerts](../integrations/slack.md).
 
@@ -189,25 +189,27 @@ To receive the completed and failed results without keeping this page open, conn
 
     New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
-![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/848ddc1fe38abc8bb4affb9261148b6b.avif)<!-- screenshot -->
+![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/81d957c08a1df12d2e03cc25b20e39ad.avif)<!-- screenshot -->
 
 ## Monitor Training
 
 View real-time training progress on the model page's **Train** tab:
 
-### Charts Subtab
+### Metrics Subtab
 
-![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/b0ee2230c2e011ca4910789562abba8a.avif)<!-- screenshot -->
+![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/3d712c5c0b2a99a86a906bf3aebefced.avif)<!-- screenshot -->
 
 Charts are grouped by metric family, and the groups that appear depend on what the run reports:
 
-| Group             | Contents                                                                                                                  |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Metrics**       | Task metrics — mAP50, mAP50-95, precision, and recall for detection; see [Models](models.md#model-header) for other tasks |
-| **Loss**          | One chart per loss component, with the training series solid and the validation series dashed                             |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                                                    |
+| Group             | Contents                                                                                                                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Metrics**       | Task metrics — mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, and recall for detection; see [Models](models.md#model-header) for other tasks |
+| **Loss**          | One chart per loss component, with the training series solid and the validation series dashed                                                   |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                                                                          |
 
 Each group can be collapsed, individual charts can be hidden or shown from the group menu, and charts can be dragged and resized — the layout is remembered for next time.
+
+The **Validation** subtab shows [validation results](models.md#validation-plots) when available.
 
 ### Console Subtab
 
@@ -248,7 +250,7 @@ Train on your own hardware while streaming metrics to the platform.
     pip install -U ultralytics
     ```
 
-### Setup API Key
+### Set Up API Key
 
 1. Go to [`Settings > API Keys`](../account/api-keys.md)
 2. Create a new key (or the platform auto-creates one when you open the Local Training tab)
@@ -284,6 +286,16 @@ Use the `project` and `name` parameters to stream metrics:
     ```
 
 The **Local Training** tab in the training dialog shows a pre-configured command with your API key, selected parameters, and advanced arguments included.
+
+### Resume Remote Training
+
+Resume an interrupted remote run from its last checkpoint as usual (see [Resuming Interrupted Trainings](../../modes/train.md#resuming-interrupted-trainings)):
+
+```bash
+yolo train resume model=path/to/last.pt
+```
+
+The resumed run continues the same Platform model, so its epochs, console output, and final weights land on the original model instead of a new one. The model ID is stored in `platform_model_id.txt` in the run directory. If that model was deleted, or has already completed, failed, or been cancelled, the resumed run is tracked as a new model. Platform marks a remote run failed after 4 hours without activity, so resume within that window to continue the original model.
 
 ### Using Platform Datasets
 
@@ -326,7 +338,7 @@ image size, batch size, epochs, and selected GPU. Estimates are approximate; act
 | Factor               | Impact                                                                                            |
 | -------------------- | ------------------------------------------------------------------------------------------------- |
 | **Dataset Size**     | More images = longer training time (compute scales roughly linearly with dataset size)            |
-| **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                  |
+| **Model Size**       | Larger models (m, l, x) train more slowly than smaller ones (n, s)                                |
 | **Number of Epochs** | Direct multiplier on training time                                                                |
 | **Image Size**       | Larger imgsz substantially increases computation — 1280px costs several times more than 640px     |
 | **Batch Size**       | Larger batches train more efficiently than small ones                                             |
@@ -404,13 +416,13 @@ Before starting a cloud job, the training dialog shows your current credit balan
 
 ### Choose the Right Model Size
 
-| Model   | Parameters | Best For                |
-| ------- | ---------- | ----------------------- |
-| YOLO26n | 2.4M       | Real-time, edge devices |
-| YOLO26s | 9.5M       | Balanced speed/accuracy |
-| YOLO26m | 20.4M      | Higher accuracy         |
-| YOLO26l | 24.8M      | Production accuracy     |
-| YOLO26x | 55.7M      | Maximum accuracy        |
+| Model                                                                  | Parameters | Best For                |
+| ---------------------------------------------------------------------- | ---------- | ----------------------- |
+| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) | 2.4M       | Real-time, edge devices |
+| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s) | 9.5M       | Balanced speed/accuracy |
+| [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m) | 20.4M      | Higher accuracy         |
+| [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l) | 24.8M      | Production accuracy     |
+| [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x) | 55.7M      | Maximum accuracy        |
 
 ### Optimize Training Time
 
@@ -429,7 +441,7 @@ Before starting a cloud job, the training dialog shows your current credit balan
 | Out of memory        | Reduce batch size or use larger GPU  |
 | Poor accuracy        | Increase epochs, check data quality  |
 | Training slow        | Consider faster GPU                  |
-| Task mismatch error  | Ensure model and dataset tasks match |
+| Task mismatch error  | Use a model task the dataset accepts |
 
 ## Training Parameters Reference
 
@@ -589,7 +601,7 @@ after the balance goes negative.
 
 To manage costs:
 
-- Monitor training progress in real-time and cancel early if needed
+- Monitor training progress in real time and cancel early if needed
 - Enable [auto top-up](../account/billing.md#auto-top-up) to automatically replenish credits
 - Start with shorter runs (fewer epochs) to calibrate expectations
 
@@ -609,14 +621,14 @@ This makes it easy to reproduce or iterate on previous training configurations w
 
 ### Why didn't my learning rate setting take effect?
 
-With the default `optimizer: auto`, training picks the optimizer and initial learning rate for you and ignores your
+With the default `optimizer: auto`, training picks the optimizer and initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) for you and ignores your
 `lr0`. To use your own `lr0`, choose a specific optimizer such as `SGD` or `AdamW` in **Advanced Settings**. The
 training console logs the optimizer and learning rate the run selected; the **Training Configuration** card shows the
 arguments you submitted, so with `auto` it can still list your `lr0`.
 
 ### Can I retry a failed run?
 
-Yes. A failed model shows an error banner with a **Retry Training** action that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
+Yes. A failed model shows an error banner with a **Retry Training** action (Editor role or higher) that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. **Diagnose with AI**, next to it, asks [Ask AI](autotrain.md) to find the error behind the failure and suggest the smallest fix before you retry. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
 
 ### Can I train from a dataset page?
 

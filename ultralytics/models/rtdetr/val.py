@@ -8,6 +8,7 @@ from ultralytics.data import YOLODataset
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr, ops
+from ultralytics.utils.checks import check_imgsz
 
 __all__ = ("RTDETRValidator",)  # tuple or list
 
@@ -130,8 +131,11 @@ class RTDETRValidator(DetectionValidator):
             preds = preds[0]
 
         bboxes, scores, labels = preds.split((4, 1, 1), dim=-1)
-        bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
+        shape = check_imgsz(self.args.imgsz, stride=1, min_dim=2)
+        bboxes = ops.xywh2xyxy(bboxes) * bboxes.new_tensor(shape)[[1, 0, 1, 0]]
         scores, labels = scores.squeeze(-1), labels.squeeze(-1)
+        if self.args.classes is not None:
+            scores = scores.masked_fill(~(labels[..., None] == labels.new_tensor(self.args.classes)).any(-1), 0)
         masks = [(score > self.args.conf).nonzero().squeeze(1)[: self.args.max_det] for score in scores]
 
         return [

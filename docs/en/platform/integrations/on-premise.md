@@ -2,18 +2,18 @@
 plans: [enterprise]
 title: On Premise - Ultralytics Platform
 comments: true
-description: Use local datasets and train YOLO models on your own computer while uploading completed models to Platform.
+description: Ultralytics Platform On Premise lets Enterprise workspaces index, annotate, and train YOLO models on local datasets whose pixels never leave your computer.
 keywords: Ultralytics Platform, On Premise, private datasets, local training, data residency, YOLO
 ---
 
 # On Premise
 
-[On Premise](https://platform.ultralytics.com) lets your Enterprise workspace use datasets and compute on a Linux,
+On Premise lets your [Ultralytics Platform](https://platform.ultralytics.com) Enterprise workspace use datasets and compute on a Linux,
 macOS, or Windows computer. Source images and videos remain on your computer. Training behaves like any other
 [remote training](../train/cloud-training.md#remote-training) location: metrics stream to Platform and completed model
 weights upload for download, prediction, export, and deployment.
 
-Setup takes one command. Platform detects your operating system, fills in sensible folder locations, installs Docker if needed, and shows live connection progress.
+Setup takes one command. Platform detects your operating system, fills in sensible folder locations, installs [Docker](https://www.ultralytics.com/glossary/docker) if needed, and shows live connection progress.
 
 ## How It Works
 
@@ -65,7 +65,7 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 5. Open the terminal named in the dialog, copy the command, paste it, and press Enter.
 6. Keep the Integrations page open until the progress indicator shows **Connected**.
 
-![Ultralytics Platform On Premise Integration Setup](https://cdn.ul.run/i/5d1026274327754bda12a9275bffcdc9.avif)<!-- screenshot -->
+![Ultralytics Platform On Premise Integration Setup](https://cdn.ul.run/i/961fbf1749ab8ff0e2c11ead3f4ceefa.avif)<!-- screenshot -->
 
 The page tracks the six setup steps live — running the command, downloading the worker files, downloading the Docker
 image, building the worker, starting it, and confirming the connection — so you can watch progress without reading the
@@ -142,7 +142,7 @@ uploads.
 
 !!! warning "Use CDI for GPU access"
 
-    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. Platform detects the supported GPU path automatically on Linux and Windows, while macOS hosts train on CPU; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
+    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration uses Container Device Interface (CDI) device requests, which require Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. Platform detects the supported GPU path automatically on Linux and Windows, while macOS hosts train on CPU; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
 
 ## Add a Dataset
 
@@ -155,7 +155,7 @@ Platform indexes the dataset locally and opens it in the same gallery used for u
 
 ### Supported Data
 
-On Premise supports the same ingest formats and computer-vision tasks as uploaded data:
+On Premise supports the same ingest formats and computer vision tasks as uploaded data:
 
 - Images and videos
 - ZIP, TAR, TAR.GZ, and TGZ archives
@@ -180,7 +180,7 @@ Start training through the normal Platform training dialog:
 3. Select a model and training settings.
 4. Start training.
 
-Platform runs the job on the connected computer. It uses an available NVIDIA GPU or falls back to CPU automatically, so a Mac can train a small model such as YOLO26n on COCO8 without dedicated GPU hardware.
+Platform runs the job on the connected computer. It uses an available NVIDIA GPU or falls back to CPU automatically, so a Mac can train a small model such as [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) on [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) without dedicated GPU hardware.
 
 Training files are written to the configured models folder while the run is active. The Ultralytics package uses the
 same remote-training callbacks as any customer-managed machine: progress and metrics stream to Platform, the best
@@ -219,9 +219,9 @@ available.
 
 - **No rescan.** A dataset is indexed once when you create it. If the source files change afterwards, Platform does not
   notice — create a new dataset to pick up the changes.
-- **Platform-copy features are unavailable.** On Premise datasets exclude the features that need Platform-owned copies of
-  your images: auto-annotation, [clustering analysis](../data/datasets.md#clustering), dataset cloning, and immutable
-  [version snapshots](../data/datasets.md#versions-tab).
+- **AI features are unavailable.** On Premise images never leave your host, so smart annotation, auto-annotation,
+  similar-image search, [clustering analysis](../data/datasets.md#clustering), cloud training, and image generation are
+  unavailable, as are dataset cloning and immutable [version snapshots](../data/datasets.md#versions-tab).
 - **Training does not move.** If the worker process stops mid-run, the run fails rather than restarting elsewhere.
 - **Model files stay on the host.** Deleting or trashing a model in Platform removes it from Platform, not from your
   models folder — clean that folder up yourself when a run is no longer needed.

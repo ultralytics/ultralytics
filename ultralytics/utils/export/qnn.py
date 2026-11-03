@@ -117,10 +117,13 @@ def onnx2qnn(
         # is disabled (no device present). Targets not exposed by ONNX Runtime's htp_arch parser are finalized through
         # their QNN SoC model instead.
         ep_name = "QNNExecutionProvider"
+        # Keep graph I/O quantization inside the context binary: offloading it to the CPU makes onnxruntime-qnn>=2.4
+        # write an EPContext `io_name_overrides` map that ONNX Runtime's built-in QNN EP (Android) cannot read.
         ep_options = {
             "backend_path": htp_backend,
             "htp_graph_finalization_optimization_mode": "3",
             "enable_htp_shared_memory_allocator": "0",
+            "offload_graph_io_quantization": "0",
         }
         option, value = QNN_HTP_TARGETS[name]
         ep_options[option] = value

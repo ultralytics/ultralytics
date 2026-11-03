@@ -37,7 +37,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, add_polygon_background, get_split_fraction
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import RANK, REQUEST_HEADERS, colorstr
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
 
@@ -450,15 +450,17 @@ def check_source(
         is_stream = source_lower.startswith(("rtsp://", "rtmp://", "tcp://"))  # streams even with a video suffix
         is_url = source_lower.startswith(("https://", "http://"))
         is_file = is_url and urlsplit(source_lower).path.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
-        webcam = source.isnumeric() or source.endswith(".streams") or is_stream or (is_url and not is_file)
-        screenshot = source_lower == "screen"
+        webcam = source.isnumeric() or source_lower.endswith(".streams") or is_stream or (is_url and not is_file)
+        screenshot = source_lower == "screen" or (source_lower.startswith("screen ") and not Path(source).exists())
         if is_file:
             source = check_file(source)  # download
-        elif is_url:  # a URL without a media suffix is one image if it returns a sized image/* response
+        elif is_url:  # a URL without a media suffix is one image if it returns an image/* response
             import requests  # scoped as slow import
 
-            with contextlib.suppress(requests.RequestException), requests.get(source, stream=True, timeout=3) as r:
-                webcam = not (r.headers.get("Content-Type", "").startswith("image/") and "Content-Length" in r.headers)
+            with contextlib.suppress(requests.RequestException), requests.get(
+                source, stream=True, headers=REQUEST_HEADERS, timeout=3
+            ) as r:
+                webcam = not r.headers.get("Content-Type", "").startswith("image/")
             if not webcam:
                 source, from_img = autocast_list([source]), True
     elif isinstance(source, LOADERS):

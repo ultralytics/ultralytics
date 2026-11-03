@@ -54,6 +54,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_2_0,
     TORCH_2_4,
+    TORCH_2_8,
     TORCH_2_13,
     EarlyStopping,
     ModelEMA,
@@ -237,16 +238,16 @@ class BaseTrainer:
         """Execute the training process, using DDP subprocess for multi-GPU or direct training for single-GPU."""
         # Run subprocess if DDP training, else train normally
         try:
+            if self.world_size > 1 and self.args.batch < self.world_size:
+                raise ValueError(
+                    f"'batch={self.args.batch}' must be >= GPU count {self.world_size} for Multi-GPU training "
+                    f"(AutoBatch batch<1 is not supported), i.e. batch={self.world_size * 8}."
+                )
             if self.ddp:
                 # Argument checks
                 if self.args.rect:
                     LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                     self.args.rect = False
-                if self.args.batch < 1.0:
-                    raise ValueError(
-                        "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                        f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
-                    )
 
                 # Command
                 cmd, file = None, None
@@ -262,8 +263,8 @@ class BaseTrainer:
                 self._do_train()
         finally:
             unset_deterministic()  # never leave deterministic state on, including the DDP parent and failed runs
-        if not self.ddp:
-            self.run_callbacks("teardown")
+            if not self.ddp:
+                self.run_callbacks("teardown")
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -291,11 +292,13 @@ class BaseTrainer:
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         elif device_type == "xpu" and not (hasattr(dist, "is_xccl_available") and dist.is_xccl_available()):
             raise RuntimeError("Multi-XPU training requires XCCL, which is not available in this PyTorch build.")
+        backend = {"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo")
         dist.init_process_group(
-            backend={"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo"),
+            backend=backend,
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
+            **({"device_id": self.device} if backend == "nccl" and TORCH_2_8 else {}),  # bind NCCL to this rank's GPU
         )
 
     def _build_train_pipeline(self):
@@ -320,6 +323,8 @@ class BaseTrainer:
         )
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
+        if not self.args.time:  # time mode re-estimates epochs after the first epoch
+            self.accumulate = min(self.accumulate, len(self.train_loader) * self.epochs)
         if self.optimizer is None:
             iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
             self.optimizer = self.build_optimizer(
@@ -361,7 +366,7 @@ class BaseTrainer:
             if self.resume and ckpt.get("modelopt"):
                 restore_qat(self.model, ckpt["modelopt"])
             else:
-                batch = max(self.batch_size // max(self.world_size, 1), 1) if self.batch_size >= 1 else 16
+                batch = self.batch_size // max(self.world_size, 1) if self.batch_size >= 1 else 16
                 with torch_distributed_zero_first(LOCAL_RANK), override_configs(self.args, {"cache": False}):
                     calibration_loader = self.get_dataloader(
                         self.data["train"], batch_size=batch, rank=-1, mode="train"
@@ -410,9 +415,7 @@ class BaseTrainer:
         self.amp = self.args.amp not in {False, "fp32"}
         self.amp = torch.tensor(self.amp).to(self.device)
         if self.amp and self.args.amp != "bf16" and RANK in {-1, 0}:  # Single-GPU and DDP
-            callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
-            callbacks.default_callbacks = callbacks_backup  # restore callbacks
         if RANK > -1 and self.world_size > 1:  # DDP
             self.amp = self.amp.int()  # gloo errors with boolean
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
@@ -472,6 +475,7 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = self._get_warmup_iterations(nb)
         last_opt_step = -1
+        acc0 = self.accumulate  # nominal (already capped) accumulate; warmup below ramps up to it, never past it
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
@@ -516,9 +520,9 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_start")
                 # Warmup
                 ni = i + nb * epoch
-                if ni < nw:
+                if nw and ni <= nw:  # ni == nw lands accumulate, lr and momentum exactly on their targets
                     xi = [0, nw]  # x interp
-                    self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
+                    self.accumulate = max(1, int(np.interp(ni, xi, [1, acc0]).round()))
                     for x in self.optimizer.param_groups:
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x["lr"] = float(
@@ -574,8 +578,8 @@ class BaseTrainer:
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
                         raise  # only auto-reduce during first epoch on single GPU, max 3 retries
                     self._oom_retries += 1
-                    old_batch = self.batch_size
-                    self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
+                    old_batch = self.train_loader.batch_size  # the loader clamps batch to the dataset size
+                    self.args.batch = self.batch_size = max(old_batch // 2, 1)
                     error = f"{self.device.type.upper()} out of memory" if is_oom else "CUDA backend memory error"
                     LOGGER.warning(
                         f"{error} with batch={old_batch}. "
@@ -593,6 +597,7 @@ class BaseTrainer:
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)
                     last_opt_step = -1
+                    acc0 = self.accumulate  # the rebuild recomputed the nominal for the reduced batch size
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
                 if ni - last_opt_step >= self.accumulate:
@@ -704,8 +709,14 @@ class BaseTrainer:
             if hasattr(loader, "close"):
                 loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
 
-    def auto_batch(self, max_num_obj=0, dataset_size=0):
-        """Calculate optimal batch size based on model and device memory constraints."""
+    def auto_batch(self):
+        """Calculate optimal batch size based on model, dataset and device memory constraints."""
+        with override_configs(self.args, overrides={"cache": False}):
+            dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
+        dataset_size = len(dataset)
+        dataset = getattr(dataset, "datasets", [dataset])  # concatenated datasets keep labels per subset
+        max_num_obj = max((len(lb["cls"]) for d in dataset for lb in getattr(d, "labels", ())), default=0) * 4  # mosaic
+        del dataset  # free memory before profiling
         # Stride-aligned to match the true multi-scale max size; pyramid heads require stride-multiple inputs
         max_imgsz = math.ceil(self.args.imgsz * (1 + self.args.multi_scale) / self.stride) * self.stride
         return check_train_batch_size(
@@ -877,12 +888,14 @@ class BaseTrainer:
 
         cfg, weights = self.model, None
         ckpt = None
-        if str(self.model).endswith(".pt"):
+        if str(self.model).lower().endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
-        if isinstance(self.args.pretrained, (str, Path)) and not self.resume:
+        if self.resume:  # load_checkpoint() returns the student, rebuild a distillation run from its wrapper
+            weights = ckpt.get("ema") or ckpt.get("model")
+        elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)
-        elif self.args.pretrained is False and not self.resume:
+        elif self.args.pretrained is False:
             weights = None
 
         # rebuild DistillationModel from resuming checkpoint
@@ -1179,7 +1192,7 @@ class BaseTrainer:
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.optimizer, self.args.lr0 = name, lr  # resume rebuilds this choice from train_args
-            self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
+            self.args.warmup_bias_lr = 0.0  # start bias warmup at zero
 
         use_muon = name == "MuSGD"
         for module_name, module in unwrap_model(model).named_modules():

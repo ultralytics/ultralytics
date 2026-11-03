@@ -74,7 +74,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
         if not (
             isinstance(predictor.model.model, torch.nn.Module)
-            and isinstance(predictor.model.model.model[-1], Detect)
+            and isinstance(getattr(predictor.model.model, "model", [None])[-1], Detect)
             and not predictor.model.model.model[-1].end2end
         ):
             cfg.model = "yolo26n-cls.pt"

@@ -222,31 +222,12 @@ class SegmentationValidator(DetectionValidator):
             Returns:
                 (str): Compressed RLE string.
             """
-            result = []
-
-            for i in range(len(counts)):
-                x = int(counts[i])
-
-                # Apply delta encoding for all counts after the third entry
-                if i > 2:
-                    x -= int(counts[i - 2])
-
-                # Variable-length encode the value
-                while True:
-                    c = x & 0x1F  # Take 5 bits
-                    x >>= 5
-
-                    # If the sign bit (0x10) is set, continue if x != -1;
-                    # otherwise, continue if x != 0
-                    more = (x != -1) if (c & 0x10) else (x != 0)
-                    if more:
-                        c |= 0x20  # Set continuation bit
-                    c += 48  # Shift to ASCII
-                    result.append(chr(c))
-                    if not more:
-                        break
-
-            return "".join(result)
+            x = np.asarray(counts, dtype=np.int64)
+            x[3:] -= x[1:-2]  # delta encoding starts at the fourth count
+            chunks = x[:, None] >> np.arange(0, (h * w).bit_length() + 1, 5)  # signed 5-bit groups
+            more = (chunks < -16) | (chunks > 15)
+            keep = np.concatenate((np.ones((len(x), 1), dtype=bool), more[:, :-1]), axis=1)
+            return (((chunks & 0x1F) | (more << 5)) + 48)[keep].astype(np.uint8).tobytes().decode()
 
         def multi_encode(pixels: torch.Tensor) -> list[list[int]]:
             """Convert multiple binary masks using Run-Length Encoding (RLE).
@@ -301,10 +282,9 @@ class SegmentationValidator(DetectionValidator):
         """Scale predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            # The masks are binary at the network input size; threshold the bilinear rescale instead of truncating it
-            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[0]
-            .gt_(0.5)
-            .byte(),
+            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[
+                0
+            ].byte(),
         }
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:

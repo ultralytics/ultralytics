@@ -70,8 +70,8 @@ def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG
 
     Args:
         path (str | Path): Output PNG file path.
-        depth (np.ndarray): Metric depth map in meters, 2D after squeezing. Non-finite and non-positive values are saved
-            as 0 (invalid).
+        depth (np.ndarray): Metric depth map in meters, 2D after removing extra singleton dimensions. Non-finite and
+            non-positive values are saved as 0 (invalid).
         scale (float, optional): Multiplier applied to depth in meters before rounding to uint16, e.g. 1000 for
             millimeters.
 
@@ -81,7 +81,9 @@ def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG
     """
     if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
         raise ValueError("Depth scale must be a positive finite number")
-    depth = np.asarray(depth, dtype=np.float32).squeeze()
+    depth = np.asarray(depth, dtype=np.float32)
+    while depth.ndim > 2 and 1 in depth.shape:  # preserve both spatial dimensions, including one-pixel axes
+        depth = depth.squeeze(axis=depth.shape.index(1))
     if depth.ndim != 2:
         raise ValueError(f"Depth map must be 2D, got shape {depth.shape}")
     valid = np.isfinite(depth) & (depth > 0)
@@ -227,7 +229,7 @@ def get_hash(paths: list[str]) -> str:
     """Return a hash of paths and their file sizes and modification times."""
     h = __import__("hashlib").sha256()
     for p in paths:
-        h.update(p.encode())
+        h.update(os.fsencode(p))  # fsencode handles surrogate-escaped non-UTF-8 filenames, byte-identical otherwise
         h.update(b"\0")
         try:
             stat = os.stat(p)
@@ -393,9 +395,8 @@ def verify_image_mask(args: tuple) -> tuple:
     """Verify that an image and its semantic mask exist, are readable, match in shape, and hold valid class ids.
 
     Args:
-        args (tuple): Tuple of (im_file, mask_file, prefix, invalid). If mask_file is missing, masks with the same stem
-            and another image extension are tried. invalid is a 256-entry uint8 lookup table that is nonzero for raw
-            mask ids that map to neither a dataset class nor the 255 ignore label.
+        args (tuple): Tuple of (im_file, mask_file, prefix, invalid), where invalid is a 256-entry uint8 lookup table
+            that is nonzero for raw mask ids that map to neither a dataset class nor the 255 ignore label.
 
     Returns:
         (tuple): Tuple of (im_file, mask_file, shape, mode, nm, nf, nc, msg), where the first four are None for rejected
@@ -408,12 +409,6 @@ def verify_image_mask(args: tuple) -> tuple:
     try:
         msg, shape = check_image(im_file)
         msg = f"{prefix}{msg}" if msg else ""
-        if not os.path.isfile(mask_file):
-            for ext in IMG_FORMATS:  # check other suffixes
-                alt_mask_file = mask_file.rsplit(".", 1)[0] + f".{ext}"
-                if os.path.isfile(alt_mask_file):
-                    mask_file = alt_mask_file
-                    break
         if os.path.isfile(mask_file):
             with Image.open(mask_file) as im:
                 mode = im.mode  # recorded so load_mask reads each mask once
@@ -476,7 +471,8 @@ def verify_image_label(args: tuple) -> tuple | list:
                     points = lb[:, 1:]
                 # Coordinate points check with 1% tolerance
                 assert points.max() <= 1.01, f"non-normalized or out of bounds coordinates {points[points > 1.01]}"
-                assert lb.min() >= -0.01, f"negative class labels or coordinate {lb[lb < -0.01]}"
+                lb_min = lb.min()
+                assert lb_min >= 0 or (lb_min >= -0.01 and lb[:, 3:5].min() >= 0), f"negative label values {lb[lb < 0]}"
                 assert (lb[:, 0] % 1 == 0).all(), f"non-integer class labels {lb[:, 0][lb[:, 0] % 1 != 0]}"
 
                 # All labels
@@ -644,7 +640,8 @@ def find_dataset_yaml(path: Path) -> Path:
     """Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
-    performs a recursive search. It prefers YAML files that have the same stem as the provided path.
+    performs a recursive search, considering `.yml` files only when no `.yaml` file exists. It prefers YAML files that
+    have the same stem as the provided path.
 
     Args:
         path (Path): The directory path to search for the YAML file.
@@ -652,7 +649,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Returns:
         (Path): The path of the found YAML file.
     """
-    files = list(path.glob("*.yaml")) or list(path.rglob("*.yaml"))  # try root level first and then recursive
+    files = next((f for e in ("*.yaml", "*.yml") if (f := list(path.glob(e)) or list(path.rglob(e)))), [])
     assert files, f"No YAML file found in '{path.resolve()}'"
     if len(files) > 1:
         files = [f for f in files if f.stem == path.stem]  # prefer YAML files that match
@@ -701,7 +698,7 @@ def convert_ndjson_to_yolo_if_needed(
     """
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
-    if clean_url(data_str).endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
+    if clean_url(data_str).endswith(".ndjson") or (data_str.lower().startswith("ul://") and "/datasets/" in data_str):
         import asyncio
 
         from ultralytics.data.converter import convert_ndjson_to_yolo
@@ -813,7 +810,7 @@ def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str
                 raise FileNotFoundError(m)
             t = time.time()
             r = None  # success
-            if s.startswith("http") and s.endswith(
+            if s.lower().startswith("http") and clean_url(s).lower().endswith(
                 (".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")
             ):  # URL
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
@@ -839,7 +836,9 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
-        dataset (str | Path): The dataset name, local directory path, archive file, or archive URL.
+        dataset (str | Path): The dataset name, local directory path, archive file, or archive URL. Archive suffixes
+            match in any letter case, and an existing directory is used as a directory even when its name ends in an
+            archive suffix.
         split (str, optional): The split of the dataset. Either 'train', 'val', 'test', or ''.
 
     Returns:
@@ -856,9 +855,11 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         raise ValueError(f"Invalid classification dataset split '{split}'. Use 'train', 'val', or 'test'.")
 
     # Download (optional if dataset=https://file.zip is passed directly)
-    if str(dataset).startswith(("http:/", "https:/")):
+    if str(dataset).lower().startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
-    elif str(dataset).endswith((".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")):
+    elif not Path(dataset).is_dir() and str(dataset).lower().endswith(
+        (".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")
+    ):
         file = check_file(dataset)
         dataset = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
 
@@ -870,6 +871,8 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
                 f'Classification datasets must be a directory (data="path/to/dir") not a file (data="{dataset}"), '
                 "See https://docs.ultralytics.com/datasets/classify"
             )
+        if str(dataset) != dataset.name:  # download only an official dataset by bare name, never a user path
+            raise FileNotFoundError(f"'{data_dir}' does not exist")
         LOGGER.info("")
         LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")
         t = time.time()
@@ -920,7 +923,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         else:
             files = [path for path in v.rglob("*.*") if path.suffix[1:].lower() in IMG_FORMATS]
             nf = len(files)  # number of files
-            nd = len({file.parent for file in files})  # number of directories
+            nd = len({file.relative_to(v).parts[0] for file in files})  # number of classes
             if nf == 0:
                 if k == "train":
                     raise FileNotFoundError(f"{dataset} '{k}:' no training images found")

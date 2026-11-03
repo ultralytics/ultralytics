@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Master knowledge distillation for Ultralytics YOLO to optimize student model performance with a teacher model.
+description: Train smaller, more accurate Ultralytics YOLO26 student models with knowledge distillation from a larger teacher using the distill_model and dis arguments.
 keywords: knowledge distillation, YOLO, Ultralytics, object detection, machine learning, computer vision, distill_model, teacher model, student model
 ---
 
@@ -31,7 +31,7 @@ Train a smaller student model with guidance from a larger teacher model by addin
 
 [Knowledge distillation](https://www.ultralytics.com/glossary/knowledge-distillation) transfers knowledge from a large, accurate **teacher model** to a smaller **student model**. The student learns to mimic the teacher's internal feature representations, often achieving better accuracy than training from scratch.
 
-![Knowledge distillation workflow image](https://cdn.ul.run/i/69daf2d70527cec60e3c29bfb262839f.avif)
+![Knowledge distillation workflow with a frozen teacher model guiding a smaller student model](https://cdn.ul.run/i/69daf2d70527cec60e3c29bfb262839f.avif)
 
 **Use distillation when:**
 
@@ -47,13 +47,13 @@ Train a smaller student model with guidance from a larger teacher model by addin
 
 Knowledge distillation improves student [mAP](yolo-performance-metrics.md) across the entire YOLO26 family on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), with no added inference cost. The table below compares the standard YOLO26 models (baseline) against the same models trained with distillation from their recommended teacher.
 
-| Model                                                                  | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup><br>baseline | mAP<sup>val<br>50-95</sup><br>distilled | mAP<sup>val<br>50-95 (e2e)</sup><br>baseline | mAP<sup>val<br>50-95 (e2e)</sup><br>distilled |
-| ---------------------------------------------------------------------- | --------------------------- | -------------------------------------- | --------------------------------------- | -------------------------------------------- | --------------------------------------------- |
-| [YOLO26n-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 40.9                                   | **41.5**                                | 40.1                                         | **40.9**                                      |
-| [YOLO26s-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 48.6                                   | **49.2**                                | 47.8                                         | **48.6**                                      |
-| [YOLO26m-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 53.1                                   | **53.9**                                | 52.5                                         | **53.3**                                      |
-| [YOLO26l-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 55.0                                   | **56.0**                                | 54.4                                         | **55.5**                                      |
-| [YOLO26x-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 57.5                                   | **57.9**                                | 56.9                                         | **57.4**                                      |
+| Model                                                                  | size<br><sup>(pixels)</sup> | mAP<sup>val</sup><sub>50-95</sub><br>baseline | mAP<sup>val</sup><sub>50-95</sub><br>distilled | mAP<sup>val</sup><sub>50-95</sub><br>(e2e)<br>baseline | mAP<sup>val</sup><sub>50-95</sub><br>(e2e)<br>distilled |
+| ---------------------------------------------------------------------- | --------------------------- | --------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------- |
+| [YOLO26n-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 40.9                                          | **41.5**                                       | 40.1                                                   | **40.9**                                                |
+| [YOLO26s-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 48.6                                          | **49.2**                                       | 47.8                                                   | **48.6**                                                |
+| [YOLO26m-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 53.1                                          | **53.9**                                       | 52.5                                                   | **53.3**                                                |
+| [YOLO26l-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 55.0                                          | **56.0**                                       | 54.4                                                   | **55.5**                                                |
+| [YOLO26x-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 57.5                                          | **57.9**                                       | 56.9                                                   | **57.4**                                                |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce a distilled row with `yolo val detect model=yolo26n-distill.pt data=coco.yaml device=0`; add `nms=False` for the e2e column.
 - **e2e** values use the NMS-free inference path (`nms=False`); non-e2e values use default NMS post-processing (`nms=None`). See [End-to-End Detection](end2end-detection.md) for details.
@@ -238,7 +238,7 @@ The exported model contains **only the student weights**—file size and inferen
 
 ### How does distillation differ from standard training?
 
-Add the `distill_model` parameter—everything else works identically. An extra distillation loss computes during training, but the saved model is a standard YOLO model with no overhead.
+Add the `distill_model` parameter—everything else works identically. An extra distillation loss is computed during training, but the saved model is a standard YOLO model with no overhead.
 
 ### Does knowledge distillation slow down training?
 

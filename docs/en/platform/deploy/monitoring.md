@@ -47,7 +47,7 @@ Four summary cards at the top of the page show:
 | **HTTP P95 Latency (24h)** | Average of the hourly 95th-percentile latencies, weighted by volume                   |
 
 P95 rather than median latency is reported because health checks return in a couple of milliseconds and would otherwise
-dominate the picture of real inference latency.
+dominate the picture of real [inference latency](https://www.ultralytics.com/glossary/inference-latency).
 
 !!! warning "Error Rate Alert"
 

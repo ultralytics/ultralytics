@@ -36,7 +36,7 @@ def slugify(text):
 
 def _shell_quote(arg):
     """Quote a non-plain argument for bash, zsh and fish; quotes and backslashes go outside, as fish unescapes them."""
-    if re.fullmatch(r"[\w@+:,./-][\w@%+=:,./-]*", arg, re.ASCII):  # = and % would expand at the start in zsh and fish
+    if re.fullmatch(r"[\w@+:,./-][\w@%+=:,./-]*", arg, re.ASCII):  # a leading = expands in zsh, a leading % in fish
         return arg
     return "'" + re.sub(r"['\\]", r"'\\\g<0>'", arg) + "'"
 
@@ -226,7 +226,7 @@ def _get_environment_info():
         "pythonExecutable": sys.executable,
         "cpuCount": os.cpu_count() or 0,
         "cpu": get_cpu_info(),
-        # argv[0] stays raw for Platform's path strip; cmd and PowerShell don't read POSIX quotes
+        # argv[0] stays raw for Platform's path strip; cmd and PowerShell don't follow POSIX quoting
         "command": " ".join(sys.argv if WINDOWS else [*sys.argv[:1], *map(_shell_quote, sys.argv[1:])]),
         "totalRamGb": round(memory.total / (1 << 30), 1),  # Total RAM in GB
         "totalDiskGb": round(disk_usage.total / (1 << 30), 1),  # Total disk in GB

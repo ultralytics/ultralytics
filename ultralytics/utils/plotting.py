@@ -247,7 +247,8 @@ def colorize_depth(
     valid = d > 0
     v = np.where(valid, 1.0 / np.where(valid, d, 1.0), 0.0) if mode == "disparity" else d
     if vmin is None or vmax is None:
-        pool = v[valid]
+        s = max(1, math.ceil((d.size / 2**16) ** 0.5)) if mode == "disparity" else 1  # ~64k samples for percentiles
+        pool = v[::s, ::s][valid[::s, ::s]]
         if mode == "disparity":
             lo, hi = np.percentile(pool, (2, 98)) if pool.size else (0.0, 1.0)
         else:
@@ -311,6 +312,16 @@ def _text_mask(font, text: str) -> np.ndarray:
     im = Image.new("L", font.getsize(text))
     ImageDraw.Draw(im).text((0, 0), text, fill=255, font=font)
     return np.asarray(im, np.float32) / 255
+
+
+@lru_cache(maxsize=1024)
+def _label_patch(font, text: str, color: tuple, txt_color: tuple) -> np.ndarray:
+    """Return an opaque (h + 1, w + 1, 3) uint8 label: text blended over its background color once, then reused."""
+    a = _text_mask(font, text)
+    patch = np.empty((a.shape[0] + 1, a.shape[1] + 1, 3), np.float32)
+    patch[:] = color
+    patch[:-1, :-1] += (np.array(txt_color, np.float32) - color) * a[..., None]
+    return (patch + 0.5).astype(np.uint8)
 
 
 class Annotator:
@@ -491,19 +502,19 @@ class Annotator:
         )
         if label:
             if self.pil:
-                mask = _text_mask(self.font, label)
-                h, w = mask.shape  # text height, width
+                patch = _label_patch(self.font, label, tuple(color), tuple(txt_color))
+                h, w = patch.shape[0] - 1, patch.shape[1] - 1  # text height, width
             else:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 h += 3  # add pixels to pad text
             outside = p1[1] >= h  # label fits outside box
             if p1[0] > self.im.shape[1] - w:  # shape is (h, w), check if label extend beyond right side of image
                 p1 = self.im.shape[1] - w, p1[1]
-            p2 = p1[0] + w, p1[1] - h if outside else p1[1] + h
-            cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
             if self.pil:
-                self._blend(p1[0], p1[1] - h if outside else p1[1], txt_color, mask)
+                self._draw(p1[0], p1[1] - h if outside else p1[1], patch)
             else:
+                p2 = p1[0] + w, p1[1] - h if outside else p1[1] + h
+                cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
                 cv2.putText(
                     self.im,
                     label,
@@ -557,10 +568,9 @@ class Annotator:
             ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
         """
         self._to_numpy()
-        ids = np.unique(mask)  # class IDs present, ascending
-        palette = np.array([(0, 0, 0) if i == ignore_index else colors(int(i), True) for i in ids], self.im.dtype)
-        overlay = palette[np.searchsorted(ids, mask)] if len(ids) else np.zeros_like(self.im)
-        self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
+        ids = range(int(mask.max(initial=0)) + 1)  # class IDs index the palette directly
+        palette = np.array([(0, 0, 0) if i == ignore_index else colors(i, True) for i in ids], self.im.dtype)
+        self.im = cv2.addWeighted(self.im, 1 - alpha, palette[mask], alpha, 0)
 
     def depth_map(
         self,
@@ -669,8 +679,8 @@ class Annotator:
             for m in masks:
                 if box_color:  # background box per line, alpha from an RGBA color
                     a = box_color[3] / 255 if len(box_color) > 3 else 1.0
-                    self._blend(xy[0], xy[1], box_color, np.full((m.shape[0] + 2, m.shape[1] + 2), a, np.float32))
-                self._blend(xy[0], xy[1], txt_color, m)
+                    self._draw(xy[0], xy[1], box_color, np.full((m.shape[0] + 2, m.shape[1] + 2), a, np.float32))
+                self._draw(xy[0], xy[1], txt_color, m)
                 xy[1] += m.shape[0]
         else:
             if box_color:
@@ -681,13 +691,16 @@ class Annotator:
                 cv2.rectangle(self.im, xy, p2, box_color, -1, cv2.LINE_AA)  # filled
             cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
-    def _blend(self, x: int, y: int, color: tuple, alpha: np.ndarray):
-        """Blend a solid color into the image at top-left (x, y) through an (h, w) alpha array, clipped to the image."""
-        h, w = alpha.shape
+    def _draw(self, x: int, y: int, patch, alpha: np.ndarray | None = None):
+        """Paste an (h, w, 3) patch, or blend a `patch` color through an (h, w) alpha, at (x, y) clipped to the image."""
+        h, w = (patch if alpha is None else alpha).shape[:2]
         x0, y0, x1, y1 = max(x, 0), max(y, 0), min(x + w, self.im.shape[1]), min(y + h, self.im.shape[0])
         if x0 < x1 and y0 < y1:
-            roi = self.im[y0:y1, x0:x1]
-            roi[:] = roi + (np.array(color[:3], np.float32) - roi) * alpha[y0 - y : y1 - y, x0 - x : x1 - x, None] + 0.5
+            roi, crop = self.im[y0:y1, x0:x1], (slice(y0 - y, y1 - y), slice(x0 - x, x1 - x))
+            if alpha is None:
+                roi[:] = patch[crop]
+            else:
+                roi[:] = roi + (np.array(patch[:3], np.float32) - roi) * alpha[crop][..., None] + 0.5
 
     def _to_numpy(self):
         """Move a tensor image to CPU only when a CPU drawing operation requires it."""
@@ -924,8 +937,9 @@ def plot_images(
     depth_maps = labels.get("depth", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
 
-    if len(images) and isinstance(images, torch.Tensor):
-        images = images.cpu().float().numpy()
+    images = images[:max_subplots]  # convert only the plotted images
+    if len(images) and isinstance(images, torch.Tensor):  # de-normalise on device, transfer uint8
+        images = (images * 255 if images.is_floating_point() and images[0].max() <= 1 else images).byte().cpu().numpy()
 
     # Handle 2-ch and n-ch images
     c = images.shape[1]
@@ -1020,9 +1034,9 @@ def plot_images(
                 else:  # overlap_mask=True, the mask already holds instance indices
                     index = np.r_[0, ids][masks[i].astype(int)]
                 index = cv2.resize(index.astype(np.uint16), (w, h), interpolation=cv2.INTER_NEAREST)
-                sel = index > 0
+                lut = np.array([(0, 0, 0)] + [colors(c) for c in classes], np.uint8)
                 patch = annotator.im[y : y + h, x : x + w]
-                patch[sel] = patch[sel] * 0.4 + np.array([(0, 0, 0)] + [colors(c) for c in classes])[index[sel]] * 0.6
+                np.copyto(patch, cv2.addWeighted(patch, 0.4, lut[index], 0.6, 0), where=(index > 0)[..., None])
 
         # Plot semantic masks
         if len(semantic_masks) and i < len(semantic_masks):

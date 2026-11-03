@@ -1242,7 +1242,6 @@ class Exporter:
                 self._transform_fn,
                 prefix=prefix,
             )
-            source.unlink(missing_ok=True)
         return f
 
     @try_export

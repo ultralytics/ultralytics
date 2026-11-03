@@ -52,7 +52,7 @@ Install the `ultralytics` package with pip, conda, or Docker, or from source, th
         sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
         ```
 
-        The default AMD64 GPU image uses PyTorch 2.14 and CUDA 13.2. On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18; the legacy `--gpus all` flag can lose GPU access after host daemon reloads, so use `--device` instead. See the [Docker Quickstart Guide](guides/docker-quickstart.md) for the [full image table](guides/docker-quickstart.md#installing-ultralytics-docker-images) (CPU, export, ARM64, and JetPack variants), host driver requirements, and volume mounts.
+        On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18; the legacy `--gpus all` flag can lose GPU access after host daemon reloads, so use `--device` instead. See the [Docker Quickstart Guide](guides/docker-quickstart.md) for the [full image table](guides/docker-quickstart.md#installing-ultralytics-docker-images) (CPU, export, ARM64, and JetPack variants), host driver requirements, and volume mounts.
 
     === "Git clone"
 

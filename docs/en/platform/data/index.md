@@ -106,7 +106,7 @@ Create immutable NDJSON snapshots of your dataset for reproducible training. Eac
 
 ### Dataset Tabs
 
-Dataset pages can show up to six tabs, depending on the dataset state and your permissions:
+Dataset pages can show up to seven tabs, depending on the dataset state and your permissions:
 
 | Tab          | Description                                                                  |
 | ------------ | ---------------------------------------------------------------------------- |
@@ -114,10 +114,11 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | **Classes**  | View, rename, recolor, merge, and delete classes with per-class label counts |
 | **Charts**   | Automatic statistics: split distribution, class counts, heatmaps             |
 | **Models**   | [Models](../train/models.md) trained on this dataset with metrics and status |
+| **Comments** | Discussion thread                                                            |
 | **Versions** | Create, compare, download, and restore immutable NDJSON snapshots            |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
-`Classes` appears when the dataset has images and its task has classes, while `Charts` appears whenever it has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
+`Classes` appears when the dataset has images and its task has classes, while `Charts` appears whenever it has images. `Comments` appears on public datasets. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
 
 ### Clustering
 

@@ -195,7 +195,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### INT8 Quantization
 
-For checkpoints not trained with [quantization-aware training](../modes/export.md#quantization-aware-training), `quantize=8` applies ONNX Runtime static [quantization](https://www.ultralytics.com/glossary/model-quantization) to `Conv`, `Gemm`, and `MatMul` nodes only. All other nodes stay in float, including the ops that assemble `output0`: box coordinates (pixels) and class scores (0 to 1) share that tensor, so a single INT8 scale for it would round every class score to zero. Exclude the same nodes if you run `quantize_static` on an exported FP32 model yourself:
+For checkpoints not trained with [quantization-aware training](../modes/export.md#quantization-aware-training), `quantize=8` applies ONNX Runtime static [quantization](https://www.ultralytics.com/glossary/model-quantization) to `Conv`, `Gemm`, and `MatMul` nodes only. All other nodes stay in float, including the ops that assemble `output0`: box coordinates (pixels) and class scores (0 to 1) share that tensor, so a single INT8 scale for it would round every class score to zero. Weights are quantized per channel at opset 13 and above. Exclude the same nodes and set `per_channel=True` if you run `quantize_static` on an exported FP32 model yourself:
 
 ```python
 import onnx
@@ -203,7 +203,7 @@ from onnxruntime.quantization import quantize_static
 
 model = "yolo26n.onnx"
 exclude = [n.name for n in onnx.load(model).graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
-quantize_static(model, "yolo26n_int8.onnx", calibration_reader, nodes_to_exclude=exclude)
+quantize_static(model, "yolo26n_int8.onnx", calibration_reader, nodes_to_exclude=exclude, per_channel=True)
 ```
 
 Here `calibration_reader` is an `onnxruntime.quantization.CalibrationDataReader` that yields `{"images": array}` for each calibration image, preprocessed as for inference: letterboxed to the export size, RGB, NCHW, `float32` in 0-1.

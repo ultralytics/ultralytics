@@ -48,7 +48,7 @@ Because both images and text land in the same vector space, retrieval is zero-sh
 
 ## Run the Semantic Search Web App
 
-The `SearchApp` class launches the full Flask interface. On first run it downloads a sample image set, builds the embedding index, and serves a page where you can type a query and view ranked results.
+The `SearchApp` class launches the full Flask interface. It downloads sample images to `images/` if `data` is missing, builds the embedding index, and serves a page where you can type a query and view ranked results.
 
 === "Python"
 

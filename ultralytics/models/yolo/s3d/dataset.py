@@ -12,7 +12,7 @@ import torch
 
 from ultralytics.data.augment import Compose, Format
 from ultralytics.data.base import BaseDataset
-from ultralytics.data.stereo.calib import load_kitti_calibration
+from ultralytics.data.stereo.calib import cam_tilt, level_ray_angle, load_kitti_calibration, tilt_center_offset
 from ultralytics.data.utils import get_hash, load_dataset_cache_file, save_dataset_cache_file
 from ultralytics.models.yolo.s3d.augment import (
     StereoCrop,
@@ -69,8 +69,9 @@ def encode_proj_offset(
 
     Args:
         location_3d (tuple): (X, Y, Z) bottom-center in camera frame (meters).
-        height (float): 3D box height (meters); centroid Y = Y - height/2 (camera y-down).
-        calib (dict): fx, fy, cx, cy (original-image pixels).
+        height (float): 3D box height (meters); centroid Y = Y - height/2 (camera y-down), or
+            location + R_cam_tilt @ [0, -height/2, 0] for a tilted camera.
+        calib (dict): fx, fy, cx, cy (original-image pixels), optionally R_cam_tilt.
         box_center_norm (tuple): (u, v) 2D box center, letterbox-normalized [0,1].
         ratio_pad (tuple): (scale, pad_left, pad_top) of the letterbox applied to this sample.
         input_wh (tuple): (input_w, input_h) letterbox canvas size.
@@ -79,7 +80,11 @@ def encode_proj_offset(
         (du, dv): projected-centroid minus box-center, in letterbox-normalized units.
     """
     X, Y, Z = location_3d
-    Yc = Y - height / 2.0
+    R_tilt = cam_tilt(calib)
+    if R_tilt is None:
+        Yc = Y - height / 2.0
+    else:  # the centroid sits half a height up the level vertical, which is tilted in the camera frame
+        X, Yc, Z = np.array([X, Y, Z]) + tilt_center_offset(R_tilt, height)
     scale, pad_left, pad_top = ratio_pad
     input_w, input_h = input_wh
     u_orig = calib["fx"] * X / Z + calib["cx"]
@@ -314,6 +319,9 @@ class Stereo3DDetDataset(BaseDataset):
 
         return im, (h0, w0)
 
+    # 1.1.0: calibration may carry R_cam_tilt. A 1.0.0 cache of the same files would silently drop the tilt.
+    cache_version = "1.1.0"
+
     def get_labels(self) -> list[dict[str, Any]]:
         """Load and cache stereo 3D labels.
 
@@ -331,7 +339,7 @@ class Stereo3DDetDataset(BaseDataset):
             try:
                 cache = load_dataset_cache_file(cache_path)
                 if (
-                    cache.get("version") == "1.0.0"
+                    cache.get("version") == self.cache_version
                     and cache.get("hash") == files_hash
                     and len(cache.get("labels", [])) == len(self.im_files)
                 ):
@@ -380,7 +388,7 @@ class Stereo3DDetDataset(BaseDataset):
 
         # Save cache
         try:
-            save_dataset_cache_file(self.prefix, cache_path, {"labels": labels, "hash": files_hash}, "1.0.0")
+            save_dataset_cache_file(self.prefix, cache_path, {"labels": labels, "hash": files_hash}, self.cache_version)
             LOGGER.info(f"{self.prefix}Saved {len(labels)} labels to cache: {cache_path}")
         except OSError as e:
             LOGGER.warning(f"{self.prefix}Cache saving failed: {e}")
@@ -781,6 +789,7 @@ class Stereo3DDetDataset(BaseDataset):
 
             # Build per-object aux targets for this image
             calib_i = calibs[i]
+            R_tilt = cam_tilt(calib_i)
             lr_list = []
             depth_list = []
             dim_list = []
@@ -803,16 +812,18 @@ class Stereo3DDetDataset(BaseDataset):
                 right_cx = float(right_bboxes[j, 0])
                 disparity_norm = cx - right_cx
                 lr_list.append(torch.tensor([math.log(max(disparity_norm, 1e-6))], dtype=torch.float32))
-                depth_list.append(torch.tensor([math.log(max(z_3d, 1e-6))], dtype=torch.float32))
+                # Depth target is the centroid's z (decode places the centroid at it); a tilt moves it off the bottom's z.
+                z_c = z_3d if R_tilt is None else z_3d + float(tilt_center_offset(R_tilt, dimensions_3d[j][2])[2])
+                depth_list.append(torch.tensor([math.log(max(z_c, 1e-6))], dtype=torch.float32))
 
                 # Dimension offset: normalized (dim - mean) / std, shape [3]
                 dims = dimensions_3d[j]  # [length, width, height] in meters
                 dim_list.append(compute_dimension_offset(tuple(dims), cls_i, self.mean_dims, self.std_dims))
 
                 # Orientation: MultiBin encoding of alpha (rotation_y - ray_angle).
-                # ray_angle = atan2(x_3d, z_3d). See orientation.encode_orientation.
+                # ray_angle = atan2(x_3d, z_3d), in the level frame for a tilted camera. See encode_orientation.
                 loc = location_3d[j]  # [x, y, z] in camera frame
-                ray_angle = math.atan2(float(loc[0]), float(loc[2]))
+                ray_angle = level_ray_angle(R_tilt, float(loc[0]), float(loc[2]), float(loc[1]))
                 alpha = float(rotation_y[j]) - ray_angle
                 ori_list.append(torch.tensor(encode_orientation(alpha), dtype=torch.float32))
 

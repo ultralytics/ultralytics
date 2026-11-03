@@ -7,6 +7,7 @@ from typing import Any
 import cv2
 import numpy as np
 
+from ultralytics.data.stereo.calib import cam_tilt
 from ultralytics.utils.instance import Bboxes, Instances
 
 # ============================================================================
@@ -32,7 +33,7 @@ def project_3d_box_to_2d(
         location_3d: (3,) array [X, Y, Z] in camera coordinates (meters).
         dimensions: (3,) array [length, width, height] in meters.
         rotation_y: Yaw angle in radians.
-        calibration: Dict with keys: fx, fy, cx, cy, baseline.
+        calibration: Dict with keys: fx, fy, cx, cy, baseline, and optionally R_cam_tilt (level->camera rotation).
         camera: "left" or "right" camera view.
         clip: Whether to clip the box to image boundaries.
         image_size: (width, height) in pixels for clipping. Required if clip=True.
@@ -68,6 +69,9 @@ def project_3d_box_to_2d(
     cos_ry = np.cos(rotation_y)
     sin_ry = np.sin(rotation_y)
     R = np.array([[cos_ry, 0, sin_ry], [0, 1, 0], [-sin_ry, 0, cos_ry]])
+    R_tilt = cam_tilt(calibration)
+    if R_tilt is not None:  # tilted camera: yaw is about the level vertical, then the level frame tilts into the camera
+        R = R_tilt @ R
 
     # Rotate and translate to camera coordinates
     corners_cam = corners_obj @ R.T + np.array([X, Y, Z])
@@ -514,6 +518,18 @@ class StereoHSV:
         return labels
 
 
+def _mirror_cam_tilt(calibration: dict[str, Any]) -> None:
+    """Mirror a tilted camera's level->camera rotation for a horizontal flip: R -> S R S with S = diag(-1, 1, 1).
+
+    Pitch is unchanged and roll changes sign; with yaw -> -yaw this keeps every flipped 3D corner equal to the mirror
+    of the original. No-op for a level camera.
+    """
+    R = cam_tilt(calibration)
+    if R is not None:
+        S = np.diag([-1.0, 1.0, 1.0])
+        calibration["R_cam_tilt"] = S @ R @ S
+
+
 class StereoHFlip:
     """Horizontal flip for stereo images.
 
@@ -576,6 +592,7 @@ class StereoHFlip:
 
             # 3. Flip calibration principal point BEFORE projecting
             stereo.calibration["cx"] = float((w - 1) - stereo.calibration.get("cx", w / 2))
+            _mirror_cam_tilt(stereo.calibration)
 
             # 4. Regenerate 2D bboxes from 3D projection
             # This is the key fix: instead of flip+swap+clip, we project fresh from 3D
@@ -584,6 +601,7 @@ class StereoHFlip:
         elif stereo.has_calibration():
             # No instances but still need to flip calibration
             stereo.calibration["cx"] = float((w - 1) - stereo.calibration.get("cx", w / 2))
+            _mirror_cam_tilt(stereo.calibration)
 
         return stereo.to_labels(labels)
 

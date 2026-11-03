@@ -9,6 +9,8 @@ from typing import Any
 
 import numpy as np
 
+from ultralytics.data.stereo.calib import cam_tilt, tilt_center_offset
+
 
 @dataclass
 class Box3D:
@@ -139,6 +141,10 @@ class Box3D:
             x_3d = float(loc["x"])
             y_3d = float(loc["y"]) - height / 2.0  # bottom-center -> geometric center
             z_3d = float(loc["z"])
+            R_tilt = cam_tilt(calib)
+            if R_tilt is not None:  # tilted camera: half a height up the (tilted) level vertical
+                bottom = np.array([loc["x"], loc["y"], loc["z"]], dtype=float)
+                x_3d, y_3d, z_3d = (bottom + tilt_center_offset(R_tilt, height)).tolist()
         else:
             # Fallback: reconstruct from stereo disparity
             lb = label["left_box"]
@@ -208,6 +214,9 @@ class Box3D:
         x, y_center, z = self.center_3d
         # Geometric center -> bottom-center (KITTI convention): y_bottom = y_center + height/2
         y_bottom = y_center + height / 2.0
+        R_tilt = cam_tilt(calibration)
+        if R_tilt is not None:
+            x, y_bottom, z = np.array(self.center_3d, float) - tilt_center_offset(R_tilt, height)
 
         return project_3d_box_to_2d(
             location_3d=np.array([x, y_bottom, z]),

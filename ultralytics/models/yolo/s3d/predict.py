@@ -242,6 +242,7 @@ class Stereo3DDetPredictor(DetectionPredictor):
                                 "cx": calib.cx,
                                 "cy": calib.cy,
                                 "baseline": calib.baseline,
+                                **({"R_cam_tilt": calib.R_cam_tilt} if calib.R_cam_tilt is not None else {}),
                             }
                         )
                     else:
@@ -301,7 +302,14 @@ class Stereo3DDetPredictor(DetectionPredictor):
             calib = self.calib_params.get(img_path)
             if calib is not None:
                 if isinstance(calib, CalibrationParameters):
-                    calib = {"fx": calib.fx, "fy": calib.fy, "cx": calib.cx, "cy": calib.cy, "baseline": calib.baseline}
+                    calib = {
+                        "fx": calib.fx,
+                        "fy": calib.fy,
+                        "cx": calib.cx,
+                        "cy": calib.cy,
+                        "baseline": calib.baseline,
+                        **({"R_cam_tilt": calib.R_cam_tilt} if calib.R_cam_tilt is not None else {}),
+                    }
                 result._calib = calib
             results.append(result)
 

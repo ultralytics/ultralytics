@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 import cv2
 import numpy as np
 
+from ultralytics.data.stereo.calib import cam_tilt
 from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import colors
 
@@ -155,6 +156,9 @@ def project_box3d_corners(
     cos_rot = np.cos(orientation)
     sin_rot = np.sin(orientation)
     rotation = np.array([[cos_rot, 0, sin_rot], [0, 1, 0], [-sin_rot, 0, cos_rot]])
+    R_tilt = cam_tilt(calib)
+    if R_tilt is not None:  # tilted camera: the box is upright in the level frame, not in the camera frame
+        rotation = R_tilt @ rotation
 
     corners_world = rotation @ corners_obj
     corners_world[0, :] += x

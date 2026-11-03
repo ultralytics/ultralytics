@@ -247,10 +247,9 @@ def colorize_depth(
     valid = d > 0
     v = np.where(valid, 1.0 / np.where(valid, d, 1.0), 0.0) if mode == "disparity" else d
     if vmin is None or vmax is None:
-        s = max(1, math.ceil((d.size / 2**16) ** 0.5)) if mode == "disparity" else 1  # ~64k samples for percentiles
-        pool = v[::s, ::s][valid[::s, ::s]]
-        if mode == "disparity":
-            lo, hi = np.percentile(pool, (2, 98)) if pool.size else (0.0, 1.0)
+        pool = v[valid]
+        if mode == "disparity":  # ~64k evenly spaced valid values estimate the percentiles, also for sparse maps
+            lo, hi = np.percentile(pool[:: max(1, pool.size // 2**16)], (2, 98)) if pool.size else (0.0, 1.0)
         else:
             lo, hi = (float(pool.min()), float(pool.max())) if pool.size else (0.0, 1.0)
         vmin = lo if vmin is None else vmin

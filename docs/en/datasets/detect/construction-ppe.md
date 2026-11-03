@@ -72,7 +72,7 @@ The [November 2026 dataset archive](https://github.com/ultralytics/assets/releas
 
 ## Usage
 
-Install or update the [Ultralytics package](../../quickstart.md), then train a pretrained YOLO26 model. The dataset downloads automatically on first use.
+Install or update the [Ultralytics package](../../quickstart.md), then train a pretrained YOLO26 model from the versioned November 2026 archive. This selects the new dataset even if your installed package still includes an older `construction-ppe.yaml`. YOLO downloads and extracts the archive automatically on first use.
 
 !!! example "Train on Construction-PPE"
 
@@ -82,13 +82,17 @@ Install or update the [Ultralytics package](../../quickstart.md), then train a p
         from ultralytics import YOLO
 
         model = YOLO("yolo26n.pt")
-        model.train(data="construction-ppe.yaml", epochs=100, imgsz=640)
+        model.train(
+            data="https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe-v2.zip",
+            epochs=100,
+            imgsz=640,
+        )
         ```
 
     === "CLI"
 
         ```bash
-        yolo detect train model=yolo26n.pt data=construction-ppe.yaml epochs=100 imgsz=640
+        yolo detect train model=yolo26n.pt data=https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe-v2.zip epochs=100 imgsz=640
         ```
 
 See the [training guide](../../modes/train.md) for configuration options and the [validation guide](../../modes/val.md) for evaluating a trained model. The [Construction-PPE notebook](https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-construction-ppe-detection-dataset.ipynb) provides a Colab walkthrough.

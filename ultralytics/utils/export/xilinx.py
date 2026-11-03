@@ -30,7 +30,7 @@ def onnx2xilinx(
     ONNX Runtime Vitis AI Execution Provider compiles them to a `.rai` model in the same directory on first load.
 
     Args:
-        onnx_file (str | Path): Path to the source FP32 ONNX model, deleted after quantization.
+        onnx_file (str | Path): Path to the source FP32 ONNX model.
         output_dir (str | Path): Directory to save the exported AMD Xilinx model.
         dataset (DataLoader): Calibration dataloader (from `Exporter.get_int8_calibration_dataloader`).
         transform_fn (Callable): Preprocessing transform (`Exporter._transform_fn`) converting a calibration batch to a
@@ -75,7 +75,6 @@ def onnx2xilinx(
         )
     finally:
         os.environ["PATH"] = path
-    onnx_file.unlink()
 
     vaiml = {"device": name, "keep_outputs": True, "optimize_level": 2, "threshold_gops_percent": 20}
     vitis_config = {

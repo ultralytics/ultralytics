@@ -352,7 +352,7 @@ def onnx2engine(
         explicit = (qdq or (is_trt11 and use_int8)) and torch.cuda.is_available()
         stride = (metadata or {}).get("stride", 32)  # 64 for P6, whose stride-64 map is 1x1 at 64 px
         min_side = max(64, 2 * stride) if explicit and torch.cuda.get_device_capability() <= (7, 5) else 32
-        min_shape = (1, shape[1], *(min(min_side, d) for d in shape[2:]))  # SM<=7.5 lacks some 1x1 INT8 Q/DQ tactics
+        min_shape = (1, shape[1], *(min(min_side, d) for d in shape[2:]))  # SM<=7.5 may lack 1x1 INT8 Q/DQ tactics
         max_shape = (*shape[:2], *(2 * d for d in shape[2:]))  # max input shape, 2x imgsz
         for inp in inputs:
             inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))

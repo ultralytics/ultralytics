@@ -280,7 +280,7 @@ def _arabic_forms() -> dict | None:
 
 def _rtl(text: str) -> str:
     """Join Arabic letters and reverse right-to-left text into visual order for Pillow builds without Raqm."""
-    forms = _arabic_forms()
+    forms = None if text.isascii() else _arabic_forms()  # O(1) skip for ASCII labels
     if forms is None or not any(unicodedata.bidirectional(c) in {"R", "AL"} for c in text):
         return text
     units = re.findall("|".join(k for k in forms if len(k) == 2) + "|.", text, re.DOTALL)  # lam-alef is one glyph

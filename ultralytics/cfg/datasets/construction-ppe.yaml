@@ -6,10 +6,10 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── construction-ppe-v2 ← downloads here
+#     └── construction-ppe ← downloads here
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: construction-ppe-v2 # dataset root dir
+path: construction-ppe # dataset root dir
 train: images/train # train images (relative to 'path') 800 images
 val: images/val # val images (relative to 'path') 200 images
 
@@ -29,4 +29,4 @@ names:
   11: no_vest
 
 # Download script/URL (optional)
-download: https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe-v2.zip
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe.zip

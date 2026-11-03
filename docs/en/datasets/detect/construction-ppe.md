@@ -7,23 +7,23 @@ creator:
 license:
     name: CC BY 4.0
     url: https://creativecommons.org/licenses/by/4.0/
-description: Train YOLO26 on Ultralytics Construction-PPE — 1,000 sourced and generated images with 12 classes for people, forklifts, protective equipment, and missing PPE.
+description: Train YOLO26 on Ultralytics Construction-PPE — 1,000 human-collected and generated images with 12 classes for people, forklifts, protective equipment, and missing PPE.
 keywords: Construction-PPE, Ultralytics dataset, PPE detection, construction safety, generated images, object detection, YOLO26, CC BY 4.0
 ---
 
 # Ultralytics Construction-PPE Dataset
 
-Ultralytics Construction-PPE is an [object detection](../../tasks/detect.md) dataset of **1,000 images, 14,863 bounding boxes, and 12 classes** covering people, forklifts, personal protective equipment, and visible missing equipment in construction and industrial settings.
+Ultralytics Construction-PPE is an original [object detection](../../tasks/detect.md) dataset of **1,000 images, 14,863 bounding boxes, and 12 classes** covering people, forklifts, personal protective equipment, and visible missing equipment in construction and industrial settings.
 
-The dataset combines **Ultralytics-sourced and generated images**, with a combination of **expert human annotation and AI auto-annotation completed in November 2026 by the Ultralytics team**. It is released under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
+The dataset was **created and open-sourced in November 2026 by the Ultralytics team**. It combines **human-collected and generated images**, with **expert human annotation and AI auto-annotation completed in November 2026**. Images and annotations are released under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
 [Explore Construction-PPE on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/construction-ppe) to browse the images and annotations, clone the dataset, or train a model.
 
 ## Images and Annotation
 
-The images cover construction sites, workshops, warehouses, loading areas, and maintenance work. They include varied viewpoints, lighting, worker arrangements, protective equipment, and forklift activity. Generated images expand this coverage with new scenes; they are not photographs of actual events.
+The images cover construction sites, workshops, warehouses, loading areas, and maintenance work. They include varied viewpoints, lighting, worker arrangements, protective equipment, and forklift activity.
 
-Sourced images retain their native resolution. The November 2026 expansion adds 707 generated images with a 2048-pixel long edge, using landscape, portrait, and square compositions. These images were generated with FLUX.2 Klein 9B, Z-Image Turbo, and Krea 2 Turbo.
+Images include landscape, portrait, and square compositions at varied resolutions.
 
 Annotations use bounding boxes in [Ultralytics YOLO format](index.md#ultralytics-yolo-format). Equipment classes identify visible items; missing-equipment classes identify the corresponding visible body region when equipment is absent. An occluded or out-of-frame body part does not by itself establish missing equipment.
 
@@ -68,11 +68,11 @@ The [dataset configuration](https://github.com/ultralytics/ultralytics/blob/main
     --8<-- "ultralytics/cfg/datasets/construction-ppe.yaml"
     ```
 
-The [November 2026 dataset archive](https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe-v2.zip) contains images, YOLO labels, dataset metadata, and the CC BY 4.0 license. It extracts into `construction-ppe-v2`, keeping it separate from older local Construction-PPE downloads.
+The [November 2026 dataset archive](https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe.zip) contains images, YOLO labels, dataset metadata, and the CC BY 4.0 license. It extracts into `construction-ppe`.
 
 ## Usage
 
-Install or update the [Ultralytics package](../../quickstart.md), then train a pretrained YOLO26 model from the versioned November 2026 archive. This selects the new dataset even if your installed package still includes an older `construction-ppe.yaml`. YOLO downloads and extracts the archive automatically on first use.
+Install or update the [Ultralytics package](../../quickstart.md), then train a pretrained YOLO26 model. YOLO downloads and extracts the dataset automatically on first use.
 
 !!! example "Train on Construction-PPE"
 
@@ -83,7 +83,7 @@ Install or update the [Ultralytics package](../../quickstart.md), then train a p
 
         model = YOLO("yolo26n.pt")
         model.train(
-            data="https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe-v2.zip",
+            data="https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe.zip",
             epochs=100,
             imgsz=640,
         )
@@ -92,7 +92,7 @@ Install or update the [Ultralytics package](../../quickstart.md), then train a p
     === "CLI"
 
         ```bash
-        yolo detect train model=yolo26n.pt data=https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe-v2.zip epochs=100 imgsz=640
+        yolo detect train model=yolo26n.pt data=https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe.zip epochs=100 imgsz=640
         ```
 
 See the [training guide](../../modes/train.md) for configuration options and the [validation guide](../../modes/val.md) for evaluating a trained model. The [Construction-PPE notebook](https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-construction-ppe-detection-dataset.ipynb) provides a Colab walkthrough.
@@ -102,7 +102,7 @@ See the [training guide](../../modes/train.md) for configuration options and the
 - **PPE detection:** locate helmets, gloves, vests, boots, and protective eyewear.
 - **Missing-equipment detection:** identify visible examples of missing PPE for review.
 - **Worksite analysis:** detect people and forklifts in construction and industrial imagery.
-- **Research and education:** compare models and study training with sourced and generated images.
+- **Research and education:** compare models and study training with human-collected and generated images.
 
 ## License and Attribution
 
@@ -120,7 +120,6 @@ Suggested attribution: **Ultralytics Construction-PPE Dataset, Ultralytics team,
             title = {Ultralytics Construction-PPE Dataset},
             month = {November},
             year = {2026},
-            version = {2.0.0},
             license = {CC-BY-4.0},
             url = {https://docs.ultralytics.com/datasets/detect/construction-ppe},
             publisher = {Ultralytics}

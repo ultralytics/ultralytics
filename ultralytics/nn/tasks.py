@@ -443,7 +443,7 @@ class BaseModel(torch.nn.Module):
             v_src, v_tgt = csd[k], state_dict[k]
             if v_src.shape[1:] != v_tgt.shape[1:]:  # cls-conv input width differs across model scales; copy bias only
                 continue
-            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt)
             csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
             remapped += 1
         if verbose and remapped:
@@ -1029,7 +1029,7 @@ class RTDETRDetectionModel(DetectionModel):
             v_src, v_tgt = csd[k], state_dict[k]
             if v_src.ndim != v_tgt.ndim or v_src.shape[1:] != v_tgt.shape[1:]:
                 continue
-            v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
+            v_tgt[valid] = v_src[idx[valid]].to(v_tgt)
             csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
             remapped += 1
         if verbose and remapped:

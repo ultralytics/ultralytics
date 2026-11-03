@@ -10,7 +10,7 @@ import torch
 import torch.distributed as dist
 
 from ultralytics.data.stereo.box3d import Box3D
-from ultralytics.data.stereo.calib import CalibrationParameters
+from ultralytics.data.stereo.calib import CalibrationParameters, cam_tilt
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.models.yolo.s3d.metrics import (
     DIFFICULTY_EASY,
@@ -61,6 +61,7 @@ def _reverse_letterbox_calib(
             "baseline": calib.get("baseline", 0.54),
             "image_width": actual_w,
             "image_height": actual_h,
+            **({"R_cam_tilt": calib["R_cam_tilt"]} if calib.get("R_cam_tilt") is not None else {}),
         }
     elif isinstance(calib, CalibrationParameters):
         return {
@@ -71,11 +72,26 @@ def _reverse_letterbox_calib(
             "baseline": calib.baseline,
             "image_width": actual_w,
             "image_height": actual_h,
+            **({"R_cam_tilt": calib.R_cam_tilt} if calib.R_cam_tilt is not None else {}),
         }
     return calib
 
 
-def compute_3d_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: float = 1e-7) -> np.ndarray:
+def _level_frame(boxes: list[Box3D], R_tilt: np.ndarray | None) -> list[Box3D] | list[np.ndarray]:
+    """Express boxes as [x, y, z, l, w, h, ry] in the level frame of a tilted camera, where they are upright.
+
+    The IoU routines assume boxes upright in the frame they are given (yaw about y, height along y). For a tilted camera
+    that frame is the level one: rotating both boxes' centers by R^T is a common rigid motion, so the IoU is the true
+    overlap of the tilted boxes. Level-camera boxes are returned unchanged.
+    """
+    if R_tilt is None:
+        return boxes
+    return [np.array([*(R_tilt.T @ np.asarray(b.center_3d, float)), *b.dimensions, b.orientation]) for b in boxes]
+
+
+def compute_3d_iou_batch(
+    pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: float = 1e-7, R_tilt: np.ndarray | None = None
+) -> np.ndarray:
     """Compute 3D IoU matrix between prediction and ground truth boxes.
 
     Only computes IoU for boxes with matching class_id; others are set to 0.0.
@@ -84,6 +100,7 @@ def compute_3d_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: fl
         pred_boxes: List of predicted Box3D objects.
         gt_boxes: List of ground truth Box3D objects.
         eps: Small value to avoid division by zero.
+        R_tilt: Optional level->camera rotation of a tilted camera; IoU is then computed in the level frame.
 
     Returns:
         IoU matrix of shape (len(pred_boxes), len(gt_boxes)).
@@ -98,17 +115,20 @@ def compute_3d_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: fl
     gt_class_ids = np.array([box.class_id for box in gt_boxes])
     class_match = pred_class_ids[:, None] == gt_class_ids[None, :]
 
+    pb, gb = _level_frame(pred_boxes, R_tilt), _level_frame(gt_boxes, R_tilt)
     # Compute IoU for matching pairs
     for i in range(len(pred_boxes)):
         for j in range(len(gt_boxes)):
             if not class_match[i, j]:
                 continue
-            iou_matrix[i, j] = compute_3d_iou(pred_boxes[i], gt_boxes[j], eps=eps)
+            iou_matrix[i, j] = compute_3d_iou(pb[i], gb[j], eps=eps)
 
     return iou_matrix
 
 
-def compute_bev_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: float = 1e-7) -> np.ndarray:
+def compute_bev_iou_batch(
+    pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: float = 1e-7, R_tilt: np.ndarray | None = None
+) -> np.ndarray:
     """Compute the bird's-eye-view (BEV) IoU matrix between prediction and GT boxes.
 
     Mirrors :func:`compute_3d_iou_batch` but uses ground-plane footprint overlap (ignoring height) for KITTI AP_BEV.
@@ -118,6 +138,7 @@ def compute_bev_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: f
         pred_boxes: List of predicted Box3D objects.
         gt_boxes: List of ground truth Box3D objects.
         eps: Small value to avoid division by zero.
+        R_tilt: Optional level->camera rotation of a tilted camera; the footprint is then the level-frame one.
 
     Returns:
         BEV IoU matrix of shape (len(pred_boxes), len(gt_boxes)).
@@ -129,12 +150,13 @@ def compute_bev_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: f
     pred_class_ids = np.array([box.class_id for box in pred_boxes])
     gt_class_ids = np.array([box.class_id for box in gt_boxes])
     class_match = pred_class_ids[:, None] == gt_class_ids[None, :]
+    pb, gb = _level_frame(pred_boxes, R_tilt), _level_frame(gt_boxes, R_tilt)
 
     for i in range(len(pred_boxes)):
         for j in range(len(gt_boxes)):
             if not class_match[i, j]:
                 continue
-            iou_matrix[i, j] = compute_bev_iou(pred_boxes[i], gt_boxes[j], eps=eps)
+            iou_matrix[i, j] = compute_bev_iou(pb[i], gb[j], eps=eps)
 
     return iou_matrix
 
@@ -566,8 +588,9 @@ class Stereo3DDetValidator(BaseValidator):
 
             # Compute 3D and BEV IoU matrices
             if len(pred_boxes) > 0 and len(gt_boxes) > 0:
-                iou_matrix = compute_3d_iou_batch(pred_boxes, gt_boxes)
-                bev_iou_matrix = compute_bev_iou_batch(pred_boxes, gt_boxes)
+                R_tilt = cam_tilt(calib)
+                iou_matrix = compute_3d_iou_batch(pred_boxes, gt_boxes, R_tilt=R_tilt)
+                bev_iou_matrix = compute_bev_iou_batch(pred_boxes, gt_boxes, R_tilt=R_tilt)
             else:
                 iou_matrix = np.zeros((len(pred_boxes), len(gt_boxes)))
                 bev_iou_matrix = np.zeros((len(pred_boxes), len(gt_boxes)))

@@ -20,6 +20,10 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.val, API reference, YOLO, Pyt
 
 <br><br><hr><br>
 
+## ::: ultralytics.models.yolo.s3d.val._level_frame
+
+<br><br><hr><br>
+
 ## ::: ultralytics.models.yolo.s3d.val.compute_3d_iou_batch
 
 <br><br><hr><br>

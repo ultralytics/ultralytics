@@ -84,10 +84,10 @@ class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y 
 
 ### 3D Dimensions (meters)
 
-- **dim_l**: Object length in meters (forward direction)
-- **dim_w**: Object width in meters (lateral direction)
-- **dim_h**: Object height in meters (vertical direction)
-- **Note**: Stored as `[length, width, height]` in label files. Internally converted to `(H, W, L)` order for training.
+- **dim_l**: Object length in meters, measured along the object's own x-axis (its heading direction)
+- **dim_w**: Object width in meters, measured along the object's own z-axis
+- **dim_h**: Object height in meters, measured along the vertical (y) axis
+- **Note**: Stored as `[length, width, height]` in label files. Internally converted to `(H, W, L)` order for training. Length and width are defined by the axes of the box, not by which side is longer — see [3D Bounding Box Convention](#3d-bounding-box-convention).
 
 ### 3D Location (camera coordinates, meters)
 
@@ -100,7 +100,7 @@ class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y 
 
 - **rot_y**: Global rotation around Y-axis in radians (range: [-π, π])
 - **Description**: Direct global yaw angle (rotation around vertical Y-axis, which points down)
-- **Rotation_y = 0**: Object faces along the camera Z-axis (forward direction)
+- **Rotation_y = 0**: The object's length axis points along the camera X-axis (to the right); see [3D Bounding Box Convention](#3d-bounding-box-convention)
 
 ### Truncation and Occlusion
 
@@ -122,10 +122,37 @@ class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y 
 
 ### 3D Bounding Box Convention
 
+This follows the KITTI devkit. The eight corners of a box are built in the object frame around the bottom center and then rotated by `rotation_y` about the vertical axis:
+
+```python
+import numpy as np
+
+l, w, h = dims  # label order: length, width, height
+corners_obj = np.array([[sx * l / 2, -t * h, sz * w / 2] for t in (0, 1) for sx in (-1, 1) for sz in (-1, 1)])
+c, s = np.cos(rotation_y), np.sin(rotation_y)
+Ry = np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]])
+corners_cam = corners_obj @ Ry.T + location  # location = bottom center (x, y, z)
+```
+
 - **Location**: Bottom center of the box (Y coordinate)
 - **Dimensions**: (length, width, height) in meters in label files
-- **Orientation**: Rotation around Y-axis (vertical axis) in radians
-- **Rotation_y = 0**: Object faces along Z-axis (forward into the scene)
+- **Length** is the extent along the object's x-axis, **width** along its z-axis, **height** along y (upward is `-y`)
+- **Orientation**: Rotation around Y-axis (vertical axis) in radians; the length axis points along `(cos(rotation_y), 0, -sin(rotation_y))` in camera coordinates
+- **Rotation_y = 0**: The length axis points along camera +X (to the right); `rotation_y = -π/2` points it along +Z (forward into the scene)
+
+!!! warning "Length and width must follow the box axes"
+
+    A label that swaps `length` and `width` describes a box rotated by 90°. It still trains, but every projected box (augmentation, plots, 2D metrics) is wrong. For a box seen from its long side with `rotation_y ≈ 0`, the long side is `length`. Verify a few labels by drawing `corners_cam` on the image before training.
+
+### Tilted Cameras
+
+A camera mounted with pitch or roll (for example a robot camera looking down at the floor) can add an optional `R_cam_tilt` line to each calibration file: nine values, row-major, of the 3x3 rotation from a gravity-aligned (level) frame into the camera frame.
+
+```
+R_cam_tilt: 1.0 0.0 0.0 0.0 0.92083 -0.38990 0.0 0.38990 0.92083
+```
+
+With it, `rotation_y` is a yaw about the level vertical and `location` stays in camera coordinates, so boxes are placed as `corners_cam = corners_obj @ (R_cam_tilt @ Ry).T + location`, and the box center is `location + R_cam_tilt @ [0, -h/2, 0]`. Projection, augmentation, plotting, the orientation target and 3D IoU all use it. Files without `R_cam_tilt` are treated as a level camera (identical to KITTI).
 
 ## Example Label Line
 
@@ -237,9 +264,9 @@ To train a stereo 3D detection model:
 
 3. **Box Center**: The Y coordinate in labels represents the bottom center of the 3D box, not the geometric center. The geometric center is computed during parsing.
 
-4. **Dimensions Order**: Labels store `[length, width, height]`. The code internally reorders to `(H, W, L)` for training. The YAML `mean_dims` and `std_dims` also use `[L, W, H]` order and are automatically converted.
+4. **Dimensions Order**: Labels store `[length, width, height]`, with length along the object's x-axis (see [3D Bounding Box Convention](#3d-bounding-box-convention)). The code internally reorders to `(H, W, L)` for training. The YAML `mean_dims` and `std_dims` also use `[L, W, H]` order and are automatically converted.
 
-5. **Orientation**: `rotation_y` is the global yaw angle in radians. The observation angle `alpha` is computed internally as `alpha = rotation_y - atan2(x, z)` for encoding.
+5. **Orientation**: `rotation_y` is the global yaw angle in radians. The observation angle `alpha` is computed internally as `alpha = rotation_y - atan2(x, z)` for encoding (with `(x, z)` taken in the level frame when `R_cam_tilt` is given).
 
 6. **Truncation and Occlusion**: Used for KITTI R40 difficulty classification (Easy/Moderate/Hard) during evaluation.
 

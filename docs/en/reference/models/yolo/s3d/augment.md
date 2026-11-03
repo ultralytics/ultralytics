@@ -42,4 +42,8 @@ keywords: Ultralytics, ultralytics.models.yolo.s3d.augment, API reference, YOLO,
 
 ## ::: ultralytics.models.yolo.s3d.augment.project_3d_boxes_to_2d
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.s3d.augment._mirror_cam_tilt
+
 <br><br>

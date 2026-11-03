@@ -22,6 +22,7 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.box3d import Box3D
+from ultralytics.data.stereo.calib import cam_tilt, level_ray_angle
 from ultralytics.models.yolo.s3d.head import AUX_SPECS
 from ultralytics.models.yolo.s3d.orientation import decode_orientation
 from ultralytics.utils.nms import non_max_suppression
@@ -211,6 +212,7 @@ def decode_stereo3d_outputs(
             fx = fy = 721.5377
             cx, cy = 609.5593, 172.8540
             baseline = 0.54
+            R_tilt = None
         else:
             cdict = calib[b] if b < len(calib) else calib[0]
             fx = float(cdict.get("fx", 721.5377))
@@ -218,6 +220,7 @@ def decode_stereo3d_outputs(
             cx = float(cdict.get("cx", 609.5593))
             cy = float(cdict.get("cy", 172.8540))
             baseline = float(cdict.get("baseline", 0.54))
+            R_tilt = cam_tilt(cdict)
 
         ori_h, ori_w = ori_shapes[b]
         letterbox_scale, pad_left, pad_top = compute_letterbox_params(ori_h, ori_w, imgsz)
@@ -328,7 +331,7 @@ def decode_stereo3d_outputs(
             length = max(mean_l + float(dim_off[2].item()) * std_l, 0.01)
 
             # Orientation: decode MultiBin prediction (argmax bin + residual) → alpha, else alpha=0
-            ray_angle = math.atan2(x_3d, z_3d)
+            ray_angle = level_ray_angle(R_tilt, x_3d, z_3d, y_3d)  # atan2(x, z) for a level camera
             if ori_pred is not None:
                 alpha = decode_orientation([float(v) for v in ori_pred.tolist()])
                 theta = alpha + ray_angle

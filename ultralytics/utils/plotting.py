@@ -4,15 +4,18 @@ from __future__ import annotations
 
 import contextlib
 import math
+import re
+import unicodedata
 import weakref
 from collections.abc import Callable
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import cv2
 import numpy as np
 import torch
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, features
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
@@ -262,6 +265,34 @@ def colorize_depth(
     return color
 
 
+@lru_cache
+def _arabic_forms() -> dict | None:
+    """Map Arabic letters and lam-alef pairs to their presentation forms, or return None if Pillow shapes with Raqm."""
+    if features.check("raqm"):
+        return None
+    forms = {}
+    for c in map(chr, [*range(0xFE70, 0xFF00), *range(0xFB50, 0xFE00)]):  # Arabic Presentation Forms-B, then -A
+        tag, *codes = unicodedata.decomposition(c).split() or [""]
+        if tag in {"<isolated>", "<final>", "<initial>", "<medial>"} and (len(codes) == 1 or "\ufef5" <= c <= "\ufefc"):
+            forms.setdefault("".join(chr(int(x, 16)) for x in codes), {}).setdefault(tag, c)
+    return forms
+
+
+def _rtl(text: str) -> str:
+    """Join Arabic letters and reverse right-to-left text into visual order for Pillow builds without Raqm."""
+    forms = _arabic_forms()
+    if forms is None or not any(unicodedata.bidirectional(c) in {"R", "AL"} for c in text):
+        return text
+    units = re.findall("|".join(k for k in forms if len(k) == 2) + "|.", text, re.DOTALL)  # lam-alef is one glyph
+    joins = ["<medial>" in forms.get(u, {}) for u in units]  # dual-joining letters connect to the next letter
+    for i, u in enumerate(units):
+        if f := forms.get(u):
+            p, n = i > 0 and joins[i - 1], joins[i] and i + 1 < len(units) and units[i + 1] in forms
+            units[i] = f.get(("<medial>" if n else "<final>") if p else ("<initial>" if n else "<isolated>"), u)
+    # Reverse into visual order, keeping left-to-right runs such as confidences in reading order
+    return re.sub(r"[0-9A-Za-z\u0660-\u0669\u06f0-\u06f9.,:%+-]+", lambda m: m[0][::-1], "".join(units)[::-1])
+
+
 class Annotator:
     """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
@@ -449,7 +480,7 @@ class Annotator:
             self.draw.polygon(
                 [tuple(b) for b in box], width=self.lw, outline=color
             ) if multi_points else self.draw.rectangle(box, width=self.lw, outline=color)
-            if label:
+            if label := _rtl(label):
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] >= h  # label fits outside box
                 if p1[0] > self.im.size[0] - w:  # size is (w, h), check if label extend beyond right side of image
@@ -656,7 +687,7 @@ class Annotator:
             h = max(self.font.getsize(line)[1] for line in text.split("\n"))  # measure per line, raqm rejects newlines
             if anchor == "bottom":  # start y from font bottom
                 xy[1] += 1 - h
-            for line in text.split("\n"):
+            for line in map(_rtl, text.split("\n")):
                 if box_color:
                     # Draw rectangle for each line
                     w, h = self.font.getsize(line)

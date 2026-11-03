@@ -568,7 +568,8 @@ class Annotator:
             ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
         """
         self._to_numpy()
-        ids = range(int(mask.max(initial=0)) + 1)  # class IDs index the palette directly
+        mask = mask if mask.dtype.kind in "iu" else mask.astype(int)  # class IDs index the palette directly
+        ids = range(int(mask.max(initial=0)) + 1)
         palette = np.array([(0, 0, 0) if i == ignore_index else colors(i, True) for i in ids], self.im.dtype)
         self.im = cv2.addWeighted(self.im, 1 - alpha, palette[mask], alpha, 0)
 

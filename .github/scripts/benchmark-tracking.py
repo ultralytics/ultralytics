@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Compare assignment backends on cached MOT16-04 person detections.
 
 For scientific benchmarking, see https://github.com/raphaelreme/pylapy instead.

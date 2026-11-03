@@ -171,6 +171,9 @@ def test_cfg_rejects_fuzzed_values(tmp_path):
     assert get_cfg(overrides={"end2end": False, "nms": True}).nms is True
     YAML.save(tmp_path / "args.yaml", {"lr0": np.float64(1e-5)})  # NumPy 2 float64 saved as a YAML float, not a str
     assert get_cfg(tmp_path / "args.yaml").lr0 == 1e-5
+    assert YAML("%YAML 1.2\n---\nlr0: 0.001\n").parse() == {
+        "lr0": 0.001
+    }  # directive headers precede the document start
 
 
 def skip_rpi_semantic():

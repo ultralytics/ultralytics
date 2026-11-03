@@ -81,14 +81,14 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
 
 
 def _sanitize_json_value(value):
-    """Replace non-finite floats in payloads with None so JSON encoding succeeds."""
+    """Make payloads JSON-encodable: non-finite floats become None and other non-JSON values become strings."""
     if isinstance(value, dict):
         return {k: _sanitize_json_value(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
         return [_sanitize_json_value(v) for v in value]
     if isinstance(value, float):
         return value if isfinite(value) else None  # avoid "Out of range float values are not JSON compliant" warnings
-    return value
+    return value if value is None or isinstance(value, (bool, int, str)) else str(value)  # e.g. np.int64, Path
 
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
@@ -345,7 +345,7 @@ def on_pretrain_routine_start(trainer):
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
     data = {
-        "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+        "trainArgs": vars(trainer.args),  # _send makes values JSON-encodable
         "epochs": trainer.epochs,
         "device": str(trainer.device),
         "environment": environment,

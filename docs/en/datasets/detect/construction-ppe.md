@@ -15,7 +15,7 @@ keywords: Construction-PPE, Ultralytics dataset, PPE detection, construction saf
 
 Ultralytics Construction-PPE is an original [object detection](../../tasks/detect.md) dataset of **1,000 images, 14,863 bounding boxes, and 12 classes** covering people, forklifts, personal protective equipment, and visible missing equipment in construction and industrial settings.
 
-The dataset was **created and open-sourced in November 2026 by the Ultralytics team**. It combines **human-collected and generated images**, with **expert human annotation and AI auto-annotation completed in November 2026**. Images and annotations are released under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
+The dataset was **created and open-sourced in November 2026 by the Ultralytics team**. It combines **human-collected and generated images**, with **expert human annotation and AI auto-annotation completed in November 2026 by the Ultralytics team**. Images and annotations are released under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
 [Explore Construction-PPE on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/construction-ppe) to browse the images and annotations, clone the dataset, or train a model.
 

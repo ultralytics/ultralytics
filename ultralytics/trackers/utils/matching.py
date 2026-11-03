@@ -1,27 +1,29 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import sys
+
 import numpy as np
 
 from ultralytics.utils.metrics import batch_probiou, bbox_ioa
 
 try:
-    import lap  # for linear_assignment
-
-    assert lap.__version__  # verify package is not directory
-except (ImportError, AssertionError, AttributeError):
+    import lapcpp  # for linear_assignment
+except ImportError:
     from ultralytics.utils.checks import check_requirements
 
-    check_requirements("lap>=0.5.12")  # https://github.com/gatagat/lap
-    import lap
+    if sys.version_info >= (3, 9) and check_requirements("lapcpp>=1.2.0"):
+        import lapcpp
+    else:
+        lapcpp = None
 
 
 def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = True):
-    """Perform linear assignment using either lap.lapjv or `ultralytics.utils.ops.linear_sum_assignment`.
+    """Perform linear assignment using either lapcpp.lapjv or `ultralytics.utils.ops.linear_sum_assignment`.
 
     Args:
         cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).
         thresh (float): Threshold for considering an assignment valid.
-        use_lap (bool): Use lap.lapjv for the assignment. If False, ops.linear_sum_assignment is used.
+        use_lap (bool): Use lapcpp.lapjv if available. If False or unavailable, ops.linear_sum_assignment is used.
 
     Returns:
         matched_indices (list[list[int]] | np.ndarray): Matched indices of shape (K, 2), where K is the number of
@@ -37,26 +39,21 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
     if cost_matrix.size == 0:
         return np.empty((0, 2), dtype=int), tuple(range(cost_matrix.shape[0])), tuple(range(cost_matrix.shape[1]))
 
-    if use_lap:
-        # Use lap.lapjv
-        # https://github.com/gatagat/lap
-        _, x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh)
-        matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0]
-        unmatched_a = np.where(x < 0)[0]
-        unmatched_b = np.where(y < 0)[0]
+    if use_lap and lapcpp is not None:
+        matches = lapcpp.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh, return_cost=False, output="pairs")
     else:
         from ultralytics.utils.ops import linear_sum_assignment
 
-        x, y = linear_sum_assignment(cost_matrix)  # row x, col y
-        matches = np.asarray([[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh])
-        if len(matches) == 0:
-            unmatched_a = list(np.arange(cost_matrix.shape[0]))
-            unmatched_b = list(np.arange(cost_matrix.shape[1]))
-        else:
-            unmatched_a = list(frozenset(np.arange(cost_matrix.shape[0])) - frozenset(matches[:, 0]))
-            unmatched_b = list(frozenset(np.arange(cost_matrix.shape[1])) - frozenset(matches[:, 1]))
+        # Cap rejected edges so they cannot displace valid matches during optimization.
+        x, y = linear_sum_assignment(np.minimum(cost_matrix, thresh))  # row x, col y
+        matches = np.column_stack((x, y))[cost_matrix[x, y] <= thresh]
 
-    return matches, unmatched_a, unmatched_b
+    unmatched_a = np.ones(cost_matrix.shape[0], dtype=bool)
+    unmatched_b = np.ones(cost_matrix.shape[1], dtype=bool)
+    unmatched_a[matches[:, 0]] = False
+    unmatched_b[matches[:, 1]] = False
+
+    return matches, np.flatnonzero(unmatched_a), np.flatnonzero(unmatched_b)
 
 
 def iou_distance(atracks: list, btracks: list) -> np.ndarray:

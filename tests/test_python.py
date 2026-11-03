@@ -596,6 +596,28 @@ def test_youtube():
         LOGGER.error(f"YouTube Test Error: {e}")
 
 
+@pytest.mark.parametrize("use_lap", [True, False])
+@pytest.mark.parametrize(
+    ("cost_matrix", "expected_matches", "expected_a", "expected_b"),
+    [
+        ([[0.1, 0.51], [0.51, 0.95]], [[0, 0]], [1], [1]),
+        ([[0.9, 0.9, 0.9], [0.9, 0.9, 0.1]], [[1, 2]], [0], [0, 1]),
+        ([[0.9, 0.9], [0.9, 0.9], [0.9, 0.1]], [[2, 1]], [0, 1], [0]),
+        (np.full((2, 3), 0.9), [], [0, 1], [0, 1, 2]),
+        (np.empty((0, 3)), [], [], [0, 1, 2]),
+        (np.empty((2, 0)), [], [0, 1], []),
+    ],
+)
+def test_track_linear_assignment(use_lap, cost_matrix, expected_matches, expected_a, expected_b):
+    """Test matched pairs and unmatched endpoints with both assignment backends."""
+    from ultralytics.trackers.utils.matching import linear_assignment
+
+    matches, unmatched_a, unmatched_b = linear_assignment(np.asarray(cost_matrix, dtype=np.float32), 0.5, use_lap)
+    np.testing.assert_array_equal(matches, np.asarray(expected_matches, dtype=int).reshape(-1, 2))
+    np.testing.assert_array_equal(unmatched_a, expected_a)
+    np.testing.assert_array_equal(unmatched_b, expected_b)
+
+
 def test_track_second_association_indices():
     """Low-confidence detections matched in second association keep full detection-set indices."""
     from ultralytics.engine.results import Boxes

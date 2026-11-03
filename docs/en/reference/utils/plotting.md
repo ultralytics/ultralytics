@@ -40,6 +40,7 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+<<<<<<< HEAD
 ## ::: ultralytics.utils.plotting._font
 
 <br><br><hr><br>
@@ -52,6 +53,8 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+=======
+>>>>>>> origin/main
 ## ::: ultralytics.utils.plotting.plot_labels
 
 <br><br><hr><br>

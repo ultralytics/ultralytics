@@ -306,7 +306,7 @@ See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-sel
 
     The `batch` argument accepts three kinds of values, and the trainer adds two safeguards:
 
-    - **Fixed [Batch Size](https://www.ultralytics.com/glossary/batch-size)**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly.
+    - **Fixed [Batch Size](https://www.ultralytics.com/glossary/batch-size)**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly. Multi-GPU training splits this global batch evenly across GPUs, so it must be at least the GPU count; a remainder is dropped (e.g., `batch=15` on 2 GPUs trains 7 images per GPU).
     - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% of the CUDA memory available to training.
     - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of available GPU memory.
     - **OOM Auto-Retry**: If a CUDA out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-GPU training; multi-GPU (DDP) training will raise the error immediately.

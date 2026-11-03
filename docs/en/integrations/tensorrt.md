@@ -238,7 +238,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         result = model.predict("https://ultralytics.com/images/bus.jpg")
         ```
 
-        1. Exports with dynamic axes, accepting input sizes from 32 pixels up to twice the export `imgsz`; `dynamic` stays `False` unless set explicitly. See [export arguments](../modes/export.md#arguments) for additional information.
+        1. Exports with dynamic axes, accepting input sizes from 32 pixels up to twice the export `imgsz`; `dynamic` stays `False` unless set explicitly. On GPUs with compute capability 7.5 or lower, such as the T4, the minimum rises to 64 pixels (128 for P6 models), capped at the export `imgsz`, for TensorRT 11 INT8 exports and checkpoints trained with `quantize=8`, because these GPUs lack some INT8 kernels for smaller inputs. See [export arguments](../modes/export.md#arguments) for additional information.
         2. Sets max batch size of 8 for exported model and INT8 calibration.
         3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
         4. Uses the [COCO dataset](https://platform.ultralytics.com/ultralytics/datasets/coco2017) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).

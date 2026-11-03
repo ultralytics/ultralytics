@@ -179,8 +179,8 @@ results = YOLO("yolo26n.pt").train(
     plots=False,
 )
 # The main branch reports native-area size bins. This benchmark separately rescales GT and prediction areas
-# by (640 / max(image_width, image_height)) ** 2 before scoring size-specific AP. It also does not apply the VisDrone and
-# HIT-UAV ignore regions.
+# by (640 / max(image_width, image_height)) ** 2 before scoring size-specific AP, and applies the VisDrone and
+# HIT-UAV ignore regions. This snippet does neither.
 ```
 
 ## Citation

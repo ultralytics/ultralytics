@@ -1771,78 +1771,75 @@ class Exporter:
         if output_dir.exists():
             shutil.rmtree(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        try:
-            runner = ClientRunner(hw_arch=self.args.name)
-            runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
-            model_script = [
-                "normalization1 = normalization([0, 0, 0], [255, 255, 255])",
-                "model_optimization_flavor(optimization_level=2)",
-                f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
-            ]
-            if raw_detect or task == "depth":
-                # a16 on the output(s): the DFL-free detect logits and the single dense depth logit both need the
-                # wider activation to keep their range (a8 collapses the depth map; validated on Hailo-8L).
-                outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
-                model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
-            elif task in {"classify", "semantic"}:
-                pass  # softmax/class-map is already the graph output; no NMS or activation changes needed
+        runner = ClientRunner(hw_arch=self.args.name)
+        runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
+        model_script = [
+            "normalization1 = normalization([0, 0, 0], [255, 255, 255])",
+            "model_optimization_flavor(optimization_level=2)",
+            f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
+        ]
+        if raw_detect or task == "depth":
+            # a16 on the output(s): the DFL-free detect logits and the single dense depth logit both need the
+            # wider activation to keep their range (a8 collapses the depth map; validated on Hailo-8L).
+            outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
+            model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
+        elif task in {"classify", "semantic"}:
+            pass  # softmax/class-map is already the graph output; no NMS or activation changes needed
+        else:
+            outputs = [layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
+            if task in {"segment", "pose", "obb"}:
+                # Bake sigmoid into the class convs only (position 1 of each per-scale reg/cls/extra triple).
+                # Mask coeffs, prototypes, keypoints and angles stay raw and are decoded on the host.
+                model_script.extend(
+                    f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, 3 * len(scales), 3)
+                )
             else:
-                outputs = [layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()]
-                if task in {"segment", "pose", "obb"}:
-                    # Bake sigmoid into the class convs only (position 1 of each per-scale reg/cls/extra triple).
-                    # Mask coeffs, prototypes, keypoints and angles stay raw and are decoded on the host.
-                    model_script.extend(
-                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, 3 * len(scales), 3)
+                nms_config = output_dir / "nms_config.json"
+                nms_config.write_text(
+                    json.dumps(
+                        {
+                            "nms_scores_th": self.args.conf if self.args.conf is not None else 0.25,
+                            "nms_iou_th": self.args.iou,
+                            "image_dims": self.imgsz,
+                            "max_proposals_per_class": 100,
+                            "classes": len(self.model.names),
+                            "regression_length": 16,
+                            "background_removal": False,
+                            "background_removal_index": 0,
+                            "bbox_decoders": [
+                                {
+                                    "name": f"bbox_decoder_{stride}",
+                                    "stride": stride,
+                                    "reg_layer": outputs[i * 2],
+                                    "cls_layer": outputs[i * 2 + 1],
+                                }
+                                for i, stride in enumerate(int(x) for x in head.stride)
+                            ],
+                        },
+                        indent=2,
                     )
-                else:
-                    nms_config = output_dir / "nms_config.json"
-                    nms_config.write_text(
-                        json.dumps(
-                            {
-                                "nms_scores_th": self.args.conf if self.args.conf is not None else 0.25,
-                                "nms_iou_th": self.args.iou,
-                                "image_dims": self.imgsz,
-                                "max_proposals_per_class": 100,
-                                "classes": len(self.model.names),
-                                "regression_length": 16,
-                                "background_removal": False,
-                                "background_removal_index": 0,
-                                "bbox_decoders": [
-                                    {
-                                        "name": f"bbox_decoder_{stride}",
-                                        "stride": stride,
-                                        "reg_layer": outputs[i * 2],
-                                        "cls_layer": outputs[i * 2 + 1],
-                                    }
-                                    for i, stride in enumerate(int(x) for x in head.stride)
-                                ],
-                            },
-                            indent=2,
-                        )
-                    )
-                    model_script.extend(
-                        f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs), 2)
-                    )
-                    model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
-                    model_script.append("allocator_param(width_splitter_defuse=disabled)")
-            runner.load_model_script("\n".join(model_script))
+                )
+                model_script.extend(
+                    f"change_output_activation({outputs[i]}, sigmoid)" for i in range(1, len(outputs), 2)
+                )
+                model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
+                model_script.append("allocator_param(width_splitter_defuse=disabled)")
+        runner.load_model_script("\n".join(model_script))
 
-            runner.optimize(calibration_images)
-            (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
-            YAML.save(
-                output_dir / "metadata.yaml",
-                {
-                    **self.metadata,
-                    "hailo_arch": self.args.name,
-                    "nms": task == "detect" and not raw_detect,
-                    "semantic_baked": task == "semantic" and head.bake_argmax,
-                    # Depth's learned log-affine calibration is applied on the host, so it must ride in metadata.
-                    **({"cal_a": float(head.cal_a), "cal_b": float(head.cal_b)} if task == "depth" else {}),
-                },
-            )
-            return str(output_dir)
-        finally:
-            f_onnx.unlink(missing_ok=True)
+        runner.optimize(calibration_images)
+        (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
+        YAML.save(
+            output_dir / "metadata.yaml",
+            {
+                **self.metadata,
+                "hailo_arch": self.args.name,
+                "nms": task == "detect" and not raw_detect,
+                "semantic_baked": task == "semantic" and head.bake_argmax,
+                # Depth's learned log-affine calibration is applied on the host, so it must ride in metadata.
+                **({"cal_a": float(head.cal_a), "cal_b": float(head.cal_b)} if task == "depth" else {}),
+            },
+        )
+        return str(output_dir)
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""

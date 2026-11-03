@@ -45,7 +45,7 @@ The exporter performs these stages automatically:
 3. Generates normalization, activation, and post-processing directives.
 4. Builds a representative calibration stream and quantizes the model to INT8.
 5. Compiles the optimized graph for the selected Hailo accelerator.
-6. Saves the HEF with Ultralytics metadata and removes the intermediate ONNX file.
+6. Saves the HEF with Ultralytics metadata.
 
 YOLOv8 and YOLO11 detection models use HailoRT YOLO NMS in the compiled pipeline. YOLO26 compiles raw detection-head tensors: Ultralytics applies NMS to the default one-to-many outputs, or decodes NMS-free one-to-one outputs with `nms=False`. YOLOv8/YOLO11 segmentation, pose, and OBB compile the raw head tensors, which Ultralytics decodes at inference, and YOLOv8/YOLO11/YOLO26 classification runs softmax on chip so the HEF returns class probabilities directly. For YOLO26 semantic segmentation the exporter follows the accelerator: Hailo-8/8L (DFC v3.x) return classifier logits for host upsampling and reduction, while Hailo-10H/15 (DFC v5.x) compile multi-class ArgMax heads on chip and return a compact class map. Single-class heads use the host-logit path on every target because they require a threshold instead of ArgMax. YOLO26 depth models compile the dense logit conv in `a16_w16` and rebuild the metric depth map on the host (the clamp/exp and learned log-affine calibration that follow the head), so the quantizer keeps its widest range on the raw logit. Users do not need to find ONNX end nodes, write a Hailo model script (`.alls`), or create an NMS JSON manually.
 
@@ -226,7 +226,7 @@ yolo11n_hailo_model/
 - `metadata.yaml` preserves model names, task, input size, stride, and Hailo target information.
 - `nms_config.json` records the generated HailoRT NMS configuration for YOLOv8 and YOLO11 detection models. YOLO26 detection and all non-detection tasks (segmentation, semantic, depth, classification, pose, OBB) do not use this file.
 
-The intermediate ONNX graph is removed after compilation.
+The intermediate ONNX graph stays beside the directory as `yolo11n.onnx`.
 
 ## Run Inference on Hailo Hardware
 
@@ -460,7 +460,7 @@ The Hailo Dataflow Compiler converts and quantizes the model into a hardware-spe
 
 ### Should I deploy the ONNX or HEF file?
 
-Deploy the compiled HEF to the Hailo runtime. ONNX is an intermediate representation used during export and is removed after successful compilation.
+Deploy the compiled HEF to the Hailo runtime. ONNX is an intermediate representation used during export.
 
 ### Where can I get the Hailo DFC?
 

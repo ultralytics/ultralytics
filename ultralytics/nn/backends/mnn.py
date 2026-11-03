@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 
@@ -38,14 +37,7 @@ class MNNBackend(BaseBackend):
         rt = MNN.nn.create_runtime_manager((config,))
         self.net = MNN.nn.load_module_from_file(str(weight), [], [], runtime_manager=rt, rearrange=True)
         self.expr = MNN.expr
-
-        # Load metadata from bizCode
-        info = self.net.get_info()
-        if "bizCode" in info:
-            try:
-                self.apply_metadata(json.loads(info["bizCode"]))
-            except json.JSONDecodeError:
-                pass
+        self.apply_metadata(self.read_metadata(weight))
 
     def forward(self, im: torch.Tensor) -> list:
         """Run inference using the MNN runtime.

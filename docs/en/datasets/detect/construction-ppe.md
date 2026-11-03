@@ -112,7 +112,7 @@ Suggested attribution: **Ultralytics Construction-PPE Dataset, Ultralytics team,
 
         ```bibtex
         @dataset{Ultralytics_Construction_PPE_2026,
-            author = {{Ultralytics team}},
+            author = "{Ultralytics team}",
             title = {Ultralytics Construction-PPE Dataset},
             month = {November},
             year = {2026},

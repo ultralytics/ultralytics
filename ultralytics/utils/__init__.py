@@ -716,7 +716,7 @@ class YAML:
         if isinstance(v, int):
             return str(v)
         if isinstance(v, float):
-            s = {"nan": ".nan", "inf": ".inf", "-inf": "-.inf"}.get(repr(v), repr(v))
+            s = {"nan": ".nan", "inf": ".inf", "-inf": "-.inf"}.get(r := repr(float(v)), r)  # np.float64(x) -> x
             return s.replace("e", ".0e") if "e" in s and "." not in s else s  # '1.0e-05' so YAML 1.1 reads a float
         if isinstance(v, (dict, list, tuple)):
             return "{}" if isinstance(v, dict) else "[]"

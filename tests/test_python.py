@@ -137,7 +137,7 @@ def test_build_yolo_dataset_hyp_isolated():
     assert cfg.mosaic == DEFAULT_CFG.mosaic
 
 
-def test_cfg_rejects_fuzzed_values():
+def test_cfg_rejects_fuzzed_values(tmp_path):
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
         get_cfg(overrides={"degrees": None})
@@ -169,6 +169,8 @@ def test_cfg_rejects_fuzzed_values():
     assert get_cfg(overrides={"end2end": True, "nms": True}).nms is False
     assert get_cfg(overrides={"end2end": False, "nms": False}).nms is None
     assert get_cfg(overrides={"end2end": False, "nms": True}).nms is True
+    YAML.save(tmp_path / "args.yaml", {"lr0": np.float64(1e-5)})  # NumPy 2 float64 saved as a YAML float, not a str
+    assert get_cfg(tmp_path / "args.yaml").lr0 == 1e-5
 
 
 def skip_rpi_semantic():

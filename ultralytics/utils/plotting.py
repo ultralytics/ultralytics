@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import math
+import re
 import unicodedata
 import weakref
 from collections.abc import Callable
@@ -18,7 +19,7 @@ from PIL import Image, ImageDraw, ImageFont, features
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_requirements, check_version, is_ascii
+from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import TORCH_1_10
 
@@ -265,12 +266,31 @@ def colorize_depth(
 
 
 @lru_cache
-def _khatt():
-    """Return khatt to shape Arabic and Hebrew labels if Pillow is built without Raqm, otherwise None."""
-    if not features.check("raqm") and check_requirements("khatt>=0.4.0"):
-        import khatt
+def _arabic_forms() -> dict | None:
+    """Map Arabic letters and lam-alef pairs to their presentation forms, or return None if Pillow shapes with Raqm."""
+    if features.check("raqm"):
+        return None
+    forms = {}
+    for c in map(chr, [*range(0xFE70, 0xFF00), *range(0xFB50, 0xFE00)]):  # Arabic Presentation Forms-B, then -A
+        tag, *codes = unicodedata.decomposition(c).split() or [""]
+        if tag in {"<isolated>", "<final>", "<initial>", "<medial>"} and (len(codes) == 1 or "\ufef5" <= c <= "\ufefc"):
+            forms.setdefault("".join(chr(int(x, 16)) for x in codes), {}).setdefault(tag, c)
+    return forms
 
-        return khatt
+
+def _rtl(text: str) -> str:
+    """Join Arabic letters and reverse right-to-left text into visual order for Pillow builds without Raqm."""
+    forms = _arabic_forms()
+    if forms is None or not any(unicodedata.bidirectional(c) in {"R", "AL"} for c in text):
+        return text
+    units = re.findall("|".join(k for k in forms if len(k) == 2) + "|.", text, re.DOTALL)  # lam-alef is one glyph
+    joins = ["<medial>" in forms.get(u, {}) for u in units]  # dual-joining letters connect to the next letter
+    for i, u in enumerate(units):
+        if f := forms.get(u):
+            p, n = i > 0 and joins[i - 1], joins[i] and i + 1 < len(units) and units[i + 1] in forms
+            units[i] = f.get(("<medial>" if n else "<final>") if p else ("<initial>" if n else "<isolated>"), u)
+    # Reverse into visual order, keeping left-to-right runs such as confidences in reading order
+    return re.sub(r"[0-9A-Za-z\u0660-\u0669\u06f0-\u06f9.,:%+-]+", lambda m: m[0][::-1], "".join(units)[::-1])
 
 
 class Annotator:
@@ -351,15 +371,6 @@ class Annotator:
             if check_version(pil_version, "9.2.0"):
                 font = weakref.proxy(self.font)
                 self.font.getsize = lambda x: font.getbbox(x)[2:4]  # text width, height
-            self.khatt = _khatt() if any(unicodedata.bidirectional(c) in {"R", "AL"} for c in str(example)) else None
-            if self.khatt:  # right-to-left labels: measure and draw all text with khatt for consistent metrics
-                path = getattr(self.font, "path", None)
-                kw = self.khatt_kw = {
-                    "font": path if isinstance(path, str) else "noto-naskh",
-                    "size_px": getattr(self.font, "size", 12),
-                    "fallback_fonts": ("noto-naskh", "rubik"),  # for glyphs the font lacks
-                }
-                self.font.getsize = lambda x, k=self.khatt: k.text_bbox(x, **kw)[2:4]
         else:  # use cv2
             assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
                 "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
@@ -469,7 +480,7 @@ class Annotator:
             self.draw.polygon(
                 [tuple(b) for b in box], width=self.lw, outline=color
             ) if multi_points else self.draw.rectangle(box, width=self.lw, outline=color)
-            if label:
+            if label := _rtl(label):
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] >= h  # label fits outside box
                 if p1[0] > self.im.size[0] - w:  # size is (w, h), check if label extend beyond right side of image
@@ -479,11 +490,7 @@ class Annotator:
                     fill=color,
                 )
                 # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
-                xy = (p1[0], p1[1] - h if outside else p1[1])
-                if self.khatt:
-                    self.khatt.draw_text(self.im, xy, label, fill=txt_color, **self.khatt_kw)
-                else:
-                    self.draw.text(xy, label, fill=txt_color, font=self.font)
+                self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
             cv2.polylines(
                 self.im, [np.asarray(box, dtype=int)], True, color, self.lw
@@ -680,15 +687,12 @@ class Annotator:
             h = max(self.font.getsize(line)[1] for line in text.split("\n"))  # measure per line, raqm rejects newlines
             if anchor == "bottom":  # start y from font bottom
                 xy[1] += 1 - h
-            for line in text.split("\n"):
+            for line in map(_rtl, text.split("\n")):
                 if box_color:
                     # Draw rectangle for each line
                     w, h = self.font.getsize(line)
                     self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=box_color)
-                if self.khatt:
-                    self.khatt.draw_text(self.im, tuple(xy), line, fill=txt_color, **self.khatt_kw)
-                else:
-                    self.draw.text(xy, line, fill=txt_color, font=self.font)
+                self.draw.text(xy, line, fill=txt_color, font=self.font)
                 xy[1] += h
         else:
             if box_color:

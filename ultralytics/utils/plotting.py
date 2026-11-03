@@ -305,23 +305,22 @@ def _font(name: str, size: int):
     return font
 
 
-@lru_cache(maxsize=1024)
 def _text_mask(font, text: str) -> np.ndarray:
-    """Rasterize text once as an (h, w) float32 alpha mask anchored at its origin, so repeated labels skip FreeType."""
+    """Rasterize text as an (h, w) float32 alpha mask anchored at its origin."""
     text = _rtl(text)
     im = Image.new("L", font.getsize(text))
     ImageDraw.Draw(im).text((0, 0), text, fill=255, font=font)
     return np.asarray(im, np.float32) / 255
 
 
-@lru_cache(maxsize=1024)
+@lru_cache(maxsize=256)
 def _label_patch(font, text: str, color: tuple, txt_color: tuple) -> np.ndarray:
-    """Return an opaque (h + 1, w + 1, 3) uint8 label: text blended over its background color once, then reused."""
-    a = _text_mask(font, text)
-    patch = np.empty((a.shape[0] + 1, a.shape[1] + 1, 3), np.float32)
-    patch[:] = color
-    patch[:-1, :-1] += (np.array(txt_color, np.float32) - color) * a[..., None]
-    return (patch + 0.5).astype(np.uint8)
+    """Return an opaque (h + 1, w + 1, 3) uint8 box label, cached so repeated labels skip FreeType and blending."""
+    text = _rtl(text)
+    w, h = font.getsize(text)
+    im = Image.new("RGB", (w + 1, h + 1), color)  # channels pass through in the caller's (BGR) order
+    ImageDraw.Draw(im).text((0, 0), text, fill=txt_color, font=font)
+    return np.asarray(im)
 
 
 class Annotator:
@@ -372,11 +371,11 @@ class Annotator:
         """
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
-        if input_is_pil:  # draw on a NumPy copy of the PIL pixels, kept in the caller's channel order
+        self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
+        if input_is_pil:  # PIL pixels keep the caller's channel order
             im = np.asarray(im if im.mode in {"RGB", "RGBA", "L"} else im.convert("RGB"))
         input_is_tensor = isinstance(im, torch.Tensor)
         self.pil = pil or non_ascii or input_is_pil
-        self.lw = line_width or max(round(sum(im.shape[:2]) / 2 * 0.003), 2)
         if input_is_tensor:
             assert im.ndim == 3 and im.shape[2] == 3 and im.dtype == torch.uint8, (
                 f"Expected HWC uint8 tensor image with 3 channels, but got shape {tuple(im.shape)} and dtype {im.dtype}."
@@ -389,14 +388,15 @@ class Annotator:
             im = np.ascontiguousarray(np.dstack((im, np.zeros_like(im[..., :1]))))
         elif im.shape[2] > 3:  # multispectral
             im = np.ascontiguousarray(im[..., :3])
-        assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
-            "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
-        )
-        self.im = im if input_is_tensor or im.flags.writeable else im.copy()  # BGR, matching the color palette
-        if self.pil:  # PIL renders text with a TrueType font, all other drawing stays in cv2/NumPy
+        if self.pil:  # TrueType text on a BGR copy of the image, all other drawing uses cv2/NumPy
+            self.im = np.array(im, order="C")
             size = font_size or max(round(sum(im.shape[:2]) / 2 * 0.035), 12)
             self.font = _font("Arial.Unicode.ttf" if non_ascii else font, size)
-        else:
+        else:  # draw in place on the caller's BGR image
+            assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
+                "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
+            )
+            self.im = im if input_is_tensor or im.flags.writeable else im.copy()
             self.tf = max(self.lw - 1, 1)  # font thickness
             self.sf = self.lw / 3  # font scale
         # Pose
@@ -568,10 +568,11 @@ class Annotator:
             ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
         """
         self._to_numpy()
+        mask = np.asarray(mask)
         mask = mask if mask.dtype.kind in "iu" else mask.astype(int)  # class IDs index the palette directly
-        ids = range(int(mask.max(initial=0)) + 1)
-        palette = np.array([(0, 0, 0) if i == ignore_index else colors(i, True) for i in ids], self.im.dtype)
-        self.im = cv2.addWeighted(self.im, 1 - alpha, palette[mask], alpha, 0)
+        overlay = np.array([colors(i, True) for i in range(int(mask.max(initial=0)) + 1)], self.im.dtype)[mask]
+        overlay[mask == ignore_index] = 0
+        self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
 
     def depth_map(
         self,
@@ -660,7 +661,7 @@ class Annotator:
         self._to_numpy()
         for c, t in ((fill, -1), (outline, width)):
             if c is not None:
-                cv2.rectangle(self.im, tuple(xy[:2]), tuple(xy[2:]), c, t)
+                cv2.rectangle(self.im, tuple(map(int, xy[:2])), tuple(map(int, xy[2:])), c, t)
 
     def text(self, xy, text: str, txt_color: tuple = (255, 255, 255), anchor: str = "top", box_color: tuple = ()):
         """Add text to an image using PIL or cv2.
@@ -694,7 +695,7 @@ class Annotator:
 
     def _draw(self, x: int, y: int, patch, alpha: np.ndarray | None = None):
         """Paste an (h, w, 3) patch, or blend a `patch` color through an (h, w) alpha, at (x, y) clipped to the image."""
-        h, w = (patch if alpha is None else alpha).shape[:2]
+        x, y, (h, w) = int(x), int(y), (patch if alpha is None else alpha).shape[:2]
         x0, y0, x1, y1 = max(x, 0), max(y, 0), min(x + w, self.im.shape[1]), min(y + h, self.im.shape[0])
         if x0 < x1 and y0 < y1:
             roi, crop = self.im[y0:y1, x0:x1], (slice(y0 - y, y1 - y), slice(x0 - x, x1 - x))
@@ -939,8 +940,10 @@ def plot_images(
     images = labels.get("img", images)  # default to input images
 
     images = images[:max_subplots]  # convert only the plotted images
-    if len(images) and isinstance(images, torch.Tensor):  # de-normalise on device, transfer uint8
-        images = (images * 255 if images.is_floating_point() and images[0].max() <= 1 else images).byte().cpu().numpy()
+    if len(images) and images[0].max() <= 1:
+        images = images * 255  # de-normalise a copy, the train/val batch is shared
+    if isinstance(images, torch.Tensor):
+        images = images.byte().cpu().numpy()  # uint8 on device first, a quarter of the float transfer
 
     # Handle 2-ch and n-ch images
     c = images.shape[1]
@@ -953,8 +956,6 @@ def plot_images(
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs**0.5)  # number of subplots (square)
-    if np.max(images[0]) <= 1:
-        images = images[:bs] * 255  # de-normalise a copy, the train/val batch is shared
 
     # Build Image
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
@@ -1031,7 +1032,8 @@ def plot_images(
             if len(masks):
                 ids = np.arange(1, len(classes) + 1) * (labels or conf > conf_thres)  # 0 drops filtered instances
                 if idx.shape[0] == masks.shape[0] and masks.max() <= 1:  # overlap_mask=False
-                    index = ((masks[idx] > 0.5) * ids[:, None, None]).max(0, initial=0)
+                    k = np.flatnonzero(ids)  # kept instances only
+                    index = ((masks[idx][k] > 0.5) * ids[k, None, None].astype(np.uint16)).max(0, initial=0)
                 else:  # overlap_mask=True, the mask already holds instance indices
                     index = np.r_[0, ids][masks[i].astype(int)]
                 index = cv2.resize(index.astype(np.uint16), (w, h), interpolation=cv2.INTER_NEAREST)

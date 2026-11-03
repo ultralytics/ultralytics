@@ -777,8 +777,8 @@ class YAML:
             {'names': {0: 'person'}, 'nc': 1}
         """
         n, c = self._peek()
-        if c == "---" or c.startswith("--- "):  # document start, possibly with content on the same line
-            self.lines[self.i] = c[4:]
+        while c[:1] == "%" or c == "---" or c.startswith("--- "):  # %YAML/%TAG directives, then the document start
+            self.lines[self.i] = "" if c[0] == "%" else c[4:]
             n, c = self._peek()
         v = None if n < 0 else self._node(n, c, -1)
         if (m := self._peek())[0] >= 0:  # a single document only, so '...' and later content raise

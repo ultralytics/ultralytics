@@ -238,16 +238,16 @@ class BaseTrainer:
         """Execute the training process, using DDP subprocess for multi-GPU or direct training for single-GPU."""
         # Run subprocess if DDP training, else train normally
         try:
+            if self.world_size > 1 and self.args.batch < self.world_size:
+                raise ValueError(
+                    f"'batch={self.args.batch}' must be >= GPU count {self.world_size} for Multi-GPU training "
+                    f"(AutoBatch batch<1 is not supported), i.e. batch={self.world_size * 8}."
+                )
             if self.ddp:
                 # Argument checks
                 if self.args.rect:
                     LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                     self.args.rect = False
-                if self.args.batch < 1.0:
-                    raise ValueError(
-                        "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                        f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
-                    )
 
                 # Command
                 cmd, file = None, None
@@ -366,7 +366,7 @@ class BaseTrainer:
             if self.resume and ckpt.get("modelopt"):
                 restore_qat(self.model, ckpt["modelopt"])
             else:
-                batch = max(self.batch_size // max(self.world_size, 1), 1) if self.batch_size >= 1 else 16
+                batch = self.batch_size // max(self.world_size, 1) if self.batch_size >= 1 else 16
                 with torch_distributed_zero_first(LOCAL_RANK), override_configs(self.args, {"cache": False}):
                     calibration_loader = self.get_dataloader(
                         self.data["train"], batch_size=batch, rank=-1, mode="train"

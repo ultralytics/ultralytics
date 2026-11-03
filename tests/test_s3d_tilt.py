@@ -63,6 +63,9 @@ def test_calib_parses_tilt_and_omits_it_when_absent(tmp_path):
     assert np.allclose(a["R_cam_tilt"], R_TILT, atol=1e-8)
     assert "R_cam_tilt" not in b and cam_tilt(b) is None
     assert a["baseline"] == pytest.approx(BASE)
+    (tmp_path / "c.txt").write_text(p2 + "R_cam_tilt: 2 0 0 0 1 0 0 0 1\n")  # a scale, not a rotation
+    with pytest.raises(ValueError):
+        load_kitti_calibration(tmp_path / "c.txt")
 
 
 def test_tilted_projection_matches_tilted_corners():

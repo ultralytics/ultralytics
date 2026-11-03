@@ -7,7 +7,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ultralytics.data.stereo.calib import cam_tilt
+from ultralytics.data.stereo.calib import cam_tilt, tilt_center_offset
 from ultralytics.utils.instance import Bboxes, Instances
 
 # ============================================================================
@@ -813,10 +813,17 @@ class StereoZoom:
             inst = stereo.instances
             if stereo.has_instances() and getattr(inst, "location_3d", None) is not None:
                 loc = inst.location_3d
-                z = np.maximum(loc[:, 2], 1e-6)
                 cal = stereo.calibration
-                u = s * (cal["fx"] * loc[:, 0] / z + cal["cx"])
-                y_c = loc[:, 1] - (inst.dimensions_3d[:, 2] / 2 if inst.dimensions_3d is not None else 0.0)
+                R_tilt = cam_tilt(cal)
+                if R_tilt is None or inst.dimensions_3d is None:
+                    x_c, z_c = loc[:, 0], loc[:, 2]
+                    y_c = loc[:, 1] - (inst.dimensions_3d[:, 2] / 2 if inst.dimensions_3d is not None else 0.0)
+                else:  # tilted camera: the centroid is half a height up the tilted vertical
+                    x_c, y_c, z_c = (
+                        loc + np.stack([tilt_center_offset(R_tilt, hh) for hh in inst.dimensions_3d[:, 2]])
+                    ).T
+                z = np.maximum(z_c, 1e-6)
+                u = s * (cal["fx"] * x_c / z + cal["cx"])
                 v = s * (cal["fy"] * y_c / z + cal["cy"])
                 x0 = self._clamp_keep(x0, u, w, new_w - w)
                 y0 = self._clamp_keep(y0, v, h, new_h - h)

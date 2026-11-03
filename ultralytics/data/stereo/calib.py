@@ -159,9 +159,12 @@ def load_kitti_calibration(calib_file: str | Path) -> CalibrationParameters:
                     mats[key] = np.array(values).reshape(3, 4)
             elif key == "R_cam_tilt":
                 values = [float(x) for x in value_str.split()]
-                if len(values) != 9:
-                    raise ValueError(f"R_cam_tilt needs 9 values (row-major 3x3), got {len(values)} in {calib_file}")
-                mats[key] = np.array(values).reshape(3, 3)
+                R = np.array(values).reshape(3, 3) if len(values) == 9 else None
+                if R is None or not np.isfinite(R).all() or not np.allclose(R @ R.T, np.eye(3), atol=1e-4):
+                    raise ValueError(f"R_cam_tilt must be 9 values of a row-major 3x3 rotation in {calib_file}")
+                if np.linalg.det(R) < 0:
+                    raise ValueError(f"R_cam_tilt has determinant -1 (a reflection, not a rotation) in {calib_file}")
+                mats[key] = R
 
     # Derive intrinsics from P2 (left camera) when explicit keys are absent.
     if "P2" in mats:

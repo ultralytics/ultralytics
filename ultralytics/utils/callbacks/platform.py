@@ -345,7 +345,10 @@ def on_pretrain_routine_start(trainer):
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
     data = {
-        "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+        "trainArgs": {
+            k: v if isinstance(v, (bool, int, float, str, list, tuple, type(None))) else str(v)
+            for k, v in vars(trainer.args).items()
+        },
         "epochs": trainer.epochs,
         "device": str(trainer.device),
         "environment": environment,

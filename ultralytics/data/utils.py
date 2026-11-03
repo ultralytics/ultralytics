@@ -902,6 +902,8 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         else None
     )  # data/test or data/val
     test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
+    if split in {"val", "test"} and not (val_set or test_set):
+        raise FileNotFoundError(f"No 'val' or 'test' split in {data_dir}, add a 'val' directory of class directories")
     if split == "val" and not val_set:
         LOGGER.warning("Dataset 'split=val' not found, using 'split=test' instead.")
         val_set = test_set
@@ -929,11 +931,8 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
                     raise FileNotFoundError(f"{dataset} '{k}:' no training images found")
                 else:
                     LOGGER.warning(f"{prefix} found {nf} images in {nd} classes (no images found)")
-            elif nd != nc and not ndjson_names.is_file():
-                LOGGER.error(f"{prefix} found {nf} images in {nd} classes (requires {nc} classes, not {nd})")
             else:
-                class_count = f"{nd}/{nc}" if ndjson_names.is_file() else nd
-                LOGGER.info(f"{prefix} found {nf} images in {class_count} classes ✅ ")
+                LOGGER.info(f"{prefix} found {nf} images in {nd}/{nc} classes ✅ ")
 
     return {"train": train_set, "val": val_set, "test": test_set, "nc": nc, "names": names, "channels": 3}
 

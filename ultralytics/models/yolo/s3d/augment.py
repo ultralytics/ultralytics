@@ -27,7 +27,8 @@ def project_3d_box_to_2d(
     """Project a 3D bounding box to 2D image coordinates.
 
     Uses KITTI convention where location is at bottom-center of the object, Y points down, and dimensions are (length,
-    width, height) where length is along Z (forward) and width is along X (right).
+    width, height) where length is along the object's x-axis and width along its z-axis, so at rotation_y=0 length
+    lies along camera X (right).
 
     Args:
         location_3d: (3,) array [X, Y, Z] in camera coordinates (meters).

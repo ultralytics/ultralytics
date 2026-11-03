@@ -4,19 +4,21 @@ from __future__ import annotations
 
 import contextlib
 import math
+import unicodedata
 import weakref
 from collections.abc import Callable
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import cv2
 import numpy as np
 import torch
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, features
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_version, is_ascii
+from ultralytics.utils.checks import check_font, check_requirements, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import TORCH_1_10
 
@@ -262,6 +264,15 @@ def colorize_depth(
     return color
 
 
+@lru_cache
+def _khatt():
+    """Return khatt to shape Arabic and Hebrew labels if Pillow is built without Raqm, otherwise None."""
+    if not features.check("raqm") and check_requirements("khatt>=0.4.0"):
+        import khatt
+
+        return khatt
+
+
 class Annotator:
     """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
@@ -340,6 +351,15 @@ class Annotator:
             if check_version(pil_version, "9.2.0"):
                 font = weakref.proxy(self.font)
                 self.font.getsize = lambda x: font.getbbox(x)[2:4]  # text width, height
+            self.khatt = _khatt() if any(unicodedata.bidirectional(c) in {"R", "AL"} for c in str(example)) else None
+            if self.khatt:  # right-to-left labels: measure and draw all text with khatt for consistent metrics
+                path = getattr(self.font, "path", None)
+                kw = self.khatt_kw = {
+                    "font": path if isinstance(path, str) else "noto-naskh",
+                    "size_px": getattr(self.font, "size", 12),
+                    "fallback_fonts": ("noto-naskh", "rubik"),  # for glyphs the font lacks
+                }
+                self.font.getsize = lambda x, k=self.khatt: k.text_bbox(x, **kw)[2:4]
         else:  # use cv2
             assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
                 "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
@@ -459,7 +479,11 @@ class Annotator:
                     fill=color,
                 )
                 # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
-                self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
+                xy = (p1[0], p1[1] - h if outside else p1[1])
+                if self.khatt:
+                    self.khatt.draw_text(self.im, xy, label, fill=txt_color, **self.khatt_kw)
+                else:
+                    self.draw.text(xy, label, fill=txt_color, font=self.font)
         else:  # cv2
             cv2.polylines(
                 self.im, [np.asarray(box, dtype=int)], True, color, self.lw
@@ -661,7 +685,10 @@ class Annotator:
                     # Draw rectangle for each line
                     w, h = self.font.getsize(line)
                     self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=box_color)
-                self.draw.text(xy, line, fill=txt_color, font=self.font)
+                if self.khatt:
+                    self.khatt.draw_text(self.im, tuple(xy), line, fill=txt_color, **self.khatt_kw)
+                else:
+                    self.draw.text(xy, line, fill=txt_color, font=self.font)
                 xy[1] += h
         else:
             if box_color:

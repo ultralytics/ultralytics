@@ -616,7 +616,7 @@ View all models trained on this dataset in a searchable table:
 
 ### Comments Tab
 
-Public datasets and models in public projects show a discussion thread. Anyone can read it; posting, replying, editing, and voting require signing in.
+Public datasets show a discussion thread. Anyone can read it; posting, replying, editing, and voting require signing in.
 
 ### Errors Tab
 

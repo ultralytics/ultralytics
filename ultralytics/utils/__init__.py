@@ -777,6 +777,9 @@ class YAML:
             {'names': {0: 'person'}, 'nc': 1}
         """
         n, c = self._peek()
+        while c.startswith("%"):  # %YAML and %TAG directives precede the document start marker
+            self.i += 1
+            n, c = self._peek()
         if c == "---" or c.startswith("--- "):  # document start, possibly with content on the same line
             self.lines[self.i] = c[4:]
             n, c = self._peek()

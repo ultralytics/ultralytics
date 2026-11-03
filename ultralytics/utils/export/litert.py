@@ -108,12 +108,7 @@ def torch2litert(
             LOGGER.info(f"{prefix} applying static quantization (int8 weights + {act} activations)...")
             calib_samples = []
             for batch in calibration_dataset:
-                imgs = batch["img"].cpu().float() / 255.0
-                # litert-torch traces a fixed batch; tile under-sized batches up to im's batch dim (repeats are
-                # statistics-identical for calibration)
-                if imgs.shape[0] < im.shape[0]:
-                    imgs = imgs.repeat(-(-im.shape[0] // imgs.shape[0]), 1, 1, 1)[: im.shape[0]]
-                calib_samples.append({"args_0": imgs.numpy()})
+                calib_samples.append({"args_0": (batch["img"].cpu().float() / 255.0).numpy()})
             qt.load_quantization_recipe(recipe.static_wi8_ai8() if static_int8 else recipe.static_wi8_ai16())
             # Keep FP32 graph input/output (weights/activations stay int8/int16 internally): matches the historical
             # onnx2tf "fp32 in/out" contract that downstream consumers (LiteRT GPU delegate, on-device runtimes) expect,

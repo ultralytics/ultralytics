@@ -1051,7 +1051,10 @@ def plot_images(
             # to BGR for the overlay, then back to RGB for the mosaic.
             sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
             sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
-            sub_annotator.semantic_mask(mask, alpha=0.4)
+            if names and len(names) == 1:  # binary map: 1 is the class, 0 is background
+                sub_annotator.masks((mask == 1)[None], [colors(0, True)], alpha=0.4)
+            else:
+                sub_annotator.semantic_mask(mask, alpha=0.4)
             im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
 
         # Plot depth maps

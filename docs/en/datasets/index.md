@@ -32,7 +32,7 @@ Ultralytics supports datasets for [computer vision](https://www.ultralytics.com/
 - [COCO8-Multispectral](detect/coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
 - [COCO12-Formats](detect/coco12-formats.md): A 12-image test dataset covering the 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
 - [COCO128](detect/coco128.md): A smaller subset of the first 128 images from COCO train2017, suitable for tests.
-- [Construction-PPE](detect/construction-ppe.md): A dataset of construction site imagery annotated with key safety gear such as helmets, vests, gloves, boots, and goggles, along with labels for missing equipment, supporting the development of AI models for compliance and worker protection.
+- [Construction-PPE](detect/construction-ppe.md): A dataset of construction and industrial imagery annotated with people, forklifts, and key safety gear such as helmets, vests, gloves, boots, and goggles, along with labels for missing equipment, supporting the development of AI models for compliance and worker protection.
 - [Global Wheat 2020](detect/globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [HomeObjects-3K](detect/homeobjects-3k.md): A dataset of annotated indoor scenes featuring 12 common household items, ideal for developing and testing computer vision models in smart home systems, robotics, and augmented reality.
 - [KITTI](detect/kitti.md): A well-known autonomous driving dataset featuring stereo, LiDAR, and GPS/IMU inputs, used for 2D object detection in varied road scenes.

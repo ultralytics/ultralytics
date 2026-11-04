@@ -309,7 +309,7 @@ Here is a list of the supported datasets and a brief description for each. Most 
 - [COCO32](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco32.zip): A subset of the first 32 images from COCO train2017 (16 train + 16 val), suitable for quick tests.
 - [COCO64](https://github.com/ultralytics/assets/releases/download/v0.0.0/coco64.zip): A subset of the first 64 images from COCO train2017 (32 train + 32 val), suitable for quick tests.
 - [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train2017, suitable for tests.
-- [Construction-PPE](construction-ppe.md): A dataset featuring construction site workers with labeled safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_goggle for real-world compliance monitoring.
+- [Construction-PPE](construction-ppe.md): A dataset of construction and industrial imagery with labeled people, forklifts, and safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_goggle for real-world compliance monitoring.
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [HomeObjects-3K](homeobjects-3k.md): A dataset of indoor household items including beds, chairs, TVs, and more—ideal for applications in smart home automation, robotics, augmented reality, and room layout analysis.
 - [KITTI](kitti.md): A dataset featuring real-world driving scenes with stereo, LiDAR, and GPS/IMU data, used here for **2D object detection** tasks such as identifying cars, pedestrians, and cyclists in urban, rural, and highway environments.

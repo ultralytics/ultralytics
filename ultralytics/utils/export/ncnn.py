@@ -7,6 +7,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils.files import WorkingDirectory
 
 
 def torch2ncnn(
@@ -44,24 +45,23 @@ def torch2ncnn(
     output_dir = Path(output_dir)
 
     ncnn_args = {
-        "ncnnparam": (output_dir / "model.ncnn.param").as_posix(),
-        "ncnnbin": (output_dir / "model.ncnn.bin").as_posix(),
-        "ncnnpy": (output_dir / "model_ncnn.py").as_posix(),
+        "ncnnparam": (output_dir.absolute() / "model.ncnn.param").as_posix(),
+        "ncnnbin": (output_dir.absolute() / "model.ncnn.bin").as_posix(),
     }
     pnnx_args = {
-        "ptpath": (output_dir / "model.pt").as_posix(),
-        "pnnxparam": (output_dir / "model.pnnx.param").as_posix(),
-        "pnnxbin": (output_dir / "model.pnnx.bin").as_posix(),
-        "pnnxpy": (output_dir / "model_pnnx.py").as_posix(),
-        "pnnxonnx": (output_dir / "model.pnnx.onnx").as_posix(),
+        "ptpath": "model.pt",
+        "pnnxparam": "model.pnnx.param",
+        "pnnxbin": "model.pnnx.bin",
+        "pnnxpy": "model_pnnx.py",
+        "pnnxonnx": "model.pnnx.onnx",
     }
 
     output_dir.mkdir(parents=True, exist_ok=True)  # make ncnn_model directory
     device_type = device.type if device is not None else "cpu"
-    pnnx.export(model, inputs=im, **ncnn_args, **pnnx_args, fp16=quantize == 16, device=device_type)
-
-    for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_args.values()):
-        Path(f_debug).unlink(missing_ok=True)
+    with WorkingDirectory(output_dir):  # PNNX writes pnnx_args unescaped into the Python it generates and imports
+        pnnx.export(model, inputs=im, **ncnn_args, **pnnx_args, fp16=quantize == 16, device=device_type)
+        for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_args.values()):
+            Path(f_debug).unlink(missing_ok=True)
 
     if metadata:
         YAML.save(output_dir / "metadata.yaml", metadata)  # add metadata.yaml

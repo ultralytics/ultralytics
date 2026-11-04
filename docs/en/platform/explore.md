@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 The [Ultralytics Platform](https://platform.ultralytics.com) Explore page lists public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/0ef70bb4ebae864538173f1176c2e674.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/dd168f6b4eedda90b6ee4029dc94b353.avif)<!-- screenshot -->
 
 ```mermaid
 flowchart TD
@@ -55,7 +55,7 @@ The Explore page uses a tabbed interface with `Datasets`, `Images`, and `Project
 Each tab has its own search bar. Results update as you type and the query is kept in the URL as `?q=`, so a search is
 easy to bookmark or share.
 
-![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/3dd1531ea3532850784aa8a2f9e12b50.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/59140fabdcd637ed3c6c6f78bd49e3e8.avif)<!-- screenshot -->
 
 | Tab          | Matched Fields                                           |
 | ------------ | -------------------------------------------------------- |
@@ -167,7 +167,7 @@ Use a public dataset for your training:
 3. Review the destination workspace, name, visibility, and license
 4. Click `Clone Dataset` to confirm
 
-![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/61c009c013d2a84cc83418a37d427318.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/3ee3b1f55477024b3993268fdcc9882d.avif)<!-- screenshot -->
 
 !!! note "Cloned Dataset Properties"
 

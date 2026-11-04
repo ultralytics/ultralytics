@@ -87,7 +87,7 @@ See full `train` mode details in the [Train](../modes/train.md) page. Semantic s
 
 !!! tip "Deterministic Training"
 
-    Set `deterministic=False` for faster semantic segmentation training on CUDA. The loss upsamples logits to mask resolution with bilinear interpolation, and with `deterministic=True` (the default) PyTorch runs its backward pass on a slower deterministic kernel. Runs are then not bit-for-bit reproducible, but `seed` still controls weight initialization, data order, and augmentation sampling.
+    Set `deterministic=False` for faster semantic segmentation training on CUDA.
 
 ### Dataset format
 

@@ -1,0 +1,2274 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>YOLO Architecture Explorer</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+        <style>
+            :root {
+                --bg: #f4f6f9;
+                --panel: #ffffff;
+                --ink: #1b2130;
+                --muted: #5d6677;
+                --faint: #8a93a3;
+                --line: #dde2ea;
+                --accent: #2d6cdf;
+                --accent-soft: #e5eefc;
+                --edge: #4b5563;
+                --edge-hi: #2563eb;
+                --label-bg: #ffffffee;
+                --code-bg: #f6f8fb;
+                --new: #d9480f;
+                --conv: #8fd6f5;
+                --conv-s: #2b93c9;
+                --csp: #fde9a6;
+                --csp-s: #d9a520;
+                --unit: #f7c1a7;
+                --unit-s: #d27a52;
+                --pool: #74acee;
+                --pool-s: #2563c7;
+                --down: #8ee0c6;
+                --down-s: #1f9a78;
+                --up: #a9dc76;
+                --up-s: #5b9f2c;
+                --concat: #f8c243;
+                --concat-s: #c98a00;
+                --attn: #cfbbf7;
+                --attn-s: #7a52cf;
+                --head: #cbe58c;
+                --head-s: #79a028;
+                --norm: #dde3ea;
+                --norm-s: #7f8a99;
+                --prim: #f8c8a6;
+                --prim-s: #d4834d;
+                --bn: #bfe5a6;
+                --bn-s: #5e9f3c;
+                --act: #c6eef3;
+                --act-s: #3aa3b5;
+                --op: #ffe2c2;
+                --op-s: #d9822b;
+                --split: #cfe9a9;
+                --split-s: #6aa33a;
+                --fn: #dfe6f7;
+                --fn-s: #4f64a8;
+                --seq: #cfe9fb;
+                --seq-s: #2b93c9;
+                --io: #ffffff;
+                --io-s: #4b5563;
+                --node-ink: #111827;
+                --node-sub: #374151;
+                --label-ink: #1f2937;
+                --tok-w: #c2410c;
+                --tok-d: #1d4ed8;
+            }
+            @media (prefers-color-scheme: dark) {
+                :root:not([data-theme="light"]) {
+                    --bg: #0e1117;
+                    --panel: #151a22;
+                    --ink: #e7eaf0;
+                    --muted: #a0a9b8;
+                    --faint: #707a8a;
+                    --line: #283040;
+                    --accent: #6ea1ff;
+                    --accent-soft: #1b2a45;
+                    --edge: #a3adbd;
+                    --edge-hi: #6ea1ff;
+                    --label-bg: #151a22f0;
+                    --label-ink: #e5e7eb;
+                    --tok-w: #fb923c;
+                    --tok-d: #93c5fd;
+                    --code-bg: #10141b;
+                    --new: #ff8a50;
+
+                }
+            }
+            :root[data-theme="dark"] {
+                --bg: #0e1117;
+                --panel: #151a22;
+                --ink: #e7eaf0;
+                --muted: #a0a9b8;
+                --faint: #707a8a;
+                --line: #283040;
+                --accent: #6ea1ff;
+                --accent-soft: #1b2a45;
+                --edge: #a3adbd;
+                --edge-hi: #6ea1ff;
+                --label-bg: #151a22f0;
+                    --label-ink: #e5e7eb;
+                    --tok-w: #fb923c;
+                    --tok-d: #93c5fd;
+                --code-bg: #10141b;
+                --new: #ff8a50;
+
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                height: 100%;
+                background: var(--bg);
+                color: var(--ink);
+                font:
+                    13px/1.45 system-ui,
+                    -apple-system,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+            }
+            button,
+            select,
+            input {
+                font: inherit;
+                color: inherit;
+            }
+            select {
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-radius: 7px;
+                padding: 3px 6px;
+            }
+            .app {
+                display: grid;
+                grid-template-rows: auto auto 1fr;
+                height: 100vh;
+            }
+            header {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 10px 16px;
+                background: var(--panel);
+                border-bottom: 1px solid var(--line);
+                flex-wrap: wrap;
+            }
+            header h1 {
+                font-size: 15px;
+                margin: 0;
+                white-space: nowrap;
+            }
+            header h1 span {
+                color: var(--muted);
+                font-weight: 400;
+                font-size: 12px;
+            }
+            .tabs {
+                display: flex;
+                gap: 3px;
+                flex-wrap: wrap;
+            }
+            .tab,
+            .chip,
+            .btn {
+                border: 1px solid var(--line);
+                background: var(--panel);
+                border-radius: 7px;
+                padding: 4px 10px;
+                cursor: pointer;
+                white-space: nowrap;
+            }
+            .tab:hover,
+            .chip:hover,
+            .btn:hover {
+                border-color: var(--accent);
+            }
+            .tab.on,
+            .chip.on {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #fff;
+            }
+            .spacer {
+                flex: 1;
+            }
+            .seg {
+                display: inline-flex;
+                border: 1px solid var(--line);
+                border-radius: 7px;
+                overflow: hidden;
+            }
+            .seg button {
+                border: 0;
+                background: var(--panel);
+                padding: 4px 9px;
+                cursor: pointer;
+                border-right: 1px solid var(--line);
+            }
+            .seg button:last-child {
+                border-right: 0;
+            }
+            .seg button.on {
+                background: var(--accent);
+                color: #fff;
+            }
+            .subbar {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 7px 16px;
+                border-bottom: 1px solid var(--line);
+                background: var(--panel);
+                flex-wrap: wrap;
+                min-height: 42px;
+            }
+            .crumbs {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                flex-wrap: wrap;
+            }
+            .crumbs a {
+                color: var(--accent);
+                cursor: pointer;
+            }
+            .crumbs a:hover {
+                text-decoration: underline;
+            }
+            .crumbs .sep {
+                color: var(--faint);
+            }
+            main {
+                display: grid;
+                grid-template-columns: 1fr 400px;
+                min-height: 0;
+            }
+            #stage {
+                position: relative;
+                overflow: hidden;
+                min-height: 0;
+            }
+            #svg {
+                width: 100%;
+                height: 100%;
+                display: block;
+                cursor: grab;
+                user-select: none;
+                touch-action: none;
+            }
+            #svg.drag {
+                cursor: grabbing;
+            }
+            #evo {
+                position: absolute;
+                inset: 0;
+                overflow: auto;
+                padding: 16px;
+                display: none;
+            }
+            .zoom {
+                position: absolute;
+                right: 12px;
+                bottom: 12px;
+                display: flex;
+                gap: 4px;
+            }
+            .hint {
+                position: absolute;
+                left: 12px;
+                bottom: 10px;
+                right: 150px;
+                color: var(--faint);
+                font-size: 12px;
+                pointer-events: none;
+            }
+            aside {
+                border-left: 1px solid var(--line);
+                background: var(--panel);
+                overflow: auto;
+                padding: 14px 16px 30px;
+                min-height: 0;
+            }
+            aside h2 {
+                font-size: 17px;
+                margin: 0 0 4px;
+            }
+            aside h3 {
+                font-size: 11.5px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--muted);
+                margin: 18px 0 6px;
+            }
+            aside p {
+                margin: 6px 0;
+            }
+            aside a {
+                color: var(--accent);
+            }
+            .muted {
+                color: var(--muted);
+            }
+            .mono {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                font-size: 12px;
+                overflow-wrap: anywhere;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            td,
+            th {
+                text-align: left;
+                padding: 3px 6px;
+                border-bottom: 1px solid var(--line);
+                vertical-align: top;
+            }
+            th {
+                color: var(--muted);
+                font-weight: 500;
+                font-size: 12px;
+            }
+            td.num,
+            th.num {
+                text-align: right;
+                font-variant-numeric: tabular-nums;
+            }
+            .badge {
+                display: inline-block;
+                font-size: 11px;
+                padding: 1px 7px;
+                border-radius: 10px;
+                border: 1px solid var(--line);
+                margin: 0 4px 3px 0;
+                white-space: nowrap;
+            }
+            .badge.new {
+                color: var(--new);
+                border-color: var(--new);
+                font-weight: 600;
+            }
+            .fam {
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 3px;
+                margin-right: 6px;
+                vertical-align: -1px;
+                border: 1px solid;
+            }
+            pre.code {
+                background: var(--code-bg);
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                padding: 10px;
+                overflow: auto;
+                max-height: 460px;
+                font-size: 11.5px;
+                line-height: 1.5;
+                margin: 6px 0;
+            }
+            .code .k {
+                color: #a626a4;
+            }
+            .code .s {
+                color: #3f9142;
+            }
+            .code .c {
+                color: var(--faint);
+                font-style: italic;
+            }
+            .code .n {
+                color: #b07800;
+            }
+            details summary {
+                cursor: pointer;
+                color: var(--accent);
+                margin: 6px 0;
+            }
+            .legend {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 3px 10px;
+                font-size: 12px;
+            }
+            svg text {
+                fill: var(--ink);
+            }
+            .node {
+                cursor: pointer;
+            }
+            .node rect.box {
+                stroke-width: 1.3;
+            }
+            .node:hover rect.box {
+                stroke-width: 2.4;
+            }
+            .node.sel rect.box {
+                stroke: var(--accent) !important;
+                stroke-width: 3;
+            }
+            .node text {
+                fill: var(--node-ink);
+            }
+            .node .t {
+                font-weight: 700;
+                font-size: 14.5px;
+            }
+            .node .st {
+                font-size: 12px;
+                fill: var(--node-sub);
+            }
+            .node .idx {
+                font-size: 13px;
+                font-weight: 800;
+            }
+            .node .pl {
+                font-size: 11px;
+                fill: var(--node-sub);
+            }
+            .node.k-input text,
+            .node.k-output text {
+                fill: #111827;
+            }
+            .node .xp {
+                font-size: 13px;
+                fill: var(--accent);
+                font-weight: 700;
+            }
+            .edge path {
+                fill: none;
+                stroke: var(--edge);
+                stroke-width: 1.7;
+            }
+            .edge path.hit {
+                stroke: transparent;
+                stroke-width: 12;
+            }
+            .edge.hi path:not(.hit) {
+                stroke: var(--edge-hi);
+                stroke-width: 3;
+            }
+            .edge.dim {
+                opacity: 0.15;
+            }
+            .elab rect {
+                fill: var(--label-bg);
+            }
+            .elab rect {
+                stroke: var(--line);
+            }
+            .elab text {
+                font-size: 12px;
+                fill: var(--label-ink);
+                font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            }
+            .edge.hi .elab text {
+                fill: var(--edge-hi);
+                font-weight: 600;
+            }
+            .colhdr {
+                font-size: 12px;
+                font-weight: 700;
+                fill: var(--muted);
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+            .colbg {
+                fill: var(--ink);
+                opacity: 0.03;
+            }
+            .vcards {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+                gap: 10px;
+                margin-bottom: 18px;
+            }
+            .vcard {
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                padding: 10px 12px;
+            }
+            .vcard h4 {
+                margin: 0 0 4px;
+                font-size: 14px;
+            }
+            .vcard p {
+                margin: 4px 0 8px;
+                color: var(--muted);
+                font-size: 12px;
+            }
+            .vcard .chip {
+                font-size: 11.5px;
+                padding: 2px 7px;
+                margin: 0 4px 4px 0;
+                display: inline-block;
+            }
+            .vcard .cfgs .chip {
+                color: var(--muted);
+            }
+            .matrix {
+                border-collapse: separate;
+                border-spacing: 0;
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                width: auto;
+            }
+            .matrix th,
+            .matrix td {
+                border-bottom: 1px solid var(--line);
+                padding: 4px 9px;
+                text-align: center;
+            }
+            .matrix td:first-child,
+            .matrix th:first-child {
+                text-align: left;
+                position: sticky;
+                left: 0;
+                background: var(--panel);
+            }
+            .matrix tr.row {
+                cursor: pointer;
+            }
+            .matrix tr.row:hover td,
+            .matrix tr.row.on td {
+                background: var(--accent-soft);
+            }
+            .matrix tr.grp td {
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--muted);
+                text-align: left;
+                background: var(--bg);
+            }
+            .dot {
+                display: inline-block;
+                width: 11px;
+                height: 11px;
+                border-radius: 50%;
+                background: var(--accent);
+                opacity: 0.7;
+                vertical-align: -1px;
+            }
+            .dot.first {
+                background: var(--new);
+                opacity: 1;
+            }
+            .evohead {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin: 6px 0 10px;
+                flex-wrap: wrap;
+            }
+            .evohead input {
+                border: 1px solid var(--line);
+                background: var(--panel);
+                border-radius: 7px;
+                padding: 4px 9px;
+                width: 220px;
+            }
+            .warn {
+                padding: 30px;
+                color: var(--new);
+            }
+            .node .t.sm {
+                font-size: 12.5px;
+            }
+            .tw {
+                fill: var(--tok-w) !important;
+                font-weight: 700;
+            }
+            .td {
+                fill: var(--tok-d) !important;
+                font-weight: 700;
+            }
+            .deltatag {
+                fill: #e11d48;
+            }
+            .node .deltatxt,
+            .node .onlytxt {
+                fill: #fff;
+                font-size: 10px;
+                font-weight: 800;
+            }
+            .onlytag {
+                fill: #db2777;
+            }
+            .node rect.box.onlybox {
+                stroke: #db2777 !important;
+                stroke-width: 2.6;
+                stroke-dasharray: 5 3;
+            }
+            .deltanote {
+                color: #e11d48;
+                font-weight: 700;
+            }
+            .seg.phase button.on {
+                background: #e11d48;
+            }
+            ul.notes {
+                margin: 6px 0;
+                padding-left: 18px;
+            }
+            ul.notes li {
+                margin: 3px 0;
+            }
+            table.diff td.minus {
+                color: #e11d48;
+                font-weight: 800;
+            }
+            table.diff td.plus {
+                color: #16a34a;
+                font-weight: 800;
+            }
+            #tip {
+                position: absolute;
+                z-index: 5;
+                pointer-events: none;
+                display: none;
+                max-width: 380px;
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-radius: 9px;
+                box-shadow: 0 6px 22px rgba(0, 0, 0, 0.16);
+                padding: 9px 11px;
+                font-size: 12.5px;
+            }
+            #tip b {
+                font-size: 13.5px;
+            }
+            #tip table {
+                margin-top: 5px;
+            }
+            #tip td,
+            #tip th {
+                padding: 1px 6px 1px 0;
+                font-size: 12px;
+            }
+            .slab {
+                fill: var(--panel);
+                stroke: var(--faint);
+            }
+            .slabtop,
+            .slabside {
+                fill: var(--norm);
+                stroke: var(--faint);
+                stroke-width: 1;
+            }
+            .node.open rect.box {
+                stroke: var(--accent) !important;
+                stroke-width: 2.6;
+                stroke-dasharray: 6 3 !important;
+            }
+            .edge.ov path {
+                stroke-width: 1.1;
+                opacity: 0.85;
+            }
+            .card {
+                fill: var(--panel);
+                stroke: var(--line);
+                stroke-width: 1.2;
+                filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+            }
+            .cardhdr {
+                fill: var(--accent-soft);
+            }
+            .cardt {
+                font-weight: 700;
+                font-size: 14px;
+            }
+            .cards {
+                font-size: 11px;
+                fill: var(--muted) !important;
+            }
+            .sbtn {
+                cursor: pointer;
+            }
+            .sbtn rect {
+                fill: var(--panel);
+                stroke: var(--line);
+            }
+            .sbtn:hover rect {
+                stroke: var(--accent);
+            }
+            .sbtn.on rect {
+                fill: var(--accent);
+                stroke: var(--accent);
+            }
+            .sbtn text {
+                font-size: 12px;
+            }
+            .sbtn.on text {
+                fill: #fff;
+            }
+            .conn {
+                fill: none;
+                stroke: var(--accent);
+                stroke-width: 1.6;
+                stroke-dasharray: 6 4;
+                opacity: 0.7;
+            }
+            .band {
+                fill: var(--ink);
+                opacity: 0.035;
+            }
+            .bandlbl {
+                font-size: 15px;
+                font-weight: 700;
+                fill: var(--muted) !important;
+            }
+            .bandsub,
+            .ovhint {
+                font-size: 11px;
+                fill: var(--faint) !important;
+            }
+            @media (max-width: 900px) {
+                main {
+                    grid-template-columns: 1fr;
+                    grid-template-rows: 62vh auto;
+                }
+                .app {
+                    height: auto;
+                }
+                aside {
+                    border-left: 0;
+                    border-top: 1px solid var(--line);
+                }
+                .hint {
+                    display: none !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app">
+            <header>
+                <h1>YOLO Architecture Explorer <span id="meta"></span></h1>
+                <div class="seg" id="viewseg">
+                    <button data-v="arch" class="on">Architecture</button><button data-v="evo">Blocks &amp; evolution</button>
+                </div>
+                <div class="tabs" id="vtabs"></div>
+                <div class="spacer"></div>
+                <button class="btn" id="theme" title="Toggle light / dark">◐</button>
+            </header>
+            <div class="subbar" id="subbar"></div>
+            <main>
+                <div id="stage">
+                    <svg id="svg"><g id="vp"></g></svg>
+                    <div id="evo"></div>
+                    <div id="tip"></div>
+                    <div class="hint" id="hint">
+                        click a block to open its internals · click inside a card to go deeper · hover for numbers ·
+                        wheel scrolls, Ctrl/⌘+wheel zooms · drag to pan · Esc closes the last card
+                    </div>
+                    <div class="zoom">
+                        <button class="btn" id="zin" title="Zoom in">+</button
+                        ><button class="btn" id="zout" title="Zoom out">−</button
+                        ><button class="btn" id="zfit" title="Fit (f)">fit</button>
+                    </div>
+                </div>
+                <aside id="panel"></aside>
+            </main>
+        </div>
+        <script>
+            const DATA = /*__DATA__*/null;
+            const $ = (s) => document.querySelector(s);
+            const esc = (s) =>
+                String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+            const NS = "http://www.w3.org/2000/svg";
+            const FAM_LABEL = {
+                conv: "Convolution",
+                down: "Downsampling block",
+                csp: "CSP / ELAN block",
+                pool: "Spatial pyramid pooling",
+                attn: "Attention",
+                up: "Upsampling",
+                concat: "Concat",
+                head: "Detection head",
+                unit: "Bottleneck / residual unit",
+                seq: "Sequential branch (folded)",
+                fn: "Helper method (grouped ops)",
+                prim: "Conv2d",
+                bn: "BatchNorm",
+                act: "Activation",
+                split: "Split / chunk",
+                op: "Tensor op (from forward)",
+                norm: "Other (identity, linear, …)",
+                io: "Input / output / constant",
+            };
+            const TYPE_FAM = {
+                Conv2d: "prim",
+                BatchNorm2d: "bn",
+                LayerNorm: "bn",
+                SiLU: "act",
+                ReLU: "act",
+                GELU: "act",
+                Hardswish: "act",
+                Sequential: "seq",
+            };
+            const OP_FAM = { cat: "concat", chunk: "split", split: "split" };
+            // pure reshaping: hidden in simple mode, the edge keeps the reshaped shape
+            const PLUMB = new Set(["view", "reshape", "permute", "transpose", "flatten", "unsqueeze", "squeeze", "contiguous", "expand", "slice", "detach", "repeat", "float", "to", "clone", "type_as", "expand_as", "view_as"]);
+            const OP_DOC = {
+                chunk: "Split the tensor into equal chunks along a dim — the 'Split' in C2f-style blocks.",
+                split: "Split the tensor into parts of the given sizes along a dim.",
+                cat: "Concatenate tensors along a dim (dim 1 = channels for feature maps).",
+                add: "Element-wise addition — usually a residual / shortcut connection.",
+                add_: "In-place element-wise addition.",
+                mul: "Element-wise multiplication (gating, scaling, or multiplying by stride).",
+                sub: "Element-wise subtraction.",
+                div: "Element-wise division.",
+                matmul: "Matrix multiplication (attention scores or attention-weighted values).",
+                softmax: "Softmax along a dim (attention weights, or DFL bin probabilities).",
+                sigmoid: "Sigmoid — turns class logits into probabilities.",
+                view: "Reshape without copying.",
+                reshape: "Reshape the tensor.",
+                permute: "Reorder dimensions.",
+                transpose: "Swap two dimensions.",
+                flatten: "Flatten a range of dimensions into one.",
+                unsqueeze: "Insert a size-1 dimension.",
+                slice: "Index / slice the tensor.",
+                detach: "Stop gradients — the one-to-one head trains without back-propagating into the backbone.",
+                topk: "Keep the k highest scores (end-to-end post-processing).",
+                gather: "Pick rows by index (end-to-end post-processing).",
+            };
+            const S = {
+                phase: "train",
+                simple: true,
+                view: "arch",
+                cfg: null,
+                mode: "sym",
+                path: [], // full-screen focus on one block (breadcrumb)
+                cards: [], // detail cards opened beside the diagram, each one level deeper
+                sel: null,
+                labels: true,
+                evoq: "",
+                evoBlock: null,
+                focus: null,
+            };
+            const cfgById = Object.fromEntries(DATA.configs.map((c) => [c.id, c]));
+            const fam = (type) => (type.endsWith("()") ? "fn" : TYPE_FAM[type] || DATA.catalog[type]?.family || "csp");
+            const famFill = (f) => (f === "head" ? "url(#gHead)" : `var(--${f})`);
+            const famStroke = (f) => `var(--${f}-s)`;
+            const scaleKeys = (cfg) => Object.keys(cfg.scales);
+            const PHASE_LABEL = { train: "Training", deploy: "Deployment" };
+            const PHASE_TIP = {
+                train: "model.train(): BatchNorm and RepConv branches unfused, every training head runs, raw outputs feed the loss",
+                deploy: "model.fuse() + eval(), what predict() / export() run: BN folded, Rep branches merged, unused head removed, outputs decoded",
+            };
+            const V = (l) => l.variants[S.phase] || []; // a layer's internal structures in the current mode
+            const otherPhase = () => (S.phase === "train" ? "deploy" : "train");
+            // follow a card chain into another mode: same scales for the layer, then same named block at each level
+            function remapChain(chain, cfg) {
+                const out = [];
+                for (const [i, c] of chain.entries()) {
+                    if (i === 0) {
+                        if (c.layer == null) return [];
+                        const l = cfg.layers[c.layer],
+                            old = l.variants;
+                        const scales = Object.values(old)
+                            .flat()
+                            .find(([k]) => k === c.key)?.[1] || [];
+                        let vi = V(l).findIndex(([, sc]) => sc.some((x) => scales.includes(x)));
+                        if (vi < 0) vi = 0;
+                        if (!V(l)[vi]) return [];
+                        out.push({ ...c, key: V(l)[vi][0], vi });
+                    } else {
+                        const prevOld = DATA.blocks[chain[i - 1].key].nodes[c.from ?? c.j];
+                        const nb = DATA.blocks[out[i - 1].key].nodes;
+                        const j = nb.findIndex((m) => m.g && m.name === prevOld?.name && m.type === prevOld?.type);
+                        if (j < 0) break;
+                        out.push({ ...c, key: nb[j].g, from: c.from != null ? j : c.from, j: c.j != null ? j : c.j });
+                    }
+                }
+                return out;
+            }
+            function setPhase(ph) {
+                const cfg = cfgById[S.cfg];
+                S.phase = ph;
+                S.cards = remapChain(S.cards, cfg);
+                S.path = remapChain(S.path, cfg);
+                S.sel = null;
+                render(true);
+            }
+
+            /* ------------------------------------------------------------ helpers */
+            function el(tag, attrs = {}, parent) {
+                const e = document.createElementNS(NS, tag);
+                for (const k in attrs) e.setAttribute(k, attrs[k]);
+                if (parent) parent.appendChild(e);
+                return e;
+            }
+            const tw = (s, px = 6.6) => String(s).length * px;
+            const fv = (v) => (v === true ? "True" : v === false ? "False" : v); // Python-style values
+            const fmtN = (n) => (n >= 1e6 ? (n / 1e6).toFixed(2) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : String(n));
+            function hl(code) {
+                const KW =
+                    /\b(def|class|return|if|else|elif|for|in|not|and|or|is|None|True|False|self|super|lambda|with|yield|import|from|as|raise|assert|while)\b/g;
+                return code
+                    .split("\n")
+                    .map((line) => {
+                        const ci = line.search(/#(?=(?:[^"']|"[^"]*"|'[^']*')*$)/);
+                        const body = ci >= 0 ? line.slice(0, ci) : line;
+                        const cm = ci >= 0 ? line.slice(ci) : "";
+                        const out = esc(body)
+                            .replace(/(&quot;.*?&quot;|'[^']*')/g, "\u0001$1\u0002")
+                            .replace(/\b(\d+\.?\d*)\b/g, "\u0003$1\u0004")
+                            .replace(KW, "\u0005$1\u0006")
+                            .replace(/\u0001/g, '<span class="s">')
+                            .replace(/\u0003/g, '<span class="n">')
+                            .replace(/\u0005/g, '<span class="k">')
+                            .replace(/[\u0002\u0004\u0006]/g, "</span>");
+                        return out + (cm ? `<span class="c">${esc(cm)}</span>` : "");
+                    })
+                    .join("\n");
+            }
+            const famDot = (f) => `<span class="fam" style="background:${famFill(f)};border-color:${famStroke(f)}"></span>`;
+            function blockInfoHTML(type, opts = {}) {
+                const c = DATA.catalog[type];
+                if (!c) return "";
+                const cur = cfgById[S.cfg];
+                let h = c.doc ? `<p>${esc(c.doc)}</p>` : "";
+                h += `<p>${c.first ? `<span class="badge ${cur && c.first === cur.version ? "new" : ""}">first used in ${esc(c.first)}</span>` : ""}${c.versions
+                    .map((v) => `<span class="badge">${esc(v)}</span>`)
+                    .join("")}</p>`;
+                if (c.file)
+                    h += `<p class="mono"><a href="https://github.com/ultralytics/ultralytics/blob/main/${c.file}#L${c.line}" target="_blank" rel="noopener">${esc(c.file)}:${c.line}</a></p>`;
+                if (c.src)
+                    h += `<details ${opts.open ? "open" : ""}><summary>Source — __init__ + forward</summary><pre class="code">${hl(c.src)}</pre></details>`;
+                return h;
+            }
+            function legendHTML() {
+                return `<div class="legend">${Object.entries(FAM_LABEL)
+                    .map(([f, t]) => `<div>${famDot(f)}${t}</div>`)
+                    .join("")}</div>`;
+            }
+
+            /* ------------------------------------------------------------ pan / zoom */
+            const svg = $("#svg"),
+                vp = $("#vp");
+            let T = { x: 0, y: 0, k: 1 },
+                bbox = null,
+                anim = 0;
+            const applyT = () => vp.setAttribute("transform", `translate(${T.x},${T.y}) scale(${T.k})`);
+            function viewFor(r, maxK) {
+                const v = svg.getBoundingClientRect(),
+                    pad = 24;
+                const k = Math.max(0.12, Math.min(maxK, (v.width - 2 * pad) / r.w, (v.height - 2 * pad) / r.h));
+                return { k, x: (v.width - r.w * k) / 2 - r.x * k, y: Math.max(pad, (v.height - r.h * k) / 2) - r.y * k };
+            }
+            // default view: fit the width (text stays readable), start at the top, scroll for the rest
+            function fitWidth(r) {
+                const v = svg.getBoundingClientRect(),
+                    pad = 24;
+                const k = Math.max(0.12, Math.min(1.1, (v.width - 2 * pad) / r.w));
+                return { k, x: (v.width - r.w * k) / 2 - r.x * k, y: pad - r.y * k };
+            }
+            function fit() {
+                if (!bbox || !svg.getBoundingClientRect().width) return;
+                T = S.path.length ? viewFor(bbox, 1.3) : fitWidth(bbox);
+                applyT();
+            }
+            function animateTo(t2) {
+                const t1 = { ...T },
+                    t0 = performance.now(),
+                    id = ++anim;
+                const step = () => {
+                    if (id !== anim) return;
+                    const a = Math.max(0, Math.min(1, (performance.now() - t0) / 320)),
+                        e = a < 0.5 ? 2 * a * a : 1 - (-2 * a + 2) ** 2 / 2;
+                    T = { x: t1.x + (t2.x - t1.x) * e, y: t1.y + (t2.y - t1.y) * e, k: t1.k + (t2.k - t1.k) * e };
+                    applyT();
+                    if (a < 1) requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
+            }
+            function zoomAt(f, cx, cy) {
+                anim++;
+                const k = Math.max(0.08, Math.min(4, T.k * f));
+                T.x = cx - ((cx - T.x) * k) / T.k;
+                T.y = cy - ((cy - T.y) * k) / T.k;
+                T.k = k;
+                applyT();
+            }
+            svg.addEventListener(
+                "wheel",
+                (e) => {
+                    e.preventDefault();
+                    const r = svg.getBoundingClientRect();
+                    if (e.ctrlKey || e.metaKey) return zoomAt(Math.exp(-e.deltaY * 0.004), e.clientX - r.left, e.clientY - r.top);
+                    anim++; // wheel scrolls / pans like a page; shift+wheel scrolls sideways
+                    T.x -= e.shiftKey ? e.deltaY : e.deltaX;
+                    T.y -= e.shiftKey ? 0 : e.deltaY;
+                    applyT();
+                },
+                { passive: false },
+            );
+            let drag = null;
+            svg.addEventListener("pointerdown", (e) => {
+                if (e.target.closest(".node, .sbtn")) return;
+                anim++;
+                drag = { x: e.clientX, y: e.clientY, tx: T.x, ty: T.y, moved: false };
+                svg.classList.add("drag");
+                svg.setPointerCapture(e.pointerId);
+            });
+            svg.addEventListener("pointermove", (e) => {
+                if (!drag) return;
+                T.x = drag.tx + e.clientX - drag.x;
+                T.y = drag.ty + e.clientY - drag.y;
+                drag.moved ||= Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 3;
+                applyT();
+            });
+            svg.addEventListener("pointerup", () => {
+                if (drag && !drag.moved && S.sel != null) select(null);
+                drag = null;
+                svg.classList.remove("drag");
+            });
+            const zc = (f) => {
+                const r = svg.getBoundingClientRect();
+                zoomAt(f, r.width / 2, r.height / 2);
+            };
+            $("#zin").onclick = () => zc(1.25);
+            $("#zout").onclick = () => zc(0.8);
+            $("#zfit").onclick = () => animateTo(viewFor(bbox, 1.3));
+            $("#zfit").title = "Fit everything (f)";
+            window.addEventListener("resize", () => S.cards.length || fit()); // keep an opened card in view
+
+            /* ------------------------------------------------------------ drawing primitives */
+            let NODES = {},
+                EDGES = [];
+            function drawNode(g, n) {
+                const grp = el("g", { class: `node k-${n.kind}${n.isOpen ? " open" : ""}`, transform: `translate(${n.x},${n.y})` }, g);
+                grp.dataset.id = n.id;
+                const f = n.fam;
+                if (n.kind === "slab") {
+                    const d = 12,
+                        e = 7;
+                    el("path", { class: "slabtop", d: `M0,0 L${d},${-e} L${n.w + d},${-e} L${n.w},0 Z` }, grp);
+                    el("path", { class: "slabside", d: `M${n.w},0 L${n.w + d},${-e} L${n.w + d},${n.h - e} L${n.w},${n.h} Z` }, grp);
+                    el("rect", { class: "box slab", width: n.w, height: n.h }, grp);
+                } else {
+                    const r = ["op", "input", "output", "const", "chip"].includes(n.kind) ? Math.min(14, n.h / 2) : 8;
+                    if (n.stack)
+                        for (const o of [8, 4])
+                            el("rect", { x: o, y: -o, width: n.w, height: n.h, rx: r, fill: famFill(f), stroke: famStroke(f), opacity: 0.6 }, grp);
+                    el(
+                        "rect",
+                        { class: "box", width: n.w, height: n.h, rx: r, fill: famFill(f), stroke: famStroke(f), "stroke-dasharray": n.kind === "const" ? "4 3" : "none" },
+                        grp,
+                    );
+                }
+                const side = n.idx != null ? 36 : 0;
+                const tx = (n.w - side) / 2;
+                if (side) {
+                    el("line", { x1: n.w - side, y1: 7, x2: n.w - side, y2: n.h - 7, stroke: famStroke(f), opacity: 0.45 }, grp);
+                    el("text", { class: "idx", x: n.w - side / 2, y: n.pl ? n.h / 2 - 2 : n.h / 2 + 4, "text-anchor": "middle" }, grp).textContent = n.idx;
+                    if (n.pl) el("text", { class: "pl", x: n.w - side / 2, y: n.h / 2 + 12, "text-anchor": "middle" }, grp).textContent = n.pl;
+                }
+                if (n.lines) {
+                    el("text", { class: "t", x: 12, y: 19 }, grp).textContent = n.title;
+                    n.lines.forEach((ln, i) => (el("text", { class: "st", x: 12, y: 37 + i * 15 }, grp).textContent = ln));
+                } else {
+                    const y0 = n.sub ? n.h / 2 - 3 : n.h / 2 + 4.5;
+                    el("text", { class: n.kind === "chip" || n.kind === "slab" ? "t sm" : "t", x: tx, y: y0, "text-anchor": "middle" }, grp).textContent = n.title;
+                    if (n.sub) tokText(el("text", { class: "st", x: tx, y: y0 + 16, "text-anchor": "middle" }, grp), n.sub, n.symSub);
+                }
+                if (n.delta) {
+                    el("rect", { class: "deltatag", x: 6, y: n.h - 17, width: 18, height: 13, rx: 3 }, grp);
+                    el("text", { class: "deltatxt", x: 15, y: n.h - 7, "text-anchor": "middle" }, grp).textContent = "Δ";
+                }
+                if (n.only) {
+                    const lab = S.phase === "train" ? "training only" : "not in training";
+                    grp.querySelector("rect.box").classList.add("onlybox");
+                    const w = tw(lab, 6.2) + 10;
+                    el("rect", { class: "onlytag", x: n.w / 2 - w / 2, y: -15, width: w, height: 14, rx: 7 }, grp);
+                    el("text", { class: "onlytxt", x: n.w / 2, y: -5, "text-anchor": "middle" }, grp).textContent = lab;
+                }
+                if (n.badge) {
+                    el("rect", { x: n.w - 20, y: -10, width: 30, height: 18, rx: 9, fill: "var(--accent)" }, grp);
+                    el("text", { x: n.w - 5, y: 3, "text-anchor": "middle", style: "fill:#fff;font-size:11px;font-weight:700" }, grp).textContent = n.badge;
+                }
+                if (n.act && n.kind !== "chip" && n.kind !== "slab") {
+                    const t = el("text", { class: "xp", x: 7, y: 15 }, grp);
+                    t.textContent = n.isOpen ? "▸" : "⤢";
+                }
+                grp.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    if (n.act) n.act();
+                    else select(n.id);
+                });
+                grp.addEventListener("dblclick", (e) => {
+                    e.stopPropagation();
+                    if (n.full) n.full();
+                });
+                grp.addEventListener("mouseenter", (e) => {
+                    hover(n.id);
+                    showTip(nodeTip(n), e);
+                });
+                grp.addEventListener("mousemove", moveTip);
+                grp.addEventListener("mouseleave", () => {
+                    hover(null);
+                    hideTip();
+                });
+                n.el = grp;
+            }
+            function drawEdge(g, e) {
+                const grp = el("g", { class: "edge" + (e.cls ? " " + e.cls : "") }, g);
+                el("path", { d: e.d, "marker-end": "url(#arr)" }, grp);
+                el("path", { class: "hit", d: e.d }, grp);
+                if (e.label && S.labels) {
+                    const lg = el("g", { class: "elab", transform: `translate(${e.lx},${e.ly})` }, grp);
+                    const w = tw(e.label, 7.1) + 10;
+                    el("rect", { x: -w / 2, y: -9, width: w, height: 17, rx: 4 }, lg);
+                    tokText(el("text", { "text-anchor": "middle", y: 4 }, lg), e.label, e.sym);
+                }
+                grp.addEventListener("mouseenter", (ev) => {
+                    grp.classList.add("hi");
+                    const a = NODES[e.s],
+                        b = NODES[e.t];
+                    showTip(`<b>${esc(e.label || "tensor")}</b><div class="muted">${esc(a?.title || e.s)} → ${esc(b?.title || e.t)}</div>`, ev);
+                });
+                grp.addEventListener("mousemove", moveTip);
+                grp.addEventListener("mouseleave", () => {
+                    grp.classList.remove("hi");
+                    hideTip();
+                });
+                e.el = grp;
+            }
+            // colour the scale symbols like the reference: w / r orange, d / n blue
+            function tokText(t, label, sym) {
+                if (!sym) return (t.textContent = label);
+                for (const part of String(label).split(/((?<![A-Za-z_])[wrdn](?![A-Za-z_]))/)) {
+                    if (!part) continue;
+                    const sp = el("tspan", /^[wr]$/.test(part) ? { class: "tw" } : /^[dn]$/.test(part) ? { class: "td" } : {}, t);
+                    sp.textContent = part;
+                }
+            }
+            const tipEl = () => $("#tip");
+            function showTip(html, e) {
+                const t = tipEl();
+                t.innerHTML = html;
+                t.style.display = "block";
+                moveTip(e);
+            }
+            function moveTip(e) {
+                const t = tipEl(),
+                    r = $("#stage").getBoundingClientRect();
+                let x = e.clientX - r.left + 16,
+                    y = e.clientY - r.top + 16;
+                if (x + t.offsetWidth > r.width - 8) x = e.clientX - r.left - t.offsetWidth - 16;
+                if (y + t.offsetHeight > r.height - 8) y = Math.max(8, r.height - t.offsetHeight - 8);
+                t.style.left = x + "px";
+                t.style.top = y + "px";
+            }
+            const hideTip = () => (tipEl().style.display = "none");
+            function nodeTip(n) {
+                const cfg = cfgById[S.cfg];
+                if (n.layer != null && !n.ctx) {
+                    const l = cfg.layers[n.layer];
+                    const sc = scaleKeys(cfg);
+                    let h = `<b>${l.i} · ${esc(l.type)}${l.cls === "Sequential" ? " ×n" : ""}</b> <span class="muted">${l.section}</span><div class="mono">${esc(l.yaml)}</div>`;
+                    if (l.c_sym) h += `<div class="mono">out ${l.hw[0]}×${l.hw[1]}×${esc(l.c_sym)} · stride ${strideOf(l)}</div>`;
+                    h += `<table><tr><th>scale</th>${l.n_sym ? "<th>n</th>" : ""}<th>output h×w×c</th><th>params</th></tr>${sc
+                        .map((s, i) => `<tr><td>${s || "–"}</td>${l.n_sym ? `<td>${l.n[i]}</td>` : ""}<td class="mono">${l.out[i] ? l.out[i].join("×") : ""}</td><td>${fmtN(l.params[S.phase][i])}</td></tr>`)
+                        .join("")}</table>`;
+                    if (phaseDelta(l)) h += `<div class="deltanote">Δ internals differ in ${PHASE_LABEL[otherPhase()].toLowerCase()}</div>`;
+                    return h + (V(l).length ? `<div class="muted">click to open its internals</div>` : "");
+                }
+                let h = `<b>${esc(n.title)}</b>${n.name && n.name !== n.title ? ` <span class="muted mono">${esc(n.name)}</span>` : ""}`;
+                if (n.sub && n.kind !== "module") h += `<div class="mono">${esc(n.sub)}</div>`;
+                if (n.shape) h += `<div class="mono">out ${esc(n.shape)}</div>`;
+                const hp = Object.entries(n.hp || {});
+                if (hp.length) h += `<table>${hp.map(([k, v]) => `<tr><td class="mono">${esc(k)}</td><td class="mono">${esc(fv(v))}</td></tr>`).join("")}</table>`;
+                if (n.kind === "op" && OP_DOC[n.type]) h += `<div class="muted">${esc(OP_DOC[n.type])}</div>`;
+                if (n.only) h += `<div class="deltanote">${S.phase === "train" ? "exists only while training" : "not present while training"}</div>`;
+                return h + (n.act ? `<div class="muted">click to open the next level</div>` : "");
+            }
+            function paint(parent, nodes, edges) {
+                const eg = el("g", {}, parent),
+                    ng = el("g", {}, parent);
+                for (const e of edges) {
+                    drawEdge(eg, e);
+                    EDGES.push(e);
+                }
+                for (const n of nodes) {
+                    drawNode(ng, n);
+                    NODES[n.id] = n;
+                }
+            }
+            function svgButton(g, x, y, label, onclick, on, title) {
+                const w = tw(label, 6.8) + 16;
+                const b = el("g", { class: "sbtn" + (on ? " on" : ""), transform: `translate(${x},${y})` }, g);
+                el("rect", { width: w, height: 22, rx: 6 }, b);
+                el("text", { x: w / 2, y: 15, "text-anchor": "middle" }, b).textContent = label;
+                if (title) el("title", {}, b).textContent = title;
+                b.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    onclick();
+                });
+                return w;
+            }
+            function hover(id) {
+                const on = id ?? S.sel;
+                for (const e of EDGES) {
+                    const hit = on != null && (String(e.s) === String(on) || String(e.t) === String(on));
+                    e.el.classList.toggle("hi", hit);
+                    e.el.classList.toggle("dim", on != null && !hit && !e.cls);
+                }
+            }
+            function select(id) {
+                S.sel = id;
+                for (const k in NODES) NODES[k].el?.classList.toggle("sel", id != null && k === String(id));
+                hover(null);
+                renderPanel();
+            }
+            function clear() {
+                vp.innerHTML = "";
+                NODES = {};
+                EDGES = [];
+                const d = el("defs", {}, vp);
+                const m = el("marker", { id: "arr", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 11, markerHeight: 11, markerUnits: "userSpaceOnUse", orient: "auto-start-reverse" }, d);
+                el("path", { d: "M0,0 L10,5 L0,10 z", fill: "var(--edge)" }, m);
+                const gr = el("linearGradient", { id: "gHead", x1: 0, x2: 1, y1: 0, y2: 0 }, d);
+                el("stop", { offset: "0", "stop-color": "#b5dd7a" }, gr);
+                el("stop", { offset: "1", "stop-color": "#f5e27e" }, gr);
+            }
+            const hcurve = (sx, sy, tx, ty) => {
+                const c = Math.max(30, Math.abs(tx - sx) * 0.45) * (tx >= sx ? 1 : -1);
+                return `M${sx},${sy} C${sx + c},${sy} ${tx - c},${ty} ${tx},${ty}`;
+            };
+
+            /* ------------------------------------------------------------ shared layer helpers */
+            const strideOf = (l) => (l && l.hw ? DATA.imgsz / l.hw[0] : null);
+            const srcOf = (l) => (Array.isArray(l.f) ? l.f : [l.f]).map((f) => (f < 0 ? l.i + f : f));
+            const lvl = (s) => (s ? `P${Math.round(Math.log2(s))}` : "");
+            function shapeLabel(cfg, l) {
+                if (!l) return `${DATA.imgsz}×${DATA.imgsz}×3`;
+                if (S.mode === "sym") return l.hw && l.c_sym ? `${l.hw[0]}×${l.hw[1]}×${l.c_sym}` : "";
+                const o = l.out[scaleKeys(cfg).indexOf(S.mode)];
+                return o ? o.join("×") : "";
+            }
+            function subtitle(cfg, l) {
+                const parts = [];
+                const hp = l.hp || {};
+                if ("k" in hp && "s" in hp) parts.push(`k=${hp.k}, s=${hp.s}, p=${hp.p ?? 0}`);
+                else {
+                    const skip = new Set(["c1", "c2", "c3", "c4", "cm", "n", "ch", "nc", "reg_max", "end2end", "size", "dimension", "e"]);
+                    for (const [k, v] of l.args) if (!skip.has(k) && parts.length < 2 && String(v).length < 20) parts.push(`${k}=${v}`);
+                }
+                if (l.n_sym) parts.push(S.mode === "sym" ? `n=${l.n_sym}` : `n=${l.n[scaleKeys(cfg).indexOf(S.mode)]}`);
+                return parts.join(", ");
+            }
+            const layerAct = (l, id) => (V(l).length ? () => openLayerCard(l, 0, id) : () => select(id));
+            const layerFull = (l) => (V(l).length ? () => openFull(l, 0) : null);
+            // split the backbone into parallel chains: a stride reset starts a new chain (e.g. yolov9e's second
+            // backbone), layers fed from elsewhere (e.g. CBLinear) go to a links column between the chains
+            function splitBackbone(cfg) {
+                const L = cfg.layers,
+                    nb = cfg.nb;
+                const chains = [["in"]],
+                    links = [];
+                let maxS = 1;
+                for (let i = 0; i < nb; i++) {
+                    const l = L[i],
+                        s = strideOf(l),
+                        cur = chains[chains.length - 1];
+                    const continued = i + 1 < nb && srcOf(L[i + 1]).includes(i); // a real chain is consumed by the next layer
+                    if (i > 0 && s != null && s < maxS && continued) {
+                        chains.push([l]);
+                        maxS = s;
+                    } else if (i === 0 || (srcOf(l).includes(i - 1) && cur.includes(L[i - 1]))) {
+                        cur.push(l);
+                        if (s) maxS = Math.max(maxS, s);
+                    } else links.push(l);
+                }
+                const main = chains.pop();
+                const cols = [...chains, ...(links.length ? [links] : []), main];
+                const headers = [
+                    ...chains.map((_, k) => `Backbone · branch${chains.length > 1 ? " " + (k + 1) : ""}`),
+                    ...(links.length ? [[...new Set(links.map((l) => l.type))].join(" / ") + " links"] : []),
+                    chains.length ? "Backbone · main" : "Backbone",
+                ];
+                return { cols, headers };
+            }
+            // does this layer's internal wiring differ between the current mode and the other one?
+            function phaseDelta(l) {
+                const other = l.variants[otherPhase()] || [];
+                return V(l).some(([k, sc]) => {
+                    const t = other.find(([, s2]) => s2.some((x) => sc.includes(x)))?.[0];
+                    return t && structDiff(k, t);
+                });
+            }
+            // structural difference between two block graphs, recursively; BatchNorm folding alone does not count
+            const DIFF_CACHE = new Map();
+            function structDiff(a, b, depth = 0) {
+                if (a === b) return false;
+                const ck = a + "|" + b;
+                if (DIFF_CACHE.has(ck)) return DIFF_CACHE.get(ck);
+                const sig = (n) => (n.kind === "module" && n.type !== "BatchNorm2d" ? `${n.name}|${n.type}` : null);
+                const A = DATA.blocks[a].nodes,
+                    B = DATA.blocks[b].nodes;
+                const sa = A.map(sig).filter(Boolean).sort(),
+                    sb = B.map(sig).filter(Boolean).sort();
+                let d = sa.join() !== sb.join();
+                if (!d && depth < 8)
+                    d = A.some((n) => {
+                        if (!n.g) return false;
+                        const m = B.find((x) => x.g && x.name === n.name && x.type === n.type);
+                        return m && structDiff(n.g, m.g, depth + 1);
+                    });
+                DIFF_CACHE.set(ck, d);
+                return d;
+            }
+            function splitNeck(cfg) {
+                const L = cfg.layers,
+                    nb = cfg.nb;
+                const head = L.slice(nb, L.length - 1);
+                let k = head.length,
+                    prev = strideOf(L[nb - 1]);
+                for (let t = 0; t < head.length; t++) {
+                    const s = strideOf(head[t]);
+                    if (s != null && prev != null && s > prev) {
+                        k = t;
+                        break;
+                    }
+                    if (s != null) prev = s;
+                }
+                return [head.slice(0, k), head.slice(k)];
+            }
+
+            /* ------------------------------------------------------------ overview strip (compact, like the reference header) */
+            function drawOverview(cfg, g) {
+                const L = cfg.layers,
+                    nb = cfg.nb,
+                    last = L[L.length - 1];
+                const bstr = [...new Set(L.slice(0, nb).map(strideOf).filter((s) => s && s > 1))].sort((a, b) => a - b);
+                const all = [...new Set([...bstr, ...L.slice(nb, -1).map(strideOf).filter(Boolean)])].sort((a, b) => b - a);
+                const RH = 36,
+                    top = 46,
+                    CH = 22;
+                const cy = (s) => top + all.indexOf(s) * RH + CH / 2;
+                const nodes = [],
+                    edges = [],
+                    at = {};
+                const maxW = 210,
+                    PX = 10;
+                bstr.forEach((s, k) => {
+                    const w = maxW - (k * (maxW - 96)) / Math.max(1, bstr.length - 1);
+                    let li = 0;
+                    for (let i = 0; i < nb; i++) if (strideOf(L[i]) === s) li = i;
+                    const id = `os${s}`;
+                    nodes.push({ id, kind: "slab", x: PX + (maxW - w) / 2, y: cy(s) - CH / 2, w, h: CH, fam: "io", title: `${lvl(s)} · ${L[li].hw[0]}×${L[li].hw[1]}`, layer: li, act: layerAct(L[li], id), full: layerFull(L[li]) });
+                    at[`s${s}`] = { x: PX + (maxW + w) / 2 + 12, y: cy(s) };
+                });
+                let x = PX + maxW + 70;
+                const neckX = x;
+                const chipFor = (l) =>
+                    ({ Upsample: "U", Concat: "C", ConvTranspose2d: "UT" })[l.type] || (l.cls === "Sequential" ? `${l.type}×n` : l.type);
+                for (const l of L.slice(nb, -1)) {
+                    const s = strideOf(l) ?? all[0];
+                    const lab = chipFor(l);
+                    const w = Math.max(26, tw(lab, 7) + 14);
+                    const id = `oc${l.i}`;
+                    nodes.push({ id, kind: "chip", x, y: cy(s) - CH / 2, w, h: CH, fam: fam(l.cls === "Sequential" ? l.type : l.cls), title: lab, layer: l.i, act: layerAct(l, id), full: layerFull(l) });
+                    at[l.i] = { lx: x, rx: x + w, y: cy(s) };
+                    x += w + 18;
+                }
+                const from = (src) => {
+                    if (src < nb) {
+                        const p = at[`s${strideOf(cfg.layers[src])}`];
+                        return p ? [p.x, p.y, `os${strideOf(cfg.layers[src])}`] : null;
+                    }
+                    return at[src] ? [at[src].rx, at[src].y, `oc${src}`] : null;
+                };
+                for (const l of L.slice(nb, -1))
+                    for (const src of srcOf(l)) {
+                        const a = from(src);
+                        if (a) edges.push({ s: a[2], t: `oc${l.i}`, d: hcurve(a[0], a[1], at[l.i].lx, at[l.i].y), cls: "ov" });
+                    }
+                // outputs: one level slab + head chip per input, then a predictions note
+                const headX = x + 30;
+                const ins = srcOf(last);
+                const dlab = last.type;
+                const dW = Math.max(60, tw(dlab, 7) + 16);
+                const used = new Set();
+                ins.forEach((src, j) => {
+                    let s = strideOf(L[src]) ?? all[0];
+                    let y = cy(s) - CH / 2;
+                    while (used.has(y)) y += CH + 6;
+                    used.add(y);
+                    const sid = `oo${j}`,
+                        did = `od${j}`;
+                    nodes.push({ id: sid, kind: "slab", x: headX, y, w: 70, h: CH, fam: "io", title: lvl(s), layer: last.i, act: layerAct(last, sid), full: layerFull(last) });
+                    nodes.push({ id: did, kind: "chip", x: headX + 104, y, w: dW, h: CH, fam: "head", title: dlab, layer: last.i, act: layerAct(last, did), full: layerFull(last) });
+                    const a = from(src);
+                    if (a) edges.push({ s: a[2], t: sid, d: hcurve(a[0], a[1], headX, y + CH / 2), cls: "ov" });
+                    edges.push({ s: sid, t: did, d: `M${headX + 82},${y + CH / 2} L${headX + 104},${y + CH / 2}`, cls: "ov" });
+                });
+                const lines = last.args
+                    .filter(([k, v]) => k !== "ch" && String(v).length <= 22)
+                    .slice(0, 3)
+                    .map(([k, v]) => `${k} = ${v}`);
+                lines.push(S.phase === "train" ? "outputs → loss (training)" : "outputs → post-processing");
+                const nx = headX + 104 + dW + 50,
+                    nw = Math.max(...lines.map((s) => tw(s, 6.4))) + 26,
+                    nh = 30 + lines.length * 15;
+                const midY = top + ((all.length - 1) * RH) / 2 + CH / 2;
+                nodes.push({ id: "onote", kind: "note", x: nx, y: midY - nh / 2, w: nw, h: nh, fam: "head", title: last.type, lines, layer: last.i, act: layerAct(last, "onote"), full: layerFull(last) });
+                ins.forEach((_, j) => {
+                    const d = nodes.find((n) => n.id === `od${j}`);
+                    edges.push({ s: `od${j}`, t: "onote", d: hcurve(d.x + d.w, d.y + CH / 2, nx, midY), cls: "ov" });
+                });
+                for (const [x0, t] of [
+                    [PX, "Backbone"],
+                    [neckX, "Neck"],
+                    [headX, "Head"],
+                ])
+                    el("text", { class: "colhdr", x: x0, y: 18 }, g).textContent = t;
+                el("text", { class: "ovhint", x: PX, y: 34 }, g).textContent = "overview — click any piece to open it";
+                paint(g, nodes, edges);
+                return { w: nx + nw, h: top + all.length * RH };
+            }
+
+            /* ------------------------------------------------------------ main diagram, rows grouped by resolution */
+            const W = 240,
+                H = 58,
+                GX = 176,
+                ROW = 82,
+                BGAP = 26;
+            function drawMain(cfg, g) {
+                const L = cfg.layers,
+                    nb = cfg.nb,
+                    last = L[L.length - 1];
+                const [fpn, pan] = splitNeck(cfg);
+                const bb = splitBackbone(cfg);
+                const cols = [...bb.cols, fpn];
+                if (pan.length) cols.push(pan);
+                const ncol = cols.length,
+                    fpnCol = bb.cols.length;
+                // every column is split into stride bands; a band is as tall as its busiest column, so a neck node
+                // sits level with the backbone stage of the same resolution and skip connections run horizontally
+                const colBands = cols.map((list) => {
+                    const m = new Map();
+                    let prev = 1;
+                    for (const it of list) {
+                        // layers without a feature-map output (e.g. CBLinear) sit on the band of their source
+                        const s = it === "in" ? 1 : (strideOf(it) ?? strideOf(L[srcOf(it)[0]]) ?? prev);
+                        prev = s;
+                        if (!m.has(s)) m.set(s, []);
+                        m.get(s).push(it);
+                    }
+                    return m;
+                });
+                const strides = [...new Set(colBands.flatMap((m) => [...m.keys()]))].sort((a, b) => a - b);
+                const band = {};
+                let y = 0;
+                for (const s of strides) {
+                    const rows = Math.max(...colBands.map((m) => m.get(s)?.length || 0));
+                    band[s] = { top: y, h: rows * ROW };
+                    y += rows * ROW + BGAP;
+                }
+                const TH = y - BGAP;
+                const pos = {};
+                colBands.forEach((m, c) => {
+                    for (const [s, list] of m) {
+                        const b = band[s],
+                            step = b.h / list.length;
+                        list.forEach((it, i) => {
+                            const t = c === fpnCol ? list.length - 1 - i : i; // the top-down neck flows upward
+                            pos[it === "in" ? "in" : it.i] = { x: c * (W + GX), y: b.top + (t + 0.5) * step - H / 2, c, k: cols[c].indexOf(it) };
+                        });
+                    }
+                });
+                const bg = el("g", {}, g);
+                const fullW = (ncol + 1) * (W + GX) - GX;
+                strides.forEach((s, i) => {
+                    const b = band[s];
+                    el("rect", { class: "band", x: -70, y: b.top - BGAP / 2, width: fullW + 100, height: b.h + BGAP, opacity: i % 2 ? 0 : 1 }, bg);
+                    const t = el("text", { class: "bandlbl", x: -44, y: b.top + b.h / 2 + 4, "text-anchor": "middle" }, bg);
+                    t.textContent = s === 1 ? "input" : lvl(s);
+                    if (s > 1) el("text", { class: "bandsub", x: -44, y: b.top + b.h / 2 + 18, "text-anchor": "middle" }, bg).textContent = `/${s}`;
+                });
+                const hdr = [...bb.headers, pan.length ? "Neck · top-down ↑" : "Head ↑", "Neck · bottom-up ↓"];
+                for (let c = 0; c <= ncol; c++) {
+                    if (c < ncol) el("rect", { class: "colbg", x: c * (W + GX) - 16, y: -44, width: W + 32, height: TH + 58, rx: 12 }, bg);
+                    el("text", { class: "colhdr", x: c * (W + GX) + W / 2, y: -22, "text-anchor": "middle" }, bg).textContent = c === ncol ? "Output" : hdr[c];
+                }
+                const nodes = [],
+                    edges = [],
+                    by = {};
+                const mk = (id, l, p, extra = {}) => {
+                    const n = {
+                        id,
+                        kind: "module",
+                        layer: l.i,
+                        x: p.x,
+                        y: p.y,
+                        w: W,
+                        h: H,
+                        fam: fam(l.cls === "Sequential" ? l.type : l.cls),
+                        title: l.cls === "Sequential" ? `${l.type} ×n` : l.type,
+                        sub: subtitle(cfg, l),
+                        idx: l.i,
+                        act: layerAct(l, id),
+                        full: layerFull(l),
+                        isOpen: S.cards[0]?.from === id,
+                        delta: phaseDelta(l),
+                        symSub: S.mode === "sym",
+                        ...extra,
+                    };
+                    nodes.push(n);
+                    by[id] = n;
+                    return n;
+                };
+                by.in = { id: "in", kind: "input", ...pos.in, w: W, h: H, fam: "io", title: "Input image", sub: `${DATA.imgsz}×${DATA.imgsz}×3` };
+                nodes.push(by.in);
+                for (const l of L.slice(0, -1)) mk(l.i, l, pos[l.i]);
+                for (const list of bb.cols) {
+                    let maxS = 1; // P-level tag where a backbone column reaches a new stride
+                    for (const it of list) {
+                        const s = it === "in" ? 1 : strideOf(it);
+                        if (it !== "in" && s && s > maxS) by[it.i].pl = lvl(s);
+                        if (s) maxS = Math.max(maxS, s);
+                    }
+                }
+                const ins = srcOf(last);
+                const dx = ncol * (W + GX);
+                const dets = ins.map((src, j) =>
+                    mk(`det${j}`, last, { x: dx, y: pos[src] ? pos[src].y : (j + 0.5) * (TH / ins.length) - H / 2 }, { pl: lvl(strideOf(L[src])) }),
+                );
+                dets.sort((a, b) => a.y - b.y);
+                for (let i = 1; i < dets.length; i++) if (dets[i].y < dets[i - 1].y + H + 14) dets[i].y = dets[i - 1].y + H + 14;
+                const addEdge = (s, t, label) => {
+                    const a = by[s],
+                        b = by[t];
+                    let d, lx, ly;
+                    const pa = pos[s === "in" ? "in" : s],
+                        pb = pos[t];
+                    if (Math.abs(a.x - b.x) < 1) {
+                        const down = b.y > a.y;
+                        const x = a.x + W / 2,
+                            y1 = down ? a.y + H : a.y,
+                            y2 = down ? b.y : b.y + H;
+                        if (pa && pb && Math.abs(pa.k - pb.k) === 1) {
+                            d = `M${x},${y1} L${x},${y2}`;
+                            lx = x;
+                            ly = (y1 + y2) / 2;
+                        } else {
+                            const sx = a.x + W,
+                                sy = a.y + H / 2,
+                                ty = b.y + H / 2;
+                            d = `M${sx},${sy} C${sx + 80},${sy} ${sx + 80},${ty} ${sx},${ty}`;
+                            lx = sx + 60;
+                            ly = (sy + ty) / 2;
+                        }
+                    } else {
+                        const right = b.x > a.x;
+                        const sx = right ? a.x + W : a.x,
+                            sy = a.y + H / 2,
+                            tx = right ? b.x : b.x + W,
+                            ty = b.y + H / 2;
+                        d = hcurve(sx, sy, tx, ty);
+                        const near = Math.abs(tx - sx) <= GX * 1.2;
+                        lx = near ? (sx + tx) / 2 : sx + (right ? 1 : -1) * (GX / 2);
+                        ly = near ? (sy + ty) / 2 : sy;
+                    }
+                    edges.push({ s, t, d, label, lx, ly, sym: S.mode === "sym" });
+                };
+                for (const l of L.slice(0, -1)) {
+                    if (l.i === 0) addEdge("in", 0, shapeLabel(cfg, null));
+                    else for (const s of srcOf(l)) addEdge(s, l.i, shapeLabel(cfg, L[s]));
+                }
+                ins.forEach((s, j) => addEdge(s, `det${j}`, shapeLabel(cfg, L[s])));
+                paint(g, nodes, edges);
+                return { w: fullW, h: Math.max(TH, ...dets.map((d) => d.y + H)) };
+            }
+
+            /* ------------------------------------------------------------ block internals (dagre) */
+            function curve(pts) {
+                let d = `M${pts[0].x},${pts[0].y}`;
+                if (pts.length < 3) return d + ` L${pts[pts.length - 1].x},${pts[pts.length - 1].y}`;
+                for (let i = 1; i < pts.length - 1; i++) {
+                    const p = pts[i],
+                        q = pts[i + 1];
+                    const end = i === pts.length - 2;
+                    d += ` Q${p.x},${p.y} ${end ? q.x : (p.x + q.x) / 2},${end ? q.y : (p.y + q.y) / 2}`;
+                }
+                return d;
+            }
+            const LAYOUTS = new Map();
+            // the same block in the other mode, level by level (null where it does not exist there)
+            function twinChain(chain) {
+                const cfg = cfgById[S.cfg],
+                    other = otherPhase(),
+                    out = [];
+                for (const [i, c] of chain.entries()) {
+                    if (i === 0) {
+                        const l = c.layer != null ? cfg.layers[c.layer] : null;
+                        const scales = l ? V(l)[c.vi]?.[1] || [] : [];
+                        out.push(l ? (l.variants[other] || []).find(([, sc]) => sc.some((x) => scales.includes(x)))?.[0] || null : null);
+                    } else {
+                        const t = out[i - 1],
+                            n = DATA.blocks[chain[i - 1].key].nodes[c.from ?? c.j];
+                        out.push(t ? DATA.blocks[t].nodes.find((m) => m.g && m.name === n?.name && m.type === n?.type)?.g || null : null);
+                    }
+                }
+                return out;
+            }
+            // mark blocks / ops that the other mode does not have (e.g. BatchNorm2d, the one-to-one head)
+            function markOnly(nodes, key, twin) {
+                if (!twin || twin === key) return 0;
+                const sig = (n) => (n.kind === "module" ? `m:${n.name}|${n.type}` : n.kind === "op" ? `o:${n.type}` : null);
+                const pool = new Map();
+                for (const n of DATA.blocks[twin].nodes) {
+                    const k = sig(n);
+                    if (k) pool.set(k, (pool.get(k) || 0) + 1);
+                }
+                let c = 0;
+                for (const n of nodes) {
+                    const k = sig(n);
+                    if (!k) continue;
+                    if (pool.get(k)) pool.set(k, pool.get(k) - 1);
+                    else if (n.kind === "module" || n.type !== "slice") n.only = ++c;
+                }
+                return c;
+            }
+            function layoutBlock(key, cid, prefix, ctx) {
+                const b = DATA.blocks[key];
+                const sym = b.syms[b.sym[cid] ?? 0];
+                const nodes = b.nodes.map((n, j) => {
+                    const hp = { ...(n.hp || {}), ...(sym.hp[j] || {}) };
+                    const shape = (sym.out[j] || []).join("  |  ");
+                    let title, sub, f;
+                    if (n.kind === "input" || n.kind === "output") {
+                        title = n.kind === "input" ? `input ${n.type.slice(2)}` : `output ${n.type.slice(3)}`;
+                        sub = shape;
+                        f = "io";
+                    } else if (n.kind === "const") {
+                        title = `const · ${n.type}`;
+                        sub = shape;
+                        f = "io";
+                    } else if (n.kind === "op") {
+                        title = sym.arg[j] ? `${n.type}(${sym.arg[j]})` : n.type;
+                        f = OP_FAM[n.type] || "op";
+                    } else if (n.type === "Sequential" && n.hp?.layers) {
+                        title = n.name;
+                        sub = n.hp.layers;
+                        f = "seq";
+                    } else if (n.type.endsWith("()")) {
+                        title = n.type;
+                        sub = n.name;
+                        f = "fn";
+                    } else {
+                        title = n.type;
+                        const ks = "k" in hp ? `k=${hp.k}, s=${hp.s}${hp.p != null ? ", p=" + hp.p : ""}` : "";
+                        const flags = Object.entries(n.hp || {})
+                            .filter(([k]) => !["k", "s", "p", "d", "act", "fn", "layers"].includes(k))
+                            .map(([k, v]) => `${k}=${fv(v)}`)
+                            .slice(0, 2);
+                        sub = [n.name, ks, ...flags].filter(Boolean).join(" · ");
+                        f = fam(n.type);
+                    }
+                    const w = Math.max(tw(title, 8.4) + 34, tw(sub || "", 6.9) + 26, n.kind === "op" ? 70 : 128);
+                    const h = n.kind === "op" ? 32 : sub ? 50 : 36;
+                    return { id: prefix + j, j, kind: n.kind, type: n.type, name: n.name, g: n.g, title, sub, fam: f, w, h, stack: n.group, badge: n.group ? "×n" : null, hp, shape, ctx: { ...ctx, key } };
+                });
+                // simple mode: drop reshape-only ops and constants, wiring each consumer to the real producer
+                const hidden = new Set();
+                if (S.simple) b.nodes.forEach((n, j) => (n.kind === "const" || (n.kind === "op" && PLUMB.has(n.type))) && hidden.add(j));
+                const firstIn = {};
+                for (const [s, si, d, di] of b.edges) if (!(d in firstIn) || di < firstIn[d][2]) firstIn[d] = [s, si, di];
+                const raw = [];
+                const seenE = new Set();
+                for (const [s0, si0, d, di, each] of b.edges) {
+                    if (hidden.has(d)) continue;
+                    let s = s0,
+                        si = si0,
+                        guard = 0;
+                    while (hidden.has(s) && firstIn[s] && guard++ < 50) [s, si] = firstIn[s];
+                    if (hidden.has(s)) continue;
+                    const k = `${s}|${si}|${d}|${di}`;
+                    if (seenE.has(k)) continue;
+                    seenE.add(k);
+                    const src = sym.out[s0] || [];
+                    let label = src[si0] || "";
+                    if (src.length > 1 && s0 === s) label = `[${si0}] ${label}`;
+                    if (each) label += " ×n";
+                    raw.push({ s, d, label });
+                }
+                const keep = b.nodes.map((_, j) => !hidden.has(j));
+                const vis = nodes.filter((_, j) => keep[j]);
+                const edges = raw.map((e) => ({ s: prefix + e.s, t: prefix + e.d, label: e.label, sd: [e.s, e.d] }));
+                const ck = `${key}|${cid}|${S.labels}|${S.simple}`;
+                let L = LAYOUTS.get(ck);
+                if (!L && typeof dagre !== "undefined") {
+                    const G = new dagre.graphlib.Graph({ multigraph: true });
+                    G.setGraph({ rankdir: "TB", nodesep: 24, ranksep: 34, edgesep: 14, marginx: 0, marginy: 0 });
+                    vis.forEach((n) => G.setNode(String(n.j), { width: n.w, height: n.h }));
+                    edges.forEach((e, k) => {
+                        const lw = S.labels && e.label ? tw(e.label, 7.1) + 10 : 0;
+                        G.setEdge(String(e.sd[0]), String(e.sd[1]), { width: lw, height: lw ? 18 : 0, labelpos: "c" }, "e" + k);
+                    });
+                    dagre.layout(G);
+                    L = {
+                        pos: Object.fromEntries(vis.map((n) => [n.j, G.node(String(n.j))])),
+                        edges: edges.map((e, k) => G.edge({ v: String(e.sd[0]), w: String(e.sd[1]), name: "e" + k })),
+                        w: G.graph().width,
+                        h: G.graph().height,
+                    };
+                    LAYOUTS.set(ck, L);
+                }
+                if (!L) return { nodes: [], edges: [], w: 420, h: 40, missing: true };
+                vis.forEach((n) => {
+                    n.x = L.pos[n.j].x - n.w / 2;
+                    n.y = L.pos[n.j].y - n.h / 2;
+                });
+                edges.forEach((e, k) => Object.assign(e, { d: curve(L.edges[k].points), lx: L.edges[k].x, ly: L.edges[k].y }));
+                return { nodes: vis, edges, w: L.w, h: L.h };
+            }
+
+            /* ------------------------------------------------------------ detail cards beside the diagram */
+            const CARD_GAP = 56,
+                HDR = 46,
+                PAD = 18;
+            function drawCards(g, x0, y0) {
+                const cfg = cfgById[S.cfg];
+                let x = x0;
+                const rects = [];
+                const twins = twinChain(S.cards);
+                S.cards.forEach((c, ci) => {
+                    const lay = layoutBlock(c.key, S.cfg, `c${ci}_`, { card: ci, layer: c.layer });
+                    const nOnly = markOnly(lay.nodes, c.key, twins[ci]);
+                    for (const n of lay.nodes) {
+                        n.isOpen = S.cards[ci + 1]?.from === n.j;
+                        if (n.g) {
+                            n.act = () => openChildCard(ci, n);
+                            n.full = () => openFullFromCards(ci, n);
+                        }
+                    }
+                    const b = DATA.blocks[c.key];
+                    const layer = c.layer != null ? cfg.layers[c.layer] : null;
+                    const variants = layer && V(layer).length > 1 ? V(layer) : [];
+                    const subT =
+                        (ci === 0 ? `${b.owner} internals · ${S.cfg}` : `inside ${DATA.blocks[S.cards[ci - 1].key].owner} · level ${ci + 1}`) +
+                        ` · ${PHASE_LABEL[S.phase]}` +
+                        (nOnly ? ` · ${nOnly} only in this mode` : twins[ci] === c.key ? " · same as " + PHASE_LABEL[otherPhase()].toLowerCase() : "");
+                    const hdrW = Math.max(tw(c.label, 8.4), tw(subT, 6.4)) + 110 + variants.reduce((a, [, s]) => a + tw(s.join(","), 6.8) + 22, 0);
+                    const cw = Math.max(lay.w + 2 * PAD, hdrW, 280),
+                        ch = lay.h + HDR + PAD + 6;
+                    const cg = el("g", { transform: `translate(${x},${y0})` }, g);
+                    el("rect", { class: "card", width: cw, height: ch, rx: 12 }, cg);
+                    el("rect", { class: "cardhdr", width: cw, height: HDR - 8, rx: 12 }, cg);
+                    el("rect", { class: "cardhdr", y: HDR - 20, width: cw, height: 12 }, cg);
+                    el("text", { class: "cardt", x: 14, y: 17 }, cg).textContent = c.label;
+                    el("text", { class: "cards", x: 14, y: 31 }, cg).textContent = subT;
+                    let bx = cw - 10 - (tw("×", 6.8) + 16);
+                    svgButton(cg, bx, 8, "×", () => closeCards(ci), false, "Close this level and deeper");
+                    bx -= tw("⤢", 6.8) + 16 + 4;
+                    svgButton(cg, bx, 8, "⤢", () => openFullFromCards(ci), false, "Open full view");
+                    bx -= 10;
+                    for (let i = variants.length - 1; i >= 0; i--) {
+                        const lab = variants[i][1].join(",");
+                        const w = tw(lab, 6.8) + 16;
+                        bx -= w + 4;
+                        svgButton(cg, bx, 8, lab, () => openLayerCard(layer, i, c.from), c.vi === i, "Structure used at these scales");
+                    }
+                    const inner = el("g", { transform: `translate(${(cw - lay.w) / 2},${HDR})` }, cg);
+                    if (lay.missing)
+                        el("text", { x: 0, y: 20, style: "fill:var(--new)" }, inner).textContent = "dagre did not load — internals need cdnjs.cloudflare.com";
+                    paint(inner, lay.nodes, lay.edges);
+                    rects.push({ x, y: y0, w: cw, h: ch, ox: x + (cw - lay.w) / 2, oy: y0 + HDR, lay });
+                    x += cw + CARD_GAP;
+                });
+                // dashed connectors: from the opened block inside one card to the next card
+                rects.forEach((r, ci) => {
+                    if (!ci) return;
+                    const p = rects[ci - 1],
+                        n = p.lay.nodes.find((m) => m.j === S.cards[ci].from);
+                    if (!n) return;
+                    const sx = p.ox + n.x + n.w,
+                        sy = p.oy + n.y + n.h / 2;
+                    const path = el("path", { class: "conn", d: hcurve(sx, sy, r.x, r.y + 20) }, g);
+                    g.insertBefore(path, g.firstChild);
+                });
+                S.cards.forEach((c, i) => (c.rect = rects[i]));
+                return x - x0;
+            }
+
+            /* ------------------------------------------------------------ views */
+            let lastMain = null;
+            function renderArch(cfg) {
+                clear();
+                const root = el("g", {}, vp);
+                const ov = drawOverview(cfg, el("g", {}, root));
+                const oy = ov.h + 90;
+                const mg = el("g", { transform: `translate(0,${oy})` }, root);
+                const m = drawMain(cfg, mg);
+                const cx0 = Math.max(m.w, ov.w) + 120;
+                drawCards(mg, cx0, -44);
+                for (const c of S.cards) if (c.rect) c.abs = { x: c.rect.x, y: c.rect.y + oy, w: c.rect.w, h: c.rect.h };
+                bbox = { x: -80, y: -10, w: Math.max(m.w, ov.w) + 120, h: oy + m.h + 30 };
+                lastMain = bbox;
+            }
+            function renderFocus() {
+                clear();
+                const p = S.path[S.path.length - 1];
+                const lay = layoutBlock(p.key, S.cfg, "b", { focus: true, layer: S.path[0].layer, depth: S.path.length - 1 });
+                markOnly(lay.nodes, p.key, twinChain(S.path)[S.path.length - 1]);
+                for (const n of lay.nodes) if (n.g) n.act = () => drill(n.g, `${n.name} · ${n.type}`, n.j);
+                if (lay.missing) el("text", { x: 0, y: 20, style: "fill:var(--new)" }, vp).textContent = "dagre did not load — internals need cdnjs.cloudflare.com";
+                paint(el("g", {}, vp), lay.nodes, lay.edges);
+                bbox = { x: -20, y: -20, w: lay.w + 50, h: lay.h + 40 };
+            }
+
+            /* ------------------------------------------------------------ navigation */
+            function openLayerCard(l, vi, from) {
+                S.cards = [{ key: V(l)[vi][0], label: `${l.i} · ${l.type}`, layer: l.i, vi, from }];
+                S.sel = from;
+                S.focus = 0;
+                render(true);
+            }
+            function openChildCard(ci, n) {
+                S.cards = [...S.cards.slice(0, ci + 1), { key: n.g, label: `${n.name ? n.name + " · " : ""}${n.type}`, from: n.j }];
+                S.sel = n.id;
+                S.focus = ci + 1;
+                render(true);
+            }
+            function closeCards(ci) {
+                S.cards = S.cards.slice(0, ci);
+                S.sel = null;
+                S.focus = ci ? ci - 1 : "main";
+                render(true);
+            }
+            function openFull(l, vi) {
+                S.path = [{ key: V(l)[vi][0], label: `${l.i} · ${l.type}`, layer: l.i, vi }];
+                S.sel = null;
+                render();
+            }
+            function openFullFromCards(ci, n) {
+                const chain = S.cards.slice(0, ci + 1).map((c, i) =>
+                    i === 0 && c.layer != null ? { key: c.key, label: c.label, layer: c.layer, vi: c.vi } : { key: c.key, label: c.label, j: c.from },
+                );
+                if (n) chain.push({ key: n.g, label: `${n.name} · ${n.type}`, j: n.j });
+                S.path = chain;
+                S.sel = null;
+                render();
+            }
+            function drill(key, label, j) {
+                S.path.push({ key, label, j });
+                S.sel = null;
+                render();
+            }
+            function up(level) {
+                S.path = S.path.slice(0, level);
+                S.sel = null;
+                render();
+            }
+            function go(cid) {
+                S.view = "arch";
+                S.cfg = cid;
+                S.path = [];
+                S.cards = [];
+                S.sel = null;
+                if (S.mode !== "sym" && !scaleKeys(cfgById[cid]).includes(S.mode)) S.mode = "sym";
+                render();
+            }
+            document.addEventListener("keydown", (e) => {
+                if (["INPUT", "SELECT"].includes(e.target.tagName) || S.view !== "arch") return;
+                if (e.key === "Escape") {
+                    if (S.path.length) up(S.path.length - 1);
+                    else if (S.cards.length) closeCards(S.cards.length - 1);
+                }
+                if (e.key === "f") animateTo(viewFor(bbox, 1.3));
+            });
+
+            /* ------------------------------------------------------------ chrome */
+            function renderHeader() {
+                $("#meta").textContent = `· ultralytics ${DATA.ultralytics} · traced at ${DATA.imgsz}×${DATA.imgsz}`;
+                const cur = cfgById[S.cfg];
+                $("#vtabs").innerHTML = DATA.versions
+                    .filter((v) => v.configs.length)
+                    .map((v) => `<button class="tab ${S.view === "arch" && cur.version === v.name ? "on" : ""}" data-v="${esc(v.name)}">${esc(v.name)}</button>`)
+                    .join("");
+                $("#vtabs")
+                    .querySelectorAll(".tab")
+                    .forEach((b) => (b.onclick = () => go(DATA.versions.find((x) => x.name === b.dataset.v).configs[0])));
+                $("#viewseg")
+                    .querySelectorAll("button")
+                    .forEach((b) => b.classList.toggle("on", b.dataset.v === S.view));
+            }
+            function renderSubbar() {
+                const bar = $("#subbar");
+                if (S.view === "evo") {
+                    bar.innerHTML = `<span class="muted">Every module class the detection configs instantiate, per version — <span class="dot first"></span> first used · <span class="dot"></span> used</span>`;
+                    return;
+                }
+                const cur = cfgById[S.cfg];
+                const ver = DATA.versions.find((v) => v.name === cur.version);
+                let h = "";
+                if (ver.configs.length > 1)
+                    h += `<select id="cfgsel" title="Config file">${ver.configs.map((c) => `<option ${c === S.cfg ? "selected" : ""} value="${c}">${c}.yaml</option>`).join("")}</select>`;
+                const trail = S.path.length ? S.path : S.cards;
+                h += `<div class="seg phase" id="phaseseg">${cur.phase_list
+                    .map((ph) => `<button data-p="${ph}" class="${S.phase === ph ? "on" : ""}" title="${esc(PHASE_TIP[ph])}">${PHASE_LABEL[ph]}</button>`)
+                    .join("")}</div>`;
+                h += `<div class="crumbs">${trail.length ? `<a data-l="0">${esc(cur.id)}</a>` : `<b>${esc(cur.id)}</b>`}`;
+                trail.forEach((p, i) => {
+                    h += `<span class="sep">›</span>${i === trail.length - 1 ? `<b>${esc(p.label)}</b>` : `<a data-l="${i + 1}">${esc(p.label)}</a>`}`;
+                });
+                h += `</div>`;
+                if (S.path.length) h += `<button class="btn" id="backcards">↩ back to diagram</button>`;
+                h += `<div class="spacer"></div>`;
+                const scales = scaleKeys(cur).filter(Boolean);
+                if (!S.path.length && scales.length > 1)
+                    h += `<span class="muted">shapes</span><div class="seg" id="modeseg">${["sym", ...scales]
+                        .map((m) => `<button data-m="${m}" class="${S.mode === m ? "on" : ""}">${m === "sym" ? "symbolic" : m}</button>`)
+                        .join("")}</div>`;
+                if (S.path.length === 1 && S.path[0].layer != null) {
+                    const l = cur.layers[S.path[0].layer];
+                    if (V(l).length > 1)
+                        h += `<span class="muted">structure for scale</span><div class="seg" id="varseg">${V(l)
+                            .map(([, sc], i) => `<button data-i="${i}" class="${S.path[0].vi === i ? "on" : ""}">${sc.join(", ")}</button>`)
+                            .join("")}</div>`;
+                }
+                h += `<label class="muted" title="Hide reshape-only ops (view, permute, …) and constants inside blocks"><input type="checkbox" id="simple" ${S.simple ? "checked" : ""}/> simple</label>`;
+                h += `<label class="muted"><input type="checkbox" id="lbls" ${S.labels ? "checked" : ""}/> shape labels</label>`;
+                bar.innerHTML = h;
+                bar.querySelectorAll(".crumbs a").forEach(
+                    (a) =>
+                        (a.onclick = () => {
+                            if (S.path.length) up(+a.dataset.l);
+                            else closeCards(+a.dataset.l);
+                        }),
+                );
+                if ($("#backcards"))
+                    $("#backcards").onclick = () => {
+                        S.path = [];
+                        render();
+                    };
+                if ($("#cfgsel")) $("#cfgsel").onchange = (e) => go(e.target.value);
+                bar.querySelectorAll("#phaseseg button").forEach((b) => (b.onclick = () => setPhase(b.dataset.p)));
+                bar.querySelectorAll("#modeseg button").forEach(
+                    (b) =>
+                        (b.onclick = () => {
+                            S.mode = b.dataset.m;
+                            render(true);
+                        }),
+                );
+                bar.querySelectorAll("#varseg button").forEach((b) => (b.onclick = () => openFull(cur.layers[S.path[0].layer], +b.dataset.i)));
+                $("#simple").onchange = (e) => {
+                    S.simple = e.target.checked;
+                    render(true);
+                };
+                $("#lbls").onchange = (e) => {
+                    S.labels = e.target.checked;
+                    render(true);
+                };
+            }
+
+            /* ------------------------------------------------------------ side panel */
+            function scaleTable(cfg) {
+                const sc = Object.entries(cfg.scales);
+                const multi = sc.length > 1;
+                const base = multi ? Math.min(...sc.map(([, v]) => v.max)) : null;
+                let h = `<table><tr><th>scale</th>${multi ? '<th class="num">d</th><th class="num">w</th><th class="num">max_ch</th><th class="num">r</th>' : ""}<th class="num">params</th><th class="num">GFLOPs</th></tr>`;
+                for (const [s, v] of sc)
+                    h += `<tr><td>${s || "–"}</td>${multi ? `<td class="num">${v.d}</td><td class="num">${v.w}</td><td class="num">${v.max}</td><td class="num">${+v.r.toFixed(3)}</td>` : ""}<td class="num">${fmtN(v[S.phase].params)}</td><td class="num">${v[S.phase].gflops}</td></tr>`;
+                h += "</table>";
+                h += multi
+                    ? `<p class="muted" style="font-size:12px">Each layer's channels = min(c, max_ch)·w and repeats n = round(n·d). With r = max_ch / ${base}, a YAML channel above ${base} reads as <span class="mono">${base}×w×r</span>, as in the reference diagram. GFLOPs count conv + linear layers at ${DATA.imgsz}×${DATA.imgsz}.</p>`
+                    : `<p class="muted" style="font-size:12px">This file defines one model size, so shapes are literal. GFLOPs count conv + linear layers at ${DATA.imgsz}×${DATA.imgsz}.</p>`;
+                return h;
+            }
+            // training vs deployment: interpretation plus the differences the build found in module paths and traces
+            function phaseHTML(cfg) {
+                const ph = S.phase === "train" ? "deploy" : S.phase;
+                const d = cfg.phase_diff?.[ph];
+                let h = `<h3>Training vs ${PHASE_LABEL[ph].toLowerCase()}</h3><ul class="notes">${cfg.phases.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`;
+                if (!d) return h;
+                const rows = (list, sign) =>
+                    list
+                        .map(
+                            ([pat, type, roots, size]) =>
+                                `<tr><td class="${sign === "−" ? "minus" : "plus"}">${sign}</td><td class="mono">${esc(pat)}</td><td>${esc(type)}${roots > 1 ? ` ×${roots}` : ""}${size > roots ? ` <span class="muted">(${size} modules)</span>` : ""}</td></tr>`,
+                        )
+                        .join("");
+                const lead = d.removed.slice(0, 6).concat(d.added.slice(0, 4));
+                h += `<p class="muted" style="font-size:12px">Found automatically by comparing every module path of the training model with the ${PHASE_LABEL[ph].toLowerCase()} model (indices generalised to <span class="mono">*</span>):</p>`;
+                h += `<table class="diff">${rows(d.removed.slice(0, 6), "−")}${rows(d.added.slice(0, 4), "+")}</table>`;
+                const more = d.removed.length + d.added.length - lead.length;
+                if (more > 0) h += `<details><summary>${more} more path patterns</summary><table class="diff">${rows(d.removed.slice(6), "−")}${rows(d.added.slice(4), "+")}</table></details>`;
+                const calls = Object.entries(d.calls).filter(([, v]) => v.length);
+                if (calls.length) h += `<p style="font-size:12px">${calls.map(([k, v]) => `Only in ${PHASE_LABEL[k].toLowerCase()}: ${v.map((x) => `<span class="mono">${esc(x)}()</span>`).join(", ")}`).join("<br>")}</p>`;
+                if (d.ops.length)
+                    h += `<details><summary>Tensor ops that change (${d.ops.length})</summary><table class="diff"><tr><th>op</th><th class="num">training</th><th class="num">${PHASE_LABEL[ph].toLowerCase()}</th></tr>${d.ops
+                        .map(([o, a, b]) => `<tr><td class="mono">${esc(o)}</td><td class="num">${a}</td><td class="num">${b}</td></tr>`)
+                        .join("")}</table></details>`;
+                return h + `<p class="muted" style="font-size:12px">In the diagram, <span class="deltanote">Δ</span> marks layers whose wiring changes beyond BatchNorm folding; inside cards, outlined blocks exist only in the current mode.</p>`;
+            }
+            function layerPanel(cfg, l) {
+                const sc = scaleKeys(cfg);
+                const cls = l.cls === "Sequential" ? l.type : l.cls;
+                let h = `<h2>${l.i} · ${esc(l.type)}${l.cls === "Sequential" ? " ×n" : ""}</h2><p class="muted">${l.section} · from ${esc(JSON.stringify(l.f))}${l.n_sym ? ` · n = ${esc(l.n_sym)}` : ""}</p>`;
+                h += `<p class="mono">${esc(l.yaml)}</p>`;
+                if (V(l).length > 1) h += `<p class="muted">The internal structure differs between scales — switch variants in the detail card header.</p>`;
+                h += `<h3>Resolved arguments</h3><table>${l.args.map(([k, v]) => `<tr><td class="mono">${esc(k)}</td><td class="mono">${esc(v)}</td></tr>`).join("")}</table>`;
+                if (l.c_sym) h += `<h3>Output</h3><p class="mono">${l.hw[0]}×${l.hw[1]}×${esc(l.c_sym)} · stride ${strideOf(l)}</p>`;
+                h += `<table><tr><th>scale</th>${l.n_sym ? '<th class="num">n</th>' : ""}<th>output h×w×c</th><th class="num">params</th></tr>`;
+                sc.forEach((s, i) => {
+                    const o = l.out[i];
+                    h += `<tr><td>${s || "–"}</td>${l.n_sym ? `<td class="num">${l.n[i]}</td>` : ""}<td class="mono">${o ? o.join("×") : ""}</td><td class="num">${fmtN(l.params[S.phase][i])}</td></tr>`;
+                });
+                h += `</table><h3>About ${esc(cls)}</h3>` + blockInfoHTML(cls);
+                return h;
+            }
+            function nodePanel(cfg, n) {
+                let h = `<h2>${esc(n.type)} ${n.name ? `<span class="muted mono" style="font-weight:400">${esc(n.name)}</span>` : ""}</h2>`;
+                h += `<p>${famDot(n.fam)}${FAM_LABEL[n.fam] || ""}${n.stack ? ` · repeated n = ${esc(n.hp.n || "")} times (chained)` : ""}</p>`;
+                if (n.g) h += `<p class="muted">Click the block again to open it ${n.ctx.focus ? "" : "as the next card"}; double-click for the full view.</p>`;
+                if (n.shape) h += `<h3>Output</h3><p class="mono">${esc(n.shape)}</p>`;
+                const hp = Object.entries(n.hp || {}).filter(([k]) => k !== "n");
+                if (hp.length) h += `<h3>Hyper-parameters</h3><table>${hp.map(([k, v]) => `<tr><td class="mono">${esc(k)}</td><td class="mono">${esc(fv(v))}</td></tr>`).join("")}</table>`;
+                if (n.kind === "op") h += `<h3>Op</h3><p>${esc(OP_DOC[n.type] || "PyTorch tensor operation recorded from forward().")}</p>`;
+                const top = n.ctx.focus ? n.ctx.depth === 0 : n.ctx.card === 0;
+                if (n.kind === "input" && top && n.ctx.layer != null) {
+                    const l = cfg.layers[n.ctx.layer];
+                    const s = srcOf(l)[+n.type.slice(2)];
+                    if (s != null && cfg.layers[s])
+                        h += `<h3>Comes from</h3><p>layer ${s} · ${esc(cfg.layers[s].type)} <span class="mono">(${esc(shapeLabel(cfg, cfg.layers[s]))})</span></p>`;
+                }
+                if (n.kind === "module") h += `<h3>About</h3>` + (blockInfoHTML(n.type) || (n.type === "Sequential" ? "<p>An nn.Sequential branch folded into one node; open it to see its layers.</p>" : ""));
+                return h;
+            }
+            function blockSummary(cfg, b) {
+                return `<h2>${esc(b.owner)} <span class="muted" style="font-weight:400">internals</span></h2>
+                    <p class="muted">Shapes are relative to this block: <span class="mono">h×w</span> is its input size, <span class="mono">c_in</span> / <span class="mono">c_out</span> its input / output channels and <span class="mono">n</span> its repeat count; other names (e.g. <span class="mono">c</span>) are the block's own attributes such as <span class="mono">self.c</span>, its hidden width. Fitted over every instance in ${esc(cfg.id)} at every scale; a value that does not reduce to one expression lists its distinct values.</p>
+                    ${blockInfoHTML(b.owner, { open: true })}
+                    <h3>This structure appears in</h3><p>${b.used.map((c) => `<button class="chip" data-cfg="${c}">${c}</button>`).join(" ")}</p>`;
+            }
+            function renderPanel() {
+                const P = $("#panel");
+                if (S.view === "evo") P.innerHTML = evoPanel();
+                else {
+                    const cfg = cfgById[S.cfg];
+                    const n = S.sel != null ? NODES[S.sel] : null;
+                    if (n && n.ctx) P.innerHTML = nodePanel(cfg, n);
+                    else if (n && n.layer != null) P.innerHTML = layerPanel(cfg, cfg.layers[n.layer]);
+                    else if (S.path.length) P.innerHTML = blockSummary(cfg, DATA.blocks[S.path[S.path.length - 1].key]) + `<h3>Legend</h3>${legendHTML()}`;
+                    else {
+                        const ver = DATA.versions.find((v) => v.name === cfg.version);
+                        const newBlocks = Object.entries(DATA.catalog)
+                            .filter(([, c]) => c.first === cfg.version && c.configs.includes(cfg.id) && c.file && c.family !== "fn")
+                            .map(([k]) => k);
+                        P.innerHTML = `<h2>${esc(cfg.id)}.yaml</h2><p class="muted mono">${esc(cfg.file)}</p><p>${esc(ver.note)}</p>
+                            <p class="muted">Click any block — in the overview or the diagram — to open its internals beside the diagram; click blocks inside a card to keep going deeper.</p>
+                            ${newBlocks.length ? `<h3>Blocks new in ${esc(cfg.version)}</h3><p>${newBlocks.map((b) => `<button class="chip" data-blk="${b}">${b}</button>`).join(" ")}</p>` : ""}
+                            ${phaseHTML(cfg)}
+                            <h3>Scales · ${PHASE_LABEL[S.phase]}</h3>${scaleTable(cfg)}<h3>Legend</h3>${legendHTML()}
+                            <details><summary>YAML config</summary><pre class="code">${hl(cfg.yaml)}</pre></details>`;
+                    }
+                }
+                P.querySelectorAll("[data-blk]").forEach((b) => (b.onclick = () => showBlock(b.dataset.blk)));
+                P.querySelectorAll("[data-cfg]").forEach((b) => (b.onclick = () => go(b.dataset.cfg)));
+                P.querySelectorAll("[data-struct]").forEach(
+                    (b) =>
+                        (b.onclick = () => {
+                            const [key, cid] = b.dataset.struct.split("|");
+                            S.view = "arch";
+                            S.cfg = cid;
+                            S.cards = [];
+                            S.path = [{ key, label: `${DATA.blocks[key].owner} (from catalog)`, layer: null, j: "k" + key }];
+                            S.sel = null;
+                            render();
+                        }),
+                );
+            }
+
+            /* ------------------------------------------------------------ blocks & evolution view */
+            const FAM_ORDER = ["conv", "down", "csp", "pool", "attn", "up", "concat", "head", "norm"];
+            const versNames = () => DATA.versions.filter((v) => v.configs.length).map((v) => v.name);
+            function renderEvo() {
+                const vers = DATA.versions.filter((v) => v.configs.length);
+                let h = `<div class="vcards">`;
+                for (const v of vers) {
+                    const nb = Object.entries(DATA.catalog).filter(([, c]) => c.first === v.name && c.file && c.family !== "fn");
+                    h += `<div class="vcard"><h4>${esc(v.name)}</h4><p>${esc(v.note)}</p>
+                        <div>${nb.map(([k]) => `<button class="chip" data-blk="${k}" title="new in ${esc(v.name)}">${famDot(DATA.catalog[k].family)}${k}</button>`).join("")}</div>
+                        <div class="cfgs">${v.configs.map((c) => `<button class="chip" data-cfg="${c}">${c}.yaml</button>`).join("")}</div></div>`;
+                }
+                if (DATA.skipped?.length)
+                    h += `<div class="vcard" style="grid-column:1/-1"><h4>Not traced (${DATA.skipped.length})</h4><p>These detection configs could not run on an image alone, so they have no diagram: ${DATA.skipped
+                        .map((k) => `<span class="mono" title="${esc(k.reason)}">${esc(k.id)}</span>`)
+                        .join(", ")}. Hover a name for the error.</p></div>`;
+                h += `</div><div class="evohead"><b>Block × version</b><input id="evoq" placeholder="filter blocks…" value="${esc(S.evoq)}"/></div>`;
+                h += `<div style="overflow:auto"><table class="matrix"><tr><th>block</th>${vers.map((v) => `<th>${esc(v.name)}</th>`).join("")}</tr>`;
+                const q = S.evoq.toLowerCase(),
+                    vn = versNames();
+                const rows = Object.entries(DATA.catalog)
+                    .filter(([k, c]) => c.versions.length && c.family !== "fn" && (c.file || ["Upsample", "ConvTranspose2d"].includes(k)))
+                    .filter(([k, c]) => !q || k.toLowerCase().includes(q) || (c.doc || "").toLowerCase().includes(q))
+                    .sort((a, b) => FAM_ORDER.indexOf(a[1].family) - FAM_ORDER.indexOf(b[1].family) || vn.indexOf(a[1].first) - vn.indexOf(b[1].first) || a[0].localeCompare(b[0]));
+                let lastFam = null;
+                for (const [k, c] of rows) {
+                    if (c.family !== lastFam) {
+                        h += `<tr class="grp"><td colspan="${vers.length + 1}">${FAM_LABEL[c.family] || c.family}</td></tr>`;
+                        lastFam = c.family;
+                    }
+                    h += `<tr class="row ${S.evoBlock === k ? "on" : ""}" data-blk="${k}"><td>${famDot(c.family)}${k}</td>${vers
+                        .map((v) => `<td>${c.versions.includes(v.name) ? `<span class="dot ${c.first === v.name ? "first" : ""}" title="${k} · ${v.name}"></span>` : ""}</td>`)
+                        .join("")}</tr>`;
+                }
+                h += "</table></div>";
+                const E = $("#evo");
+                const st = E.scrollTop;
+                E.innerHTML = h;
+                E.scrollTop = st;
+                E.querySelectorAll("[data-blk]").forEach((b) => (b.onclick = () => showBlock(b.dataset.blk)));
+                E.querySelectorAll("[data-cfg]").forEach((b) => (b.onclick = () => go(b.dataset.cfg)));
+                const inp = $("#evoq");
+                inp.oninput = () => {
+                    S.evoq = inp.value;
+                    renderEvo();
+                    const n = $("#evoq");
+                    n.focus();
+                    n.setSelectionRange(n.value.length, n.value.length);
+                };
+            }
+            function showBlock(name) {
+                const wasEvo = S.view === "evo";
+                S.view = "evo";
+                S.evoBlock = name;
+                if (wasEvo) {
+                    writeHash();
+                    renderEvo();
+                    renderPanel();
+                } else render();
+            }
+            function evoPanel() {
+                const name = S.evoBlock;
+                if (!name)
+                    return `<h2>Blocks &amp; evolution</h2><p>Each row is a module class that the detection configs actually build (every config, every scale). An orange dot marks the version whose configs use it first.</p><p class="muted">Pick a block to read its description and source, and to open each distinct internal wiring it has across versions.</p><h3>Legend</h3>${legendHTML()}`;
+                const c = DATA.catalog[name];
+                let h = `<h2>${esc(name)}</h2><p>${famDot(c.family)}${FAM_LABEL[c.family]}</p>` + blockInfoHTML(name, { open: true });
+                if (c.structs.length) {
+                    h += `<h3>Internal structures (${c.structs.length})</h3><p class="muted">Distinct wirings found across configs — flags such as shortcut, c3k or attn, or a different head design, change the structure.</p>`;
+                    for (const k of c.structs) {
+                        const b = DATA.blocks[k];
+                        h += `<p><button class="btn" data-struct="${k}|${b.used[0]}">⤢ open</button> <span class="muted">${b.nodes.length} nodes · in</span> ${b.used.map((u) => `<span class="badge">${u}</span>`).join("")}</p>`;
+                    }
+                }
+                h += `<h3>Configs using it</h3><p>${c.configs.map((x) => `<button class="chip" data-cfg="${x}">${x}</button>`).join(" ")}</p>`;
+                return h;
+            }
+
+            /* ------------------------------------------------------------ deep links: #yolov8@4.0/3 (cards), #yolov8/4.0/3 (full view), #evo=C2f */
+            function chainToHash(chain) {
+                return chain.map((p, i) => (i === 0 && p.layer != null ? `${p.layer}.${p.vi}` : i === 0 ? p.j : p.j ?? p.from)).join("/");
+            }
+            function writeHash() {
+                let h;
+                if (S.view === "evo") h = "evo" + (S.evoBlock ? "=" + S.evoBlock : "");
+                else if (S.path.length) h = `${S.cfg}${S.phase === "train" ? "" : "~" + S.phase}/${chainToHash(S.path)}`;
+                else h = S.cfg + (S.phase === "train" ? "" : "~" + S.phase) + (S.cards.length ? "@" + S.cards.map((c, i) => (i === 0 ? `${c.layer}.${c.vi}` : c.from)).join("/") : "");
+                history.replaceState(null, "", "#" + h);
+            }
+            function parseChain(cid, parts, asCards) {
+                const out = [];
+                let key = null;
+                for (const [i, p] of parts.entries()) {
+                    if (i === 0 && p.startsWith("k") && DATA.blocks[p.slice(1)]) {
+                        key = p.slice(1);
+                        out.push({ key, label: `${DATA.blocks[key].owner} (from catalog)`, layer: null, j: p });
+                    } else if (i === 0) {
+                        const [li, vi] = p.split(".").map(Number);
+                        const l = cfgById[cid].layers[li];
+                        if (!l || !V(l)[vi || 0]) break;
+                        key = V(l)[vi || 0][0];
+                        out.push({ key, label: `${l.i} · ${l.type}`, layer: li, vi: vi || 0, from: li });
+                    } else {
+                        const n = DATA.blocks[key]?.nodes[+p];
+                        if (!n || !n.g) break;
+                        key = n.g;
+                        out.push(asCards ? { key, label: `${n.name ? n.name + " · " : ""}${n.type}`, from: +p } : { key, label: `${n.name} · ${n.type}`, j: +p });
+                    }
+                }
+                return out;
+            }
+            function readHash() {
+                const h = decodeURIComponent(location.hash.slice(1));
+                S.path = [];
+                S.cards = [];
+                if (h.startsWith("evo")) {
+                    S.view = "evo";
+                    S.evoBlock = DATA.catalog[h.slice(4)] ? h.slice(4) : null;
+                    return;
+                }
+                const at = h.indexOf("@");
+                const [cidPh, ...parts] = (at >= 0 ? h.slice(0, at) : h).split("/");
+                const [cid, ph] = cidPh.split("~");
+                if (!cfgById[cid]) return;
+                S.phase = cfgById[cid].phase_list.includes(ph) ? ph : "train";
+                S.view = "arch";
+                S.cfg = cid;
+                if (at >= 0) {
+                    S.cards = parseChain(cid, h.slice(at + 1).split("/"), true);
+                    if (S.cards.length) S.focus = S.cards.length - 1;
+                } else S.path = parseChain(cid, parts, false);
+            }
+
+            /* ------------------------------------------------------------ main */
+            function render(keepView) {
+                writeHash();
+                renderHeader();
+                renderSubbar();
+                const evo = S.view === "evo";
+                $("#evo").style.display = evo ? "block" : "none";
+                svg.style.display = evo ? "none" : "block";
+                $("#hint").style.display = evo ? "none" : "";
+                document.querySelector(".zoom").style.display = evo ? "none" : "flex";
+                if (evo) renderEvo();
+                else {
+                    const saved = { ...T };
+                    if (S.path.length) renderFocus();
+                    else renderArch(cfgById[S.cfg]);
+                    if (keepView === true) {
+                        T = saved;
+                        applyT();
+                    } else fit();
+                    if (S.sel != null) NODES[S.sel]?.el?.classList.add("sel");
+                    if (!S.path.length && S.focus != null) {
+                        const f = S.focus;
+                        S.focus = null;
+                        const move = (t) => (keepView === true ? animateTo(t) : ((T = t), applyT()));
+                        if (f === "main") move(fitWidth(lastMain));
+                        else if (S.cards[f]?.abs) {
+                            const c = S.cards[f].abs,
+                                p = f > 0 ? S.cards[f - 1].abs : null;
+                            const both = p ? { x: p.x, y: Math.min(p.y, c.y), w: c.x + c.w - p.x, h: Math.max(p.h, c.h) } : null;
+                            const vb = both && viewFor(both, 1.05).k > 0.8 ? both : c;
+                            move(viewFor({ x: vb.x - 20, y: vb.y - 20, w: vb.w + 40, h: vb.h + 40 }, 1.05));
+                        }
+                    }
+                }
+                renderPanel();
+            }
+            $("#viewseg")
+                .querySelectorAll("button")
+                .forEach(
+                    (b) =>
+                        (b.onclick = () => {
+                            S.view = b.dataset.v;
+                            render();
+                        }),
+                );
+            $("#theme").onclick = () => {
+                const r = document.documentElement;
+                const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+                r.dataset.theme = dark ? "light" : "dark";
+            };
+            S.cfg = (cfgById[DATA.default] || DATA.configs[0]).id;
+            readHash();
+            window.addEventListener("hashchange", () => {
+                readHash();
+                render();
+            });
+            render();
+        </script>
+    </body>
+</html>

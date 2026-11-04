@@ -147,6 +147,10 @@ Press `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux) to open the search bar. Search a
 
 Click **Ask AI** to work with an AI agent that automates tasks across Ultralytics Platform. It works directly with your datasets and models to annotate images, run training experiments, compare results, and export or deploy models. See [AutoTrain with Ask AI](train/autotrain.md) for example prompts and setup for your own coding agent.
 
+### Interface Language
+
+Click the flag in the page header to switch this browser to English, Simplified Chinese, Spanish, Korean, Japanese, Russian, German, French, Portuguese, Italian, Turkish, Vietnamese, or Arabic. Home, Settings, and resource pages such as datasets and projects are translated; the public landing and sign-in pages, Explore, Help, the Models catalog, emails, and server error messages stay in English.
+
 ### Onboarding Tours
 
 The Platform includes guided tours that introduce key features as you explore different sections:

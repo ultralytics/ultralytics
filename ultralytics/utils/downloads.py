@@ -306,7 +306,7 @@ def get_google_drive_file_info(link: str) -> tuple[str, str | None]:
             if k.startswith("download_warning"):
                 drive_url += f"&confirm={v}"  # v is token
         if cd := response.headers.get("content-disposition"):
-            filename = re.findall('filename="(.+)"', cd)[0]
+            filename = Path(re.findall('filename="(.+)"', cd)[0]).name  # drop any directory parts
     return drive_url, filename
 
 

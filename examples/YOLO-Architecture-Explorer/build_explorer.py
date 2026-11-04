@@ -195,8 +195,9 @@ def phase_notes(stats: dict, diff: dict) -> list[str]:
     parent = lambda pattern: pattern.rpartition(".")[0]
     leaf = lambda pattern: pattern.rpartition(".")[2]
     notes, used_r, used_a = [], set(), set()
-    for ai, (pa, ta, ca, _) in enumerate(add):  # removed + added under one parent: a replacement (re-parameterisation)
-        rs = [ri for ri, r in enumerate(rem) if parent(r[0]) == parent(pa) and ri not in used_r]
+    for ai, rs in d["replaced"]:
+        pa, ta, ca, _ = add[ai]
+        rs = [ri for ri in rs if ri not in used_r]
         if rs:
             used_a.add(ai)
             used_r.update(rs)
@@ -237,8 +238,27 @@ def version_note(version: str, cfgs: list[dict], catalog: dict, rewired: dict) -
     return out + (" Head: " + ", ".join(heads) + "." if heads else "")
 
 
+def train_only(stats: dict) -> dict:
+    """Top-level parts that run only while training, found by diffing the modules each mode called, for the layout.
+
+    layers: whole layers that deployment drops (e.g. an auxiliary branch). branches: {layer: [[attribute, type,
+    modules]]} for sub-branches a layer drops (e.g. a head's one-to-one branch); folded BatchNorms are not branches.
+    """
+    tr, dp = stats["train"]["names"], stats["deploy"]["names"]
+    gone = {n for n, t in tr.items() if dp.get(n) != t}
+    layers = sorted(int(n.split(".")[1]) for n in gone if re.fullmatch(r"model\.\d+", n))
+    branches = defaultdict(list)
+    for n in sorted(gone):
+        m = re.fullmatch(r"model\.(\d+)\.([^.]+)", n)
+        if m and int(m[1]) not in layers:
+            size = sum(1 for x in gone if x == n or x.startswith(n + "."))
+            if size > 2:
+                branches[int(m[1])].append([m[2], tr[n], size])
+    return {"layers": layers, "branches": dict(branches)}
+
+
 def phase_diff(stats: dict) -> dict:
-    """Differences between the training graph and each deployment graph, found from module paths and traced calls.
+    """Differences between the training graph and each deployment graph, from the modules and helpers each one ran.
 
     Module paths are generalised by replacing indices with '*', so e.g. every 'model.4.m.0.cv1.bn' style path folds
     into the pattern 'model.*.m.*.cv1.bn'.
@@ -249,10 +269,10 @@ def phase_diff(stats: dict) -> dict:
     for ph, st in stats.items():
         if ph == "train":
             continue
-        entry = {}
+        entry, parents = {}, {}
         for kind, a, b in (("removed", tr["names"], st["names"]), ("added", st["names"], tr["names"])):
             gone = {n for n, t in a.items() if b.get(n) != t}
-            groups = defaultdict(lambda: [0, 0])  # (pattern, type) -> [subtree roots, modules inside]
+            groups = defaultdict(lambda: [0, 0, set()])  # (pattern, type) -> [subtree roots, modules, parents]
             for n in gone:
                 root = n
                 while "." in root and root.rpartition(".")[0] in gone:
@@ -260,7 +280,17 @@ def phase_diff(stats: dict) -> dict:
                 g = groups[(pat(root), a[root])]
                 g[1] += 1
                 g[0] += root == n
-            entry[kind] = sorted(([p, t, c, size] for (p, t), (c, size) in groups.items()), key=lambda r: -r[3])
+                if kind == "removed" or tr["registered"].get(root) != a[root]:  # only new modules replace others
+                    g[2].add(root.rpartition(".")[0])
+            rows = sorted(([p, t, c, size, par] for (p, t), (c, size, par) in groups.items()), key=lambda r: -r[3])
+            entry[kind] = [r[:4] for r in rows]
+            parents[kind] = [r[4] for r in rows]
+        # a module built for deployment under the parent of removed ones replaces them, e.g. conv1 + conv2 -> conv
+        entry["replaced"] = [
+            [ai, rs]
+            for ai, ap in enumerate(parents["added"])
+            if (rs := [ri for ri, rp in enumerate(parents["removed"]) if rp & ap])
+        ]
         entry["calls"] = {
             "train": sorted(set(tr["calls"]) - set(st["calls"])),
             ph: sorted(set(st["calls"]) - set(tr["calls"])),
@@ -736,12 +766,13 @@ def run(only: str | None):
                         if "g" in n:
                             keys[i] = process(n["g"], n["type"], stem, base, _attrs(n))
                     stats[phase] = {
-                        "names": {n: type(mod).__name__ for n, mod in m.named_modules() if n},
+                        # modules that actually ran, so a branch kept in the model but not called counts as gone
+                        "names": {n: type(mod).__name__ for n, mod in m.named_modules() if n in tracer.called},
                         "calls": sorted(tracer.fns),
                         "ops": dict(tracer.ops),
                         "params": sum(p.numel() for p in m.parameters()),
                         "gflops": round(2 * tracer.macs / 1e9, 1),
-                        "mods": Counter(type(mod).__name__ for mod in m.modules()),
+                        "registered": {n: type(mod).__name__ for n, mod in m.named_modules()},
                         "layer_params": [sum(p.numel() for p in layer.parameters()) for layer in m.model],
                     }
                     traced[phase] = (nodes, keys)
@@ -769,6 +800,7 @@ def run(only: str | None):
             }
             if "phases" not in cfg:
                 cfg["phase_diff"] = phase_diff(stats)
+                cfg["train_only"] = train_only(stats)
                 cfg["phases"] = phase_notes(stats, cfg["phase_diff"])
                 cfg["phase_list"] = list(stats)
             per_scale[s or ""] = (model, rows, traced, stats)

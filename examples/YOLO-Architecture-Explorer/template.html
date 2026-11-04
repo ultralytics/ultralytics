@@ -578,6 +578,37 @@
                 fill: var(--tok-d) !important;
                 font-weight: 700;
             }
+            .region {
+                fill: none;
+                stroke-width: 2;
+                stroke-dasharray: 9 6;
+            }
+            .regiontitle {
+                font-size: 19px;
+                font-weight: 800;
+            }
+            .r-backbone {
+                stroke: #16a34a;
+                fill: #16a34a;
+            }
+            .r-neck {
+                stroke: #1e3a8a;
+                fill: #1e3a8a;
+            }
+            .r-head {
+                stroke: #dc2626;
+                fill: #dc2626;
+            }
+            .r-aux {
+                stroke: #0284c7;
+                fill: #0284c7;
+            }
+            rect.region.r-backbone,
+            rect.region.r-neck,
+            rect.region.r-head,
+            rect.region.r-aux {
+                fill: none;
+            }
             .deltatag {
                 fill: #e11d48;
             }
@@ -1259,31 +1290,32 @@
             const layerFull = (l) => (V(l).length ? () => openFull(l, 0) : null);
             // split the backbone into parallel chains: a stride reset starts a new chain (e.g. yolov9e's second
             // backbone), layers fed from elsewhere (e.g. CBLinear) go to a links column between the chains
-            function splitBackbone(cfg) {
-                const L = cfg.layers,
-                    nb = cfg.nb;
+            function splitBackbone(cfg, skip = new Set()) {
+                const L = cfg.layers;
+                const kept = L.slice(0, cfg.nb).filter((l) => !skip.has(l.i));
                 const chains = [["in"]],
                     links = [];
                 let maxS = 1;
-                for (let i = 0; i < nb; i++) {
-                    const l = L[i],
-                        s = strideOf(l),
-                        cur = chains[chains.length - 1];
-                    const continued = i + 1 < nb && srcOf(L[i + 1]).includes(i); // a real chain is consumed by the next layer
-                    if (i > 0 && s != null && s < maxS && continued) {
+                kept.forEach((l, k) => {
+                    const s = strideOf(l),
+                        cur = chains[chains.length - 1],
+                        prev = kept[k - 1],
+                        next = kept[k + 1];
+                    const continued = next && srcOf(next).includes(l.i); // a real chain is consumed by the next layer
+                    if (k > 0 && s != null && s < maxS && continued) {
                         chains.push([l]);
                         maxS = s;
-                    } else if (i === 0 || (srcOf(l).includes(i - 1) && cur.includes(L[i - 1]))) {
+                    } else if (k === 0 || (srcOf(l).includes(prev.i) && cur.includes(prev))) {
                         cur.push(l);
                         if (s) maxS = Math.max(maxS, s);
                     } else links.push(l);
-                }
+                });
                 const main = chains.pop();
                 const cols = [...chains, ...(links.length ? [links] : []), main];
                 const headers = [
-                    ...chains.map((_, k) => `Backbone · branch${chains.length > 1 ? " " + (k + 1) : ""}`),
+                    ...chains.map((_, k) => `branch${chains.length > 1 ? " " + (k + 1) : ""}`),
                     ...(links.length ? [[...new Set(links.map((l) => l.type))].join(" / ") + " links"] : []),
-                    chains.length ? "Backbone · main" : "Backbone",
+                    chains.length ? "main" : "",
                 ];
                 return { cols, headers };
             }
@@ -1316,10 +1348,18 @@
                 DIFF_CACHE.set(ck, d);
                 return d;
             }
-            function splitNeck(cfg) {
+            // short name for a layer's training-only sub-branches: their shared name prefix (one2one_cv2/_cv3 -> one2one)
+            function branchName(br) {
+                const toks = br.map((b) => b[0].split(/[_.]/)),
+                    common = [];
+                for (let i = 0; toks.length && i < toks[0].length && toks.every((t) => t[i] === toks[0][i]); i++) common.push(toks[0][i]);
+                const rest = br.map((b) => b[0].split(/[_.]/).slice(common.length).join("_")).filter(Boolean);
+                return { short: common.join("_") || br.map((b) => b[0]).join(" + "), rest: common.length ? rest.join(" + ") : "" };
+            }
+            function splitNeck(cfg, skip = new Set()) {
                 const L = cfg.layers,
                     nb = cfg.nb;
-                const head = L.slice(nb, L.length - 1);
+                const head = L.slice(nb, L.length - 1).filter((l) => !skip.has(l.i));
                 let k = head.length,
                     prev = strideOf(L[nb - 1]);
                 for (let t = 0; t < head.length; t++) {
@@ -1361,7 +1401,8 @@
                 const neckX = x;
                 const chipFor = (l) =>
                     ({ Upsample: "U", Concat: "C", ConvTranspose2d: "UT" })[l.type] || (l.cls === "Sequential" ? `${l.type}×n` : l.type);
-                for (const l of L.slice(nb, -1)) {
+                const skipOv = new Set(cfg.train_only?.layers || []);
+                for (const l of L.slice(nb, -1).filter((m) => !skipOv.has(m.i))) {
                     const s = strideOf(l) ?? all[0];
                     const lab = chipFor(l);
                     const w = Math.max(26, tw(lab, 7) + 14);
@@ -1377,7 +1418,7 @@
                     }
                     return at[src] ? [at[src].rx, at[src].y, `oc${src}`] : null;
                 };
-                for (const l of L.slice(nb, -1))
+                for (const l of L.slice(nb, -1).filter((m) => !skipOv.has(m.i)))
                     for (const src of srcOf(l)) {
                         const a = from(src);
                         if (a) edges.push({ s: a[2], t: `oc${l.i}`, d: hcurve(a[0], a[1], at[l.i].lx, at[l.i].y), cls: "ov" });
@@ -1387,6 +1428,11 @@
                 const ins = srcOf(last);
                 const dlab = last.type;
                 const dW = Math.max(60, tw(dlab, 7) + 16);
+                const br = S.phase === "train" ? cfg.train_only?.branches?.[last.i] || [] : [];
+                // short name for the head's training-only branches: their shared prefix (e.g. one2one_cv2/_cv3 -> one2one)
+                const pre = branchName(br).short;
+                const bLab = br.length ? `${pre || br.map((b) => b[0]).join("+")} · train` : "";
+                const bW = br.length ? tw(bLab, 7) + 16 : 0;
                 const used = new Set();
                 ins.forEach((src, j) => {
                     let s = strideOf(L[src]) ?? all[0];
@@ -1400,20 +1446,25 @@
                     const a = from(src);
                     if (a) edges.push({ s: a[2], t: sid, d: hcurve(a[0], a[1], headX, y + CH / 2), cls: "ov" });
                     edges.push({ s: sid, t: did, d: `M${headX + 82},${y + CH / 2} L${headX + 104},${y + CH / 2}`, cls: "ov" });
+                    if (br.length) {
+                        const bid = `otb${j}`;
+                        nodes.push({ id: bid, kind: "chip", x: headX + 104 + dW + 10, y, w: bW, h: CH, fam: "head", title: bLab, layer: last.i, only: true, act: layerAct(last, bid), full: layerFull(last) });
+                    }
                 });
                 const lines = last.args
                     .filter(([k, v]) => k !== "ch" && String(v).length <= 22)
                     .slice(0, 3)
                     .map(([k, v]) => `${k} = ${v}`);
                 lines.push(S.phase === "train" ? "outputs → loss (training)" : "outputs → post-processing");
-                const nx = headX + 104 + dW + 50,
+                const nx = headX + 104 + dW + (bW ? bW + 20 : 0) + 50,
                     nw = Math.max(...lines.map((s) => tw(s, 6.4))) + 26,
                     nh = 30 + lines.length * 15;
                 const midY = top + ((all.length - 1) * RH) / 2 + CH / 2;
                 nodes.push({ id: "onote", kind: "note", x: nx, y: midY - nh / 2, w: nw, h: nh, fam: "head", title: last.type, lines, layer: last.i, act: layerAct(last, "onote"), full: layerFull(last) });
                 ins.forEach((_, j) => {
                     const d = nodes.find((n) => n.id === `od${j}`);
-                    edges.push({ s: `od${j}`, t: "onote", d: hcurve(d.x + d.w, d.y + CH / 2, nx, midY), cls: "ov" });
+                    const b = nodes.find((n) => n.id === `otb${j}`) || d;
+                    edges.push({ s: b.id, t: "onote", d: hcurve(b.x + b.w, b.y + CH / 2, nx, midY), cls: "ov" });
                 });
                 for (const [x0, t] of [
                     [PX, "Backbone"],
@@ -1434,21 +1485,34 @@
                 BGAP = 26;
             function drawMain(cfg, g) {
                 const L = cfg.layers,
-                    nb = cfg.nb,
                     last = L[L.length - 1];
-                const [fpn, pan] = splitNeck(cfg);
-                const bb = splitBackbone(cfg);
-                const cols = [...bb.cols, fpn];
-                if (pan.length) cols.push(pan);
-                const ncol = cols.length,
-                    fpnCol = bb.cols.length;
+                // training-only parts come from the build's train/deploy diff: whole layers (an auxiliary branch) are
+                // drawn in their own region in Training and vanish in Deployment; head sub-branches sit under the head
+                const TO = cfg.train_only || { layers: [], branches: {} };
+                const skip = new Set(TO.layers);
+                const auxLayers = S.phase === "train" ? L.filter((l) => skip.has(l.i)) : [];
+                const auxHeads = auxLayers.filter((l) => fam(l.cls) === "head"),
+                    auxBody = auxLayers.filter((l) => fam(l.cls) !== "head");
+                const bb = splitBackbone(cfg, skip);
+                const [fpn, pan] = splitNeck(cfg, skip);
+                const C = []; // columns: { items, role, header }
+                if (auxHeads.length) C.push({ items: auxHeads, role: "aux", header: "head" });
+                if (auxBody.length) C.push({ items: auxBody, role: "aux", header: "branch" });
+                bb.cols.forEach((items, k) => C.push({ items, role: "backbone", header: bb.headers[k] }));
+                const fpnCol = C.length;
+                C.push({ items: fpn, role: pan.length ? "neck" : "head", header: "top-down ↑" });
+                if (pan.length) C.push({ items: pan, role: "neck", header: "bottom-up ↓" });
+                const outCol = C.length;
+                C.push({ items: [], role: "head", header: "outputs" });
+                const cols = C.map((c) => c.items),
+                    ncol = C.length;
                 // every column is split into stride bands; a band is as tall as its busiest column, so a neck node
                 // sits level with the backbone stage of the same resolution and skip connections run horizontally
                 const colBands = cols.map((list) => {
                     const m = new Map();
                     let prev = 1;
                     for (const it of list) {
-                        // layers without a feature-map output (e.g. CBLinear) sit on the band of their source
+                        // layers without a feature-map output (e.g. CBLinear, a head) sit on the band of their source
                         const s = it === "in" ? 1 : (strideOf(it) ?? strideOf(L[srcOf(it)[0]]) ?? prev);
                         prev = s;
                         if (!m.has(s)) m.set(s, []);
@@ -1460,7 +1524,7 @@
                 const band = {};
                 let y = 0;
                 for (const s of strides) {
-                    const rows = Math.max(...colBands.map((m) => m.get(s)?.length || 0));
+                    const rows = Math.max(1, ...colBands.map((m) => m.get(s)?.length || 0));
                     band[s] = { top: y, h: rows * ROW };
                     y += rows * ROW + BGAP;
                 }
@@ -1477,7 +1541,7 @@
                     }
                 });
                 const bg = el("g", {}, g);
-                const fullW = (ncol + 1) * (W + GX) - GX;
+                const fullW = ncol * (W + GX) - GX;
                 strides.forEach((s, i) => {
                     const b = band[s];
                     el("rect", { class: "band", x: -70, y: b.top - BGAP / 2, width: fullW + 100, height: b.h + BGAP, opacity: i % 2 ? 0 : 1 }, bg);
@@ -1485,11 +1549,20 @@
                     t.textContent = s === 1 ? "input" : lvl(s);
                     if (s > 1) el("text", { class: "bandsub", x: -44, y: b.top + b.h / 2 + 18, "text-anchor": "middle" }, bg).textContent = `/${s}`;
                 });
-                const hdr = [...bb.headers, pan.length ? "Neck · top-down ↑" : "Head ↑", "Neck · bottom-up ↓"];
-                for (let c = 0; c <= ncol; c++) {
-                    if (c < ncol) el("rect", { class: "colbg", x: c * (W + GX) - 16, y: -44, width: W + 32, height: TH + 58, rx: 12 }, bg);
-                    el("text", { class: "colhdr", x: c * (W + GX) + W / 2, y: -22, "text-anchor": "middle" }, bg).textContent = c === ncol ? "Output" : hdr[c];
+                // shared regions, the same for every model: (training only) · backbone · neck · head
+                const REGION = { aux: "Auxiliary · training only", backbone: "Backbone", neck: "Neck", head: "Head" };
+                for (const role of Object.keys(REGION)) {
+                    const cs = C.map((c, i) => (c.role === role ? i : -1)).filter((i) => i >= 0);
+                    if (!cs.length) continue;
+                    const x0 = cs[0] * (W + GX) - 30,
+                        x1 = cs[cs.length - 1] * (W + GX) + W + 30;
+                    el("rect", { class: `region r-${role}`, x: x0, y: -96, width: x1 - x0, height: TH + 126, rx: 14 }, bg);
+                    el("text", { class: `regiontitle r-${role}`, x: x0 + 14, y: -70 }, bg).textContent = REGION[role];
                 }
+                C.forEach((c, i) => {
+                    el("rect", { class: "colbg", x: i * (W + GX) - 16, y: -44, width: W + 32, height: TH + 58, rx: 12 }, bg);
+                    el("text", { class: "colhdr", x: i * (W + GX) + W / 2, y: -22, "text-anchor": "middle" }, bg).textContent = c.header;
+                });
                 const nodes = [],
                     edges = [],
                     by = {};
@@ -1511,6 +1584,7 @@
                         isOpen: S.cards[0]?.from === id,
                         delta: phaseDelta(l),
                         symSub: S.mode === "sym",
+                        only: skip.has(l.i) || undefined,
                         ...extra,
                     };
                     nodes.push(n);
@@ -1519,7 +1593,8 @@
                 };
                 by.in = { id: "in", kind: "input", ...pos.in, w: W, h: H, fam: "io", title: "Input image", sub: `${DATA.imgsz}×${DATA.imgsz}×3` };
                 nodes.push(by.in);
-                for (const l of L.slice(0, -1)) mk(l.i, l, pos[l.i]);
+                const shown = L.slice(0, -1).filter((l) => pos[l.i]);
+                for (const l of shown) mk(l.i, l, pos[l.i]);
                 for (const list of bb.cols) {
                     let maxS = 1; // P-level tag where a backbone column reaches a new stride
                     for (const it of list) {
@@ -1528,16 +1603,31 @@
                         if (s) maxS = Math.max(maxS, s);
                     }
                 }
+                // outputs: one head box per input level, and under it the head's training-only branches (if any)
                 const ins = srcOf(last);
-                const dx = ncol * (W + GX);
-                const dets = ins.map((src, j) =>
-                    mk(`det${j}`, last, { x: dx, y: pos[src] ? pos[src].y : (j + 0.5) * (TH / ins.length) - H / 2 }, { pl: lvl(strideOf(L[src])) }),
-                );
-                dets.sort((a, b) => a.y - b.y);
-                for (let i = 1; i < dets.length; i++) if (dets[i].y < dets[i - 1].y + H + 14) dets[i].y = dets[i - 1].y + H + 14;
+                const dx = outCol * (W + GX);
+                const branches = S.phase === "train" ? TO.branches?.[last.i] || [] : [];
+                const outs = [];
+                ins.forEach((src, j) => {
+                    const y0 = pos[src] ? pos[src].y : (j + 0.5) * (TH / ins.length) - H / 2;
+                    outs.push(mk(`det${j}`, last, { x: dx, y: y0 }, { pl: lvl(strideOf(L[src])) }));
+                    if (branches.length)
+                        outs.push(
+                            mk(`tb${j}`, last, { x: dx, y: y0 + H + 10 }, {
+                                title: branchName(branches).short,
+                                sub: [branchName(branches).rest, `${branches.reduce((a, b) => a + b[2], 0)} modules`].filter(Boolean).join(" · "),
+                                only: true,
+                                delta: false,
+                                pl: lvl(strideOf(L[src])),
+                            }),
+                        );
+                });
+                outs.sort((a, b) => a.y - b.y);
+                for (let i = 1; i < outs.length; i++) if (outs[i].y < outs[i - 1].y + H + 10) outs[i].y = outs[i - 1].y + H + 10;
                 const addEdge = (s, t, label) => {
                     const a = by[s],
                         b = by[t];
+                    if (!a || !b) return;
                     let d, lx, ly;
                     const pa = pos[s === "in" ? "in" : s],
                         pb = pos[t];
@@ -1571,13 +1661,16 @@
                     }
                     edges.push({ s, t, d, label, lx, ly, sym: S.mode === "sym" });
                 };
-                for (const l of L.slice(0, -1)) {
+                for (const l of shown) {
                     if (l.i === 0) addEdge("in", 0, shapeLabel(cfg, null));
                     else for (const s of srcOf(l)) addEdge(s, l.i, shapeLabel(cfg, L[s]));
                 }
-                ins.forEach((s, j) => addEdge(s, `det${j}`, shapeLabel(cfg, L[s])));
+                ins.forEach((s, j) => {
+                    addEdge(s, `det${j}`, shapeLabel(cfg, L[s]));
+                    if (branches.length) addEdge(s, `tb${j}`, "");
+                });
                 paint(g, nodes, edges);
-                return { w: fullW, h: Math.max(TH, ...dets.map((d) => d.y + H)) };
+                return { w: fullW, h: Math.max(TH, ...outs.map((d) => d.y + H)) };
             }
 
             /* ------------------------------------------------------------ block internals (dagre) */
@@ -1629,16 +1722,73 @@
                 }
                 return c;
             }
-            function layoutBlock(key, cid, prefix, ctx) {
+            // where each input of a card comes from and where each output goes, resolved through the chain above it
+            function ioLabels(chain) {
+                const cfg = cfgById[S.cfg],
+                    L = cfg.layers,
+                    res = [];
+                const layerLab = (s) => (L[s] ? `${s} · ${L[s].type}${strideOf(L[s]) ? " · " + lvl(strideOf(L[s])) : ""}` : "input image");
+                for (const [i, c] of chain.entries()) {
+                    if (i === 0) {
+                        const l = c.layer != null ? L[c.layer] : null;
+                        if (!l) {
+                            res.push({ ins: [], outs: [] });
+                            continue;
+                        }
+                        const cons = L.filter((m) => m.i > l.i && srcOf(m).includes(l.i)).map((m) => `${m.i} · ${m.type}`);
+                        const last = l.i === L.length - 1;
+                        res.push({
+                            ins: l.i === 0 ? ["input image"] : srcOf(l).map(layerLab),
+                            outs: [last ? "model output" : cons.slice(0, 3).join(", ") + (cons.length > 3 ? ", …" : "")],
+                            last,
+                        });
+                        continue;
+                    }
+                    const P = DATA.blocks[chain[i - 1].key],
+                        prev = res[i - 1],
+                        j = c.from ?? c.j;
+                    const hidden = (k) => S.simple && (P.nodes[k].kind === "const" || (P.nodes[k].kind === "op" && PLUMB.has(P.nodes[k].type)));
+                    const firstIn = {};
+                    for (const [s, si, d, di] of P.edges) if (!(d in firstIn) || di < firstIn[d][2]) firstIn[d] = [s, si, di];
+                    const lab = (k, si) => {
+                        const n = P.nodes[k];
+                        if (n.kind === "input") return prev.ins[+n.type.slice(2)] || n.type;
+                        if (n.kind === "output") return prev.last ? `model output${n.name ? " · " + n.name : ""}` : prev.outs[+n.type.slice(3)] || "output";
+                        const multi = (P.syms[0]?.out[k] || []).length > 1;
+                        return `${n.name ? n.name + " · " : ""}${n.type}${multi ? `[${si}]` : ""}`;
+                    };
+                    const ins = [],
+                        outs = [];
+                    for (const [s0, si0, d, di] of P.edges)
+                        if (d === j) {
+                            let s = s0,
+                                si = si0,
+                                guard = 0;
+                            while (hidden(s) && firstIn[s] && guard++ < 50) [s, si] = firstIn[s];
+                            ins[di] = lab(s, si);
+                        }
+                    for (const [s, si, d] of P.edges) if (s === j) (outs[si] ||= []).push(lab(d, 0));
+                    res.push({ ins, outs: outs.map((a) => [...new Set(a)].slice(0, 3).join(", ")), last: false });
+                }
+                return res;
+            }
+            function layoutBlock(key, cid, prefix, ctx, io) {
                 const b = DATA.blocks[key];
                 const sym = b.syms[b.sym[cid] ?? 0];
                 const nodes = b.nodes.map((n, j) => {
                     const hp = { ...(n.hp || {}), ...(sym.hp[j] || {}) };
                     const shape = (sym.out[j] || []).join("  |  ");
                     let title, sub, f;
-                    if (n.kind === "input" || n.kind === "output") {
-                        title = n.kind === "input" ? `input ${n.type.slice(2)}` : `output ${n.type.slice(3)}`;
+                    if (n.kind === "input") {
+                        const src = io?.ins?.[+n.type.slice(2)];
+                        title = src ? `← ${src}` : `input ${n.type.slice(2)}`;
                         sub = shape;
+                        f = "io";
+                    } else if (n.kind === "output") {
+                        const k = +n.type.slice(3),
+                            dst = io?.last ? "model output" : io?.outs?.[k];
+                        title = dst ? `→ ${dst}` : n.name || `output ${k}`;
+                        sub = [n.name, shape].filter(Boolean).join(" · ");
                         f = "io";
                     } else if (n.kind === "const") {
                         title = `const · ${n.type}`;
@@ -1695,7 +1845,7 @@
                 const keep = b.nodes.map((_, j) => !hidden.has(j));
                 const vis = nodes.filter((_, j) => keep[j]);
                 const edges = raw.map((e) => ({ s: prefix + e.s, t: prefix + e.d, label: e.label, sd: [e.s, e.d] }));
-                const ck = `${key}|${cid}|${S.labels}|${S.simple}`;
+                const ck = `${key}|${cid}|${S.labels}|${S.simple}|${JSON.stringify(io || {})}`; // labels change node widths
                 let L = LAYOUTS.get(ck);
                 if (!L && typeof dagre !== "undefined") {
                     const G = new dagre.graphlib.Graph({ multigraph: true });
@@ -1731,9 +1881,10 @@
                 const cfg = cfgById[S.cfg];
                 let x = x0;
                 const rects = [];
-                const twins = twinChain(S.cards);
+                const twins = twinChain(S.cards),
+                    io = ioLabels(S.cards);
                 S.cards.forEach((c, ci) => {
-                    const lay = layoutBlock(c.key, S.cfg, `c${ci}_`, { card: ci, layer: c.layer });
+                    const lay = layoutBlock(c.key, S.cfg, `c${ci}_`, { card: ci, layer: c.layer }, io[ci]);
                     const nOnly = markOnly(lay.nodes, c.key, twins[ci]);
                     for (const n of lay.nodes) {
                         n.isOpen = S.cards[ci + 1]?.from === n.j;
@@ -1809,7 +1960,7 @@
             function renderFocus() {
                 clear();
                 const p = S.path[S.path.length - 1];
-                const lay = layoutBlock(p.key, S.cfg, "b", { focus: true, layer: S.path[0].layer, depth: S.path.length - 1 });
+                const lay = layoutBlock(p.key, S.cfg, "b", { focus: true, layer: S.path[0].layer, depth: S.path.length - 1 }, ioLabels(S.path)[S.path.length - 1]);
                 markOnly(lay.nodes, p.key, twinChain(S.path)[S.path.length - 1]);
                 for (const n of lay.nodes) if (n.g) n.act = () => drill(n.g, `${n.name} · ${n.type}`, n.j);
                 if (lay.missing) el("text", { x: 0, y: 20, style: "fill:var(--new)" }, vp).textContent = "dagre did not load — internals need cdnjs.cloudflare.com";
@@ -1980,7 +2131,7 @@
             function phaseHTML(cfg) {
                 const ph = S.phase === "train" ? "deploy" : S.phase;
                 const d = cfg.phase_diff?.[ph];
-                let h = `<h3>Training vs ${PHASE_LABEL[ph].toLowerCase()}</h3><ul class="notes">${cfg.phases.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`;
+                let h = `<h3>Training vs ${PHASE_LABEL[ph].toLowerCase()}</h3><p class="muted" style="font-size:12px">Both graphs are traced from what this codebase builds: <span class="mono">model.train()</span> versus <span class="mono">model.fuse()</span> + <span class="mono">eval()</span>. A branch that exists only in a paper's own training recipe, such as an auxiliary head, appears here once a config in this repo defines it.</p><ul class="notes">${cfg.phases.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`;
                 if (!d) return h;
                 const rows = (list, sign) =>
                     list
@@ -1990,7 +2141,7 @@
                         )
                         .join("");
                 const lead = d.removed.slice(0, 6).concat(d.added.slice(0, 4));
-                h += `<p class="muted" style="font-size:12px">Found automatically by comparing every module path of the training model with the ${PHASE_LABEL[ph].toLowerCase()} model (indices generalised to <span class="mono">*</span>):</p>`;
+                h += `<p class="muted" style="font-size:12px">Found automatically by comparing the modules that run in the training model with those that run in the ${PHASE_LABEL[ph].toLowerCase()} model (indices generalised to <span class="mono">*</span>):</p>`;
                 h += `<table class="diff">${rows(d.removed.slice(0, 6), "−")}${rows(d.added.slice(0, 4), "+")}</table>`;
                 const more = d.removed.length + d.added.length - lead.length;
                 if (more > 0) h += `<details><summary>${more} more path patterns</summary><table class="diff">${rows(d.removed.slice(6), "−")}${rows(d.added.slice(4), "+")}</table></details>`;

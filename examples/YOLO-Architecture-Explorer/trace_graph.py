@@ -19,7 +19,7 @@ import weakref
 import torch
 from torch import nn
 from torch.overrides import TorchFunctionMode
-from torch.utils._pytree import tree_flatten
+from torch.utils._pytree import tree_flatten, tree_flatten_with_path
 
 OP_SYMBOLS = {
     "__add__": "add",
@@ -57,6 +57,11 @@ SKIP_OPS = {"__get__", "__set__", "size", "dim", "numel", "item", "tolist", "__l
 def _tensors(obj) -> list[torch.Tensor]:
     """Flatten nested args/outputs (lists, tuples, dicts) into the tensors they contain."""
     return [t for t in tree_flatten(obj)[0] if isinstance(t, torch.Tensor)]
+
+
+def _path_name(path) -> str:
+    """'1.boxes' for the pytree path of out[1]['boxes'] in a module's return value."""
+    return ".".join(str(getattr(k, "key", getattr(k, "idx", getattr(k, "name", k)))) for k in path)
 
 
 def _shape(t: torch.Tensor) -> list[int]:
@@ -132,6 +137,7 @@ class GraphTracer(TorchFunctionMode):
         self.names: dict[int, str] = {}
         self.mods: dict[str, nn.Module] = {}
         self.fns: dict[str, dict] = {}  # helper methods that group ops, e.g. Detect.forward_head -> source
+        self.called: set[str] = set()  # paths of every module that ran and of its parents, e.g. a ModuleList
 
     # --- graph helpers -------------------------------------------------------------------------------------------
     def _new_graph(self, mod: nn.Module | None, path: str) -> dict:
@@ -228,6 +234,10 @@ class GraphTracer(TorchFunctionMode):
     def pre_hook(self, mod, args):
         if not self.stack:
             return
+        name = self.names.get(id(mod), "")
+        while name and name not in self.called:  # a parent is in use when any child runs
+            self.called.add(name)
+            name = name.rpartition(".")[0]
         top = self.stack[-1][0]
         if top in {"leaf", "skip"}:
             self.stack.append(("skip",))
@@ -291,11 +301,16 @@ class GraphTracer(TorchFunctionMode):
                 self.macs += outs[0].numel() * mod.in_features
         if fr[0] == "scope":
             child = fr[3]
+            names = [
+                _path_name(path) for path, leaf in tree_flatten_with_path(out)[0] if isinstance(leaf, torch.Tensor)
+            ]
             for i, t in enumerate(outs):
                 src = self.prod.get(id(t), {}).get(child["uid"])
                 if src is not None and child["nodes"][src[0]]["kind"] == "input" and len(outs) > 1:
                     continue  # pass-through of an input (e.g. Detect returning its feats), not a real output
                 oid = self._add(child, kind="output", type=f"out{i}", out=[_shape(t)])
+                if len(outs) > 1 and names[i]:  # name outputs after the returned structure, e.g. 'one2many.boxes'
+                    child["nodes"][oid]["name"] = names[i]
                 self._link(child, [t], oid)
             g["nodes"][nid]["g"] = self._finalize(child)
         g["nodes"][nid]["out"] = [_shape(t) for t in outs]
@@ -331,6 +346,7 @@ class GraphTracer(TorchFunctionMode):
         self.names = {id(m): n for n, m in model.named_modules()}
         self.mods = dict(model.named_modules())
         self.macs = 0
+        self.called = set()
         root = self._new_graph(None, "")
         self.stack = [("scope", None, None, root, None)]
         self._register(x, root, self._add(root, kind="input", type="image", out=[_shape(x)]), 0)

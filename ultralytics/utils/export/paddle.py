@@ -65,7 +65,6 @@ def torch2paddle(
     quoted = "'" in os.path.abspath(output_dir)  # X2Paddle writes save_dir into a '-quoted literal it then imports
     try:
         with tempfile.TemporaryDirectory() if quoted else nullcontext(output_dir) as save_dir:
-            assert "'" not in os.path.abspath(save_dir), f"X2Paddle cannot export under {save_dir}, set TMPDIR"
             pytorch2paddle(module=model, save_dir=save_dir, jit_type="trace", input_examples=[im])  # export
             if quoted:
                 shutil.copytree(save_dir, output_dir, dirs_exist_ok=True)

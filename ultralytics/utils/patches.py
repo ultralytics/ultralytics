@@ -213,8 +213,10 @@ def torch_load(*args, **kwargs):
     """
     from ultralytics.utils.torch_utils import TORCH_1_13
 
-    if TORCH_1_13 and "weights_only" not in kwargs:
-        kwargs["weights_only"] = False
+    if TORCH_1_13:
+        kwargs.setdefault("weights_only", False)
+    else:
+        kwargs.pop("weights_only", None)
 
     return torch.load(*args, **kwargs)
 

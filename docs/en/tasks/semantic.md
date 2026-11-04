@@ -87,7 +87,7 @@ See full `train` mode details in the [Train](../modes/train.md) page. Semantic s
 
 !!! tip "Deterministic Training"
 
-    Set `deterministic=False` for about 2x faster semantic segmentation training on CUDA while trading reproducibility.
+    Set `deterministic=False` to avoid slower deterministic CUDA kernels when exact reproducibility is not required.
 
 ### Dataset format
 

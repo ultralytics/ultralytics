@@ -601,6 +601,7 @@ class Results(SimpleClass, DataExportMixin):
             sem_mask = self.semantic_mask.data
             if isinstance(sem_mask, torch.Tensor):
                 sem_mask = sem_mask.cpu().numpy()
+            sem_mask = np.where(sem_mask == 1, 0, 255) if len(names) == 1 else sem_mask
             annotator.semantic_mask(sem_mask, alpha=0.5)
 
         # Plot Depth results — blend colorized depth heatmap over the image

@@ -570,7 +570,7 @@ class Annotator:
         mask = np.asarray(mask)
         mask = mask if mask.dtype.kind in "iu" else mask.astype(int)  # class IDs index the palette directly
         overlay = np.array([colors(i, True) for i in range(int(mask.max(initial=0)) + 1)], self.im.dtype)[mask]
-        overlay[mask == ignore_index] = 0
+        overlay[mask == ignore_index] = self.im[mask == ignore_index]
         self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
 
     def depth_map(
@@ -1051,6 +1051,7 @@ def plot_images(
             # to BGR for the overlay, then back to RGB for the mosaic.
             sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
             sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
+            mask = np.where(mask == 1, 0, 255) if names and len(names) == 1 else mask
             sub_annotator.semantic_mask(mask, alpha=0.4)
             im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
 

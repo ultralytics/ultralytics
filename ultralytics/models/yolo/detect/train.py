@@ -231,6 +231,7 @@ class DetectionTrainer(BaseTrainer):
             labels=batch,
             paths=batch["im_file"],
             fname=self.save_dir / f"train_batch{ni}.jpg",
+            names=self.data["names"] if "semantic_mask" in batch else None,  # World/YOLOE remap cls to prompt slots
             on_plot=self.on_plot,
         )
 

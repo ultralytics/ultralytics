@@ -40,7 +40,7 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
     if use_lap:
         # Use lap.lapjv
         # https://github.com/gatagat/lap
-        _, x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh)
+        x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh, return_cost=False)
         matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0]
         unmatched_a = np.where(x < 0)[0]
         unmatched_b = np.where(y < 0)[0]

@@ -64,8 +64,8 @@ def torch2ncnn(
     # pnnx.export() imports the Python it generates, which breaks on a quote in these paths, so run its converter
     inputshape = generate_inputs_arg(get_shape_from_inputs([im]), get_type_from_inputs([im]))
     cmd = [pnnx.EXEC_PATH, pt, f"inputshape={inputshape}", f"device={device_type}", "optlevel=2"]
-    cmd += [f"{k}={v}" for k, v in {**ncnn_args, **pnnx_args}.items()]
-    subprocess.run(cmd if quantize == 16 else [*cmd, "fp16=0"], stdout=subprocess.DEVNULL, check=True)
+    cmd += [f"{k}={v}" for k, v in {**ncnn_args, **pnnx_args, "fp16": int(quantize == 16)}.items()]
+    subprocess.run(cmd, stdout=subprocess.DEVNULL, check=True)
 
     for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", pt, *pnnx_args.values()):
         Path(f_debug).unlink(missing_ok=True)

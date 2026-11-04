@@ -62,11 +62,11 @@ def torch2paddle(
 
     LOGGER.info(f"\n{prefix} starting export with X2Paddle {x2paddle.__version__}...")
 
-    quoted = "'" in os.path.abspath(output_dir)  # X2Paddle writes save_dir into a '-quoted literal it then imports
     try:
-        with tempfile.TemporaryDirectory() if quoted else nullcontext(output_dir) as save_dir:
-            pytorch2paddle(module=model, save_dir=save_dir, jit_type="trace", input_examples=[im])  # export
-            if quoted:
+        # X2Paddle writes save_dir into a '-quoted literal it then imports
+        with tempfile.TemporaryDirectory() if "'" in os.path.abspath(output_dir) else nullcontext() as save_dir:
+            pytorch2paddle(module=model, save_dir=save_dir or output_dir, jit_type="trace", input_examples=[im])
+            if save_dir:
                 shutil.copytree(save_dir, output_dir, dirs_exist_ok=True)
     finally:
         prim2code.prim_assert = prim_assert

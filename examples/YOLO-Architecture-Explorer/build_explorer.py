@@ -68,7 +68,7 @@ def discover() -> list[tuple[str, Path]]:
     for path in sorted(CFG.rglob("*.yaml")):
         try:
             task = guess_model_task(YAML.load(path))
-        except Exception:  # noqa: BLE001, S112 - not a model config
+        except Exception:  # noqa: S112 - not a model config
             continue
         if task in {"detect", None}:
             found.append((version_label(path.parent.name), path))
@@ -496,7 +496,7 @@ def _fit_ratio(vals, ctxs, sym):
 
 
 def _fit_nlin(vals, ctxs, sym="c_out"):
-    """v = (a + b·n)·base, e.g. the C2f concat 0.5(n+2)c_out."""
+    """Value as (a + b·n)·base, e.g. the C2f concat 0.5(n+2)c_out."""
     label = sym.lstrip("@")
     pts = [(c["n"], v / b) for v, c in zip(vals, ctxs) if c["n"] and (b := _base(sym, c))]
     if len(pts) != len(vals) or len({p[0] for p in pts}) < 2:
@@ -549,6 +549,7 @@ def fit_dim(vals: list[int], ctxs: list[dict], kind: str) -> str:
 
 
 def fit_shape(shapes: list[list[int]], ctxs: list[dict], is_input: bool) -> str:
+    """Symbolic block-relative shape of one tensor across scales, e.g. h×w×0.5c_out."""
     rank = len(shapes[0])
     if any(len(s) != rank for s in shapes):
         return "·"
@@ -568,6 +569,7 @@ def fit_shape(shapes: list[list[int]], ctxs: list[dict], is_input: bool) -> str:
 
 
 def fit_struct(key: str, cid: str) -> dict:
+    """Symbolic shapes and args of every node and edge of one block structure, fitted across its samples."""
     samples = SAMPLES[(key, cid)]
     graphs, ctxs = [s[0] for s in samples], [s[1] for s in samples]
     out, hp, args = [], [], []
@@ -614,6 +616,7 @@ def fit_top(vals: list[int], scales: dict) -> str:
 
 
 def fit_arg(name: str, vals: list, yaml_n: int, scales: dict) -> str:
+    """Symbolic form of a layer argument across scales, e.g. n=3×d or 512×w."""
     if name == "n" and yaml_n > 1 and len(set(vals)) > 1:
         return f"{yaml_n}×d"
     if len(set(map(repr, vals))) == 1:
@@ -679,6 +682,7 @@ KNOWN_FAMILY = {t for _, members in FAMILIES for t in members}
 
 
 def family(name: str) -> str:
+    """Initial colour family of a type: its torch-primitive family, else conv or csp until refined from structure."""
     for fam, members in FAMILIES:
         if name in members:
             return fam
@@ -686,6 +690,7 @@ def family(name: str) -> str:
 
 
 def class_info(cls: type) -> dict:
+    """Docstring summary, source file and line, and __init__/forward source of a block class."""
     doc = (inspect.getdoc(cls) or "").split("\n\n")[0].replace("\n", " ")
     info = {"doc": doc, "family": family(cls.__name__), "module": cls.__module__}
     if not cls.__module__.startswith("ultralytics"):
@@ -715,6 +720,7 @@ def class_info(cls: type) -> dict:
 # main
 # --------------------------------------------------------------------------------------------------------------------
 def run(only: str | None):
+    """Build and trace every discovered config and return the page data."""
     torch.set_grad_enabled(False)
     torch.set_num_threads(max(torch.get_num_threads(), 4))
     LOGGER.setLevel(logging.INFO)
@@ -779,7 +785,7 @@ def run(only: str | None):
                     for mod in m.modules():
                         classes.setdefault(type(mod).__name__, type(mod))
                         block_first.setdefault(type(mod).__name__, version)
-            except Exception as e:  # noqa: BLE001 - keep building the other configs, report this one
+            except Exception as e:  # keep building the other configs, report this one
                 print(f"  ! {stem}{s or ''}: {type(e).__name__}: {e}")
                 skipped.append(
                     {
@@ -959,6 +965,7 @@ def run(only: str | None):
 
 
 def main():
+    """Command-line entry point: build the data and write the HTML page (and optionally the JSON)."""
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only", help="regex on config stems, e.g. 'yolov8$|yolo11'")
     ap.add_argument("--out", default=str(HERE / "yolo_architecture_explorer.html"))

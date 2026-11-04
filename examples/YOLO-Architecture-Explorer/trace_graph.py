@@ -128,6 +128,7 @@ class GraphTracer(TorchFunctionMode):
     """Trace a module forward into a table of deduplicated, nested graphs."""
 
     def __init__(self):
+        """Create an empty tracer; trace() fills it."""
         super().__init__()
         self.macs = 0  # multiply-accumulates of conv/linear leaves
         self.ops: dict[str, int] = {}  # tensor-op counts outside leaf modules
@@ -228,10 +229,11 @@ class GraphTracer(TorchFunctionMode):
     @staticmethod
     def _is_leaf(mod: nn.Module) -> bool:
         if isinstance(mod, (nn.Sequential, nn.ModuleList)):
-            return False  # a repeated top-level layer, e.g. YOLOv6 'Conv ×n'
+            return False  # a repeated top-level layer, e.g. YOLOv6 'Conv x n'
         return type(mod).__module__.startswith("torch.") or not any(True for _ in mod.children())
 
     def pre_hook(self, mod, args):
+        """Open a node for a module call, and a nested scope for it unless it is a torch leaf."""
         if not self.stack:
             return
         name = self.names.get(id(mod), "")
@@ -283,6 +285,7 @@ class GraphTracer(TorchFunctionMode):
         self.stack.append(("scope", g, nid, child, full))
 
     def post_hook(self, mod, args, out):
+        """Close the module call: record its outputs, MACs and provenance in the parent graph."""
         if not self.stack:
             return
         fr = self.stack.pop()
@@ -318,6 +321,7 @@ class GraphTracer(TorchFunctionMode):
             self._register(t, g, nid, i)
 
     def __torch_function__(self, func, types, args=(), kwargs=None):
+        """Record a tensor op called directly inside a module scope as an op node."""
         kwargs = kwargs or {}
         out = func(*args, **kwargs)
         if not self.stack or self.stack[-1][0] in {"leaf", "skip"}:

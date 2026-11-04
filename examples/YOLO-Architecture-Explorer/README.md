@@ -8,6 +8,15 @@ An interactive, single-file HTML explorer for the Ultralytics detection configs.
 - **Click to expand, recursively.** Clicking a block opens its real dataflow as a card beside the diagram, and clicking inside a card goes one level deeper, down to `Conv2d → BatchNorm2d → SiLU`. Repeats collapse to one `×n` node, and shapes are block-relative (`h×w×0.5c_out`, `0.5(n+2)c_out`). Scale-dependent wirings get a variant switch. Helper-method calls (e.g. `forward_head()`) and mixed `nn.Sequential` branches fold into one node each, and pure reshape ops are hidden unless you untick **simple**. Hover any block or line to see numbers. The mouse wheel scrolls, and Ctrl/⌘ + wheel zooms.
 - **Blocks & evolution.** A block × version matrix shows where each block type first appears. Per-version summaries list new block types and new wirings of existing blocks, both found from structure keys. Each block has its docstring, its `__init__`/`forward` source, and every distinct internal structure it has. Block colours (conv, CSP, pooling, attention, downsampling, head, …) are also derived from structure.
 
+## What it shows across versions
+
+Everything below comes from the build, not from hand-written notes, so it stays correct as configs change:
+
+- **New blocks per version.** YOLOv9 introduces RepNCSPELAN4, ADown and SPPELAN; YOLOv10 adds SCDown, C2fCIB, PSA and RepVGGDW; YOLO11 adds C3k2 and C2PSA; YOLO12 adds A2C2f area attention. The **Blocks & evolution** tab opens each block's docstring, source and internal structure, and a matrix shows which versions use it.
+- **New wiring of existing blocks.** When a version reuses a block with a different internal structure (for example YOLO26's C3k2, SPPF and Detect), the version summary lists it.
+- **Training vs deployment cost.** The scale table gives parameters and GFLOPs for both modes. For example YOLOv10n goes from 2.78 M parameters and 8.6 GFLOPs in training to 2.30 M and 6.7 GFLOPs deployed, and YOLO26n from 2.57 M / 6.0 to 2.41 M / 5.4, because the head's training-only `one2one` branch stops running and BatchNorm is folded.
+- **Re-parameterisation.** RepConv and RepVGGDW blocks (YOLOv9, YOLOv10, RT-DETR) train with parallel branches; switch to Deployment and open the block to see them merged into one conv.
+
 ## Build
 
 ```bash

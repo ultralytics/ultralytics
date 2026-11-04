@@ -37,6 +37,7 @@ All C++ examples live under [`./cpp`](./cpp) and support every YOLO task and gen
 | [YOLO SAHI Video Inference](./YOLOv8-SAHI-Inference-Video)                                                      | SAHI                  | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar) ([See also SAHI Guide](https://docs.ultralytics.com/guides/sahi-tiled-inference))       |
 | [YOLO Region Counter](./YOLOv8-Region-Counter)                                                                  | Region Counting       | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar) ([See also Region Counting Guide](https://docs.ultralytics.com/guides/region-counting)) |
 | [YOLOv8 on NVIDIA Jetson (TensorRT and DeepStream)](https://wiki.seeedstudio.com/YOLOv8-DeepStream-TRT-Jetson/) | TensorRT / DeepStream | [Lakshantha](https://github.com/lakshanthad) ([See also DeepStream Guide](https://docs.ultralytics.com/guides/deepstream-nvidia-jetson))            |
+| [YOLO Architecture Explorer](./YOLO-Architecture-Explorer)                                                      | PyTorch / HTML        | [Thippeswammy K S](https://github.com/thippeswammy)                                                                                                 |
 
 ### Rust
 

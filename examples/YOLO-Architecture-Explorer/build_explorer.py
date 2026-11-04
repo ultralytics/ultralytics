@@ -719,10 +719,9 @@ def class_info(cls: type) -> dict:
 # --------------------------------------------------------------------------------------------------------------------
 # main
 # --------------------------------------------------------------------------------------------------------------------
+@torch.no_grad()
 def run(only: str | None):
     """Build and trace every discovered config and return the page data."""
-    torch.set_grad_enabled(False)
-    torch.set_num_threads(max(torch.get_num_threads(), 4))
     LOGGER.setLevel(logging.INFO)
     configs, classes, block_first = [], {}, {}
     x = torch.zeros(1, 3, IMGSZ, IMGSZ)
@@ -865,6 +864,8 @@ def run(only: str | None):
             )
         configs.append(cfg)
         del per_scale
+    if not configs:
+        raise SystemExit(f"No detection config was built{f' for --only {only!r}' if only else ''}.")
 
     blocks = {}
     for key, topo in STRUCT.items():
@@ -952,9 +953,7 @@ def run(only: str | None):
         "default": min(  # base config of the newest numbered version, e.g. yolo26 rather than yolo26-p6
             (c for c in configs if c["version"] == max((c["version"] for c in configs), key=version_rank_finite)),
             key=lambda c: len(c["id"]),
-        )["id"]
-        if configs
-        else None,
+        )["id"],
         "configs": configs,
         "blocks": blocks,
         "catalog": catalog,
@@ -971,11 +970,15 @@ def main():
     ap.add_argument("--out", default=str(HERE / "yolo_architecture_explorer.html"))
     ap.add_argument("--json", help="also write the extracted data as JSON")
     opt = ap.parse_args()
+    torch.set_num_threads(max(torch.get_num_threads(), 4))
     data = run(opt.only)
     blob = json.dumps(data, separators=(",", ":"), default=list)
     if opt.json:
         Path(opt.json).write_text(blob)
-    html = (HERE / "template.html").read_text().replace("/*__DATA__*/null", blob.replace("</", "<\\/"))
+    data_js = blob.replace("</", "<\\/")
+    html, n = re.subn(r"/\*__DATA__\*/\s*null", lambda _: data_js, (HERE / "template.html").read_text(), count=1)
+    if n != 1:
+        raise SystemExit("template.html has no '/*__DATA__*/ null' placeholder")
     Path(opt.out).write_text(html)
     print(
         f"wrote {opt.out} ({len(html) / 1e6:.2f} MB, {len(data['configs'])} configs, {len(data['blocks'])} block structures)"

@@ -19,6 +19,8 @@ Everything below comes from the build, not from hand-written notes, so it stays 
 
 ## Build
 
+Requires PyTorch 2.3 or newer (`TorchFunctionMode` and pytree key paths), which the tracer checks on import.
+
 ```bash
 python3 build_explorer.py                 # all detection configs -> yolo_architecture_explorer.html
 python3 build_explorer.py --only 'yolo11' # regex on config stems for a quick run

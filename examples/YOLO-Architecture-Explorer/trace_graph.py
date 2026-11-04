@@ -18,6 +18,11 @@ import weakref
 
 import torch
 from torch import nn
+
+from ultralytics.utils.checks import check_version
+
+check_version(torch.__version__, ">=2.3.0", "torch", hard=True)  # TorchFunctionMode and pytree key paths
+
 from torch.overrides import TorchFunctionMode
 from torch.utils._pytree import tree_flatten, tree_flatten_with_path
 

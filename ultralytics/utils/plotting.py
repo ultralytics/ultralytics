@@ -666,7 +666,7 @@ class Annotator:
         """Add text to an image using PIL or cv2.
 
         Args:
-            xy (list[int]): Top-left coordinates for text placement.
+            xy (tuple | list): Top-left (x, y) coordinates for text placement.
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color.
             anchor (str, optional): Text anchor position ('top' or 'bottom'), used by PIL drawing only.
@@ -675,14 +675,15 @@ class Annotator:
         self._to_numpy()
         if self.pil:
             masks = [_text_mask(self.font, line) for line in text.split("\n")]  # per line, raqm rejects newlines
+            x, y = xy
             if anchor == "bottom":  # start y from font bottom
-                xy[1] += 1 - max(m.shape[0] for m in masks)
+                y += 1 - max(m.shape[0] for m in masks)
             for m in masks:
                 if box_color:  # background box per line, alpha from an RGBA color
                     a = box_color[3] / 255 if len(box_color) > 3 else 1.0
-                    self._draw(xy[0], xy[1], box_color, np.full((m.shape[0] + 2, m.shape[1] + 2), a, np.float32))
-                self._draw(xy[0], xy[1], txt_color, m)
-                xy[1] += m.shape[0]
+                    self._draw(x, y, box_color, np.full((m.shape[0] + 2, m.shape[1] + 2), a, np.float32))
+                self._draw(x, y, txt_color, m)
+                y += m.shape[0]
         else:
             if box_color:
                 w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]

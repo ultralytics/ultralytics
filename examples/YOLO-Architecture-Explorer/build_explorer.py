@@ -60,9 +60,9 @@ def version_rank_finite(label: str) -> float:
 def discover() -> list[tuple[str, Path]]:
     """Every detection config under cfg/models as (version, path), oldest version first.
 
-    The task comes from Ultralytics' own guess_model_task. Configs whose head it does not know (None) are tried as
-    well, so a new head type is picked up without changes here; anything that cannot be built and traced on an image
-    alone (e.g. text-prompted heads) is skipped later and listed on the page.
+    The task comes from Ultralytics' own guess_model_task. Configs whose head it does not know (None) are tried as well,
+    so a new head type is picked up without changes here; anything that cannot be built and traced on an image alone
+    (e.g. text-prompted heads) is skipped later and listed on the page.
     """
     found = []
     for path in sorted(CFG.rglob("*.yaml")):
@@ -260,8 +260,8 @@ def train_only(stats: dict) -> dict:
 def phase_diff(stats: dict) -> dict:
     """Differences between the training graph and each deployment graph, from the modules and helpers each one ran.
 
-    Module paths are generalised by replacing indices with '*', so e.g. every 'model.4.m.0.cv1.bn' style path folds
-    into the pattern 'model.*.m.*.cv1.bn'.
+    Module paths are generalized by replacing indices with '*', so e.g. every 'model.4.m.0.cv1.bn' style path folds into
+    the pattern 'model.*.m.*.cv1.bn'.
     """
     pat = lambda name: re.sub(r"\.\d+(?=\.|$)", ".*", name)
     tr = stats["train"]
@@ -630,14 +630,14 @@ def fit_arg(name: str, vals: list, yaml_n: int, scales: dict) -> str:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# block catalogue
+# block catalog
 # --------------------------------------------------------------------------------------------------------------------
 def structural_families(blocks: dict, configs: list[dict]) -> dict[str, str]:
     """Role of every block type from data alone, so new block types are classified without being named.
 
-    head: what a config ends with. down: a top-level layer that halves the resolution (and is not a plain conv).
-    pool: max/avg-pools concatenated (SPP style). attn: Q·K matmul, MultiheadAttention, sampled attention, or every
-    variant built from attention children. csp: split/concat aggregation or repeated units. unit: a residual add.
+    head: what a config ends with. down: a top-level layer that halves the resolution (and is not a plain conv). pool:
+    max/avg-pools concatenated (SPP style). attn: Q·K matmul, MultiheadAttention, sampled attention, or every variant
+    built from attention children. csp: split/concat aggregation or repeated units. unit: a residual add.
     """
     feats = defaultdict(list)  # owner -> per-structure (ops, child module types, has repeats)
     for b in blocks.values():
@@ -682,7 +682,7 @@ KNOWN_FAMILY = {t for _, members in FAMILIES for t in members}
 
 
 def family(name: str) -> str:
-    """Initial colour family of a type: its torch-primitive family, else conv or csp until refined from structure."""
+    """Initial color family of a type: its torch-primitive family, else conv or csp until refined from structure."""
     for fam, members in FAMILIES:
         if name in members:
             return fam
@@ -706,7 +706,7 @@ def class_info(cls: type) -> dict:
                 code = inspect.getsource(fn)
                 code = re.sub(r'(\n\s+)"""[\s\S]*?"""', "", code, count=1)  # strip docstring
                 parts.append(inspect.cleandoc("\n" + code) if code.startswith(" ") else code)
-        if not parts:  # inherited behaviour, e.g. C3k2 -> C2f.forward
+        if not parts:  # inherited behavior, e.g. C3k2 -> C2f.forward
             parts.append(f"# inherits forward() from {cls.__mro__[1].__name__}")
         info["src"] = f"class {cls.__name__}({', '.join(b.__name__ for b in cls.__bases__)}):\n" + "\n\n".join(
             "    " + p.replace("\n", "\n    ") for p in parts

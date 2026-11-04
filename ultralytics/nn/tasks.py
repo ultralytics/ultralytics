@@ -1978,13 +1978,7 @@ def torch_safe_load(weight, safe_only=None):
                     "Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
                 )
             ) from e
-        raise ModuleNotFoundError(
-            emojis(
-                f"ERROR ❌️ {weight} requires '{e.name}', which is not in Ultralytics requirements. Install it only if "
-                f"you trust this checkpoint, or run a command with an official Ultralytics model, i.e. "
-                f"'yolo predict model=yolo26n.pt'"
-            )
-        ) from e
+        raise
 
     if isinstance(ckpt, torch.jit.ScriptModule):
         raise TypeError(torchscript_error)  # default path: torch.load dispatched to torch.jit.load and succeeded

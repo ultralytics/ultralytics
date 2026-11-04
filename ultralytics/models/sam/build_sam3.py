@@ -8,6 +8,7 @@ from torch import nn
 
 from ultralytics.nn.modules.transformer import MLP
 from ultralytics.utils.patches import torch_load
+from ultralytics.utils.torch_utils import TORCH_1_13
 
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention
 from .modules.encoders import MemoryEncoder
@@ -355,7 +356,7 @@ def build_interactive_sam3(checkpoint_path: str, compile: bool | str = False, wi
 def _load_checkpoint(model, checkpoint, interactive=False):
     """Load SAM3 model checkpoint from file."""
     with open(checkpoint, "rb") as f:
-        ckpt = torch_load(f)
+        ckpt = torch_load(f, weights_only=TORCH_1_13)
     if "model" in ckpt and isinstance(ckpt["model"], dict):
         ckpt = ckpt["model"]
     # SAM 3.1 nests its point-prompt head as tracker.model.interactive_* beside the multiplex video tracker and renames

@@ -608,7 +608,7 @@ View all models trained on this dataset in a searchable table:
 | Version | Immutable dataset version used for training, shown when any listed model used one                                                           |
 | Status  | Training status badge                                                                                                                       |
 | Task    | YOLO task type                                                                                                                              |
-| Epochs  | Best epoch / total epochs                                                                                                                   |
+| Epochs  | Total epochs; `—` when unavailable                                                                                                          |
 | Metrics | Two headline metrics for each task in the table, such as mAP<sub>50</sub> and mAP<sub>50-95</sub> for detection or Top-1 and Top-5 Accuracy |
 | Created | Creation date                                                                                                                               |
 

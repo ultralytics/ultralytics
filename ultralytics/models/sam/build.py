@@ -12,7 +12,6 @@ import torch
 
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.patches import torch_load
-from ultralytics.utils.torch_utils import TORCH_1_13
 
 from .modules.decoders import MaskDecoder
 from .modules.encoders import FpnNeck, Hiera, ImageEncoder, ImageEncoderViT, MemoryEncoder, PromptEncoder
@@ -29,7 +28,7 @@ def _load_checkpoint(model, checkpoint):
 
     checkpoint = attempt_download_asset(checkpoint)
     with open(checkpoint, "rb") as f:
-        state_dict = torch_load(f, weights_only=TORCH_1_13)
+        state_dict = torch_load(f, weights_only=True)
     # Handle nested "model" key
     if "model" in state_dict and isinstance(state_dict["model"], dict):
         state_dict = state_dict["model"]

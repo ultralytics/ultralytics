@@ -149,9 +149,9 @@ Training time depends on:
 - Number of epochs
 - GPU type selected
 
-The current estimator predicts about 6 minutes for 1000 images, YOLO26n, 100 epochs on RTX PRO 6000, and about 2
-minutes for 500 images, YOLO26n, 50 epochs on RTX 4090. Actual duration varies; use the live estimate in the training
-dialog for the selected dataset and configuration. See [cost examples](cloud-training.md#cost-examples).
+With auto batch, the current estimator predicts about 4 minutes for 1000 images, YOLO26n, 100 epochs on RTX PRO 6000,
+and about 1 minute for 500 images, YOLO26n, 50 epochs on RTX 4090. Actual duration varies; use the live estimate in the
+training dialog for the selected dataset and configuration. See [cost examples](cloud-training.md#cost-examples).
 
 ### Can I train multiple models simultaneously?
 

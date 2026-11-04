@@ -331,7 +331,8 @@ Training costs are based on GPU usage:
 ### Cost Estimation
 
 Before training starts, the platform estimates the total duration and cost from your dataset size, model size,
-image size, batch size, epochs, and selected GPU. Estimates are approximate; actual usage is what gets billed.
+image size, batch size, epochs, and selected GPU. A blank **Batch Size** or any value below 1 (auto batch) is estimated
+as batch 16. Estimates are approximate; actual usage is what gets billed.
 
 **Factors affecting cost:**
 
@@ -352,13 +353,13 @@ Estimates are based on real cloud training runs, and the estimate always uses th
 
 !!! note "Estimates"
 
-    Cost estimates are approximate and depend on many factors. The training dialog shows a real-time estimate before you start training.
+    Cost estimates are approximate and depend on many factors. These examples use image size 640 and auto batch. The training dialog shows a real-time estimate before you start training.
 
 | Scenario                         | GPU          | Estimated Cost |
 | -------------------------------- | ------------ | -------------- |
-| 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.03         |
-| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.23         |
-| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.56         |
+| 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.02         |
+| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.13         |
+| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$0.80         |
 
 ### Billing Flow
 
@@ -565,13 +566,13 @@ Training time depends on:
 - Number of epochs
 - GPU selected
 
-Typical times (1000 images, 100 epochs):
+Typical times (1000 images, 100 epochs, auto batch):
 
 | Model   | RTX PRO 6000 | A100 SXM |
 | ------- | ------------ | -------- |
-| YOLO26n | ~6 min       | ~5 min   |
-| YOLO26m | ~15 min      | ~12 min  |
-| YOLO26x | ~30 min      | ~25 min  |
+| YOLO26n | ~4 min       | ~3 min   |
+| YOLO26m | ~8 min       | ~6 min   |
+| YOLO26x | ~15 min      | ~12 min  |
 
 !!! note "Approximate Times"
 

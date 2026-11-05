@@ -1531,8 +1531,8 @@ class Exporter:
         from ultralytics.utils.export.executorch import torch2executorch
 
         return torch2executorch(
-            model=self.model,
-            im=self.im,
+            model=self.model.cpu(),  # ExecuTorch capture fails on non-CPU devices
+            im=self.im.cpu(),
             output_dir=str(self.file).replace(self.file.suffix, "_executorch_model/"),
             metadata=self.metadata,
             prefix=prefix,

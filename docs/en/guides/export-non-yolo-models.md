@@ -277,7 +277,7 @@ resnet18_executorch_model/
 └── model.pte
 ```
 
-Requires `torch>=2.9.0` and a matching ExecuTorch runtime (`pip install executorch`). For runtime usage, see the [ExecuTorch integration](../integrations/executorch.md).
+Requires `torch>=2.9.0` and a matching ExecuTorch runtime (`pip install executorch`). Pass the model and input on CPU, because capture on other devices writes a wrong `.pte` or crashes. For runtime usage, see the [ExecuTorch integration](../integrations/executorch.md).
 
 ## Verify Your Exported Model
 

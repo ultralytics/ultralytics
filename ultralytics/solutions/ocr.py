@@ -141,10 +141,16 @@ class OCR(BaseSolution):
                 annotator.draw_region(points.tolist(), (0, 255, 0), self.line_width)
             if self.show_labels:
                 x1, y1 = points.min(0)
-                x2, y2 = points.max(0)
                 label = f"{text['track_id']} {text['text']}" if "track_id" in text else text["text"]
                 label += f" {text['confidence']:.2f}" if self.show_conf else ""
-                annotator.adaptive_label((int(x1), int(y1), int(x2), int(y2)), label)
+                font_scale = annotator.sf - 0.15
+                (width, height), baseline = cv2.getTextSize(label, 0, font_scale, annotator.tf)
+                x = min(max(int(x1), 0), max(im0.shape[1] - width - 4, 0))
+                y = max(int(y1) - 2, height + baseline + 4)
+                cv2.rectangle(annotator.im, (x - 2, y - height - baseline - 2), (x + width + 2, y + 2), (0, 0, 0), -1)
+                cv2.putText(
+                    annotator.im, label, (x, y), 0, font_scale, (255, 255, 255), annotator.tf, lineType=cv2.LINE_AA
+                )
         result.plot_im = annotator.im
         self.display_output(result.plot_im)
         return result

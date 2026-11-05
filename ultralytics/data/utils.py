@@ -978,7 +978,7 @@ def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: 
 
 
 def load_dataset_cache_file(path: Path) -> dict:
-    """Load an Ultralytics *.cache dictionary from path without running code from the file.
+    """Load an Ultralytics *.cache dictionary from path.
 
     Args:
         path (Path): Path to the *.cache file.

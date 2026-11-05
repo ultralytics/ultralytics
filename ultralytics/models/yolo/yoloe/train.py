@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from copy import copy, deepcopy
-from pathlib import Path
 
 import torch
 
@@ -13,8 +12,7 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.nn.tasks import YOLOEModel, YOLOESegModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.patches import torch_load
+from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import unwrap_model
 
 from ..world.train_world import WorldTrainerFromScratch
@@ -189,30 +187,6 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
             (YOLOConcatDataset | Dataset): The constructed dataset for training or validation.
         """
         return WorldTrainerFromScratch.build_dataset(self, img_path, mode, batch)
-
-    def generate_text_embeddings(self, texts: list[str], batch: int, cache_dir: Path):
-        """Generate text embeddings for a list of text samples.
-
-        Args:
-            texts (list[str]): List of text samples to encode.
-            batch (int): Batch size for processing.
-            cache_dir (Path): Directory to save/load cached embeddings.
-
-        Returns:
-            (dict): Dictionary mapping text samples to their embeddings.
-        """
-        model = unwrap_model(self.model).text_model
-        cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
-        if cache_path.exists():
-            LOGGER.info(f"Reading existed cache from '{cache_path}'")
-            txt_map = torch_load(cache_path, map_location=self.device)
-            if sorted(txt_map.keys()) == sorted(texts):
-                return txt_map
-        LOGGER.info(f"Caching text embeddings to '{cache_path}'")
-        txt_feats = unwrap_model(self.model).get_text_pe(texts, batch, without_reprta=True, cache_clip_model=False)
-        txt_map = dict(zip(texts, txt_feats.squeeze(0)))
-        torch.save(txt_map, cache_path)
-        return txt_map
 
 
 class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):

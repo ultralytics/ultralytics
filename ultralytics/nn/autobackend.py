@@ -129,6 +129,7 @@ class AutoBackend(nn.Module):
             | Hailo                 | *_hailo_model/         |
             | Huawei Ascend         | *_ascend_model/        |
             | AMD Xilinx            | *_xilinx_model/        |
+            | NXP                   | *_nxp.tflite           |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -166,6 +167,7 @@ class AutoBackend(nn.Module):
         "pb": TensorFlowBackend,
         "edgetpu": TensorFlowBackend,
         "litert": LiteRTBackend,
+        "nxp": LiteRTBackend,
         "paddle": PaddleBackend,
         "mnn": MNNBackend,
         "ncnn": NCNNBackend,
@@ -246,7 +248,7 @@ class AutoBackend(nn.Module):
             backend_kwargs["fuse"] = fuse
             backend_kwargs["verbose"] = verbose
             backend_kwargs["end2end"] = end2end
-        elif format in {"saved_model", "pb", "edgetpu", "dnn"}:
+        elif format in {"saved_model", "pb", "edgetpu", "dnn", "nxp"}:
             backend_kwargs["format"] = format
         self.backend = self._BACKEND_MAP[format](model, **backend_kwargs)
 

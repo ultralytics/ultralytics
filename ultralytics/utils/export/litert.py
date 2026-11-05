@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import types
 import zipfile
 from pathlib import Path
@@ -129,3 +131,37 @@ def torch2litert(
     with zipfile.ZipFile(tflite_file, "a", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("metadata.json", json.dumps(metadata or {}))
     return str(tflite_file)
+
+
+def tflite2nxp(tflite_file: str, output_file: Path, metadata: dict) -> str:
+    """Compile an INT8 LiteRT model for i.MX95 using NXP's Neutron SDK 3.3.0.
+
+    Args:
+        tflite_file (str): Calibrated INT8 LiteRT model.
+        output_file (Path): Destination for the compiled model.
+        metadata (dict): Ultralytics metadata to preserve in the compiled model.
+
+    Returns:
+        (str): Path to the compiled model, requiring the matching Neutron runtime on i.MX95.
+    """
+    from ultralytics.utils.checks import check_requirements
+
+    check_requirements("eiq-neutron-sdk==3.3.0", cmds="--extra-index-url https://eiq.nxp.com/repository")
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "eiq_neutron_sdk.neutron_compiler.compiler",
+            "--input",
+            str(tflite_file),
+            "--output",
+            str(output_file),
+            "--target",
+            "imx95",
+            "--dump-statistics",
+        ],
+        check=True,
+    )
+    with zipfile.ZipFile(output_file, "a", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("metadata.json", json.dumps(metadata))
+    return str(output_file)

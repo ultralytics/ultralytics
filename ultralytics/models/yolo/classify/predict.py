@@ -108,3 +108,11 @@ class ClassificationPredictor(BasePredictor):
             Results(orig_img, path=img_path, names=self.model.names, probs=pred)
             for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])
         ]
+
+    def merge_tiles(self, results, windows, orig_imgs):
+        """Average classification probabilities across each original image's tiles."""
+        merged = []
+        for i, orig_img in enumerate(orig_imgs):
+            probs = torch.stack([r.probs.data for r, (source_i, _) in zip(results, windows) if source_i == i]).mean(0)
+            merged.append(Results(orig_img, path=self.batch[0][i], names=self.model.names, probs=probs))
+        return merged

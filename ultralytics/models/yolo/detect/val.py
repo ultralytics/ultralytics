@@ -12,7 +12,7 @@ import torch.distributed as dist
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.data.augment import Compose, LetterBox
-from ultralytics.data.utils import get_split_fraction, slice_label, tile_windows
+from ultralytics.data.utils import get_split_fraction, merge_dense_tiles, slice_label, tile_windows
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
@@ -398,21 +398,24 @@ class DetectionValidator(BaseValidator):
         dataset = self.dataloader.dataset
         if not hasattr(self, "tile_transforms"):
             self.tile_transforms = Compose(
-                [LetterBox(new_shape=self.args.imgsz, scaleup=False), *dataset.transforms.transforms]
+                [
+                    LetterBox(new_shape=self.args.imgsz, scaleup=False, scale_fill=self.args.task == "depth"),
+                    *dataset.transforms.transforms,
+                ]
             )
+            self._tile_sources = {label["im_file"]: i for i, label in enumerate(dataset.labels)}
         im = batch["img"][0].permute(1, 2, 0).cpu().numpy()
-        shape = tuple(batch["ori_shape"][0])
-        source_label = {
-            "shape": shape,
-            "cls": batch["cls"].cpu().numpy(),
-            "bboxes": batch["bboxes"].cpu().numpy(),
-            "segments": [],
-            "normalized": True,
-            "bbox_format": "xywh",
-            "im_file": batch["im_file"][0],
-        }
+        source_index = self._tile_sources[batch["im_file"][0]]
+        shape = tuple(batch["ori_shape"][0]) if "ori_shape" in batch else im.shape[:2]
+        source_label = {**dataset.labels[source_index], "shape": shape}
+        if self.args.task == "semantic":
+            source_label = {**source_label, "semantic_mask": dataset.load_mask(source_index, image_shape=shape)}
+            if dataset.include_class is not None:
+                source_label["semantic_mask"][~np.isin(source_label["semantic_mask"], dataset.include_class)] = 255
+        elif self.args.task == "depth":
+            source_label = {**source_label, "depth": dataset._load_depth(source_index)}
         windows = tile_windows(shape, self.args.tile_size)
-        predictions = []
+        predictions, masks = [], []
         for start in range(0, len(windows), self.args.batch):
             batch_windows = windows[start : start + self.args.batch]
             samples = []
@@ -421,6 +424,9 @@ class DetectionValidator(BaseValidator):
                 label["img"] = im[y1:y2, x1:x2]
                 label["ori_shape"] = label["resized_shape"] = (y2 - y1, x2 - x1)
                 label["ratio_pad"] = (1.0, 1.0)
+                for key in ("semantic_mask", "depth"):
+                    if key in label:
+                        label[key] = label[key][y1:y2, x1:x2]
                 samples.append(self.tile_transforms(dataset.update_labels_info(label)))
             tile_batch = dataset.collate_fn(samples)
             with dt[0]:
@@ -434,22 +440,65 @@ class DetectionValidator(BaseValidator):
             with dt[3]:
                 tile_preds = self.postprocess(preds)
                 for i, pred in enumerate(tile_preds):
-                    x1, y1, x2, y2 = batch_windows[i]
+                    tile_shape = (batch_windows[i][3] - batch_windows[i][1], batch_windows[i][2] - batch_windows[i][0])
+                    if self.args.task in {"semantic", "depth"}:
+                        if self.args.task == "semantic":
+                            pred = ops.scale_masks(pred[None, None].float(), tile_shape, mode="nearest")[0, 0].to(
+                                torch.int32
+                            )
+                        else:
+                            pred = torch.nn.functional.interpolate(
+                                pred[None].float(), size=tile_shape, mode="bilinear", align_corners=True
+                            )[0]
+                        predictions.append(pred)
+                        continue
+                    ratio_pad = tile_batch["ratio_pad"][i]
+                    rotated = self.args.task == "obb"
                     pred["bboxes"] = ops.scale_boxes(
-                        tile_batch["img"].shape[2:],
-                        pred["bboxes"],
-                        (y2 - y1, x2 - x1),
-                        ratio_pad=tile_batch["ratio_pad"][i],
+                        tile_batch["img"].shape[2:], pred["bboxes"], tile_shape, ratio_pad=ratio_pad, xywh=rotated
                     )
-                    predictions.append(torch.cat((pred["bboxes"], pred["conf"][:, None], pred["cls"][:, None]), 1))
+                    parts = [pred["bboxes"], pred["conf"][:, None], pred["cls"][:, None]]
+                    if self.args.task == "pose":
+                        parts.append(
+                            ops.scale_coords(
+                                tile_batch["img"].shape[2:], pred["keypoints"], tile_shape, ratio_pad=ratio_pad
+                            ).flatten(1)
+                        )
+                    elif self.args.task == "segment":
+                        masks.append(ops.scale_masks(pred["masks"][None], tile_shape, ratio_pad=ratio_pad)[0].byte())
+                    predictions.append(torch.cat(parts, 1))
         with dt[3]:
-            merged = nms.merge_tile_predictions(
-                predictions,
-                windows,
+            if self.args.task in {"semantic", "depth"}:
+                merged = merge_dense_tiles(predictions, windows, shape, discrete=self.args.task == "semantic")
+                return merged[None]
+            rotated = self.args.task == "obb"
+            pairs = [(p, w, m) for p, w, m in zip(predictions, windows, masks or windows) if len(p)]
+            selected, selected_windows, selected_masks = (
+                zip(*pairs) if pairs else (predictions[:1], windows[:1], (masks or [None])[:1])
+            )
+            merged, keep = nms.merge_tile_predictions(
+                selected,
+                selected_windows,
                 agnostic=self.args.single_cls or self.args.agnostic_nms,
                 max_det=self.args.max_det,
+                rotated=rotated,
+                return_idxs=True,
             )
-        return [{"bboxes": merged[:, :4], "conf": merged[:, 4], "cls": merged[:, 5], "extra": merged[:, 6:]}]
+            n = 5 if rotated else 4
+            output = {"bboxes": merged[:, :n], "conf": merged[:, n], "cls": merged[:, n + 1]}
+            if self.args.task == "detect":
+                output["extra"] = merged[:, n + 2 :]
+            elif self.args.task == "pose":
+                output["keypoints"] = merged[:, n + 2 :].view(-1, *self.kpt_shape)
+            elif self.args.task == "segment":
+                tile_masks = torch.cat(selected_masks)
+                mask_windows = [w for p, w in zip(selected, selected_windows) for _ in range(len(p))]
+                full_masks = tile_masks.new_zeros((len(merged), *shape))
+                for j, k in enumerate(keep):
+                    x1, y1, x2, y2 = mask_windows[k]
+                    full_masks[j, y1:y2, x1:x2] = tile_masks[k]
+                output["masks"] = full_masks
+        return [output]
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.

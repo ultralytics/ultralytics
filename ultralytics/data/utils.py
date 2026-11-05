@@ -82,7 +82,7 @@ def tile_windows(
 
 
 def slice_label(label: dict, window: tuple[int, int, int, int]) -> dict:
-    """Clip one normalized detection label dictionary to a native-pixel tile window."""
+    """Clip one normalized label dictionary to a native-pixel tile window."""
     from copy import deepcopy
 
     from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
@@ -98,10 +98,46 @@ def slice_label(label: dict, window: tuple[int, int, int, int]) -> dict:
     tiled = deepcopy(label)
     tiled["cls"] = tiled["cls"][keep]
     tiled["bboxes"] = xyxy2xywh(boxes[keep]) / np.array([w, h, w, h], dtype=np.float32)
-    tiled["segments"] = []
+    tiled["segments"] = [
+        (segment * np.array(label["shape"][::-1], dtype=np.float32) - (x1, y1)).clip((0, 0), (w, h)).astype(np.float32)
+        / np.array((w, h), dtype=np.float32)
+        for segment, k in zip(label.get("segments", []), keep)
+        if k
+    ]
+    if (keypoints := tiled.get("keypoints")) is not None:
+        keypoints = keypoints[keep]
+        keypoints[..., :2] *= np.array(label["shape"][::-1], dtype=np.float32)
+        keypoints[..., :2] -= (x1, y1)
+        outside = ((keypoints[..., :2] < 0) | (keypoints[..., :2] > (w, h))).any(-1)
+        keypoints[..., :2] = keypoints[..., :2].clip((0, 0), (w, h)) / np.array((w, h), dtype=np.float32)
+        if keypoints.shape[-1] == 3:
+            keypoints[..., 2][outside] = 0
+        tiled["keypoints"] = keypoints
     tiled["shape"] = (h, w)
     tiled["tile"] = window
     return tiled
+
+
+def merge_dense_tiles(predictions, windows, shape, discrete: bool = False):
+    """Stitch native-resolution dense tile predictions with distance-weighted overlaps."""
+    import torch
+
+    template = predictions[0]
+    output = template.new_zeros((template.shape[0], *shape)) if not discrete else template.new_zeros(shape)
+    weights = template.new_zeros(shape, dtype=torch.float32)
+    for pred, (x1, y1, x2, y2) in zip(predictions, windows):
+        h, w = y2 - y1, x2 - x1
+        y, x = torch.arange(h, device=pred.device), torch.arange(w, device=pred.device)
+        weight = torch.minimum(torch.minimum(y + 1, h - y)[:, None], torch.minimum(x + 1, w - x)[None, :]).float()
+        if discrete:
+            region = output[y1:y2, x1:x2]
+            update = weight > weights[y1:y2, x1:x2]
+            region[update] = pred[update]
+            weights[y1:y2, x1:x2][update] = weight[update]
+        else:
+            output[:, y1:y2, x1:x2] += pred * weight
+            weights[y1:y2, x1:x2] += weight
+    return output if discrete else output / weights.clamp(min=1e-6)
 
 
 def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG_SCALE) -> None:

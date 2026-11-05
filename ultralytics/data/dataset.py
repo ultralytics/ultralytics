@@ -533,8 +533,12 @@ class DepthDataset(YOLODataset):
         """Skip box and segment checks; depth datasets carry no box or segment annotations."""
 
     def _load_depth(self, index: int) -> np.ndarray:
-        """Return the native-resolution depth map for an image."""
-        return load_depth(self.depth_files_by_image[self.im_files[index]], self.data.get("depth_scale", 1000))
+        """Return the native-resolution depth map for an image or tile."""
+        depth = load_depth(self.depth_files_by_image[self.im_files[index]], self.data.get("depth_scale", 1000))
+        if window := self.labels[index].get("tile"):
+            x1, y1, x2, y2 = window
+            depth = depth[y1:y2, x1:x2]
+        return depth
 
     def get_image_and_label(self, index: int) -> dict[str, Any]:
         """Load image, label, and depth map for the given index."""
@@ -558,7 +562,7 @@ class DepthDataset(YOLODataset):
         # NOTE: For now following arguments are not supported
         hyp.mosaic = hyp.mixup = hyp.cutmix = hyp.copy_paste = 0.0
         transforms = super().build_transforms(hyp)
-        if not self.augment:
+        if not self.augment and not hyp.tiles:
             # stretch the image instead of padding
             transforms[-2] = LetterBox(new_shape=self.imgsz, scale_fill=True)
         return transforms
@@ -1070,6 +1074,9 @@ class SemanticDataset(YOLODataset):
         mask = read_mask(self.labels[index]["mask_file"], self.labels[index]["mode"])
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
+        if window := self.labels[index].get("tile"):
+            x1, y1, x2, y2 = window
+            mask = mask[y1:y2, x1:x2]
         return mask.astype(np.uint8, copy=False)
 
     def convert_label(self, label: np.ndarray, inverse: bool = False) -> np.ndarray:
@@ -1256,6 +1263,18 @@ class ClassificationDataset:
             )
         # Same persistent image.npy naming as BaseDataset.npy_files, never rename or relocate existing caches
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        self.tiles, self.augment = bool(args.tiles), augment
+        if self.tiles and augment:
+            from .utils import tile_windows
+
+            tiled = []
+            for sample in self.samples:
+                with Image.open(sample[0]) as im:
+                    shape = (im.height, im.width)
+                tiled.extend([*sample, window] for window in tile_windows(shape, args.tile_size))
+            self.samples = tiled
+        if self.tiles and self.cache_ram:
+            raise ValueError("cache='ram' is not supported with tiled training; use cache='disk' or cache=False.")
         if self.cache_disk and not all(os.access(d, os.W_OK) for d in {os.path.dirname(s[0]) for s in self.samples}):
             self.cache_disk = False
             LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
@@ -1287,7 +1306,7 @@ class ClassificationDataset:
         Returns:
             (dict): Dictionary containing the image and its class index.
         """
-        f, j, fn, im = self.samples[i]  # filename, class index, npy cache path, image
+        f, j, fn, im, *tile = self.samples[i]  # filename, class index, npy cache path, image, optional tile
         if self.cache_ram:
             im = self.img_cache[i]
         elif self.cache_disk:
@@ -1296,10 +1315,15 @@ class ClassificationDataset:
             im = np.load(fn)
         else:  # read image
             im = self.imread(f)  # BGR
-        # Convert NumPy array to PIL image
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        if tile:
+            im = im.crop(tile[0])
         sample = self.torch_transforms(im)
-        return {"img": sample, "cls": j}
+        output = {"img": sample, "cls": j}
+        if self.tiles and not self.augment:
+            output["raw_img"] = torch.from_numpy(np.array(im)).permute(2, 0, 1).float() / 255
+            output["im_file"] = f
+        return output
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""

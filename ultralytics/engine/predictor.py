@@ -393,15 +393,9 @@ class BasePredictor:
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
             if self.args.tiles and (
-                self.args.task != "detect"
-                or self.source_type.tensor
-                or self.args.embed
-                or self.args.visualize
-                or self.args.mode == "track"
+                self.source_type.tensor or self.args.embed or self.args.visualize or self.args.mode == "track"
             ):
-                raise ValueError(
-                    "tiles supports detection image/video prediction without tensor, embed, visualize, or track."
-                )
+                raise ValueError("tiles supports image/video prediction without tensor, embed, visualize, or track.")
 
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:

@@ -169,21 +169,31 @@ def non_max_suppression(
     return (output, keepi) if return_idxs else output
 
 
-def merge_tile_predictions(predictions, windows, agnostic: bool = False, max_det: int = 300):
+def merge_tile_predictions(
+    predictions, windows, agnostic: bool = False, max_det: int = 300, rotated: bool = False, return_idxs: bool = False
+):
     """Offset detection tensors from tile coordinates and merge them with full-image NMS."""
     template = predictions[0]
     pairs = [(x, window) for x, window in zip(predictions, windows) if len(x)]
     if not pairs:
-        return template.new_zeros((0, 6))
+        empty = template.new_zeros((0, 7 if rotated else template.shape[1]))
+        return (empty, template.new_empty(0, dtype=torch.long)) if return_idxs else empty
     predictions, windows = zip(*pairs)
     preds = torch.cat(predictions)
-    offsets = torch.cat(
-        [x.new_tensor((x1, y1, x1, y1)).repeat(len(x), 1) for x, (x1, y1, _, _) in zip(predictions, windows)]
-    )
-    preds[:, :4] += offsets
-    class_offsets = preds[:, 5:6] * (0 if agnostic else max(preds[:, :4].max().item(), 1) + 1)
-    keep = TorchNMS.nms(preds[:, :4] + class_offsets, preds[:, 4], 0.5)
-    return preds[keep[:max_det]]
+    offsets = torch.cat([x.new_tensor((x1, y1)).repeat(len(x), 1) for x, (x1, y1, _, _) in zip(predictions, windows)])
+    cls, conf = (6, 5) if rotated else (5, 4)
+    preds[:, :2] += offsets
+    if not rotated:
+        preds[:, 2:4] += offsets
+    class_offsets = preds[:, cls : cls + 1] * (0 if agnostic else max(preds[:, :4].max().item(), 1) + 1)
+    if rotated:
+        boxes = torch.cat((preds[:, :2] + class_offsets, preds[:, 2:5]), dim=1)
+        keep = TorchNMS.fast_nms(boxes, preds[:, conf], 0.5, iou_func=batch_probiou)
+    else:
+        keep = TorchNMS.nms(preds[:, :4] + class_offsets, preds[:, conf], 0.5)
+    keep = keep[:max_det]
+    merged = preds[keep]
+    return (merged, keep) if return_idxs else merged
 
 
 class TorchNMS:

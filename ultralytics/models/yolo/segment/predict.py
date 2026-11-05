@@ -98,7 +98,7 @@ class SegmentationPredictor(DetectionPredictor):
         """
         if pred.shape[0] == 0:  # save empty boxes
             masks = None
-        elif self.args.retina_masks:
+        elif self.args.retina_masks or self.args.tiles:
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             masks = ops.process_mask_native(proto, pred[:, 6:], pred[:, :4], orig_img.shape[:2])  # NHW
         else:

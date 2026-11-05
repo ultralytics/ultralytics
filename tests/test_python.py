@@ -2476,7 +2476,7 @@ def test_predict_tiles(tmp_path):
         assert result.orig_shape == (640, 960) and result.path.endswith("image0.jpg")
         assert len(result.boxes) and result.boxes.xyxy.min() >= 0
         assert (result.boxes.xyxy[:, [0, 2]] <= 960).all() and (result.boxes.xyxy[:, [1, 3]] <= 640).all()
-    with pytest.raises(ValueError, match="tiles supports detection"):
+    with pytest.raises(ValueError, match="tiles supports image/video"):
         model.predict(torch.rand(1, 3, 64, 64), tiles=True, tile_size=64, imgsz=64)
 
 
@@ -2498,3 +2498,51 @@ def test_train_val_tiles():
     assert metrics.box.map >= 0 and metrics.box.nc == 80
     assert (metrics.save_dir / "predictions.json").is_file()
     assert len(list((metrics.save_dir / "labels").glob("*.txt"))) == 4
+
+
+def test_tile_instance_and_dense_geometry():
+    """Test polygon/keypoint clipping and native dense overlap stitching."""
+    from ultralytics.data.utils import merge_dense_tiles, slice_label
+
+    label = {
+        "shape": (100, 100),
+        "cls": np.array([[0.0]], dtype=np.float32),
+        "bboxes": np.array([[0.5, 0.5, 0.4, 0.4]], dtype=np.float32),
+        "segments": [np.array([[0.3, 0.3], [0.7, 0.3], [0.7, 0.7], [0.3, 0.7]], dtype=np.float32)],
+        "keypoints": np.array([[[0.6, 0.4, 2.0], [0.4, 0.4, 2.0]]], dtype=np.float32),
+    }
+    tiled = slice_label(label, (50, 0, 100, 100))
+    assert len(tiled["segments"]) == 1 and 0 <= tiled["segments"][0].min() <= tiled["segments"][0].max() <= 1
+    np.testing.assert_allclose(tiled["keypoints"][0, 0], [0.2, 0.4, 2.0], atol=1e-6)
+    np.testing.assert_allclose(tiled["keypoints"][0, 1], [0.0, 0.4, 0.0], atol=1e-6)
+
+    predictions = [torch.ones(1, 64, 64), torch.full((1, 64, 64), 3.0)]
+    windows = [(0, 0, 64, 64), (32, 32, 96, 96)]
+    merged = merge_dense_tiles(predictions, windows, (96, 96))
+    assert merged.shape == (1, 96, 96) and 1 < merged[0, 40, 40] < 3
+    discrete = merge_dense_tiles([p[0].long() for p in predictions], windows, (96, 96), discrete=True)
+    assert discrete.shape == (96, 96) and set(discrete.unique().tolist()) == {0, 1, 3}
+
+
+@pytest.mark.parametrize("task,model,data", [x for x in TASK_MODEL_DATA if x[0] != "detect"])
+def test_predict_tiles_tasks(task, model, data):
+    """Test tiled prediction returns native task outputs for every non-detection task."""
+    im = cv2.resize(cv2.imread(str(SOURCE)), (960, 640))
+    result = YOLO(model).predict(
+        im, tiles=True, tile_size=320, imgsz=224 if task == "classify" else 320, batch=3, verbose=False
+    )[0]
+    assert result.orig_shape == (640, 960)
+    output = getattr(result, {"classify": "probs", "semantic": "semantic_mask", "depth": "depth"}.get(task, "boxes"))
+    if task == "obb":
+        output = result.obb
+    assert output is not None
+    if task == "segment":
+        assert result.masks.data.shape[-2:] == result.orig_shape
+    elif task == "pose":
+        assert result.keypoints.data.shape[0] == len(result.boxes)
+    elif task == "semantic":
+        assert result.semantic_mask.data.shape == result.orig_shape
+    elif task == "depth":
+        assert result.depth.data.shape == result.orig_shape and torch.isfinite(result.depth.data).all()
+    elif task == "classify":
+        assert result.probs.data.numel() == len(result.names)

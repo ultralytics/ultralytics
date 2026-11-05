@@ -5,10 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
 import torch.distributed as dist
+from PIL import Image
 
 from ultralytics.data import ClassificationDataset, build_dataloader
+from ultralytics.data.utils import tile_windows
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix
@@ -129,6 +132,33 @@ class ClassificationValidator(BaseValidator):
         """Extract the primary prediction from model output if it's in a list or tuple format."""
         return preds[0] if isinstance(preds, (list, tuple)) else preds
 
+    def predict_tiles(self, batch, model, augment, dt):
+        """Average tile probabilities and retain the native image and class target."""
+        dataset = self.dataloader.dataset
+        im = batch["raw_img"][0].permute(1, 2, 0).cpu().numpy()
+        im = (im * 255).round().astype(np.uint8)
+        windows = tile_windows(im.shape[:2], self.args.tile_size)
+        predictions = []
+        for start in range(0, len(windows), self.args.batch):
+            batch_windows = windows[start : start + self.args.batch]
+            samples = [Image.fromarray(im[y1:y2, x1:x2]) for x1, y1, x2, y2 in batch_windows]
+            tile_batch = {
+                "img": torch.stack([dataset.torch_transforms(im) for im in samples]),
+                "cls": batch["cls"].repeat(len(samples)),
+            }
+            with dt[0]:
+                tile_batch = self.preprocess(tile_batch)
+            with dt[1]:
+                preds = model(tile_batch["img"], augment=augment)
+            with dt[2]:
+                if self.training:
+                    for k, v in model.loss(tile_batch, preds)[1].items():
+                        self.loss[k] += v
+            with dt[3]:
+                predictions.append(self.postprocess(preds))
+        batch["img"] = batch.pop("raw_img")
+        return torch.cat(predictions).mean(0, keepdim=True)
+
     def get_stats(self) -> dict[str, float]:
         """Calculate and return a dictionary of metrics by processing targets and predictions."""
         self.metrics.process(self.targets, self.pred)
@@ -164,7 +194,9 @@ class ClassificationValidator(BaseValidator):
         dataset = self.build_dataset(dataset_path)
         if not dataset.samples:
             raise FileNotFoundError(f"No images from the model's classes found in {dataset_path}")
-        return build_dataloader(dataset, batch_size, self.args.workers, rank=-1, device=self.device)
+        return build_dataloader(
+            dataset, 1 if self.args.tiles else batch_size, self.args.workers, rank=-1, device=self.device
+        )
 
     def print_results(self) -> None:
         """Print evaluation metrics for the classification model."""

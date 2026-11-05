@@ -561,7 +561,6 @@ nav:
       - Ambarella: integrations/ambarella.md
       - AMD: integrations/amd.md
       - AMD Xilinx: integrations/xilinx.md
-      - NXP: integrations/nxp.md
       - Axelera: integrations/axelera.md
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
@@ -583,6 +582,7 @@ nav:
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md
       - Neural Magic: integrations/neural-magic.md
+      - NXP: integrations/nxp.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
       - PaddlePaddle: integrations/paddlepaddle.md

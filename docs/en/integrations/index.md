@@ -68,7 +68,6 @@ This page lists the tools and platforms that Ultralytics integrates with to supp
 - [AMD](amd.md): Export Ultralytics YOLO to ONNX and run GPU-accelerated inference on AMD Instinct and Radeon GPUs through the ONNX Runtime MIGraphX execution provider on ROCm, with native PyTorch ROCm training also supported.
 
 - [AMD Xilinx](xilinx.md): Export Ultralytics YOLO with `format="xilinx"` for AMD Versal AI Edge Series Gen 2 NPUs using AMD Quark and Vitis AI, with a guide to Zynq, Kria and Versal devices, DPU vs NPU accelerators and YOLO operator support.
-- [NXP](nxp.md): Compile calibrated INT8 YOLO models for the i.MX95 Neutron NPU with Neutron SDK 3.3.0.
 
 - [Axelera](axelera.md): Explore Metis accelerators and the Voyager SDK for running Ultralytics models with efficient edge inference.
 
@@ -95,6 +94,8 @@ This page lists the tools and platforms that Ultralytics integrates with to supp
 - [NCNN](ncnn.md): Developed by [Tencent](https://www.tencent.com/), NCNN is a [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework optimized for mobile devices. It runs AI models directly inside apps across various mobile platforms.
 
 - [Neural Magic](neural-magic.md): Historical guide to sparse CPU inference with the DeepSparse engine, whose community libraries are deprecated.
+
+- [NXP](nxp.md): Compile calibrated INT8 YOLO models for the i.MX95 Neutron NPU with Neutron SDK 3.3.0.
 
 - [ONNX](onnx.md): An open-source format originally developed by [Microsoft](https://www.microsoft.com/) and Facebook for transferring AI models between frameworks, making Ultralytics models portable across runtimes and hardware.
 

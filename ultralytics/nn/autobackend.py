@@ -451,6 +451,18 @@ class AutoBackend(nn.Module):
         """
         super()._apply(fn)
         if hasattr(self.backend, "model") and isinstance(self.backend.model, nn.Module):
-            self.backend.model._apply(fn)
+            fp16 = self.backend.fp16
+
+            def apply(t):
+                """Convert a tensor and track changes to floating-point precision."""
+                nonlocal fp16
+                dtype = t.dtype
+                result = fn(t)
+                if dtype.is_floating_point and dtype != result.dtype:
+                    fp16 = result.dtype == torch.float16
+                return result
+
+            self.backend.model._apply(apply)
+            self.backend.fp16 = fp16
             self.backend.device = next(self.backend.model.parameters()).device  # update device after move
         return self

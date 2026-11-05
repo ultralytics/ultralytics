@@ -49,8 +49,8 @@ def torch2executorch(
     """Export a PyTorch model to ExecuTorch format.
 
     Args:
-        model (torch.nn.Module): The PyTorch model to export.
-        im (torch.Tensor): Example input tensor for tracing/export.
+        model (torch.nn.Module): The PyTorch model to export, on CPU.
+        im (torch.Tensor): Example input tensor for tracing/export, on CPU.
         output_dir (Path | str): Directory to save the exported ExecuTorch model.
         metadata (dict | None, optional): Optional metadata to save as YAML.
         prefix (str, optional): Prefix for log messages.

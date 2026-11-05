@@ -112,7 +112,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 full_mask_areas = torch.sum(masks, dim=(1, 2))
 
                 union = bbox_areas[:, None] + full_mask_areas - mask_areas
-                idx[torch.argmax(mask_areas / union, dim=1)] = True
+                idx[torch.argmax(mask_areas / union, dim=1)[mask_areas.any(dim=1)]] = True
             if points is not None:
                 coords = torch.as_tensor(points, dtype=torch.int64, device=self.device).clone()
                 coords = coords[None] if coords.ndim == 1 else coords

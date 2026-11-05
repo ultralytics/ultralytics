@@ -1181,10 +1181,9 @@ def entrypoint(debug: str = "") -> None:
         if overrides.get("data") is None and not overrides.get("resume"):
             overrides["data"] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
             LOGGER.warning(f"'data' argument is missing. Using default 'data={overrides['data']}'.")
-    elif mode == "export":
-        if "format" not in overrides:
-            overrides["format"] = DEFAULT_CFG.format or "torchscript"
-            LOGGER.warning(f"'format' argument is missing. Using default 'format={overrides['format']}'.")
+    elif mode == "export" and "format" not in overrides:
+        overrides["format"] = DEFAULT_CFG.format or "torchscript"
+        LOGGER.warning(f"'format' argument is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
     getattr(model, mode)(**overrides)  # default args from model

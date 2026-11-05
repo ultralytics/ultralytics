@@ -187,10 +187,10 @@ def mask_iou(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> tor
     Returns:
         (torch.Tensor): A tensor of shape (N, M) representing masks IoU.
     """
-    if not mask1.is_floating_point():
-        mask1 = mask1.float()
-    if not mask2.is_floating_point():
-        mask2 = mask2.float()
+    dtype = torch.promote_types(mask1.dtype, mask2.dtype)  # mixed dtypes must agree for matmul
+    mask1, mask2 = mask1.to(dtype), mask2.to(dtype)
+    if not dtype.is_floating_point:  # bool and integer masks crash or wrap in the matmul
+        mask1, mask2 = mask1.float(), mask2.float()
     intersection = torch.matmul(mask1, mask2.T).clamp_(0)
     union = (mask1.sum(1)[:, None] + mask2.sum(1)[None]) - intersection  # (area1 + area2) - intersection
     return intersection / (union + eps)

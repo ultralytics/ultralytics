@@ -439,8 +439,7 @@ class AutoBackend(nn.Module):
         """Apply a function to backend.model parameters, buffers, and tensors.
 
         This method extends the functionality of the parent class's _apply method by additionally applying the
-        function to the backend model and updating `backend.device` and `backend.fp16`. Dtype-changing conversions update
-        precision; device-only and layout-only conversions preserve it.
+        function to the backend model and updating `backend.device` and `backend.fp16` from the converted parameters.
 
         Args:
             fn (Callable): A function to be applied to the model's tensors. This is typically a method like to(), cpu(),
@@ -451,18 +450,8 @@ class AutoBackend(nn.Module):
         """
         super()._apply(fn)
         if hasattr(self.backend, "model") and isinstance(self.backend.model, nn.Module):
-            fp16 = self.backend.fp16
-
-            def apply(t):
-                """Convert a tensor and track changes to floating-point precision."""
-                nonlocal fp16
-                dtype = t.dtype
-                result = fn(t)
-                if dtype.is_floating_point and dtype != result.dtype:
-                    fp16 = result.dtype == torch.float16
-                return result
-
-            self.backend.model._apply(apply)
-            self.backend.fp16 = fp16
-            self.backend.device = next(self.backend.model.parameters()).device  # update device after move
+            self.backend.model._apply(fn)
+            parameter = next(self.backend.model.parameters())
+            self.backend.device = parameter.device
+            self.backend.fp16 = parameter.dtype == torch.float16
         return self

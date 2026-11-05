@@ -54,6 +54,8 @@ Batch size is fixed to 1. Detection exports use raw predictions for external NMS
 
 In [Ultralytics Platform](../platform/train/models.md), open a model's **Export** tab and select **NXP**. Choose the image size and download the compiled `_nxp.tflite` artifact when the export completes. Platform runs the compiler on its CPU workers; an NXP board is needed only for deployment and performance measurements. See the [Platform model export walkthrough](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) for the general workflow.
 
+Platform displays INT8 as a fixed setting and uses the exporter's default calibration dataset for the model's task. It does not currently expose calibration `data` or `fraction` controls. Use the Python or CLI export examples above to calibrate with your own representative images.
+
 ## Deploy on i.MX95
 
 Install the TensorFlow Lite runtime, `libneutron_delegate.so`, Neutron driver, and firmware supplied by NXP for a BSP compatible with **Neutron SDK 3.3.0**. Follow [NXP's deployment guide](https://community.nxp.com/t5/FRDM-Training-Hub/FRDM-i-MX-95-Pro-Hands-On-NPU-Inference-with-eIQ-Neutron/ta-p/2419604) for board setup and runtime compatibility.

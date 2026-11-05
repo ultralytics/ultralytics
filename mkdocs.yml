@@ -561,6 +561,7 @@ nav:
       - Ambarella: integrations/ambarella.md
       - AMD: integrations/amd.md
       - AMD Xilinx: integrations/xilinx.md
+      - NXP: integrations/nxp.md
       - Axelera: integrations/axelera.md
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md

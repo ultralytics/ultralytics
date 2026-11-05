@@ -27,6 +27,7 @@ Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
+NXP                     | `nxp`                     | yolo26n_nxp.tflite
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -225,6 +226,7 @@ def export_formats():
             "tensorflow",
         ],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
+        ["NXP", "nxp", "_nxp.tflite", False, False, ["quantize", "data", "fraction"], "isolated-nxp"],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "opset", "simplify", "nms"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
@@ -430,6 +432,15 @@ EXPORT_ENVS = {
         "env": {},
         "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
     },
+    "isolated-nxp": {
+        "python": "3.13",
+        "extras": ["export-base", "export-litert"],
+        "torch": None,
+        "requirements": ["eiq-neutron-sdk==3.3.0"],
+        "indexes": [("--extra-index-url", "https://eiq.nxp.com/repository")],
+        "env": {},
+        "smoke": ["yolo export format=nxp model=yolo26n.pt imgsz=64 data=coco8.yaml"],
+    },
     "qnn": {
         "python": "3.14",
         "extras": ["export-base"],
@@ -455,6 +466,7 @@ INT8_FORMATS = frozenset(
         "saved_model",
         "edgetpu",
         "litert",
+        "nxp",
         "mnn",
         "imx",
         "rknn",
@@ -466,7 +478,9 @@ INT8_FORMATS = frozenset(
 )
 W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx"})
+FP32_UNSUPPORTED_FORMATS = frozenset(
+    {"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx", "nxp"}
+)
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -566,6 +580,7 @@ class Exporter:
         export_openvino: Export model to OpenVINO format.
         export_paddle: Export model to PaddlePaddle format.
         export_litert: Export model to LiteRT format.
+        export_nxp: Compile an INT8 model for the NXP i.MX95 NPU.
         export_mnn: Export model to MNN format.
         export_ncnn: Export model to NCNN format.
         export_coreml: Export model to CoreML format.
@@ -669,13 +684,22 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "xilinx"} and self.args.quantize not in {
+        if fmt in {
+            "deepx",
+            "axelera",
+            "imx",
+            "edgetpu",
+            "qnn",
+            "hailo",
+            "xilinx",
+            "nxp",
+        } and self.args.quantize not in {
             8,
             "w8a16",
         }:
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
-        if fmt in {"axelera", "hailo", "xilinx"} and not self.args.data:
+        if fmt in {"axelera", "hailo", "xilinx", "nxp"} and not self.args.data:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
@@ -733,7 +757,7 @@ class Exporter:
                 fmt == "axelera" and self.args.nms is None and getattr(head, "one2one_cv2", None) is not None
             )
         if getattr(model, "end2end", False):
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
+            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn", "nxp"}:
                 # Disable the end2end branch for formats without top-k support
                 model.end2end = False
                 LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
@@ -1330,6 +1354,14 @@ class Exporter:
             metadata=self.metadata,
             prefix=prefix,
         )
+
+    @try_export
+    def export_nxp(self, prefix=colorstr("NXP:")):  # noqa: B008
+        """Export an INT8 model compiled for the NXP i.MX95 Neutron NPU."""
+        assert LINUX and not ARM64, "NXP export is only supported on Linux x86_64."
+        from ultralytics.utils.export.litert import tflite2nxp
+
+        return tflite2nxp(self.export_litert(), self.file.with_name(f"{self.file.stem}_nxp.tflite"), self.metadata)
 
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):  # noqa: B008

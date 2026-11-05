@@ -554,6 +554,25 @@ def test_export_executorch(isolated_model):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="NXP compilation requires Linux x86_64")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="NXP SDK and LiteRT require Python>=3.10")
+@pytest.mark.parametrize("task", TASKS)
+def test_export_nxp(task, tmp_path):
+    """Compile real models and verify that the artifact contains NPU graphs and task metadata."""
+    from ai_edge_litert import schema_py_generated as schema
+
+    from ultralytics.nn.backends.litert import LiteRTBackend
+
+    model = isolated_model_path(tmp_path, WEIGHTS_DIR / TASK2MODEL[task])
+    file = Path(YOLO(model).export(format="nxp", imgsz=64, data=TASK2DATA[task]))
+    flatbuffer = schema.Model.GetRootAsModel(file.read_bytes(), 0)
+    assert any(
+        flatbuffer.OperatorCodes(i).CustomCode() == b"NeutronGraph" for i in range(flatbuffer.OperatorCodesLength())
+    )
+    assert LiteRTBackend.read_metadata(file)["task"] == task
+
+
+@pytest.mark.slow
 @pytest.mark.skipif(not (MACOS or (LINUX and not ARM64)), reason="LiteRT export only supported on Linux x86 and macOS")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="litert-torch requires Python>=3.10")
 @pytest.mark.parametrize(

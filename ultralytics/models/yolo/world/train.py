@@ -154,7 +154,7 @@ class WorldTrainer(DetectionTrainer):
             (dict[str, torch.Tensor]): Dictionary mapping text samples to their embeddings.
         """
         model = unwrap_model(self.model)
-        text_model = getattr(model, "text_model", "clip:ViT-B/32")
+        text_model = model.text_model if isinstance(model, YOLOEModel) else "clip:ViT-B/32"
         cache_path = cache_dir / f"text_embeddings_{text_model.replace(':', '_').replace('/', '_')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")

@@ -66,7 +66,7 @@ def torch2executorch(
     LOGGER.info(f"\n{prefix} starting export with ExecuTorch {executorch_version.__version__}...")
 
     et_program = to_edge_transform_and_lower(
-        torch.export.export(model, (im,)),
+        torch.export.export(model.cpu(), (im.cpu(),)),  # non-CPU capture corrupts the .pte or crashes
         partitioner=[XnnpackPartitioner()],
     ).to_executorch()
     output_dir = Path(output_dir).resolve()  # rmtree refuses a symlinked directory

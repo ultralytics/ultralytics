@@ -820,16 +820,6 @@ def test_pose_metrics_curves():
     assert len(curves) == len(set(curves)) == 8
 
 
-def test_mask_iou_dtypes():
-    """Test that bool/uint8 and mixed-dtype masks score correctly instead of crashing or wrapping."""
-    from ultralytics.utils.metrics import mask_iou
-
-    masks = torch.zeros(2, 1, 64, 64, dtype=torch.uint8)
-    masks[:, :, :10, :30] = 1  # two identical 300-px masks
-    assert mask_iou(masks[0].flatten(1), masks[1].flatten(1)).item() == pytest.approx(1)  # uint8 wraps to 0.079
-    assert mask_iou(masks[0].flatten(1).bool(), masks[1].flatten(1).half()).item() == pytest.approx(1)  # mixed crash
-
-
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_multi():

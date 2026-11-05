@@ -205,7 +205,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
-            txt_map = torch_load(cache_path, map_location=self.device)
+            txt_map = torch_load(cache_path, map_location=self.device, weights_only=True)
             if sorted(txt_map.keys()) == sorted(texts):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")

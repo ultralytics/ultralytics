@@ -1,4 +1,5 @@
 ---
+title: Ultralytics Settings and Configuration
 comments: true
 description: View, change, and reset persistent Ultralytics settings such as the datasets, weights, and runs directories, the Platform API key, and experiment-logger toggles.
 keywords: Ultralytics settings, SettingsManager, yolo settings, runs_dir, datasets_dir, weights_dir, experiment tracking, YOLO configuration

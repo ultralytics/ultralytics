@@ -3624,7 +3624,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         det_masks_binary = det_masks > 0
         trk_masks_binary = trk_masks > 0
-        ious = mask_iou(det_masks_binary.flatten(1).float(), trk_masks_binary.flatten(1).float())  # (N, M)
+        ious = mask_iou(det_masks_binary.flatten(1), trk_masks_binary.flatten(1))  # (N, M)
 
         ious_np = ious.cpu().numpy()
         if self.o2o_matching_masklets_enable:

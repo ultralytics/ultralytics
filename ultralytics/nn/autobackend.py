@@ -439,8 +439,8 @@ class AutoBackend(nn.Module):
         """Apply a function to backend.model parameters, buffers, and tensors.
 
         This method extends the functionality of the parent class's _apply method by additionally applying the
-        function to the backend model and updating the backend device. It's typically used for operations like moving
-        the model to a different device or changing its precision.
+        function to the backend model and updating `backend.device` and `backend.fp16`. Dtype-changing conversions update
+        precision; device-only and layout-only conversions preserve it.
 
         Args:
             fn (Callable): A function to be applied to the model's tensors. This is typically a method like to(), cpu(),

@@ -327,7 +327,7 @@ class BaseTrainer:
             nb = len(self.train_loader)
             # A fresh warmup's ni=0 step has weight lr=0, so the next step must fit in the remaining batches
             warmup_step = self._get_warmup_iterations(nb) and not self.resume
-            self.accumulate = min(self.accumulate, nb * self.epochs - bool(warmup_step))
+            self.accumulate = min(self.accumulate, nb * self.epochs - warmup_step)
         if self.optimizer is None:
             iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
             self.optimizer = self.build_optimizer(

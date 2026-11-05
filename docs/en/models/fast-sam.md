@@ -360,7 +360,7 @@ For more details on inference methods, check the [Predict Usage](#predict-usage)
 FastSAM supports multiple prompt types for guiding the segmentation tasks:
 
 - **Everything Prompt**: Generates segmentation for all visible objects.
-- **Bounding Box (BBox) Prompt**: Segments objects within a specified bounding box.
+- **Bounding Box (BBox) Prompt**: Segments objects within a specified bounding box. A box that overlaps no detected mask selects nothing.
 - **Text Prompt**: Uses a descriptive text to segment objects matching the description.
 - **Point Prompt**: Segments objects near specific user-defined points.
 

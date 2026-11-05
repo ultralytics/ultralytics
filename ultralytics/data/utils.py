@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import pickle
 import random
 import subprocess
 import time
@@ -977,8 +978,31 @@ def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: 
         _replace_image(f_new or f, lambda tmp: cv2.imwrite(tmp, im))
 
 
+class _CacheUnpickler(pickle.Unpickler):
+    """Unpickler that only rebuilds the numpy arrays and paths stored in Ultralytics *.cache files."""
+
+    SAFE = frozenset(
+        {
+            ("numpy", "ndarray"),
+            ("numpy", "dtype"),
+            ("numpy.core.multiarray", "_reconstruct"),  # numpy<2
+            ("numpy._core.multiarray", "_reconstruct"),  # numpy>=2
+            ("pathlib", "PosixPath"),
+            ("pathlib", "WindowsPath"),
+            ("pathlib._local", "PosixPath"),  # Python 3.13
+            ("pathlib._local", "WindowsPath"),
+        }
+    )
+
+    def find_class(self, module: str, name: str):
+        """Resolve a pickled global only if it is on the SAFE allow-list."""
+        if (module, name) in self.SAFE:
+            return super().find_class(module, name)
+        raise pickle.UnpicklingError(f"'{module}.{name}' is not allowed in a dataset cache file")
+
+
 def load_dataset_cache_file(path: Path) -> dict:
-    """Load an Ultralytics *.cache dictionary from path.
+    """Load an Ultralytics *.cache dictionary from path without running code from the file.
 
     Args:
         path (Path): Path to the *.cache file.
@@ -990,7 +1014,10 @@ def load_dataset_cache_file(path: Path) -> dict:
 
     gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
     try:
-        return np.load(str(path), allow_pickle=True).item()  # load dict
+        with open(path, "rb") as f:
+            fmt = np.lib.format
+            (fmt.read_array_header_1_0 if fmt.read_magic(f) == (1, 0) else fmt.read_array_header_2_0)(f)
+            return _CacheUnpickler(f).load().item()  # np.save stores the dict as a pickled 0-d object array
     finally:
         gc.enable()  # also when loading raises, e.g. no cache file yet
 

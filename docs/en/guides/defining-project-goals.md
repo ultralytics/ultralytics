@@ -24,7 +24,7 @@ For an overview of the full workflow from data collection to deployment, see our
 
 ## How to Write a Computer Vision Problem Statement
 
-A clear problem statement is the first big step toward finding the most effective solution. It has four parts:
+A clear [problem statement](https://academy.ultralytics.com/courses/computer-vision-foundations/frame-the-problem) is the first big step toward finding the most effective solution. It has four parts:
 
 - **Identify the Core Issue:** Pinpoint the specific challenge your computer vision project aims to solve.
 - **Determine the Scope:** Define the boundaries of your problem.
@@ -86,11 +86,11 @@ The order of model selection, dataset preparation, and training approach depends
 | Unique or limited data                | Dataset preparation | For a facial recognition system with a small dataset, annotate the data first, then select a model that works well with limited data — such as a pretrained model for [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) — and plan [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) to expand the dataset. |
 | Experimentation is crucial (research) | Training approach   | In a project exploring new methods for detecting manufacturing defects, experiment on a small data subset first. Once you find a promising technique, select a model tailored to those findings and prepare a comprehensive dataset.                                                                                                                            |
 
-If you start with data, the [Ultralytics Platform](https://platform.ultralytics.com) simplifies dataset organization, annotation, and training as your project evolves.
+If you start with data, [Ultralytics Platform](https://platform.ultralytics.com) simplifies dataset organization, annotation, and training as your project evolves.
 
 ## How Deployment Options Affect Your Project
 
-[Model deployment options](./model-deployment-options.md) critically impact the performance of your computer vision project, so factor them in from the start. The deployment environment must handle the computational load of your model:
+[Model deployment options](./model-deployment-options.md) strongly affect the performance of your computer vision project, so factor them in from the start. The deployment environment must handle the computational load of your model:
 
 | Deployment option      | Best for                                                                                                                             | Example technologies                                                         |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
@@ -121,7 +121,7 @@ Use the SMART criteria: Specific, Measurable, Achievable, Relevant, and Time-bou
 
 ### Can a pretrained model remember classes it knew before custom training?
 
-No, pretrained models don't "remember" classes in the traditional sense. They learn patterns from massive datasets, and during custom training (fine-tuning), these patterns are adjusted for your specific task. The model's capacity is limited, and focusing on new information can overwrite some previous learnings.
+No, pretrained models don't "remember" classes in the traditional sense. They learn patterns from massive datasets, and during custom training (fine-tuning), these patterns are adjusted for your specific task. The model's capacity is limited, and focusing on new information can overwrite some previous learnings, a problem known as [catastrophic forgetting](https://www.ultralytics.com/glossary/catastrophic-forgetting).
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/4da0fb7c63ae4cbef15348acfe2f4c6a.avif" alt="Overview of transfer learning from a pretrained model to a custom model">

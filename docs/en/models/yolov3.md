@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover YOLOv3 and its variants YOLOv3-Ultralytics and YOLOv3u. Learn about their features, implementations, and support for object detection tasks.
+description: "YOLOv3, YOLOv3-Ultralytics, and YOLOv3u compared: multiscale detection, the anchor-free YOLOv8 head in YOLOv3u, supported modes, and usage examples."
 keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, object detection, Ultralytics, computer vision, AI models, deep learning
 ---
 
@@ -10,25 +10,25 @@ keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, object detection, Ultralytics, co
 
 This document presents an overview of three closely related object detection models, namely [YOLOv3](https://pjreddie.com/darknet/yolo/), [YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3), and [YOLOv3u](https://github.com/ultralytics/ultralytics).
 
-1. **YOLOv3:** This is the third version of the You Only Look Once (YOLO) object detection algorithm. Originally developed by Joseph Redmon, YOLOv3 improved on its predecessors by introducing features such as multiscale predictions and three different sizes of detection kernels.
+1. **YOLOv3:** This is the [third version](https://www.ultralytics.com/blog/the-evolution-of-object-detection-and-ultralytics-yolo-models) of the You Only Look Once (YOLO) object detection algorithm. Originally developed by Joseph Redmon, YOLOv3 improved on its predecessors by introducing predictions at three different scales.
 
-2. **YOLOv3-Ultralytics:** This is the Ultralytics PyTorch implementation of YOLOv3, maintained in the [ultralytics/yolov3](https://github.com/ultralytics/yolov3) repository. It keeps the original anchor-based architecture while adding more pretrained models and easier customization.
+2. **YOLOv3-Ultralytics:** This is the Ultralytics PyTorch implementation of YOLOv3, maintained in the [ultralytics/yolov3](https://github.com/ultralytics/yolov3) repository. It keeps the original [anchor-based](https://www.ultralytics.com/glossary/anchor-based-detectors) architecture while adding more pretrained models and easier customization.
 
-3. **YOLOv3u:** This is an updated version of YOLOv3-Ultralytics that incorporates the anchor-free, objectness-free split head used in YOLOv8 models. YOLOv3u maintains the same [backbone](https://www.ultralytics.com/glossary/backbone) and neck architecture as YOLOv3 but with the updated [detection head](https://www.ultralytics.com/glossary/detection-head) from YOLOv8.
+3. **YOLOv3u:** This is an updated version of YOLOv3-Ultralytics that incorporates the [anchor-free](https://www.ultralytics.com/glossary/anchor-free-detectors), objectness-free split head used in YOLOv8 models. YOLOv3u maintains the same [backbone](https://www.ultralytics.com/glossary/backbone) and neck architecture as YOLOv3 but with the updated [detection head](https://www.ultralytics.com/glossary/detection-head) from YOLOv8.
 
 ![YOLOv3 object detection model banner](https://cdn.ul.run/i/86bbfe2f973e8746de786a46f9ccaf5d.avif)
 
 ## Key Features
 
-- **YOLOv3:** Introduced the use of three different scales for detection, leveraging three different sizes of detection kernels: 13x13, 26x26, and 52x52. This significantly improved detection accuracy for objects of different sizes. Additionally, YOLOv3 added features such as multi-label predictions for each [bounding box](https://www.ultralytics.com/glossary/bounding-box) and a better feature extractor network.
+- **YOLOv3:** Introduced detection at three different scales, with 13x13, 26x26, and 52x52 output grids for a 416x416 input. This significantly improved detection accuracy for objects of different sizes. Additionally, YOLOv3 added multi-label predictions for each [bounding box](https://www.ultralytics.com/glossary/bounding-box) and a stronger feature extractor network, Darknet-53.
 
-- **YOLOv3u:** This updated model incorporates the anchor-free, objectness-free split head from YOLOv8. By eliminating the need for pre-defined anchor boxes and objectness scores, this detection head design can improve the model's ability to detect objects of varying sizes and shapes. This makes YOLOv3u more robust and accurate for object detection tasks.
+- **YOLOv3u:** This updated model incorporates the anchor-free, objectness-free split head from YOLOv8. By eliminating the need for pre-defined [anchor boxes](https://www.ultralytics.com/glossary/anchor-boxes) and objectness scores, this detection head design can improve the model's ability to detect objects of varying sizes and shapes. This makes YOLOv3u more robust and accurate for object detection tasks.
 
 ## Supported Tasks and Modes
 
-YOLOv3 is designed specifically for [object detection](https://www.ultralytics.com/glossary/object-detection) tasks. Ultralytics supports three variants of YOLOv3: `yolov3u`, `yolov3-tinyu` and `yolov3-sppu`. The `u` in the name signifies that these utilize the anchor-free head of YOLOv8, unlike their original architecture which is anchor-based. These models are renowned for their effectiveness in various real-world scenarios, balancing accuracy and speed. Each variant offers unique features and optimizations, making them suitable for a range of applications.
+YOLOv3 is designed specifically for [object detection](https://www.ultralytics.com/glossary/object-detection) tasks. Ultralytics supports three variants of YOLOv3: `yolov3u`, `yolov3-tinyu` and `yolov3-sppu`. The `u` in the name signifies that these utilize the anchor-free head of YOLOv8, unlike their original architecture which is anchor-based. The variants trade off accuracy and speed: YOLOv3-Tiny is the smallest and fastest, while YOLOv3-SPP adds spatial pyramid pooling to the standard YOLOv3 model.
 
-All three models support a comprehensive set of modes, ensuring versatility in various stages of [model deployment](https://www.ultralytics.com/glossary/model-deployment) and development. These modes include [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), providing users with a complete toolkit for effective object detection.
+All three models support the [Training](../modes/train.md), [Validation](../modes/val.md), [Inference](../modes/predict.md), and [Export](../modes/export.md) modes, covering every stage from development to [model deployment](https://www.ultralytics.com/glossary/model-deployment).
 
 | Model Type     | Pretrained Weights | Tasks Supported                        | Training | Validation | Inference | Export |
 | -------------- | ------------------ | -------------------------------------- | -------- | ---------- | --------- | ------ |
@@ -36,11 +36,11 @@ All three models support a comprehensive set of modes, ensuring versatility in v
 | YOLOv3-Tiny(u) | `yolov3-tinyu.pt`  | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 | YOLOv3-SPP(u)  | `yolov3-sppu.pt`   | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 
-This table provides an at-a-glance view of the capabilities of each YOLOv3 variant, highlighting their versatility and suitability for various tasks and operational modes in object detection workflows.
+This table summarizes the supported tasks and modes for each YOLOv3 variant.
 
 ## Usage Examples
 
-This example provides simple YOLOv3 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv3 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
 !!! example
 
@@ -99,11 +99,11 @@ Thank you to Joseph Redmon and Ali Farhadi for developing the original YOLOv3.
 
 ### What are the differences between YOLOv3, YOLOv3-Ultralytics, and YOLOv3u?
 
-YOLOv3 is the third iteration of the YOLO (You Only Look Once) [object detection](https://www.ultralytics.com/glossary/object-detection) algorithm developed by Joseph Redmon, known for its balance of [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, utilizing three different scales (13x13, 26x26, and 52x52) for detections. YOLOv3-Ultralytics is Ultralytics' adaptation of YOLOv3 that adds support for more pretrained models and facilitates easier model customization. YOLOv3u is an upgraded variant of YOLOv3-Ultralytics, integrating the anchor-free, objectness-free split head from YOLOv8, improving detection robustness and accuracy for various object sizes. For more details on the variants, refer to the [YOLOv3 series](https://github.com/ultralytics/yolov3).
+YOLOv3 is the third iteration of the YOLO (You Only Look Once) object detection algorithm developed by Joseph Redmon, known for its balance of [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, predicting at three different scales (13x13, 26x26, and 52x52 grids for a 416x416 input). [YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3) is Ultralytics' adaptation of YOLOv3 that adds support for more pretrained models and facilitates easier model customization. YOLOv3u is an upgraded variant of YOLOv3-Ultralytics, integrating the anchor-free, objectness-free split head from YOLOv8, improving detection robustness and accuracy for various object sizes.
 
 ### How can I train a YOLOv3 model using Ultralytics?
 
-Training a YOLOv3 model with Ultralytics is straightforward. You can train the model using either Python or CLI:
+You can train a YOLOv3u model with either Python or the CLI:
 
 !!! example
 
@@ -134,7 +134,7 @@ YOLOv3u improves upon YOLOv3 and YOLOv3-Ultralytics by incorporating the anchor-
 
 ### How can I use YOLOv3 models for inference?
 
-You can perform inference using YOLOv3 models by either Python scripts or CLI commands:
+You can run inference with YOLOv3 models from either Python or the CLI:
 
 !!! example
 
@@ -161,7 +161,7 @@ Refer to the [Inference mode documentation](../modes/predict.md) for more detail
 
 ### What tasks are supported by YOLOv3 and its variants?
 
-YOLOv3, YOLOv3-Tiny and YOLOv3-SPP primarily support object detection tasks. These models can be used for various stages of model deployment and development, such as Inference, Validation, Training, and Export. For a comprehensive set of tasks supported and more in-depth details, visit our [Object Detection tasks documentation](../tasks/detect.md).
+YOLOv3, YOLOv3-Tiny and YOLOv3-SPP primarily support [object detection](../tasks/detect.md) tasks. These models support the Training, Validation, Inference, and Export modes.
 
 ### Where can I find resources to cite YOLOv3 in my research?
 

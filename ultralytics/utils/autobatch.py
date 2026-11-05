@@ -8,8 +8,9 @@ from copy import deepcopy
 import numpy as np
 import torch
 
+from ultralytics.nn.tasks import RTDETRDetectionModel, SemanticSegmentationModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
-from ultralytics.utils.torch_utils import autocast, get_torch_device_backend, profile_ops
+from ultralytics.utils.torch_utils import autocast, get_torch_device_backend, profile_ops, unwrap_model
 
 
 def check_train_batch_size(
@@ -101,9 +102,19 @@ def autobatch(
     if dataset_size > 0:
         batch_sizes = [b for b in batch_sizes if b <= dataset_size]
     ch = model.yaml.get("channels", 3)
+    ops, m = model, unwrap_model(model)
+    if isinstance(m, (RTDETRDetectionModel, SemanticSegmentationModel)):  # profile the real loss, not the envelope
+        max_num_obj = 0
+
+        def ops(x):  # num_denoising boxes per image fill the RT-DETR CDN queries, the zero image is the semantic mask
+            i = torch.arange(len(x), device=x.device).repeat_interleave(getattr(m.model[-1], "num_denoising", 1))
+            labels = {"batch_idx": i, "cls": i[:, None] * 0, "bboxes": torch.full((len(i), 4), 0.5, device=x.device)}
+            x = x.detach().zero_()  # finite matcher costs and a valid semantic mask
+            return m({"img": x, "semantic_mask": x[:, 0].int(), **labels})
+
     try:
         img = [torch.empty(b, ch, imgsz, imgsz) for b in batch_sizes]
-        results = profile_ops(img, model, n=1, device=device, max_num_obj=max_num_obj)
+        results = profile_ops(img, ops, n=1, device=device, max_num_obj=max_num_obj)
 
         # Fit a solution
         xy = [
@@ -125,8 +136,8 @@ def autobatch(
             if dataset_size > 0:
                 b = min(b, dataset_size)
 
-            fraction = np.polyval(p, b) / t  # predicted fraction
-            LOGGER.info(f"{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅")
+            fraction = np.polyval(p, b) / f  # predicted fraction of available memory
+            LOGGER.info(f"{prefix}Using batch-size {b} for {d} {f * fraction:.2f}G/{f:.2f}G ({fraction * 100:.0f}%) ✅")
             return b
     except Exception as e:
         LOGGER.warning(f"{prefix}error detected: {e},  using default batch-size {batch_size}.")

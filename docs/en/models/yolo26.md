@@ -1,14 +1,14 @@
 ---
 comments: true
-description: YOLO26 from Ultralytics delivers unified, real-time, end-to-end vision models optimized for accurate and efficient deployment.
-keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, YOLOE-26, open-vocabulary detection, computer vision, AI, machine learning, edge AI, real-time inference
+description: Ultralytics YOLO26 is a real-time model family with optional NMS-free inference for detection, segmentation, depth, classification, pose and OBB.
+keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, YOLOE-26, open-vocabulary detection, computer vision, MuSGD, semantic segmentation, depth estimation, edge AI, real-time inference
 ---
 
 # Ultralytics YOLO26
 
 ## Overview
 
-[Ultralytics](https://www.ultralytics.com) YOLO26 is a unified family of real-time vision models described in the [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748). It introduces native end-to-end inference, a lighter detection head, an updated training recipe, and task-specific heads for detection, segmentation, pose estimation, classification, and oriented detection.
+[Ultralytics](https://www.ultralytics.com) YOLO26 is a unified family of real-time vision models described in the [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748). It introduces native [end-to-end inference](../guides/end2end-detection.md), a lighter detection head, an updated training recipe, and task-specific heads for detection, segmentation, classification, pose estimation, and oriented detection.
 
 Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** at **1.7-11.8 ms T4 TensorRT latency**. The paper also reports **up to 43% faster CPU ONNX inference** for YOLO26n compared with YOLO11n on an Intel Xeon CPU @ 2.00 GHz.
 
@@ -50,9 +50,9 @@ See the [unreleased YOLO27 preview](yolo27.md) for planned architecture, tasks, 
 
 The YOLO26 model family is built around four design areas:
 
-- **Native end-to-end inference:** The optional one-to-one detection head produces predictions without non-maximum suppression (NMS), simplifying deployment and reducing post-processing.
+- **Native end-to-end inference:** The optional one-to-one detection head produces predictions without [non-maximum suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), simplifying deployment and reducing post-processing.
 - **Lighter box regression:** YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity while preserving an unconstrained regression range.
-- **Training recipe updates:** The training pipeline combines **MuSGD** (a hybrid Muon + SGD optimizer), **Progressive Loss**, and **STAL** (Small-Target-Aware Label Assignment) to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. The full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
+- **Training recipe updates:** The [training pipeline](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd) combines **MuSGD** (a hybrid Muon + SGD optimizer), **Progressive Loss**, and **STAL** (Small-Target-Aware Label Assignment) to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. The full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
 - **Task-specific heads and losses:** YOLO26 adds targeted designs for instance segmentation, semantic segmentation variants, pose estimation, and oriented detection while keeping a single model pipeline across tasks.
 
 Together, these updates improve the accuracy-latency tradeoff across model scales and deployment targets.
@@ -75,7 +75,7 @@ Together, these updates improve the accuracy-latency tradeoff across model scale
   The simplified head and optional NMS-free path reduce inference overhead across export targets and hardware profiles, including the paper's reported CPU ONNX speedup for YOLO26n versus YOLO11n.
 
 - **Instance Segmentation Enhancements**
-  Introduces semantic segmentation loss to improve model convergence and an upgraded proto module that leverages multi-scale information for superior mask quality. The paper reports gains over YOLO11 of up to +2.5 box AP and +3.7 mask AP on COCO instance segmentation.
+  Introduces semantic segmentation loss to improve model convergence and an upgraded proto module that uses multi-scale information for better mask quality. The paper reports gains over YOLO11 of up to +2.5 box AP and +3.7 mask AP on COCO instance segmentation.
 
 - **Precision Pose Estimation**
   Integrates [Residual Log-Likelihood Estimation](https://arxiv.org/abs/2107.11291) (RLE) for more accurate keypoint localization and optimizes the decoding process for increased inference speed. The paper reports up to +7.2 AP over YOLO11 on COCO pose estimation.
@@ -153,13 +153,13 @@ This unified framework covers real-time detection, instance segmentation, semant
 
         --8<-- "docs/macros/yolo-obb-perf.md"
 
-_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. Speed measurements select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
+_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. [Speed measurements](https://www.ultralytics.com/benchmarks) select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
 
 ## Usage Examples
 
-This section provides simple YOLO26 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md), and [Export](../modes/export.md) docs pages.
+This section provides simple YOLO26 [training](../modes/train.md) and [inference](../modes/predict.md) examples.
 
-Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks, see the [Segment](../tasks/segment.md), [Semantic Segmentation](../tasks/semantic.md), [Depth](../tasks/depth.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md), and [OBB](../tasks/obb.md) docs.
+The example below trains a YOLO26 [Detect](../tasks/detect.md) model for [object detection](https://www.ultralytics.com/glossary/object-detection) on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) example dataset.
 
 !!! example
 
@@ -237,7 +237,7 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
 
 ## YOLOE-26: Open-Vocabulary Detection and Segmentation
 
-YOLO26 also powers [YOLOE-26](yoloe.md), an open-vocabulary variant that detects and segments object categories from **text prompts**, **visual prompts**, or a **prompt-free mode** instead of a fixed class list learned at training time. YOLOE-26 keeps YOLO26's optional NMS-free end-to-end (e2e) head, so open-vocabulary inference stays fast enough for dynamic environments where target categories change over time. YOLOE-26x reaches **40.6 AP** on LVIS minival under text prompting, **38.5 AP** under visual prompting and **31.1 AP** prompt-free — the paper's Non-E2E figures, which its end-to-end head trails by 1.1, 2.3 and 1.2 AP.
+YOLO26 also powers YOLOE-26, an open-vocabulary variant that detects and segments object categories from **text prompts**, **visual prompts**, or a **prompt-free mode** instead of a fixed class list learned at training time. YOLOE-26 keeps YOLO26's optional NMS-free end-to-end (e2e) head, so open-vocabulary inference stays fast enough for dynamic environments where target categories change over time. YOLOE-26x reaches **40.6 AP** on [LVIS](../datasets/detect/lvis.md) minival under text prompting, **38.5 AP** under visual prompting and **31.1 AP** prompt-free — the paper's Non-E2E figures, which its end-to-end head trails by 1.1, 2.3 and 1.2 AP.
 
 See the **[YOLOE documentation](yoloe.md)** for per-scale performance tables, prompt-free variants, and full usage examples.
 

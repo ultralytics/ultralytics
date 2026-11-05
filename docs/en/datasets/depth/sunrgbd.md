@@ -2,13 +2,13 @@
 comments: true
 license:
     name: None
-description: Explore the SUN RGB-D depth dataset for monocular depth estimation. Learn about its structure, usage, pretrained models, and role in YOLO26-Depth training.
+description: SUN RGB-D depth provides 10,335 real indoor RGB-D images from four sensors for monocular depth estimation and YOLO26-Depth training, with automatic download.
 keywords: Ultralytics, YOLO, depth estimation, SUN RGB-D, indoor RGB-D, multi-sensor, monocular depth, depth dataset
 ---
 
 # SUN RGB-D Depth Dataset
 
-[SUN RGB-D](https://rgbd.cs.princeton.edu/) is a real-world indoor scene-understanding benchmark captured with four different RGB-D sensors: Intel RealSense, Asus Xtion, and Microsoft Kinect v1 and v2. Its multi-sensor design makes it a valuable source of real indoor depth diversity for [monocular depth estimation](index.md).
+[SUN RGB-D](https://rgbd.cs.princeton.edu/) is a real-world indoor scene-understanding benchmark captured with four different RGB-D sensors: Intel RealSense, Asus Xtion, and Microsoft Kinect v1 and v2. Its multi-sensor design makes it a valuable source of real indoor depth diversity for monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation).
 
 Explore [SUN RGB-D on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/depth-sunrgbd) to preview its RGB-depth pairs, inspect dataset statistics, and clone it for training.
 
@@ -45,7 +45,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-To train a YOLO26n-depth model on the SUN RGB-D dataset with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth) model on the SUN RGB-D dataset with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 

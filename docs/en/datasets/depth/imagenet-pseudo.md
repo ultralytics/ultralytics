@@ -3,13 +3,13 @@ comments: true
 license:
     name: Research-Only
     url: https://www.image-net.org/download.php
-description: Explore the pseudo-labeled ImageNet depth dataset used for knowledge distillation in YOLO26-Depth. Learn how pseudo depth labels are generated, its role, usage, and pretrained models.
+description: Pseudo-labeled ImageNet depth pairs 1.28M ImageNet-1K images with Depth Anything 3 depth maps for knowledge distillation in YOLO26-Depth pretraining.
 keywords: ImageNet, pseudo-labeled depth, knowledge distillation, monocular depth estimation, Depth Anything, YOLO26-Depth, depth pretraining, Ultralytics
 ---
 
 # ImageNet (Pseudo-Labeled) Depth Dataset
 
-The [ImageNet](https://www.image-net.org/) (pseudo-labeled depth) dataset reuses the 1,281,167 ImageNet-1K training images, which have no ground-truth depth, and pairs each image with a pseudo depth map produced by a Depth Anything 3 teacher, combining its monocular and metric checkpoints. It is used purely for knowledge [distillation](https://www.ultralytics.com/glossary/knowledge-distillation) and for the scene and object diversity that ImageNet provides. As the single largest source in the roughly 2.19M-image YOLO26-Depth pretraining mix (about 58%), adding it was decisive for indoor cross-domain generalization.
+The [ImageNet](https://www.image-net.org/) (pseudo-labeled depth) dataset reuses the 1,281,167 [ImageNet-1K](../classify/imagenet.md) training images, which have no ground-truth depth, and pairs each image with a pseudo depth map produced by a Depth Anything 3 teacher, combining its monocular and metric checkpoints. It is used purely for [knowledge distillation](https://www.ultralytics.com/glossary/knowledge-distillation) and for the scene and object diversity that ImageNet provides. As the single largest source in the roughly 2.19M-image YOLO26-Depth pretraining mix (about 58%), adding it was decisive for indoor cross-domain generalization.
 
 ## Key Features
 
@@ -45,7 +45,7 @@ This source contributes the bulk of the YOLO26-Depth pretraining data and the wi
 
 ## Usage
 
-The pseudo-labeled ImageNet data is not trained on in isolation; it is consumed as one component of a combined depth mix, defined by an internal/experiment YAML rather than a public dataset download. Conceptually, training on such a mix looks like the following:
+The pseudo-labeled ImageNet data is not trained on in isolation; it is consumed as one component of a combined depth mix, defined by an internal experiment YAML rather than a public dataset download. Conceptually, training on such a mix looks like the following:
 
 !!! example "Train Example"
 
@@ -72,11 +72,11 @@ The pseudo-labeled ImageNet data is not trained on in isolation; it is consumed 
 
 Pretrained YOLO26-Depth models auto-download from the Ultralytics [v8.4.0 assets release](https://github.com/ultralytics/assets/releases/tag/v8.4.0) when first referenced by name:
 
-- [YOLO26n-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth)
-- [YOLO26s-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-depth)
-- [YOLO26m-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-depth)
-- [YOLO26l-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-depth)
-- [YOLO26x-Depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth)
+- [YOLO26n-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-depth)
+- [YOLO26s-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s-depth)
+- [YOLO26m-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m-depth)
+- [YOLO26l-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-depth)
+- [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth)
 
 ## Citations and Acknowledgments
 

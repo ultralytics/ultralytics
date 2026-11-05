@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Cloud Model Training
 comments: true
-description: Learn about model training in Ultralytics Platform including project organization, cloud training, and real-time metrics streaming.
+description: Model training on Ultralytics Platform. Organize projects, train YOLO models on cloud GPUs or your own hardware, monitor live metrics, and export results.
 keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU training, machine learning, deep learning
 ---
 
 # Model Training
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for [training YOLO models](../../modes/train.md), from organizing experiments to running cloud training jobs with real-time metrics streaming.
+[Ultralytics Platform](https://platform.ultralytics.com) provides tools for [training YOLO models](../../modes/train.md), from organizing experiments to [running cloud training jobs](https://www.ultralytics.com/blog/train-yolo-models-faster-with-ultralytics-platform) with real-time metrics streaming.
 
 <p align="center">
   <br>
@@ -85,12 +85,12 @@ Available GPUs for cloud training on Ultralytics Cloud:
 
 On the model's **Train** tab, view live metrics and available validation results:
 
-| Subtab         | Metrics                                                                                          |
-| -------------- | ------------------------------------------------------------------------------------------------ |
-| **Metrics**    | Task metrics (mAP50, mAP50-95, precision, recall for detection), train/val losses, learning rate |
-| **Validation** | Recorded validation plots and per-image analysis, when available                                 |
-| **Console**    | Live training logs with ANSI color and automatic error detection                                 |
-| **System**     | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                      |
+| Subtab         | Metrics                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Metrics**    | Task metrics (mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, recall for detection), train/val losses, learning rate |
+| **Validation** | Recorded validation plots and per-image analysis, when available                                                       |
+| **Console**    | Live training logs with ANSI color and automatic error detection                                                       |
+| **System**     | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                                            |
 
 !!! info "Automatic Checkpoints"
 

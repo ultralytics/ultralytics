@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore essential utilities in the Ultralytics package to speed up and enhance your workflows. Learn about data processing, annotations, conversions, and more.
+description: Reference for Ultralytics utilities, including SAM auto-annotation, COCO and mask to YOLO conversion, bounding box conversion, Annotator plotting and profiling.
 keywords: Ultralytics, utilities, data processing, auto annotation, YOLO, dataset conversion, bounding boxes, image compression, machine learning tools
 ---
 
@@ -10,7 +10,7 @@ keywords: Ultralytics, utilities, data processing, auto annotation, YOLO, datase
   <img src="https://cdn.ul.run/i/5d9620833417e6cd356b94012f84af36.avif" alt="YOLO model code with 3D perspective visualization">
 </p>
 
-The `ultralytics` package provides a variety of utilities to support, enhance, and accelerate your workflows. While there are many more available, this guide highlights some of the most useful ones for developers, serving as a practical reference for programming with Ultralytics tools.
+The `ultralytics` package provides many utilities for data preparation, box handling, plotting, and profiling. This guide highlights some of the most useful ones and serves as a practical reference for programming with Ultralytics tools.
 
 <p align="center">
   <br>
@@ -44,7 +44,7 @@ auto_annotate(
 This function does not return any value. For further details:
 
 - See the [reference section for `annotator.auto_annotate`](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for more insight on how the function operates.
-- Use in combination with the [function `segments2boxes`](#convert-segments-to-bounding-boxes) to generate object detection bounding boxes as well.
+- Use in combination with the [function `segments2boxes`](#convert-segments-to-bounding-boxes) to generate object detection [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) as well.
 
 ### Visualize Dataset Annotations
 
@@ -70,7 +70,7 @@ visualize_image_annotations(
 
 ![Segmentation Masks to YOLO Format](https://cdn.ul.run/i/f19e424efa2177fa76251d68ea5d1f73.avif)
 
-Use this to convert a dataset of segmentation mask images to the [Ultralytics YOLO](../models/yolo26.md) segmentation format. This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
+Use this to convert a dataset of segmentation mask images to the [Ultralytics YOLO](../models/yolo26.md) segmentation format. This function takes a directory of grayscale mask images, where each pixel value is the class index + 1 and 0 is background, and converts them into YOLO segmentation format.
 
 The converted masks will be saved in the specified output directory.
 
@@ -153,7 +153,7 @@ yolo_bbox2segment(
 
 ### Convert Segments to Bounding Boxes
 
-If you have a dataset that uses the [segmentation dataset format](../datasets/segment/index.md), you can easily convert these into upright (or horizontal) bounding boxes (`x y w h` format) with this function.
+If you have a dataset that uses the [segmentation dataset format](../datasets/segment/index.md), you can convert them into upright (or horizontal) bounding boxes (`x y w h` format) with this function.
 
 ```python
 import numpy as np
@@ -182,7 +182,7 @@ To understand how this function works, visit the [reference page](../reference/u
 
 ### Image Compression
 
-Compress a single image file to a reduced size while preserving its aspect ratio and quality. If the input image is smaller than the maximum dimension, it will not be resized.
+Compress a single image file to a reduced-size JPEG while preserving its aspect ratio. By default the input file is overwritten, and images smaller than `max_dim` (default 1920 pixels) are not resized.
 
 ```python
 from pathlib import Path
@@ -386,7 +386,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 
 #### Box Annotation
 
-!!! example "Python Examples using Ultralytics YOLO 🚀"
+!!! example "Python Examples Using Ultralytics YOLO"
 
     === "Horizontal Bounding Boxes"
 
@@ -564,9 +564,7 @@ Also see the [`Annotator` Reference Page](../reference/utils/plotting.md#ultraly
     cv2.destroyAllWindows()
     ```
 
-Find additional details about the `sweep_annotator` method in our reference section [here](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
-
-#### Adaptive label Annotation
+#### Adaptive Label Annotation
 
 `SolutionAnnotator.adaptive_label` draws a label whose shape is chosen with the `shape` argument (it replaces the older `circle_label` and `text_label` methods):
 
@@ -584,9 +582,9 @@ Find additional details about the `sweep_annotator` method in our reference sect
   <strong>Watch:</strong> In-Depth Guide to Text & Circle Annotations with Python Live Demos | Ultralytics Annotations 🚀
 </p>
 
-!!! example "Adaptive label Annotation using Ultralytics Utilities"
+!!! example "Adaptive Label Annotation Using Ultralytics Utilities"
 
-    === "[Circle Annotation](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
+    === "Circle Annotation"
 
         ```python
         import cv2
@@ -625,7 +623,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
         cv2.destroyAllWindows()
         ```
 
-    === "[Text Annotation](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
+    === "Text Annotation"
 
         ```python
         import cv2
@@ -671,7 +669,7 @@ See the [`SolutionAnnotator` Reference Page](../reference/solutions/solutions.md
 
 ### Code Profiling
 
-Check the duration for code to run/process either using `with` or as a decorator.
+Measure how long code takes to run, using `Profile` as a context manager (`with`) or as a decorator.
 
 ```python
 from ultralytics.utils.ops import Profile
@@ -714,7 +712,7 @@ make_divisible(7, 2)
 
 ### What utilities are included in the Ultralytics package to enhance machine learning workflows?
 
-The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](../datasets/detect/coco.md) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
+The Ultralytics package includes utilities for common [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) data and plotting tasks. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](../datasets/detect/coco.md) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, auto-splitting datasets, converting box formats, and annotating images with the `Annotator` class.
 
 ### How can I use Ultralytics to auto-label my dataset?
 
@@ -732,7 +730,7 @@ auto_annotate(
 )
 ```
 
-For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate), or use [Ultralytics Platform](https://platform.ultralytics.com) as a hosted, no-code alternative with click-based masking via [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31), or predictions from pretrained and fine-tuned YOLO models for detect, segment, and OBB tasks.
+[Ultralytics Platform Smart Annotation](../platform/data/annotation.md#smart-annotation) is a hosted, no-code alternative to [`auto_annotate`](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate), with click-based masking via [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31), predictions from pretrained and fine-tuned YOLO models for detect, segment, and OBB tasks, or class-prompted boxes from [vision language models](https://platform.ultralytics.com/models) ranked on the [VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm).
 
 ### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
 
@@ -753,7 +751,7 @@ For additional information, visit the [convert_coco reference page](../reference
 
 ### How can I analyze my dataset composition and distribution?
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides automatic dataset analytics: the `Charts` tab shows split distribution, top class counts, image-dimension histograms, and 2D heatmaps of annotation positions, helping you spot imbalances and outliers before training.
+[Ultralytics Platform](https://platform.ultralytics.com) provides automatic dataset analytics: the [`Charts` tab](../platform/data/datasets.md#charts-tab) shows split distribution, top class counts, image-dimension histograms, and 2D heatmaps of annotation positions, helping you spot imbalances and outliers before training.
 
 ### How can I convert bounding boxes to segments in Ultralytics?
 

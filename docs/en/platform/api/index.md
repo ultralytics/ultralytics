@@ -1,7 +1,7 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Complete REST API reference for Ultralytics Platform including authentication, rate limits, and endpoints for datasets, images, models, training, exports, and deployments.
+description: "Ultralytics Platform REST API reference: authentication, rate limits, Python SDK, and endpoints for datasets, models, training, exports, and deployments."
 keywords: Ultralytics Platform, REST API, API reference, OpenAPI, authentication, endpoints, YOLO, programmatic access
 integrations_path: ../../integrations
 ---
@@ -104,7 +104,7 @@ Authorization: Bearer YOUR_API_KEY
 
     API keys are the literal prefix `ul_` followed by 40 hexadecimal characters, 43 characters in total (for example
     `ul_a1b2c3d4e5f6789012345678901234567890abcd`). Requests with a missing header, a malformed key, or a revoked key
-    return `401`. Keep your key secret -- never commit it to version control or share it publicly.
+    return `401`. Keep your key secret — never commit it to version control or share it publicly.
 
 ### Example
 
@@ -754,7 +754,7 @@ DELETE /api/datasets/{owner}/{dataset}/embeddings
 `client.datasets.delete_embeddings(owner, dataset)`
 
 `GET` returns the analysis summary (`analyzedAt`, `embeddingsCount`, `latestImageAt`, `activeJob`). `POST` queues an
-embedding analysis and returns `202` with a `jobId`, or `409` when the dataset's storage has AI features off or is On Premise. `DELETE` cancels the active job and returns the cancelled job ID
+[embedding](https://www.ultralytics.com/glossary/embeddings) analysis and returns `202` with a `jobId`, or `409` when the dataset's storage has AI features off or is On Premise. `DELETE` cancels the active job and returns the cancelled job ID
 or `null`.
 
 ### Image Clustering
@@ -1169,7 +1169,7 @@ POST /api/datasets/{owner}/{dataset}/predict/batch
 
 Saves a dataset version (cloud storage datasets have none), then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
 The body takes the same `modelId`, `confidence`, `iou`, and `classMapping` fields as the single-image endpoint, plus
-`includeAnnotated` (default `false`) to also annotate images that already have labels. A class-prompted model detects
+`includeAnnotated` (default `false`) to also annotate images that already have labels. A [class-prompted model](https://platform.ultralytics.com/models) detects
 the dataset classes without confidence scores, and a paid provider model needs a provider key saved in the dataset
 workspace's **Settings > API Keys** (`422`, `code`: `missing_provider_api_key`, before the run is admitted). Existing labels are never changed, and the run is billed for the images it actually
 processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not ready, its storage has AI features off or is On Premise, has no images left to
@@ -1585,7 +1585,7 @@ quantization. Requests that exceed the service's input limits return `413`.
 
 Each entry in `images` carries `shape`, `speed`, `results`, and, for dense-prediction tasks, a `semantic_mask` or
 `depth` PNG payload (depth values are `pixel × max / divisor`, with divisor 255 for the default 8-bit map and 65535 when
-`bits` is 12 or 16). The `metadata` object reports image count, model class names, function timings, task, and service
+`bits` is 12 or 16). The `metadata` object reports image count, function timings, task, and service
 versions. Internal model paths are never returned.
 
 ```json
@@ -1606,7 +1606,6 @@ versions. Internal model paths are never returned.
     ],
     "metadata": {
         "imageCount": 1,
-        "classNames": ["person", "forklift"],
         "functionTimeAlive": 184.2,
         "functionTimeCall": 0.31,
         "task": "detect",
@@ -1746,8 +1745,8 @@ for the requested GPU.
 
 ## Exports API
 
-Convert models to optimized formats like ONNX, TensorRT, CoreML, and LiteRT for edge deployment. See
-[Deploy documentation](../deploy/index.md).
+[Convert models](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to optimized formats like ONNX, TensorRT, CoreML, and LiteRT for
+[edge deployment](https://www.ultralytics.com/glossary/edge-ai).
 
 ### List Exports
 
@@ -1798,8 +1797,8 @@ POST /api/models/{owner}/{project}/{model}/exports
 
 Each format honors only the options in its **Arguments** column of the export table below: a non-default `batch`,
 `dynamic`, `opset`, `simplify`, `workspace`, or `optimize` value for a format that does not support it returns `400`.
-`imx` exports are INT8 only and available for detect, segment, classify, and pose models; YOLO26 models and YOLOv8 or
-YOLO11 sizes other than nano return `400`.
+`imx` exports are INT8 only and available for detect, segment, classify, and pose models; a model whose name
+identifies a YOLO model other than YOLOv8n or YOLO11n returns `400`.
 
 **Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `region`, and `gpuType` for TensorRT exports.
 While an export of the same format is in flight for the model, a new request returns `409` whatever its `args`.
@@ -2463,7 +2462,7 @@ POST /api/integrations/roboflow/preview
 
 Resolves a Roboflow API key into an import plan: workspace details, `newDatasets` that would be imported, `importedDatasets` whose latest version is already imported, counts of
 already-imported (`skippedCount`), version-less, unsupported, and unresolved projects, `bytesTotal`, and your `storage`
-headroom. New datasets include their export `sizeBytes`; already-imported datasets include it when the export can still be sized. The Roboflow API key is read from the body and is not persisted.
+headroom. New datasets include their export `sizeBytes`; already-imported datasets include it when the export can still be sized. `apiKey` is optional: without it the workspace's saved Roboflow key is used, and without either the request returns `400`. A key the workspace owner sends is saved for the workspace once it resolves a Roboflow workspace.
 
 ```json
 {
@@ -2479,7 +2478,7 @@ POST /api/integrations/roboflow/import
 
 **Python SDK:** `client.datasets.import_roboflow(api_key=..., items=...)`
 
-Queues ingest jobs for up to 500 selected Roboflow project versions, using the items returned by the preview.
+Queues ingest jobs for up to 500 selected Roboflow project versions, using the items returned by the preview. `apiKey` is optional and falls back to the saved key like the preview, but is never saved.
 
 ```json
 {

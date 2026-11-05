@@ -4,15 +4,17 @@ from __future__ import annotations
 
 import contextlib
 import math
-import weakref
+import re
+import unicodedata
 from collections.abc import Callable
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import cv2
 import numpy as np
 import torch
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, features
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
@@ -246,8 +248,8 @@ def colorize_depth(
     v = np.where(valid, 1.0 / np.where(valid, d, 1.0), 0.0) if mode == "disparity" else d
     if vmin is None or vmax is None:
         pool = v[valid]
-        if mode == "disparity":
-            lo, hi = np.percentile(pool, (2, 98)) if pool.size else (0.0, 1.0)
+        if mode == "disparity":  # ~64k evenly spaced valid values estimate the percentiles, also for sparse maps
+            lo, hi = np.percentile(pool[:: max(1, pool.size // 2**16)], (2, 98)) if pool.size else (0.0, 1.0)
         else:
             lo, hi = (float(pool.min()), float(pool.max())) if pool.size else (0.0, 1.0)
         vmin = lo if vmin is None else vmin
@@ -262,15 +264,73 @@ def colorize_depth(
     return color
 
 
+@lru_cache
+def _arabic_forms() -> dict | None:
+    """Map Arabic letters and lam-alef pairs to their presentation forms, or return None if Pillow shapes with Raqm."""
+    if features.check("raqm"):
+        return None
+    forms = {}
+    for c in map(chr, [*range(0xFE70, 0xFF00), *range(0xFB50, 0xFE00)]):  # Arabic Presentation Forms-B, then -A
+        tag, *codes = unicodedata.decomposition(c).split() or [""]
+        if tag in {"<isolated>", "<final>", "<initial>", "<medial>"} and (len(codes) == 1 or "\ufef5" <= c <= "\ufefc"):
+            forms.setdefault("".join(chr(int(x, 16)) for x in codes), {}).setdefault(tag, c)
+    return forms
+
+
+def _rtl(text: str) -> str:
+    """Join Arabic letters and reverse right-to-left text into visual order for Pillow builds without Raqm."""
+    forms = None if text.isascii() else _arabic_forms()  # O(1) skip for ASCII labels
+    if forms is None or not any(unicodedata.bidirectional(c) in {"R", "AL"} for c in text):
+        return text
+    units = re.findall("|".join(k for k in forms if len(k) == 2) + "|.", text, re.DOTALL)  # lam-alef is one glyph
+    joins = ["<medial>" in forms.get(u, {}) for u in units]  # dual-joining letters connect to the next letter
+    for i, u in enumerate(units):
+        if f := forms.get(u):
+            p, n = i > 0 and joins[i - 1], joins[i] and i + 1 < len(units) and units[i + 1] in forms
+            units[i] = f.get(("<medial>" if n else "<final>") if p else ("<initial>" if n else "<isolated>"), u)
+    # Reverse into visual order, keeping left-to-right runs such as confidences in reading order
+    return re.sub(r"[0-9A-Za-z\u0660-\u0669\u06f0-\u06f9.,:%+-]+", lambda m: m[0][::-1], "".join(units)[::-1])
+
+
+@lru_cache(maxsize=8)
+def _font(name: str, size: int):
+    """Load a TrueType font once per name and size, falling back to PIL's default font."""
+    try:
+        font = ImageFont.truetype(str(check_font(name)), size)
+    except Exception:
+        font = ImageFont.load_default()
+    if check_version(pil_version, "9.2.0"):  # Pillow 10 removed getsize
+        font.getsize = lambda x: font.getbbox(x)[2:4]  # text width, height
+    return font
+
+
+def _text_mask(font, text: str) -> np.ndarray:
+    """Rasterize text as an (h, w) float32 alpha mask anchored at its origin."""
+    text = _rtl(text)
+    im = Image.new("L", font.getsize(text))
+    ImageDraw.Draw(im).text((0, 0), text, fill=255, font=font)
+    return np.asarray(im, np.float32) / 255
+
+
+@lru_cache(maxsize=256)
+def _label_patch(font, text: str, color: tuple, txt_color: tuple) -> np.ndarray:
+    """Return an opaque (h + 1, w + 1, 3) uint8 box label, cached so repeated labels skip FreeType and blending."""
+    text = _rtl(text)
+    w, h = font.getsize(text)
+    im = Image.new("RGB", (w + 1, h + 1), color)  # channels pass through in the caller's (BGR) order
+    ImageDraw.Draw(im).text((0, 0), text, fill=txt_color, font=font)
+    return np.asarray(im)
+
+
 class Annotator:
     """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Tensor images must be contiguous HWC BGR uint8.
 
     Attributes:
-        im (Image.Image | np.ndarray | torch.Tensor): The image to annotate.
-        pil (bool): Whether to use PIL or cv2 for drawing annotations.
-        font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
+        im (np.ndarray | torch.Tensor): The BGR image being annotated.
+        pil (bool): Whether text is rendered with a PIL TrueType font instead of cv2; shapes always use cv2.
+        font (ImageFont.FreeTypeFont | ImageFont.ImageFont): Font used for PIL text annotations.
         lw (int): Line width for drawing.
         skeleton (list[list[int]]): Skeleton structure for keypoints.
         limb_color (np.ndarray): Color palette for limbs.
@@ -304,43 +364,34 @@ class Annotator:
             font_size (int, optional): Font size for PIL text. Defaults to ~3.5% of the mean image dimension, at least
                 12.
             font (str): Font file name used for PIL text.
-            pil (bool): Whether to draw with PIL instead of cv2. Forced True for PIL images and non-ASCII `example`.
+            pil (bool): Whether to render text with PIL instead of cv2. Forced True for PIL images and non-ASCII
+                `example`.
             example (str): Example label text used to detect non-ASCII characters that require PIL and a Unicode font.
         """
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
+        self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
+        if input_is_pil:  # PIL pixels keep the caller's channel order
+            im = np.asarray(im if im.mode in {"RGB", "RGBA", "L"} else im.convert("RGB"))
         input_is_tensor = isinstance(im, torch.Tensor)
         self.pil = pil or non_ascii or input_is_pil
-        self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if input_is_tensor:
             assert im.ndim == 3 and im.shape[2] == 3 and im.dtype == torch.uint8, (
                 f"Expected HWC uint8 tensor image with 3 channels, but got shape {tuple(im.shape)} and dtype {im.dtype}."
             )
             if self.pil or im.device.type == "cpu":
                 im, input_is_tensor = im.cpu().numpy(), False
-        if not input_is_pil:
-            if im.ndim == 2 or im.shape[2] == 1:  # handle grayscale
-                im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
-            elif im.shape[2] == 2:  # handle 2-channel images
-                im = np.ascontiguousarray(np.dstack((im, np.zeros_like(im[..., :1]))))
-            elif im.shape[2] > 3:  # multispectral
-                im = np.ascontiguousarray(im[..., :3])
-        if self.pil:  # use PIL
-            self.im = im if input_is_pil else Image.fromarray(im)  # stay in BGR since color palette is in BGR
-            if self.im.mode not in {"RGB", "RGBA"}:  # multispectral
-                self.im = self.im.convert("RGB")
-            self.draw = ImageDraw.Draw(self.im, "RGBA")
-            try:
-                font = check_font("Arial.Unicode.ttf" if non_ascii else font)
-                size = font_size or max(round(sum(self.im.size) / 2 * 0.035), 12)
-                self.font = ImageFont.truetype(str(font), size)
-            except Exception:
-                self.font = ImageFont.load_default()
-            # Deprecation fix for w, h = getsize(string) -> _, _, w, h = getbox(string)
-            if check_version(pil_version, "9.2.0"):
-                font = weakref.proxy(self.font)
-                self.font.getsize = lambda x: font.getbbox(x)[2:4]  # text width, height
-        else:  # use cv2
+        if im.ndim == 2 or im.shape[2] == 1:  # handle grayscale
+            im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+        elif im.shape[2] == 2:  # handle 2-channel images
+            im = np.ascontiguousarray(np.dstack((im, np.zeros_like(im[..., :1]))))
+        elif im.shape[2] > 3:  # multispectral
+            im = np.ascontiguousarray(im[..., :3])
+        if self.pil:  # TrueType text on a BGR copy of the image, all other drawing uses cv2/NumPy
+            self.im = np.array(im, order="C")
+            size = font_size or max(round(sum(im.shape[:2]) / 2 * 0.035), 12)
+            self.font = _font("Arial.Unicode.ttf" if non_ascii else font, size)
+        else:  # draw in place on the caller's BGR image
             assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
                 "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
             )
@@ -445,33 +496,22 @@ class Annotator:
 
         multi_points = isinstance(box[0], list)  # multiple points with shape (n, 2)
         p1 = [int(b) for b in box[0]] if multi_points else (int(box[0]), int(box[1]))
-        if self.pil:
-            self.draw.polygon(
-                [tuple(b) for b in box], width=self.lw, outline=color
-            ) if multi_points else self.draw.rectangle(box, width=self.lw, outline=color)
-            if label:
-                w, h = self.font.getsize(label)  # text width, height
-                outside = p1[1] >= h  # label fits outside box
-                if p1[0] > self.im.size[0] - w:  # size is (w, h), check if label extend beyond right side of image
-                    p1 = self.im.size[0] - w, p1[1]
-                self.draw.rectangle(
-                    (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
-                    fill=color,
-                )
-                # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
-                self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
-        else:  # cv2
-            cv2.polylines(
-                self.im, [np.asarray(box, dtype=int)], True, color, self.lw
-            ) if multi_points else cv2.rectangle(
-                self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
-            )
-            if label:
+        cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw) if multi_points else cv2.rectangle(
+            self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
+        )
+        if label:
+            if self.pil:
+                patch = _label_patch(self.font, label, tuple(color), tuple(txt_color))
+                h, w = patch.shape[0] - 1, patch.shape[1] - 1  # text height, width
+            else:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 h += 3  # add pixels to pad text
-                outside = p1[1] >= h  # label fits outside box
-                if p1[0] > self.im.shape[1] - w:  # shape is (h, w), check if label extend beyond right side of image
-                    p1 = self.im.shape[1] - w, p1[1]
+            outside = p1[1] >= h  # label fits outside box
+            if p1[0] > self.im.shape[1] - w:  # shape is (h, w), check if label extend beyond right side of image
+                p1 = self.im.shape[1] - w, p1[1]
+            if self.pil:
+                self._draw(p1[0], p1[1] - h if outside else p1[1], patch)
+            else:
                 p2 = p1[0] + w, p1[1] - h if outside else p1[1] + h
                 cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
                 cv2.putText(
@@ -493,9 +533,6 @@ class Annotator:
             colors (list[list[int]]): BGR colors for predicted masks, [[b, g, r] * n], matching `self.im`.
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
         """
-        if self.pil:
-            # Convert to numpy first
-            self.im = np.asarray(self.im).copy()
         if isinstance(masks, np.ndarray):
             self._to_numpy()
             overlay = self.im.copy()
@@ -520,9 +557,6 @@ class Annotator:
             im = (self.im if tensor_image else torch.from_numpy(self.im)).to(device).float() / 255.0
             im = ((im * inv_alpha_masks + mcs) * 255).byte()
             self.im[:] = im if tensor_image else im.cpu().numpy()
-        if self.pil:
-            # Convert im back to PIL and update draw
-            self.fromarray(self.im)
 
     def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255):
         """Plot a semantic segmentation mask on the image.
@@ -533,16 +567,11 @@ class Annotator:
             ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
         """
         self._to_numpy()
-        if self.pil:
-            # Convert to numpy first
-            self.im = np.asarray(self.im).copy()
-        ids = np.unique(mask)  # class IDs present, ascending
-        palette = np.array([(0, 0, 0) if i == ignore_index else colors(int(i), True) for i in ids], self.im.dtype)
-        overlay = palette[np.searchsorted(ids, mask)] if len(ids) else np.zeros_like(self.im)
+        mask = np.asarray(mask)
+        mask = mask if mask.dtype.kind in "iu" else mask.astype(int)  # class IDs index the palette directly
+        overlay = np.array([colors(i, True) for i in range(int(mask.max(initial=0)) + 1)], self.im.dtype)[mask]
+        overlay[mask == ignore_index] = self.im[mask == ignore_index]
         self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
-        if self.pil:
-            # Convert im back to PIL and update draw
-            self.fromarray(self.im)
 
     def depth_map(
         self,
@@ -560,14 +589,10 @@ class Annotator:
             mode (str): "metric" or "disparity" normalization. See `colorize_depth`.
         """
         self._to_numpy()
-        if self.pil:
-            self.im = np.asarray(self.im).copy()
         heat = colorize_depth(depth, cmap=cmap, mode=mode)  # BGR, matching the Annotator buffer convention
         if heat.shape[:2] != self.im.shape[:2]:
             heat = cv2.resize(heat, (self.im.shape[1], self.im.shape[0]))
         self.im = cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)
-        if self.pil:
-            self.fromarray(self.im)
 
     def kpts(
         self,
@@ -591,13 +616,9 @@ class Annotator:
         Notes:
             - `kpt_line=True` currently only supports human pose plotting.
             - Modifies self.im in-place.
-            - If self.pil is True, converts image to numpy array and back to PIL.
         """
         radius = radius if radius is not None else self.lw
         self._to_numpy()
-        if self.pil:
-            # Convert to numpy first
-            self.im = np.asarray(self.im).copy()
         nkpt, ndim = kpts.shape
         is_pose = nkpt == 17 and ndim in {2, 3}
         kpt_line &= is_pose  # `kpt_line=True` for now only supports human pose plotting
@@ -633,19 +654,19 @@ class Annotator:
                     thickness=int(np.ceil(self.lw / 2)),
                     lineType=cv2.LINE_AA,
                 )
-        if self.pil:
-            # Convert im back to PIL and update draw
-            self.fromarray(self.im)
 
     def rectangle(self, xy, fill=None, outline=None, width: int = 1):
-        """Add rectangle to image (PIL-only)."""
-        self.draw.rectangle(xy, fill, outline, width)
+        """Add a rectangle with optional fill and outline colors to the image."""
+        self._to_numpy()
+        for c, t in ((fill, -1), (outline, width)):
+            if c is not None:
+                cv2.rectangle(self.im, tuple(map(int, xy[:2])), tuple(map(int, xy[2:])), c, t)
 
     def text(self, xy, text: str, txt_color: tuple = (255, 255, 255), anchor: str = "top", box_color: tuple = ()):
         """Add text to an image using PIL or cv2.
 
         Args:
-            xy (list[int]): Top-left coordinates for text placement.
+            xy (tuple | list): Top-left (x, y) coordinates for text placement.
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color.
             anchor (str, optional): Text anchor position ('top' or 'bottom'), used by PIL drawing only.
@@ -653,16 +674,16 @@ class Annotator:
         """
         self._to_numpy()
         if self.pil:
-            h = max(self.font.getsize(line)[1] for line in text.split("\n"))  # measure per line, raqm rejects newlines
+            masks = [_text_mask(self.font, line) for line in text.split("\n")]  # per line, raqm rejects newlines
+            x, y = xy
             if anchor == "bottom":  # start y from font bottom
-                xy[1] += 1 - h
-            for line in text.split("\n"):
-                if box_color:
-                    # Draw rectangle for each line
-                    w, h = self.font.getsize(line)
-                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=box_color)
-                self.draw.text(xy, line, fill=txt_color, font=self.font)
-                xy[1] += h
+                y += 1 - max(m.shape[0] for m in masks)
+            for m in masks:
+                if box_color:  # background box per line, alpha from an RGBA color
+                    a = box_color[3] / 255 if len(box_color) > 3 else 1.0
+                    self._draw(x, y, box_color, np.full((m.shape[0] + 2, m.shape[1] + 2), a, np.float32))
+                self._draw(x, y, txt_color, m)
+                y += m.shape[0]
         else:
             if box_color:
                 w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
@@ -672,10 +693,16 @@ class Annotator:
                 cv2.rectangle(self.im, xy, p2, box_color, -1, cv2.LINE_AA)  # filled
             cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
-    def fromarray(self, im):
-        """Update `self.im` from a NumPy array or PIL image."""
-        self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
-        self.draw = ImageDraw.Draw(self.im)
+    def _draw(self, x: int, y: int, patch, alpha: np.ndarray | None = None):
+        """Paste an (h, w, 3) patch, or blend a `patch` color through an (h, w) alpha, at (x, y) clipped to the image."""
+        x, y, (h, w) = int(x), int(y), (patch if alpha is None else alpha).shape[:2]
+        x0, y0, x1, y1 = max(x, 0), max(y, 0), min(x + w, self.im.shape[1]), min(y + h, self.im.shape[0])
+        if x0 < x1 and y0 < y1:
+            roi, crop = self.im[y0:y1, x0:x1], (slice(y0 - y, y1 - y), slice(x0 - x, x1 - x))
+            if alpha is None:
+                roi[:] = patch[crop]
+            else:
+                roi[:] = roi + (np.array(patch[:3], np.float32) - roi) * alpha[crop][..., None] + 0.5
 
     def _to_numpy(self):
         """Move a tensor image to CPU only when a CPU drawing operation requires it."""
@@ -685,12 +712,11 @@ class Annotator:
     def result(self, pil=False):
         """Return annotated image as a BGR NumPy array, or as an RGB PIL image if `pil` is True."""
         self._to_numpy()
-        im = np.asarray(self.im)  # self.im is in BGR
-        return Image.fromarray(im[..., ::-1]) if pil else im
+        return Image.fromarray(cv2.cvtColor(self.im, cv2.COLOR_BGR2RGB)) if pil else self.im  # self.im is in BGR
 
     def show(self, title: str | None = None):
         """Show the annotated image."""
-        im = Image.fromarray(self.result()[..., ::-1])  # Convert BGR NumPy array to RGB PIL Image
+        im = self.result(pil=True)
         if IS_COLAB or IS_KAGGLE:  # cannot use IS_JUPYTER as it runs for all IPython environments
             try:
                 display(im)  # noqa - display() function only available in ipython environments
@@ -701,6 +727,7 @@ class Annotator:
 
     def save(self, filename: str = "image.jpg"):
         """Save the annotated image to 'filename'."""
+        Path(filename).parent.mkdir(parents=True, exist_ok=True)
         cv2.imwrite(filename, self.result())
 
     @staticmethod
@@ -912,8 +939,11 @@ def plot_images(
     depth_maps = labels.get("depth", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
 
-    if len(images) and isinstance(images, torch.Tensor):
-        images = images.cpu().float().numpy()
+    images = images[:max_subplots]  # convert only the plotted images
+    if len(images) and images[0].max() <= 1:
+        images = images * 255  # de-normalise a copy, the train/val batch is shared
+    if isinstance(images, torch.Tensor):
+        images = images.byte().cpu().numpy()  # uint8 on device first, a quarter of the float transfer
 
     # Handle 2-ch and n-ch images
     c = images.shape[1]
@@ -926,8 +956,6 @@ def plot_images(
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs**0.5)  # number of subplots (square)
-    if np.max(images[0]) <= 1:
-        images *= 255  # de-normalise (optional)
 
     # Build Image
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
@@ -974,9 +1002,8 @@ def plot_images(
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
-                        conf_text = f"{conf[j]:.1f}" if conf is not None else ""
-                        label = f"{c}" if show_labels else ""
-                        label += f" {conf_text}".strip() if show_conf else ""
+                        conf_text = f" {conf[j]:.1f}" if conf is not None and show_conf else ""
+                        label = f"{c}{conf_text}" if show_labels else conf_text.strip()
                         annotator.box_label(box, label, color=color)
 
             elif len(classes):
@@ -1001,34 +1028,18 @@ def plot_images(
                     if labels or conf[j] > conf_thres:
                         annotator.kpts(kpts_[j], conf_thres=conf_thres)
 
-            # Plot masks
+            # Plot masks as one instance-index map per image (1..n, later instances on top), resized and blended once
             if len(masks):
+                ids = np.arange(1, len(classes) + 1) * (labels or conf > conf_thres)  # 0 drops filtered instances
                 if idx.shape[0] == masks.shape[0] and masks.max() <= 1:  # overlap_mask=False
-                    image_masks = masks[idx]
-                else:  # overlap_mask=True
-                    image_masks = masks[[i]]  # (1, 640, 640)
-                    nl = idx.sum()
-                    index = np.arange(1, nl + 1).reshape((nl, 1, 1))
-                    image_masks = (image_masks == index).astype(np.float32)
-
-                im = np.asarray(annotator.im).copy()
-                for j in range(len(image_masks)):
-                    if labels or conf[j] > conf_thres:
-                        color = colors(classes[j])
-                        mh, mw = image_masks[j].shape
-                        if mh != h or mw != w:
-                            mask = image_masks[j].astype(np.uint8)
-                            mask = cv2.resize(mask, (w, h))
-                            mask = mask.astype(bool)
-                        else:
-                            mask = image_masks[j].astype(bool)
-                        try:
-                            im[y : y + h, x : x + w, :][mask] = (
-                                im[y : y + h, x : x + w, :][mask] * 0.4 + np.array(color) * 0.6
-                            )
-                        except Exception:
-                            pass
-                annotator.fromarray(im)
+                    k = np.flatnonzero(ids)  # kept instances only
+                    index = ((masks[idx][k] > 0.5) * ids[k, None, None].astype(np.uint16)).max(0, initial=0)
+                else:  # overlap_mask=True, the mask already holds instance indices
+                    index = np.r_[0, ids][masks[i].astype(int)]
+                index = cv2.resize(index.astype(np.uint16), (w, h), interpolation=cv2.INTER_NEAREST)
+                lut = np.array([(0, 0, 0)] + [colors(c) for c in classes], np.uint8)
+                patch = annotator.im[y : y + h, x : x + w]
+                np.copyto(patch, cv2.addWeighted(patch, 0.4, lut[index], 0.6, 0), where=(index > 0)[..., None])
 
         # Plot semantic masks
         if len(semantic_masks) and i < len(semantic_masks):
@@ -1036,14 +1047,14 @@ def plot_images(
             mh, mw = mask.shape
             if mh != h or mw != w:
                 mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
-            im = np.asarray(annotator.im).copy()
+            im = annotator.im
             # The mosaic deviates from the Annotator BGR-buffer convention (it holds RGB), so convert the patch
             # to BGR for the overlay, then back to RGB for the mosaic.
             sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
             sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
+            mask = np.where(mask == 1, 0, 255) if names and len(names) == 1 else mask
             sub_annotator.semantic_mask(mask, alpha=0.4)
             im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
-            annotator.fromarray(im)
 
         # Plot depth maps
         if len(depth_maps) and i < len(depth_maps):
@@ -1053,18 +1064,17 @@ def plot_images(
             dh, dw = d.shape
             if dh != h or dw != w:
                 d = cv2.resize(d.astype(np.float32), (w, h), interpolation=cv2.INTER_NEAREST)
-            im = np.asarray(annotator.im).copy()
+            im = annotator.im
             # The mosaic deviates from the Annotator BGR-buffer convention (it holds RGB), so convert the patch
             # to BGR for the overlay, then back to RGB for the mosaic.
             sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
             sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
             sub_annotator.depth_map(d, alpha=0.6)
             im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
-            annotator.fromarray(im)
 
     if not save:
-        return np.asarray(annotator.im)
-    annotator.im.save(fname)  # save
+        return annotator.im
+    Image.fromarray(annotator.im).save(fname)  # the mosaic holds RGB
     if on_plot:
         on_plot(fname)
 

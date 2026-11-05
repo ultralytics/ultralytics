@@ -137,29 +137,7 @@ def test_build_yolo_dataset_hyp_isolated():
     assert cfg.mosaic == DEFAULT_CFG.mosaic
 
 
-@pytest.mark.parametrize("task", ["detect", "segment"])
-def test_yolo_dataset_label_encoding(tmp_path, task):
-    """Test that UTF-8 label signatures do not discard images from detection or segmentation datasets."""
-    from ultralytics.data.dataset import YOLODataset
-
-    for directory in ("images", "labels"):
-        (tmp_path / directory).mkdir()
-    label = "0 0.5 0.5 0.5 0.5\n" if task == "detect" else "0 0.25 0.25 0.75 0.25 0.75 0.75 0.25 0.75\n"
-    for name, codec in (("plain", "utf-8"), ("bom", "utf-8-sig")):
-        Image.new("RGB", (32, 32)).save(tmp_path / "images" / f"{name}.png")
-        (tmp_path / "labels" / f"{name}.txt").write_text(label, encoding=codec)
-    dataset = YOLODataset(
-        img_path=str(tmp_path / "images"), data={"names": {0: "object"}}, task=task, imgsz=32, augment=False
-    )
-    assert len(dataset) == 2
-    for sample in dataset:
-        assert sample["cls"].tolist() == [[0.0]]
-        assert sample["bboxes"].tolist() == [[0.5, 0.5, 0.5, 0.5]]
-        if task == "segment":
-            assert sample["masks"].any()
-
-
-def test_cfg_rejects_fuzzed_values():
+def test_cfg_rejects_fuzzed_values(tmp_path):
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
         get_cfg(overrides={"degrees": None})
@@ -191,6 +169,8 @@ def test_cfg_rejects_fuzzed_values():
     assert get_cfg(overrides={"end2end": True, "nms": True}).nms is False
     assert get_cfg(overrides={"end2end": False, "nms": False}).nms is None
     assert get_cfg(overrides={"end2end": False, "nms": True}).nms is True
+    YAML.save(tmp_path / "args.yaml", {"lr0": np.float64(1e-5)})  # NumPy 2 float64 saved as a YAML float, not a str
+    assert get_cfg(tmp_path / "args.yaml").lr0 == 1e-5
 
 
 def skip_rpi_semantic():

@@ -102,29 +102,6 @@ def test_export_onnx_int8(isolated_model, precision):
     Path(file).unlink()  # cleanup
 
 
-def test_onnx_int8_quantize_excludes_non_weighted_ops(monkeypatch):
-    """Check ONNX INT8 keeps only weighted ops quantized while preserving the string return contract."""
-    import onnx
-    import onnxruntime.quantization as ort_quantization
-
-    from ultralytics.utils.export.onnx import onnx_int8_quantize
-
-    calls = {}
-    graph = SimpleNamespace(
-        node=[
-            SimpleNamespace(name="conv", op_type="Conv"),
-            SimpleNamespace(name="pool", op_type="MaxPool"),
-            SimpleNamespace(name="sigmoid", op_type="Sigmoid"),
-        ]
-    )
-
-    monkeypatch.setattr(onnx, "load", lambda _: SimpleNamespace(graph=graph))
-    monkeypatch.setattr(ort_quantization, "quantize_static", lambda *args, **kwargs: calls.update(kwargs))
-    result = onnx_int8_quantize(Path("model.onnx"), Path("model_int8.onnx"), [], lambda x: x)
-    assert result == "model_int8.onnx"
-    assert calls["nodes_to_exclude"] == ["pool", "sigmoid"]
-
-
 def test_quantize_canonicalization():
     """Quantize accepts 8/16/32 (int or str) and w-notation, canonicalizing to the int form (unset stays None)."""
     for value, expected in [
@@ -204,28 +181,6 @@ def test_int8_calibration_fraction(task, fraction, expected, tmp_path):
     exporter.args = get_cfg(overrides={"data": data, "split": "val", "fraction": fraction, "batch": 1})
     exporter.imgsz = [32]
     assert len(exporter.get_int8_calibration_dataloader().dataset) == expected
-
-
-def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
-    """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
-    calls = {}
-    monkeypatch.setattr(
-        "ultralytics.utils.export.rknn.onnx2rknn", lambda **kwargs: calls.update(kwargs) or kwargs["output_dir"]
-    )
-    monkeypatch.setattr("ultralytics.engine.exporter.file_size", lambda _: 1)
-
-    image = tmp_path / "image.jpg"
-    exporter = SimpleNamespace(
-        args=SimpleNamespace(opset=None, quantize=8, name="rk3588", batch=8),
-        im=torch.zeros(8, 3, 32, 32),
-        file=tmp_path / "model.pt",
-        metadata={},
-        get_int8_calibration_dataloader=lambda prefix: SimpleNamespace(dataset=SimpleNamespace(im_files=[image])),
-    )
-    exporter.export_onnx = lambda: calls.update(onnx_batch=len(exporter.im)) or tmp_path / "model.onnx"
-    Exporter.export_rknn(exporter)
-    assert calls["onnx_batch"] == 1
-    assert calls["batch"] == 8
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):

@@ -11,7 +11,7 @@ FROM ultralytics/ultralytics:latest
 # Albumentations re-resolves the base image's pydantic against LiteRT's typing-extensions<4.13 cap (via xdsl)
 # Note tensorrt installed on-demand as depends on runtime environment CUDA version
 RUN uv pip install --system --no-cache -e ".[export]" \
-    onnxruntime-gpu paddlepaddle x2paddle albumentations numpy==1.26.4 && \
+    "onnxruntime-gpu[cuda]" paddlepaddle x2paddle albumentations numpy==1.26.4 && \
     rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------

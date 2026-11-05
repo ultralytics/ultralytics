@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Account Activity Feed
 comments: true
-description: Track all account activity and events on Ultralytics Platform with the activity feed, including training, uploads, and system events.
+description: Track account activity on Ultralytics Platform with the activity feed, including training jobs, uploads, exports, settings changes, and system events.
 keywords: Ultralytics Platform, activity feed, audit log, notifications, event tracking, activity history
 ---
 
 # Activity Feed
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
+[Ultralytics Platform](https://platform.ultralytics.com) provides an activity feed that records events and actions across your account, so you can monitor training progress and system events in one place.
 
 ![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.ul.run/i/4d369a183f4629a4381db26b1c50ed65.avif)<!-- screenshot -->
 
@@ -145,8 +145,7 @@ The Activity feed supports pagination:
 
 - Default page size: 20 events, up to 100 per page
 - Navigate between pages and change the page size using the pagination controls
-- The tab, page, page size, search, and date range are all reflected in the URL, so a filtered view can be bookmarked
-  or shared
+- The tab and search query are reflected in the URL, so a search can be bookmarked or shared
 
 ## Export Activity
 

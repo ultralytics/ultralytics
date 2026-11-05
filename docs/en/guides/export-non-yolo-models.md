@@ -9,13 +9,13 @@ keywords: export PyTorch model, convert PyTorch to ONNX, PyTorch to CoreML, PyTo
 
 Ultralytics ships standalone export utilities under [`ultralytics.utils.export`](../reference/utils/export/engine.md) that wrap multiple backends behind one consistent interface. You can export any `torch.nn.Module`, including [timm](https://github.com/huggingface/pytorch-image-models) image models, [torchvision](https://docs.pytorch.org/vision/) classifiers and detectors, or your own custom architectures, to [TorchScript](../integrations/torchscript.md), [ONNX](../integrations/onnx.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [Core AI](../integrations/coreai.md), [TensorFlow SavedModel](../integrations/tf-savedmodel.md), [TensorFlow Frozen Graph](../integrations/tf-graphdef.md), [PaddlePaddle](../integrations/paddlepaddle.md), [MNN](../integrations/mnn.md), [NCNN](../integrations/ncnn.md), and [ExecuTorch](../integrations/executorch.md) without learning each backend separately.
 
-Deploying PyTorch models to production usually means juggling a different exporter for every target: `torch.onnx.export` for ONNX, `coremltools` for Apple devices, `onnx2tf` for TensorFlow, `pnnx` for NCNN, and so on. Each tool has its own API, dependency quirks, and output conventions. These utilities collapse that into a single calling pattern.
+[Deploying PyTorch models to production](https://www.ultralytics.com/glossary/model-deployment) usually means juggling a different exporter for every target: `torch.onnx.export` for ONNX, `coremltools` for Apple devices, `onnx2tf` for TensorFlow, `pnnx` for NCNN, and so on. Each tool has its own API, dependency quirks, and output conventions. These utilities collapse that into a single calling pattern.
 
 ## Why Use Ultralytics for Non-YOLO Export?
 
 - **One API across 11 formats:** learn a single calling convention instead of a dozen.
 - **Same code path as YOLO exports:** the same helpers power every Ultralytics YOLO export.
-- **FP16 and INT8 quantization** through one `quantize` argument for formats that support it.
+- **FP16 and INT8 [quantization](https://www.ultralytics.com/glossary/model-quantization)** through one `quantize` argument for formats that support it.
 - **Works on CPU:** no GPU required for the export step itself, so you can run it locally on a laptop; CoreML export is not supported on Windows, and Core AI export needs macOS 26 or later on Apple silicon, or x86_64 Linux with glibc 2.34 or newer, with Python 3.11 to 3.14.
 
 ## Quick Start
@@ -346,7 +346,7 @@ For raw tensors without Ultralytics [preprocessing](https://www.ultralytics.com/
 Three things the `YOLO()` route handles for you and a direct call does not:
 
 - **Input layout**: `CoreMLBackend` and `TensorFlowBackend` expect BHWC. Transpose first with `im.permute(0, 2, 3, 1)`; a BCHW tensor raises a shape mismatch.
-- **Autograd**: wrap calls in `torch.inference_mode()`. `TorchScriptBackend` returns a tensor that still carries a [gradient](https://www.ultralytics.com/glossary/gradient-descent) graph.
+- **Autograd**: wrap calls in `torch.inference_mode()`. `TorchScriptBackend` returns a tensor that still carries a gradient graph.
 - **Post-processing**: without metadata a backend leaves `task` as `None` and `names` empty. `LiteRTBackend` still denormalizes any 3-D output by image size on the assumption it holds YOLO boxes, which is wrong for a non-YOLO model with a 3-D output. Two-dimensional outputs such as classifier logits are unaffected.
 
 ## Known Limitations

@@ -1,7 +1,7 @@
 ---
 plans: [pro, enterprise]
 comments: true
-description: Connect Amazon S3 to Ultralytics Platform and train YOLO models on images in your S3 buckets without uploading a copy.
+description: Connect Amazon S3 buckets to Ultralytics Platform to browse, annotate, and train YOLO models on your images in place, without uploading a copy.
 keywords: Ultralytics Platform, Amazon S3, AWS S3, S3 bucket, IAM access key, dataset import, YOLO, computer vision, cloud storage
 title: Amazon S3 Datasets - Ultralytics Platform
 ---
@@ -98,7 +98,7 @@ Each connected credential has an **AI features** switch in **Settings > Integrat
 - [Cloud training](../train/cloud-training.md)
 - [Image generation](#image-generation), on buckets with write access
 
-AI model providers are involved only for image generation, whose prompts Google Gemini plans from the source image, and for paid annotation models, which run on your workspace's own provider key. Platform keeps no copy of your images: features read them on demand, cloud training uses temporary copies for the duration of a run, and similar-image search keeps an embedding of each image, which is deleted when the image leaves Platform.
+AI model providers are involved only for image generation, whose prompts Google Gemini plans from the source image, and for paid annotation models, which run on your workspace's own provider key. Platform keeps no copy of your images: features read them on demand, cloud training uses temporary copies for the duration of a run, and similar-image search keeps an [embedding](https://www.ultralytics.com/glossary/embeddings) of each image, which is deleted when the image leaves Platform.
 
 Turn the switch off to keep images off Ultralytics GPUs and AI model providers. Turning it off stops new AI work; work already running finishes. Datasets on that credential then show **AI features off** with a link back to these settings, and each unavailable feature explains why. Manual annotation, sharing, and local training keep working, and the labels, models, and search results you already created are kept.
 

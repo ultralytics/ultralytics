@@ -560,6 +560,7 @@ nav:
       - Amazon SageMaker: integrations/amazon-sagemaker.md
       - Ambarella: integrations/ambarella.md
       - AMD: integrations/amd.md
+      - AMD Xilinx: integrations/xilinx.md
       - Axelera: integrations/axelera.md
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
@@ -601,7 +602,6 @@ nav:
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
       - Weights & Biases: integrations/weights-biases.md
-      - Xilinx: integrations/xilinx.md
       - YAML2ModelGraph: integrations/yaml2modelgraph.md
   - Platform:
       - Platform: platform/index.md

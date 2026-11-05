@@ -40,14 +40,14 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
     if use_lap:
         # Use lap.lapjv
         # https://github.com/gatagat/lap
-        _, x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh)
+        x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh, return_cost=False)
         matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0]
         unmatched_a = np.where(x < 0)[0]
         unmatched_b = np.where(y < 0)[0]
     else:
         from ultralytics.utils.ops import linear_sum_assignment
 
-        x, y = linear_sum_assignment(cost_matrix)  # row x, col y
+        x, y = linear_sum_assignment(np.minimum(cost_matrix, thresh))  # row x, col y
         matches = np.asarray([[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh])
         if len(matches) == 0:
             unmatched_a = list(np.arange(cost_matrix.shape[0]))

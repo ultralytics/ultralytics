@@ -72,6 +72,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import tempfile
 import time
 from copy import deepcopy
 from datetime import datetime
@@ -83,7 +84,7 @@ import torch
 
 from ultralytics import __version__
 from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
-from ultralytics.data import build_dataloader, build_yolo_dataset
+from ultralytics.data.build import InfiniteDataLoader, build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
 from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
@@ -126,6 +127,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_10,
     IS_PYTHON_MINIMUM_3_13,
+    ONNXRUNTIME_BUILDS,
     check_data_portable,
     check_imgsz,
     check_python,
@@ -721,8 +723,7 @@ class Exporter:
             # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
             memo[id(getattr(model, "clip_model", None))] = None
         model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
-        # Distillation checkpoints export their student; foreign modules such as YOLO-NAS have no layer list
-        head = getattr(getattr(model, "student_model", model), "model", [model])[-1]
+        head = getattr(model, "model", [model])[-1]  # foreign modules such as YOLO-NAS have no layer list
         if not getattr(model, "names", None):  # missing, None or empty on legacy and foreign checkpoints
             nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
             model.names = default_class_names(nc=nc)
@@ -766,8 +767,6 @@ class Exporter:
                 self.args.quantize = 8
             elif self.args.quantize is None:
                 self.args.quantize = 16
-            if self.args.quantize == 8 and model.task not in {"detect", "depth"}:
-                raise ValueError("Rockchip RKNN INT8 export is only supported for detection and depth models.")
         if fmt == "ascend":
             # No SoC allowlist: valid --soc_version values depend on which Ascend-cann-kernels-* packages are
             # installed, so a hardcoded list would reject valid targets. ATC reports an unknown SoC itself.
@@ -1064,7 +1063,7 @@ class Exporter:
             prefix (str): Prefix for log messages.
 
         Returns:
-            (InfiniteDataLoader): Calibration dataloader that drops the last incomplete batch.
+            (InfiniteDataLoader): Calibration dataloader of full batches, repeating images when fewer than `batch`.
         """
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
@@ -1096,16 +1095,16 @@ class Exporter:
         n = len(dataset)
         if n < 1:
             raise ValueError(f"The calibration dataset must have at least 1 image, but found {n} images.")
-        batch = min(self.args.batch, n)
-        if n < self.args.batch:
-            LOGGER.warning(
-                f"{prefix} calibration dataset has only {n} images, reducing calibration batch size to {batch}."
-            )
         if self.args.format == "axelera" and n < 100:
             LOGGER.warning(f"{prefix} >100 images required for Axelera calibration, found {n} images.")
         elif self.args.format != "axelera" and n < 300:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
+        if n < self.args.batch:  # repeat images to fill one batch, static graphs and TensorRT calibrators need it
+            sampler = [i % n for i in range(self.args.batch)]
+            return InfiniteDataLoader(
+                dataset, self.args.batch, sampler=sampler, collate_fn=getattr(dataset, "collate_fn", None)
+            )
+        return build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)  # required for batch loading
 
     def _int8_calibration_images(self, prefix=""):
         """Collect calibration batches directly into one BHWC float32 array."""
@@ -1138,9 +1137,8 @@ class Exporter:
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
-            ort = "onnxruntime-gpu" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
-            builds = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
-            requirements += [(ort, *builds)]
+            ort = "onnxruntime-gpu[cuda]" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
+            requirements += [(ort, *ONNXRUNTIME_BUILDS)]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)
@@ -1177,25 +1175,6 @@ class Exporter:
             self.args.simplify = True  # fix OBB runtime error related to topk
 
         model = NMSModel(self.model, self.args) if self.args.nms else self.model
-        # Normalize coordinates by input size so RKNN's per-tensor INT8 scale preserves class scores.
-        if (
-            self.args.format == "rknn"
-            and self.args.quantize == 8
-            and self.model.task in {"detect", "segment", "pose", "obb"}
-            and not self.metadata["end2end"]
-            and self.metadata["head"] != "RTDETRDecoder"
-        ):
-            from ultralytics.utils.export.engine import _NormalizeCoords
-
-            model = _NormalizeCoords(
-                model,
-                int(self.im.shape[2]),
-                int(self.im.shape[3]),
-                self.model.task,
-                len(self.metadata["names"]),
-                self.metadata.get("kpt_shape"),
-            )
-
         with arange_patch(dynamic=bool(dynamic), quantize=self.args.quantize, fmt=self.args.format):
             torch2onnx(
                 model.cpu() if self.qat else model,
@@ -1598,17 +1577,20 @@ class Exporter:
         f_onnx = self.export_onnx()
         output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
         rknn_dataset = None
-        if self.args.quantize == 8:
-            dataloader = self.get_int8_calibration_dataloader(prefix)
-            image_paths = getattr(dataloader.dataset, "im_files", None)
-            if image_paths is None and hasattr(dataloader.dataset, "samples"):
-                image_paths = [x[0] for x in dataloader.dataset.samples]
-            if not image_paths:
-                raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
-            output_dir.mkdir(parents=True, exist_ok=True)
-            rknn_dataset = output_dir / "dataset.txt"
-            rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
-        try:
+        with tempfile.TemporaryDirectory() as tmp:
+            if self.args.quantize == 8:
+                dataloader = self.get_int8_calibration_dataloader(prefix)
+                image_paths = getattr(dataloader.dataset, "im_files", None)
+                if image_paths is None and hasattr(dataloader.dataset, "samples"):
+                    image_paths = [x[0] for x in dataloader.dataset.samples]
+                if not image_paths:
+                    raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
+                # RKNN Toolkit splits dataset.txt lines on spaces, so link images under space-free names
+                links = [Path(tmp) / f"{i}{Path(x).suffix}" for i, x in enumerate(image_paths)]
+                for link, x in zip(links, image_paths):
+                    link.symlink_to(Path(x).resolve())
+                rknn_dataset = Path(tmp) / "dataset.txt"
+                rknn_dataset.write_text("\n".join(map(str, links)) + "\n")
             return onnx2rknn(
                 onnx_file=f_onnx,
                 output_dir=output_dir,
@@ -1618,10 +1600,11 @@ class Exporter:
                 dataset=rknn_dataset,
                 metadata=self.metadata,
                 prefix=prefix,
+                # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs to cut at
+                head=f"/model.{len(self.model.model) - 1}/"
+                if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder"
+                else None,
             )
-        finally:
-            if self.args.quantize == 8:  # INT8 graphs hold normalized coordinates, so they are not reusable
-                Path(f_onnx).unlink(missing_ok=True)
 
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008
@@ -1870,18 +1853,11 @@ class Exporter:
             zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
 
     def _transform_fn(self, data_item) -> np.ndarray:
-        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN).
-
-        Calibration datasets smaller than the export batch yield undersized batches that static-batch graphs reject, so
-        images are tiled up to exactly the export batch.
-        """
+        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
         assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
         im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to float32 and 0 - 255 to 0.0 - 1.0
-        im = im[None] if im.ndim == 3 else im
-        if not self.args.dynamic and len(im) < self.args.batch:  # tile up to the static batch dimension
-            im = np.tile(im, (-(-self.args.batch // len(im)), 1, 1, 1))[: self.args.batch]
-        return im
+        return im[None] if im.ndim == 3 else im
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""

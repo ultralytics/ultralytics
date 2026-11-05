@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn to export YOLO26 models to OpenVINO format for up to 3x CPU speedup and hardware acceleration on Intel GPU and NPU.
+description: Export Ultralytics YOLO26 models to Intel OpenVINO for up to 3x faster CPU inference and acceleration on Intel GPUs and NPUs, with FP16 and INT8 benchmarks.
 keywords: YOLO26, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU acceleration, NPU, deep learning
 ---
 
@@ -8,9 +8,9 @@ keywords: YOLO26, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU 
 
 <img width="1024" src="https://cdn.ul.run/i/c3120a6b5d08e902d20cc1447249c1ac.avif" alt="OpenVINO Intel AI inference toolkit">
 
-In this guide, we cover exporting YOLO26 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
+This guide covers exporting Ultralytics YOLO26 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
-OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Optimization toolkit, is a comprehensive toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
+OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Optimization toolkit, is Intel's toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
 
 <p align="center">
   <br>
@@ -130,13 +130,13 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 !!! warning
 
-    OpenVINO™ is compatible with most Intel® processors but to ensure optimal performance:
+    OpenVINO™ is compatible with most Intel® processors, but to ensure optimal performance:
 
     1. Verify OpenVINO™ support
         Check whether your Intel® chip is officially supported by OpenVINO™ using [Intel's compatibility list](https://docs.openvino.ai/2025/about-openvino/release-notes-openvino/system-requirements.html).
 
     2. Identify your accelerator
-        Determine if your processor includes an integrated NPU (Neural Processing Unit) or GPU (integrated GPU) by consulting [Intel's hardware guide](https://www.intel.com/content/www/us/en/support/articles/000097597/processors.html).
+        Determine if your processor includes an integrated [NPU (Neural Processing Unit)](https://www.ultralytics.com/glossary/neural-processing-unit-npu) or integrated GPU by consulting [Intel's hardware guide](https://www.intel.com/content/www/us/en/support/articles/000097597/processors.html).
 
     3. Install the latest drivers
         If your chip supports an NPU or GPU but OpenVINO™ isn't detecting it, you may need to install or update the associated drivers. Follow the [driver‑installation instructions](https://medium.com/openvino-toolkit/how-to-run-openvino-on-a-linux-ai-pc-52083ce14a98) to enable full acceleration.
@@ -145,9 +145,9 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Benefits of OpenVINO
 
-1. **Performance**: OpenVINO delivers high-performance inference by utilizing the power of Intel CPUs, integrated and discrete GPUs, and FPGAs.
-2. **Support for Heterogeneous Execution**: OpenVINO provides an API to write once and deploy on any supported Intel hardware (CPU, GPU, FPGA, VPU, etc.).
-3. **Model Optimizer**: OpenVINO provides a Model Optimizer that imports, converts, and optimizes models from popular [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks such as PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), TensorFlow Lite, Keras, ONNX, PaddlePaddle, and Caffe.
+1. **Performance**: OpenVINO delivers high-performance inference on Intel CPUs, integrated and discrete GPUs, and NPUs.
+2. **Support for Heterogeneous Execution**: OpenVINO provides an API to write once and deploy on any supported Intel hardware (CPU, GPU, NPU).
+3. **Model Conversion**: OpenVINO's model conversion API imports, converts, and optimizes models from popular [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks such as PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), TensorFlow Lite, ONNX, and PaddlePaddle.
 4. **Ease of Use**: The toolkit comes with a large collection of [tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLO26 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov26-optimization)) teaching different aspects of the toolkit.
 
 ## OpenVINO Export Structure
@@ -170,7 +170,7 @@ Once your model is successfully exported to the OpenVINO format, you have two pr
 
 ### Inference with Ultralytics
 
-The ultralytics package allows you to easily run inference using the exported OpenVINO model via the predict method. You can also specify the target device (e.g., `intel:gpu`, `intel:npu`, `intel:cpu`) using the device argument.
+The `ultralytics` package runs inference on the exported OpenVINO model via the `predict` method. You can also specify the target device (e.g., `intel:gpu`, `intel:npu`, `intel:cpu`) using the device argument.
 
 ```python
 from ultralytics import YOLO
@@ -181,11 +181,11 @@ ov_model = YOLO("yolo26n_openvino_model/")  # the path of your exported OpenVINO
 ov_model.predict(device="intel:gpu")  # specify the device you want to run inference on
 ```
 
-This approach is ideal for fast prototyping or deployment when you don't need full control over the inference pipeline.
+This approach suits fast prototyping or deployment when you don't need full control over the inference pipeline.
 
 ### Inference with OpenVINO Runtime
 
-The OpenVINO Runtime provides a unified API for inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running inference, refer to the [YOLO26 notebooks](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov26-optimization).
+The OpenVINO Runtime provides a unified API for inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and [asynchronous execution](../guides/optimizing-openvino-latency-vs-throughput-modes.md).
 
 Remember, you'll need the XML and BIN files as well as any application-specific settings like input size, scale factor for normalization, etc., to correctly set up and use the model with the Runtime.
 
@@ -201,7 +201,7 @@ For more detailed steps and code snippets, refer to the [OpenVINO documentation]
 
 ## OpenVINO YOLO26 Benchmarks
 
-The Ultralytics team benchmarked YOLO26 across various model formats and [precision](https://www.ultralytics.com/glossary/precision), evaluating speed and accuracy on different Intel devices compatible with OpenVINO.
+The Ultralytics team benchmarked YOLO26 across various model formats and precisions (FP32, FP16, and INT8), evaluating speed and accuracy on different Intel devices compatible with OpenVINO.
 
 !!! note
 
@@ -213,15 +213,11 @@ The Ultralytics team benchmarked YOLO26 across various model formats and [precis
 
 ### Intel® Core™ Ultra
 
-The Intel® Core™ Ultra™ series represents a new benchmark in high-performance computing, engineered to meet the evolving demands of modern users—from gamers and creators to professionals leveraging AI. This next-generation lineup is more than a traditional CPU series; it combines powerful CPU cores, integrated high-performance GPU capabilities, and a dedicated Neural Processing Unit (NPU) within a single chip, offering a unified solution for diverse and intensive computing workloads.
+The Intel® Core™ Ultra™ series combines CPU cores, an integrated GPU, and a dedicated Neural Processing Unit (NPU) in a single chip, so one system can handle traditional processing, GPU-accelerated workloads, and on-device AI inference.
 
-At the heart of the Intel® Core Ultra™ architecture is a hybrid design that enables exceptional performance across traditional processing tasks, GPU-accelerated workloads, and AI-driven operations. The inclusion of the NPU enhances on-device AI inference, enabling faster, more efficient machine learning and data processing across a wide range of applications.
+This hybrid design lets OpenVINO run inference on the CPU, GPU, or NPU depending on the latency, throughput, and power needs of an application. The lineup ranges from energy-efficient designs to high-power variants marked by the "H" designation for laptops and compact form factors that need more compute.
 
-The Core Ultra™ family includes various models tailored for different performance needs, with options ranging from energy-efficient designs to high-power variants marked by the "H" designation—ideal for laptops and compact form factors that demand serious computing power. Across the lineup, users benefit from the synergy of CPU, GPU, and NPU integration, delivering remarkable efficiency, responsiveness, and multitasking capabilities.
-
-As part of Intel's ongoing innovation, the Core Ultra™ series sets a new standard for future-ready computing. With multiple models available and more on the horizon, this series underscores Intel's commitment to delivering cutting-edge solutions for the next generation of intelligent, AI-enhanced devices.
-
-Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultra™ 7 155H at FP32, FP16 and INT8 precision.
+Benchmarks below run on [Intel® Core™ Ultra™ X7 358H](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake), Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultra™ 7 155H at FP32, FP16 and INT8 precision.
 
 #### Intel® Core™ Ultra™ X7 358H
 
@@ -230,7 +226,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.ul.run/i/77186d2ff07d47c8d926468ebdecf8e1.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/77186d2ff07d47c8d926468ebdecf8e1.avif" alt="YOLO26 OpenVINO benchmarks on the Intel Core Ultra X7 358H integrated Arc GPU">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -261,7 +257,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Intel® Panther Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.ul.run/i/0e59bd9390255fd2bca31c34193b1442.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/0e59bd9390255fd2bca31c34193b1442.avif" alt="YOLO26 OpenVINO benchmarks on the Intel Core Ultra X7 358H Panther Lake CPU">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -292,7 +288,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.ul.run/i/755a0515d5283c2e1227fe177d2d1981.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/755a0515d5283c2e1227fe177d2d1981.avif" alt="YOLO26 OpenVINO benchmarks on the Intel Core Ultra X7 358H AI Boost NPU">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -327,7 +323,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.ul.run/i/49405e2a81ee5cedcb04c0cb1751bed9.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/49405e2a81ee5cedcb04c0cb1751bed9.avif" alt="YOLO26 OpenVINO benchmarks on the Intel Core Ultra 7 258V integrated Arc GPU">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -358,7 +354,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Intel® Lunar Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.ul.run/i/070db9675dfee5a2662aa09f0ba42c33.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/070db9675dfee5a2662aa09f0ba42c33.avif" alt="YOLO26 OpenVINO benchmarks on the Intel Core Ultra 7 258V Lunar Lake CPU">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -389,7 +385,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.ul.run/i/ed172cc0d4eff0c333c3cdd584600c3d.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/ed172cc0d4eff0c333c3cdd584600c3d.avif" alt="YOLO26 OpenVINO benchmarks on the Intel Core Ultra 7 258V AI Boost NPU">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -424,7 +420,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.ul.run/i/532d3bb375fcadaab3e1d13526f4638e.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/532d3bb375fcadaab3e1d13526f4638e.avif" alt="YOLO26 OpenVINO benchmarks on the Intel Core Ultra 7 155H integrated Arc GPU">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -455,7 +451,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Intel® Meteor Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.ul.run/i/9fc9ef5ec0d44f4405819edff62c1672.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/9fc9ef5ec0d44f4405819edff62c1672.avif" alt="YOLO26 OpenVINO benchmarks on the Intel Core Ultra 7 155H Meteor Lake CPU">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -485,7 +481,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
 
 ## Reproduce Our Results
 
-To reproduce the Ultralytics benchmarks above on all export [formats](../modes/export.md) run this code:
+To reproduce the Ultralytics benchmarks above on all export [formats](../modes/export.md), run this code:
 
 !!! example
 
@@ -508,13 +504,13 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         yolo benchmark model=yolo26n.pt data=coco128.yaml
         ```
 
-    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco.yaml'` (5000 val images).
+    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, such as [COCO](https://platform.ultralytics.com/ultralytics/datasets/coco2017) (`data='coco.yaml'`, 5000 val images).
 
 ## Conclusion
 
-The benchmarking results clearly demonstrate the benefits of exporting the YOLO26 model to the OpenVINO format. Across different models and hardware platforms, the OpenVINO format consistently outperforms other formats in terms of inference speed while maintaining comparable accuracy.
+The benchmarking results show the benefits of exporting YOLO26 models to the OpenVINO format. Across model sizes and Intel hardware, OpenVINO runs inference much faster than PyTorch while maintaining comparable accuracy.
 
-The benchmarks underline the effectiveness of OpenVINO as a tool for deploying deep learning models. By converting models to the OpenVINO format, developers can achieve significant performance improvements, making it easier to deploy these models in real-world applications.
+By [converting models to the OpenVINO format](https://academy.ultralytics.com/courses/yolo-in-production/openvino-on-cpu), developers can achieve significant performance improvements on Intel CPUs, GPUs, and NPUs, making it easier to deploy these models in real-world applications.
 
 For more detailed information and instructions on using OpenVINO, refer to the [official OpenVINO documentation](https://docs.openvino.ai/).
 
@@ -551,8 +547,8 @@ For more information, refer to the [export formats documentation](../modes/expor
 
 Using Intel's OpenVINO toolkit with YOLO26 models offers several benefits:
 
-1. **Performance**: Achieve up to 3x speedup on CPU inference and leverage Intel GPUs and NPUs for acceleration.
-2. **Model Optimizer**: Convert, optimize, and execute models from popular frameworks like PyTorch, TensorFlow, and ONNX.
+1. **Performance**: Achieve up to 3x speedup on CPU inference and use Intel GPUs and NPUs for acceleration.
+2. **Model Conversion**: Convert, optimize, and execute models from popular frameworks like PyTorch, TensorFlow, and ONNX.
 3. **Ease of Use**: A large collection of tutorial notebooks is available to help users get started, including ones for YOLO26.
 4. **Heterogeneous Execution**: Deploy models on various Intel hardware with a unified API.
 
@@ -590,7 +586,7 @@ Refer to our [predict mode documentation](../modes/predict.md) for more details.
 Ultralytics YOLO26 is optimized for real-time object detection with high accuracy and speed. Specifically, when combined with OpenVINO, YOLO26 provides:
 
 - Up to 3x speedup on Intel CPUs
-- Seamless deployment on Intel GPUs and NPUs
+- Deployment on Intel GPUs and NPUs
 - Consistent and comparable accuracy across various export formats
 
 For in-depth performance analysis, check our detailed [YOLO26 benchmarks](#openvino-yolo26-benchmarks) on different hardware.

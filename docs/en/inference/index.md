@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Ultralytics Inference for Rust is a high-performance YOLO inference library and CLI built on ONNX Runtime, with GPU acceleration and zero Python runtime.
+description: Ultralytics Inference for Rust is a high-performance YOLO inference library and CLI built on ONNX Runtime, with GPU acceleration and no Python runtime.
 keywords: Ultralytics Inference, Rust, YOLO, ONNX Runtime, object detection, segmentation, pose, OBB, classification, semantic segmentation, depth estimation, CUDA, TensorRT, CoreML, edge AI, real-time inference
 ---
 
@@ -352,13 +352,13 @@ All Ultralytics [tasks](../tasks/index.md) are supported. When `--model` is omit
 
 ## Model compatibility
 
-Any Ultralytics model exported to ONNX can be loaded from a local file. Auto-download is available for standard YOLO26, YOLO11, and YOLOv8 model names in sizes `n`, `s`, `m`, `l`, and `x`:
+Any Ultralytics model exported to ONNX can be loaded from a local file. Auto-download is available for the standard [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26), [YOLO11](https://platform.ultralytics.com/ultralytics/yolo11), and [YOLOv8](https://platform.ultralytics.com/ultralytics/yolov8) model names in sizes `n`, `s`, `m`, `l`, and `x`:
 
 | Model family | Auto-downloadable variants                                                      |
 | ------------ | ------------------------------------------------------------------------------- |
-| YOLO26       | `yolo26{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, `-cls`, `-sem`, and `-depth` |
-| YOLO11       | `yolo11{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                   |
-| YOLOv8       | `yolov8{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                   |
+| YOLO26       | `yolo26{n,s,m,l,x}.onnx`, `-seg`, `-sem`, `-depth`, `-cls`, `-pose`, and `-obb` |
+| YOLO11       | `yolo11{n,s,m,l,x}.onnx`, `-seg`, `-cls`, `-pose`, and `-obb`                   |
+| YOLOv8       | `yolov8{n,s,m,l,x}.onnx`, `-seg`, `-cls`, `-pose`, and `-obb`                   |
 
 Semantic segmentation (`-sem`) and depth estimation (`-depth`) are YOLO26-only. [RT-DETR](../models/rtdetr.md) detection models also run, but are not auto-downloaded: export one to ONNX first.
 
@@ -400,7 +400,7 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 ## GPU acceleration and CUDA preprocessing
 
-On NVIDIA hardware, the `cuda` feature enables the CUDA execution provider, and `tensorrt` adds the TensorRT provider for further optimization. For the lowest possible latency, the `cuda-preprocess` feature moves preprocessing onto the GPU.
+On NVIDIA hardware, the `cuda` feature enables the CUDA execution provider, and `tensorrt` adds the TensorRT provider for further optimization. For the lowest possible [inference latency](https://www.ultralytics.com/glossary/inference-latency), the `cuda-preprocess` feature moves preprocessing onto the GPU.
 
 `cuda-preprocess` runs letterbox resizing, normalization, and the HWC-to-CHW layout conversion as a single fused CUDA kernel, then feeds the result to the model as a zero-copy device tensor. The raw 8-bit frame is still uploaded to the GPU, through a pinned staging buffer on discrete GPUs; what the kernel removes is CPU resizing, normalization, and layout conversion, and the separate upload of the preprocessed tensor, which matters most for high-throughput batches and real-time streams.
 
@@ -409,7 +409,7 @@ On NVIDIA hardware, the `cuda` feature enables the CUDA execution provider, and 
 cargo build --release --features cuda-preprocess
 ```
 
-The fast path is used automatically, with no API change, when all of the following hold: the feature is compiled in, the device is CUDA or TensorRT, the task is detect, segment, pose, OBB, semantic segmentation (single images only), or depth estimation, and the model uses FP32 input. It is enabled by default and can be turned off per model:
+The fast path is used automatically, with no API change, when all of the following hold: the feature is compiled in, the device is CUDA or TensorRT, the task is detect, segment, semantic segmentation (single images only), depth estimation, pose, or OBB, and the model uses FP32 input. It is enabled by default and can be turned off per model:
 
 ```rust
 use ultralytics_inference::{Device, InferenceConfig};

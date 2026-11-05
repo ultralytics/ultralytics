@@ -8,7 +8,7 @@ keywords: MobileSAM, image segmentation, lightweight segmentation, mobile segmen
 
 # Mobile Segment Anything (MobileSAM)
 
-MobileSAM is a compact, efficient image segmentation model purpose-built for mobile and edge devices. Designed to bring the power of Meta's Segment Anything Model ([SAM](sam.md)) to environments with limited compute, MobileSAM delivers near-instant segmentation while maintaining compatibility with the original SAM pipeline. Whether you're developing real-time applications or lightweight deployments, MobileSAM provides impressive segmentation results with a fraction of the size and speed requirements of its predecessors.
+MobileSAM is a compact, efficient [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model built for mobile and [edge devices](https://www.ultralytics.com/glossary/edge-ai). It brings Meta's Segment Anything Model ([SAM](sam.md)) to environments with limited compute, segmenting an image in about 12 ms on a GPU while remaining compatible with the original SAM pipeline. Its small size suits real-time applications and lightweight deployments.
 
 <p align="center">
   <br>
@@ -18,16 +18,16 @@ MobileSAM is a compact, efficient image segmentation model purpose-built for mob
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Run Inference with MobileSAM using Ultralytics | Step-by-Step Guide 🎉
+  <strong>Watch:</strong> How to Run Inference with MobileSAM using Ultralytics | Step-by-Step Guide
 </p>
 
 MobileSAM has been adopted in a variety of projects, including [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling), and [Segment Anything in 3D](https://github.com/Jumpat/SegmentAnythingin3D).
 
-MobileSAM was trained on a single GPU using a 100k image dataset (1% of the original images) in less than a day.
+MobileSAM was trained on a single GPU using a 100k-image dataset (1% of the original SA-1B images) in less than a day.
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-The table below outlines the available MobileSAM model, its pretrained weights, supported tasks, and compatibility with different operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Supported modes are indicated by ✅ and unsupported modes by ❌.
+The table below outlines the available MobileSAM model, its pretrained weights, supported tasks, and compatibility with different operating modes such as [Training](../modes/train.md), [Validation](../modes/val.md), [Inference](../modes/predict.md), and [Export](../modes/export.md). Supported modes are indicated by ✅ and unsupported modes by ❌.
 
 | Model Type | Pretrained Weights                                                                            | Tasks Supported                              | Training | Validation | Inference | Export |
 | ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
@@ -35,18 +35,18 @@ The table below outlines the available MobileSAM model, its pretrained weights, 
 
 ## MobileSAM Comparison vs YOLO
 
-The following comparison highlights the differences between Meta's SAM variants, MobileSAM, and Ultralytics segmentation models including [YOLO26n-seg](yolo26.md):
+The following comparison highlights the differences between Meta's SAM variants, MobileSAM, and Ultralytics segmentation models, including [YOLO26](yolo26.md):
 
-| Model                                                                           | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
-| ------------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
-| Meta SAM-b                                                                      | 375                     | 93.7                         | 41703                             |
-| Meta SAM2-b                                                                     | 162                     | 80.8                         | 28867                             |
-| Meta SAM2-t                                                                     | 78.1                    | 38.9                         | 23430                             |
-| MobileSAM                                                                       | 40.7                    | 10.1                         | 23802                             |
-| FastSAM-s with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.9                    | 11.8                         | 58.0                              |
-| Ultralytics YOLOv8n-seg                                                         | 7.1 (11.0x smaller)     | 3.4 (11.4x less)             | 24.8 (945x faster)                |
-| Ultralytics YOLO11n-seg                                                         | **6.2** (12.6x smaller) | 2.9 (13.4x less)             | **24.3** (964x faster)            |
-| Ultralytics YOLO26n-seg                                                         | 6.7 (11.7x smaller)     | **2.7** (14.4x less)         | 25.2 (930x faster)                |
+| Model                                                                                      | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
+| ------------------------------------------------------------------------------------------ | ----------------------- | ---------------------------- | --------------------------------- |
+| Meta SAM-b                                                                                 | 375                     | 93.7                         | 41703                             |
+| Meta SAM2-b                                                                                | 162                     | 80.8                         | 28867                             |
+| Meta SAM2-t                                                                                | 78.1                    | 38.9                         | 23430                             |
+| MobileSAM                                                                                  | 40.7                    | 10.1                         | 23802                             |
+| FastSAM-s with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone)            | 23.9                    | 11.8                         | 58.0                              |
+| Ultralytics [YOLOv8n-seg](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n-seg) | 7.1 (11.0x smaller)     | 3.4 (11.4x less)             | 24.8 (945x faster)                |
+| Ultralytics [YOLO11n-seg](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n-seg) | **6.2** (12.6x smaller) | 2.9 (13.4x less)             | **24.3** (964x faster)            |
+| Ultralytics [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-seg) | 6.7 (11.7x smaller)     | **2.7** (14.4x less)         | 25.2 (930x faster)                |
 
 This comparison demonstrates the substantial differences in model size and speed between SAM variants and YOLO segmentation models. While SAM models offer unique automatic segmentation capabilities, YOLO models—especially YOLOv8n-seg, YOLO11n-seg and YOLO26n-seg—are significantly smaller, faster, and more computationally efficient.
 
@@ -81,7 +81,7 @@ SAM speeds measured with PyTorch, YOLO speeds measured with ONNX Runtime. Tests 
 
 ## Adapting from SAM to MobileSAM
 
-MobileSAM retains the same pipeline as the original [SAM](sam.md), including pre-processing, post-processing, and all interfaces. This means you can transition from SAM to MobileSAM with minimal changes to your workflow.
+MobileSAM retains the same pipeline as the original SAM, including pre-processing, post-processing, and all interfaces. This means you can transition from SAM to MobileSAM with minimal changes to your workflow.
 
 The key difference is the image encoder: MobileSAM replaces the original ViT-H encoder (637M parameters) with a much smaller Tiny-ViT encoder (5M parameters). On a single GPU, MobileSAM processes an image in about 12ms (8ms for the encoder, 4ms for the mask decoder).
 
@@ -108,15 +108,15 @@ The key difference is the image encoder: MobileSAM replaces the original ViT-H e
 
 The performance of MobileSAM and the original SAM is illustrated below using both point and box prompts.
 
-![Image with Point as Prompt](https://cdn.ul.run/i/9c372cef6bc33fa515bb2f5284d67c7b.avif)
+![MobileSAM and original SAM segmentation results from a point prompt](https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_point.jpg)
 
-![Image with Box as Prompt](https://cdn.ul.run/i/9c372cef6bc33fa515bb2f5284d67c7b.avif)
+![MobileSAM and original SAM segmentation results from a box prompt](https://cdn.ul.run/i/9c372cef6bc33fa515bb2f5284d67c7b.avif)
 
-MobileSAM is approximately 7 times smaller and 5 times faster than FastSAM. For further details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
+In the MobileSAM paper's GPU benchmarks, [MobileSAM](https://github.com/ChaoningZhang/MobileSAM) is approximately 7 times smaller and 5 times faster than [FastSAM](fast-sam.md).
 
 ## Testing MobileSAM in Ultralytics
 
-Just like the original [SAM](sam.md), Ultralytics provides a simple interface for testing MobileSAM, supporting both Point and Box prompts.
+As with the original SAM, Ultralytics provides a simple interface for testing MobileSAM with both point and box prompts.
 
 ### Model Download
 
@@ -170,7 +170,7 @@ Both `MobileSAM` and `SAM` share the same API. For more usage details, see the [
 
 ### Automatically Build Segmentation Datasets Using a Detection Model
 
-To automatically [annotate your dataset](https://www.ultralytics.com/annotate) with the Ultralytics framework, use the `auto_annotate` function as shown below:
+To automatically [annotate your dataset](https://www.ultralytics.com/annotate) with the Ultralytics framework, use the `auto_annotate` function, which pairs a detection model such as [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x) with MobileSAM:
 
 !!! example
 
@@ -207,7 +207,7 @@ Read the full [MobileSAM paper on arXiv](https://arxiv.org/pdf/2306.14289).
 
 ### What Is MobileSAM and How Does It Differ from the Original SAM Model?
 
-MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model optimized for mobile and edge applications. It maintains the same pipeline as the original SAM but replaces the large ViT-H encoder (637M parameters) with a compact Tiny-ViT encoder (5M parameters). This makes the full MobileSAM pipeline about 66 times smaller than the original SAM (9.66M vs 641M parameters) and about 38 times faster, operating at roughly 12 ms per image versus SAM's 456 ms. Explore more about MobileSAM's implementation on the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM is a lightweight, fast image segmentation model optimized for mobile and edge applications. It maintains the same pipeline as the original SAM but replaces the large ViT-H encoder (637M parameters) with a compact Tiny-ViT encoder (5M parameters). This makes the full MobileSAM pipeline about 66 times smaller than the original SAM (9.66M vs 641M parameters) and about 38 times faster, operating at roughly 12 ms per image versus SAM's 456 ms.
 
 ### How Can I Test MobileSAM Using Ultralytics?
 
@@ -227,18 +227,16 @@ For more details, see the [Testing MobileSAM in Ultralytics](#testing-mobilesam-
 
 ### Why Should I Use MobileSAM for My Mobile Application?
 
-MobileSAM is ideal for mobile and edge applications due to its lightweight design and rapid inference speed. Compared to the original SAM, MobileSAM has about 66 times fewer parameters and runs about 38 times faster, making it suitable for real-time segmentation on devices with limited computational resources. Its efficiency enables mobile devices to perform [real-time image segmentation](https://www.ultralytics.com/glossary/real-time-inference) without significant latency. Additionally, MobileSAM supports [Inference mode](../modes/predict.md) optimized for mobile performance.
+MobileSAM is ideal for mobile and edge applications due to its lightweight design and rapid inference speed. Compared to the original SAM, MobileSAM has about 66 times fewer parameters and runs about 38 times faster, making it suitable for real-time segmentation on devices with limited computational resources. Its efficiency enables mobile devices to perform [real-time](https://www.ultralytics.com/glossary/real-time-inference) image segmentation without significant latency. In Ultralytics, MobileSAM supports inference only; training, validation, and export are not available.
 
 ### How Was MobileSAM Trained?
 
-MobileSAM was trained on a single GPU with a 100k image dataset (1% of the original SA-1B images) in under a day, distilling the ViT-H image encoder of SAM into a Tiny-ViT encoder. Pretrained weights and implementation details are available from the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM was trained on a single GPU with a 100k image dataset (1% of the original SA-1B images) in under a day, [distilling](https://www.ultralytics.com/glossary/knowledge-distillation) the ViT-H image encoder of SAM into a Tiny-ViT encoder. Pretrained weights and implementation details are available from the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
 
 ### What Are the Primary Use Cases for MobileSAM?
 
 MobileSAM is designed for fast, efficient image segmentation in mobile and edge environments. Primary use cases include:
 
-- **Real-time [object detection and segmentation](https://www.ultralytics.com/glossary/object-detection)** for mobile apps
+- **Real-time [interactive segmentation](https://www.ultralytics.com/glossary/interactive-segmentation)** for mobile apps
 - **Low-latency image processing** on devices with limited compute
 - **Integration in AI-powered mobile applications** for augmented reality (AR), analytics, and more
-
-For more details on use cases and performance, see [Adapting from SAM to MobileSAM](#adapting-from-sam-to-mobilesam) and the [Ultralytics blog on Segment Anything applications](https://www.ultralytics.com/blog/applications-of-meta-ai-segment-anything-model-2-sam-2).

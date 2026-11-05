@@ -1372,19 +1372,8 @@ class TVPDetectLoss:
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
     ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the visual-prompt classification loss."""
-        preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
         return vp_loss[0][1], dict(zip(self.loss_names, vp_loss[1].values()))
-
-    def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Update the criterion to the visual-prompt class count and return the visual-prompt scores."""
-        scores = preds["scores"]
-        vnc = scores.shape[1]
-
-        self.vp_criterion.nc = vnc
-        self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
-        self.vp_criterion.assigner.num_classes = vnc
-        return scores
 
 
 class TVPSegmentLoss(TVPDetectLoss):
@@ -1396,13 +1385,8 @@ class TVPSegmentLoss(TVPDetectLoss):
         self.loss_names = tuple(k[:-5] for k in self.vp_criterion.loss_names if k != "sem_loss")  # strip "_loss"
         self.hyp = self.vp_criterion.hyp
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        """Calculate the loss for text-visual prompt segmentation."""
-        return self.loss(self.parse_output(preds), batch)
-
     def loss(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the visual-prompt classification loss."""
-        preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
         cls_loss = vp_loss[0][2]
         # zip drops the trailing "sem_loss" item to match the logged columns

@@ -67,11 +67,10 @@ class YOLOETrainer(DetectionTrainer):
         """
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
         # NOTE: Following the official config, nc is capped at 80 for now.
-        nc = max((d["nc"] for d in getattr(self, "training_data", {}).values()), default=self.data["nc"])
         model = (YOLOESegModel if self.args.task == "segment" else YOLOEModel)(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
-            nc=min(nc, 80),
+            nc=min(self.data["nc"], 80),
             verbose=verbose and RANK == -1,
         )
         if weights:

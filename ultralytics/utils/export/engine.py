@@ -135,6 +135,7 @@ def modelopt_quantize_onnx(
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dynamic: bool = False,
     prefix: str = "",
+    disable_mha_qdq: bool = False,
 ) -> str:
     """Bake reduced precision into an ONNX model for TensorRT 11 strongly-typed builds using NVIDIA ModelOpt.
 
@@ -151,6 +152,7 @@ def modelopt_quantize_onnx(
             of dynamic models and for the FP16 AutoCast calibration image.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         prefix (str): Prefix for log messages.
+        disable_mha_qdq (bool): Keep the attention MatMuls (ModelOpt's MHA pattern) out of INT8 Q/DQ.
 
     Returns:
         (str): Path to the precision-converted ONNX file.
@@ -195,6 +197,7 @@ def modelopt_quantize_onnx(
             # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
             # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
             nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"],
+            disable_mha_qdq=disable_mha_qdq,
             output_path=out_file,
             **kwargs,
         )
@@ -332,7 +335,14 @@ def onnx2engine(
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (use_fp16 or use_int8):
-        onnx_file = modelopt_quantize_onnx(onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix)
+        # RT-DETR with INT8 attention drops from 52.3 to 33.6 mAP on GB10 (DGX Spark, SM 12.1), so GB10 keeps attention
+        # in FP16; on an RTX 4090 INT8 attention gives 50.1 and FP16 attention 49.3, so other GPUs keep INT8
+        mha = (metadata or {}).get("head") == "RTDETRDecoder" and torch.cuda.get_device_capability() == (12, 1)
+        if use_int8 and mha:
+            LOGGER.info(f"{prefix} keeping RT-DETR attention MatMuls in FP16 on GB10, INT8 attention loses accuracy")
+        onnx_file = modelopt_quantize_onnx(
+            onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix, disable_mha_qdq=use_int8 and mha
+        )
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)

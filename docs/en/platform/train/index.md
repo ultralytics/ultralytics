@@ -29,7 +29,7 @@ The Training section helps you:
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
-- **Export** to 22 deployment formats (see [supported formats](models.md#supported-formats))
+- **Export** to 23 deployment formats (see [supported formats](models.md#supported-formats))
 
 ![Ultralytics Platform Train Overview](https://cdn.ul.run/i/19e52629fb54e22f8a73cd7e1bb3ea76.avif)<!-- screenshot -->
 
@@ -49,7 +49,7 @@ flowchart TD
 | **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
-| **Export**    | Convert to 22 deployment formats ([details](models.md#supported-formats))  |
+| **Export**    | Convert to 23 deployment formats ([details](models.md#supported-formats))  |
 
 ## Training Options
 

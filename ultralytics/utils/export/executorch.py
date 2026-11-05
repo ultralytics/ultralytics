@@ -46,11 +46,11 @@ def torch2executorch(
     metadata: dict | None = None,
     prefix: str = "",
 ) -> str:
-    """Export a PyTorch model to ExecuTorch format.
+    """Export a PyTorch model to ExecuTorch format with CPU capture for XNNPACK.
 
     Args:
-        model (torch.nn.Module): The PyTorch model to export, on CPU.
-        im (torch.Tensor): Example input tensor for tracing/export, on CPU.
+        model (torch.nn.Module): The PyTorch model to export, moved to CPU for capture.
+        im (torch.Tensor): Example input tensor for tracing/export.
         output_dir (Path | str): Directory to save the exported ExecuTorch model.
         metadata (dict | None, optional): Optional metadata to save as YAML.
         prefix (str, optional): Prefix for log messages.
@@ -66,7 +66,7 @@ def torch2executorch(
     LOGGER.info(f"\n{prefix} starting export with ExecuTorch {executorch_version.__version__}...")
 
     et_program = to_edge_transform_and_lower(
-        torch.export.export(model, (im,)),
+        torch.export.export(model.cpu(), (im.cpu(),)),
         partitioner=[XnnpackPartitioner()],
     ).to_executorch()
     output_dir = Path(output_dir).resolve()  # rmtree refuses a symlinked directory

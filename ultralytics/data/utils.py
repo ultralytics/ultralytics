@@ -982,16 +982,9 @@ class _CacheUnpickler(pickle.Unpickler):
     """Unpickler that only rebuilds the numpy arrays and paths stored in Ultralytics *.cache files."""
 
     SAFE = frozenset(
-        {
-            ("numpy", "ndarray"),
-            ("numpy", "dtype"),
-            ("numpy.core.multiarray", "_reconstruct"),  # numpy<2
-            ("numpy._core.multiarray", "_reconstruct"),  # numpy>=2
-            ("pathlib", "PosixPath"),
-            ("pathlib", "WindowsPath"),
-            ("pathlib._local", "PosixPath"),  # Python 3.13
-            ("pathlib._local", "WindowsPath"),
-        }
+        [("numpy", "ndarray"), ("numpy", "dtype")]
+        + [(f"numpy.{m}.multiarray", "_reconstruct") for m in ("core", "_core")]  # numpy<2, numpy>=2
+        + [(m, c) for m in ("pathlib", "pathlib._local") for c in ("PosixPath", "WindowsPath")]  # _local: Python 3.13
     )
 
     def find_class(self, module: str, name: str):

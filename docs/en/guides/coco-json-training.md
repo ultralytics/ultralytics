@@ -34,7 +34,6 @@ The `get_img_files()` method returns an empty list because image paths are resol
 
 ```python
 import json
-import pickle
 from collections import defaultdict
 from pathlib import Path
 
@@ -118,14 +117,7 @@ class COCODataset(YOLODataset):
             assert cache["version"] == DATASET_CACHE_VERSION
             assert cache["hash"] == get_hash([self.json_file, str(self.img_path)])
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
-        except (
-            FileNotFoundError,
-            AssertionError,
-            AttributeError,
-            KeyError,
-            ModuleNotFoundError,
-            pickle.UnpicklingError,
-        ):
+        except Exception:  # missing, stale, or unreadable cache
             cache = self.cache_labels(cache_path)
         cache.pop("hash", None)
         cache.pop("version", None)
@@ -235,7 +227,6 @@ For convenience, the full implementation is provided below as a single copy-past
 
 ```python
 import json
-import pickle
 from collections import defaultdict
 from pathlib import Path
 
@@ -319,14 +310,7 @@ class COCODataset(YOLODataset):
             assert cache["version"] == DATASET_CACHE_VERSION
             assert cache["hash"] == get_hash([self.json_file, str(self.img_path)])
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
-        except (
-            FileNotFoundError,
-            AssertionError,
-            AttributeError,
-            KeyError,
-            ModuleNotFoundError,
-            pickle.UnpicklingError,
-        ):
+        except Exception:  # missing, stale, or unreadable cache
             cache = self.cache_labels(cache_path)
         cache.pop("hash", None)
         cache.pop("version", None)

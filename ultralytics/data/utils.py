@@ -81,6 +81,40 @@ def tile_windows(
     return [(x, y, min(x + tw, w), min(y + th, h)) for y in sorted(set(ys)) for x in sorted(set(xs))]
 
 
+def _clip_polygon(points: np.ndarray, window: tuple[int, int, int, int]) -> np.ndarray:
+    """Return the polygon intersection with a rectangular window using Sutherland-Hodgman clipping."""
+    points = np.asarray(points, dtype=np.float32)
+    for axis, limit, keep_upper in (
+        (0, window[0], True),
+        (0, window[2], False),
+        (1, window[1], True),
+        (1, window[3], False),
+    ):
+        if len(points) < 3:
+            return np.empty((0, 2), dtype=np.float32)
+        output = []
+        previous = points[-1]
+        previous_inside = previous[axis] >= limit if keep_upper else previous[axis] <= limit
+        for point in points:
+            inside = point[axis] >= limit if keep_upper else point[axis] <= limit
+            if inside != previous_inside:
+                offset = (limit - previous[axis]) / (point[axis] - previous[axis])
+                output.append(previous + (point - previous) * offset)
+            if inside:
+                output.append(point)
+            previous, previous_inside = point, inside
+        points = np.asarray(output, dtype=np.float32)
+    return points if len(points) >= 3 else np.empty((0, 2), dtype=np.float32)
+
+
+def _polygon_area(points: np.ndarray) -> float:
+    """Return the unsigned area of a simple polygon."""
+    if len(points) < 3:
+        return 0.0
+    x, y = points[:, 0], points[:, 1]
+    return float(np.abs(x @ np.roll(y, -1) - y @ np.roll(x, -1)) * 0.5)
+
+
 def slice_label(label: dict, window: tuple[int, int, int, int]) -> dict:
     """Clip one normalized label dictionary to a native-pixel tile window."""
     from copy import deepcopy
@@ -95,15 +129,25 @@ def slice_label(label: dict, window: tuple[int, int, int, int]) -> dict:
     boxes[:, [1, 3]] = boxes[:, [1, 3]].clip(y1, y2) - y1
     visible = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
     keep = visible >= areas * 0.1
+    segments = label.get("segments", [])
+    clipped_segments = []
+    if segments:
+        segment_keep = np.zeros(len(keep), dtype=bool)
+        for i, segment in enumerate(segments):
+            if not keep[i]:
+                continue
+            points = segment * np.array(label["shape"][::-1], dtype=np.float32)
+            clipped = _clip_polygon(points, window) - (x1, y1)
+            area = _polygon_area(points)
+            if area and _polygon_area(clipped) >= area * 0.1:
+                segment_keep[i] = True
+                clipped_segments.append(clipped)
+                boxes[i] = np.concatenate((clipped.min(axis=0), clipped.max(axis=0)))
+        keep &= segment_keep
     tiled = deepcopy(label)
     tiled["cls"] = tiled["cls"][keep]
     tiled["bboxes"] = xyxy2xywh(boxes[keep]) / np.array([w, h, w, h], dtype=np.float32)
-    tiled["segments"] = [
-        (segment * np.array(label["shape"][::-1], dtype=np.float32) - (x1, y1)).clip((0, 0), (w, h)).astype(np.float32)
-        / np.array((w, h), dtype=np.float32)
-        for segment, k in zip(label.get("segments", []), keep)
-        if k
-    ]
+    tiled["segments"] = [segment / np.array((w, h), dtype=np.float32) for segment in clipped_segments]
     if (keypoints := tiled.get("keypoints")) is not None:
         keypoints = keypoints[keep]
         keypoints[..., :2] *= np.array(label["shape"][::-1], dtype=np.float32)
@@ -113,6 +157,7 @@ def slice_label(label: dict, window: tuple[int, int, int, int]) -> dict:
         if keypoints.shape[-1] == 3:
             keypoints[..., 2][outside] = 0
         tiled["keypoints"] = keypoints
+    tiled["source_shape"] = label["shape"]
     tiled["shape"] = (h, w)
     tiled["tile"] = window
     return tiled

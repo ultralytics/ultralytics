@@ -413,7 +413,7 @@ class DetectionValidator(BaseValidator):
             if dataset.include_class is not None:
                 source_label["semantic_mask"][~np.isin(source_label["semantic_mask"], dataset.include_class)] = 255
         elif self.args.task == "depth":
-            source_label = {**source_label, "depth": dataset._load_depth(source_index)}
+            source_label = {**source_label, "depth": dataset._load_depth(source_index, shape)}
         windows = tile_windows(shape, self.args.tile_size)
         predictions, masks = [], []
         for start in range(0, len(windows), self.args.batch):
@@ -421,6 +421,7 @@ class DetectionValidator(BaseValidator):
             samples = []
             for x1, y1, x2, y2 in batch_windows:
                 label = slice_label(source_label, (x1, y1, x2, y2))
+                label.pop("source_shape", None)
                 label["img"] = im[y1:y2, x1:x2]
                 label["ori_shape"] = label["resized_shape"] = (y2 - y1, x2 - x1)
                 label["ratio_pad"] = (1.0, 1.0)

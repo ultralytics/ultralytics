@@ -2516,12 +2516,44 @@ def test_tile_instance_and_dense_geometry():
     np.testing.assert_allclose(tiled["keypoints"][0, 0], [0.2, 0.4, 2.0], atol=1e-6)
     np.testing.assert_allclose(tiled["keypoints"][0, 1], [0.0, 0.4, 0.0], atol=1e-6)
 
+    triangle = {
+        **label,
+        "bboxes": np.array([[0.5, 0.5, 1.0, 1.0]], dtype=np.float32),
+        "segments": [np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]], dtype=np.float32)],
+    }
+    clipped = slice_label(triangle, (50, 0, 100, 100))
+    np.testing.assert_allclose(clipped["segments"][0], [[0.0, 0.0], [1.0, 0.0], [0.0, 0.5]], atol=1e-6)
+    empty = slice_label(triangle, (60, 60, 100, 100))
+    assert len(empty["cls"]) == 0 and not empty["segments"]
+
     predictions = [torch.ones(1, 64, 64), torch.full((1, 64, 64), 3.0)]
     windows = [(0, 0, 64, 64), (32, 32, 96, 96)]
     merged = merge_dense_tiles(predictions, windows, (96, 96))
     assert merged.shape == (1, 96, 96) and 1 < merged[0, 40, 40] < 3
     discrete = merge_dense_tiles([p[0].long() for p in predictions], windows, (96, 96), discrete=True)
     assert discrete.shape == (96, 96) and set(discrete.unique().tolist()) == {0, 1, 3}
+
+
+def test_tiled_depth_dataset(tmp_path):
+    """Test tiled depth datasets resize lower-resolution targets before cropping their tiles."""
+    from ultralytics.data.dataset import DepthDataset
+
+    images, depth = tmp_path / "images/train", tmp_path / "depth/train"
+    images.mkdir(parents=True), depth.mkdir(parents=True)
+    cv2.imwrite(str(images / "a.png"), np.zeros((128, 128, 3), dtype=np.uint8))
+    cv2.imwrite(str(depth / "a.png"), np.full((64, 64), 1000, dtype=np.uint16))
+    dataset = DepthDataset(
+        img_path=str(images),
+        data={"names": {0: "depth"}},
+        task="depth",
+        hyp=get_cfg(overrides={"tiles": True}),
+        imgsz=64,
+        augment=False,
+        tiles=True,
+        tile_size=64,
+    )
+    assert len(dataset) == 9
+    assert all(dataset[i]["depth"].shape == (1, 64, 64) for i in range(len(dataset)))
 
 
 @pytest.mark.parametrize("task,model,data", [x for x in TASK_MODEL_DATA if x[0] != "detect"])

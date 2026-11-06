@@ -532,9 +532,12 @@ class DepthDataset(YOLODataset):
     def verify_labels(self, labels: list[dict], cache_path: Path) -> None:
         """Skip box and segment checks; depth datasets carry no box or segment annotations."""
 
-    def _load_depth(self, index: int) -> np.ndarray:
-        """Return the native-resolution depth map for an image or tile."""
+    def _load_depth(self, index: int, shape: tuple[int, int] | None = None) -> np.ndarray:
+        """Return the native-resolution depth map for an image or tile, resizing lower-resolution targets first."""
         depth = load_depth(self.depth_files_by_image[self.im_files[index]], self.data.get("depth_scale", 1000))
+        shape = shape or self.labels[index].get("source_shape")
+        if shape and depth.shape[:2] != tuple(shape):
+            depth = cv2.resize(depth, tuple(shape[::-1]), interpolation=cv2.INTER_NEAREST)
         if window := self.labels[index].get("tile"):
             x1, y1, x2, y2 = window
             depth = depth[y1:y2, x1:x2]

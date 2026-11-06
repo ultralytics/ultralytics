@@ -7,6 +7,8 @@ keywords: Ultralytics, YOLO26, high resolution tiling, tile argument, tiled infe
 
 # High Resolution Tiling with Ultralytics YOLO
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-high-resolution-tiling.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open High Resolution Tiling In Colab"></a>
+
 Use `tile=True` to process high-resolution images in overlapping windows before resizing them to the model input. This can preserve small-object detail that would be lost by resizing the whole image. No additional package is required, and `tile` replaces the deprecated [SAHI integration](sahi-tiled-inference.md) for Ultralytics models.
 
 |                                                         Whole image, `imgsz=640`: 35 detections                                                          |                                                                                `tile=640`: 170 detections                                                                                |

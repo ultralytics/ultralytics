@@ -182,7 +182,7 @@ class BaseValidator:
             sample = dataset.get_image_and_label(dataset.source_offsets[source], full=True)
             if self.args.task != "classify":
                 sample = dataset.transforms.transforms[-1](sample)
-            full_batch = self.preprocess(dataset.collate_fn([sample]))
+            full_batch = self.preprocess_targets(dataset.collate_fn([sample]))
             output = ops.merge_tiles(
                 predictions,
                 windows,
@@ -446,6 +446,13 @@ class BaseValidator:
 
     def preprocess(self, batch):
         """Preprocess an input batch."""
+        return batch
+
+    def preprocess_targets(self, batch: dict) -> dict:
+        """Move annotations to the model device, keeping full-resolution evaluation images on the host."""
+        for key, value in batch.items():
+            if key != "img" and isinstance(value, torch.Tensor):
+                batch[key] = value.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         return batch
 
     def postprocess(self, preds):

@@ -563,14 +563,13 @@ class DepthDataset(YOLODataset):
         else:
             depth = load_depth(path, self.data.get("depth_scale", 1000))
             if self.tile:
+                h, w = self.labels[index]["source_shape"]
+                if depth.shape[:2] != (h, w):
+                    depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
                 self._source_depth = (path, depth)
-        if self.tile:
-            h, w = self.labels[index]["source_shape"]
-            if depth.shape[:2] != (h, w):
-                depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
-            if not full:
-                x1, y1, x2, y2 = self.labels[index]["tile"]
-                depth = depth[y1:y2, x1:x2].copy()
+        if self.tile and not full:
+            x1, y1, x2, y2 = self.labels[index]["tile"]
+            depth = depth[y1:y2, x1:x2].copy()
         return depth
 
     def get_image_and_label(self, index: int, full: bool = False) -> dict[str, Any]:

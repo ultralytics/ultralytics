@@ -38,9 +38,9 @@ class DepthValidator(DetectionValidator):
         self.metrics = DepthMetrics(max_depth=self.data.get("max_depth") or 100.0)
         self.metrics.clear_stats()
 
-    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
-        """Preprocess batch — move to device, normalize images, and keep depth as float32."""
-        batch = super().preprocess(batch)
+    def preprocess_targets(self, batch: dict[str, Any]) -> dict[str, Any]:
+        """Move depth targets to the device as float32."""
+        batch = super().preprocess_targets(batch)
         batch["depth"] = batch["depth"].float()
         return batch
 

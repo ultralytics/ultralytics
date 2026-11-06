@@ -103,9 +103,8 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Preprocessed batch.
         """
-        for k, v in batch.items():
-            if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
+        batch = self.preprocess_targets(batch)
+        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
         return batch
 
@@ -145,7 +144,9 @@ class DetectionValidator(BaseValidator):
         self.build_gdict = self.is_custom_json and self.gdict is None
         self.eval_ids = list(self.dataloader.sampler) if self.is_custom_json else None
         if self.is_custom_json and self.args.tile:
-            self.eval_ids = list(dict.fromkeys(self.dataloader.dataset.labels[i]["source_index"] for i in self.eval_ids))
+            self.eval_ids = list(
+                dict.fromkeys(self.dataloader.dataset.labels[i]["source_index"] for i in self.eval_ids)
+            )
         self.pred_counts = []
         if self.build_gdict:
             self.gdict = {"images": [], "annotations": [], "categories": [{"id": x} for x in self.class_map]}

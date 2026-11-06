@@ -37,11 +37,13 @@ def torch2litert(
     calibration_dataset: torch.utils.data.DataLoader | None = None,
     metadata: dict | None = None,
     prefix: str = "",
+    int8_detect: bool = False,
 ) -> str:
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.
 
-    Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations) and
-    ``'w8a16'`` applies static INT8 weights with int16 activations, both requiring a ``calibration_dataset``;
+    Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations, head
+    in FP32 with ``int8_detect``) and ``'w8a16'`` applies static INT8 weights with int16 activations, both requiring a
+    ``calibration_dataset``;
     ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32 activations) and needs no calibration.
     ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an FP32 model in FP16 at runtime
     via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
@@ -56,6 +58,7 @@ def torch2litert(
             ``get_int8_calibration_dataloader``. Required when ``quantize`` is ``8`` or ``'w8a16'``.
         metadata (dict | None): Optional metadata embedded in the ``.tflite`` as a ``metadata.json`` entry.
         prefix (str): Prefix for log messages.
+        int8_detect (bool): Keep the detection head in FP32 under ``quantize=8``.
 
     Returns:
         (str): Path to the exported ``.tflite`` file with metadata embedded as a ``metadata.json`` entry.
@@ -118,6 +121,12 @@ def torch2litert(
             for op in (qtyping.TFLOperationName.INPUT, qtyping.TFLOperationName.OUTPUT):
                 qt.update_quantization_recipe(
                     regex=".*", operation_name=op, algorithm_key=recipe.AlgorithmName.NO_QUANTIZE
+                )
+            if static_int8 and int8_detect:  # keep the head float: calibration clips class logits and caps confidence
+                qt.update_quantization_recipe(
+                    regex=r".*\.modules\.head\..*",
+                    operation_name=qtyping.TFLOperationName.ALL_SUPPORTED,
+                    algorithm_key=recipe.AlgorithmName.NO_QUANTIZE,
                 )
             result = qt.calibrate({"serving_default": calib_samples})
             qt.quantize(calibration_result=result).export_model(str(tflite_file), overwrite=True)

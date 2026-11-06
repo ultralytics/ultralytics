@@ -15,7 +15,7 @@ keywords: KITTI dataset, autonomous driving, 2D object detection, self-driving c
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-kitti-detection-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open KITTI Dataset In Colab"></a>
 
-The Ultralytics KITTI dataset is a 2D [object detection](../../tasks/detect.md) dataset for autonomous driving, containing 7,481 annotated images (5,985 for training and 1,496 for validation) across 8 classes — car, van, truck, pedestrian, person_sitting, cyclist, tram, and misc. Released by the Karlsruhe Institute of Technology and the Toyota Technological Institute at Chicago, its images come from real-world urban, rural, and highway driving scenes.
+The Ultralytics KITTI dataset is a 2D [object detection](../../tasks/detect.md) dataset for [autonomous driving](https://www.ultralytics.com/glossary/autonomous-vehicles), containing 7,481 annotated images (5,985 for training and 1,496 for validation) across 8 classes — car, van, truck, pedestrian, person_sitting, cyclist, tram, and misc. Released by the Karlsruhe Institute of Technology and the Toyota Technological Institute at Chicago, its images come from real-world urban, rural, and highway driving scenes.
 
 <p align="center">
   <br>
@@ -28,7 +28,7 @@ The Ultralytics KITTI dataset is a 2D [object detection](../../tasks/detect.md) 
   <strong>Watch:</strong> How to Train Ultralytics YOLO on the KITTI Dataset | Object Detection, Inference & ONNX Export 🚀
 </p>
 
-The broader KITTI Vision Benchmark Suite also spans depth estimation, optical flow, stereo vision, and visual odometry, but the Ultralytics `kitti.yaml` configuration here is set up for 2D object detection and is fully compatible with [Ultralytics YOLO26](../../models/yolo26.md).
+The broader KITTI Vision Benchmark Suite also spans [depth estimation](../depth/kitti.md), optical flow, stereo vision, and visual odometry, but the Ultralytics `kitti.yaml` configuration here is set up for 2D object detection with [Ultralytics YOLO26](../../models/yolo26.md).
 
 ## Dataset Structure
 
@@ -65,7 +65,7 @@ The KITTI dataset supports a range of 2D detection applications in autonomous dr
 - **Autonomous vehicle perception**: Train models to detect and track cars, pedestrians, and cyclists so self-driving systems can navigate safely.
 - **ADAS development**: Build driver-assistance features such as collision warning and pedestrian detection on real driving footage.
 - **Traffic and road-scene analysis**: Detect and count vehicles and road users to study traffic flow and road safety.
-- **Computer vision benchmarking**: Use KITTI as a standard benchmark for evaluating 2D [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) models.
+- **Computer vision benchmarking**: Use KITTI as a standard benchmark for evaluating 2D object detection and [tracking](../../modes/track.md) models.
 
 To label your own driving imagery, train, and manage dataset versions in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/kitti).
 
@@ -81,7 +81,7 @@ Ultralytics defines the KITTI dataset configuration using a YAML file. This file
 
 ## Usage
 
-To train a YOLO26n model on the KITTI dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following commands. The dataset (390.5 MB) downloads automatically on first use. For more details, refer to the [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the KITTI dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following commands. The dataset (390.5 MB) downloads automatically on first use.
 
 !!! example "Train Example"
 
@@ -150,7 +150,7 @@ The dataset (390.5 MB) downloads automatically the first time you train with `da
 
 ### Can I train Ultralytics YOLO26 models using the KITTI dataset?
 
-Yes, KITTI is fully compatible with Ultralytics YOLO26. You can [train](../../modes/train.md) and [validate](../../modes/val.md) models directly using the provided YAML configuration file.
+Yes. KITTI works with Ultralytics YOLO26 out of the box. You can [train](../../modes/train.md) and [validate](../../modes/val.md) models directly using the provided YAML configuration file.
 
 ### Where can I find the KITTI dataset configuration file?
 

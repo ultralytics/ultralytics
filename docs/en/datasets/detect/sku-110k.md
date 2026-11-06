@@ -48,9 +48,9 @@ The SKU-110K dataset is split into three subsets, all sharing the single `object
 
 The SKU-110K dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection tasks, especially in densely packed scenes such as retail shelf displays. Its applications include:
 
-- Retail inventory management and automation
+- Retail [inventory management](https://www.ultralytics.com/blog/ai-for-smarter-retail-inventory-management) and automation
 - Product recognition in e-commerce platforms
-- Planogram compliance verification
+- [Planogram compliance](https://www.ultralytics.com/blog/using-ultralytics-yolo26-for-planogram-compliance-detection) verification
 - Self-checkout systems in stores
 - Robotic picking and sorting in warehouses
 
@@ -72,7 +72,7 @@ The `SKU-110K.yaml` file defines the dataset configuration — the dataset paths
 
     SKU-110K downloads automatically the first time you train and requires about 13.6 GB of free disk space for its 11,743 images. The download script also fetches the original annotations and converts them to YOLO format, which can take a few minutes.
 
-To train a YOLO26n model on the SKU-110K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the SKU-110K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 
@@ -128,7 +128,7 @@ We would like to acknowledge Eran Goldman et al. for creating and maintaining th
 
 ### What is the SKU-110K dataset used for?
 
-The SKU-110K dataset is a single-class object detection dataset of 11,743 densely packed retail-shelf images, created by Eran Goldman et al. for their CVPR 2019 paper. Every product is labeled with one `object` bounding box, and the imagery spans more than 110,000 unique stock-keeping units (SKUs), making it a strong benchmark for detecting objects in crowded scenes and for building retail [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems.
+The SKU-110K dataset is a single-class object detection dataset of 11,743 densely packed retail-shelf images, created by Eran Goldman et al. for their CVPR 2019 paper. Every product is labeled with one `object` bounding box, and the imagery spans more than 110,000 unique stock-keeping units (SKUs), making it a strong benchmark for detecting objects in crowded scenes and for building retail computer vision systems.
 
 ### Does the SKU-110K dataset have 110,000 classes?
 
@@ -166,5 +166,3 @@ Training a YOLO26 model on the SKU-110K dataset is straightforward. Here's an ex
         # Start training from a pretrained *.pt model
         yolo detect train data=SKU-110K.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
-
-For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page and [model training tips](../../guides/model-training-tips.md).

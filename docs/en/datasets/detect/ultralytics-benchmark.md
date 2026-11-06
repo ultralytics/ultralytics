@@ -1,7 +1,7 @@
 ---
 title: Ultralytics Benchmark
 comments: true
-description: Explore Ultralytics Benchmark across medical imaging, remote sensing, documents, user interfaces, retail, industry, agriculture, and sports.
+description: Ultralytics Benchmark measures object detection generalization across 37 curated datasets, from medical imaging and remote sensing to retail and sports.
 keywords: Ultralytics Benchmark, cross-domain object detection, real-world datasets, model generalization, macro mAP, YOLO26, computer vision
 ---
 
@@ -17,7 +17,9 @@ documents, user interfaces, retail, [machine vision](https://www.ultralytics.com
 sports, wildlife, underwater imaging, and waste detection. Its sensor types include RGB, fisheye, thermal infrared,
 X-ray, MRI, ultrasound, microscopy, and synthetic aperture radar (SAR).
 
-The curated datasets are hosted on [Ultralytics Platform](../../platform/data/datasets.md).
+The curated datasets are hosted on [Ultralytics Platform](../../platform/data/datasets.md). The
+[VLM leaderboard](https://www.ultralytics.com/benchmarks/vlm) ranks vision language models and open-vocabulary
+detectors on images from 36 of these datasets by accuracy, cost, and speed.
 
 Candidate datasets were checked for exact and near-duplicate images across the training and validation splits. Flagged
 pairs were reviewed, and confirmed split leaks were removed or the affected dataset was replaced.
@@ -42,7 +44,7 @@ pairs were reviewed, and confirmed split leaks were removed or the affected data
 | Medical         | X-ray                          | [GRAZPEDWRI-DX](https://platform.ultralytics.com/ultralytics/datasets/grazpedwri-dx)                               | 9: boneanomaly, bonelesion, foreignbody, fracture, metal, periostealreaction, pronatorsign, softtissue, text                                                                                                                                                 |
 | Document/UI     | Digital screenshots            | [GroundCUA UI](https://platform.ultralytics.com/ultralytics/datasets/groundcua-ui-yolo)                            | 9: Button, Information Display, Input Elements, Menu, Navigation, Others, Sidebar, Visual Elements, Unknown                                                                                                                                                  |
 | Agriculture     | RGB field camera               | [GWHD 2021](https://platform.ultralytics.com/ultralytics/datasets/global-wheat-head-detection-2021)                | 1: wheat_head                                                                                                                                                                                                                                                |
-| Aerial/RS       | Thermal infrared UAV           | [HIT-UAV](https://platform.ultralytics.com/ultralytics/datasets/hit-uav)                                           | 5: person, car, bicycle, other vehicle, ignored region                                                                                                                                                                                                       |
+| Aerial/RS       | Thermal infrared UAV           | [HIT-UAV](https://platform.ultralytics.com/ultralytics/datasets/hit-uav)                                           | 5: person, car, bicycle, other vehicle, ignored region (not scored)                                                                                                                                                                                          |
 | Medical         | Security X-ray                 | [IED X-ray](https://platform.ultralytics.com/ultralytics/datasets/iedxray)                                         | 11 explosive, battery, laptop, pager, mobile phone, walkie-talkie, and modified-device classes                                                                                                                                                               |
 | Medical         | RGB endoscope                  | [Kvasir-SEG Polyp](https://platform.ultralytics.com/ultralytics/datasets/kvasir-seg-polyp)                         | 1: polyp                                                                                                                                                                                                                                                     |
 | Driving/Traffic | Thermal infrared               | [LLVIP](https://platform.ultralytics.com/ultralytics/datasets/llvip)                                               | 1: person                                                                                                                                                                                                                                                    |
@@ -73,7 +75,10 @@ pairs were reviewed, and confirmed split leaks were removed or the affected data
   YOLO27l report the mean of 3 such runs.
 - Enable class remapping, channels-last, and prediction JSON output, with plots disabled.
 - Evaluate each dataset's best checkpoint and reuse its saved `max_det`, which accounts for its largest object count.
-- For size-specific mAP50-95, multiply ground-truth and prediction box areas by
+- Apply ignore regions as in the VisDrone DET toolkit: drop predictions and labels that an ignored region covers by at
+  least half. These are VisDrone's 1,378 official ignored regions and HIT-UAV's 7 `ignored region` boxes, and the
+  HIT-UAV class is then removed.
+- For size-specific mAP<sub>50-95</sub>, multiply ground-truth and prediction box areas by
   `(640 / max(image_width, image_height)) ** 2` before applying the COCO Small, Medium, and Large bins.
 - Give every dataset equal weight. Each size metric includes only datasets with at least 10 objects in that bin.
 
@@ -82,34 +87,35 @@ Macro [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) is
 
 ## Benchmark results
 
-Metrics are macro averages across the 37 validation splits, reported as percentages.
+Metrics are macro averages across the 37 validation splits, reported as percentages. YOLO27 is an unreleased
+[preview](../../models/yolo27.md); its weights are not yet available.
 
-| Size | Model                                                                   |  mAP50-95 | Precision |    Recall | mAP50-95-S | mAP50-95-M | mAP50-95-L |
-| :--: | ----------------------------------------------------------------------- | --------: | --------: | --------: | ---------: | ---------: | ---------: |
-| L/X  | YOLO27l                                                                 | **55.50** | **78.83** | **74.90** |  **38.17** |  **55.75** |  **63.36** |
-| L/X  | [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x)  |     49.85 |     76.74 |     68.61 |      34.44 |      50.54 |      51.69 |
-| L/X  | [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l)  |     49.72 |     75.05 |     69.31 |      34.49 |      50.16 |      51.72 |
-| L/X  | [YOLO11l](https://platform.ultralytics.com/ultralytics/yolo11/yolo11l)  |     48.53 |     74.22 |     68.33 |      31.91 |      50.71 |      50.77 |
-| L/X  | [YOLOv5l](https://platform.ultralytics.com/ultralytics/yolov5/yolov5lu) |     48.03 |     74.11 |     67.78 |      31.73 |      49.79 |      49.87 |
-| L/X  | [YOLOv8l](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l)  |     48.02 |     73.95 |     68.80 |      32.05 |      49.04 |      49.56 |
-| L/X  | [YOLOv8x](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x)  |     47.67 |     75.66 |     66.46 |      31.12 |      49.60 |      49.69 |
-| L/X  | [YOLOv5x](https://platform.ultralytics.com/ultralytics/yolov5/yolov5xu) |     47.35 |     74.69 |     67.96 |      31.27 |      49.39 |      49.76 |
-| L/X  | [YOLO11x](https://platform.ultralytics.com/ultralytics/yolo11/yolo11x)  |     47.24 |     73.69 |     67.08 |      31.22 |      48.57 |      49.24 |
-|  M   | YOLO27m                                                                 | **53.38** |     75.85 | **72.95** |  **35.96** |  **53.40** |  **61.40** |
-|  M   | [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m)  |     49.42 | **76.23** |     68.31 |      32.91 |      50.02 |      51.32 |
-|  M   | [YOLOv5m](https://platform.ultralytics.com/ultralytics/yolov5/yolov5mu) |     48.19 |     74.21 |     68.07 |      31.68 |      49.67 |      51.93 |
-|  M   | [YOLO11m](https://platform.ultralytics.com/ultralytics/yolo11/yolo11m)  |     48.15 |     73.72 |     68.56 |      32.14 |      49.76 |      50.75 |
-|  M   | [YOLOv8m](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m)  |     47.99 |     73.86 |     68.15 |      30.73 |      49.61 |      51.97 |
-|  S   | YOLO27s                                                                 | **51.23** | **76.96** | **70.74** |  **34.20** |  **51.47** |  **54.74** |
-|  S   | [YOLO11s](https://platform.ultralytics.com/ultralytics/yolo11/yolo11s)  |     47.78 |     74.72 |     67.66 |      29.53 |      49.69 |      50.69 |
-|  S   | [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)  |     47.47 |     74.35 |     66.73 |      31.56 |      47.72 |      50.58 |
-|  S   | [YOLOv8s](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s)  |     47.35 |     73.97 |     67.54 |      30.90 |      48.47 |      50.15 |
-|  S   | [YOLOv5s](https://platform.ultralytics.com/ultralytics/yolov5/yolov5su) |     47.30 |     73.97 |     67.02 |      30.47 |      49.07 |      50.10 |
-|  N   | YOLO27n                                                                 | **49.25** | **74.86** | **68.49** |  **31.93** |  **49.30** |  **53.20** |
-|  N   | [YOLO11n](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n)  |     46.19 |     72.83 |     65.69 |      28.35 |      47.51 |      50.66 |
-|  N   | [YOLOv8n](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n)  |     45.89 |     72.29 |     65.56 |      28.56 |      47.55 |      49.22 |
-|  N   | [YOLOv5n](https://platform.ultralytics.com/ultralytics/yolov5/yolov5nu) |     45.09 |     71.69 |     64.99 |      28.61 |      46.79 |      48.14 |
-|  N   | [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n)  |     44.08 |     70.09 |     63.20 |      28.69 |      44.52 |      47.96 |
+| Size | Model                                                                   | mAP<sub>50-95</sub> | Precision |    Recall | mAP<sub>50-95</sub>-S | mAP<sub>50-95</sub>-M | mAP<sub>50-95</sub>-L |
+| :--: | ----------------------------------------------------------------------- | ------------------: | --------: | --------: | --------------------: | --------------------: | --------------------: |
+| L/X  | YOLO27l                                                                 |           **55.97** | **79.11** | **75.14** |             **38.52** |             **55.90** |             **64.64** |
+| L/X  | [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x)  |               50.19 |     76.93 |     69.08 |                 34.89 |                 50.78 |                 52.15 |
+| L/X  | [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l)  |               50.05 |     75.28 |     69.53 |                 34.96 |                 50.37 |                 52.25 |
+| L/X  | [YOLO11l](https://platform.ultralytics.com/ultralytics/yolo11/yolo11l)  |               48.71 |     74.26 |     68.50 |                 32.29 |                 50.84 |                 51.14 |
+| L/X  | [YOLOv5l](https://platform.ultralytics.com/ultralytics/yolov5/yolov5lu) |               48.25 |     74.03 |     68.16 |                 32.15 |                 49.89 |                 50.27 |
+| L/X  | [YOLOv8l](https://platform.ultralytics.com/ultralytics/yolov8/yolov8l)  |               48.22 |     74.15 |     69.14 |                 32.44 |                 49.14 |                 49.98 |
+| L/X  | [YOLOv8x](https://platform.ultralytics.com/ultralytics/yolov8/yolov8x)  |               47.94 |     76.00 |     66.82 |                 31.60 |                 49.85 |                 50.16 |
+| L/X  | [YOLOv5x](https://platform.ultralytics.com/ultralytics/yolov5/yolov5xu) |               47.58 |     75.05 |     68.15 |                 31.66 |                 49.60 |                 50.18 |
+| L/X  | [YOLO11x](https://platform.ultralytics.com/ultralytics/yolo11/yolo11x)  |               47.49 |     73.75 |     67.50 |                 31.64 |                 48.82 |                 49.66 |
+|  M   | YOLO27m                                                                 |           **53.68** | **76.66** | **73.20** |             **36.47** |             **53.65** |             **61.30** |
+|  M   | [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m)  |               49.74 |     76.23 |     68.74 |                 33.40 |                 50.29 |                 51.78 |
+|  M   | [YOLOv5m](https://platform.ultralytics.com/ultralytics/yolov5/yolov5mu) |               48.41 |     74.34 |     68.39 |                 32.12 |                 49.78 |                 52.39 |
+|  M   | [YOLO11m](https://platform.ultralytics.com/ultralytics/yolo11/yolo11m)  |               48.39 |     73.87 |     68.85 |                 32.62 |                 49.87 |                 51.23 |
+|  M   | [YOLOv8m](https://platform.ultralytics.com/ultralytics/yolov8/yolov8m)  |               48.25 |     73.89 |     68.69 |                 31.21 |                 49.73 |                 52.41 |
+|  S   | YOLO27s                                                                 |           **51.76** | **76.68** | **71.46** |             **35.19** |             **51.68** |             **54.53** |
+|  S   | [YOLO11s](https://platform.ultralytics.com/ultralytics/yolo11/yolo11s)  |               48.00 |     75.00 |     67.85 |                 29.98 |                 49.81 |                 51.13 |
+|  S   | [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)  |               47.77 |     74.24 |     67.23 |                 32.00 |                 47.91 |                 51.00 |
+|  S   | [YOLOv5s](https://platform.ultralytics.com/ultralytics/yolov5/yolov5su) |               47.55 |     74.18 |     67.37 |                 30.95 |                 49.13 |                 50.57 |
+|  S   | [YOLOv8s](https://platform.ultralytics.com/ultralytics/yolov8/yolov8s)  |               47.53 |     74.27 |     67.68 |                 31.38 |                 48.52 |                 50.57 |
+|  N   | YOLO27n                                                                 |           **49.32** | **75.46** | **68.82** |             **32.41** |             **49.27** |             **54.05** |
+|  N   | [YOLO11n](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n)  |               46.37 |     72.86 |     65.94 |                 28.76 |                 47.53 |                 51.05 |
+|  N   | [YOLOv8n](https://platform.ultralytics.com/ultralytics/yolov8/yolov8n)  |               46.09 |     72.53 |     65.89 |                 29.02 |                 47.61 |                 49.62 |
+|  N   | [YOLOv5n](https://platform.ultralytics.com/ultralytics/yolov5/yolov5nu) |               45.29 |     71.77 |     65.21 |                 29.03 |                 46.83 |                 48.59 |
+|  N   | [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n)  |               44.37 |     70.25 |     63.40 |                 29.12 |                 44.77 |                 48.39 |
 
 ## Benchmarking
 
@@ -158,7 +164,7 @@ datasets = [
     "ul://ultralytics/datasets/visdrone",
 ]
 
-results = YOLO("yolo27n.pt").train(
+results = YOLO("yolo26n.pt").train(
     data=datasets,
     epochs=100,
     patience=100,
@@ -173,7 +179,8 @@ results = YOLO("yolo27n.pt").train(
     plots=False,
 )
 # The main branch reports native-area size bins. This benchmark separately rescales GT and prediction areas
-# by (640 / max(image_width, image_height)) ** 2 before scoring size-specific AP.
+# by (640 / max(image_width, image_height)) ** 2 before scoring size-specific AP, and applies the VisDrone and
+# HIT-UAV ignore regions. This snippet does neither.
 ```
 
 ## Citation

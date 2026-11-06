@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Model Deployment Options
 comments: true
-description: Learn about model deployment options in Ultralytics Platform including inference testing, dedicated endpoints, and monitoring dashboards.
+description: "Compare model deployment options in Ultralytics Platform: browser testing, shared inference, dedicated endpoints in 42 regions, monitoring, and model export."
 keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YOLO, production, cloud deployment
 ---
 
 # Deployment
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive [model deployment options](../../guides/model-deployment-options.md) for putting your YOLO models into production. Test models with browser-based inference, deploy to dedicated endpoints across 42 global regions, and monitor performance in real-time.
+[Ultralytics Platform](https://platform.ultralytics.com) provides several [model deployment options](../../guides/model-deployment-options.md) for [putting your YOLO models into production](https://www.ultralytics.com/blog/how-ultralytics-platform-simplifies-computer-vision-model-deployment). Test models with browser-based inference, deploy to dedicated endpoints across 42 global regions, and monitor endpoint performance in real time.
 
 <p align="center">
   <br>
@@ -41,7 +41,7 @@ Ultralytics Platform offers multiple deployment paths:
 | **[Predict Tab](inference.md)**               | Image, webcam, examples; IP camera on own endpoints      | Development, validation |
 | **Shared Inference**                          | Multi-tenant service across 3 data regions               | Light usage, testing    |
 | **[Dedicated Endpoints](endpoints.md)**       | Single-tenant services across 42 regions                 | Production, low latency |
-| **[Export](../train/models.md#export-model)** | Download weights in 22 formats for local or edge runtime | Offline, on-device      |
+| **[Export](../train/models.md#export-model)** | Download weights in 23 formats for local or edge runtime | Offline, on-device      |
 
 ## Workflow
 
@@ -138,7 +138,7 @@ Endpoints currently behave as follows:
 
 ### Regional Deployment
 
-Use the measured region latency to place an endpoint near its callers. Actual inference latency depends on the model,
+Use the measured region latency to place an endpoint near its callers. Actual [inference latency](https://www.ultralytics.com/glossary/inference-latency) depends on the model,
 input size, endpoint state, and network path.
 
 ### Health Checks
@@ -187,6 +187,14 @@ Create a deployment:
 | **Testing**     | Model `Predict` tab          | Deployment page `Predict` tab or API        |
 | **Rate limits** | 20 requests/minute           | No Platform rate limit on direct calls      |
 | **Auth**        | Any workspace API key        | Only the API key bound to the deployment    |
+
+### How do I let someone else test my model?
+
+Share the model page, not a deployment. When the model's project is [public](../train/projects.md#visibility-settings),
+anyone with the link can run the model from its `Predict` tab in their browser, without an account or API key: open the
+`Predict` tab, then click **Share** > **Copy link**. Anonymous predictions are [rate limited](inference.md#rate-limits)
+per IP address. Deployment pages are visible only to your workspace, and a dedicated endpoint accepts only its bound API
+key.
 
 ### How long does deployment take?
 

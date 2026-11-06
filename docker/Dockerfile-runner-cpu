@@ -33,6 +33,8 @@ RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
     libglib2.0-0 \
     # tesseract-ocr-eng: English data for PyMuPDF's built-in Tesseract OCR of scanned PDFs (no text without) \
     tesseract-ocr-eng && \
+    # Chromium's system libraries and fonts for Playwright page screenshots (Chromium fails to launch without) \
+    npx --yes playwright-core install-deps chromium && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

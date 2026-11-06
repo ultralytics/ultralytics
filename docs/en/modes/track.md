@@ -1,28 +1,28 @@
 ---
 title: YOLO Multi-Object Tracking in Video
 comments: true
-description: Discover efficient, flexible, and customizable multi-object tracking with Ultralytics YOLO. Learn to track real-time video streams with ease.
-keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tracking, object detection, AI, machine learning
+description: Multi-object tracking with Ultralytics YOLO26 using TrackTrack, BoT-SORT, ByteTrack, OC-SORT, Deep OC-SORT, or FastTracker, with ReID and Python examples.
+keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tracking, object detection, TrackTrack, BoT-SORT, ByteTrack, ReID
 ---
 
 # Multi-Object Tracking with Ultralytics YOLO
 
 <img width="1024" src="https://cdn.ul.run/i/f30f62b4f5592a70ec688ae46cce61b1.avif" alt="YOLO multi-object tracking with trajectory paths">
 
-Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
+[Multi-object tracking](https://www.ultralytics.com/glossary/multi-object-tracking-mot) in video analytics identifies the location and class of objects within each frame and also maintains a unique ID for each detected object as the video progresses. Applications range from surveillance and security to real-time sports analytics.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned tracking support.
 
-!!! tip "🚀 New Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
+!!! tip "Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
 
     Starting with `ultralytics` 8.4.63, [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack) are available alongside BoT-SORT and ByteTrack.
 
 ## Why Choose Ultralytics YOLO for Object Tracking?
 
-The output from Ultralytics trackers is consistent with standard [object detection](https://www.ultralytics.com/glossary/object-detection) but has the added value of object IDs. This makes it easy to track objects in video streams and perform subsequent analytics. Here's why you should consider using Ultralytics YOLO for your object tracking needs:
+The output from Ultralytics trackers is consistent with standard [object detection](https://www.ultralytics.com/glossary/object-detection) but has the added value of object IDs. This makes it easy to [track objects in video streams](https://academy.ultralytics.com/courses/yolo-in-production/tracking-with-bytetrack-and-botsort) and perform subsequent analytics. Key reasons to use Ultralytics YOLO for object tracking:
 
 - **Efficiency:** Process video streams in real-time without compromising [accuracy](https://www.ultralytics.com/glossary/accuracy).
-- **Flexibility:** Supports multiple tracking algorithms and configurations.
+- **Flexibility:** Supports [multiple tracking algorithms](#supported-trackers) and configurations.
 - **Ease of Use:** Simple Python API and CLI options for quick integration and deployment.
 - **Customizability:** Easy to use with custom-trained YOLO models, allowing integration into domain-specific applications.
 
@@ -74,7 +74,7 @@ Run tracking on a video with the default TrackTrack tracker. Swap to another tra
         yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" tracker="bytetrack.yaml"
         ```
 
-To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model such as YOLO26n, YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb. You can train custom models locally or with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
+To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model such as YOLO26n, YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb, all available in the [YOLO26 collection](https://platform.ultralytics.com/ultralytics/yolo26) on Ultralytics Platform. You can train custom models locally or with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 !!! example
 
@@ -158,7 +158,7 @@ Pass the tracker config filename to `tracker=`. All other code stays the same.
 
 ### Tracking Arguments
 
-Tracking configuration shares properties with Predict mode, such as `conf`, `iou`, and `show`. For further configurations, refer to the [Predict](../modes/predict.md#inference-arguments) model page.
+Tracking configuration shares [inference arguments](predict.md#inference-arguments) with Predict mode, such as `conf`, `iou`, and `show`.
 
 !!! example
 
@@ -181,7 +181,7 @@ Tracking configuration shares properties with Predict mode, such as `conf`, `iou
 
 ### Custom Tracker Configuration
 
-Ultralytics also allows you to use a modified tracker configuration file. To do this, simply make a copy of a tracker config file (for example, `custom_tracker.yaml`) from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modify any configurations (except the `tracker_type`) as per your needs.
+To use a modified tracker configuration, copy a tracker config file (for example, as `custom_tracker.yaml`) from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modify any settings except `tracker_type`.
 
 !!! example
 
@@ -238,7 +238,7 @@ Each algorithm exposes additional knobs on top of the shared parameters. See the
 
 ### Enabling Re-Identification (ReID)
 
-ReID is disabled by default to minimize overhead. Enable it by setting `with_reid: True` in a tracker config file.
+[ReID](https://www.ultralytics.com/glossary/object-re-identification-re-id) is disabled by default to minimize overhead. Enable it by setting `with_reid: True` in a tracker config file.
 
 **ReID model options:**
 
@@ -536,13 +536,13 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
     cv2.destroyAllWindows()
     ```
 
-Please note the change from `model(frame)` to `model.track(frame)`, which enables object tracking instead of simple detection. This modified script will run the tracker on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
+Note the change from `model(frame)` to `model.track(frame)`, which enables object tracking instead of simple detection. This modified script will run the tracker on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
 
 ### Plotting Tracks Over Time
 
-Visualizing object tracks over consecutive frames can provide valuable insights into the movement patterns and behavior of detected objects within a video. With Ultralytics YOLO26, plotting these tracks is a seamless and efficient process.
+Visualizing object tracks over consecutive frames can provide valuable insights into the movement patterns and behavior of detected objects within a video. Ultralytics YOLO26 makes plotting these tracks straightforward.
 
-In the following example, we demonstrate how to utilize YOLO26's tracking capabilities to plot the movement of detected objects across multiple video frames. This script involves opening a video file, reading it frame by frame, and utilizing the YOLO model to identify and track various objects. By retaining the center points of the detected bounding boxes and connecting them, we can draw lines that represent the paths followed by the tracked objects.
+The following example uses YOLO26 tracking to plot the movement of detected objects across multiple video frames. The script opens a video file, reads it frame by frame, and uses the YOLO model to identify and track objects. By retaining the center points of the detected bounding boxes and connecting them, it draws lines that represent the paths followed by the tracked objects.
 
 !!! example "Plotting tracks over multiple video frames"
 
@@ -610,13 +610,13 @@ In the following example, we demonstrate how to utilize YOLO26's tracking capabi
 
 ### Multithreaded Tracking
 
-Multithreaded tracking provides the capability to run object tracking on multiple video streams simultaneously. This is particularly useful when handling multiple video inputs, such as from multiple surveillance cameras, where concurrent processing can greatly enhance efficiency and performance.
+Multithreaded tracking provides the capability to run object tracking on multiple video streams simultaneously. This is particularly useful when handling multiple video inputs, such as from multiple surveillance cameras, where concurrent processing improves throughput.
 
-In the provided Python script, we make use of Python's `threading` module to run multiple instances of the tracker concurrently. Each thread is responsible for running the tracker on one video file, and all the threads run simultaneously in the background.
+The Python script below uses Python's `threading` module to run multiple instances of the tracker concurrently. Each thread runs the tracker on one video source, and all the threads run simultaneously in the background.
 
-To ensure that each thread receives the correct parameters (the video file, the model to use and the file index), we define a function `run_tracker_in_thread` that accepts these parameters and contains the main tracking loop. This function reads the video frame by frame, runs the tracker, and saves the annotated results.
+To ensure that each thread receives the correct parameters (the model to use and the video source), the script defines a function `run_tracker_in_thread` that accepts these parameters and contains the main tracking loop. This function reads the video frame by frame, runs the tracker, and saves the annotated results.
 
-Two different models are used in this example: `yolo26n.pt` and `yolo26n-seg.pt`, each tracking objects in a different video file. The video files are specified in `SOURCES`.
+Two different models are used in this example, `yolo26n.pt` and `yolo26n-seg.pt`, each tracking objects in a different source: a local video file and a webcam. The sources are specified in `SOURCES`.
 
 The `daemon=True` parameter in `threading.Thread` means that these threads will be closed as soon as the main program finishes. We then start the threads with `start()` and use `join()` to make the main thread wait until both tracker threads have finished.
 
@@ -668,13 +668,7 @@ This example can easily be extended to handle more video files and models by cre
 
 ## Contribute New Trackers
 
-Are you proficient in multi-object tracking and have successfully implemented or adapted a tracking algorithm with Ultralytics YOLO? We invite you to contribute to our Trackers section in [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)! Your real-world applications and solutions could be invaluable for users working on tracking tasks.
-
-By contributing to this section, you help expand the scope of tracking solutions available within the Ultralytics YOLO framework, adding another layer of functionality and utility for the community.
-
-To initiate your contribution, please refer to our [Contributing Guide](../help/contributing.md) for comprehensive instructions on submitting a Pull Request (PR) 🛠️. We are excited to see what you bring to the table!
-
-Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!
+If you have implemented or adapted a multi-object tracking algorithm for Ultralytics YOLO, consider [contributing](../help/contributing.md) it to [ultralytics/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/trackers) with a matching config in [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers). Contributions expand the tracking options available to the whole community.
 
 ## FAQ
 
@@ -765,7 +759,7 @@ Multi-object tracking with Ultralytics YOLO has numerous applications, including
 - **Sports Analytics:** Tracking players and equipment for performance analysis.
 - **Security Systems:** [Monitoring suspicious activities](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8) and creating [security alarms](../guides/security-alarm-system.md).
 
-These applications benefit from Ultralytics YOLO's ability to process high-frame-rate videos in real time with exceptional accuracy.
+These applications benefit from Ultralytics YOLO's ability to process high-frame-rate videos in real time with high accuracy.
 
 ### How can I visualize object tracks over multiple video frames with Ultralytics YOLO?
 

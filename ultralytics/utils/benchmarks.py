@@ -32,6 +32,7 @@ Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
+NXP                     | `nxp`                     | yolo26n_nxp.tflite
 """
 
 from __future__ import annotations
@@ -149,9 +150,7 @@ def benchmark(
                 continue
 
             # Checks
-            if export_format == "pb":
-                assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
-            elif export_format == "edgetpu":
+            if export_format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
                 assert shutil.which("edgetpu_compiler"), "Edge TPU benchmark requires edgetpu_compiler"
             elif export_format == "coreml":
@@ -232,7 +231,6 @@ def benchmark(
             emoji = "❎"  # indicates export succeeded
 
             # Predict
-            assert model.task != "pose" or export_format != "pb", "GraphDef Pose inference is not supported"
             assert export_format != "edgetpu", "inference not supported"
             assert export_format != "coreml" or platform.system() == "Darwin", "inference requires macOS>=10.13"
             assert export_format != "coreai" or MACOS, "inference requires macOS"
@@ -354,7 +352,7 @@ class ProfileModels:
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.min_time = min_time
-        self.imgsz = imgsz
+        self.imgsz = check_imgsz(imgsz)
         self.quantize = quantize
         self.trt = trt  # run TensorRT profiling
         self.device = select_device(device, verbose=False)
@@ -385,7 +383,7 @@ class ProfileModels:
                 model = YOLO(str(file))
                 model.fuse(verbose=False)
                 model_info = model.info(imgsz=self.imgsz)
-                if self.trt and self.device.type != "cpu" and not engine_file.is_file():
+                if self.trt and self.device.type != "cpu":
                     engine_file = model.export(
                         format="engine",
                         quantize=self.quantize,
@@ -643,7 +641,7 @@ class ProfileModels:
         headers = [
             "Model",
             "size<br><sup>(pixels)",
-            "mAP<sup>val<br>50-95",
+            "mAP<sup>val</sup><sub>50-95</sub>",
             f"Speed<br><sup>CPU ({get_cpu_info()}) ONNX<br>(ms)",
             f"Speed<br><sup>{gpu} TensorRT<br>(ms)",
             "params<br><sup>(M)",

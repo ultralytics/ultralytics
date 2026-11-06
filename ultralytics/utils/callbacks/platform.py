@@ -81,14 +81,14 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
 
 
 def _sanitize_json_value(value):
-    """Replace non-finite floats in payloads with None so JSON encoding succeeds."""
+    """Make payloads JSON-encodable: non-finite floats become None and other non-JSON values become strings."""
     if isinstance(value, dict):
         return {k: _sanitize_json_value(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
         return [_sanitize_json_value(v) for v in value]
     if isinstance(value, float):
         return value if isfinite(value) else None  # avoid "Out of range float values are not JSON compliant" warnings
-    return value
+    return value if value is None or isinstance(value, (bool, int, str)) else str(value)  # e.g. np.int64, Path
 
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
@@ -218,7 +218,6 @@ def _get_environment_info():
         "pythonExecutable": sys.executable,
         "cpuCount": os.cpu_count() or 0,
         "cpu": get_cpu_info(),
-        "command": " ".join(sys.argv),
         "totalRamGb": round(memory.total / (1 << 30), 1),  # Total RAM in GB
         "totalDiskGb": round(disk_usage.total / (1 << 30), 1),  # Total disk in GB
     }
@@ -249,11 +248,11 @@ def _get_environment_info():
 
 
 def _get_project_name(trainer):
-    """Get slugified project and name from trainer args."""
+    """Get slugified project and raw run name from trainer args; Platform derives the model slug from the name."""
     raw = str(trainer.args.project)
     parts = raw.split("/", 1)
     project = f"{parts[0]}/{slugify(parts[1].replace('/', '-'))}" if len(parts) == 2 else slugify(raw)
-    return project, slugify(str(trainer.args.name or "train"))
+    return project, str(trainer.args.name or "train")
 
 
 def _get_training_gpus(trainer):
@@ -345,7 +344,7 @@ def on_pretrain_routine_start(trainer):
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
     data = {
-        "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+        "trainArgs": vars(trainer.args),  # _send makes values JSON-encodable
         "epochs": trainer.epochs,
         "device": str(trainer.device),
         "environment": environment,

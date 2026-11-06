@@ -11,7 +11,7 @@ import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
 from ultralytics.utils import ARM64, AUTOINSTALL, LINUX, LOGGER, MACOS, USER_CONFIG_DIR
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_requirements, check_version
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, ONNXRUNTIME_BUILDS, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
 from ultralytics.utils.tal import make_anchors
 
@@ -116,7 +116,7 @@ def onnx2saved_model(
             "onnx>=1.12.0,<2.0.0",
             "onnxslim>=0.1.82",
             # Interchangeable candidates so an installed variant is never dual-installed over
-            (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"),
+            (ort, *ONNXRUNTIME_BUILDS),
             "protobuf>=6.31.1,<7.0.0"
             if IS_PYTHON_MINIMUM_3_13
             else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault

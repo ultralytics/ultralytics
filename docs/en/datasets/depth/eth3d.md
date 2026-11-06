@@ -3,13 +3,13 @@ comments: true
 license:
     name: CC-BY-NC-SA-4.0
     url: https://creativecommons.org/licenses/by-nc-sa/4.0/
-description: Explore the ETH3D high-resolution benchmark for monocular depth estimation. Learn about its structure, usage, pretrained models, and role as a YOLO26-Depth zero-shot evaluation benchmark.
+description: ETH3D is a high-resolution indoor and outdoor benchmark with laser-scanner ground truth, used for zero-shot evaluation of YOLO26-Depth monocular depth models.
 keywords: Ultralytics, YOLO, depth estimation, ETH3D, multi-view stereo, laser scanner, monocular depth, indoor outdoor benchmark
 ---
 
 # ETH3D Depth Dataset
 
-[ETH3D](https://openaccess.thecvf.com/content_cvpr_2017/html/Schops_A_Multi-View_Stereo_CVPR_2017_paper.html) is a high-resolution multi-view-stereo benchmark used for [monocular depth estimation](index.md). It provides survey-grade laser-scanner ground truth across both indoor and outdoor scenes.
+[ETH3D](https://openaccess.thecvf.com/content_cvpr_2017/html/Schops_A_Multi-View_Stereo_CVPR_2017_paper.html) is a high-resolution multi-view-stereo benchmark used for monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation). It provides survey-grade laser-scanner ground truth across both indoor and outdoor scenes.
 
 ## Key Features
 
@@ -27,15 +27,15 @@ Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), fo
 
 ## Results
 
-The table below reports the `delta1` accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the ETH3D evaluation images by model size.
+The table below reports the δ<sub>1</sub> accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the ETH3D evaluation images by model size.
 
-| Model         | delta1 |
-| ------------- | ------ |
-| YOLO26n-depth | 0.905  |
-| YOLO26s-depth | 0.876  |
-| YOLO26m-depth | 0.943  |
-| YOLO26l-depth | 0.945  |
-| YOLO26x-depth | 0.953  |
+| Model         | δ<sub>1</sub> |
+| ------------- | ------------- |
+| YOLO26n-depth | 0.905         |
+| YOLO26s-depth | 0.876         |
+| YOLO26m-depth | 0.943         |
+| YOLO26l-depth | 0.945         |
+| YOLO26x-depth | 0.953         |
 
 ## Evaluation
 
@@ -43,7 +43,7 @@ ETH3D is not shipped with a bundled dataset YAML. It is evaluated through a dedi
 
 ## Usage
 
-ETH3D is an external benchmark, so models are typically run with `predict` on its images. For a comprehensive list of available arguments, refer to the model [Prediction](../../modes/predict.md) page.
+ETH3D is an external benchmark, so models are typically run with [`predict`](../../modes/predict.md) on its images.
 
 !!! example "Predict Example"
 
@@ -93,7 +93,7 @@ We would like to acknowledge the authors for creating and maintaining this valua
 
 ### How is ETH3D used in YOLO26-Depth?
 
-ETH3D is a zero-shot evaluation benchmark. The released YOLO26-Depth models are not trained on it, so its 423 indoor and outdoor images with survey-grade laser-scanner depth measure cross-domain generalization out to roughly 60 m. The largest model, YOLO26x-depth, reaches a delta1 of 0.953 on this benchmark.
+ETH3D is a zero-shot evaluation benchmark. The released YOLO26-Depth models are not trained on it, so its 423 indoor and outdoor images with survey-grade laser-scanner depth measure cross-domain generalization out to roughly 60 m. The largest model, YOLO26x-depth, reaches a δ<sub>1</sub> of 0.953 on this benchmark.
 
 ### Is there a dataset YAML for ETH3D?
 

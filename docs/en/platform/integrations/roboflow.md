@@ -1,7 +1,7 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Import datasets from your Roboflow workspace into Ultralytics Platform with a single API key.
+description: Import detection, segmentation, classification, and pose datasets from your Roboflow workspace into Ultralytics Platform with an API key, then train YOLO models.
 keywords: Ultralytics Platform, Roboflow, Roboflow import, dataset import, integrations, YOLO, computer vision
 title: Roboflow Dataset Import - Ultralytics Platform
 ---

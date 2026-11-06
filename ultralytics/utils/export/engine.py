@@ -183,6 +183,9 @@ def modelopt_quantize_onnx(
         calib = calib.to(torch.float32).div_(255.0)
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
+        # On SM 12.1 (GB10, N1X) TensorRT builds RT-DETR's HGBlock squeeze conv and, from 11.4, fully INT8 attention
+        # broken, so both stay in float there; other GPUs keep them in INT8, where excluding them costs speed or mAP
+        sm121 = torch.cuda.get_device_capability() == (12, 1)
         modelopt_quantize(
             onnx_file,
             quantize_mode="int8",
@@ -194,7 +197,8 @@ def modelopt_quantize_onnx(
             calibration_eps=["cpu"],
             # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
             # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
-            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"],
+            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"] + ([r".*/sc/conv/Conv$"] if sm121 else []),
+            disable_mha_qdq=sm121,
             output_path=out_file,
             **kwargs,
         )
@@ -246,7 +250,7 @@ def onnx2engine(
         dla (int | None): DLA core to use (Jetson devices only).
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration, unused when the
             ONNX graph already carries Q/DQ ranges.
-        metadata (dict | None): Metadata to include in the engine file.
+        metadata (dict | None): Metadata to include in the engine file; its `stride` sizes the dynamic minimum shape.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
 
@@ -349,7 +353,9 @@ def onnx2engine(
 
     if dynamic:
         profile = builder.create_optimization_profile()
-        min_shape = (1, shape[1], 32, 32)  # minimum input shape
+        old_qdq_gpu = (qdq or (is_trt11 and use_int8)) and torch.cuda.get_device_capability() <= (7, 5)  # e.g. T4
+        min_side = max(64, 2 * (metadata or {}).get("stride", 32)) if old_qdq_gpu else 32  # lacks 1x1 INT8 Q/DQ
+        min_shape = (1, shape[1], *(min(min_side, d) for d in shape[2:]))  # minimum input shape, capped at imgsz
         max_shape = (*shape[:2], *(2 * d for d in shape[2:]))  # max input shape, 2x imgsz
         for inp in inputs:
             inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))

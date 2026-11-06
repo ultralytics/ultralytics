@@ -34,7 +34,7 @@ Create a new API key:
 Give your key a descriptive name:
 
 - `training-server` - For remote training machines
-- `ci-pipeline` - For CI/CD integration
+- `ci-pipeline` - For [CI/CD](https://www.ultralytics.com/glossary/continuous-integration-ci) integration
 - `local-dev` - For local development
 
 ### Key Display
@@ -45,7 +45,7 @@ After creation, the key is displayed in a confirmation dialog:
 
 !!! tip "Copy Your Key"
 
-    Copy your key after creation for easy reference. You can also use the copy button in the key list anytime; the list displays only each key's prefix.
+    Copy your key after creation. You can also use the copy button in the key list anytime; the list displays only each key's prefix.
 
 ## Provider Keys for Agents and Annotation
 
@@ -210,10 +210,10 @@ disconnecting the host — which also cancels that host's queued and running job
 
 Rotate keys periodically for security:
 
-1. Create new key with same name
-2. Update applications to use new key
+1. Create a new key with the same name
+2. Update applications to use the new key
 3. Verify applications work correctly
-4. Revoke old key
+4. Revoke the old key
 
 !!! tip "Rotation Schedule"
 
@@ -229,9 +229,9 @@ Error: Invalid API key
 
 Solutions:
 
-1. Verify key is copied correctly (including the `ul_` prefix)
-2. Check key hasn't been revoked
-3. Confirm environment variable is set
+1. Verify the key is copied correctly (including the `ul_` prefix)
+2. Check that the key hasn't been revoked
+3. Confirm the environment variable is set
 4. Ensure you're using Python>=3.11 and `ultralytics>=8.4.120`
 
 ### Permission Denied
@@ -268,7 +268,7 @@ There's no hard limit on API keys. Create as many as needed for different applic
 
 ### Do keys expire?
 
-Keys don't expire automatically. They remain valid until revoked. Consider implementing rotation for security.
+Keys don't expire automatically. They remain valid until revoked, so rotate them periodically for security.
 
 ### Can I see my key after creation?
 

@@ -86,7 +86,7 @@ class TaskAlignedAssigner(nn.Module):
         References:
             https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
         """
-        self.bs = pd_scores.shape[0]
+        self.bs, _, self.num_classes = pd_scores.shape
         self.n_max_boxes = gt_bboxes.shape[1]
         if self.n_max_boxes == 0:
             return (

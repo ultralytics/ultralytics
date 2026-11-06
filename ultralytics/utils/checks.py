@@ -25,7 +25,6 @@ import torch
 
 from ultralytics.utils import (
     ARM64,
-    ASSETS,
     ASSETS_URL,
     AUTOINSTALL,
     GIT,
@@ -70,7 +69,7 @@ def normalize_platform_uri(uri):
         (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
     """
     s = str(uri)
-    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
+    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.lower().startswith(f"{PLATFORM_URL}/".lower()) else uri
 
 
 def resolve_platform_uri(uri, hard=True):
@@ -623,13 +622,12 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     if pkgs:
         packages = [*pkgs, *constrain]
         if install and AUTOINSTALL:  # check environment variable
-            # Note uv fails on arm64 macOS and Raspberry Pi runners
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                use_uv = not ARM64 and check_uv()  # uv fails on ARM64
+                use_uv = check_uv()
                 LOGGER.info(attempt_install(packages, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
@@ -709,8 +707,8 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
         if isinstance(suffix, str):
             suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            if s := clean_url(f).rpartition(".")[-1].lower().strip():  # file suffix
-                assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
+            if s := Path(clean_url(f)).suffix.lower().strip():  # file suffix
+                assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}, not {s}"
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
@@ -799,7 +797,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
             downloads.safe_download(url=url, file=local_file, unzip=False)
         return str(local_file)
     elif download and file.lower().startswith(REMOTE_FILE_PREFIXES):  # download
-        if file.startswith("gs://"):
+        if file.lower().startswith("gs://"):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split authentication query strings
@@ -985,23 +983,28 @@ def collect_system_info():
 
 
 def check_amp(model):
-    """Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
+    """Check the PyTorch Automatic Mixed Precision (AMP) functionality on a YOLO model's device.
 
-    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
-    results, so AMP will be disabled during training.
+    An untrained YOLO26n built from its YAML runs one FP32 forward pass in train mode on a random batch, and every
+    Conv2d and Attention layer is recomputed under AMP from its own FP32 input. Comparing layer by layer keeps the
+    tolerance independent of model depth and weights, so no pretrained weights are downloaded. If the checks fail, it
+    means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be
+    disabled during training.
 
     Args:
-        model (torch.nn.Module): A YOLO model instance.
+        model (torch.nn.Module): A YOLO model instance, whose device is checked.
 
     Returns:
-        (bool): Returns True if the AMP functionality works correctly with YOLO model, else False.
+        (bool): Returns True if the AMP functionality works correctly on the model's device, else False.
 
     Examples:
         >>> from ultralytics import YOLO
         >>> from ultralytics.utils.checks import check_amp
-        >>> model = YOLO("yolo26n.pt").model.cuda()
+        >>> model = YOLO("yolo26n.yaml").model.cuda()  # any model, only its device is used
         >>> check_amp(model)
     """
+    from ultralytics.nn.modules import Attention
+    from ultralytics.nn.tasks import DetectionModel
     from ultralytics.utils.torch_utils import autocast
 
     device = next(model.parameters()).device  # get model device
@@ -1022,42 +1025,30 @@ def check_amp(model):
             )
             return False
 
-    def amp_allclose(m, im):
-        """All close FP32 vs AMP results."""
-        batch = [im] * 8
-        imgsz = max(256, int(model.stride.max() * 4))  # max stride P5-32 and P6-64
-        a = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # FP32 inference
+    close = []  # per-layer agreement of AMP with FP32
+
+    def compare_amp(layer, inputs, output):
+        """Recompute a layer under AMP from its FP32 input and record whether it matches the FP32 output."""
         with autocast(enabled=True, device=device.type):
-            b = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # AMP inference
-        del m
-        return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
+            y = layer.forward(inputs[0])  # forward() skips this layer's own hook
+        close.append(bool((output - y.float()).norm() <= 0.05 * output.norm()))  # False for NaN or inf
 
-    im = ASSETS / "bus.jpg"  # image to check
     LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
-    warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
-    try:
-        from ultralytics import YOLO
-        from ultralytics.utils import WEIGHTS_DIR
-
-        amp_weights = WEIGHTS_DIR / "yolo26n.pt"
-        if not amp_weights.is_file():
-            LOGGER.info(f"{prefix}downloading yolo26n.pt for AMP checks (one-time, not used for training)...")
-        assert amp_allclose(YOLO(amp_weights), im)
+    # Untrained models underflow FP16 in eval mode; train-mode BatchNorm keeps activations in range as in AMP training
+    m = DetectionModel("yolo26n.yaml", verbose=False).to(device)  # built in train mode
+    for layer in m.modules():
+        if isinstance(layer, (torch.nn.Conv2d, Attention)):  # convolutions and attention matmuls
+            layer.register_forward_hook(compare_amp)
+    with torch.no_grad():
+        m(torch.rand(8, 3, 256, 256, device=device))  # batch 8, as GTX 16xx AMP faults appeared only at batch >= 7
+    if all(close):
         LOGGER.info(f"{prefix}checks passed ✅")
-    except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO26n for AMP checks. {warning_msg}")
-    except (AttributeError, ModuleNotFoundError):
-        LOGGER.warning(
-            f"{prefix}checks skipped. "
-            f"Unable to load YOLO26n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
-        )
-    except AssertionError:
-        LOGGER.error(
-            f"{prefix}checks failed. Anomalies were detected with AMP on your system that may lead to "
-            f"NaN losses or zero-mAP results, so AMP will be disabled during training."
-        )
-        return False
-    return True
+        return True
+    LOGGER.error(
+        f"{prefix}checks failed. Anomalies were detected with AMP on your system that may lead to "
+        f"NaN losses or zero-mAP results, so AMP will be disabled during training."
+    )
+    return False
 
 
 def check_multiple_install():
@@ -1202,11 +1193,7 @@ def is_sudo_available() -> bool:
     """
     if WINDOWS:
         return False
-    cmd = "sudo --version"
-    return (
-        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode
-        == 0
-    )
+    return shutil.which("sudo") is not None
 
 
 # Run checks and define constants
@@ -1220,3 +1207,5 @@ IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)
+
+ONNXRUNTIME_BUILDS = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"

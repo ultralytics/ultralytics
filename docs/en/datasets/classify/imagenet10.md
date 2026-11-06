@@ -37,11 +37,11 @@ Explore [ImageNet10 on Ultralytics Platform](https://platform.ultralytics.com/ul
 
 ## Applications
 
-The ImageNet10 dataset is useful for quickly testing and debugging computer vision models and pipelines. Its small size allows for rapid iteration, making it ideal for [continuous integration](../../help/CI.md) tests and sanity checks. It is also handy for fast preliminary testing of new models or code changes before moving on to full-scale runs with the complete [ImageNet](imagenet.md) dataset.
+The ImageNet10 dataset is useful for quickly testing and debugging computer vision models and pipelines. Its small size allows for rapid iteration, making it ideal for continuous integration tests and sanity checks. It is also handy for fast preliminary testing of new models or code changes before moving on to full-scale runs with the complete [ImageNet](imagenet.md) dataset.
 
 ## Usage
 
-To test a classification model on the ImageNet10 dataset at an image size of 224x224, use the code snippets below. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To test a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) classification model on the ImageNet10 dataset at an image size of 224x224, use the code snippets below.
 
 !!! example "Test Example"
 
@@ -70,7 +70,7 @@ The ImageNet10 dataset contains a subset of images from the original ImageNet da
 
 ![ImageNet-10 classification dataset sample images](https://cdn.ul.run/i/065171376b7fd97b9751493a1d22236e.avif)
 
-The example showcases the variety and complexity of the images in the ImageNet10 dataset, highlighting its usefulness for sanity checks and quick testing of computer vision models.
+The example shows the variety and complexity of the images in the ImageNet10 dataset, highlighting its usefulness for sanity checks and quick testing of computer vision models.
 
 ## Citations and Acknowledgments
 
@@ -137,4 +137,4 @@ ImageNet10 is designed specifically for CI tests, sanity checks, and quick evalu
 
 ### How does ImageNet10 compare to other small datasets like ImageNette?
 
-While both [ImageNet10](imagenet10.md) and [ImageNette](imagenette.md) are subsets of ImageNet, they serve different purposes. ImageNet10 contains just 24 images from the first 10 classes, making it extremely lightweight for CI testing and quick sanity checks. In contrast, ImageNette contains over 13,000 images across 10 easily distinguishable classes, making it suitable for actual model training and development. ImageNet10 verifies pipeline functionality, while ImageNette is better for meaningful but faster-than-full-ImageNet training experiments.
+While both ImageNet10 and [ImageNette](imagenette.md) are subsets of ImageNet, they serve different purposes. ImageNet10 contains just 24 images from the first 10 classes, making it extremely lightweight for CI testing and quick sanity checks. In contrast, ImageNette contains over 13,000 images across 10 easily distinguishable classes, making it suitable for actual model training and development. ImageNet10 verifies pipeline functionality, while ImageNette is better for meaningful but faster-than-full-ImageNet training experiments.

@@ -112,7 +112,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 full_mask_areas = torch.sum(masks, dim=(1, 2))
 
                 union = bbox_areas[:, None] + full_mask_areas - mask_areas
-                idx[torch.argmax(mask_areas / union, dim=1)] = True
+                idx[torch.argmax(mask_areas / union, dim=1)[mask_areas.any(dim=1)]] = True
             if points is not None:
                 coords = torch.as_tensor(points, dtype=torch.int64, device=self.device).clone()
                 coords = coords[None] if coords.ndim == 1 else coords
@@ -159,10 +159,10 @@ class FastSAMPredictor(SegmentationPredictor):
             (torch.Tensor): Similarity matrix between texts and images with shape (M, N), where M is the number of texts
                 and N is the number of images.
         """
-        from ultralytics.nn.text_model import CLIP
+        from ultralytics.nn.text_model import MobileCLIPTS
 
         if not hasattr(self, "clip"):
-            self.clip = CLIP("ViT-B/32", device=self.device)
+            self.clip = MobileCLIPTS(self.device, "clip_b32_datacomp.ts")
         if self.device.type == "cuda" and NUM_THREADS > 1 and len(images) >= 2 * NUM_THREADS:
             with ThreadPool(NUM_THREADS) as pool:
                 images = pool.map(self.clip.image_preprocess, images)

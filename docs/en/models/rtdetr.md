@@ -1,15 +1,15 @@
 ---
 title: RT-DETR Real-Time Detection Transformer
 comments: true
-description: Explore Baidu's RT-DETR, a Vision Transformer-based real-time object detector offering high accuracy and adaptable inference speed. Learn more with Ultralytics.
-keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, decoder layer index, query count, AI, machine learning, computer vision
+description: RT-DETR is Baidu's real-time transformer object detector with NMS-free inference and adjustable decoder speed. Train, validate and export it with Ultralytics.
+keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, decoder layer index, query count, NMS-free detection, computer vision
 ---
 
-# Baidu's RT-DETR: A Vision [Transformer](https://www.ultralytics.com/glossary/transformer)-Based Real-Time Object Detector
+# Baidu's RT-DETR: A Vision Transformer-Based Real-Time Object Detector
 
 ## Overview
 
-Real-Time Detection Transformer (RT-DETR), developed by Baidu, is a cutting-edge end-to-end object detector that provides real-time performance while maintaining high [accuracy](https://www.ultralytics.com/glossary/accuracy). It is based on the idea of DETR (the NMS-free framework), meanwhile introducing conv-based [backbone](https://www.ultralytics.com/glossary/backbone) and an efficient hybrid encoder to gain real-time speed. RT-DETR efficiently processes multiscale features by decoupling intra-scale interaction and cross-scale fusion. The model is highly adaptable, supporting flexible adjustment of inference speed using different decoder layers without retraining. RT-DETR excels on accelerated backends like CUDA with TensorRT, outperforming many other real-time object detectors.
+Real-Time Detection Transformer (RT-DETR), developed by Baidu, is an end-to-end object detector that provides real-time performance while maintaining high [accuracy](https://www.ultralytics.com/glossary/accuracy). It builds on DETR, an NMS-free [transformer](https://www.ultralytics.com/glossary/transformer) detection framework, and adds a convolutional [backbone](https://www.ultralytics.com/glossary/backbone) and an efficient hybrid encoder to reach real-time speed. RT-DETR efficiently processes multiscale features by decoupling intra-scale interaction and cross-scale fusion. The model is highly adaptable, supporting flexible adjustment of inference speed using different decoder layers without retraining. RT-DETR performs best on accelerated backends such as CUDA with TensorRT.
 
 <p align="center">
   <br>
@@ -19,15 +19,15 @@ Real-Time Detection Transformer (RT-DETR), developed by Baidu, is a cutting-edge
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Use Baidu's RT-DETR for Object Detection | Inference and Benchmarking with Ultralytics  🚀
+  <strong>Watch:</strong> How to Use Baidu's RT-DETR for Object Detection | Inference and Benchmarking with Ultralytics
 </p>
 
 ![Baidu RT-DETR model architecture overview](https://cdn.ul.run/i/bedb4e3010893ccbbb990ee1709d90db.avif) **Overview of Baidu's RT-DETR.** The RT-DETR model architecture diagram shows the last three stages of the backbone {S3, S4, S5} as the input to the encoder. The efficient hybrid encoder transforms multiscale features into a sequence of image features through intrascale feature interaction (AIFI) and cross-scale feature-fusion module (CCFM). The IoU-aware query selection is employed to select a fixed number of image features to serve as initial object queries for the decoder. Finally, the decoder with auxiliary prediction heads iteratively optimizes object queries to generate boxes and confidence scores ([source](https://arxiv.org/pdf/2304.08069)).
 
 ### Key Features
 
-- **Efficient Hybrid Encoder:** Baidu's RT-DETR uses an efficient hybrid encoder that processes multiscale features by decoupling intra-scale interaction and cross-scale fusion. This unique Vision Transformers-based design reduces computational costs and allows for real-time [object detection](https://www.ultralytics.com/glossary/object-detection).
-- **IoU-aware Query Selection:** Baidu's RT-DETR improves object query initialization by utilizing IoU-aware query selection. This allows the model to focus on the most relevant objects in the scene, enhancing the detection accuracy.
+- **Efficient Hybrid Encoder:** Baidu's RT-DETR uses an efficient hybrid encoder that processes multiscale features by decoupling intra-scale interaction and cross-scale fusion. This transformer-based design reduces computational costs and allows for real-time [object detection](https://www.ultralytics.com/glossary/object-detection).
+- **IoU-aware Query Selection:** Baidu's RT-DETR improves object query initialization with [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou)-aware query selection. This allows the model to focus on the most relevant objects in the scene, enhancing the detection accuracy.
 - **Adaptable Inference Speed:** Baidu's RT-DETR supports flexible adjustments of inference speed by using different decoder layers without the need for retraining. This adaptability facilitates practical application in various real-time object detection scenarios.
 - **NMS-Free Framework:** Based on DETR, RT-DETR eliminates the need for [non-maximum suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) post-processing, simplifying the detection pipeline and potentially improving efficiency.
 - **Anchor-Free Detection:** As an [anchor-free detector](https://www.ultralytics.com/glossary/anchor-free-detectors), RT-DETR simplifies the detection process and may improve generalization across different datasets.
@@ -36,16 +36,16 @@ Real-Time Detection Transformer (RT-DETR), developed by Baidu, is a cutting-edge
 
 The Ultralytics Python API provides pretrained PaddlePaddle RT-DETR models with different scales:
 
-- RT-DETR-L: 53.0% AP on COCO val2017, 114 FPS on T4 GPU
+- RT-DETR-L: 53.0% AP on [COCO](../datasets/detect/coco.md) val2017, 114 FPS on T4 GPU
 - RT-DETR-X: 54.8% AP on COCO val2017, 74 FPS on T4 GPU
 
-Additionally, Baidu has released RTDETRv2 in July 2024, which further improves upon the original architecture with enhanced performance metrics.
+Baidu released RTDETRv2 in July 2024, which further improves on the original architecture.
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["RTDETRv2"]'></canvas>
 
 ## Usage Examples
 
-This example provides simple RT-DETR training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages. Models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+The examples below show simple RT-DETR [training](../modes/train.md) and [inference](../modes/predict.md). Models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
 
 !!! example
 
@@ -108,7 +108,7 @@ This example provides simple RT-DETR training and inference examples. For full d
 
 ## Supported Tasks and Modes
 
-This table presents the model types, the specific pretrained weights, the tasks supported by each model, and the various modes ([Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) that are supported, indicated by ✅ emojis.
+This table presents the model types, the specific pretrained weights, the tasks supported by each model, and the supported modes (Train, Val, Predict, Export), indicated by ✅ emojis.
 
 | Model Type          | Pretrained Weights                                                                        | Tasks Supported                        | Training | Validation | Inference | Export |
 | ------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------- | -------- | ---------- | --------- | ------ |
@@ -123,9 +123,9 @@ This table presents the model types, the specific pretrained weights, the tasks 
 
 RT-DETR is particularly well-suited for applications requiring both high accuracy and real-time performance:
 
-- **Autonomous Driving**: For reliable environmental perception in self-driving systems where both speed and accuracy are critical. [Learn more about AI in self-driving cars](https://www.ultralytics.com/solutions/computer-vision-in-automotive).
-- **Advanced Robotics**: Enabling robots to perform complex tasks requiring accurate object recognition and interaction in dynamic environments. [Explore AI's role in robotics](https://www.ultralytics.com/blog/from-algorithms-to-automation-ais-role-in-robotics).
-- **Medical Imaging**: For applications in healthcare where precision in object detection can be crucial for diagnostics. [Discover AI in healthcare](https://www.ultralytics.com/solutions/computer-vision-in-healthcare).
+- **Autonomous Driving**: For reliable environmental perception in [self-driving systems](https://www.ultralytics.com/solutions/computer-vision-in-automotive) where both speed and accuracy are critical.
+- **Advanced Robotics**: Enabling [robots](https://www.ultralytics.com/blog/from-algorithms-to-automation-ais-role-in-robotics) to perform complex tasks requiring accurate object recognition and interaction in dynamic environments.
+- **Medical Imaging**: For applications in [healthcare](https://www.ultralytics.com/solutions/computer-vision-in-healthcare) where precision in object detection can be crucial for diagnostics.
 - **Surveillance Systems**: For security applications requiring real-time monitoring with high detection accuracy. [Learn about security alarm systems](../guides/security-alarm-system.md).
 - **Satellite Image Analysis**: For detailed analysis of high-resolution imagery where global context understanding is important. [Read about computer vision in satellite imagery](https://www.ultralytics.com/blog/using-computer-vision-to-analyze-satellite-imagery).
 
@@ -156,7 +156,7 @@ For RTDETRv2, you can cite the [2024 paper](https://arxiv.org/abs/2407.17140):
 
         ```bibtex
         @misc{lv2024rtdetrv2,
-              title={RTDETRv2: All-in-One Detection Transformer Beats YOLO and DINO},
+              title={RT-DETRv2: Improved Baseline with Bag-of-Freebies for Real-Time Detection Transformer},
               author={Wenyu Lv and Yian Zhao and Qinyao Chang and Kui Huang and Guanzhong Wang and Yi Liu},
               year={2024},
               eprint={2407.17140},
@@ -165,17 +165,17 @@ For RTDETRv2, you can cite the [2024 paper](https://arxiv.org/abs/2407.17140):
         }
         ```
 
-We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. Their contribution to the field with the development of the Vision Transformers-based real-time object detector, RT-DETR, is greatly appreciated.
+We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. Their development of the transformer-based real-time object detector RT-DETR is greatly appreciated.
 
 ## FAQ
 
 ### What is Baidu's RT-DETR model and how does it work?
 
-Baidu's RT-DETR (Real-Time Detection Transformer) is an advanced real-time object detector built upon the Vision Transformer architecture. It efficiently processes multiscale features by decoupling intra-scale interaction and cross-scale fusion through its efficient hybrid encoder. By employing IoU-aware query selection, the model focuses on the most relevant objects, enhancing detection accuracy. Its adaptable inference speed, achieved by adjusting decoder layers without retraining, makes RT-DETR suitable for various real-time object detection scenarios. Learn more about RT-DETR features in the [RT-DETR arXiv paper](https://arxiv.org/pdf/2304.08069).
+Baidu's RT-DETR (Real-Time Detection Transformer) is a real-time, transformer-based object detector. It efficiently processes multiscale features by decoupling intra-scale interaction and cross-scale fusion through its efficient hybrid encoder. By employing IoU-aware query selection, the model focuses on the most relevant objects, enhancing detection accuracy. Its adaptable inference speed, achieved by adjusting decoder layers without retraining, makes RT-DETR suitable for various real-time object detection scenarios.
 
 ### How can I use the pretrained RT-DETR models provided by Ultralytics?
 
-You can leverage Ultralytics Python API to use pretrained PaddlePaddle RT-DETR models. For instance, to load an RT-DETR-l model pretrained on COCO val2017 and achieve high FPS on T4 GPU, you can utilize the following example:
+Use the Ultralytics Python API to load the pretrained PaddlePaddle RT-DETR models. For example, to load the COCO-pretrained RT-DETR-l model, fine-tune it, and run inference:
 
 !!! example
 
@@ -209,11 +209,11 @@ You can leverage Ultralytics Python API to use pretrained PaddlePaddle RT-DETR m
 
 ### Why should I choose Baidu's RT-DETR over other real-time object detectors?
 
-Baidu's RT-DETR stands out due to its efficient hybrid encoder and IoU-aware query selection, which drastically reduce computational costs while maintaining high accuracy. Its unique ability to adjust inference speed by using different decoder layers without retraining adds significant flexibility. This makes it particularly advantageous for applications requiring real-time performance on accelerated backends like CUDA with TensorRT, outclassing many other real-time object detectors. The [transformer architecture](https://www.ultralytics.com/glossary/transformer) also provides better global context understanding compared to traditional CNN-based detectors.
+Baidu's RT-DETR combines an efficient hybrid encoder with IoU-aware query selection, which reduces computational cost while maintaining high accuracy. Its ability to adjust inference speed by using different decoder layers without retraining adds flexibility, which is useful for real-time applications on accelerated backends such as CUDA with TensorRT. The transformer architecture also captures more global context than traditional CNN-based detectors.
 
 ### How does RT-DETR support adaptable inference speed for different real-time applications?
 
-Baidu's RT-DETR allows flexible adjustments of inference speed by using different decoder layers without requiring retraining. This adaptability is crucial for scaling performance across various real-time object detection tasks. Whether you need faster processing for lower [precision](https://www.ultralytics.com/glossary/precision) needs or slower, more accurate detections, RT-DETR can be tailored to meet your specific requirements. This feature is particularly valuable when deploying models across devices with varying computational capabilities.
+Baidu's RT-DETR allows flexible adjustments of inference speed by using different decoder layers without requiring retraining. This lets you balance speed and accuracy across real-time object detection tasks: use fewer decoder layers for faster processing with slightly lower accuracy, or all layers for the most accurate detections. This feature is particularly valuable when deploying models across devices with varying computational capabilities.
 
 ### Can `max_det` make RT-DETR return more than 300 detections?
 
@@ -223,4 +223,4 @@ Use `max_det` to reduce returned detections, for example `max_det=100`, when you
 
 ### Can I use RT-DETR models with other Ultralytics modes, such as training, validation, and export?
 
-Yes, RT-DETR models are compatible with various Ultralytics modes including training, validation, prediction, and export. You can refer to the respective documentation for detailed instructions on how to utilize these modes: [Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), and [Export](../modes/export.md). This ensures a comprehensive workflow for developing and deploying your object detection solutions. The Ultralytics framework provides a consistent API across different model architectures, making it easy to work with RT-DETR models.
+Yes, RT-DETR models support the Ultralytics [training](../modes/train.md), [validation](../modes/val.md), [prediction](../modes/predict.md), and [export](../modes/export.md) modes. The Ultralytics framework provides a consistent API across model architectures, so RT-DETR uses the same workflow as YOLO models.

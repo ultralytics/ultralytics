@@ -12,7 +12,7 @@ keywords: xView dataset, satellite imagery, overhead imagery, object detection, 
 
 # xView Dataset
 
-The [xView](https://xviewdataset.org/) dataset is one of the largest publicly available satellite-imagery benchmarks for [object detection](../../tasks/detect.md), providing over 1 million object instances across 60 classes annotated with [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) in more than 1,400 km² of 0.3 m WorldView-3 imagery. It was released for the DIUx xView 2018 Challenge by the U.S. National Geospatial-Intelligence Agency (NGA) and requires a manual download of about 20.7 GB.
+The [xView](https://xviewdataset.org/) dataset is one of the largest publicly available [satellite-imagery](https://www.ultralytics.com/glossary/satellite-image-analysis) benchmarks for [object detection](../../tasks/detect.md), providing over 1 million object instances across 60 classes annotated with [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) in more than 1,400 km² of 0.3 m WorldView-3 imagery. It was released for the DIUx xView 2018 Challenge by the U.S. National Geospatial-Intelligence Agency (NGA) and requires a manual download of about 20.7 GB.
 
 The dataset was created to push four [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) frontiers:
 
@@ -82,7 +82,7 @@ The `xView.yaml` file defines the dataset configuration — the dataset paths, t
 
     Training expects the manual download described above to be extracted under `datasets/xView/`; annotation conversion and the train/val split then run automatically.
 
-To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a model on the xView dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets.
 
 !!! example "Train Example"
 
@@ -150,7 +150,7 @@ xView contains 847 labeled training images and 282 validation images without pub
 
 ### How do I train a YOLO26 model on the xView dataset?
 
-Train a [YOLO26n](../../models/yolo26.md) model on xView for 100 epochs at an image size of 640:
+Train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on xView for 100 epochs at an image size of 640:
 
 !!! example "Train Example"
 

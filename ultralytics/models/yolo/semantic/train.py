@@ -79,11 +79,10 @@ class SemanticSegmentationTrainer(DetectionTrainer):
     def get_class_counts(self, max_masks=None):
         """Return per-class pixel counts from training masks, optionally sampled to max_masks."""
         nc = self.data["nc"]
-        pixel_counts = np.zeros(nc, dtype=np.float32)
+        k = 2 if nc == 1 else nc  # binary masks store the class as 1 and background as 0
+        pixel_counts = np.zeros(k, dtype=np.float32)
         dataset = self.train_loader.dataset
         labels = getattr(dataset, "labels", [])
-        if not labels:
-            return pixel_counts
         indices = np.arange(len(labels))
         if max_masks and len(indices) > max_masks:
             indices = np.linspace(0, len(labels) - 1, max_masks).astype(int)
@@ -96,11 +95,11 @@ class SemanticSegmentationTrainer(DetectionTrainer):
                 continue
             if include_class is not None:
                 mask[~np.isin(mask, include_class)] = 255
-            valid = (mask >= 0) & (mask < nc) & (mask != 255)
+            valid = (mask >= 0) & (mask < k) & (mask != 255)
             if valid.any():
                 classes, counts = np.unique(mask[valid], return_counts=True)
                 pixel_counts[classes.astype(int)] += counts
-        return pixel_counts
+        return pixel_counts[-nc:]
 
     def compute_class_weights(self, class_counts):
         """Compute ENet inverse-log `(1/ln(1.02 + p))**cls_pw` weights (Paszke et al., 2016, arXiv:1606.02147)."""

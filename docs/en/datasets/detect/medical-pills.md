@@ -15,7 +15,7 @@ keywords: Medical Pills dataset, pill detection, pharmaceutical imaging, AI in h
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-medical-pills-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Medical Pills Dataset In Colab"></a>
 
-The Ultralytics **Medical Pills** dataset is a proof-of-concept (POC) [object detection](../../tasks/detect.md) dataset of 115 labeled images across a single class, `pill` — 92 for training and 23 for validation. It is built to demonstrate [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [models](../../models/index.md) for pharmaceutical applications such as quality control, packaging automation, and sorting.
+The Ultralytics **Medical Pills** dataset is a proof-of-concept (POC) [object detection](../../tasks/detect.md) dataset of 115 labeled images across a single class, `pill` — 92 for training and 23 for validation. It is built to demonstrate [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models for [pharmaceutical applications](https://www.ultralytics.com/blog/using-computer-vision-in-the-pharmaceutical-industry) such as quality control, packaging automation, and sorting.
 
 <p align="center">
   <br>
@@ -41,7 +41,7 @@ Explore [Medical Pills on Ultralytics Platform](https://platform.ultralytics.com
 
 ## Applications
 
-Using computer vision for medical pills detection enables automation in the pharmaceutical industry, supporting tasks like:
+Using computer vision for [medical pill detection](https://www.ultralytics.com/blog/a-deep-dive-into-detecting-pills-using-ultralytics-yolo11) enables automation in the pharmaceutical industry, supporting tasks like:
 
 - **Pharmaceutical Sorting**: Automating the sorting of pills based on size, shape, or color to enhance production efficiency.
 - **AI Research and Development**: Serving as a benchmark for developing and testing computer vision algorithms in pharmaceutical use cases.
@@ -61,7 +61,7 @@ The `medical-pills.yaml` file defines the dataset configuration — the dataset 
 
 ## Usage
 
-To train a YOLO26n model on the Medical Pills dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For detailed arguments, refer to the model's [Training](../../modes/train.md) page.
+To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Medical Pills dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For detailed arguments, refer to the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -109,13 +109,13 @@ To train a YOLO26n model on the Medical Pills dataset for 100 [epochs](https://w
 
 The Medical Pills dataset features labeled images showcasing the diversity of pills. Below is an example of a mosaiced training batch from the dataset:
 
-![Medical Pills dataset sample image](https://cdn.ul.run/i/70a06a40bd512ead35b4f4fb8bcd7966.avif)
+![Medical Pills dataset mosaiced training batch with labeled pills](https://cdn.ul.run/i/70a06a40bd512ead35b4f4fb8bcd7966.avif)
 
 - **Mosaiced Image**: Displayed is a training batch comprising mosaiced dataset images. Mosaicing enhances training diversity by consolidating multiple images into one, improving model generalization.
 
 ## Integration with Other Datasets
 
-For more comprehensive pharmaceutical analysis, consider combining the Medical Pills dataset with other related datasets like [package-seg](../segment/package-seg.md) for packaging identification or medical imaging datasets like [brain-tumor](brain-tumor.md) to develop end-to-end healthcare AI solutions.
+For more comprehensive pharmaceutical analysis, consider combining the Medical Pills dataset with other related datasets like [Package Segmentation](../segment/package-seg.md) for packaging identification or medical imaging datasets like [Brain Tumor](brain-tumor.md) to develop end-to-end healthcare AI solutions.
 
 ## Citations and Acknowledgments
 
@@ -151,7 +151,7 @@ You can train a YOLO26 model for 100 epochs with an image size of 640px using th
 
 ### What are the benefits of using the Medical Pills dataset in AI projects?
 
-The dataset enables automation in pill detection, contributing to counterfeit prevention, quality assurance, and pharmaceutical process optimization. It also serves as a valuable resource for developing AI solutions that can improve medication safety and supply chain efficiency.
+The dataset demonstrates automated pill detection for counterfeit prevention, quality assurance, and pharmaceutical process optimization. Its small size makes it a fast starting point for prototyping applications that improve medication safety and supply chain efficiency.
 
 ### How do I perform inference on the Medical Pills dataset?
 

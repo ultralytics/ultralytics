@@ -12,40 +12,40 @@ keywords: Argoverse dataset, Argoverse-HD, object detection, 2D detection, auton
 
 # Argoverse Dataset
 
-The Ultralytics Argoverse dataset (Argoverse-HD) is a 2D [object detection](../../tasks/detect.md) dataset of 54,446 labeled autonomous-driving images — 39,384 for training and 15,062 for validation — across 8 classes: person, bicycle, car, motorcycle, bus, truck, traffic light, and stop sign. The images are captured from a vehicle's ring-front-center camera, and the annotations come from Carnegie Mellon University's streaming-perception project, built on [Argo AI](https://www.argoverse.org/)'s Argoverse 1.1 driving data. It is a large, real-world benchmark for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models to detect road objects in self-driving scenarios.
+The Ultralytics Argoverse dataset (Argoverse-HD) is a 2D [object detection](../../tasks/detect.md) dataset of 54,446 labeled autonomous-driving images — 39,384 for training and 15,062 for validation — across 8 classes: person, bicycle, car, motorcycle, bus, truck, traffic light, and stop sign. The images are captured from a vehicle's ring-front-center camera, and the annotations come from Carnegie Mellon University's streaming-perception project, built on [Argo AI](https://www.argoverse.org/)'s Argoverse 1.1 driving data. It is a large, real-world benchmark for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models to detect road objects in [self-driving scenarios](https://www.ultralytics.com/blog/ai-in-self-driving-cars).
 
 Explore [Argoverse-HD on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/argoverse) to preview annotated samples, inspect dataset statistics, and clone it for training.
 
-!!! note "Manual download required"
+!!! note "Download from Ultralytics Platform"
 
-    The Argoverse-HD `*.zip` file (~31.5 GB) needed for training was removed from Amazon S3 after the shutdown of Argo AI by Ford. It is available for manual download from [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link) — automatic download will not work, so download the archive and extract it into the `Argoverse` folder of your datasets directory before training.
+    Use Python 3.11 or newer and set `ULTRALYTICS_API_KEY` to a key from [Platform settings](https://platform.ultralytics.com/settings?tab=api-keys). Pass the [Argoverse dataset URL](https://platform.ultralytics.com/ultralytics/datasets/argoverse) as `data` to download the images and prepare YOLO labels automatically. The `Argoverse.yaml` configuration also downloads from Platform when the dataset is missing locally.
 
 ## Key Features
 
 - **8 object-detection classes**: person, bicycle, car, motorcycle, bus, truck, traffic light, and stop sign.
 - **54,446 labeled images** — 39,384 for training and 15,062 for validation — plus an unlabeled test split reserved for the [eval.ai challenge](https://eval.ai/web/challenges/challenge-page/800/overview).
-- **~31.5 GB** of high-resolution ring-front-center camera frames captured in urban autonomous-driving scenes.
+- **1920 × 1200** ring-front-center camera frames captured in urban autonomous-driving scenes.
 - Annotations are converted to YOLO format automatically on first use, so the dataset trains directly with Ultralytics YOLO detection models.
 
 ## Dataset Structure
 
-The Argoverse-HD dataset is split into three predefined subsets, defined by the `Argoverse.yaml` configuration:
+The Argoverse-HD dataset on Platform preserves the three predefined subsets:
 
 | Split      | Images | Labels                                                                                      |
 | ---------- | ------ | ------------------------------------------------------------------------------------------- |
 | Train      | 39,384 | Yes                                                                                         |
 | Validation | 15,062 | Yes                                                                                         |
-| Test       | —      | Unlabeled ([eval.ai challenge](https://eval.ai/web/challenges/challenge-page/800/overview)) |
+| Test       | 12,507 | Unlabeled ([eval.ai challenge](https://eval.ai/web/challenges/challenge-page/800/overview)) |
 
 All images share the same 8 object classes (indices 0–7): person, bicycle, car, motorcycle, bus, truck, traffic light, and stop sign.
 
 !!! tip "Automatic YOLO conversion"
 
-    After the manual download, Ultralytics converts the original Argoverse-HD annotations into YOLO detection labels automatically the first time you train, so no manual preprocessing is required.
+    Ultralytics downloads the Platform dataset and converts its annotations into YOLO detection labels automatically, so no manual preprocessing is required.
 
 ## Applications
 
-The Argoverse-HD dataset supports a range of [object detection](../../tasks/detect.md) applications in autonomous driving:
+The Argoverse-HD dataset supports a range of object detection applications in autonomous driving:
 
 - **Self-driving perception** — detect vehicles, pedestrians, and cyclists from a forward-facing camera to support [autonomous-vehicle](https://www.ultralytics.com/solutions/computer-vision-in-automotive) navigation.
 - **Advanced driver-assistance systems (ADAS)** — recognize traffic lights and stop signs for real-time driver alerts.
@@ -64,7 +64,7 @@ A YAML file defines the dataset configuration, including paths, classes, and oth
 
 ## Usage
 
-To train a YOLO26n model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code samples. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code samples.
 
 !!! example "Train Example"
 
@@ -77,17 +77,17 @@ To train a YOLO26n model on the Argoverse dataset for 100 [epochs](https://www.u
         model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
+        results = model.train(data="https://platform.ultralytics.com/ultralytics/datasets/argoverse", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Argoverse.yaml model=yolo26n.pt epochs=100 imgsz=640
+        yolo detect train data=https://platform.ultralytics.com/ultralytics/datasets/argoverse model=yolo26n.pt epochs=100 imgsz=640
         ```
 
-Once trained, run [inference](../../modes/predict.md) with the fine-tuned model on new driving images or video:
+Once trained, run inference with the fine-tuned model on new driving images or video:
 
 !!! example "Inference Example"
 
@@ -162,7 +162,7 @@ In Ultralytics it is a **2D object detection** dataset (Argoverse-HD camera fram
 
 ### How do I train a YOLO26 model using the Argoverse dataset?
 
-Download the dataset manually first (see below), then train with the `Argoverse.yaml` configuration file:
+Set `ULTRALYTICS_API_KEY` and train directly from the Platform dataset URL:
 
 !!! example
 
@@ -175,22 +175,22 @@ Download the dataset manually first (see below), then train with the `Argoverse.
         model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
+        results = model.train(data="https://platform.ultralytics.com/ultralytics/datasets/argoverse", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Argoverse.yaml model=yolo26n.pt epochs=100 imgsz=640
+        yolo detect train data=https://platform.ultralytics.com/ultralytics/datasets/argoverse model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 For a detailed explanation of the arguments, refer to the model [Training](../../modes/train.md) page.
 
 ### Where can I download the Argoverse dataset now that it has been removed from Amazon S3?
 
-The Argoverse-HD `*.zip` file (~31.5 GB), previously hosted on Amazon S3, can now be downloaded manually from [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link). Automatic download will not work, so fetch the archive and extract it into the `Argoverse` folder of your datasets directory before running your training command.
+Download Argoverse from [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/argoverse). You can pass this URL directly as the training `data` argument after setting `ULTRALYTICS_API_KEY`; Ultralytics downloads the dataset and prepares its YOLO labels automatically.
 
 ### Can I use the Argoverse dataset with Ultralytics Platform?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) lets you upload and version large datasets like Argoverse-HD, then train and deploy [object detection](../../tasks/detect.md) models in the cloud without heavy local setup. You can also browse related datasets in the [detection datasets overview](index.md).
+Yes. Open [Argoverse-HD on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/argoverse) to explore its images and annotations, clone it, and train [object detection](../../tasks/detect.md) models in the cloud. You can also browse related datasets in the [detection datasets overview](index.md).

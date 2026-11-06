@@ -148,6 +148,58 @@ class BaseValidator:
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+    def merge_tiles(self, preds: list | torch.Tensor, batch: dict, pending: dict):
+        """Restore completed sources using existing task scaling, then evaluate their original targets."""
+        from ultralytics.utils import ops
+
+        dataset = self.dataloader.dataset
+        for i, (pred, window, source) in enumerate(zip(preds, batch["tile"], batch["source_index"])):
+            source = int(source)
+            shape = (window[3] - window[1], window[2] - window[0])
+            if isinstance(pred, dict):
+                pred = self.scale_preds(
+                    pred, {"imgsz": batch["img"].shape[2:], "ori_shape": shape, "ratio_pad": batch["ratio_pad"][i]}
+                )
+            elif self.args.task == "classify":
+                pred = {"probs": pred}
+            elif self.args.task == "semantic":
+                pred = {
+                    "semantic_mask": ops.scale_masks(
+                        pred[None, None].float(), shape, mode="nearest", ratio_pad=batch["ratio_pad"][i]
+                    )[0, 0].to(torch.int32)
+                }
+            else:
+                pred = {
+                    "depth": torch.nn.functional.interpolate(
+                        pred.reshape(1, 1, *pred.shape[-2:]).float(), shape, mode="bilinear", align_corners=True
+                    )[0, 0]
+                }
+            predictions, windows = pending.setdefault(source, ([], []))
+            predictions.append(pred)
+            windows.append(window)
+            if len(predictions) != dataset.tile_counts[source]:
+                continue
+            sample = dataset.get_image_and_label(dataset.source_offsets[source], full=True)
+            if self.args.task != "classify":
+                sample = dataset.transforms.transforms[-1](sample)
+            full_batch = self.preprocess(dataset.collate_fn([sample]))
+            output = ops.merge_tiles(
+                predictions,
+                windows,
+                tuple(full_batch["img"].shape[2:]),
+                self.args.iou,
+                self.args.single_cls or self.args.agnostic_nms,
+                self.args.max_det,
+            )
+            if "bboxes" in output:
+                output = [output]
+            elif "depth" in output:
+                output = output["depth"][None, None]
+            else:
+                output = next(iter(output.values()))[None]
+            del pending[source]
+            yield output, full_batch, source
+
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None, **kwargs):
         """Execute validation process, running inference on dataloader and computing performance metrics.
@@ -252,42 +304,36 @@ class BaseValidator:
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(unwrap_model(model))
         self.jdict = []  # empty before each val
+        tile_results = {}
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
-            if self.args.tile:
-                with autocast(self.training and self.args.quantize == 16, device=self.device.type):
-                    preds = self.predict_tiles(batch, model, augment, dt)
-                batch = {
-                    k: v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
-                    if isinstance(v, torch.Tensor)
-                    else v
-                    for k, v in batch.items()
-                }
-            else:
-                # Preprocess
-                with dt[0]:
-                    batch = self.preprocess(batch)
+            # Preprocess
+            with dt[0]:
+                batch = self.preprocess(batch)
 
-                with autocast(self.training and self.args.quantize == 16, device=self.device.type):
-                    # Inference
-                    with dt[1]:
-                        preds = model(batch["img"], augment=augment)
+            with autocast(self.training and self.args.quantize == 16, device=self.device.type):
+                # Inference
+                with dt[1]:
+                    preds = model(batch["img"], augment=augment)
 
-                    # Loss
-                    with dt[2]:
-                        if self.training:
-                            for k, v in model.loss(batch, preds)[1].items():
-                                self.loss[k] += v
+                # Loss
+                with dt[2]:
+                    if self.training:
+                        for k, v in model.loss(batch, preds)[1].items():
+                            self.loss[k] += v
 
-                # Postprocess
-                with dt[3]:
-                    preds = self.postprocess(preds)
-
-            self.update_metrics(preds, batch)
-            if self.args.plots and batch_i < 3 and RANK in {-1, 0}:
-                self.plot_val_samples(batch, batch_i)
-                self.plot_predictions(batch, preds, batch_i)
+            # Postprocess
+            with dt[3]:
+                preds = self.postprocess(preds)
+                outputs = (
+                    list(self.merge_tiles(preds, batch, tile_results)) if self.args.tile else [(preds, batch, batch_i)]
+                )
+            for output, targets, image_i in outputs:
+                self.update_metrics(output, targets)
+                if self.args.plots and image_i < 3 and RANK in {-1, 0}:
+                    self.plot_val_samples(targets, image_i)
+                    self.plot_predictions(targets, output, image_i)
 
             self.run_callbacks("on_val_batch_end")
 
@@ -295,7 +341,8 @@ class BaseValidator:
         self.gather_stats()
         if RANK in {-1, 0}:
             stats = self.get_stats()
-            self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
+            count = len(self.dataloader.dataset.tile_counts) if self.args.tile else len(self.dataloader.dataset)
+            self.speed = dict(zip(self.speed.keys(), (x.t / count * 1e3 for x in dt)))
             self.finalize_metrics()
             self.print_results()
             self.run_callbacks("on_val_end")

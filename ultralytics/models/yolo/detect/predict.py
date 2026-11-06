@@ -130,26 +130,3 @@ class DetectionPredictor(BasePredictor):
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])
-
-    def merge_tiles(self, results, windows, orig_imgs):
-        """Merge tile results into full-image detection-family results."""
-        from ultralytics.data.utils import group_tile_results
-
-        merged = []
-        for i, ((tile_results, tile_windows), orig_img) in enumerate(
-            zip(group_tile_results(results, windows, len(orig_imgs)), orig_imgs)
-        ):
-            rotated = tile_results[0].obb is not None
-            preds, _, extras = nms.merge_tile_instances(
-                [r.obb.data if rotated else r.boxes.data for r in tile_results],
-                tile_windows,
-                keypoints=[r.keypoints.data if r.keypoints is not None else None for r in tile_results],
-                masks=[r.masks.data if r.masks is not None else None for r in tile_results],
-                shape=orig_img.shape[:2],
-                agnostic=self.args.agnostic_nms,
-                max_det=self.args.max_det,
-                rotated=rotated,
-            )
-            output = {("obb" if rotated else "boxes"): preds, **extras}
-            merged.append(Results(orig_img, path=self.batch[0][i], names=self.model.names, **output))
-        return merged

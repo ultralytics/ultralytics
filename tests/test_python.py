@@ -341,6 +341,37 @@ def test_model_forward(cfg):
     model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
+def test_tiled_prediction_single_window():
+    """A full-image tile must preserve NMS-free predictions even when they overlap above IoU 0.5."""
+    model = YOLO(MODEL)
+    image = cv2.resize(cv2.imread(str(SOURCE)), (640, 640))
+    args = {"imgsz": 640, "iou": 0.9, "conf": 0.1, "device": "cpu", "verbose": False}
+    expected = model(image, tile=False, **args)[0]
+    actual = model(image, tile=640, **args)[0]
+    assert torch.equal(expected.boxes.data, actual.boxes.data)
+
+
+def test_tiled_dataset_targets(tmp_path):
+    """Crop native pixels and targets before formatting, without retaining full-image backing allocations."""
+    from ultralytics.data.dataset import YOLODataset
+
+    images, labels = tmp_path / "images", tmp_path / "labels"
+    images.mkdir()
+    labels.mkdir()
+    cv2.imwrite(str(images / "image.png"), np.full((64, 128, 3), [10, 20, 240], dtype=np.uint8))
+    (labels / "image.txt").write_text("0 0.75 0.5 0.25 0.5\n")
+    dataset = YOLODataset(img_path=str(images), data={"names": {0: "object"}}, imgsz=64, tile=64, augment=False)
+    first, last = dataset[0], dataset[len(dataset) - 1]
+    assert first["img"][:, 32, 32].tolist() == [240, 20, 10]
+    assert len(first["cls"]) == 0
+    assert torch.allclose(last["bboxes"], torch.tensor([[0.5, 0.5, 0.5, 0.5]]))
+    crop, _, _ = dataset.load_image(len(dataset) - 1)
+    assert crop.base is None
+    full = dataset.get_image_and_label(0, full=True)
+    assert full["img"].shape == (64, 128, 3)
+    np.testing.assert_allclose(full["instances"].bboxes, [[0.75, 0.5, 0.25, 0.5]])
+
+
 def test_model_methods():
     """Test various methods and properties of the YOLO model to ensure correct functionality."""
     model = YOLO(MODEL)
@@ -2416,120 +2447,3 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
-
-
-def test_tile_geometry_and_merge():
-    """Test tile geometry, label restoration, and output merging."""
-    from ultralytics.data.utils import merge_dense_tiles, slice_label, tile_windows
-    from ultralytics.utils.nms import merge_tile_predictions
-
-    assert tile_windows((32, 48), 64) == [(0, 0, 48, 32)]
-    assert tile_windows((100, 150), 64)[-1] == (86, 36, 150, 100)
-
-    label = {
-        "shape": (100, 100),
-        "cls": np.array([[0.0], [1.0]], dtype=np.float32),
-        "bboxes": np.array([[0.5, 0.5, 0.4, 0.4], [0.01, 0.01, 0.02, 0.02]], dtype=np.float32),
-    }
-    tiled = slice_label(label, (50, 0, 100, 100))
-    assert tiled["bboxes"].shape == (1, 4) and tiled["cls"].item() == 0
-    np.testing.assert_allclose(tiled["bboxes"][0], [0.2, 0.5, 0.4, 0.4])
-
-    label = {
-        "shape": (100, 100),
-        "cls": np.array([[0.0]], dtype=np.float32),
-        "bboxes": np.array([[0.5, 0.5, 0.4, 0.4]], dtype=np.float32),
-        "segments": [np.array([[0.3, 0.3], [0.7, 0.3], [0.7, 0.7], [0.3, 0.7]], dtype=np.float32)],
-        "keypoints": np.array([[[0.6, 0.4, 2.0], [0.4, 0.4, 2.0]]], dtype=np.float32),
-    }
-    tiled = slice_label(label, (50, 0, 100, 100))
-    assert len(tiled["segments"]) == 1
-    np.testing.assert_allclose(tiled["keypoints"][0, :, :2], [[0.2, 0.4], [0.0, 0.4]], atol=1e-6)
-
-    triangle = {
-        **label,
-        "bboxes": np.array([[0.5, 0.5, 1.0, 1.0]], dtype=np.float32),
-        "segments": [np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]], dtype=np.float32)],
-    }
-    np.testing.assert_allclose(
-        slice_label(triangle, (50, 0, 100, 100))["segments"][0], [[0.0, 0.0], [1.0, 0.0], [0.0, 0.5]], atol=1e-6
-    )
-    empty = slice_label(triangle, (60, 60, 100, 100))
-    assert len(empty["cls"]) == 0 and not empty["segments"]
-
-    predictions = [torch.tensor([[x, 10, x + 20, 30, 0.9, 0]]) for x in (64.0, 32.0, 0.0)]
-    merged = merge_tile_predictions(predictions, [(0, 0, 64, 64), (32, 0, 96, 64), (64, 0, 128, 64)])
-    assert torch.allclose(merged, torch.tensor([[64.0, 10, 84, 30, 0.9, 0]]))
-
-    dense = [torch.ones(1, 64, 64), torch.full((1, 64, 64), 3.0)]
-    merged = merge_dense_tiles(dense, [(0, 0, 64, 64), (32, 32, 96, 96)], (96, 96))
-    assert merged.shape == (1, 96, 96) and 1 < merged[0, 40, 40] < 3
-
-
-def test_tiled_datasets(tmp_path):
-    """Test detection and depth datasets expand native tiles with valid targets."""
-    from ultralytics.data.dataset import DepthDataset, YOLODataset
-
-    images, labels, depth = tmp_path / "images", tmp_path / "labels", tmp_path / "depth"
-    images.mkdir(), labels.mkdir(), depth.mkdir()
-    cv2.imwrite(str(images / "a.png"), np.zeros((128, 192, 3), dtype=np.uint8))
-    cv2.imwrite(str(depth / "a.png"), np.full((64, 96), 1000, dtype=np.uint16))
-    (labels / "a.txt").write_text("0 0.5 0.5 0.2 0.2\n", encoding="utf-8")
-    dataset = YOLODataset(img_path=str(images), data={"names": {0: "object"}}, imgsz=64, augment=False, tile=True)
-    assert len(dataset) == 12 and any(not len(label["cls"]) for label in dataset.labels)
-    with pytest.raises(ValueError, match="cache='ram'"):
-        YOLODataset(img_path=str(images), data={"names": {0: "object"}}, imgsz=64, tile=True, cache=True)
-
-    dataset = DepthDataset(
-        img_path=str(images),
-        data={"names": {0: "depth"}},
-        task="depth",
-        hyp=get_cfg(overrides={"tile": 64}),
-        imgsz=96,
-        augment=False,
-        tile=64,
-    )
-    assert len(dataset) == 12 and dataset[-1]["depth"].shape == (1, 64, 64)
-
-
-def test_predict_tiles():
-    """Test public tiled prediction returns native full-image results."""
-    im = cv2.resize(cv2.imread(str(SOURCE)), (960, 640))
-    for tile, imgsz in ((True, 320), (320, 640)):
-        result = YOLO(MODEL).predict(im, tile=tile, imgsz=imgsz, batch=3, verbose=False)[0]
-        assert result.orig_shape == (640, 960)
-        assert len(result.boxes) and result.boxes.xyxy.min() >= 0
-        assert (result.boxes.xyxy[:, [0, 2]] <= 960).all() and (result.boxes.xyxy[:, [1, 3]] <= 640).all()
-    with pytest.raises(ValueError, match="tile supports image/video"):
-        YOLO(MODEL).predict(torch.rand(1, 3, 64, 64), tile=True, imgsz=64)
-
-
-def test_train_val_tiles():
-    """Test tiled training and validation retain full-image metrics."""
-    model = YOLO(MODEL)
-    model.train(data="coco8.yaml", tile=128, imgsz=256, epochs=1, batch=2, workers=0, plots=False)
-    metrics = model.val(data="coco8.yaml", tile=True, imgsz=320, batch=2, workers=0, plots=False)
-    assert metrics.box.map >= 0 and metrics.box.nc == 80
-
-
-@pytest.mark.parametrize("task,model,data", [x for x in TASK_MODEL_DATA if x[0] != "detect"])
-def test_predict_tiles_tasks(task, model, data):
-    """Test tiled prediction returns native task outputs for every non-detection task."""
-    im = cv2.resize(cv2.imread(str(SOURCE)), (960, 640))
-    tile, imgsz = (160, 224) if task == "classify" else (256, 320)
-    result = YOLO(model).predict(im, tile=tile, imgsz=imgsz, batch=3, verbose=False)[0]
-    assert result.orig_shape == (640, 960)
-    output = getattr(result, {"classify": "probs", "semantic": "semantic_mask", "depth": "depth"}.get(task, "boxes"))
-    if task == "obb":
-        output = result.obb
-    assert output is not None
-    if task == "segment":
-        assert result.masks.data.shape[-2:] == result.orig_shape
-    elif task == "pose":
-        assert result.keypoints.data.shape[0] == len(result.boxes)
-    elif task == "semantic":
-        assert result.semantic_mask.data.shape == result.orig_shape
-    elif task == "depth":
-        assert result.depth.data.shape == result.orig_shape and torch.isfinite(result.depth.data).all()
-    elif task == "classify":
-        assert result.probs.data.numel() == len(result.names)

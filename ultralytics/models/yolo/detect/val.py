@@ -11,8 +11,7 @@ import torch
 import torch.distributed as dist
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
-from ultralytics.data.augment import Compose, LetterBox
-from ultralytics.data.utils import get_split_fraction, merge_dense_tiles, slice_label, tile_windows
+from ultralytics.data.utils import get_split_fraction
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
@@ -145,6 +144,8 @@ class DetectionValidator(BaseValidator):
         self.gdict = getattr(self, "gdict", None) if self.is_custom_json else None
         self.build_gdict = self.is_custom_json and self.gdict is None
         self.eval_ids = list(self.dataloader.sampler) if self.is_custom_json else None
+        if self.is_custom_json and self.args.tile:
+            self.eval_ids = list(dict.fromkeys(self.dataloader.dataset.labels[i]["source_index"] for i in self.eval_ids))
         self.pred_counts = []
         if self.build_gdict:
             self.gdict = {"images": [], "annotations": [], "categories": [{"id": x} for x in self.class_map]}
@@ -393,114 +394,6 @@ class DetectionValidator(BaseValidator):
         iou = box_iou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
-    def predict_tiles(self, batch, model, augment, dt):
-        """Run tiled inference with tile-local loss and full-image merged predictions."""
-        dataset = self.dataloader.dataset
-        if not hasattr(self, "tile_transforms"):
-            self.tile_transforms = Compose(
-                [
-                    LetterBox(new_shape=self.args.imgsz, scaleup=False, scale_fill=self.args.task == "depth"),
-                    *dataset.transforms.transforms,
-                ]
-            )
-            self._tile_sources = {label["im_file"]: i for i, label in enumerate(dataset.labels)}
-        im = batch["img"][0].permute(1, 2, 0).cpu().numpy()
-        source_index = self._tile_sources[batch["im_file"][0]]
-        shape = tuple(batch["ori_shape"][0]) if "ori_shape" in batch else im.shape[:2]
-        source_label = {**dataset.labels[source_index], "shape": shape}
-        if self.args.task == "semantic":
-            source_label = {**source_label, "semantic_mask": dataset.load_mask(source_index, image_shape=shape)}
-            if dataset.include_class is not None:
-                source_label["semantic_mask"][~np.isin(source_label["semantic_mask"], dataset.include_class)] = 255
-        elif self.args.task == "depth":
-            source_label = {**source_label, "depth": dataset._load_depth(source_index, shape)}
-        tile_size = (
-            self.args.tile
-            if isinstance(self.args.tile, int) and not isinstance(self.args.tile, bool)
-            else self.args.imgsz
-        )
-        windows = tile_windows(shape, tile_size)
-        predictions, masks, keypoints_list = [], [], []
-        losses, loss_count = {}, 0
-        for start in range(0, len(windows), self.args.batch):
-            batch_windows = windows[start : start + self.args.batch]
-            samples = []
-            for x1, y1, x2, y2 in batch_windows:
-                label = slice_label(source_label, (x1, y1, x2, y2))
-                label.pop("source_shape", None)
-                label["img"] = im[y1:y2, x1:x2]
-                label["ori_shape"] = label["resized_shape"] = (y2 - y1, x2 - x1)
-                label["ratio_pad"] = (1.0, 1.0)
-                for key in ("semantic_mask", "depth"):
-                    if key in label:
-                        label[key] = label[key][y1:y2, x1:x2]
-                samples.append(self.tile_transforms(dataset.update_labels_info(label)))
-            tile_batch = dataset.collate_fn(samples)
-            with dt[0]:
-                tile_batch = self.preprocess(tile_batch)
-            with dt[1]:
-                preds = model(tile_batch["img"], augment=augment)
-            with dt[2]:
-                if self.training:
-                    loss_items = model.loss(tile_batch, preds)[1]
-                    count = tile_batch["img"].shape[0]
-                    loss_count += count
-                    for k, v in loss_items.items():
-                        losses[k] = losses.get(k, 0) + v * count
-            with dt[3]:
-                tile_preds = self.postprocess(preds)
-                for i, pred in enumerate(tile_preds):
-                    tile_shape = (batch_windows[i][3] - batch_windows[i][1], batch_windows[i][2] - batch_windows[i][0])
-                    if self.args.task in {"semantic", "depth"}:
-                        if self.args.task == "semantic":
-                            pred = ops.scale_masks(pred[None, None].float(), tile_shape, mode="nearest")[0, 0].to(
-                                torch.int32
-                            )
-                        else:
-                            pred = torch.nn.functional.interpolate(
-                                pred[None].float(), size=tile_shape, mode="bilinear", align_corners=True
-                            )[0]
-                        predictions.append(pred)
-                        continue
-                    ratio_pad = tile_batch["ratio_pad"][i]
-                    rotated = self.args.task == "obb"
-                    pred["bboxes"] = ops.scale_boxes(
-                        tile_batch["img"].shape[2:], pred["bboxes"], tile_shape, ratio_pad=ratio_pad, xywh=rotated
-                    )
-                    keypoints = None
-                    if self.args.task == "pose":
-                        keypoints = ops.scale_coords(
-                            tile_batch["img"].shape[2:], pred["keypoints"], tile_shape, ratio_pad=ratio_pad
-                        )
-                    elif self.args.task == "segment":
-                        masks.append(ops.scale_masks(pred["masks"][None], tile_shape, ratio_pad=ratio_pad)[0].byte())
-                    predictions.append(torch.cat([pred["bboxes"], pred["conf"][:, None], pred["cls"][:, None]], 1))
-                    if keypoints is not None:
-                        keypoints_list.append(keypoints)
-        if self.training:
-            for k, v in losses.items():
-                self.loss[k] += v / max(loss_count, 1)
-        with dt[3]:
-            if self.args.task in {"semantic", "depth"}:
-                merged = merge_dense_tiles(predictions, windows, shape, discrete=self.args.task == "semantic")
-                return merged[None]
-            rotated = self.args.task == "obb"
-            merged, _, extras = nms.merge_tile_instances(
-                predictions,
-                windows,
-                keypoints=keypoints_list or None,
-                masks=masks or None,
-                shape=shape,
-                agnostic=self.args.single_cls or self.args.agnostic_nms,
-                max_det=self.args.max_det,
-                rotated=rotated,
-            )
-            n = 5 if rotated else 4
-            output = {"bboxes": merged[:, :n], "conf": merged[:, n], "cls": merged[:, n + 1], **extras}
-            if self.args.task == "detect":
-                output["extra"] = merged[:, n + 2 :]
-        return [output]
-
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.
 
@@ -533,7 +426,7 @@ class DetectionValidator(BaseValidator):
             dataset.update_labels(list(range(len(self.names))))
         return build_dataloader(
             dataset,
-            1 if self.args.tile else batch_size,
+            batch_size,
             self.args.workers,
             shuffle=False,
             rank=-1,

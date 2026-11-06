@@ -96,7 +96,6 @@ def non_max_suppression(
     t = time.time()
     output = [torch.zeros((0, 6 + extra), device=prediction.device)] * bs
     keepi = [torch.zeros((0, 1), device=prediction.device)] * bs  # to store the kept idxs
-    use_torchvision = prediction.device.type != "xpu" and "torchvision" in sys.modules
     for xi, (x, xk) in enumerate(zip(prediction, xinds)):  # image index, (preds, preds indices)
         # Apply constraints
         # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
@@ -145,18 +144,8 @@ def non_max_suppression(
 
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
         scores = x[:, 4]  # scores
-        if rotated:
-            boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1)  # xywhr
-            i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
-        else:
-            boxes = x[:, :4] + c  # boxes (offset by class)
-            # Use torchvision if already imported; it has no XPU NMS kernel, but torch_npu CPU-falls back on NPU.
-            if use_torchvision:
-                import torchvision  # scope as slow import
-
-                i = torchvision.ops.nms(boxes, scores, iou_thres)
-            else:
-                i = TorchNMS.nms(boxes, scores, iou_thres)
+        boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1) if rotated else x[:, :4] + c
+        i = nms_boxes(boxes, scores, iou_thres, rotated=rotated)
         i = i[:max_det]  # limit detections
 
         output[xi] = x[i]
@@ -169,79 +158,16 @@ def non_max_suppression(
     return (output, keepi) if return_idxs else output
 
 
-def merge_tile_predictions(
-    predictions, windows, agnostic: bool = False, max_det: int = 300, rotated: bool = False, return_idxs: bool = False
-):
-    """Offset detection tensors from tile coordinates and merge them with full-image NMS."""
-    template = predictions[0]
-    pairs = [(x, window) for x, window in zip(predictions, windows) if len(x)]
-    if not pairs:
-        empty = template.new_zeros((0, 7 if rotated else template.shape[1]))
-        return (empty, template.new_empty(0, dtype=torch.long)) if return_idxs else empty
-    predictions, windows = zip(*pairs)
-    preds = torch.cat(predictions)
-    offsets = torch.cat([x.new_tensor((x1, y1)).repeat(len(x), 1) for x, (x1, y1, _, _) in zip(predictions, windows)])
-    cls, conf = (6, 5) if rotated else (5, 4)
-    preds[:, :2] += offsets
-    if not rotated:
-        preds[:, 2:4] += offsets
-    class_offsets = preds[:, cls : cls + 1] * (0 if agnostic else max(preds[:, :4].max().item(), 1) + 1)
+def nms_boxes(boxes: torch.Tensor, scores: torch.Tensor, iou: float, rotated: bool = False) -> torch.Tensor:
+    """Suppress boxes already offset by class, retaining the existing device-specific NMS implementation."""
     if rotated:
-        boxes = torch.cat((preds[:, :2] + class_offsets, preds[:, 2:5]), dim=1)
-        keep = TorchNMS.fast_nms(boxes, preds[:, conf], 0.5, iou_func=batch_probiou)
-    else:
-        keep = TorchNMS.nms(preds[:, :4] + class_offsets, preds[:, conf], 0.5)
-    keep = keep[:max_det]
-    merged = preds[keep]
-    return (merged, keep) if return_idxs else merged
+        return TorchNMS.fast_nms(boxes, scores, iou, iou_func=batch_probiou)
+    # Keep torchvision lazy and preserve XPU's native torch path.
+    if boxes.device.type != "xpu" and "torchvision" in sys.modules:
+        import torchvision
 
-
-def merge_tile_instances(
-    predictions,
-    windows,
-    keypoints=None,
-    masks=None,
-    shape=None,
-    agnostic: bool = False,
-    max_det: int = 300,
-    rotated: bool = False,
-):
-    """Merge tile detections and optional keypoint or mask payloads into full-image coordinates."""
-    count = len(predictions)
-    keypoints = [None] * count if keypoints is None else keypoints
-    masks = [None] * count if masks is None else masks
-    pairs = [(p, w, k, m) for p, w, k, m in zip(predictions, windows, keypoints, masks) if len(p)]
-    if not pairs:
-        empty, keep = merge_tile_predictions(
-            predictions[:1], windows[:1], agnostic=agnostic, max_det=max_det, rotated=rotated, return_idxs=True
-        )
-        extras = {}
-        if keypoints[0] is not None:
-            extras["keypoints"] = keypoints[0][:0]
-        if masks[0] is not None:
-            extras["masks"] = masks[0].new_zeros((0, *shape))
-        return empty, keep, extras
-    predictions, windows, keypoints, masks = zip(*pairs)
-    merged, keep = merge_tile_predictions(
-        predictions, windows, agnostic=agnostic, max_det=max_det, rotated=rotated, return_idxs=True
-    )
-    extras = {}
-    if keypoints[0] is not None:
-        keypoints = torch.cat(keypoints)
-        offsets = torch.cat(
-            [keypoints.new_tensor(window[:2]).repeat(len(pred), 1) for pred, window in zip(predictions, windows)]
-        )
-        keypoints[..., :2] += offsets[:, None]
-        extras["keypoints"] = keypoints[keep]
-    if masks[0] is not None:
-        masks = torch.cat(masks)
-        mask_windows = [window for pred, window in zip(predictions, windows) for _ in range(len(pred))]
-        full_masks = masks.new_zeros((len(merged), *shape))
-        for j, k in enumerate(keep):
-            x1, y1, x2, y2 = mask_windows[k]
-            full_masks[j, y1:y2, x1:x2] = masks[k]
-        extras["masks"] = full_masks
-    return merged, keep, extras
+        return torchvision.ops.nms(boxes, scores, iou)
+    return TorchNMS.nms(boxes, scores, iou)
 
 
 class TorchNMS:

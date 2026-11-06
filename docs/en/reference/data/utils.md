@@ -16,30 +16,6 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
-## ::: ultralytics.data.utils.group_tile_results
-
-<br><br><hr><br>
-
-## ::: ultralytics.data.utils._clip_polygon
-
-<br><br><hr><br>
-
-## ::: ultralytics.data.utils._polygon_area
-
-<br><br><hr><br>
-
-## ::: ultralytics.data.utils.slice_label
-
-<br><br><hr><br>
-
-## ::: ultralytics.data.utils.merge_dense_tiles
-
-<br><br><hr><br>
-
-## ::: ultralytics.data.utils.save_numpy
-
-<br><br><hr><br>
-
 ## ::: ultralytics.data.utils.save_depth_png
 
 <br><br><hr><br>

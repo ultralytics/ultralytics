@@ -143,12 +143,7 @@ class ClassificationTrainer(BaseTrainer):
 
         drop_last = self.args.compile and mode == "train"
         loader = build_dataloader(
-            dataset,
-            1 if self.args.tile and mode != "train" else batch_size,
-            self.args.workers,
-            rank=rank,
-            drop_last=drop_last,
-            device=self.device,
+            dataset, batch_size, self.args.workers, rank=rank, drop_last=drop_last, device=self.device
         )
         # Attach inference transforms
         if mode != "train":

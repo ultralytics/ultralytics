@@ -246,17 +246,6 @@ class BasePredictor:
         """Post-process predictions for an image and return them."""
         return preds
 
-    def _inference_batch(self, ims, profilers, *args, **kwargs):
-        """Preprocess, warm up, and run inference for one batch under shared profiling."""
-        with profilers[0]:
-            im = self.preprocess(ims)
-        if not self.done_warmup:
-            self.model.warmup(im=im)
-            self.done_warmup = True
-        with profilers[1]:
-            preds = self.inference(im, *args, **kwargs)
-        return preds, im
-
     def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
         """Perform inference on an image or stream.
 
@@ -328,46 +317,26 @@ class BasePredictor:
                 LOGGER.warning(STREAM_WARNING)
         self.vid_writer = {}
 
-    def predict_tiles(self, im0s, profilers, *args, **kwargs):
-        """Run bounded tile inference and merge results for each original image."""
-        from ultralytics.data.utils import tile_windows
+    def _batches(self, batches):
+        """Expand loaded sources into bounded tile batches while preserving their source metadata."""
+        from ultralytics.data.loaders import tile_batches
 
-        tiles, windows = [], []
-        for i, im in enumerate(im0s):
-            tile_size = (
-                self.args.tile
-                if isinstance(self.args.tile, int) and not isinstance(self.args.tile, bool)
-                else self.imgsz
-            )
-            for window in tile_windows(im.shape[:2], tile_size):
-                x1, y1, x2, y2 = window
-                tiles.append(im[y1:y2, x1:x2])
-                windows.append((i, window))
-        results, pixels = [], 0
-        start_times = [p.t for p in profilers]
-        for start in range(0, len(tiles), self.args.batch):
-            batch_tiles, batch_windows = (
-                tiles[start : start + self.args.batch],
-                windows[start : start + self.args.batch],
-            )
-            preds, im = self._inference_batch(batch_tiles, profilers, *args, **kwargs)
-            pixels += im.shape[0] * im.shape[2] * im.shape[3]
-            batch = self.batch
-            self.batch = ([batch[0][i] for i, _ in batch_windows], *batch[1:])
-            try:
-                with profilers[2]:
-                    results.extend(self.postprocess(preds, im, batch_tiles))
-            finally:
-                self.batch = batch
-        with profilers[2]:
-            results = self.merge_tiles(results, windows, im0s)
-        for result in results:
-            result.speed = {
-                k: (p.t - t) * 1e3 / len(im0s)
-                for k, p, t in zip(("preprocess", "inference", "postprocess"), profilers, start_times)
-            }
-        self._tile_pixels = pixels / len(im0s)
-        return results, im
+        for batch, dataset in batches:
+            if not self.args.tile:
+                yield batch, dataset, None
+                continue
+            size = self.imgsz if self.args.tile is True else self.args.tile
+            paths, images, info = batch
+            for crops, windows, last in tile_batches(images, size, self.args.batch):
+                yield (
+                    ([paths[i] for i, _ in windows], crops, [info[i] for i, _ in windows]),
+                    dataset,
+                    (batch, windows, last),
+                )
+
+    def finalize_results(self, results: list) -> list:
+        """Apply source-level postprocessing after restoring any tiles to the original image."""
+        return results
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
@@ -402,10 +371,8 @@ class BasePredictor:
                 self.model.model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
-            if self.args.tile and (
-                self.source_type.tensor or self.args.embed or self.args.visualize or self.args.mode == "track"
-            ):
-                raise ValueError("tile supports image/video prediction without tensor, embed, visualize, or track.")
+            if self.args.tile and (self.source_type.tensor or self.args.embed or self.args.visualize):
+                raise ValueError("tile requires image/video sources without embed or visualize.")
 
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
@@ -429,19 +396,59 @@ class BasePredictor:
                 batches = _prefetch((batch, copy(dataset)) for batch in dataset)
             try:
                 self.run_callbacks("on_predict_start")
-                for self.batch, self.dataset in batches:
-                    self.run_callbacks("on_predict_batch_start")
+                tile_results, tile_windows = [], []
+                for batch, snapshot, tile_context in self._batches(batches):
+                    self.batch, self.dataset = batch, snapshot
+                    if not tile_results:
+                        self.run_callbacks("on_predict_batch_start")
+                        start_times = [p.t for p in profilers]
+                        pixels = 0
                     paths, im0s, s = self.batch
 
-                    if self.args.tile:
-                        self.results, im = self.predict_tiles(im0s, profilers, *args, **kwargs)
-                    else:
-                        preds, im = self._inference_batch(im0s, profilers, *args, **kwargs)
+                    # Preprocess
+                    with profilers[0]:
+                        im = self.preprocess(im0s)
+
+                    if not self.done_warmup:
+                        self.model.warmup(im=im)
+                        self.done_warmup = True
+
+                    # Inference
+                    with profilers[1]:
+                        preds = self.inference(im, *args, **kwargs)
                         if self.args.embed:
                             yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embed tensors
                             continue
+
+                    # Postprocess
+                    with profilers[2]:
+                        self.results = self.postprocess(preds, im, im0s)
+                    pixels += im.shape[0] * im.shape[2] * im.shape[3]
+                    if tile_context is not None:
+                        from ultralytics.engine.results import Results
+
+                        original, windows, last = tile_context
+                        tile_results.extend(self.results)
+                        tile_windows.extend(windows)
+                        if not last:
+                            continue
+                        self.batch = original
+                        paths, im0s, s = original
+                        groups = [([], []) for _ in im0s]
+                        for result, (i, window) in zip(tile_results, tile_windows):
+                            groups[i][0].append(result)
+                            groups[i][1].append(window)
                         with profilers[2]:
-                            self.results = self.postprocess(preds, im, im0s)
+                            self.results = [
+                                Results.merge_tiles(
+                                    r, w, image, self.args.iou, self.args.agnostic_nms, self.args.max_det
+                                )
+                                for (r, w), image in zip(groups, im0s)
+                            ]
+                        tile_results.clear()
+                        tile_windows.clear()
+                    with profilers[2]:
+                        self.results = self.finalize_results(self.results)
                     self.run_callbacks("on_predict_postprocess_end")
 
                     # Visualize, save, write results
@@ -449,13 +456,11 @@ class BasePredictor:
                     try:
                         for i in range(n):
                             self.seen += 1
-                            px += self._tile_pixels if self.args.tile else im.shape[2] * im.shape[3]
-                            if not self.args.tile:
-                                self.results[i].speed = {
-                                    "preprocess": profilers[0].dt * 1e3 / n,
-                                    "inference": profilers[1].dt * 1e3 / n,
-                                    "postprocess": profilers[2].dt * 1e3 / n,
-                                }
+                            px += pixels / n
+                            self.results[i].speed = {
+                                k: (p.t - t) * 1e3 / n
+                                for k, p, t in zip(("preprocess", "inference", "postprocess"), profilers, start_times)
+                            }
                             if (
                                 self.args.verbose
                                 or self.args.save

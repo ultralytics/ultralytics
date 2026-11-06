@@ -296,6 +296,27 @@ class Results(SimpleClass, DataExportMixin):
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
 
+    @classmethod
+    def merge_tiles(
+        cls, results: list, windows: list[tuple], orig_img: np.ndarray, iou: float, agnostic: bool, max_det: int
+    ):
+        """Restore one source image from tile results using the shared task-output merge."""
+        predictions = []
+        rotated = results[0].obb is not None
+        for result in results:
+            pred = {k: getattr(result, k).data for k in result._keys if getattr(result, k) is not None}
+            boxes = pred.pop("obb" if rotated else "boxes", None)
+            if boxes is not None:
+                n = 5 if rotated else 4
+                pred.update(bboxes=boxes[:, :n], conf=boxes[:, n], cls=boxes[:, n + 1])
+            predictions.append(pred)
+        pred = ops.merge_tiles(predictions, windows, orig_img.shape[:2], iou, agnostic, max_det)
+        if "bboxes" in pred:
+            pred["obb" if rotated else "boxes"] = torch.cat(
+                (pred.pop("bboxes"), pred.pop("conf")[:, None], pred.pop("cls")[:, None]), 1
+            )
+        return cls(orig_img, path=results[0].path, names=results[0].names, **pred)
+
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
 

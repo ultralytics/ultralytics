@@ -54,15 +54,3 @@ class DepthPredictor(BasePredictor):
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, depth=depth[0, 0]))
 
         return results
-
-    def merge_tiles(self, results, windows, orig_imgs):
-        """Stitch depth maps with distance-weighted overlaps."""
-        from ultralytics.data.utils import group_tile_results, merge_dense_tiles
-
-        merged = []
-        for i, ((tile_results, tile_windows), orig_img) in enumerate(
-            zip(group_tile_results(results, windows, len(orig_imgs)), orig_imgs)
-        ):
-            depth = merge_dense_tiles([r.depth.data[None] for r in tile_results], tile_windows, orig_img.shape[:2])[0]
-            merged.append(Results(orig_img, path=self.batch[0][i], names=self.model.names, depth=depth))
-        return merged

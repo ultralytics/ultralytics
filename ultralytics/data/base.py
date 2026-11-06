@@ -21,9 +21,10 @@ from ultralytics.data.utils import (
     FORMATS_HELP_MSG,
     HELP_URL,
     IMG_FORMATS,
+    _replace_image,
     check_file_speeds,
     get_split_fraction,
-    save_numpy,
+    tile_windows,
 )
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace
 from ultralytics.utils.patches import imread
@@ -147,9 +148,9 @@ class BaseDataset(Dataset):
             single_cls (bool): If True, single class training is used.
             classes (list[int], optional): List of included classes.
             fraction (float | int): Dataset ratio or image count to use.
+            tile (bool | int): Use native image windows; True uses imgsz, and a positive integer sets the window size.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
-            tile (bool | int): Expand images and labels into native tiles. `True` uses `imgsz`; an int sets tile size.
         """
         super().__init__()
         self.img_path = img_path
@@ -164,20 +165,29 @@ class BaseDataset(Dataset):
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.tile = tile
-        self.native = bool(getattr(hyp, "tile", False)) and not augment
+        self.source_labels = self.labels
+        self.tile_counts = []
+        self._source_image = (None, None)
+        self.source_images = None
         if tile:
-            from .utils import slice_label, tile_windows
-
-            self.labels = [
-                slice_label(label, window)
-                for label in self.labels
-                for window in tile_windows(
-                    label["shape"], tile if isinstance(tile, int) and not isinstance(tile, bool) else self.imgsz
+            self.labels = []
+            for source_index, label in enumerate(self.source_labels):
+                windows = tile_windows(label["shape"], self.imgsz if tile is True else tile)
+                self.tile_counts.append(len(windows))
+                self.labels.extend(
+                    {
+                        **label,
+                        "source_index": source_index,
+                        "source_shape": label["shape"],
+                        "tile": window,
+                        "shape": (window[3] - window[1], window[2] - window[0]),
+                    }
+                    for window in windows
                 )
-            ]
             self.im_files = [label["im_file"] for label in self.labels]
-        self.ni = len(self.labels)  # number of images
-        self.rect = rect
+        self.source_offsets = np.cumsum([0, *self.tile_counts])
+        self.ni = len(self.labels)  # number of images or tiles
+        self.rect = rect and not (tile and not augment)  # keep validation tiles contiguous by source
         self.batch_size = batch_size
         self.stride = stride
         self.pad = pad
@@ -195,8 +205,6 @@ class BaseDataset(Dataset):
         # existing user cache and forces a full recache, so keep this exact naming
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
-        if tile and self.cache == "ram":
-            raise ValueError("cache='ram' is not supported with tiled training; use cache='disk' or cache=False.")
         if self.cache == "ram" and self.check_cache_ram():
             if hyp.deterministic:
                 LOGGER.warning(
@@ -272,6 +280,39 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:] = 0
 
+    def _load_source(self, i: int) -> np.ndarray:
+        """Decode one source, sharing RAM cache entries and retaining only the last tiled source per worker."""
+        f, fn = self.im_files[i], self.npy_files[i]
+        if self.tile:
+            if self.source_images is not None:
+                return self.source_images[self.labels[i]["source_index"]]
+            if self._source_image[0] == f:
+                return self._source_image[1]
+        if fn.exists() and (self.cache == "disk" or fn.stat().st_mtime >= Path(f).stat().st_mtime):
+            try:
+                im = np.load(fn)
+                npy_channels = im.shape[-1] if im.ndim >= 3 else 1
+                if npy_channels != self.channels or im.dtype == np.uint16:
+                    LOGGER.warning(
+                        f"{self.prefix}Refreshing stale *.npy image file {fn} with {npy_channels} channels and "
+                        f"{im.dtype} dtype"
+                    )
+                    im = imread(f, flags=self.cv2_flag)
+                    _replace_image(
+                        fn, lambda tmp: np.save(tmp, im, allow_pickle=False)
+                    )  # keep disk-cache benefits for this image
+            except Exception as e:
+                LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
+                Path(fn).unlink(missing_ok=True)
+                im = imread(f, flags=self.cv2_flag)  # BGR
+        else:  # read image
+            im = imread(f, flags=self.cv2_flag)  # BGR
+        if im is None:
+            raise FileNotFoundError(f"Image Not Found {f}")
+        if self.tile:
+            self._source_image = (f, im)
+        return im
+
     def load_image(
         self, i: int, rect_mode: bool = True, resize_short: bool = False
     ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
@@ -294,36 +335,14 @@ class BaseDataset(Dataset):
         Raises:
             FileNotFoundError: If the image file is not found.
         """
-        im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
+        im = self.ims[i]
         if im is None:  # not cached in RAM
-            if fn.exists() and (self.cache == "disk" or fn.stat().st_mtime >= Path(f).stat().st_mtime):
-                try:
-                    im = np.load(fn)
-                    npy_channels = im.shape[-1] if im.ndim >= 3 else 1
-                    if npy_channels != self.channels or im.dtype == np.uint16:
-                        LOGGER.warning(
-                            f"{self.prefix}Refreshing stale *.npy image file {fn} with {npy_channels} channels and "
-                            f"{im.dtype} dtype"
-                        )
-                        im = imread(f, flags=self.cv2_flag)
-                        save_numpy(fn, im)  # keep disk-cache benefits for this image
-                except Exception as e:
-                    LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
-                    Path(fn).unlink(missing_ok=True)
-                    im = imread(f, flags=self.cv2_flag)  # BGR
-            else:  # read image
-                im = imread(f, flags=self.cv2_flag)  # BGR
-            if im is None:
-                raise FileNotFoundError(f"Image Not Found {f}")
-            if window := self.labels[i].get("tile"):
-                x1, y1, x2, y2 = window
-                im = im[y1:y2, x1:x2]
+            im = self._load_source(i)
+            if self.tile:
+                x1, y1, x2, y2 = self.labels[i]["tile"]
+                im = im[y1:y2, x1:x2].copy()
 
             h0, w0 = im.shape[:2]  # orig hw
-            if self.native:
-                if im.ndim == 2:
-                    im = im[..., None]
-                return im, (h0, w0), im.shape[:2]
             shape = tuple(self.imgsz) if isinstance(self.imgsz, (tuple, list)) else (self.imgsz, self.imgsz)
             imgsz = max(shape)
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
@@ -357,9 +376,20 @@ class BaseDataset(Dataset):
 
     def cache_images(self) -> None:
         """Cache images to memory or disk for faster training."""
+        indices = (
+            list({label["source_index"]: i for i, label in enumerate(self.labels)}.values())
+            if self.tile
+            else range(self.ni)
+        )
+        if self.tile and self.cache == "ram":
+            images = [None] * len(self.source_labels)
+            for i in indices:
+                images[self.labels[i]["source_index"]] = self._load_source(i)
+            self.source_images = self._ImageCache(images)
+            self._source_image = (None, None)
+            return
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         fcn, storage = (self.cache_images_to_disk, "Disk") if self.cache == "disk" else (self.load_image, "RAM")
-        indices = list({f: i for i, f in enumerate(self.im_files)}.values()) if self.tile else range(self.ni)
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(fcn, indices)
             pbar = TQDM(zip(indices, results), total=len(indices), disable=LOCAL_RANK > 0)
@@ -379,7 +409,9 @@ class BaseDataset(Dataset):
         f = self.npy_files[i]
         if not f.exists() or f.stat().st_mtime < Path(self.im_files[i]).stat().st_mtime:  # missing or stale
             try:
-                save_numpy(f, imread(self.im_files[i], flags=self.cv2_flag))
+                _replace_image(
+                    f, lambda tmp: np.save(tmp, imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
+                )
             except Exception as e:
                 f.unlink(missing_ok=True)
                 LOGGER.warning(f"{self.prefix}Failed to cache image {f}: {e}")
@@ -394,7 +426,7 @@ class BaseDataset(Dataset):
             (bool): True if there's enough disk space, False otherwise.
         """
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        files = list(dict.fromkeys(self.im_files))  # tiled datasets cache one file per unique source image
+        files = list(dict.fromkeys(self.im_files))
         n = min(len(files), 30)  # extrapolate from 30 random images
         for _ in range(n):
             im_file = random.choice(files)
@@ -407,7 +439,7 @@ class BaseDataset(Dataset):
                 LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
                 return False
         disk_required = b * len(files) / n * (1 + safety_margin)  # bytes required to cache dataset to disk
-        total, _used, free = shutil.disk_usage(Path(files[0]).parent)
+        total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
         if disk_required > free:
             self.cache = None
             LOGGER.warning(
@@ -428,10 +460,16 @@ class BaseDataset(Dataset):
             (bool): True if there's enough RAM, False otherwise.
         """
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        n = min(self.ni, 30)  # extrapolate from 30 random images
+        indices = (
+            list({label["source_index"]: i for i, label in enumerate(self.labels)}.values())
+            if self.tile
+            else range(self.ni)
+        )
+        n = min(len(indices), 30)  # extrapolate from 30 random source images
         for _ in range(n):
-            b += self.load_image(random.randrange(self.ni))[0].nbytes
-        mem_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset into RAM
+            i = random.choice(indices)
+            b += (self._load_source(i) if self.tile else self.load_image(i)[0]).nbytes
+        mem_required = b * len(indices) / n * (1 + safety_margin)  # bytes required to cache dataset into RAM
         mem = __import__("psutil").virtual_memory()
         if mem_required > mem.available:
             self.cache = None
@@ -472,28 +510,35 @@ class BaseDataset(Dataset):
         """Return transformed label information for given index."""
         return self.transforms(self.get_image_and_label(index))
 
-    def get_image_and_label(self, index: int) -> dict[str, Any]:
+    def get_image_and_label(self, index: int, full: bool = False) -> dict[str, Any]:
         """Get and return label information from the dataset.
 
         Args:
             index (int): Index of the image to retrieve.
+            full (bool): Return the original source and targets instead of a tile.
 
         Returns:
             (dict[str, Any]): Label dictionary with image and metadata.
         """
-        label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
-        label.pop("shape", None)  # shape is for rect, remove it
-        label.pop("source_shape", None)  # tiling metadata stays on self.labels for native target loading
-        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
+        source = self.labels[index]
+        label = deepcopy(self.source_labels[source["source_index"]] if full and self.tile else source)
+        label.pop("shape", None)
+        if full:
+            image = self._load_source(index)
+            label["img"] = image if image.ndim == 3 else image[..., None]
+            label["ori_shape"] = label["resized_shape"] = image.shape[:2]
+        else:
+            label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
         label["ratio_pad"] = (
             label["resized_shape"][0] / label["ori_shape"][0],
             label["resized_shape"][1] / label["ori_shape"][1],
-        )  # for evaluation
-        if self.native:
+        )
+        if full:
             label["ratio_pad"] = (label["ratio_pad"], (0.0, 0.0))
-        if self.rect:
+        elif self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
-        return self.update_labels_info(label)
+        label = self.update_labels_info(label)
+        return label
 
     def __len__(self) -> int:
         """Return the length of the labels list for the dataset."""

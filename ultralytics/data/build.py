@@ -180,6 +180,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.epoch = 0
         self.shuffle = shuffle
         self.total_size = len(dataset)
+        self.source_ends = getattr(dataset, "source_offsets", ())
         # Use unit batches when one input batch would span the dataset.
         self.batch_size = 1 if batch_size >= self.total_size else batch_size
         self.num_batches = math.ceil(self.total_size / self.batch_size)
@@ -201,7 +202,9 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         start_idx = min(start_batch * self.batch_size, self.total_size)
         end_idx = min(end_batch * self.batch_size, self.total_size)
 
-        return start_idx, end_idx
+        if len(self.source_ends) > 1:
+            start_idx, end_idx = self.source_ends[np.searchsorted(self.source_ends, [start_idx, end_idx])]
+        return int(start_idx), int(end_idx)
 
     def __iter__(self) -> Iterator:
         """Generate indices for this rank's contiguous chunk of the dataset."""
@@ -299,7 +302,7 @@ def build_yolo_dataset(
         classes=cfg.classes,
         data=data,
         fraction=fraction,
-        tile=cfg.tile if mode == "train" else False,
+        tile=cfg.tile,
     )
 
 
@@ -336,6 +339,7 @@ def build_grounding(
         batch_size=batch,
         augment=mode == "train",  # augmentation
         hyp=cfg,
+        tile=cfg.tile,
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,

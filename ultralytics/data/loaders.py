@@ -21,7 +21,7 @@ import numpy as np
 import torch
 from PIL import Image, ImageOps
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
+from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS, tile_windows
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, NUM_THREADS, REQUEST_HEADERS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
@@ -52,6 +52,14 @@ class SourceTypes:
     screenshot: bool = False
     from_img: bool = False
     tensor: bool = False
+
+
+def tile_batches(images: list[np.ndarray], size: int | tuple[int, int], batch: int):
+    """Yield bounded crop batches and their (source index, window) metadata without copying source images."""
+    windows = [(i, w) for i, image in enumerate(images) for w in tile_windows(image.shape[:2], size)]
+    for start in range(0, len(windows), batch):
+        chunk = windows[start : start + batch]
+        yield [images[i][y1:y2, x1:x2] for i, (x1, y1, x2, y2) in chunk], chunk, start + batch >= len(windows)
 
 
 class LoadStreams:

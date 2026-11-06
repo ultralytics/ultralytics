@@ -29,7 +29,7 @@ class FastSAMPredictor(SegmentationPredictor):
         clip (Any, optional): CLIP model used for text-based prompting, loaded on demand.
 
     Methods:
-        postprocess: Apply postprocessing to FastSAM predictions and handle prompts.
+        finalize_results: Select FastSAM prompts in original-image coordinates.
         prompt: Perform image segmentation inference based on various prompt types.
         set_prompts: Set prompts to be used during inference.
     """
@@ -49,22 +49,12 @@ class FastSAMPredictor(SegmentationPredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
 
-    def postprocess(self, preds, img, orig_imgs):
-        """Apply postprocessing to FastSAM predictions and handle prompts.
-
-        Args:
-            preds (list[torch.Tensor]): Raw predictions from the model.
-            img (torch.Tensor): Input image tensor that was fed to the model.
-            orig_imgs (list[np.ndarray]): Original images before preprocessing.
-
-        Returns:
-            (list[Results]): Processed results with prompts applied.
-        """
+    def finalize_results(self, results: list) -> list:
+        """Adjust source-space masks and select prompts after any tiles have been merged."""
         bboxes = self.prompts.get("bboxes")
         points = self.prompts.get("points")
         labels = self.prompts.get("labels")
         texts = self.prompts.get("texts")
-        results = super().postprocess(preds, img, orig_imgs)
         for result in results:
             full_box = torch.tensor(
                 [0, 0, result.orig_shape[1], result.orig_shape[0]], device=result.boxes.data.device, dtype=torch.float32

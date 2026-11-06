@@ -218,10 +218,11 @@ def test_predict_multiple_devices():
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
-def test_track_exported_model():
+@pytest.mark.parametrize("tile", [False, 320])
+def test_track_exported_model(tile):
     """Track with an exported model on GPU; exported backends return raw preds as a single Tensor."""
     file = YOLO(MODEL).export(format="torchscript", imgsz=160, device=DEVICES[0])
-    results = YOLO(file).track(SOURCE, imgsz=160, device=DEVICES[0])
+    results = YOLO(file).track(SOURCE, imgsz=160, device=DEVICES[0], tile=tile, batch=3)
     assert len(results[0].boxes)
     Path(file).unlink()  # cleanup
 

@@ -77,18 +77,20 @@ class OCR(BaseSolution):
 
         self._paddle = TextRecognition()
 
-    def _recognize(self, crop: np.ndarray) -> tuple[str, float]:
-        """Recognize one BGR crop with the configured backend."""
+    def _recognize(self, crops: list[np.ndarray]) -> list[tuple[str, float]]:
+        """Recognize BGR crops with the configured backend, batching PaddleOCR inference."""
         if callable(self.recognizer):
-            text, confidence = self.recognizer(crop)
+            outputs = [self.recognizer(crop) for crop in crops]
         else:
             if self._paddle is None:
                 self._init_paddle()
-            output = self._paddle.predict(crop)[0]
-            text, confidence = output["rec_text"], output["rec_score"]
-        if not isinstance(text, str) or not isinstance(confidence, (float, int, np.floating)):
-            raise TypeError("recognizer must return a (text, confidence) tuple containing str and float values.")
-        return text, float(confidence)
+            outputs = [
+                (output["rec_text"], output["rec_score"]) for output in self._paddle.predict(crops, batch_size=16)
+            ]
+        for text, confidence in outputs:
+            if not isinstance(text, str) or not isinstance(confidence, (float, int, np.floating)):
+                raise TypeError("recognizer must return a (text, confidence) tuple containing str and float values.")
+        return [(text, float(confidence)) for text, confidence in outputs]
 
     def process(self, im0: np.ndarray) -> Results:
         """Run text detection, recognition, reading-order sorting, and optional track association on one image."""
@@ -96,6 +98,7 @@ class OCR(BaseSolution):
         self.ocr_frame += 1
         texts = []
         polygons = []
+        pending = []
         for i, box in enumerate(self.boxes):
             polygon = box.numpy().reshape(-1, 2)
             crop_box = box
@@ -115,8 +118,9 @@ class OCR(BaseSolution):
             cached = self.text_cache.get(track_id) if track_id is not None else None
             if cached is None or self.ocr_frame - cached["frame"] >= self.recognition_interval:
                 crop = save_one_box(crop_box, im0, gain=1.0, pad=0, BGR=True, save=False)
-                text, confidence = self._recognize(crop) if crop.size else ("", 0.0)
-                cached = {"text": text, "confidence": confidence, "frame": self.ocr_frame}
+                cached = {"text": "", "confidence": 0.0, "frame": self.ocr_frame}
+                if crop.size:
+                    pending.append((i, cached, crop))
                 if track_id is not None:
                     self.text_cache[track_id] = cached
             texts.append(
@@ -130,27 +134,35 @@ class OCR(BaseSolution):
                 }
             )
             polygons.append(polygon)
+        recognized = self._recognize([crop for _, _, crop in pending]) if pending else []
+        for (i, cached, _), (text, confidence) in zip(pending, recognized):
+            cached.update(text=text, confidence=confidence)
+            texts[i].update(text=text, confidence=confidence)
         order = self.reading_order(polygons) if polygons else []
         result = self.tracks
         result.update(texts=[texts[i] for i in order])
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
         for i in order:
-            text = texts[i]
-            points = np.array(text.get("polygon", text.get("box")), dtype=np.int32)
             if self.CFG["show_boxes"]:
+                points = np.array(texts[i].get("polygon", texts[i].get("box")), dtype=np.int32)
                 annotator.draw_region(points.tolist(), (0, 255, 0), self.line_width)
-            if self.show_labels:
+        if self.show_labels:
+            annotator = SolutionAnnotator(
+                annotator.im,
+                line_width=self.line_width,
+                font_size=max(round(self.line_width * 6), 12),
+                pil=True,
+                example="".join(text["text"] for text in texts),
+            )
+            for i in order:
+                text = texts[i]
+                points = np.array(text.get("polygon", text.get("box")), dtype=np.int32)
                 x1, y1 = points.min(0)
                 label = f"{text['track_id']} {text['text']}" if "track_id" in text else text["text"]
                 label += f" {text['confidence']:.2f}" if self.show_conf else ""
-                font_scale = annotator.sf - 0.15
-                (width, height), baseline = cv2.getTextSize(label, 0, font_scale, annotator.tf)
+                width, height = annotator.font.getsize(label)
                 x = min(max(int(x1), 0), max(im0.shape[1] - width - 4, 0))
-                y = max(int(y1) - 2, height + baseline + 4)
-                cv2.rectangle(annotator.im, (x - 2, y - height - baseline - 2), (x + width + 2, y + 2), (0, 0, 0), -1)
-                cv2.putText(
-                    annotator.im, label, (x, y), 0, font_scale, (255, 255, 255), annotator.tf, lineType=cv2.LINE_AA
-                )
-        result.plot_im = annotator.im
+                annotator.text([x, max(int(y1) - 2, height + 1)], label, anchor="bottom", box_color=(0, 0, 0))
+        result.plot_im = annotator.result()
         self.display_output(result.plot_im)
         return result

@@ -583,6 +583,7 @@ nav:
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md
       - Neural Magic: integrations/neural-magic.md
+      - NXP: integrations/nxp.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
       - PaddlePaddle: integrations/paddlepaddle.md

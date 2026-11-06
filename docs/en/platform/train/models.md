@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Manage trained YOLO models on Ultralytics Platform. Upload weights, review metrics and validation plots, export to 22 formats, clone, move, and deploy.
+description: Manage trained YOLO models on Ultralytics Platform. Upload weights, review metrics and validation plots, export to 23 formats, clone, move, and deploy.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -62,7 +62,7 @@ flowchart TD
     C --> D[Predict]
     C --> E[Export]
     C --> F[Deploy]
-    E --> G[22 formats]
+    E --> G[23 formats]
 ```
 
 ## Model Page Tabs
@@ -164,7 +164,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 22 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 23 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -221,7 +221,7 @@ flowchart TD
     F --> G
 ```
 
-[Export your model](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to 22 deployment formats:
+[Export your model](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to 23 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -236,7 +236,7 @@ Connect [Slack alerts](../integrations/slack.md) to receive a message when an ex
 
 ### Supported Formats
 
-The Platform supports export to [22 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DeepX, Qualcomm (QNN), Hailo, Huawei Ascend, and AMD Xilinx.
+The Platform supports export to [23 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DeepX, Qualcomm (QNN), Hailo, Huawei Ascend, AMD Xilinx, and [NXP i.MX95](../../integrations/nxp.md).
 
 ### Format Selection Guide
 
@@ -250,6 +250,7 @@ The Platform supports export to [22 deployment formats](../../modes/export.md#ex
 | **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **AMD Versal**     | AMD Xilinx          | Versal AI Edge Series Gen 2 NPUs, compiled with AMD Vitis AI   |
+| **NXP i.MX95**     | NXP                 | Neutron SDK 3.3.0; requires a compatible board runtime         |
 | **General**        | ONNX                | Works with most runtimes                                       |
 
 ### NVIDIA Jetson TensorRT Targets
@@ -439,7 +440,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 22 export formats
+- [**Export Formats**](../../modes/export.md): Full guide to all 23 export formats
 
 ## FAQ
 

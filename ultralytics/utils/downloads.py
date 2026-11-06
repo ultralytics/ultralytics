@@ -47,6 +47,7 @@ GITHUB_ASSETS_NAMES = frozenset(
         "mobile_sam.pt",
         "mobileclip_blt.ts",
         "mobileclip2_b.ts",
+        "clip_b32_datacomp.ts",
         "yolo11n-grayscale.pt",
         "yolov8x-pose-p6.pt",
         "calibration_image_sample_data_20x128x128x3_float32.npy.zip",

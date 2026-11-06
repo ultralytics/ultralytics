@@ -41,7 +41,7 @@ flowchart TD
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                                                                                                                                                                                                                                           |
 | **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM models for detect, segment, semantic, and OBB, YOLO models for those tasks and pose, or [class-prompted models](https://platform.ultralytics.com/models) (hosted open-source or paid provider models) for detection datasets with 1–200 classes (see [supported task types](data/annotation.md#supported-task-types)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                                                                                                                                                                                                                                             |
-| **Export**   | [22 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                                                                                                                                                                                         |
+| **Export**   | [23 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                                                                                                                                                                                         |
 | **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                                                                                                                                                                                                                                         |
 
 **What you can do:**
@@ -49,7 +49,7 @@ flowchart TD
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for the 6 YOLO task types supported by the annotation editor (see [supported task types](data/annotation.md#supported-task-types))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
-- **Export** to [22 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
+- **Export** to [23 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
 - **Deploy** to 42 global regions with one-click dedicated endpoints
 - **Build [Agents workflows](agents.md)** that connect models, conditions, dataset collection, Slack alerts, and webhooks
 - **Monitor** training progress, deployment health, and usage metrics
@@ -101,7 +101,7 @@ flowchart TD
 - **Remote Training**: Train anywhere and stream metrics to Ultralytics Platform
 - **Advanced Settings**: Override any Ultralytics training argument from a built-in YAML editor in the training dialog
 - **Project Organization**: Group related models, compare experiments, track activity
-- **22 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
+- **23 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
 
 ![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/78d6e38a07e3885956acdce96a7fc061.avif)<!-- screenshot -->
 
@@ -158,7 +158,7 @@ flowchart TD
     B -->|yes| C[Test in the browser]
     B -->|no| D{Export or deploy?}
     C --> D
-    D -->|export| E[22 formats]
+    D -->|export| E[23 formats]
     D -->|deploy| F[42 regions]
     F --> G[Endpoint URL]
     G --> H([Monitor and scale])
@@ -440,7 +440,7 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ### What export formats are supported?
 
-The Platform supports the same 22 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
+The Platform supports the same 23 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
 
 {% include "macros/export-table.md" %}
 

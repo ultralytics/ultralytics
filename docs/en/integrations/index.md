@@ -95,6 +95,8 @@ This page lists the tools and platforms that Ultralytics integrates with to supp
 
 - [Neural Magic](neural-magic.md): Historical guide to sparse CPU inference with the DeepSparse engine, whose community libraries are deprecated.
 
+- [NXP](nxp.md): Compile calibrated INT8 YOLO models for the i.MX95 Neutron NPU with Neutron SDK 3.3.0.
+
 - [ONNX](onnx.md): An open-source format originally developed by [Microsoft](https://www.microsoft.com/) and Facebook for transferring AI models between frameworks, making Ultralytics models portable across runtimes and hardware.
 
 - [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on Intel CPUs, GPUs, and NPUs.

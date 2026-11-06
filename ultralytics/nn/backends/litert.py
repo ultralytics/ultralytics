@@ -22,6 +22,18 @@ class LiteRTBackend(BaseBackend):
     keypoint coordinates are denormalized by image size.
     """
 
+    def __init__(self, weight: str | Path, device: torch.device | str, fp16: bool = False, format: str = "litert"):
+        """Initialize LiteRT inference, using the board's Neutron delegate for NXP models.
+
+        Args:
+            weight (str | Path): Path to the LiteRT model.
+            device (torch.device | str): Inference device.
+            fp16 (bool): Whether to request FP16 inference.
+            format (str): Model format, either "litert" or "nxp".
+        """
+        self.format = format
+        super().__init__(weight, device, fp16)
+
     def load_model(self, weight: str | Path) -> None:
         """Load a LiteRT model from a .tflite file.
 
@@ -29,7 +41,7 @@ class LiteRTBackend(BaseBackend):
             weight (str | Path): Path to the .tflite model file (metadata embedded as a metadata.json entry).
         """
         tflite_file = Path(weight)
-        self.intel = str(self.device).startswith("intel")  # intel:cpu|npu
+        self.intel = self.format == "litert" and str(self.device).startswith("intel")  # intel:cpu|npu
 
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
         if self.intel:  # Intel OpenVINO plugin through CompiledModel
@@ -53,10 +65,16 @@ class LiteRTBackend(BaseBackend):
             for d in self.input_details + self.output_details:
                 d["dtype"] = np.dtype(d["dtype"])
         else:
-            check_requirements("ai-edge-litert>=2.1.4")
-            from ai_edge_litert.interpreter import Interpreter
+            delegates = []
+            if self.format == "nxp":
+                from tflite_runtime.interpreter import Interpreter, load_delegate
 
-            self.interpreter = Interpreter(str(tflite_file), num_threads=NUM_THREADS)  # Enable multi-core inference
+                delegates = [load_delegate("libneutron_delegate.so")]
+            else:
+                check_requirements("ai-edge-litert>=2.1.4")
+                from ai_edge_litert.interpreter import Interpreter
+
+            self.interpreter = Interpreter(str(tflite_file), num_threads=NUM_THREADS, experimental_delegates=delegates)
             self.interpreter.allocate_tensors()
             self.input_details = self.interpreter.get_input_details()
             self.output_details = self.interpreter.get_output_details()

@@ -117,7 +117,7 @@ class COCODataset(YOLODataset):
             assert cache["version"] == DATASET_CACHE_VERSION
             assert cache["hash"] == get_hash([self.json_file, str(self.img_path)])
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
-        except (FileNotFoundError, AssertionError, AttributeError, KeyError, ModuleNotFoundError):
+        except Exception:  # missing, stale, or unreadable cache
             cache = self.cache_labels(cache_path)
         cache.pop("hash", None)
         cache.pop("version", None)
@@ -310,7 +310,7 @@ class COCODataset(YOLODataset):
             assert cache["version"] == DATASET_CACHE_VERSION
             assert cache["hash"] == get_hash([self.json_file, str(self.img_path)])
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
-        except (FileNotFoundError, AssertionError, AttributeError, KeyError, ModuleNotFoundError):
+        except Exception:  # missing, stale, or unreadable cache
             cache = self.cache_labels(cache_path)
         cache.pop("hash", None)
         cache.pop("version", None)

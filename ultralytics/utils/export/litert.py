@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import types
 import zipfile
 from pathlib import Path
@@ -100,7 +102,7 @@ def torch2litert(
 
     if static_int8 or static_int16 or dynamic_int8:
         check_requirements("ai-edge-quantizer>=0.10.0")
-        from ai_edge_quantizer import qtyping, quantizer, recipe
+        from ai_edge_quantizer import calibrator, qtyping, quantizer, recipe
 
         qt = quantizer.Quantizer(str(tflite_file))
         if static_int8 or static_int16:  # static schemes calibrate over representative images
@@ -117,7 +119,9 @@ def torch2litert(
                 qt.update_quantization_recipe(
                     regex=".*", operation_name=op, algorithm_key=recipe.AlgorithmName.NO_QUANTIZE
                 )
-            result = qt.calibrate({"serving_default": calib_samples})
+            result = qt.calibrate(
+                {"serving_default": calib_samples}, mode=calibrator.CalibrationMode.CALIBRATION_PROFILER_BASED
+            )
             qt.quantize(calibration_result=result).export_model(str(tflite_file), overwrite=True)
         else:  # dynamic / weight-only INT8: int8 weights, FP32 activations, no calibration needed
             LOGGER.info(f"{prefix} applying dynamic INT8 quantization (int8 weights + FP32 activations)...")
@@ -129,3 +133,37 @@ def torch2litert(
     with zipfile.ZipFile(tflite_file, "a", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("metadata.json", json.dumps(metadata or {}))
     return str(tflite_file)
+
+
+def tflite2nxp(tflite_file: str, output_file: Path, metadata: dict) -> str:
+    """Compile an INT8 LiteRT model for i.MX95 using NXP's Neutron SDK 3.3.0.
+
+    Args:
+        tflite_file (str): Calibrated INT8 LiteRT model.
+        output_file (Path): Destination for the compiled model.
+        metadata (dict): Ultralytics metadata to preserve in the compiled model.
+
+    Returns:
+        (str): Path to the compiled model, requiring the matching Neutron runtime on i.MX95.
+    """
+    from ultralytics.utils.checks import check_requirements
+
+    check_requirements("eiq-neutron-sdk==3.3.0", cmds="--extra-index-url https://eiq.nxp.com/repository")
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "eiq_neutron_sdk.neutron_compiler.compiler",
+            "--input",
+            str(tflite_file),
+            "--output",
+            str(output_file),
+            "--target",
+            "imx95",
+            "--dump-statistics",
+        ],
+        check=True,
+    )
+    with zipfile.ZipFile(output_file, "a", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("metadata.json", json.dumps(metadata))
+    return str(output_file)

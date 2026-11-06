@@ -959,9 +959,6 @@ def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str
                 (".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")
             ):  # URL
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
-            elif s.startswith("bash "):  # bash script
-                LOGGER.info(f"Running {s} ...")
-                subprocess.run(s.split(), check=True)
             else:  # python script
                 exec(s, {"yaml": data})  # noqa: S102
             dt = f"({round(time.time() - t, 1)}s)"
@@ -1132,10 +1129,24 @@ def load_dataset_cache_file(path: Path) -> dict:
         (dict): The loaded cache dictionary.
     """
     import gc
+    import pickle
+
+    safe = {("numpy", "ndarray"), ("numpy", "dtype")}
+    safe |= {(f"numpy.{m}.multiarray", "_reconstruct") for m in ("core", "_core")}  # numpy<2, numpy>=2
+    safe |= {(m, c) for m in ("pathlib", "pathlib._local") for c in ("PosixPath", "WindowsPath")}  # _local: Python 3.13
+
+    class Unpickler(pickle.Unpickler):
+        def find_class(self, module, name):  # rebuild only the numpy arrays and paths that real caches contain
+            if (module, name) in safe:
+                return super().find_class(module, name)
+            raise pickle.UnpicklingError(f"'{module}.{name}' is not allowed in a dataset cache file")
 
     gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
     try:
-        return np.load(str(path), allow_pickle=True).item()  # load dict
+        with open(path, "rb") as f:
+            fmt = np.lib.format
+            (fmt.read_array_header_1_0 if fmt.read_magic(f) == (1, 0) else fmt.read_array_header_2_0)(f)
+            return Unpickler(f).load().item()  # np.save stores the dict as a pickled 0-d object array
     finally:
         gc.enable()  # also when loading raises, e.g. no cache file yet
 

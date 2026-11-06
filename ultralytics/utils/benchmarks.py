@@ -32,6 +32,7 @@ Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
+NXP                     | `nxp`                     | yolo26n_nxp.tflite
 """
 
 from __future__ import annotations

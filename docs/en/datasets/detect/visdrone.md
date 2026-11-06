@@ -176,7 +176,7 @@ For detailed configurations, see the [Training](../../modes/train.md) page and [
 
 ### Why is VisDrone difficult for object detectors, and how can I improve accuracy?
 
-Objects in VisDrone are tiny relative to the frame — often only a few dozen pixels — and appear in dense, heavily occluded groups, which strains detectors tuned on ground-level photos. Training and predicting at a higher resolution (for example `imgsz=1280` with a smaller batch) recovers small targets, and [SAHI tiled inference](../../guides/sahi-tiled-inference.md) slices large images so small objects occupy more of each inference window.
+Objects in VisDrone are tiny relative to the frame — often only a few dozen pixels — and appear in dense, heavily occluded groups, which strains detectors tuned on ground-level photos. Training and predicting at a higher resolution (for example `imgsz=1280` with a smaller batch) recovers small targets, and [high resolution tiling](../../guides/high-resolution-tiling.md) slices large images so small objects occupy more of each inference window.
 
 ### What is the difference between VisDrone-DET and the full VisDrone benchmark?
 

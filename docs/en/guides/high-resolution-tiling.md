@@ -1,10 +1,10 @@
 ---
-title: Native Tiling for High-Resolution Images
-description: Train, validate, and predict on native image tiles with Ultralytics, using shared data loading and full-image results.
-keywords: YOLO, native tiling, high resolution, small objects, sliced inference
+title: High Resolution Tiling
+description: Train, validate, and predict on image tiles with Ultralytics, using shared data loading and full-image results.
+keywords: YOLO, tiling, high resolution, small objects, sliced inference
 ---
 
-# Native Tiling for High-Resolution Images
+# High Resolution Tiling
 
 Use `tile=True` to process high-resolution images in overlapping windows before resizing them to the model input. This can preserve small-object detail that would be lost by resizing the whole image. No additional package is required.
 
@@ -25,9 +25,20 @@ results = model.predict("large-image.tif", tile=640, imgsz=640, batch=8)
 yolo predict model=yolo26n.pt source=large-image.tif tile=640 imgsz=640 batch=8
 ```
 
-`tile=True` uses `imgsz` as the native window size. A positive integer, such as `tile=1024`, sets the window size independently of `imgsz`. `tile=False` is the default. Windows overlap by 20%, with the final windows aligned to the image boundary. Smaller images use a single full-image window.
+`tile=True` uses `imgsz` as the window size. A positive integer, such as `tile=1024`, sets the window size independently of `imgsz`. `tile=False` is the default. Windows overlap by 20%, with the final windows aligned to the image boundary. Smaller images use a single full-image window.
 
 `batch` controls how many tiles the model processes together during prediction. The existing backend handles fixed export batch sizes, including the last partial batch. [Exported models](../modes/export.md) retain their normal input graph; tiling runs in the Python prediction pipeline.
+
+For video, stream results to keep memory bounded and use the existing prediction options to save or display them:
+
+```python
+for result in model.predict("video.mp4", tile=640, stream=True, save=True):
+    print(result.boxes)
+```
+
+```bash
+yolo predict model=yolo26n.pt source=video.mp4 tile=640 save=True
+```
 
 ## Tasks and Models
 
@@ -43,7 +54,7 @@ yolo predict model=yolo26n.pt source=large-image.tif tile=640 imgsz=640 batch=8
 
 The shared pipeline supports YOLO task models, YOLO-World, YOLOE, RT-DETR, and FastSAM prediction. YOLOE visual prompts are embedded from the full source image and reused by its tiles. FastSAM selects prompted masks after merging them into source coordinates. SAM predictors retain their own prompt and crop-generation pipeline; they do not accept `tile`.
 
-During training, boxes and polygons are cropped to their windows, OBB clipping preserves orientation, and out-of-window keypoints lose visibility. Instances with less than 10% of their original bounding-box area remaining are removed. Empty windows remain as negative examples. Semantic and depth targets use the same native windows as their images.
+During training, boxes and polygons are cropped to their windows, OBB clipping preserves orientation, and out-of-window keypoints lose visibility. Instances with less than 10% of their original bounding-box area remaining are removed. Empty windows remain as negative examples. Semantic and depth targets use the same windows as their images.
 
 ## Performance and Quality
 
@@ -52,6 +63,4 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 - Source-sized masks and dense maps still require memory proportional to the original image. `max_det` limits the number of retained instance masks.
 - Tiling removes global context. Validate accuracy on your own data, especially for classification and depth, whose tile outputs may not agree globally.
 - Duplicate suppression selects whole predictions; it does not reconstruct an object from separate visible fragments. Overlap reduces boundary truncation but cannot eliminate it for objects larger than a tile.
-- Tensor sources, `embed`, and `visualize` are unsupported. Tracking runs on the merged predictions once per source frame, including native ReID features.
-
-For external sliced inference and SAHI's additional postprocessing options, see [Sliced Inference with SAHI](sahi-tiled-inference.md).
+- Tensor sources, `embed`, and `visualize` are unsupported. Tracking runs on the merged predictions once per source frame, including ReID features.

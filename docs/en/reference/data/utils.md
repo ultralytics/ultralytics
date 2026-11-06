@@ -36,6 +36,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.utils.save_numpy
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.save_depth_png
 
 <br><br><hr><br>

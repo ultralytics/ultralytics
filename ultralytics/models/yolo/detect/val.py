@@ -421,6 +421,7 @@ class DetectionValidator(BaseValidator):
         )
         windows = tile_windows(shape, tile_size)
         predictions, masks, keypoints_list = [], [], []
+        losses, loss_count = {}, 0
         for start in range(0, len(windows), self.args.batch):
             batch_windows = windows[start : start + self.args.batch]
             samples = []
@@ -441,8 +442,11 @@ class DetectionValidator(BaseValidator):
                 preds = model(tile_batch["img"], augment=augment)
             with dt[2]:
                 if self.training:
-                    for k, v in model.loss(tile_batch, preds)[1].items():
-                        self.loss[k] += v
+                    loss_items = model.loss(tile_batch, preds)[1]
+                    count = tile_batch["img"].shape[0]
+                    loss_count += count
+                    for k, v in loss_items.items():
+                        losses[k] = losses.get(k, 0) + v * count
             with dt[3]:
                 tile_preds = self.postprocess(preds)
                 for i, pred in enumerate(tile_preds):
@@ -473,6 +477,9 @@ class DetectionValidator(BaseValidator):
                     predictions.append(torch.cat([pred["bboxes"], pred["conf"][:, None], pred["cls"][:, None]], 1))
                     if keypoints is not None:
                         keypoints_list.append(keypoints)
+        if self.training:
+            for k, v in losses.items():
+                self.loss[k] += v / max(loss_count, 1)
         with dt[3]:
             if self.args.task in {"semantic", "depth"}:
                 merged = merge_dense_tiles(predictions, windows, shape, discrete=self.args.task == "semantic")

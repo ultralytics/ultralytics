@@ -48,6 +48,7 @@ from .utils import (
     polygons2masks_overlap,
     read_mask,
     save_dataset_cache_file,
+    save_numpy,
     verify_image,
     verify_image_depth,
     verify_image_label,
@@ -1320,7 +1321,7 @@ class ClassificationDataset:
             im = self.img_cache[i]
         elif self.cache_disk:
             if not fn.exists() or fn.stat().st_mtime < Path(f).stat().st_mtime:  # missing or stale
-                np.save(fn.as_posix(), self.imread(f), allow_pickle=False)
+                save_numpy(fn, self.imread(f))
             im = np.load(fn)
         else:  # read image
             im = self.imread(f)  # BGR

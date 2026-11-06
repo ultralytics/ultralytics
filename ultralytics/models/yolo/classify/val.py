@@ -144,6 +144,7 @@ class ClassificationValidator(BaseValidator):
         )
         windows = tile_windows(im.shape[:2], tile_size)
         predictions = []
+        losses, loss_count = {}, 0
         for start in range(0, len(windows), self.args.batch):
             batch_windows = windows[start : start + self.args.batch]
             samples = [Image.fromarray(im[y1:y2, x1:x2]) for x1, y1, x2, y2 in batch_windows]
@@ -157,10 +158,16 @@ class ClassificationValidator(BaseValidator):
                 preds = model(tile_batch["img"], augment=augment)
             with dt[2]:
                 if self.training:
-                    for k, v in model.loss(tile_batch, preds)[1].items():
-                        self.loss[k] += v
+                    loss_items = model.loss(tile_batch, preds)[1]
+                    count = tile_batch["img"].shape[0]
+                    loss_count += count
+                    for k, v in loss_items.items():
+                        losses[k] = losses.get(k, 0) + v * count
             with dt[3]:
                 predictions.append(self.postprocess(preds))
+        if self.training:
+            for k, v in losses.items():
+                self.loss[k] += v / max(loss_count, 1)
         batch["img"] = batch.pop("raw_img")
         return torch.cat(predictions).mean(0, keepdim=True)
 

@@ -193,6 +193,23 @@ def merge_dense_tiles(predictions, windows, shape, discrete: bool = False):
     return output if discrete else output / weights.clamp(min=1e-6)
 
 
+def save_numpy(path: str | Path, array: np.ndarray) -> None:
+    """Atomically save a NumPy array so concurrent cache writers cannot expose partial files."""
+    import tempfile
+
+    path = Path(path)
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=path.parent, suffix=".npy", delete=False) as tmp:
+            tmp_path = Path(tmp.name)
+            np.save(tmp, array, allow_pickle=False)
+        os.replace(tmp_path, path)
+    except Exception:
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)
+        raise
+
+
 def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG_SCALE) -> None:
     """Save metric depth as a scaled uint16 PNG with zero reserved for invalid pixels.
 

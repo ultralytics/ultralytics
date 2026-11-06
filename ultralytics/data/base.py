@@ -17,7 +17,14 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds, get_split_fraction
+from ultralytics.data.utils import (
+    FORMATS_HELP_MSG,
+    HELP_URL,
+    IMG_FORMATS,
+    check_file_speeds,
+    get_split_fraction,
+    save_numpy,
+)
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace
 from ultralytics.utils.patches import imread
 
@@ -299,7 +306,7 @@ class BaseDataset(Dataset):
                             f"{im.dtype} dtype"
                         )
                         im = imread(f, flags=self.cv2_flag)
-                        np.save(fn.as_posix(), im, allow_pickle=False)  # keep disk-cache benefits for this image
+                        save_numpy(fn, im)  # keep disk-cache benefits for this image
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
@@ -355,7 +362,7 @@ class BaseDataset(Dataset):
         indices = list({f: i for i, f in enumerate(self.im_files)}.values()) if self.tile else range(self.ni)
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(fcn, indices)
-            pbar = TQDM(enumerate(results), total=len(indices), disable=LOCAL_RANK > 0)
+            pbar = TQDM(zip(indices, results), total=len(indices), disable=LOCAL_RANK > 0)
             for i, x in pbar:
                 if self.cache == "disk":
                     b += self.npy_files[i].stat().st_size if self.npy_files[i].exists() else 0  # failed writes unlink
@@ -372,7 +379,7 @@ class BaseDataset(Dataset):
         f = self.npy_files[i]
         if not f.exists() or f.stat().st_mtime < Path(self.im_files[i]).stat().st_mtime:  # missing or stale
             try:
-                np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
+                save_numpy(f, imread(self.im_files[i], flags=self.cv2_flag))
             except Exception as e:
                 f.unlink(missing_ok=True)
                 LOGGER.warning(f"{self.prefix}Failed to cache image {f}: {e}")
@@ -387,9 +394,10 @@ class BaseDataset(Dataset):
             (bool): True if there's enough disk space, False otherwise.
         """
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        n = min(self.ni, 30)  # extrapolate from 30 random images
+        files = list(dict.fromkeys(self.im_files))  # tiled datasets cache one file per unique source image
+        n = min(len(files), 30)  # extrapolate from 30 random images
         for _ in range(n):
-            im_file = random.choice(self.im_files)
+            im_file = random.choice(files)
             im = imread(im_file, flags=self.cv2_flag)
             if im is None:
                 continue
@@ -398,8 +406,8 @@ class BaseDataset(Dataset):
                 self.cache = None
                 LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
                 return False
-        disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
-        total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
+        disk_required = b * len(files) / n * (1 + safety_margin)  # bytes required to cache dataset to disk
+        total, _used, free = shutil.disk_usage(Path(files[0]).parent)
         if disk_required > free:
             self.cache = None
             LOGGER.warning(

@@ -807,7 +807,7 @@ class YAML:
         """Split a 'key: value' line into (key, rest), or return None if it is not a mapping entry."""
         if c[0] in "\"'":
             m = cls._QUOTED.match(c)
-            tail = c[m.end() :] if m else ""
+            tail = c[m.end() :].lstrip(" \t") if m else ""
             return (cls._unquote(m[0]), tail[1:].strip(" \t")) if tail[:1] == ":" and tail[1:2] in {"", " "} else None
         j = c.find(": ")
         j = len(c) - 1 if j < 0 and c[-1] == ":" else j

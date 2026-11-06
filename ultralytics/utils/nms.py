@@ -196,6 +196,54 @@ def merge_tile_predictions(
     return (merged, keep) if return_idxs else merged
 
 
+def merge_tile_instances(
+    predictions,
+    windows,
+    keypoints=None,
+    masks=None,
+    shape=None,
+    agnostic: bool = False,
+    max_det: int = 300,
+    rotated: bool = False,
+):
+    """Merge tile detections and optional keypoint or mask payloads into full-image coordinates."""
+    count = len(predictions)
+    keypoints = [None] * count if keypoints is None else keypoints
+    masks = [None] * count if masks is None else masks
+    pairs = [(p, w, k, m) for p, w, k, m in zip(predictions, windows, keypoints, masks) if len(p)]
+    if not pairs:
+        empty, keep = merge_tile_predictions(
+            predictions[:1], windows[:1], agnostic=agnostic, max_det=max_det, rotated=rotated, return_idxs=True
+        )
+        extras = {}
+        if keypoints[0] is not None:
+            extras["keypoints"] = keypoints[0][:0]
+        if masks[0] is not None:
+            extras["masks"] = masks[0].new_zeros((0, *shape))
+        return empty, keep, extras
+    predictions, windows, keypoints, masks = zip(*pairs)
+    merged, keep = merge_tile_predictions(
+        predictions, windows, agnostic=agnostic, max_det=max_det, rotated=rotated, return_idxs=True
+    )
+    extras = {}
+    if keypoints[0] is not None:
+        keypoints = torch.cat(keypoints)
+        offsets = torch.cat(
+            [keypoints.new_tensor(window[:2]).repeat(len(pred), 1) for pred, window in zip(predictions, windows)]
+        )
+        keypoints[..., :2] += offsets[:, None]
+        extras["keypoints"] = keypoints[keep]
+    if masks[0] is not None:
+        masks = torch.cat(masks)
+        mask_windows = [window for pred, window in zip(predictions, windows) for _ in range(len(pred))]
+        full_masks = masks.new_zeros((len(merged), *shape))
+        for j, k in enumerate(keep):
+            x1, y1, x2, y2 = mask_windows[k]
+            full_masks[j, y1:y2, x1:x2] = masks[k]
+        extras["masks"] = full_masks
+    return merged, keep, extras
+
+
 class TorchNMS:
     """Ultralytics custom NMS implementation optimized for YOLO.
 

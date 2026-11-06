@@ -137,7 +137,7 @@ class ClassificationValidator(BaseValidator):
         dataset = self.dataloader.dataset
         im = batch["raw_img"][0].permute(1, 2, 0).cpu().numpy()
         im = (im * 255).round().astype(np.uint8)
-        windows = tile_windows(im.shape[:2], self.args.tile_size)
+        windows = tile_windows(im.shape[:2], self.args.imgsz)
         predictions = []
         for start in range(0, len(windows), self.args.batch):
             batch_windows = windows[start : start + self.args.batch]
@@ -195,7 +195,7 @@ class ClassificationValidator(BaseValidator):
         if not dataset.samples:
             raise FileNotFoundError(f"No images from the model's classes found in {dataset_path}")
         return build_dataloader(
-            dataset, 1 if self.args.tiles else batch_size, self.args.workers, rank=-1, device=self.device
+            dataset, 1 if self.args.tile else batch_size, self.args.workers, rank=-1, device=self.device
         )
 
     def print_results(self) -> None:

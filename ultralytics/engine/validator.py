@@ -255,7 +255,7 @@ class BaseValidator:
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
-            if self.args.tiles:
+            if self.args.tile:
                 with autocast(self.training and self.args.quantize == 16, device=self.device.type):
                     preds = self.predict_tiles(batch, model, augment, dt)
                 batch = {

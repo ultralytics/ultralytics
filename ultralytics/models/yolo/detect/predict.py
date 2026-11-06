@@ -1,7 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import torch
-
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import nms, ops
@@ -135,40 +133,23 @@ class DetectionPredictor(BasePredictor):
 
     def merge_tiles(self, results, windows, orig_imgs):
         """Merge tile results into full-image detection-family results."""
+        from ultralytics.data.utils import group_tile_results
+
         merged = []
-        for i, orig_img in enumerate(orig_imgs):
-            tile_results = [r for r, (source_i, _) in zip(results, windows) if source_i == i]
-            tile_windows = [window for (source_i, window) in windows if source_i == i]
+        for i, ((tile_results, tile_windows), orig_img) in enumerate(
+            zip(group_tile_results(results, windows, len(orig_imgs)), orig_imgs)
+        ):
             rotated = tile_results[0].obb is not None
-            pairs = [(r, window) for r, window in zip(tile_results, tile_windows) if len(r)]
-            selected, selected_windows = zip(*pairs) if pairs else (tile_results[:1], tile_windows[:1])
-            predictions = [r.obb.data if rotated else r.boxes.data for r in selected]
-            preds, keep = nms.merge_tile_predictions(
-                predictions,
-                selected_windows,
+            preds, _, extras = nms.merge_tile_instances(
+                [r.obb.data if rotated else r.boxes.data for r in tile_results],
+                tile_windows,
+                keypoints=[r.keypoints.data if r.keypoints is not None else None for r in tile_results],
+                masks=[r.masks.data if r.masks is not None else None for r in tile_results],
+                shape=orig_img.shape[:2],
                 agnostic=self.args.agnostic_nms,
                 max_det=self.args.max_det,
                 rotated=rotated,
-                return_idxs=True,
             )
-            output = {"obb" if rotated else "boxes": preds}
-            if selected[0].keypoints is not None:
-                keypoints = torch.cat([r.keypoints.data for r in selected])
-                offsets = torch.cat(
-                    [
-                        r.keypoints.data.new_tensor(window[:2]).repeat(len(r), 1)
-                        for r, window in zip(selected, selected_windows)
-                    ]
-                )
-                keypoints[..., :2] += offsets[:, None]
-                output["keypoints"] = keypoints[keep]
-            if selected[0].masks is not None:
-                masks = torch.cat([r.masks.data for r in selected])
-                mask_windows = [window for r, window in zip(selected, selected_windows) for _ in range(len(r))]
-                full_masks = masks.new_zeros((len(preds), *orig_img.shape[:2]))
-                for j, k in enumerate(keep):
-                    x1, y1, x2, y2 = mask_windows[k]
-                    full_masks[j, y1:y2, x1:x2] = masks[k]
-                output["masks"] = full_masks
+            output = {("obb" if rotated else "boxes"): preds, **extras}
             merged.append(Results(orig_img, path=self.batch[0][i], names=self.model.names, **output))
         return merged

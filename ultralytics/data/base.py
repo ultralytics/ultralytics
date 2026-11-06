@@ -122,8 +122,7 @@ class BaseDataset(Dataset):
         classes: list[int] | None = None,
         fraction: float = 1.0,
         channels: int = 3,
-        tiles: bool = False,
-        tile_size: int | tuple[int, int] = 640,
+        tile: bool = False,
     ):
         """Initialize BaseDataset with given configuration and options.
 
@@ -143,8 +142,7 @@ class BaseDataset(Dataset):
             fraction (float | int): Dataset ratio or image count to use.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
-            tiles (bool): Whether to expand images and labels into fixed tiles.
-            tile_size (int | tuple[int, int]): Native tile height and width in pixels.
+            tile (bool): Whether to expand images and labels into fixed native `imgsz` tiles.
         """
         super().__init__()
         self.img_path = img_path
@@ -158,15 +156,15 @@ class BaseDataset(Dataset):
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
-        self.tiles = tiles
-        self.native = bool(getattr(hyp, "tiles", False)) and not augment
-        if tiles:
+        self.tile = tile
+        self.native = bool(getattr(hyp, "tile", False)) and not augment
+        if tile:
             from .utils import slice_label, tile_windows
 
             self.labels = [
                 slice_label(label, window)
                 for label in self.labels
-                for window in tile_windows(label["shape"], tile_size)
+                for window in tile_windows(label["shape"], self.imgsz)
             ]
             self.im_files = [label["im_file"] for label in self.labels]
         self.ni = len(self.labels)  # number of images
@@ -188,7 +186,7 @@ class BaseDataset(Dataset):
         # existing user cache and forces a full recache, so keep this exact naming
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
-        if tiles and self.cache == "ram":
+        if tile and self.cache == "ram":
             raise ValueError("cache='ram' is not supported with tiled training; use cache='disk' or cache=False.")
         if self.cache == "ram" and self.check_cache_ram():
             if hyp.deterministic:
@@ -352,7 +350,7 @@ class BaseDataset(Dataset):
         """Cache images to memory or disk for faster training."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         fcn, storage = (self.cache_images_to_disk, "Disk") if self.cache == "disk" else (self.load_image, "RAM")
-        indices = list({f: i for i, f in enumerate(self.im_files)}.values()) if self.tiles else range(self.ni)
+        indices = list({f: i for i, f in enumerate(self.im_files)}.values()) if self.tile else range(self.ni)
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(fcn, indices)
             pbar = TQDM(enumerate(results), total=len(indices), disable=LOCAL_RANK > 0)

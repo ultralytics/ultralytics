@@ -414,8 +414,8 @@ class DetectionValidator(BaseValidator):
                 source_label["semantic_mask"][~np.isin(source_label["semantic_mask"], dataset.include_class)] = 255
         elif self.args.task == "depth":
             source_label = {**source_label, "depth": dataset._load_depth(source_index, shape)}
-        windows = tile_windows(shape, self.args.tile_size)
-        predictions, masks = [], []
+        windows = tile_windows(shape, self.args.imgsz)
+        predictions, masks, keypoints_list = [], [], []
         for start in range(0, len(windows), self.args.batch):
             batch_windows = windows[start : start + self.args.batch]
             samples = []
@@ -458,47 +458,35 @@ class DetectionValidator(BaseValidator):
                     pred["bboxes"] = ops.scale_boxes(
                         tile_batch["img"].shape[2:], pred["bboxes"], tile_shape, ratio_pad=ratio_pad, xywh=rotated
                     )
-                    parts = [pred["bboxes"], pred["conf"][:, None], pred["cls"][:, None]]
+                    keypoints = None
                     if self.args.task == "pose":
-                        parts.append(
-                            ops.scale_coords(
-                                tile_batch["img"].shape[2:], pred["keypoints"], tile_shape, ratio_pad=ratio_pad
-                            ).flatten(1)
+                        keypoints = ops.scale_coords(
+                            tile_batch["img"].shape[2:], pred["keypoints"], tile_shape, ratio_pad=ratio_pad
                         )
                     elif self.args.task == "segment":
                         masks.append(ops.scale_masks(pred["masks"][None], tile_shape, ratio_pad=ratio_pad)[0].byte())
-                    predictions.append(torch.cat(parts, 1))
+                    predictions.append(torch.cat([pred["bboxes"], pred["conf"][:, None], pred["cls"][:, None]], 1))
+                    if keypoints is not None:
+                        keypoints_list.append(keypoints)
         with dt[3]:
             if self.args.task in {"semantic", "depth"}:
                 merged = merge_dense_tiles(predictions, windows, shape, discrete=self.args.task == "semantic")
                 return merged[None]
             rotated = self.args.task == "obb"
-            pairs = [(p, w, m) for p, w, m in zip(predictions, windows, masks or windows) if len(p)]
-            selected, selected_windows, selected_masks = (
-                zip(*pairs) if pairs else (predictions[:1], windows[:1], (masks or [None])[:1])
-            )
-            merged, keep = nms.merge_tile_predictions(
-                selected,
-                selected_windows,
+            merged, _, extras = nms.merge_tile_instances(
+                predictions,
+                windows,
+                keypoints=keypoints_list or None,
+                masks=masks or None,
+                shape=shape,
                 agnostic=self.args.single_cls or self.args.agnostic_nms,
                 max_det=self.args.max_det,
                 rotated=rotated,
-                return_idxs=True,
             )
             n = 5 if rotated else 4
-            output = {"bboxes": merged[:, :n], "conf": merged[:, n], "cls": merged[:, n + 1]}
+            output = {"bboxes": merged[:, :n], "conf": merged[:, n], "cls": merged[:, n + 1], **extras}
             if self.args.task == "detect":
                 output["extra"] = merged[:, n + 2 :]
-            elif self.args.task == "pose":
-                output["keypoints"] = merged[:, n + 2 :].view(-1, *self.kpt_shape)
-            elif self.args.task == "segment":
-                tile_masks = torch.cat(selected_masks)
-                mask_windows = [w for p, w in zip(selected, selected_windows) for _ in range(len(p))]
-                full_masks = tile_masks.new_zeros((len(merged), *shape))
-                for j, k in enumerate(keep):
-                    x1, y1, x2, y2 = mask_windows[k]
-                    full_masks[j, y1:y2, x1:x2] = tile_masks[k]
-                output["masks"] = full_masks
         return [output]
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
@@ -533,7 +521,7 @@ class DetectionValidator(BaseValidator):
             dataset.update_labels(list(range(len(self.names))))
         return build_dataloader(
             dataset,
-            1 if self.args.tiles else batch_size,
+            1 if self.args.tile else batch_size,
             self.args.workers,
             shuffle=False,
             rank=-1,

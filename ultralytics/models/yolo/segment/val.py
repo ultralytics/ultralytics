@@ -71,9 +71,7 @@ class SegmentationValidator(DetectionValidator):
             check_requirements("faster-coco-eval>=1.6.7")
         # More accurate vs faster
         self.process = (
-            ops.process_mask_native
-            if self.args.save_json or self.args.save_txt or self.args.tiles
-            else ops.process_mask
+            ops.process_mask_native if self.args.save_json or self.args.save_txt or self.args.tile else ops.process_mask
         )
 
     def get_desc(self) -> str:

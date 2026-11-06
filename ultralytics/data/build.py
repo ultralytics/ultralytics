@@ -299,8 +299,7 @@ def build_yolo_dataset(
         classes=cfg.classes,
         data=data,
         fraction=fraction,
-        tiles=bool(cfg.tiles) and mode == "train",
-        tile_size=cfg.tile_size,
+        tile=bool(cfg.tile) and mode == "train",
     )
 
 

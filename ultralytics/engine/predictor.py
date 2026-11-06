@@ -246,6 +246,17 @@ class BasePredictor:
         """Post-process predictions for an image and return them."""
         return preds
 
+    def _inference_batch(self, ims, profilers, *args, **kwargs):
+        """Preprocess, warm up, and run inference for one batch under shared profiling."""
+        with profilers[0]:
+            im = self.preprocess(ims)
+        if not self.done_warmup:
+            self.model.warmup(im=im)
+            self.done_warmup = True
+        with profilers[1]:
+            preds = self.inference(im, *args, **kwargs)
+        return preds, im
+
     def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
         """Perform inference on an image or stream.
 
@@ -323,7 +334,7 @@ class BasePredictor:
 
         tiles, windows = [], []
         for i, im in enumerate(im0s):
-            for window in tile_windows(im.shape[:2], self.args.tile_size):
+            for window in tile_windows(im.shape[:2], self.imgsz):
                 x1, y1, x2, y2 = window
                 tiles.append(im[y1:y2, x1:x2])
                 windows.append((i, window))
@@ -334,13 +345,7 @@ class BasePredictor:
                 tiles[start : start + self.args.batch],
                 windows[start : start + self.args.batch],
             )
-            with profilers[0]:
-                im = self.preprocess(batch_tiles)
-            if not self.done_warmup:
-                self.model.warmup(im=im)
-                self.done_warmup = True
-            with profilers[1]:
-                preds = self.inference(im, *args, **kwargs)
+            preds, im = self._inference_batch(batch_tiles, profilers, *args, **kwargs)
             pixels += im.shape[0] * im.shape[2] * im.shape[3]
             batch = self.batch
             self.batch = ([batch[0][i] for i, _ in batch_windows], *batch[1:])
@@ -392,10 +397,10 @@ class BasePredictor:
                 self.model.model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
-            if self.args.tiles and (
+            if self.args.tile and (
                 self.source_type.tensor or self.args.embed or self.args.visualize or self.args.mode == "track"
             ):
-                raise ValueError("tiles supports image/video prediction without tensor, embed, visualize, or track.")
+                raise ValueError("tile supports image/video prediction without tensor, embed, visualize, or track.")
 
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
@@ -423,25 +428,13 @@ class BasePredictor:
                     self.run_callbacks("on_predict_batch_start")
                     paths, im0s, s = self.batch
 
-                    if self.args.tiles:
+                    if self.args.tile:
                         self.results, im = self.predict_tiles(im0s, profilers, *args, **kwargs)
                     else:
-                        # Preprocess
-                        with profilers[0]:
-                            im = self.preprocess(im0s)
-
-                        if not self.done_warmup:
-                            self.model.warmup(im=im)
-                            self.done_warmup = True
-
-                        # Inference
-                        with profilers[1]:
-                            preds = self.inference(im, *args, **kwargs)
-                            if self.args.embed:
-                                yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embed tensors
-                                continue
-
-                        # Postprocess
+                        preds, im = self._inference_batch(im0s, profilers, *args, **kwargs)
+                        if self.args.embed:
+                            yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embed tensors
+                            continue
                         with profilers[2]:
                             self.results = self.postprocess(preds, im, im0s)
                     self.run_callbacks("on_predict_postprocess_end")
@@ -451,8 +444,8 @@ class BasePredictor:
                     try:
                         for i in range(n):
                             self.seen += 1
-                            px += self._tile_pixels if self.args.tiles else im.shape[2] * im.shape[3]
-                            if not self.args.tiles:
+                            px += self._tile_pixels if self.args.tile else im.shape[2] * im.shape[3]
+                            if not self.args.tile:
                                 self.results[i].speed = {
                                     "preprocess": profilers[0].dt * 1e3 / n,
                                     "inference": profilers[1].dt * 1e3 / n,

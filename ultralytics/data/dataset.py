@@ -341,7 +341,7 @@ class YOLODataset(BaseDataset):
             if self.format_class is SemanticFormat:  # masks rasterize from self.labels; only these read polygons
                 self.use_segments = bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
         else:
-            transforms = Compose([] if hyp.tiles else [LetterBox(new_shape=self.imgsz, scaleup=False)])
+            transforms = Compose([] if hyp.tile else [LetterBox(new_shape=self.imgsz, scaleup=False)])
         transforms.append(
             self.format_class(
                 bbox_format="xywh",
@@ -565,7 +565,7 @@ class DepthDataset(YOLODataset):
         # NOTE: For now following arguments are not supported
         hyp.mosaic = hyp.mixup = hyp.cutmix = hyp.copy_paste = 0.0
         transforms = super().build_transforms(hyp)
-        if not self.augment and not hyp.tiles:
+        if not self.augment and not hyp.tile:
             # stretch the image instead of padding
             transforms[-2] = LetterBox(new_shape=self.imgsz, scale_fill=True)
         return transforms
@@ -1266,17 +1266,17 @@ class ClassificationDataset:
             )
         # Same persistent image.npy naming as BaseDataset.npy_files, never rename or relocate existing caches
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
-        self.tiles, self.augment = bool(args.tiles), augment
-        if self.tiles and augment:
+        self.tile, self.augment = bool(args.tile), augment
+        if self.tile and augment:
             from .utils import tile_windows
 
             tiled = []
             for sample in self.samples:
                 with Image.open(sample[0]) as im:
                     shape = (im.height, im.width)
-                tiled.extend([*sample, window] for window in tile_windows(shape, args.tile_size))
+                tiled.extend([*sample, window] for window in tile_windows(shape, args.imgsz))
             self.samples = tiled
-        if self.tiles and self.cache_ram:
+        if self.tile and self.cache_ram:
             raise ValueError("cache='ram' is not supported with tiled training; use cache='disk' or cache=False.")
         if self.cache_disk and not all(os.access(d, os.W_OK) for d in {os.path.dirname(s[0]) for s in self.samples}):
             self.cache_disk = False
@@ -1323,7 +1323,7 @@ class ClassificationDataset:
             im = im.crop(tile[0])
         sample = self.torch_transforms(im)
         output = {"img": sample, "cls": j}
-        if self.tiles and not self.augment:
+        if self.tile and not self.augment:
             output["raw_img"] = torch.from_numpy(np.array(im)).permute(2, 0, 1).float() / 255
             output["im_file"] = f
         return output

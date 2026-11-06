@@ -65,12 +65,10 @@ DATASET_KEY_TYPES = {  # dataset YAML keys and their permitted types
 DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
 
 
-def tile_windows(
-    shape: tuple[int, int], tile_size: int | tuple[int, int] | list[int]
-) -> list[tuple[int, int, int, int]]:
+def tile_windows(shape: tuple[int, int], imgsz: int | tuple[int, int] | list[int]) -> list[tuple[int, int, int, int]]:
     """Return fixed native-pixel tile windows covering an image shape."""
     h, w = shape
-    th, tw = (tile_size, tile_size) if isinstance(tile_size, int) else tile_size
+    th, tw = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
     sy, sx = max(1, round(th * 0.8)), max(1, round(tw * 0.8))
     ys = list(range(0, max(h - th, 0) + 1, sy))
     xs = list(range(0, max(w - tw, 0) + 1, sx))
@@ -79,6 +77,16 @@ def tile_windows(
     if w > tw:
         xs.append(max(0, w - tw))
     return [(x, y, min(x + tw, w), min(y + th, h)) for y in sorted(set(ys)) for x in sorted(set(xs))]
+
+
+def group_tile_results(results: list, windows: list[tuple[int, tuple[int, int, int, int]]], count: int) -> list[tuple]:
+    """Group tile outputs and windows by their source image index."""
+    groups = [([], []) for _ in range(count)]
+    for result, (source_i, window) in zip(results, windows):
+        values, coords = groups[source_i]
+        values.append(result)
+        coords.append(window)
+    return groups
 
 
 def _clip_polygon(points: np.ndarray, window: tuple[int, int, int, int]) -> np.ndarray:

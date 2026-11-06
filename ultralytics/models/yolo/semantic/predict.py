@@ -90,12 +90,14 @@ class SemanticSegmentationPredictor(BasePredictor):
 
     def merge_tiles(self, results, windows, orig_imgs):
         """Stitch semantic class maps, selecting the most central tile in overlaps."""
-        from ultralytics.data.utils import merge_dense_tiles
+        from ultralytics.data.utils import group_tile_results, merge_dense_tiles
 
         merged = []
-        for i, orig_img in enumerate(orig_imgs):
-            predictions = [r.semantic_mask.data for r, (source_i, _) in zip(results, windows) if source_i == i]
-            tile_windows = [window for source_i, window in windows if source_i == i]
-            class_map = merge_dense_tiles(predictions, tile_windows, orig_img.shape[:2], discrete=True)
+        for i, ((tile_results, tile_windows), orig_img) in enumerate(
+            zip(group_tile_results(results, windows, len(orig_imgs)), orig_imgs)
+        ):
+            class_map = merge_dense_tiles(
+                [r.semantic_mask.data for r in tile_results], tile_windows, orig_img.shape[:2], discrete=True
+            )
             merged.append(Results(orig_img, path=self.batch[0][i], names=self.model.names, semantic_mask=class_map))
         return merged

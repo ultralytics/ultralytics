@@ -165,13 +165,12 @@ class BaseDataset(Dataset):
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.tile = tile
-        self.source_labels = self.labels
         self.tile_counts = []
         self._source_image = (None, None)
         self.source_images = None
         if tile:
-            self.labels = []
-            for source_index, label in enumerate(self.source_labels):
+            labels, self.labels = self.labels, []
+            for source_index, label in enumerate(labels):
                 windows = tile_windows(label["shape"], self.imgsz if tile is True else tile)
                 self.tile_counts.append(len(windows))
                 self.labels.extend(
@@ -383,7 +382,7 @@ class BaseDataset(Dataset):
             else range(self.ni)
         )
         if self.tile and self.cache == "ram":
-            images = [None] * len(self.source_labels)
+            images = [None] * len(self.tile_counts)
             for i in indices:
                 images[self.labels[i]["source_index"]] = self._load_source(i)
             self.source_images = self._ImageCache(images)
@@ -521,10 +520,11 @@ class BaseDataset(Dataset):
         Returns:
             (dict[str, Any]): Label dictionary with image and metadata.
         """
-        source = self.labels[index]
-        label = deepcopy(self.source_labels[source["source_index"]] if full and self.tile else source)
+        label = deepcopy(self.labels[index])
         label.pop("shape", None)
         if full:
+            for key in ("tile", "source_index", "source_shape"):
+                label.pop(key, None)
             image = self._load_source(index)
             label["img"] = image if image.ndim == 3 else image[..., None]
             label["ori_shape"] = label["resized_shape"] = image.shape[:2]

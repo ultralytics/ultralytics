@@ -1312,14 +1312,13 @@ class ClassificationDataset:
         if self.cache_ram:
             self.cache_images()
         self.tile = args.tile
-        self.source_samples = self.samples
         self.tile_counts = []
         self._source_image = (None, None)
         if self.tile:
             from .utils import tile_windows
 
-            self.samples = []
-            for source_index, sample in enumerate(self.source_samples):
+            samples, self.samples = self.samples, []
+            for source_index, sample in enumerate(samples):
                 with Image.open(sample[0]) as image:
                     windows = tile_windows(exif_size(image)[::-1], args.imgsz if self.tile is True else self.tile)
                 self.tile_counts.append(len(windows))

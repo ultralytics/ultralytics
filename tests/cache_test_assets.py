@@ -26,6 +26,7 @@ WEIGHTS = [
     "FastSAM-s.pt",
     "mobile_sam.pt",
     "mobileclip2_b.ts",
+    "clip_b32_datacomp.ts",
     "yoloe-26n-seg.pt",
     "yoloe-26n-seg-pf.pt",
     "yolo26s.pt",

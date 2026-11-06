@@ -177,8 +177,9 @@ def _collect_logpairs(
     try:
         for batch in dataloader:
             img = batch["img"].to(device).float() / 255
-            if getattr(dataloader.dataset, "native", False):
-                shape = dataloader.dataset.imgsz
+            dataset = getattr(dataloader, "dataset", None)
+            if getattr(dataset, "native", False):
+                shape = dataset.imgsz
                 img = F.interpolate(
                     img, size=(shape, shape) if isinstance(shape, int) else shape, mode="bilinear", align_corners=False
                 )
@@ -288,8 +289,9 @@ def _plot_calibrated_batches(
         # zip stops on range exhaustion without pulling an extra batch from the stateful iterator
         for ni, batch in zip(range(max_batches), dataloader):
             img = batch["img"].to(device).float() / 255
-            if getattr(dataloader.dataset, "native", False):
-                shape = dataloader.dataset.imgsz
+            dataset = getattr(dataloader, "dataset", None)
+            if getattr(dataset, "native", False):
+                shape = dataset.imgsz
                 img = F.interpolate(
                     img, size=(shape, shape) if isinstance(shape, int) else shape, mode="bilinear", align_corners=False
                 )

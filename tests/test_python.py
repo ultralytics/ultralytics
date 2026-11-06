@@ -2459,7 +2459,7 @@ def test_tile_geometry_and_merge():
 
     predictions = [torch.tensor([[x, 10, x + 20, 30, 0.9, 0]]) for x in (64.0, 32.0, 0.0)]
     merged = merge_tile_predictions(predictions, [(0, 0, 64, 64), (32, 0, 96, 64), (64, 0, 128, 64)])
-    torch.testing.assert_close(merged, torch.tensor([[64.0, 10, 84, 30, 0.9, 0]]))
+    assert torch.allclose(merged, torch.tensor([[64.0, 10, 84, 30, 0.9, 0]]))
 
     dense = [torch.ones(1, 64, 64), torch.full((1, 64, 64), 3.0)]
     merged = merge_dense_tiles(dense, [(0, 0, 64, 64), (32, 32, 96, 96)], (96, 96))

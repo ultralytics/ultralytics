@@ -344,6 +344,8 @@ class BaseTrainer:
     def _setup_train(self):
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
+        if self.resume and ckpt:
+            init_seeds(self.args.seed + 2 + RANK + ckpt.get("epoch", -1), deterministic=self.args.deterministic)
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
         # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105).

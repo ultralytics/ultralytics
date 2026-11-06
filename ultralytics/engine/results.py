@@ -786,7 +786,9 @@ class Results(SimpleClass, DataExportMixin):
 
         return str(txt_file)
 
-    def save_crop(self, save_dir: str | Path, file_name: str | Path = Path("im.jpg")):
+    def save_crop(
+        self, save_dir: str | Path, file_name: str | Path = Path("im.jpg"), gain: float = 1.02, pad: int = 10
+    ):
         """Save cropped detection images to specified directory.
 
         This method saves cropped images of detected objects to a specified directory. Each crop is saved in a
@@ -795,6 +797,8 @@ class Results(SimpleClass, DataExportMixin):
         Args:
             save_dir (str | Path): Directory path where cropped images will be saved.
             file_name (str | Path): Base filename for the saved cropped images.
+            gain (float, optional): A multiplicative factor to increase the size of the bounding box.
+            pad (int, optional): The number of pixels to add to the width and height of the bounding box.
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -824,6 +828,8 @@ class Results(SimpleClass, DataExportMixin):
                 self.orig_img.copy(),
                 file=Path(save_dir) / self.names[int(d.cls.item())] / Path(file_name).with_suffix(".jpg"),
                 BGR=True,
+                gain=gain,
+                pad=pad,
             )
 
     def summary(self, normalize: bool = False, decimals: int = 5) -> list[dict[str, Any]]:

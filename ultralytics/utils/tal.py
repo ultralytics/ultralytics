@@ -495,7 +495,7 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
                 union = gm.sum(-1, dtype=torch.float)[..., None] + pm.sum(-1)[:, None] - inter
                 ious[s, :, :m] = inter / union.clamp(min=1)
                 i = s.stop
-            miou[sel] = ious[r[inv], g[sel], slot[inv]]
+            miou.scatter_(0, sel, ious[r[inv], g[sel], slot[inv]])
         return (iou + miou) / 2
 
 

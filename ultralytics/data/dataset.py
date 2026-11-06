@@ -1266,7 +1266,7 @@ class ClassificationDataset:
             )
         # Same persistent image.npy naming as BaseDataset.npy_files, never rename or relocate existing caches
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
-        self.tile, self.augment = bool(args.tile), augment
+        self.tile, self.augment = args.tile, augment
         if self.tile and augment:
             from .utils import tile_windows
 
@@ -1274,7 +1274,13 @@ class ClassificationDataset:
             for sample in self.samples:
                 with Image.open(sample[0]) as im:
                     shape = (im.height, im.width)
-                tiled.extend([*sample, window] for window in tile_windows(shape, args.imgsz))
+                tiled.extend(
+                    [*sample, window]
+                    for window in tile_windows(
+                        shape,
+                        args.tile if isinstance(args.tile, int) and not isinstance(args.tile, bool) else args.imgsz,
+                    )
+                )
             self.samples = tiled
         if self.tile and self.cache_ram:
             raise ValueError("cache='ram' is not supported with tiled training; use cache='disk' or cache=False.")

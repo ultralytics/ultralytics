@@ -334,7 +334,12 @@ class BasePredictor:
 
         tiles, windows = [], []
         for i, im in enumerate(im0s):
-            for window in tile_windows(im.shape[:2], self.imgsz):
+            tile_size = (
+                self.args.tile
+                if isinstance(self.args.tile, int) and not isinstance(self.args.tile, bool)
+                else self.imgsz
+            )
+            for window in tile_windows(im.shape[:2], tile_size):
                 x1, y1, x2, y2 = window
                 tiles.append(im[y1:y2, x1:x2])
                 windows.append((i, window))

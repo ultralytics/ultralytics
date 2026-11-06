@@ -299,7 +299,7 @@ def build_yolo_dataset(
         classes=cfg.classes,
         data=data,
         fraction=fraction,
-        tile=bool(cfg.tile) and mode == "train",
+        tile=cfg.tile if mode == "train" else False,
     )
 
 

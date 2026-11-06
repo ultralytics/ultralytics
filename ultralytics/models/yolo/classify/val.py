@@ -137,7 +137,12 @@ class ClassificationValidator(BaseValidator):
         dataset = self.dataloader.dataset
         im = batch["raw_img"][0].permute(1, 2, 0).cpu().numpy()
         im = (im * 255).round().astype(np.uint8)
-        windows = tile_windows(im.shape[:2], self.args.imgsz)
+        tile_size = (
+            self.args.tile
+            if isinstance(self.args.tile, int) and not isinstance(self.args.tile, bool)
+            else self.args.imgsz
+        )
+        windows = tile_windows(im.shape[:2], tile_size)
         predictions = []
         for start in range(0, len(windows), self.args.batch):
             batch_windows = windows[start : start + self.args.batch]

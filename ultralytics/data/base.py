@@ -122,7 +122,7 @@ class BaseDataset(Dataset):
         classes: list[int] | None = None,
         fraction: float = 1.0,
         channels: int = 3,
-        tile: bool = False,
+        tile: bool | int = False,
     ):
         """Initialize BaseDataset with given configuration and options.
 
@@ -142,7 +142,7 @@ class BaseDataset(Dataset):
             fraction (float | int): Dataset ratio or image count to use.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
-            tile (bool): Whether to expand images and labels into fixed native `imgsz` tiles.
+            tile (bool | int): Expand images and labels into native tiles. `True` uses `imgsz`; an int sets tile size.
         """
         super().__init__()
         self.img_path = img_path
@@ -164,7 +164,9 @@ class BaseDataset(Dataset):
             self.labels = [
                 slice_label(label, window)
                 for label in self.labels
-                for window in tile_windows(label["shape"], self.imgsz)
+                for window in tile_windows(
+                    label["shape"], tile if isinstance(tile, int) and not isinstance(tile, bool) else self.imgsz
+                )
             ]
             self.im_files = [label["im_file"] for label in self.labels]
         self.ni = len(self.labels)  # number of images

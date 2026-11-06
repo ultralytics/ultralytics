@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLO26, Native Tiling, High-resolution, Small Object Dete
 
     Native tiling is built into Ultralytics. If you need SAHI's external slicing API and its additional annotation exports, see [YOLO26 Sliced Inference with SAHI](sahi-tiled-inference.md).
 
-Native tiling processes high-resolution images as fixed pixel windows while keeping every output in the original image coordinate system. The `tile` argument controls [training](../modes/train.md), [validation](../modes/val.md), and [prediction](../modes/predict.md) for detect, segment, semantic, depth, classify, pose, and OBB tasks, using `imgsz` as the native window size.
+Native tiling processes high-resolution images as fixed pixel windows while keeping every output in the original image coordinate system. The `tile` argument controls [training](../modes/train.md), [validation](../modes/val.md), and [prediction](../modes/predict.md) for detect, segment, semantic, depth, classify, pose, and OBB tasks. Set `tile=True` to use `imgsz` windows, or set `tile=320` to use 320-pixel native windows.
 
 ## Native Tiling and SAHI
 
@@ -27,7 +27,7 @@ Both approaches slice large images so small objects retain more pixels at the mo
 
 ## How Tiling Works
 
-`imgsz` is the native tile height and width in pixels. Windows cover the complete image with 20% overlap between adjacent tiles, and edge windows align to the image boundary. Images smaller than `imgsz` use one full-image window.
+`tile=True` uses `imgsz` as the native tile height and width; `tile=320` uses 320-pixel windows while `imgsz` remains the model input size. Windows cover the complete image with 20% overlap between adjacent tiles, and edge windows align to the image boundary. Images smaller than the tile size use one full-image window.
 
 During tiled training, each source image expands into its fixed windows. Boxes, polygons, and keypoints are clipped to their windows, while depth maps and semantic masks are cropped natively. Instances retain at least 10% of their original visible area, and windows without objects remain as negative samples.
 
@@ -73,17 +73,17 @@ yolo predict model=best.pt source=large-image.tif tile=True imgsz=640 save=True
 
 ## Configuration
 
-| Argument | Type             | Default | Description                                                                    |
-| -------- | ---------------- | ------- | ------------------------------------------------------------------------------ |
-| `tile`   | `bool` or `str`  | `False` | Enables fixed native tiling. `"auto"` currently selects the same fixed policy. |
-| `imgsz`  | `int` or `tuple` | `640`   | Native tile height and width in pixels, also used as the model input size.     |
+| Argument | Type             | Default | Description                                                                  |
+| -------- | ---------------- | ------- | ---------------------------------------------------------------------------- |
+| `tile`   | `bool` or `int`  | `False` | `False` disables tiling; `True` uses `imgsz`; a positive int sets tile size. |
+| `imgsz`  | `int` or `tuple` | `640`   | Model input size; used as the tile size when `tile=True`.                    |
 
 Tiling is application-level orchestration: [exported models](../modes/export.md) retain their normal single-input graph and standard export behavior is unchanged. Tile windows, batch processing, and result merging wrap the normal prediction path at runtime.
 
 ## Limitations
 
 - Tile overlap and cross-tile merge thresholds are fixed at 20% and IoU 0.5.
-- `tile=True` does not support tensor sources, `embed`, `visualize`, or tracking.
+- Tiled inference does not support tensor sources, `embed`, `visualize`, or tracking.
 - Very large outputs still require memory proportional to the complete original image during stitching.
 - Objects split across windows are restored by duplicate suppression, not by reconstructing one prediction from multiple visible fragments.
 

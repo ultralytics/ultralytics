@@ -2484,10 +2484,10 @@ def test_tiled_datasets(tmp_path):
         img_path=str(images),
         data={"names": {0: "depth"}},
         task="depth",
-        hyp=get_cfg(overrides={"tile": True}),
-        imgsz=64,
+        hyp=get_cfg(overrides={"tile": 64}),
+        imgsz=96,
         augment=False,
-        tile=True,
+        tile=64,
     )
     assert len(dataset) == 12 and dataset[-1]["depth"].shape == (1, 64, 64)
 
@@ -2495,10 +2495,11 @@ def test_tiled_datasets(tmp_path):
 def test_predict_tiles():
     """Test public tiled prediction returns native full-image results."""
     im = cv2.resize(cv2.imread(str(SOURCE)), (960, 640))
-    result = YOLO(MODEL).predict(im, tile=True, imgsz=320, batch=3, verbose=False)[0]
-    assert result.orig_shape == (640, 960)
-    assert len(result.boxes) and result.boxes.xyxy.min() >= 0
-    assert (result.boxes.xyxy[:, [0, 2]] <= 960).all() and (result.boxes.xyxy[:, [1, 3]] <= 640).all()
+    for tile, imgsz in ((True, 320), (320, 640)):
+        result = YOLO(MODEL).predict(im, tile=tile, imgsz=imgsz, batch=3, verbose=False)[0]
+        assert result.orig_shape == (640, 960)
+        assert len(result.boxes) and result.boxes.xyxy.min() >= 0
+        assert (result.boxes.xyxy[:, [0, 2]] <= 960).all() and (result.boxes.xyxy[:, [1, 3]] <= 640).all()
     with pytest.raises(ValueError, match="tile supports image/video"):
         YOLO(MODEL).predict(torch.rand(1, 3, 64, 64), tile=True, imgsz=64)
 
@@ -2506,7 +2507,7 @@ def test_predict_tiles():
 def test_train_val_tiles():
     """Test tiled training and validation retain full-image metrics."""
     model = YOLO(MODEL)
-    model.train(data="coco8.yaml", tile=True, imgsz=256, epochs=1, batch=2, workers=0, plots=False)
+    model.train(data="coco8.yaml", tile=128, imgsz=256, epochs=1, batch=2, workers=0, plots=False)
     metrics = model.val(data="coco8.yaml", tile=True, imgsz=320, batch=2, workers=0, plots=False)
     assert metrics.box.map >= 0 and metrics.box.nc == 80
 
@@ -2515,7 +2516,8 @@ def test_train_val_tiles():
 def test_predict_tiles_tasks(task, model, data):
     """Test tiled prediction returns native task outputs for every non-detection task."""
     im = cv2.resize(cv2.imread(str(SOURCE)), (960, 640))
-    result = YOLO(model).predict(im, tile=True, imgsz=224 if task == "classify" else 320, batch=3, verbose=False)[0]
+    tile, imgsz = (160, 224) if task == "classify" else (256, 320)
+    result = YOLO(model).predict(im, tile=tile, imgsz=imgsz, batch=3, verbose=False)[0]
     assert result.orig_shape == (640, 960)
     output = getattr(result, {"classify": "probs", "semantic": "semantic_mask", "depth": "depth"}.get(task, "boxes"))
     if task == "obb":

@@ -425,33 +425,31 @@ class BasePredictor:
                             continue
 
                     # Postprocess
+                    pixels += im.shape[0] * im.shape[2] * im.shape[3]
                     with profilers[2]:
                         self.results = self.postprocess(preds, im, im0s)
-                    pixels += im.shape[0] * im.shape[2] * im.shape[3]
-                    if tile_context is not None:
-                        from ultralytics.engine.results import Results
+                        if tile_context is not None:
+                            from ultralytics.engine.results import Results
 
-                        original, windows, last = tile_context
-                        tile_results.extend(self.results)
-                        tile_windows.extend(windows)
-                        if not last:
-                            continue
-                        self.batch = original
-                        paths, im0s, s = original
-                        groups = [([], []) for _ in im0s]
-                        for result, (i, window) in zip(tile_results, tile_windows):
-                            groups[i][0].append(result)
-                            groups[i][1].append(window)
-                        with profilers[2]:
+                            original, windows, last = tile_context
+                            tile_results.extend(self.results)
+                            tile_windows.extend(windows)
+                            if not last:
+                                continue
+                            self.batch = original
+                            paths, im0s, s = original
+                            groups = [([], []) for _ in im0s]
+                            for result, (i, window) in zip(tile_results, tile_windows):
+                                groups[i][0].append(result)
+                                groups[i][1].append(window)
                             self.results = [
                                 Results.merge_tiles(
                                     r, w, image, self.args.iou, self.args.agnostic_nms, self.args.max_det
                                 )
                                 for (r, w), image in zip(groups, im0s)
                             ]
-                        tile_results.clear()
-                        tile_windows.clear()
-                    with profilers[2]:
+                            tile_results.clear()
+                            tile_windows.clear()
                         self.results = self.finalize_results(self.results)
                     self.run_callbacks("on_predict_postprocess_end")
 

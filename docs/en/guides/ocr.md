@@ -8,8 +8,8 @@ keywords: Ultralytics, YOLO, OCR, scene text, text detection, text recognition, 
 # Scene Text OCR with YOLO
 
 The `OCR` solution combines an Ultralytics YOLO text detector with text recognition. It handles axis-aligned boxes,
-oriented boxes (OBB), segmentation polygons, recognition crops, reading order, normalized results, and video text/track
-association. Detection and recognition remain separate components: use a detector trained for your scene-text domain.
+oriented boxes (OBB), segmentation polygons, recognition crops, reading order, and video text/track association.
+Detection and recognition remain separate components: use a detector trained for your scene-text domain.
 
 ## Quickstart
 
@@ -85,10 +85,6 @@ object. `result.texts` is a list in deterministic reading order; it is empty whe
 | `box`                  | `list[list[float]]` | Four original-image corners for box or OBB detections.                      |
 | `polygon`              | `list[list[float]]` | Original-image segmentation polygon; replaces `box` for polygon detections. |
 | `track_id`             | `int`               | Track ID when tracking supplies one.                                        |
-
-`result.summary()`, `result.to_json()`, and other `DataExportMixin` formats retain `text` and `text_confidence` on the
-corresponding detection row. The existing detection `confidence` remains unchanged. Indexing and tensor/device result
-conversions preserve text-to-detection alignment.
 
 Entries are grouped into horizontal lines, ordered top-to-bottom and left-to-right, with source detection indices as
 stable tie-breakers. Coordinates always refer to the original image, not the detector input or recognition crop.

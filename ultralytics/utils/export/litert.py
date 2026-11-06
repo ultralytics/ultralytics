@@ -102,7 +102,7 @@ def torch2litert(
 
     if static_int8 or static_int16 or dynamic_int8:
         check_requirements("ai-edge-quantizer>=0.10.0")
-        from ai_edge_quantizer import qtyping, quantizer, recipe
+        from ai_edge_quantizer import calibrator, qtyping, quantizer, recipe
 
         qt = quantizer.Quantizer(str(tflite_file))
         if static_int8 or static_int16:  # static schemes calibrate over representative images
@@ -119,7 +119,9 @@ def torch2litert(
                 qt.update_quantization_recipe(
                     regex=".*", operation_name=op, algorithm_key=recipe.AlgorithmName.NO_QUANTIZE
                 )
-            result = qt.calibrate({"serving_default": calib_samples})
+            result = qt.calibrate(
+                {"serving_default": calib_samples}, mode=calibrator.CalibrationMode.CALIBRATION_PROFILER_BASED
+            )
             qt.quantize(calibration_result=result).export_model(str(tflite_file), overwrite=True)
         else:  # dynamic / weight-only INT8: int8 weights, FP32 activations, no calibration needed
             LOGGER.info(f"{prefix} applying dynamic INT8 quantization (int8 weights + FP32 activations)...")

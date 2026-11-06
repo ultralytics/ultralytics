@@ -1,7 +1,7 @@
 ---
-title: YOLO26 High Resolution Tiling for Small Objects
+title: YOLO26 High Resolution Tiling for Tiny Objects
 comments: true
-description: Detect small objects in large images with the Ultralytics YOLO tile argument. Train, validate, and predict on overlapping tiles with no SAHI install.
+description: Detect small objects in large images with the Ultralytics YOLO tile argument. Train, validate, and predict on overlapping tiles without installing SAHI.
 keywords: Ultralytics, YOLO26, high resolution tiling, tile argument, tiled inference, sliced inference, SAHI alternative, small object detection, aerial imagery, satellite imagery, drone imagery
 ---
 
@@ -9,9 +9,9 @@ keywords: Ultralytics, YOLO26, high resolution tiling, tile argument, tiled infe
 
 Use `tile=True` to process high-resolution images in overlapping windows before resizing them to the model input. This can preserve small-object detail that would be lost by resizing the whole image. No additional package is required, and `tile` replaces the deprecated [SAHI integration](sahi-tiled-inference.md) for Ultralytics models.
 
-|                                                            Whole image, `imgsz=640`: 35 objects                                                            |                                                                                  `tile=640`: 170 objects                                                                                  |
-| :--------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![YOLO26s whole-image prediction on a drone view of a city intersection, detecting 35 objects](https://cdn.ul.run/i/197756a7765c387e6b3ecef2da707ef2.avif) | ![YOLO26s tiled prediction on the same intersection, detecting 170 objects including distant pedestrians, cyclists, and cars](https://cdn.ul.run/i/f24115497afe748017bcf54d69aa5511.avif) |
+|                                                         Whole image, `imgsz=640`: 35 detections                                                          |                                                                                `tile=640`: 170 detections                                                                                |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![YOLO26s whole-image prediction on a drone view of a city intersection, with 35 detections](https://cdn.ul.run/i/197756a7765c387e6b3ecef2da707ef2.avif) | ![YOLO26s tiled prediction on the same intersection, with 170 detections, including distant pedestrians, cyclists, and cars](https://cdn.ul.run/i/f24115497afe748017bcf54d69aa5511.avif) |
 
 YOLO26s on a 1920 × 1080 [VisDrone](../datasets/detect/visdrone.md) frame at the default confidence threshold. With `tile=640`, the model runs eight overlapping 640-pixel windows at native resolution instead of one pass over the frame shrunk to 640 pixels.
 
@@ -76,7 +76,7 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 
 ### What does the `tile` argument do in Ultralytics YOLO?
 
-`tile` splits each image into overlapping windows, runs the model on every window at native resolution, and merges the outputs back into one result per original image. It works in training, validation, prediction, and tracking, so small objects keep the pixels they would lose if the whole image were resized to `imgsz`.
+`tile` splits each image into overlapping windows, runs the model on every window, and merges the outputs back into one result per original image. It works in training, validation, prediction, and tracking. With `tile=True`, windows match `imgsz`, so small objects keep the pixels they would lose if the whole image were resized to `imgsz`.
 
 ### How do I choose the tile size?
 
@@ -84,7 +84,7 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 
 ### Do I still need SAHI for sliced inference with YOLO?
 
-No. The `tile` argument covers the same sliced inference workflow without an extra package, and it also tiles training and validation. Prediction returns standard [`Results`](../reference/engine/results.md) objects, and validation scores the merged predictions against the original annotations. The [SAHI guide](sahi-tiled-inference.md) is deprecated.
+No. The `tile` argument handles sliced inference without an extra package, and it also tiles training and validation. Prediction returns standard [`Results`](../reference/engine/results.md) objects, and validation scores the merged predictions against the original annotations. The [SAHI guide](sahi-tiled-inference.md) is deprecated.
 
 ### Should I train with tiling as well as predict with it?
 

@@ -135,7 +135,6 @@ def modelopt_quantize_onnx(
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dynamic: bool = False,
     prefix: str = "",
-    disable_mha_qdq: bool = False,
 ) -> str:
     """Bake reduced precision into an ONNX model for TensorRT 11 strongly-typed builds using NVIDIA ModelOpt.
 
@@ -152,7 +151,6 @@ def modelopt_quantize_onnx(
             of dynamic models and for the FP16 AutoCast calibration image.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         prefix (str): Prefix for log messages.
-        disable_mha_qdq (bool): Keep the attention MatMuls (ModelOpt's MHA pattern) out of INT8 Q/DQ.
 
     Returns:
         (str): Path to the precision-converted ONNX file.
@@ -185,6 +183,9 @@ def modelopt_quantize_onnx(
         calib = calib.to(torch.float32).div_(255.0)
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
+        # On GB10 (SM 12.1) TensorRT builds RT-DETR's HGBlock squeeze conv and, from 11.4, fully INT8 attention broken,
+        # so both stay in float there; other GPUs keep them in INT8, where excluding them only costs speed or accuracy
+        gb10 = torch.cuda.get_device_capability() == (12, 1)
         modelopt_quantize(
             onnx_file,
             quantize_mode="int8",
@@ -195,10 +196,9 @@ def modelopt_quantize_onnx(
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
             # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
-            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float. RT-DETR's
-            # HGBlock squeeze conv over its wide concat also stays in float, TensorRT builds it broken in INT8 on GB10
-            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/", r".*/sc/conv/Conv$"],
-            disable_mha_qdq=disable_mha_qdq,
+            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
+            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"] + ([r".*/sc/conv/Conv$"] if gb10 else []),
+            disable_mha_qdq=gb10,
             output_path=out_file,
             **kwargs,
         )
@@ -336,12 +336,7 @@ def onnx2engine(
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (use_fp16 or use_int8):
-        # TensorRT 11.4 builds fully INT8 attention broken on GB10 (SM 12.1), so its MatMuls stay in FP16 there; other
-        # GPUs keep INT8 attention, FP16 attention costs RT-DETR about 1 mAP on them
-        mha = use_int8 and torch.cuda.get_device_capability() == (12, 1)
-        onnx_file = modelopt_quantize_onnx(
-            onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix, disable_mha_qdq=mha
-        )
+        onnx_file = modelopt_quantize_onnx(onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)

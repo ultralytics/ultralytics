@@ -100,7 +100,7 @@ def clip_polygon(points: np.ndarray, window: tuple[int, int, int, int]) -> np.nd
 def merge_tiles(
     predictions: list[dict], windows: list[tuple], shape: tuple[int, int], iou: float, agnostic: bool, max_det: int
 ) -> dict:
-    """Merge tile payloads after task postprocessing has restored their native window coordinates.
+    """Merge tile payloads after task postprocessing has restored their window coordinates.
 
     Each payload contains bboxes (xyxy or xywhr), conf and cls, optionally with masks, keypoints or extra columns;
     alternatively it contains one semantic_mask, depth or probs tensor. Masks and dense maps match their window size.

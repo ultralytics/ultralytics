@@ -66,7 +66,7 @@ DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
 
 
 def tile_windows(shape: tuple[int, int], size: int | tuple[int, int]) -> list[tuple[int, int, int, int]]:
-    """Return native-pixel windows covering an image, with 20% overlap and edges aligned to its boundary."""
+    """Return pixel windows covering an image, with 20% overlap and edges aligned to its boundary."""
     h, w = shape
     th, tw = (size, size) if isinstance(size, int) else size
     ys = range(0, max(h - th, 0), max(1, round(th * 0.8)))

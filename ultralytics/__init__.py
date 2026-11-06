@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-__version__ = "8.4.203"
+__version__ = "8.4.204"
 
 import importlib
 import os

@@ -337,11 +337,16 @@ def onnx2engine(
     if is_trt11 and (use_fp16 or use_int8):
         # RT-DETR with INT8 attention drops from 52.3 to 33.6 mAP on GB10 (DGX Spark, SM 12.1), so GB10 keeps attention
         # in FP16; on an RTX 4090 INT8 attention gives 50.1 and FP16 attention 49.3, so other GPUs keep INT8
-        mha = (metadata or {}).get("head") == "RTDETRDecoder" and torch.cuda.get_device_capability() == (12, 1)
-        if use_int8 and mha:
+        mha = (
+            use_int8
+            and not qdq
+            and (metadata or {}).get("head") == "RTDETRDecoder"
+            and torch.cuda.get_device_capability() == (12, 1)
+        )
+        if mha:
             LOGGER.info(f"{prefix} keeping RT-DETR attention MatMuls in FP16 on GB10, INT8 attention loses accuracy")
         onnx_file = modelopt_quantize_onnx(
-            onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix, disable_mha_qdq=use_int8 and mha
+            onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix, disable_mha_qdq=mha
         )
 
     # Read ONNX file

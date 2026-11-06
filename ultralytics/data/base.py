@@ -185,7 +185,8 @@ class BaseDataset(Dataset):
                     for window in windows
                 )
             self.im_files = [label["im_file"] for label in self.labels]
-        self.source_offsets = np.cumsum([0, *self.tile_counts])
+        if not augment:  # only validation consumes complete source groups
+            self.source_offsets = np.cumsum([0, *self.tile_counts])
         self.ni = len(self.labels)  # number of images or tiles
         self.rect = rect and not (tile and not augment)  # keep validation tiles contiguous by source
         self.batch_size = batch_size
@@ -537,8 +538,7 @@ class BaseDataset(Dataset):
             label["ratio_pad"] = (label["ratio_pad"], (0.0, 0.0))
         elif self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
-        label = self.update_labels_info(label)
-        return label
+        return self.update_labels_info(label)
 
     def __len__(self) -> int:
         """Return the length of the labels list for the dataset."""

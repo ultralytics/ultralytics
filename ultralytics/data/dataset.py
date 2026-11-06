@@ -1324,7 +1324,8 @@ class ClassificationDataset:
                     windows = tile_windows(exif_size(image)[::-1], args.imgsz if self.tile is True else self.tile)
                 self.tile_counts.append(len(windows))
                 self.samples.extend([*sample, window, source_index] for window in windows)
-        self.source_offsets = np.cumsum([0, *self.tile_counts])
+        if not augment:  # only validation consumes complete source groups
+            self.source_offsets = np.cumsum([0, *self.tile_counts])
         scale = (1.0 - args.scale, 1.0)  # RandomResizedCrop area range, e.g. (0.5, 1.0) for scale=0.5
         self.torch_transforms = (
             classify_augmentations(

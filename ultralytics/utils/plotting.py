@@ -827,7 +827,8 @@ def save_one_box(
 
     This function takes a bounding box and an image, and then saves a cropped portion of the image according to the
     bounding box. Optionally, the crop can be squared, and the function allows for gain and padding adjustments to the
-    bounding box.
+    bounding box. Multispectral JPEGs preview the first three channels; returned crops retain all channels,
+    in their original order with BGR=True or reversed otherwise.
 
     Args:
         xyxy (torch.Tensor | list): A bounding box in xyxy format, or (4, 2) OBB corners for a rotation-aligned crop.

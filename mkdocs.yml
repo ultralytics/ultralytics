@@ -494,6 +494,7 @@ nav:
           - COCO to YOLO Conversion: guides/coco-to-yolo.md
           - COCO JSON Training: guides/coco-json-training.md
       - Train & fine-tune:
+          - Native High-Resolution Tiling: guides/native-tiling.md
           - Tips for Model Training: guides/model-training-tips.md
           - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
           - YOLO26 Training Recipe: guides/yolo26-training-recipe.md
@@ -518,7 +519,6 @@ nav:
           - ROS Quickstart: guides/ros-quickstart.md
           - YOLO on Vertex AI: guides/vertex-ai-deployment-with-docker.md
       - Optimize inference:
-          - Native High-Resolution Tiling: guides/native-tiling.md
           - SAHI Tiled Inference: guides/sahi-tiled-inference.md
           - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
           - NVIDIA DALI GPU Preprocessing: guides/nvidia-dali.md

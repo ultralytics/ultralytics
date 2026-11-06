@@ -814,9 +814,6 @@ def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str
                 (".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")
             ):  # URL
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
-            elif s.startswith("bash "):  # bash script
-                LOGGER.info(f"Running {s} ...")
-                subprocess.run(s.split(), check=True)
             else:  # python script
                 exec(s, {"yaml": data})  # noqa: S102
             dt = f"({round(time.time() - t, 1)}s)"

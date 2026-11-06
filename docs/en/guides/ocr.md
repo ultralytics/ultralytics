@@ -99,6 +99,8 @@ stable tie-breakers. Coordinates always refer to the original image, not the det
 - **OBBs:** affine-rectified recognition crops using the detected corners.
 - **Segmentation polygons:** the minimum-area rotated rectangle is rectified for recognition; the original polygon is
   retained in `result.texts`.
+- **Recognition:** PaddleOCR processes pending crops in batches of 16. Custom recognizers receive one crop at a time.
+- **Labels:** the visualization uses a Unicode font for non-ASCII text such as Chinese.
 - **Tracking:** still images use prediction by default (`tracker=None`), avoiding persistent-state filtering between
   independent images. Set a tracker such as `bytetrack.yaml` for video association; the OCR CLI uses ByteTrack by default.
   Recognition runs for a new track and refreshes every `recognition_interval` frames (default `30`). Valid cached text is

@@ -195,8 +195,9 @@ def modelopt_quantize_onnx(
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
             # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
-            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
-            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"],
+            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float. RT-DETR's
+            # HGBlock squeeze conv over its wide concat also stays in float, TensorRT builds it broken in INT8 on GB10
+            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/", r".*/sc/conv/Conv$"],
             disable_mha_qdq=disable_mha_qdq,
             output_path=out_file,
             **kwargs,
@@ -335,16 +336,9 @@ def onnx2engine(
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (use_fp16 or use_int8):
-        # RT-DETR with INT8 attention drops from 52.3 to 33.6 mAP on GB10 (DGX Spark, SM 12.1), so GB10 keeps attention
-        # in FP16; on an RTX 4090 INT8 attention gives 50.1 and FP16 attention 49.3, so other GPUs keep INT8
-        mha = (
-            use_int8
-            and not qdq
-            and (metadata or {}).get("head") == "RTDETRDecoder"
-            and torch.cuda.get_device_capability() == (12, 1)
-        )
-        if mha:
-            LOGGER.info(f"{prefix} keeping RT-DETR attention MatMuls in FP16 on GB10, INT8 attention loses accuracy")
+        # TensorRT 11.4 builds fully INT8 attention broken on GB10 (SM 12.1), so its MatMuls stay in FP16 there; other
+        # GPUs keep INT8 attention, FP16 attention costs RT-DETR about 1 mAP on them
+        mha = use_int8 and torch.cuda.get_device_capability() == (12, 1)
         onnx_file = modelopt_quantize_onnx(
             onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix, disable_mha_qdq=mha
         )

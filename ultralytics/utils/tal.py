@@ -228,17 +228,14 @@ class TaskAlignedAssigner(nn.Module):
         """
         na = pd_bboxes.shape[-2]
         mask_gt = mask_gt.bool()  # b, max_num_obj, h*w
-        shape = self.bs, self.n_max_boxes, na
         indices = mask_gt.nonzero(as_tuple=True)
         bbox_scores = pd_scores[indices[0], indices[2], gt_labels[indices[0], indices[1], 0].long()]
         overlap_values = self.pair_overlaps(indices, gt_bboxes, pd_bboxes, **extra)
         align_values = bbox_scores.pow(self.alpha) * overlap_values.pow(self.beta)
 
-        overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)
-        align_metric = torch.zeros(shape, dtype=align_values.dtype, device=pd_scores.device)
-        flat = (indices[0] * self.n_max_boxes + indices[1]) * na + indices[2]
-        overlaps.view(-1).scatter_(0, flat, overlap_values)  # x[indices] = v runs serially on MPS in deterministic mode
-        align_metric.view(-1).scatter_(0, flat, align_values)
+        flat = (indices[0] * self.n_max_boxes + indices[1]) * na + indices[2]  # x[indices] = v is very slow on MPS
+        overlaps = overlap_values.new_zeros(mask_gt.numel()).scatter_(0, flat, overlap_values).view_as(mask_gt)
+        align_metric = align_values.new_zeros(mask_gt.numel()).scatter_(0, flat, align_values).view_as(mask_gt)
         return align_metric, overlaps
 
     def pair_overlaps(self, indices, gt_bboxes, pd_bboxes):
@@ -460,10 +457,8 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
         iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
         dense = iou.new_zeros(self.bs, self.n_max_boxes, pd_bboxes.shape[1])
         # Box alignment metric of each pair; eps keeps zero-metric pairs selectable
-        flat = (b * self.n_max_boxes + g) * dense.shape[-1] + a
-        dense.view(-1).scatter_(
-            0, flat, scores[b, a, labels[b, g, 0].long()].pow(self.alpha) * iou.pow(self.beta) + self.eps
-        )
+        metric = scores[b, a, labels[b, g, 0].long()].pow(self.alpha) * iou.pow(self.beta) + self.eps
+        dense.view(-1).scatter_(0, (b * self.n_max_boxes + g) * dense.shape[-1] + a, metric)
         top = dense.topk(min(3 * self.topk, dense.shape[-1]), dim=-1).indices
         sel = torch.zeros_like(dense, dtype=torch.bool).scatter_(-1, top, True)[indices].nonzero().squeeze(1)
         miou = torch.zeros_like(iou)

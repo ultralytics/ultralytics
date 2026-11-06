@@ -22,4 +22,8 @@ keywords: NMS, non-maximum suppression, TorchNMS, YOLO, torchvision-free, rotate
 
 ## ::: ultralytics.utils.nms.merge_tile_predictions
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.nms.merge_tile_instances
+
 <br><br>

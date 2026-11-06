@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLO26, Native Tiling, High-resolution, Small Object Dete
 
     Native tiling is built into Ultralytics. If you need SAHI's external slicing API and its additional annotation exports, see [YOLO26 Sliced Inference with SAHI](sahi-tiled-inference.md).
 
-Native tiling processes high-resolution images as fixed pixel windows while keeping every output in the original image coordinate system. The same `tiles` and `tile_size` arguments control [training](../modes/train.md), [validation](../modes/val.md), and [prediction](../modes/predict.md) for detect, segment, semantic, depth, classify, pose, and OBB tasks.
+Native tiling processes high-resolution images as fixed pixel windows while keeping every output in the original image coordinate system. The `tile` argument controls [training](../modes/train.md), [validation](../modes/val.md), and [prediction](../modes/predict.md) for detect, segment, semantic, depth, classify, pose, and OBB tasks, using `imgsz` as the native window size.
 
 ## Native Tiling and SAHI
 
@@ -27,7 +27,7 @@ Both approaches slice large images so small objects retain more pixels at the mo
 
 ## How Tiling Works
 
-`tile_size` is the native tile height and width in pixels. Windows cover the complete image with 20% overlap between adjacent tiles, and edge windows align to the image boundary. Images smaller than `tile_size` use one full-image window.
+`imgsz` is the native tile height and width in pixels. Windows cover the complete image with 20% overlap between adjacent tiles, and edge windows align to the image boundary. Images smaller than `imgsz` use one full-image window.
 
 During tiled training, each source image expands into its fixed windows. Boxes, polygons, and keypoints are clipped to their windows, while depth maps and semantic masks are cropped natively. Instances retain at least 10% of their original visible area, and windows without objects remain as negative samples.
 
@@ -44,11 +44,11 @@ from ultralytics import YOLO
 
 model = YOLO("yolo26n.pt")
 
-model.train(data="aerial.yaml", tiles=True, tile_size=640)
+model.train(data="aerial.yaml", tile=True, imgsz=640)
 ```
 
 ```bash
-yolo detect train model=yolo26n.pt data=aerial.yaml tiles=True tile_size=640
+yolo detect train model=yolo26n.pt data=aerial.yaml tile=True imgsz=640
 ```
 
 Use `cache="disk"` when tiled images need caching; `cache=True` and `cache="ram"` are rejected because each tile already references its full-resolution source.
@@ -62,28 +62,28 @@ from ultralytics import YOLO
 
 model = YOLO("runs/detect/train/weights/best.pt")
 
-metrics = model.val(data="aerial.yaml", tiles=True, tile_size=640)
-results = model.predict("large-image.tif", tiles=True, tile_size=640, save=True)
+metrics = model.val(data="aerial.yaml", tile=True, imgsz=640)
+results = model.predict("large-image.tif", tile=True, imgsz=640, save=True)
 ```
 
 ```bash
-yolo detect val model=best.pt data=aerial.yaml tiles=True tile_size=640
-yolo predict model=best.pt source=large-image.tif tiles=True tile_size=640 save=True
+yolo detect val model=best.pt data=aerial.yaml tile=True imgsz=640
+yolo predict model=best.pt source=large-image.tif tile=True imgsz=640 save=True
 ```
 
 ## Configuration
 
-| Argument    | Type             | Default | Description                                                                    |
-| ----------- | ---------------- | ------- | ------------------------------------------------------------------------------ |
-| `tiles`     | `bool` or `str`  | `False` | Enables fixed native tiling. `"auto"` currently selects the same fixed policy. |
-| `tile_size` | `int` or `tuple` | `640`   | Native tile height and width in pixels. Use `(height, width)` for non-squares. |
+| Argument | Type             | Default | Description                                                                    |
+| -------- | ---------------- | ------- | ------------------------------------------------------------------------------ |
+| `tile`   | `bool` or `str`  | `False` | Enables fixed native tiling. `"auto"` currently selects the same fixed policy. |
+| `imgsz`  | `int` or `tuple` | `640`   | Native tile height and width in pixels, also used as the model input size.     |
 
 Tiling is application-level orchestration: [exported models](../modes/export.md) retain their normal single-input graph and standard export behavior is unchanged. Tile windows, batch processing, and result merging wrap the normal prediction path at runtime.
 
 ## Limitations
 
 - Tile overlap and cross-tile merge thresholds are fixed at 20% and IoU 0.5.
-- `tiles=True` does not support tensor sources, `embed`, `visualize`, or tracking.
+- `tile=True` does not support tensor sources, `embed`, `visualize`, or tracking.
 - Very large outputs still require memory proportional to the complete original image during stitching.
 - Objects split across windows are restored by duplicate suppression, not by reconstructing one prediction from multiple visible fragments.
 

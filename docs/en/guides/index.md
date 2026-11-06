@@ -76,6 +76,7 @@ Guides are grouped by project stage — from environment setup and data preparat
 
 ### Optimize inference
 
+- [Native High-Resolution Tiling](native-tiling.md): Train, validate, and predict on high-resolution images with native fixed tiling across every vision task.
 - [SAHI Tiled Inference](sahi-tiled-inference.md): Use SAHI sliced inference with YOLO26 to detect small objects in high-resolution images.
 - [OpenVINO Latency vs Throughput Modes](optimizing-openvino-latency-vs-throughput-modes.md): Learn latency and throughput optimization techniques for peak YOLO inference performance.
 - [NVIDIA DALI GPU Preprocessing](nvidia-dali.md): Eliminate CPU preprocessing bottlenecks by running YOLO letterbox resize, padding, and normalization on the GPU using NVIDIA DALI, with Triton Inference Server integration.

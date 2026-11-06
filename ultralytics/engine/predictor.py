@@ -318,21 +318,26 @@ class BasePredictor:
         self.vid_writer = {}
 
     def _batches(self, batches):
-        """Expand loaded sources into bounded tile batches while preserving their source metadata."""
+        """Run source callbacks before expanding each loaded batch into native tiles."""
+        for self.batch, self.dataset in batches:
+            self.run_callbacks("on_predict_batch_start")
+            yield from self._batch_tiles(self.batch, self.dataset)
+
+    def _batch_tiles(self, batch, dataset):
+        """Expand one loaded source batch into bounded tiles, retaining the original batch metadata."""
         from ultralytics.data.loaders import tile_batches
 
-        for batch, dataset in batches:
-            if not self.args.tile:
-                yield batch, dataset, None
-                continue
-            size = self.imgsz if self.args.tile is True else self.args.tile
-            paths, images, info = batch
-            for crops, windows, last in tile_batches(images, size, self.args.batch):
-                yield (
-                    ([paths[i] for i, _ in windows], crops, [info[i] for i, _ in windows]),
-                    dataset,
-                    (batch, windows, last),
-                )
+        if not self.args.tile:
+            yield batch, dataset, None
+            return
+        size = self.imgsz if self.args.tile is True else self.args.tile
+        paths, images, info = batch
+        for crops, windows, last in tile_batches(images, size, self.args.batch):
+            yield (
+                ([paths[i] for i, _ in windows], crops, [info[i] for i, _ in windows]),
+                dataset,
+                (batch, windows, last),
+            )
 
     def finalize_results(self, results: list) -> list:
         """Apply source-level postprocessing after restoring any tiles to the original image."""
@@ -371,8 +376,6 @@ class BasePredictor:
                 self.model.model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
-            if self.args.tile and (self.source_type.tensor or self.args.embed or self.args.visualize):
-                raise ValueError("tile requires image/video sources without embed or visualize.")
 
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
@@ -395,12 +398,13 @@ class BasePredictor:
             ):
                 batches = _prefetch((batch, copy(dataset)) for batch in dataset)
             try:
+                if self.args.tile and (self.source_type.tensor or self.args.embed or self.args.visualize):
+                    raise ValueError("tile requires image/video sources without embed or visualize.")
                 self.run_callbacks("on_predict_start")
                 tile_results, tile_windows = [], []
                 for batch, snapshot, tile_context in self._batches(batches):
                     self.batch, self.dataset = batch, snapshot
                     if not tile_results:
-                        self.run_callbacks("on_predict_batch_start")
                         start_times = [p.t for p in profilers]
                         pixels = 0
                     paths, im0s, s = self.batch

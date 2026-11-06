@@ -148,6 +148,12 @@ class BaseValidator:
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+    @property
+    def num_images(self) -> int:
+        """Return the number of source images represented by the validation dataset."""
+        dataset = self.dataloader.dataset
+        return len(dataset.tile_counts) if self.args.tile else len(dataset)
+
     def merge_tiles(self, preds: list | torch.Tensor, batch: dict, pending: dict):
         """Restore completed sources using existing task scaling, then evaluate their original targets."""
         from ultralytics.utils import ops
@@ -341,21 +347,19 @@ class BaseValidator:
         self.gather_stats()
         if RANK in {-1, 0}:
             stats = self.get_stats()
-            count = len(self.dataloader.dataset.tile_counts) if self.args.tile else len(self.dataloader.dataset)
-            self.speed = dict(zip(self.speed.keys(), (x.t / count * 1e3 for x in dt)))
+            self.speed = dict(zip(self.speed.keys(), (x.t / self.num_images * 1e3 for x in dt)))
             self.finalize_metrics()
             self.print_results()
             self.run_callbacks("on_val_end")
 
         if self.training:
-            # Reduce loss across all GPUs
-            loss = {k: v.clone().detach() for k, v in self.loss.items()}
+            # Reduce sums and their batch count together: source-aligned shards can contain unequal tile counts.
+            loss = torch.stack([*self.loss.values(), torch.tensor(len(self.dataloader), device=self.device)])
             if trainer.world_size > 1:
-                for v in loss.values():
-                    dist.reduce(v, dst=0, op=dist.ReduceOp.AVG)
+                dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
             if RANK > 0:
                 return
-            loss = {k: v.cpu() / len(self.dataloader) for k, v in loss.items()}
+            loss = dict(zip(self.loss, (loss[:-1] / loss[-1]).cpu()))
             results = {**stats, **trainer.label_loss_items(loss, prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:

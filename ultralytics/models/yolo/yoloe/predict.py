@@ -66,18 +66,17 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             self.visuals = self._prompts_to_tensor(dst_shape, src_shapes)
         return imgs
 
-    def _batches(self, batches):
+    def _batch_tiles(self, batch, dataset):
         """Extract each source's visual embeddings once before scheduling its tiles."""
-        for batch, dataset in batches:
-            if self.args.tile:
-                images = batch[1]
-                im = super().preprocess(images)
-                visuals = self._prompts_to_tensor(tuple(im.shape[2:]), [x.shape[:2] for x in images])
-                embeddings = self.model(im, vpe=visuals, return_vpe=True)
-            for tile_batch, snapshot, context in super()._batches([(batch, dataset)]):
-                if context is not None:
-                    self.visuals = embeddings[[i for i, _ in context[1]]]
-                yield tile_batch, snapshot, context
+        if self.args.tile:
+            images = batch[1]
+            im = super().preprocess(images)
+            visuals = self._prompts_to_tensor(tuple(im.shape[2:]), [x.shape[:2] for x in images])
+            embeddings = self.model(im, vpe=visuals, return_vpe=True)
+        for tile_batch, snapshot, context in super()._batch_tiles(batch, dataset):
+            if context is not None:
+                self.visuals = embeddings[[i for i, _ in context[1]]]
+            yield tile_batch, snapshot, context
 
     def _prompts_to_tensor(self, dst_shape, src_shapes):
         """Rasterize prompts into a batched tensor on the model device."""

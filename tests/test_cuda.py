@@ -162,7 +162,7 @@ def test_train():
     visible = os.environ.get("CUDA_VISIBLE_DEVICES")
     results = YOLO(MODEL).train(data="coco8-grayscale.yaml", imgsz=64, epochs=1, device=DEVICES[0], batch=-1)
     model = YOLO(MODEL)
-    results = model.train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, compile=True)
+    results = model.train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, compile=True, tile=320)
     assert model.trainer.device.index == int(model.trainer.args.device.split(",")[0]), "trained on wrong GPU"
     assert os.environ.get("CUDA_VISIBLE_DEVICES") == visible, "CUDA_VISIBLE_DEVICES must never be mutated"
     results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)

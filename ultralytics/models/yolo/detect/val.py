@@ -331,7 +331,7 @@ class DetectionValidator(BaseValidator):
                     self.gdict[key] = [x for _, gdict, _ in gathered_json for x in gdict[key]]
             self.metrics.stats = merged_stats
             self._gather_image_metrics(self.metrics.box)
-            self.seen = len(self.dataloader.dataset)  # total image count from dataset
+            self.seen = self.num_images
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
             dist.gather_object((self.jdict, self.gdict if self.build_gdict else None, self.pred_counts), None, dst=0)

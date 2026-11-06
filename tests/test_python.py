@@ -349,6 +349,10 @@ def test_tiled_prediction_single_window():
     expected = model(image, tile=False, **args)[0]
     actual = model(image, tile=640, **args)[0]
     assert torch.equal(expected.boxes.data, actual.boxes.data)
+    batches = []
+    model.add_callback("on_predict_batch_start", lambda p: batches.append([im.shape for im in p.batch[1]]))
+    model([image, image[:256, :256]], tile=320, **args)
+    assert batches == [[image.shape, (256, 256, 3)]]
 
 
 def test_tiled_dataset_targets(tmp_path):

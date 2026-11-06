@@ -96,7 +96,7 @@ class DepthValidator(DetectionValidator):
         Uses "depth_val" as the row label (depth has no classes, where detection prints "all").
         """
         r = self.metrics.results_dict
-        n_images = len(self.dataloader.dataset) if self.dataloader is not None else (self.seen or 0)
+        n_images = self.num_images if self.dataloader is not None else (self.seen or 0)
         pf = "%22s" + "%11i" + "%11.4g" * 4  # label, Images, delta1, abs_rel, rmse, silog
         LOGGER.info(
             pf

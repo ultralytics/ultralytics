@@ -39,18 +39,20 @@ for text in result.texts:
     print(text["text"], text["confidence"], text.get("track_id"))
 ```
 
-A Platform scene-text checkpoint uses the same interface after the catalog owner supplies its approved artifact and
-model card:
+The public YOLO26-Text family provides `n`, `s`, `m`, `l`, and `x` OBB checkpoints trained on COCO-Text and HierText at
+640 pixels. Set `ULTRALYTICS_API_KEY` to your own [Ultralytics Platform](https://platform.ultralytics.com/settings) API
+key, then load a checkpoint by its Platform URI:
+
+```bash
+export ULTRALYTICS_API_KEY="your-api-key"
+```
 
 ```python
-ocr = solutions.OCR(model="platform-scene-text.pt", recognizer="paddleocr")
+ocr = solutions.OCR(model="ul://ultralytics-yolo/yolo26-text/yolo26n-text", recognizer="paddleocr")
 result = ocr(im0)
 ```
 
-!!! warning "Checkpoint availability"
-
-    The example filename is a placeholder, not a published model identifier. Use the exact artifact name and geometry
-    from the Platform model catalog. An unavailable checkpoint is not replaced implicitly with a general COCO model.
+Replace `yolo26n-text` with `yolo26s-text`, `yolo26m-text`, `yolo26l-text`, or `yolo26x-text` for a larger model.
 
 ## Custom recognizer
 

@@ -52,6 +52,6 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 - Source-sized masks and dense maps still require memory proportional to the original image. `max_det` limits the number of retained instance masks.
 - Tiling removes global context. Validate accuracy on your own data, especially for classification and depth, whose tile outputs may not agree globally.
 - Duplicate suppression selects whole predictions; it does not reconstruct an object from separate visible fragments. Overlap reduces boundary truncation but cannot eliminate it for objects larger than a tile.
-- Tensor sources, `embed`, and `visualize` are unsupported. Tracking runs on the merged predictions once per source frame.
+- Tensor sources, `embed`, and `visualize` are unsupported. Tracking runs on the merged predictions once per source frame, including native ReID features.
 
 For external sliced inference and SAHI's additional postprocessing options, see [Sliced Inference with SAHI](sahi-tiled-inference.md).

@@ -354,7 +354,9 @@ class BaseValidator:
 
         if self.training:
             # Reduce sums and their batch count together: source-aligned shards can contain unequal tile counts.
-            loss = torch.stack([*self.loss.values(), torch.tensor(len(self.dataloader), device=self.device)])
+            loss = torch.stack(
+                [*(v.reshape(()) for v in self.loss.values()), torch.tensor(len(self.dataloader), device=self.device)]
+            )
             if trainer.world_size > 1:
                 dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
             if RANK > 0:

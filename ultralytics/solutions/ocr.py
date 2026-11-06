@@ -8,8 +8,7 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.engine.results import Results
-from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import save_one_box
@@ -92,7 +91,7 @@ class OCR(BaseSolution):
                 raise TypeError("recognizer must return a (text, confidence) tuple containing str and float values.")
         return [(text, float(confidence)) for text, confidence in outputs]
 
-    def process(self, im0: np.ndarray) -> Results:
+    def process(self, im0: np.ndarray) -> SolutionResults:
         """Run text detection, recognition, reading-order sorting, and optional track association on one image."""
         self.extract_tracks(im0)
         self.ocr_frame += 1
@@ -139,8 +138,6 @@ class OCR(BaseSolution):
             cached.update(text=text, confidence=confidence)
             texts[i].update(text=text, confidence=confidence)
         order = self.reading_order(polygons) if polygons else []
-        result = self.tracks
-        result.update(texts=[texts[i] for i in order])
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
         for i in order:
             if self.CFG["show_boxes"]:
@@ -163,6 +160,6 @@ class OCR(BaseSolution):
                 width, height = annotator.font.getsize(label)
                 x = min(max(int(x1), 0), max(im0.shape[1] - width - 4, 0))
                 annotator.text([x, max(int(y1) - 2, height + 1)], label, anchor="bottom", box_color=(0, 0, 0))
-        result.plot_im = annotator.result()
+        result = SolutionResults(plot_im=annotator.result(), texts=[texts[i] for i in order])
         self.display_output(result.plot_im)
         return result

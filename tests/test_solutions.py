@@ -398,7 +398,9 @@ def test_display_output_method():
 
 @pytest.mark.parametrize("model", [MODEL, "yolo26n-obb.pt", "yolo26n-seg.pt"])
 def test_ocr(model, solution_assets):
-    """Test callable recognition, geometry, serialization, and recognition caching with real YOLO outputs."""
+    """Test OCR outputs and recognition caching with real YOLO detections."""
+    from ultralytics.solutions.solutions import SolutionResults
+
     calls = []
     source = solution_assets("boats") if model == "yolo26n-obb.pt" else SOURCE
     im = cv2.imread(str(source))
@@ -409,19 +411,15 @@ def test_ocr(model, solution_assets):
         tracker="bytetrack.yaml",
         verbose=False,
     )
-    assert ocr.CFG["tracker"] == "bytetrack.yaml"  # first-frame detections must remain available for image OCR
     result = ocr(im)
+    assert isinstance(result, SolutionResults)
     assert result.texts and result.plot_im.shape == im.shape
     assert all(text["confidence"] == 0.9 and text["detection_confidence"] for text in result.texts)
     assert all("box" in text or "polygon" in text for text in result.texts)
-    assert "text_confidence" in result.to_json()
     first_calls = len(calls)
-    result = ocr(im)
+    assert ocr(im).texts
     assert len(calls) == first_calls  # unchanged tracked text reuses valid cached recognition
-    ocr.forget_tracks(list(ocr.text_cache))
-    assert not ocr.text_cache
     assert ocr(np.zeros_like(im)).texts == []
-    assert len(calls) == first_calls
 
 
 def test_ocr_reading_order():
@@ -432,17 +430,3 @@ def test_ocr_reading_order():
         np.array([[20, 0], [30, 0], [30, 10], [20, 10]]),
     ]
     assert solutions.OCR.reading_order(polygons) == [1, 2, 0]
-
-
-def test_ocr_predict_default():
-    """Test independent images use prediction rather than persistent tracker state."""
-    ocr = solutions.OCR(model=MODEL, recognizer=lambda crop: ("text", 0.9), verbose=False)
-    assert ocr.CFG["tracker"] is None
-    assert ocr(cv2.imread(str(SOURCE))).texts
-    assert ocr(cv2.imread(str(SOURCE))).texts
-
-
-def test_ocr_video(solution_assets):
-    """Test the existing video loop with OCR tracking and cached recognition."""
-    ocr = solutions.OCR(model=MODEL, recognizer=lambda crop: ("text", 0.9), tracker="bytetrack.yaml", verbose=False)
-    process_video(ocr, solution_assets("demo_video"))

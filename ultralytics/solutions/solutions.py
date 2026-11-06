@@ -292,7 +292,7 @@ class BaseSolution:
             if hasattr(self.model, "predictor") and self.model.predictor and hasattr(self.model.predictor, "imgsz"):
                 input_h, input_w = self.model.predictor.imgsz
             else:
-                input_h, input_w = (result.orig_img if hasattr(result, "orig_img") else result.plot_im).shape[:2]
+                input_h, input_w = result.plot_im.shape[:2]
             LOGGER.info(
                 f"{self.frame_no}: {input_h}x{input_w} {solution_speed:.1f}ms,"
                 f" {', '.join([f'{v} {self.names[k]}' for k, v in counts.items()])}\n"
@@ -836,6 +836,7 @@ class SolutionResults:
         region_counts (dict[str, int]): The count of objects within a specific region.
         speed_dict (dict[int, int]): Estimated speed in km/h per track ID from SpeedEstimator.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
+        texts (list[dict]): OCR text, geometry, confidence, detection index, and optional track ID records.
         speed (dict[str, float]): Performance timing information for tracking and solution processing.
     """
 
@@ -861,6 +862,7 @@ class SolutionResults:
         self.region_counts = {}
         self.speed_dict = {}  # for speed estimation
         self.total_crop_objects = 0
+        self.texts = []
         self.speed = {}
 
         # Override with user-defined values

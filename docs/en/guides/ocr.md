@@ -73,8 +73,8 @@ actionable errors. Empty detections and empty recognition lists are normal resul
 
 ## Results schema
 
-Each call returns an [`engine.Results`](../reference/engine/results.md) object. `result.texts` is a list in deterministic
-reading order; it is empty when no text is detected. Ordinary non-OCR results use `texts=None`.
+Each call returns a [`SolutionResults`](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionResults)
+object. `result.texts` is a list in deterministic reading order; it is empty when no text is detected.
 
 | Key                    | Type                | Description                                                                 |
 | ---------------------- | ------------------- | --------------------------------------------------------------------------- |

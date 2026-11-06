@@ -202,6 +202,13 @@ def test_get_split_fraction_defaults_to_full_non_train_splits(fraction, split):
     assert get_split_fraction(fraction, split) == 1.0
 
 
+@pytest.mark.parametrize("fraction", [True, [True, 0.25], [0.25, True]])
+def test_get_split_fraction_rejects_bool_fraction_values(fraction):
+    """Test boolean fractions are rejected instead of silently being treated as numerical values."""
+    with pytest.raises(TypeError, match="fraction"):
+        get_split_fraction(fraction, "train")
+
+
 def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:

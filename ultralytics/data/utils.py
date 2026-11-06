@@ -676,13 +676,26 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
         (float | int): Fraction of the split to use as a ratio (float) or image count (int).
 
     Raises:
+        TypeError: If the fraction is not a numeric scalar or list of numeric values, or if booleans are provided.
         ValueError: If the resolved fraction is 0 for the 'train' or 'val' split.
     """
-    if isinstance(fraction, list) and split in (splits := ("train", "val", "test")):
-        index = splits.index(split)
-        fraction = fraction[index] if index < len(fraction) else 1.0
+    if isinstance(fraction, bool):
+        raise TypeError(f"'fraction' must be a number or list of numbers, not bool: {fraction!r}")
+
+    if isinstance(fraction, (list, tuple)):
+        if not all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in fraction):
+            raise TypeError(f"'fraction' list values must be numeric, not {type(fraction).__name__}")
+        if split in (splits := ("train", "val", "test")):
+            index = splits.index(split)
+            fraction = fraction[index] if index < len(fraction) else 1.0
+        elif split != "train":
+            fraction = 1.0
     elif split != "train":
         fraction = 1.0
+
+    if not isinstance(fraction, (int, float)) or isinstance(fraction, bool):
+        raise TypeError(f"'fraction' must be a number or list of numbers, not {type(fraction).__name__}")
+
     fraction = float(fraction) if fraction in {0, 1} else fraction
     if split in {"train", "val"} and fraction == 0:
         raise ValueError(f"{split} fraction must select at least one image")

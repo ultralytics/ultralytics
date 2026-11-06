@@ -495,6 +495,7 @@ nav:
           - COCO to YOLO Conversion: guides/coco-to-yolo.md
           - COCO JSON Training: guides/coco-json-training.md
       - Train & fine-tune:
+          - Native High-Resolution Tiling: guides/native-tiling.md
           - Tips for Model Training: guides/model-training-tips.md
           - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
           - YOLO26 Training Recipe: guides/yolo26-training-recipe.md

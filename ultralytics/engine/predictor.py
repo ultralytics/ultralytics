@@ -317,6 +317,32 @@ class BasePredictor:
                 LOGGER.warning(STREAM_WARNING)
         self.vid_writer = {}
 
+    def _batches(self, batches):
+        """Run source callbacks before expanding each loaded batch into native tiles."""
+        for self.batch, self.dataset in batches:
+            self.run_callbacks("on_predict_batch_start")
+            yield from self._batch_tiles(self.batch, self.dataset)
+
+    def _batch_tiles(self, batch, dataset):
+        """Expand one loaded source batch into bounded tiles, retaining the original batch metadata."""
+        from ultralytics.data.loaders import tile_batches
+
+        if not self.args.tile:
+            yield batch, dataset, None
+            return
+        size = self.imgsz if self.args.tile is True else self.args.tile
+        paths, images, info = batch
+        for crops, windows, last in tile_batches(images, size, self.args.batch):
+            yield (
+                ([paths[i] for i, _ in windows], crops, [info[i] for i, _ in windows]),
+                dataset,
+                (batch, windows, last),
+            )
+
+    def finalize_results(self, results: list) -> list:
+        """Apply source-level postprocessing after restoring any tiles to the original image."""
+        return results
+
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
         """Stream inference on input source and save results to file.
@@ -372,9 +398,15 @@ class BasePredictor:
             ):
                 batches = _prefetch((batch, copy(dataset)) for batch in dataset)
             try:
+                if self.args.tile and (self.source_type.tensor or self.args.embed or self.args.visualize):
+                    raise ValueError("tile requires image/video sources without embed or visualize.")
                 self.run_callbacks("on_predict_start")
-                for self.batch, self.dataset in batches:
-                    self.run_callbacks("on_predict_batch_start")
+                tile_results, tile_windows = [], []
+                for batch, snapshot, tile_context in self._batches(batches):
+                    self.batch, self.dataset = batch, snapshot
+                    if not tile_results:
+                        start_times = [p.t for p in profilers]
+                        pixels = 0
                     paths, im0s, s = self.batch
 
                     # Preprocess
@@ -393,8 +425,32 @@ class BasePredictor:
                             continue
 
                     # Postprocess
+                    pixels += im.shape[0] * im.shape[2] * im.shape[3]
                     with profilers[2]:
                         self.results = self.postprocess(preds, im, im0s)
+                        if tile_context is not None:
+                            from ultralytics.engine.results import Results
+
+                            original, windows, last = tile_context
+                            tile_results.extend(self.results)
+                            tile_windows.extend(windows)
+                            if not last:
+                                continue
+                            self.batch = original
+                            paths, im0s, s = original
+                            groups = [([], []) for _ in im0s]
+                            for result, (i, window) in zip(tile_results, tile_windows):
+                                groups[i][0].append(result)
+                                groups[i][1].append(window)
+                            self.results = [
+                                Results.merge_tiles(
+                                    r, w, image, self.args.iou, self.args.agnostic_nms, self.args.max_det
+                                )
+                                for (r, w), image in zip(groups, im0s)
+                            ]
+                            tile_results.clear()
+                            tile_windows.clear()
+                        self.results = self.finalize_results(self.results)
                     self.run_callbacks("on_predict_postprocess_end")
 
                     # Visualize, save, write results
@@ -402,11 +458,10 @@ class BasePredictor:
                     try:
                         for i in range(n):
                             self.seen += 1
-                            px += im.shape[2] * im.shape[3]
+                            px += pixels / n
                             self.results[i].speed = {
-                                "preprocess": profilers[0].dt * 1e3 / n,
-                                "inference": profilers[1].dt * 1e3 / n,
-                                "postprocess": profilers[2].dt * 1e3 / n,
+                                k: (p.t - t) * 1e3 / n
+                                for k, p, t in zip(("preprocess", "inference", "postprocess"), profilers, start_times)
                             }
                             if (
                                 self.args.verbose

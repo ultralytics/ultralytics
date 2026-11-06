@@ -341,6 +341,41 @@ def test_model_forward(cfg):
     model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
+def test_tiled_prediction_single_window():
+    """A full-image tile must preserve NMS-free predictions even when they overlap above IoU 0.5."""
+    model = YOLO(MODEL)
+    image = cv2.resize(cv2.imread(str(SOURCE)), (640, 640))
+    args = {"imgsz": 640, "iou": 0.9, "conf": 0.1, "device": "cpu", "verbose": False}
+    expected = model(image, tile=False, **args)[0]
+    actual = model(image, tile=640, **args)[0]
+    assert torch.equal(expected.boxes.data, actual.boxes.data)
+    batches = []
+    model.add_callback("on_predict_batch_start", lambda p: batches.append([im.shape for im in p.batch[1]]))
+    model([image, image[:256, :256]], tile=320, **args)
+    assert batches == [[image.shape, (256, 256, 3)]]
+
+
+def test_tiled_dataset_targets(tmp_path):
+    """Crop native pixels and targets before formatting, without retaining full-image backing allocations."""
+    from ultralytics.data.dataset import YOLODataset
+
+    images, labels = tmp_path / "images", tmp_path / "labels"
+    images.mkdir()
+    labels.mkdir()
+    cv2.imwrite(str(images / "image.png"), np.full((64, 128, 3), [10, 20, 240], dtype=np.uint8))
+    (labels / "image.txt").write_text("0 0.75 0.5 0.25 0.5\n")
+    dataset = YOLODataset(img_path=str(images), data={"names": {0: "object"}}, imgsz=64, tile=64, augment=False)
+    first, last = dataset[0], dataset[len(dataset) - 1]
+    assert first["img"][:, 32, 32].tolist() == [240, 20, 10]
+    assert len(first["cls"]) == 0
+    assert torch.allclose(last["bboxes"], torch.tensor([[0.5, 0.5, 0.5, 0.5]]))
+    crop, _, _ = dataset.load_image(len(dataset) - 1)
+    assert crop.base is None
+    full = dataset.get_image_and_label(0, full=True)
+    assert full["img"].shape == (64, 128, 3)
+    np.testing.assert_allclose(full["instances"].bboxes, [[0.75, 0.5, 0.25, 0.5]])
+
+
 def test_model_methods():
     """Test various methods and properties of the YOLO model to ensure correct functionality."""
     model = YOLO(MODEL)

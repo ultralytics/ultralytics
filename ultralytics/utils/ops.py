@@ -75,6 +75,97 @@ class Profile(contextlib.ContextDecorator):
         return time.perf_counter()
 
 
+def clip_polygon(points: np.ndarray, window: tuple[int, int, int, int]) -> np.ndarray:
+    """Intersect a polygon with a rectangle, vectorizing vertices at each clipping edge."""
+    for axis, limit, upper in (
+        (0, window[0], True),
+        (0, window[2], False),
+        (1, window[1], True),
+        (1, window[3], False),
+    ):
+        if len(points) < 3:
+            return np.empty((0, 2), dtype=np.float32)
+        inside = points[:, axis] >= limit if upper else points[:, axis] <= limit
+        crossing = inside != np.roll(inside, 1)
+        previous = np.roll(points, 1, axis=0)[crossing]
+        delta = points[crossing] - previous
+        output = np.repeat(points, 2, axis=0)
+        intersections = 2 * np.flatnonzero(crossing)
+        output[intersections] = previous + delta * ((limit - previous[:, axis]) / delta[:, axis])[:, None]
+        output[intersections, axis] = limit
+        points = output[np.stack((crossing, inside), axis=1).ravel()]
+    return points
+
+
+def merge_tiles(
+    predictions: list[dict], windows: list[tuple], shape: tuple[int, int], iou: float, agnostic: bool, max_det: int
+) -> dict:
+    """Merge tile payloads after task postprocessing has restored their native window coordinates.
+
+    Each payload contains bboxes (xyxy or xywhr), conf and cls, optionally with masks, keypoints or extra columns;
+    alternatively it contains one semantic_mask, depth or probs tensor. Masks and dense maps match their window size.
+    Only masks surviving box suppression are expanded to the full image.
+    """
+    from bisect import bisect_right
+
+    from ultralytics.utils.nms import nms_boxes
+
+    first = predictions[0]
+    if len(windows) == 1 and windows[0] == (0, 0, shape[1], shape[0]):
+        return first
+    if "probs" in first:
+        return {"probs": torch.stack([p["probs"] for p in predictions]).mean(0)}
+    if "bboxes" not in first:
+        key = next(iter(first))  # semantic class map or depth
+        discrete = key == "semantic_mask"
+        template = first[key]
+        output = template.new_zeros(shape)
+        weights = template.new_zeros(shape, dtype=torch.float32)
+        h, w = template.shape
+        y, x = torch.arange(h, device=output.device), torch.arange(w, device=output.device)
+        weight = torch.minimum(torch.minimum(y + 1, h - y)[:, None], torch.minimum(x + 1, w - x)[None]).float()
+        for pred, (x1, y1, x2, y2) in zip(predictions, windows):
+            if discrete:
+                current = weights[y1:y2, x1:x2]
+                output[y1:y2, x1:x2] = torch.where(weight > current, pred[key], output[y1:y2, x1:x2])
+                weights[y1:y2, x1:x2] = torch.maximum(weight, current)
+            else:
+                output[y1:y2, x1:x2] += pred[key] * weight
+                weights[y1:y2, x1:x2] += weight
+        return {key: output if discrete else output / weights}
+
+    boxes = torch.cat([p["bboxes"] for p in predictions]).float()
+    rotated = boxes.shape[1] == 5
+    offsets = boxes.new_tensor([w[:2] for w in windows]).repeat_interleave(
+        torch.tensor([len(p["bboxes"]) for p in predictions], device=boxes.device), dim=0
+    )
+    boxes[:, :2] += offsets
+    if not rotated:
+        boxes[:, 2:4] += offsets
+    output = {k: torch.cat([p[k] for p in predictions]) for k in first if k not in {"bboxes", "masks", "keypoints"}}
+    classes = output["cls"][:, None] * (0 if agnostic else 2 * max(shape) + 1)
+    candidates = torch.cat((boxes[:, :2] + classes, boxes[:, 2:]), 1) if rotated else boxes + classes
+    keep = nms_boxes(candidates, output["conf"].float(), iou, rotated=rotated)[:max_det]
+    output = {"bboxes": boxes[keep], **{k: v[keep] for k, v in output.items()}}
+    if "keypoints" in first:
+        keypoints = torch.cat([p["keypoints"] for p in predictions])[keep].clone()
+        keypoints[..., :2] += offsets[keep, None]
+        output["keypoints"] = keypoints
+    if any("masks" in p for p in predictions):
+        template = next(p["masks"] for p in predictions if "masks" in p)
+        output["masks"] = template.new_zeros((len(keep), *shape))
+        ends, count = [], 0
+        for p in predictions:
+            count += len(p["bboxes"])
+            ends.append(count)
+        for j, k in enumerate(keep.tolist()):
+            source = bisect_right(ends, k)
+            local = k - (ends[source - 1] if source else 0)
+            x1, y1, x2, y2 = windows[source]
+            output["masks"][j, y1:y2, x1:x2] = predictions[source]["masks"][local]
+    return output
+
+
 def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 
@@ -99,23 +190,7 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
         return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
     if xmax < 0 or ymax < 0 or xmin > width or ymin > height:  # fully outside image
         return np.zeros(4, dtype=segment.dtype)
-    axes = np.array((0, 0, 1, 1))
-    bounds = np.array((0, width, 0, height), dtype=segment.dtype)
-    lims = np.array((height, height, width, width), dtype=segment.dtype)  # (height, width)[axis] per boundary
-    start, delta = segment, np.roll(segment, -1, axis=0) - segment
-    with np.errstate(divide="ignore", invalid="ignore"):
-        t = (bounds - start[:, axes]) / delta[:, axes]
-        inter = start[:, None, :] + t[:, :, None] * delta[:, None, :]
-    other = inter[:, np.arange(4), 1 - axes]
-    corners = np.array(((0, 0), (width, 0), (0, height), (width, height)), dtype=segment.dtype)
-    contour = segment.astype(np.float32)
-    points = np.concatenate(
-        (
-            segment[(x >= 0) & (y >= 0) & (x <= width) & (y <= height)],
-            inter[(t >= 0) & (t <= 1) & (other >= 0) & (other <= lims)],
-            corners[[cv2.pointPolygonTest(contour, tuple(map(float, p)), False) >= 0 for p in corners]],
-        )
-    )
+    points = clip_polygon(segment, (0, 0, width, height))
     return (
         np.array([*points.min(0), *points.max(0)], dtype=segment.dtype)
         if len(points)

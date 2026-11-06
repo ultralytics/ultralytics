@@ -84,8 +84,7 @@ class ClassificationValidator(BaseValidator):
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
         batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         batch["img"] = batch["img"].half() if self.args.quantize == 16 else batch["img"].float()
-        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
-        return batch
+        return self.preprocess_targets(batch)
 
     def update_metrics(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:
         """Update running metrics with model predictions and batch targets.

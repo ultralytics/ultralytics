@@ -46,6 +46,7 @@ Guides are grouped by project stage — from environment setup and data preparat
 
 ### Train & fine-tune
 
+- [Native High-Resolution Tiling](native-tiling.md): Train, validate, and predict on high-resolution images with native fixed tiling across every vision task.
 - [Tips for Model Training](model-training-tips.md): Explore tips on optimizing [batch sizes](https://www.ultralytics.com/glossary/batch-size), using [mixed precision](https://www.ultralytics.com/glossary/mixed-precision), applying pretrained weights, and more to train computer vision models more effectively.
 - [Fine-Tuning YOLO on Custom Data](finetuning-guide.md): Complete guide to fine-tuning YOLO26 on custom datasets with pretrained weights, covering transfer learning, layer freezing, optimizer selection, two-stage training, and troubleshooting.
 - [YOLO26 Training Recipe](yolo26-training-recipe.md): Full documentation of the hyperparameters, augmentation pipelines, and optimizer settings used to train the official YOLO26 base checkpoints on COCO, with practical fine-tuning guidance.

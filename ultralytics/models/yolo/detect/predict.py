@@ -89,8 +89,7 @@ class DetectionPredictor(BasePredictor):
             idxs (list[torch.Tensor]): Indices of the kept detections for each image, as returned by NMS.
 
         Returns:
-            (list[torch.Tensor | list]): Object feature tensors for each image in the batch, or an empty list for images
-                without detections.
+            (list[torch.Tensor]): Object feature tensors for each image, including empty tensors without detections.
         """
         import torch
 
@@ -98,7 +97,7 @@ class DetectionPredictor(BasePredictor):
         obj_feats = torch.cat(
             [x.permute(0, 2, 3, 1).reshape(x.shape[0], -1, s, x.shape[1] // s).mean(dim=-1) for x in feat_maps], dim=1
         )  # mean reduce all vectors to same length
-        return [feats[idx] if idx.shape[0] else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
+        return [feats[idx] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
 
     def construct_results(self, preds, img, orig_imgs):
         """Construct a list of Results objects from model predictions.

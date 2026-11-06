@@ -7,13 +7,13 @@ keywords: YOLO26, SAHI, Sliced Inference, Object Detection, Ultralytics, High-re
 
 # Using YOLO26 with SAHI for Sliced Inference
 
+!!! warning "Deprecated: use the `tile` argument"
+
+    This SAHI integration guide is deprecated in favor of Ultralytics' `tile` argument for training, validation, and prediction. See [High Resolution Tiling](high-resolution-tiling.md).
+
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-with-sahi.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open SAHI for Sliced Inference In Colab"></a>
 
 This guide shows how to use YOLO26 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). It covers what SAHI is, why sliced inference helps [detect small objects](https://www.ultralytics.com/blog/exploring-small-object-detection-with-ultralytics-yolo11) in large, high-resolution images, and how to run it with YOLO26 for better [object detection](https://www.ultralytics.com/glossary/object-detection) results.
-
-!!! tip "High Resolution Tiling"
-
-    Use `tile=True` for Ultralytics training, validation, and prediction. See [High Resolution Tiling](high-resolution-tiling.md).
 
 <p align="center">
   <video width="1024" src="https://cdn.ul.run/v/875e435c815f7be5e42d0d1af5627644.mp4" autoplay loop muted playsinline aria-label="SAHI tiled inference for small objects"></video>

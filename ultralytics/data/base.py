@@ -148,7 +148,7 @@ class BaseDataset(Dataset):
             single_cls (bool): If True, single class training is used.
             classes (list[int], optional): List of included classes.
             fraction (float | int): Dataset ratio or image count to use.
-            tile (bool | int): Use image windows; True uses imgsz, and a positive integer sets the window size.
+            tile (bool | int): Use native image windows; True uses imgsz, and a positive integer sets the window size.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
         """

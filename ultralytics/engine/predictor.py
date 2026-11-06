@@ -318,7 +318,7 @@ class BasePredictor:
         self.vid_writer = {}
 
     def _batches(self, batches):
-        """Run source callbacks before expanding each loaded batch into tiles."""
+        """Run source callbacks before expanding each loaded batch into native tiles."""
         for self.batch, self.dataset in batches:
             self.run_callbacks("on_predict_batch_start")
             yield from self._batch_tiles(self.batch, self.dataset)

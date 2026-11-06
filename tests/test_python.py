@@ -356,7 +356,7 @@ def test_tiled_prediction_single_window():
 
 
 def test_tiled_dataset_targets(tmp_path):
-    """Crop source pixels and targets before formatting, without retaining full-image backing allocations."""
+    """Crop native pixels and targets before formatting, without retaining full-image backing allocations."""
     from ultralytics.data.dataset import YOLODataset
 
     images, labels = tmp_path / "images", tmp_path / "labels"

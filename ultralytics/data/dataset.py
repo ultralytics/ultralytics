@@ -1091,7 +1091,7 @@ class SemanticDataset(YOLODataset):
         return super().load_image(i, rect_mode=rect_mode, resize_short=self.augment)
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None, full: bool = False) -> np.ndarray:
-        """Load a source mask once, then select the same window as its image."""
+        """Load a source mask once, then select the same native window as its image."""
         if not self.tile:
             return self._read_mask(index, image_shape)
         label = self.labels[index]
@@ -1343,7 +1343,7 @@ class ClassificationDataset:
         )
 
     def __getitem__(self, i: int) -> dict:
-        """Return the normally transformed image or tile and its class."""
+        """Return the normally transformed image or native tile and its class."""
         return self.get_image_and_label(i)
 
     def get_image_and_label(self, i: int, full: bool = False) -> dict:

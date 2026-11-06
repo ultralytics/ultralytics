@@ -165,17 +165,31 @@ frame, or **Disconnect** to stop viewing the IP camera.
 
 ### Background Camera
 
-An endpoint with a [custom CPU and memory size](endpoints.md#update-cpu-and-memory) can keep watching one IP camera
-after you disconnect or close the page. Once the connected camera shows results, turn on **Keep running in the
-background**. The deployment header shows **Camera on**, and results go to the
-[Monitoring tab](monitoring.md#monitoring-tab) as temporary examples and prediction statistics.
+An endpoint can keep watching one background camera to collect predictions in
+[Monitoring](monitoring.md#monitoring-tab) while the browser is closed. You need to be the workspace owner, have a **Ready** endpoint with a
+[custom CPU and memory size](endpoints.md#update-cpu-and-memory), and have an internet-reachable RTSP or RTSPS camera.
+
+!!! warning "Save Existing Examples First"
+
+    Turning the background camera on, off, or switching to another camera restarts the serving instance and clears its temporary monitoring data.
+    [Save any examples you want to keep](monitoring.md#save-examples-to-a-dataset) and wait for ingestion to finish first.
+
+1. Open the deployment's **Predict** tab and select **IP camera**.
+2. Enter the camera URL, including any required credentials, and click **Connect**. Wait for predictions to appear;
+   the background option is unavailable until the camera has produced a result.
+3. Turn on **Keep running in the background**. Wait for the camera update to finish and the deployment header to show
+   **Camera on**.
+4. Open **Monitoring** to inspect new **Temporary Examples** and **Prediction Statistics**. The camera continues
+   processing after you disconnect the preview or close the page.
+5. [Save useful examples to a dataset](monitoring.md#save-examples-to-a-dataset), wait for processing to finish, and
+   review the predicted labels before training on them.
+
+While the background camera is running:
 
 - **Settings:** The background camera always uses the default confidence (0.25), IoU (0.7), and the model's training
   image size; the sliders do not apply to it.
 - **Cost:** It runs on the endpoint's warm instance at no extra charge; the hourly uptime rate applies whether the
   camera is on or off.
-- **Changes:** Turning the camera on, off, or to another camera restarts the endpoint's instance, which keeps the
-  endpoint ready but clears its temporary monitoring data.
 - **Stopping:** Turn the switch off. Disconnecting or closing the page does not stop it, and resizing the endpoint to
   the default size removes it. If the camera goes offline, the endpoint keeps reconnecting.
 - **Endpoint lifecycle:** Stopping the endpoint stops the camera and the charges; starting it again resumes the saved

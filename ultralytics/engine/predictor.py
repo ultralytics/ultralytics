@@ -476,6 +476,8 @@ class BasePredictor:
         )
 
         self.device = self.model.device  # update device
+        if self.device.type == "cpu" and self.model.format in {"onnx", "openvino"}:
+            torch.set_num_threads(min(2, torch.get_num_threads()))  # pre/postprocess only; idle OpenMP threads spin
         self.model.eval()
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
@@ -536,22 +538,23 @@ class BasePredictor:
         if self.args.show:
             self.show(str(p))
         if self.args.save:
-            self.save_predicted_images(self.save_dir / (base + p.suffix), frame)
+            self.save_predicted_images(self.save_dir / (base + p.suffix), frame, i)
 
         return string
 
-    def save_predicted_images(self, save_path: Path, frame: int | None = 0):
+    def save_predicted_images(self, save_path: Path, frame: int | None = 0, i: int = 0):
         """Save video predictions as mp4/avi or images as jpg at specified path.
 
         Args:
             save_path (Path): Path to save the results.
             frame (int | None): Frame number for video mode.
+            i (int): Index of the current image in the batch, selecting its stream FPS.
         """
         im = self.plotted_img
 
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
-            fps = self.dataset.fps if self.dataset.mode == "video" else 30
+            fps = self.dataset.fps[i] if self.source_type.stream else self.dataset.fps
             fps = max(1, fps / self.args.vid_stride)  # skipped frames must not shorten the saved video
             frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video

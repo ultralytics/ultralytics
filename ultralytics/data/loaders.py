@@ -8,10 +8,9 @@ import math
 import os
 import time
 import urllib
-from codecs import BOM_UTF8
 from dataclasses import dataclass
 from functools import partial
-from io import BytesIO, TextIOWrapper
+from io import BytesIO
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from threading import Thread
@@ -23,7 +22,7 @@ import torch
 from PIL import Image, ImageOps
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, NUM_THREADS, ops
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, NUM_THREADS, REQUEST_HEADERS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
 
@@ -113,10 +112,8 @@ class LoadStreams:
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         if os.path.isfile(sources):
-            with open(sources, "rb") as f:
-                encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
-                with TextIOWrapper(f, encoding=encoding) as reader:
-                    sources = reader.read().rsplit()
+            with open(sources) as f:
+                sources = f.read().rsplit()
             if not sources:
                 raise FileNotFoundError(f"No streams found in {f.name}. {FORMATS_HELP_MSG}")
         else:
@@ -381,11 +378,7 @@ class LoadImagesAndVideos:
         source_path = path
         parent = None
         if isinstance(path, (str, Path)) and Path(path).suffix.lower() in {".txt", ".csv"}:  # txt/csv file with sources
-            parent = Path(path).parent
-            with open(path, "rb") as f:
-                encoding = "utf-8-sig" if f.peek(3).startswith(BOM_UTF8) else None
-                with TextIOWrapper(f, encoding=encoding) as reader:
-                    content = reader.read()
+            parent, content = Path(path).parent, Path(path).read_text()
             if Path(path).suffix.lower() == ".txt":
                 path = content.splitlines()
             else:
@@ -394,7 +387,7 @@ class LoadImagesAndVideos:
                 path = [p for row in rows for p in row]
             path = [p.strip() for p in path if p.strip()]
         files = []
-        for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
+        for p in path if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
             if parent and not (glob.glob(a, recursive=True) if "*" in a else os.path.exists(a)):
                 a = str((parent / p).absolute())  # resolve unmatched manifest entries relative to the manifest
@@ -458,14 +451,10 @@ class LoadImagesAndVideos:
                 if not self.cap or not self.cap.isOpened():
                     self._new_video(path)
 
-                success = False
-                for _ in range(self.vid_stride):
-                    success = self.cap.grab()
-                    if not success:
-                        break  # end of video or failure
-
-                if success:
+                if self.cap.grab():
                     success, im0 = self.cap.retrieve()
+                    for _ in range(self.vid_stride - 1):  # read frames 0, vid_stride, 2 * vid_stride, ...
+                        self.cap.grab()
                     if success and im0 is not None:
                         if self.cv2_flag == cv2.IMREAD_GRAYSCALE:
                             im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
@@ -524,7 +513,7 @@ class LoadImagesAndVideos:
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)  # keep the float, int() turns 29.97 into 29 and stretches the video
         if not self.cap.isOpened():
             raise FileNotFoundError(f"Failed to open video {path}")
-        self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
+        self.frames = math.ceil(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
 
     def __len__(self) -> int:
         """Return the number of batches in the dataset."""
@@ -727,7 +716,7 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
             if str(im).lower().startswith(("https://", "http://")):  # requests: urllib pre-3.11 lacks 308 redirects
                 import requests  # scoped as slow import
 
-                im = BytesIO(requests.get(im, timeout=30).content)
+                im = BytesIO(requests.get(im, headers=REQUEST_HEADERS, timeout=30).content)
             im = Image.open(im)
             filename = im.filename
             im = ImageOps.exif_transpose(im)

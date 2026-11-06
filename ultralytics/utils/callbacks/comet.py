@@ -591,7 +591,8 @@ def on_train_end(trainer) -> None:
         _log_plots(experiment, trainer)
 
     _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
-    _log_image_predictions(experiment, trainer.validator, curr_step)
+    if _should_log_image_predictions():
+        _log_image_predictions(experiment, trainer.validator, curr_step)
     _log_image_batches(experiment, trainer, curr_step)
     # log results table
     table_path = trainer.save_dir / RESULTS_TABLE_NAME

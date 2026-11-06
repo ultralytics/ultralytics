@@ -248,13 +248,12 @@ class ParkingManagement(BaseSolution):
         available_slots, occupied_slots = len(self.json), 0
         annotator = SolutionAnnotator(im0, self.line_width)  # Initialize annotator
 
+        centers = [(int((b[0] + b[2]) / 2), int((b[1] + b[3]) / 2)) for b in map(self.get_enclosing_box, self.boxes)]
         for region in self.json:
             # Convert points to a NumPy array with the correct dtype and reshape properly
             region_polygon = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
             region_occupied = False
-            for box, cls in zip(self.boxes, self.clss):
-                x0, y0, x1, y1 = self.get_enclosing_box(box)
-                xc, yc = int((x0 + x1) / 2), int((y0 + y1) / 2)
+            for (xc, yc), cls in zip(centers, self.clss):
                 inside_distance = cv2.pointPolygonTest(region_polygon, (xc, yc), False)
                 if inside_distance >= 0:
                     annotator.display_objects_labels(

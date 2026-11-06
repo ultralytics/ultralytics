@@ -8,8 +8,8 @@ title: Import LabelMe Annotations - Ultralytics Platform
 
 # Import LabelMe Annotations to Ultralytics Platform
 
-[LabelMe](https://labelme.io/) is an offline image annotation tool with an
-[open-source Python application](https://github.com/wkentaro/labelme). There is no live LabelMe connection or API key
+[LabelMe](https://labelme.io/) is an offline image [annotation](https://www.ultralytics.com/glossary/data-annotation) tool
+with an [open-source Python application](https://github.com/wkentaro/labelme). There is no live LabelMe connection or API key
 to configure in [Ultralytics Platform](https://platform.ultralytics.com), and no conversion step: Platform reads the
 LabelMe JSON files directly. Annotate in LabelMe, zip the folder, and upload it as a Platform dataset.
 

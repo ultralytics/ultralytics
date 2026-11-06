@@ -503,6 +503,7 @@ class YOLOE(Model):
         """
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
+            assert not self.model.model[-1].is_fused, "Visual prompts need an unfused YOLOE model."
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             )

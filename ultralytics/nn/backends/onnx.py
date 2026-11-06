@@ -12,8 +12,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, check_requirements, rocm_is_available
+from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, ONNXRUNTIME_BUILDS, check_requirements, rocm_is_available
 
 from .base import BaseBackend
 
@@ -216,7 +216,7 @@ class ONNXBackend(BaseBackend):
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
                 if rocm
-                else [("onnxruntime-gpu", "onnxruntime-windowsml")]
+                else [("onnxruntime-gpu[cuda]", "onnxruntime-windowsml")]
                 if cuda
                 else [(*builds, "onnxruntime-windowsml")]  # keep GPU, QNN, AMD Vitis AI or Windows ML builds
             )
@@ -229,6 +229,8 @@ class ONNXBackend(BaseBackend):
                     LOGGER.warning(f"MIGraphX execution provider unavailable ({e}). Using CPU...")
                     self.device, cuda, rocm = torch.device("cpu"), False, False
             if not rocm:
+                if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
+                    onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider
                 available = onnxruntime.get_available_providers()
                 if cuda and "CUDAExecutionProvider" in available:
@@ -340,10 +342,10 @@ class ONNXBackend(BaseBackend):
 
 
 class ONNXIMXBackend(ONNXBackend):
-    """ONNX IMX inference backend for NXP i.MX processors.
+    """ONNX IMX inference backend for Sony IMX500 exports.
 
-    Extends `ONNXBackend` with support for quantized models targeting NXP i.MX edge devices. Uses MCT (Model Compression
-    Toolkit) quantizers and custom NMS operations for optimized inference.
+    Extends `ONNXBackend` to run the exported ONNX model on the host CPU with the MCT (Model Compression Toolkit)
+    quantizers and custom NMS operations it needs.
     """
 
     def load_model(self, weight: str | Path) -> None:
@@ -353,7 +355,7 @@ class ONNXIMXBackend(ONNXBackend):
             weight (str | Path): Path to the IMX model directory containing the .onnx file.
         """
         check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl>=1.1.0", "onnxruntime-extensions"))
-        check_requirements(("onnx", "onnxruntime"))
+        check_requirements(("onnx", ONNXRUNTIME_BUILDS))
         import mct_quantizers as mctq
         import onnxruntime
         from edgemdt_cl.pytorch.nms import nms_ort  # noqa - register custom NMS ops

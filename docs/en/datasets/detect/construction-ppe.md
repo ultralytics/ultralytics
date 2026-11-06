@@ -5,70 +5,62 @@ creator:
     name: Ultralytics
     url: https://www.ultralytics.com
 license:
-    name: AGPL-3.0
-    url: https://www.ultralytics.com/license
-description: Train YOLO26 on the Construction-PPE dataset — 1,416 images across 11 classes for detecting helmets, gloves, vests, boots, goggles, and missing safety gear.
-keywords: Construction-PPE, PPE dataset, PPE detection, safety compliance, construction workers, object detection, YOLO26, workplace safety, computer vision
+    name: CC BY 4.0
+    url: https://creativecommons.org/licenses/by/4.0/
+description: Train YOLO26 on Ultralytics Construction-PPE — 1,000 human-collected and generated images with 12 classes for people, forklifts, protective equipment, and missing PPE.
+keywords: Construction-PPE, Ultralytics dataset, PPE detection, construction safety, generated images, object detection, YOLO26, CC BY 4.0
 ---
 
-# Construction-PPE Dataset
+# Ultralytics Construction-PPE Dataset
 
-<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-construction-ppe-detection-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Construction-PPE Dataset In Colab"></a>
+Ultralytics Construction-PPE is an original [object detection](../../tasks/detect.md) dataset of **1,000 images, 14,863 bounding boxes, and 12 classes** covering people, forklifts, personal protective equipment, and visible missing equipment in construction and industrial settings.
 
-The Ultralytics Construction-PPE dataset is an [object detection](https://www.ultralytics.com/glossary/object-detection) dataset of 1,416 images (1,132 for training, 143 for validation, and 141 for testing) labeled across 11 classes for detecting personal protective equipment — helmets, gloves, vests, boots, and goggles — and flagging missing gear on construction sites. Curated from real construction environments, it includes both compliant and non-compliant cases, making it a practical resource for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models that monitor workplace safety.
+The dataset was **created and open-sourced in November 2026 by the Ultralytics team**. It combines **human-collected and generated images**, with **expert human annotation and AI auto-annotation completed in November 2026 by the Ultralytics team**. Images and annotations are released under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/L6Mz0OJQ6SU"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> How to Detect Personal Protective Equipment with Ultralytics YOLO26 | Workplace Safety Monitoring 🦺
-</p>
+[Explore Construction-PPE on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/construction-ppe) to browse the images and annotations, clone the dataset, or train a model.
+
+## Images and Annotation
+
+The images cover construction sites, workshops, warehouses, loading areas, and maintenance work. They include varied viewpoints, lighting, worker arrangements, protective equipment, and forklift activity.
+
+Images include landscape, portrait, and square compositions at varied resolutions.
+
+Annotations use bounding boxes in [Ultralytics YOLO format](index.md#ultralytics-yolo-format). Equipment classes identify visible items; missing-equipment classes identify the corresponding visible body region when equipment is absent. An occluded or out-of-frame body part does not by itself establish missing equipment.
 
 ## Dataset Structure
 
-The Construction-PPE dataset contains 1,416 images split into three predefined subsets, defined by the `construction-ppe.yaml` configuration:
+The dataset has a fixed 80/20 train/validation split:
 
-| Split      | Images | Annotations |
-| ---------- | ------ | ----------- |
-| Train      | 1,132  | Yes         |
-| Validation | 143    | Yes         |
-| Test       | 141    | Yes         |
+| Split      | Images    | Purpose                       |
+| ---------- | --------- | ----------------------------- |
+| Train      | 800       | Model training                |
+| Validation | 200       | Evaluation during development |
+| **Total**  | **1,000** |                               |
 
-Every image is annotated in the [Ultralytics YOLO](../detect/index.md#what-is-the-ultralytics-yolo-dataset-format-and-how-to-structure-it) format, ensuring compatibility with state-of-the-art [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) pipelines.
+There is no separate test split. Use independent images from the intended deployment environment for final evaluation, especially when assessing performance on real camera footage.
 
-The dataset provides **11 classes** covering worn gear, missing gear, and people:
+## Classes
 
-- **Worn PPE (5)**: `helmet`, `gloves`, `vest`, `boots`, `goggles`
-- **Missing PPE (4)**: `no_helmet`, `no_gloves`, `no_boots`, `no_goggle`
-- **Other (2)**: `Person`, `none`
+The class IDs below match the dataset annotations and `construction-ppe.yaml`:
 
-Pairing worn and missing labels lets a model both detect properly worn gear **and** flag safety violations. Note that `vest` has no dedicated missing-vest label.
-
-## Business Value
-
-Construction is one of the most hazardous industries, and the challenge is usually enforcement rather than a lack of regulation. Health-and-safety teams are stretched thin and cannot watch every corner of a busy, ever-changing site in real time.
-
-Computer-vision-based PPE detection helps close that gap. By automatically checking whether workers wear the required helmets, vests, and other gear, it enforces safety rules consistently across sites and surfaces leading indicators of risk — revealing compliance trends before incidents occur. PPE detection can also flag unauthorized site intruders, who are typically the first to appear without proper safety gear.
-
-## Applications
-
-Construction-PPE powers a variety of safety-focused computer vision applications:
-
-- **Automated compliance monitoring**: Train AI models to instantly check if workers are wearing required safety gear like helmets, vests, or gloves, reducing risks on site.
-- **Workplace safety analytics**: Track PPE usage over time, spot frequent violations, and generate insights to improve safety culture.
-- **Smart surveillance systems**: Connect detection models with cameras to send real-time alerts when PPE is missing, preventing accidents before they happen.
-- **Robotics and autonomous systems**: Enable drones or robots to perform PPE checks across large sites, supporting faster and safer inspections.
-- **Research and education**: Provide a real-world dataset for students and researchers exploring workplace safety and human-object interactions.
-
-To label, train, and deploy a PPE detection model without managing local infrastructure, run the full workflow in your browser with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/construction-ppe).
+| ID  | Class       | Target                                                    |
+| --- | ----------- | --------------------------------------------------------- |
+| 0   | `helmet`    | Protective helmet or hard hat                             |
+| 1   | `gloves`    | Work gloves                                               |
+| 2   | `vest`      | High-visibility safety vest, jacket, or shirt             |
+| 3   | `boots`     | Protective work boots or work shoes                       |
+| 4   | `goggles`   | Protective eyewear                                        |
+| 5   | `Person`    | Person                                                    |
+| 6   | `no_helmet` | Visible head without a helmet                             |
+| 7   | `no_goggle` | Visible eye region without protective eyewear             |
+| 8   | `no_gloves` | Visible hand without a glove                              |
+| 9   | `no_boots`  | Visible foot or footwear without protective work footwear |
+| 10  | `forklift`  | Forklift                                                  |
+| 11  | `no_vest`   | Visible torso without high-visibility safety clothing     |
 
 ## Dataset YAML
 
-The Construction-PPE dataset includes a YAML configuration file that defines the train, validation, and test image paths along with the full list of object classes. You can access the `construction-ppe.yaml` file directly in the Ultralytics repository here: [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/construction-ppe.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/construction-ppe.yaml)
+The [dataset configuration](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/construction-ppe.yaml) defines the image paths, class order, and download URL:
 
 !!! example "ultralytics/cfg/datasets/construction-ppe.yaml"
 
@@ -76,106 +68,60 @@ The Construction-PPE dataset includes a YAML configuration file that defines the
     --8<-- "ultralytics/cfg/datasets/construction-ppe.yaml"
     ```
 
+The [November 2026 dataset archive](https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe.zip) contains images, YOLO labels, dataset metadata, and the CC BY 4.0 license. It extracts into `construction-ppe`.
+
 ## Usage
 
-You can train a YOLO26n model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly. For more options and advanced configurations, see the [Training guide](../../modes/train.md).
+Install or update the [Ultralytics package](../../quickstart.md), then train a pretrained YOLO26 model. YOLO downloads and extracts the dataset automatically on first use.
 
-!!! example "Train Example"
+!!! example "Train on Construction-PPE"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load pretrained model
         model = YOLO("yolo26n.pt")
-
-        # Train the model on Construction-PPE dataset
-        model.train(data="construction-ppe.yaml", epochs=100, imgsz=640)
+        model.train(
+            data="https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe.zip",
+            epochs=100,
+            imgsz=640,
+        )
         ```
 
     === "CLI"
 
         ```bash
-        yolo detect train data=construction-ppe.yaml model=yolo26n.pt epochs=100 imgsz=640
+        yolo detect train model=yolo26n.pt data=https://github.com/ultralytics/assets/releases/download/v0.0.0/construction-ppe.zip epochs=100 imgsz=640
         ```
 
-## Sample Images and Annotations
+See the [training guide](../../modes/train.md) for configuration options and the [validation guide](../../modes/val.md) for evaluating a trained model. The [Construction-PPE notebook](https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-construction-ppe-detection-dataset.ipynb) provides a Colab walkthrough.
 
-The dataset captures construction workers across varied environments, lighting conditions, and postures. Both **compliant** and **non-compliant** cases are included.
+## Applications
 
-![Construction-PPE dataset sample with safety gear detection](https://cdn.ul.run/i/418af109d0e7ae2491be83c8af32592f.avif)
+- **PPE detection:** locate helmets, gloves, vests, boots, and protective eyewear.
+- **Missing-equipment detection:** identify visible examples of missing PPE for review.
+- **Worksite analysis:** detect people and forklifts in construction and industrial imagery.
+- **Research and education:** compare models and study training with human-collected and generated images.
 
 ## License and Attribution
 
-Construction-PPE is developed and released under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), supporting open-source research and commercial applications with proper attribution.
+The dataset's images and annotations are released by Ultralytics under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), which permits sharing and adaptation, including commercial use, with attribution. Credit the Ultralytics team, link to the dataset and license, and indicate any changes.
 
-If you use this dataset in your research, please cite it:
+Suggested attribution: **Ultralytics Construction-PPE Dataset, Ultralytics team, November 2026, CC BY 4.0.**
 
 !!! quote "Citation"
 
     === "BibTeX"
 
         ```bibtex
-        @dataset{Dalvi_Construction_PPE_Dataset_2025,
-            author = {Mrunmayee Dalvi and Niyati Singh and Sahil Bhingarde and Ketaki Chalke},
-            title = {Construction-PPE: Personal Protective Equipment Detection Dataset},
-            month = {January},
-            year = {2025},
-            version = {1.0.0},
-            license = {AGPL-3.0},
+        @dataset{Ultralytics_Construction_PPE_2026,
+            author = "{Ultralytics team}",
+            title = {Ultralytics Construction-PPE Dataset},
+            month = {November},
+            year = {2026},
+            license = {CC-BY-4.0},
             url = {https://docs.ultralytics.com/datasets/detect/construction-ppe},
             publisher = {Ultralytics}
         }
         ```
-
-## FAQ
-
-### What makes the Construction-PPE dataset unique?
-
-Unlike generic construction datasets, Construction-PPE explicitly includes **missing-equipment classes** (`no_helmet`, `no_gloves`, `no_boots`, `no_goggle`). This dual-labeling approach lets a model not only detect worn PPE but also flag violations in real time.
-
-### Which object categories are included?
-
-The Construction-PPE dataset has 11 classes: five worn-PPE items (`helmet`, `gloves`, `vest`, `boots`, `goggles`), four missing-PPE labels (`no_helmet`, `no_gloves`, `no_boots`, `no_goggle`), plus `Person` and a generic `none` class. Note that `vest` has no dedicated missing-vest label.
-
-### How many images and classes are in the Construction-PPE dataset?
-
-The Construction-PPE dataset contains 1,416 images across 11 classes — 1,132 for training, 143 for validation, and 141 for testing. See the [Dataset Structure](#dataset-structure) section for the full split and class breakdown.
-
-### How do I download the Construction-PPE dataset?
-
-The dataset (178.4 MB) downloads automatically the first time you train with `data="construction-ppe.yaml"` — no manual step is required. Ultralytics fetches and unpacks it to your local datasets directory. You can browse related datasets in the [detection datasets overview](index.md).
-
-### How can I train a YOLO model using the Construction-PPE dataset?
-
-To train a YOLO26 model using the Construction-PPE dataset, you can use the following code snippets:
-
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="construction-ppe.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=construction-ppe.yaml model=yolo26n.pt epochs=100 imgsz=640
-        ```
-
-### Is this dataset suitable for real-world applications?
-
-Yes. Images are curated from real construction sites under diverse conditions, which makes the dataset highly effective for building deployable workplace safety monitoring systems.
-
-### What are the benefits of using the Construction-PPE dataset in AI projects?
-
-The dataset enables real-time detection of personal protective equipment, helping monitor worker safety on construction sites. With classes for both worn and missing gear, it supports AI systems that can automatically flag safety violations, generate compliance insights, and reduce risks. It also provides a practical resource for developing computer vision solutions in workplace safety, robotics, and academic research.

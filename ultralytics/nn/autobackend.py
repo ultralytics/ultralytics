@@ -56,8 +56,8 @@ def check_class_names(names: list | dict) -> dict[int, str]:
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
-        # Convert 1) string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True'
-        names = {int(k): str(v) for k, v in names.items()}
+        # Convert string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True', in id order
+        names = dict(sorted({int(k): str(v) for k, v in names.items()}.items()))
         n = len(names)
         if not n:
             raise KeyError("0-class dataset, at least one class name is required in your dataset YAML.")
@@ -129,6 +129,7 @@ class AutoBackend(nn.Module):
             | Hailo                 | *_hailo_model/         |
             | Huawei Ascend         | *_ascend_model/        |
             | AMD Xilinx            | *_xilinx_model/        |
+            | NXP                   | *_nxp.tflite           |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -166,6 +167,7 @@ class AutoBackend(nn.Module):
         "pb": TensorFlowBackend,
         "edgetpu": TensorFlowBackend,
         "litert": LiteRTBackend,
+        "nxp": LiteRTBackend,
         "paddle": PaddleBackend,
         "mnn": MNNBackend,
         "ncnn": NCNNBackend,
@@ -246,7 +248,7 @@ class AutoBackend(nn.Module):
             backend_kwargs["fuse"] = fuse
             backend_kwargs["verbose"] = verbose
             backend_kwargs["end2end"] = end2end
-        elif format in {"saved_model", "pb", "edgetpu", "dnn"}:
+        elif format in {"saved_model", "pb", "edgetpu", "dnn", "nxp"}:
             backend_kwargs["format"] = format
         self.backend = self._BACKEND_MAP[format](model, **backend_kwargs)
 
@@ -439,8 +441,7 @@ class AutoBackend(nn.Module):
         """Apply a function to backend.model parameters, buffers, and tensors.
 
         This method extends the functionality of the parent class's _apply method by additionally applying the
-        function to the backend model and updating the backend device. It's typically used for operations like moving
-        the model to a different device or changing its precision.
+        function to the backend model and updating `backend.device` and `backend.fp16` from the converted parameters.
 
         Args:
             fn (Callable): A function to be applied to the model's tensors. This is typically a method like to(), cpu(),
@@ -452,5 +453,7 @@ class AutoBackend(nn.Module):
         super()._apply(fn)
         if hasattr(self.backend, "model") and isinstance(self.backend.model, nn.Module):
             self.backend.model._apply(fn)
-            self.backend.device = next(self.backend.model.parameters()).device  # update device after move
+            parameter = next(self.backend.model.parameters())
+            self.backend.device = parameter.device
+            self.backend.fp16 = parameter.dtype == torch.float16
         return self

@@ -7,7 +7,7 @@ keywords: data preprocessing, computer vision, image resizing, image normalizati
 
 # Data Preprocessing Techniques for Annotated Computer Vision Data
 
-Data preprocessing turns raw, annotated images into the clean and consistent inputs a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model needs to train well. With [Ultralytics YOLO26](../models/yolo26.md), the core pixel operations — RGB conversion, scaling to `[0, 1]`, and resizing — run automatically inside the training pipeline, so the work that remains is splitting your dataset correctly, balancing classes, and choosing augmentations. This guide covers those essential techniques: resizing, normalization, dataset splitting, data augmentation, and exploratory data analysis (EDA).
+[Data preprocessing](https://www.ultralytics.com/glossary/data-preprocessing) turns raw, annotated images into the clean and consistent inputs a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model needs to train well. With [Ultralytics YOLO26](../models/yolo26.md), the core pixel operations — RGB conversion, scaling to `[0, 1]`, and resizing — run automatically inside the training pipeline, so the work that remains is splitting your dataset correctly, balancing classes, and choosing augmentations. This guide covers those essential techniques: resizing, normalization, dataset splitting, data augmentation, and exploratory data analysis (EDA).
 
 <p align="center">
   <br>
@@ -45,7 +45,7 @@ Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv) and PIL (Pi
 
 ### Normalizing Pixel Values
 
-Normalization scales pixel values to a standard range, which helps the model converge faster during training. Two common techniques are:
+[Normalization](https://www.ultralytics.com/glossary/normalization) scales pixel values to a standard range, which helps the model converge faster during training. Two common techniques are:
 
 - **Min-Max Scaling**: Scales pixel values to a range of 0 to 1.
 - **Z-Score Normalization**: Scales pixel values based on their mean and standard deviation.
@@ -54,7 +54,7 @@ YOLO26 handles normalization automatically as part of its preprocessing pipeline
 
 ### Splitting the Dataset
 
-Splitting the data into training, validation, and test sets lets you evaluate the model on unseen data and measure its generalization. A common split is 70% for training, 20% for validation, and 10% for testing. Tools like [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) make this straightforward.
+[Splitting the data](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/split-the-dataset-correctly) into training, validation, and test sets lets you evaluate the model on unseen data and measure its generalization. A common split is 70% for training, 20% for validation, and 10% for testing. Tools like [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) make this straightforward.
 
 Keep these points in mind when splitting:
 
@@ -138,7 +138,7 @@ Visualizations reveal patterns that summary statistics miss, such as class imbal
 
 ### Ultralytics Platform for EDA
 
-For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com). The dataset's `Charts` tab automatically generates key EDA visualizations: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
+For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com). The dataset's [`Charts` tab](../platform/data/datasets.md#charts-tab) automatically generates key EDA visualizations: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
 
 ## Conclusion
 
@@ -160,7 +160,7 @@ The two most common techniques are min-max scaling (rescaling pixels to a range 
 
 ### How should I split my annotated dataset for training?
 
-A common practice is 70% for training, 20% for validation, and 10% for testing. Maintain the class distribution across all three splits, and avoid [data leakage](https://www.ultralytics.com/glossary/data-leakage) by applying augmentation only to the training set after the split. Tools like scikit-learn or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) handle the split efficiently. See the [data collection and annotation guide](./data-collection-and-annotation.md) for upstream dataset preparation.
+A common practice is 70% for training, 20% for validation, and 10% for testing. Maintain the class distribution across all three splits, and avoid [data leakage](https://www.ultralytics.com/glossary/data-leakage) by applying augmentation only to the training set after the split. Tools like scikit-learn or TensorFlow handle the split efficiently.
 
 ### Can YOLO26 handle varying image sizes without manual resizing?
 

@@ -15,7 +15,7 @@ from pathlib import Path
 from urllib import parse
 from uuid import uuid4
 
-from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
+from ultralytics.utils import ASSETS_URL, LOGGER, REQUEST_HEADERS, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
@@ -268,48 +268,6 @@ def check_disk_space(
     return False
 
 
-def get_google_drive_file_info(link: str) -> tuple[str, str | None]:
-    """Retrieve the direct download link and filename for a shareable Google Drive file link.
-
-    Args:
-        link (str): The share link (`/file/d/<id>/view`) or direct link (`uc?id=<id>`) of the Google Drive file.
-
-    Returns:
-        url (str): Direct download URL for the Google Drive file.
-        filename (str | None): Original filename of the Google Drive file. If filename extraction fails, returns None.
-
-    Raises:
-        ConnectionError: If the Google Drive download quota for the file has been exceeded.
-
-    Examples:
-        >>> from ultralytics.utils.downloads import get_google_drive_file_info
-        >>> link = "https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link"
-        >>> url, filename = get_google_drive_file_info(link)
-    """
-    import requests  # scoped as slow import
-
-    file_id = re.search(r"(?:/d/|[?&]id=)([\w-]+)", link)[1]
-    drive_url = f"https://drive.google.com/uc?export=download&id={file_id}"
-    filename = None
-
-    # Start session
-    with requests.Session() as session:
-        response = session.get(drive_url, stream=True)
-        if "quota exceeded" in str(response.content.lower()):
-            raise ConnectionError(
-                emojis(
-                    f"❌  Google Drive file download quota exceeded. "
-                    f"Please try again later or download this file manually at {link}."
-                )
-            )
-        for k, v in response.cookies.items():
-            if k.startswith("download_warning"):
-                drive_url += f"&confirm={v}"  # v is token
-        if cd := response.headers.get("content-disposition"):
-            filename = re.findall('filename="(.+)"', cd)[0]
-    return drive_url, filename
-
-
 def safe_download(
     url: str | Path,
     file: str | Path | None = None,
@@ -362,14 +320,11 @@ def safe_download(
     else:
         import requests  # scoped as slow import
 
-        gdrive = url.lower().startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
-        if gdrive:
-            url, file = get_google_drive_file_info(url)
         url = url.replace(" ", "%20")  # encode spaces for curl compatibility
 
         f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
         if not f.is_file():  # URL and file do not exist
-            uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
+            uri = clean_url(url).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
             desc = f"Downloading {uri} to '{f}'"
             f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
             target = f
@@ -401,7 +356,7 @@ def safe_download(
                             b"".join(re.findall(rb"(?im)^content-encoding:\s*(\S+)", final_headers)).decode().lower()
                         )
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
-                        headers = {"Accept-Encoding": "identity"}
+                        headers = {"Accept-Encoding": "identity", **REQUEST_HEADERS}
                         if resume:
                             headers["Range"] = f"bytes={resume}-"
                         with requests.get(url, stream=True, headers=headers, timeout=(30, 300)) as response:

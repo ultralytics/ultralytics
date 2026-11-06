@@ -656,19 +656,19 @@ class v8SegmentationLoss(v8DetectionLoss):
         # Normalize to mask size
         mxyxy = target_bboxes_normalized * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=proto.device)
 
-        for i, single_i in enumerate(zip(fg_mask, target_gt_idx, pred_masks, proto, mxyxy, marea)):
-            fg_mask_i, target_gt_idx_i, pred_masks_i, proto_i, mxyxy_i, marea_i = single_i
-            if fg_mask_i.any():
-                mask_idx = target_gt_idx_i[fg_mask_i]
+        # Foreground anchor indices of each image, found with two host syncs for the whole batch
+        fg_idx = fg_mask.nonzero(as_tuple=True)[1].split(fg_mask.sum(1).tolist())
+        for i, single_i in enumerate(zip(fg_idx, target_gt_idx, pred_masks, proto, mxyxy, marea)):
+            idx, target_gt_idx_i, pred_masks_i, proto_i, mxyxy_i, marea_i = single_i
+            if idx.numel():
+                mask_idx = target_gt_idx_i[idx]
                 if self.overlap:
                     gt_mask = masks[i] == (mask_idx + 1).view(-1, 1, 1)
                     gt_mask = gt_mask.float()
                 else:
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
 
-                loss += self.single_mask_loss(
-                    gt_mask, pred_masks_i[fg_mask_i], proto_i, mxyxy_i[fg_mask_i], marea_i[fg_mask_i]
-                )
+                loss += self.single_mask_loss(gt_mask, pred_masks_i[idx], proto_i, mxyxy_i[idx], marea_i[idx])
 
             # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
             else:
@@ -1358,11 +1358,7 @@ class TVPDetectLoss:
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
         self.vp_criterion = v8DetectionLoss(model, tal_topk, tal_topk2)
         self.loss_names = tuple(k[:-5] for k in self.vp_criterion.loss_names)  # strip "_loss" suffix
-        # NOTE: store following info as it's changeable in __call__
         self.hyp = self.vp_criterion.hyp
-        self.ori_nc = self.vp_criterion.nc
-        self.ori_no = self.vp_criterion.no
-        self.ori_reg_max = self.vp_criterion.reg_max
 
     def parse_output(self, preds) -> dict[str, torch.Tensor]:
         """Return the training outputs dict from model predictions."""
@@ -1375,24 +1371,9 @@ class TVPDetectLoss:
     def loss(
         self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
     ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        """Calculate the visual-prompt classification loss, or zeros when predictions use the original classes."""
-        if self.ori_nc == preds["scores"].shape[1]:
-            loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
-            return loss, dict(zip(self.loss_names, loss.detach()))
-
-        preds["scores"] = self._get_vp_features(preds)
+        """Calculate the visual-prompt classification loss."""
         vp_loss = self.vp_criterion(preds, batch)
         return vp_loss[0][1], dict(zip(self.loss_names, vp_loss[1].values()))
-
-    def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Update the criterion to the visual-prompt class count and return the visual-prompt scores."""
-        scores = preds["scores"]
-        vnc = scores.shape[1]
-
-        self.vp_criterion.nc = vnc
-        self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
-        self.vp_criterion.assigner.num_classes = vnc
-        return scores
 
 
 class TVPSegmentLoss(TVPDetectLoss):
@@ -1400,22 +1381,12 @@ class TVPSegmentLoss(TVPDetectLoss):
 
     def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None):
         """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
-        super().__init__(model)
         self.vp_criterion = v8SegmentationLoss(model, tal_topk, tal_topk2)
         self.loss_names = tuple(k[:-5] for k in self.vp_criterion.loss_names if k != "sem_loss")  # strip "_loss"
         self.hyp = self.vp_criterion.hyp
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        """Calculate the loss for text-visual prompt segmentation."""
-        return self.loss(self.parse_output(preds), batch)
-
     def loss(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        """Calculate the visual-prompt classification loss, or zeros when predictions use the original classes."""
-        if self.ori_nc == preds["scores"].shape[1]:
-            loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
-            return loss, dict(zip(self.loss_names, loss.detach()))
-
-        preds["scores"] = self._get_vp_features(preds)
+        """Calculate the visual-prompt classification loss."""
         vp_loss = self.vp_criterion(preds, batch)
         cls_loss = vp_loss[0][2]
         # zip drops the trailing "sem_loss" item to match the logged columns
@@ -1475,23 +1446,17 @@ class SemanticSegmentationLoss(nn.Module):
             logits = preds.permute(0, 2, 3, 1).reshape(-1, self.nc)
             target = flat.long()
             denominator = valid.sum() if self.ce.weight is None else self.ce.weight[target[valid]].sum()
-        return self.ce(logits, target) / denominator.clamp_min(1)
+        return self.ce(logits, target) / (denominator + (denominator == 0))  # weight sums may be <1, guard only 0
 
     def _dice_loss(self, preds, masks, valid):
         """Compute Dice loss excluding ignore pixels."""
         if self.nc == 1:
             return self._binary_dice_loss(preds, masks, valid)
-        flat_target = masks.reshape(-1)
-        pred_soft = F.softmax(preds, dim=1)
-        target = flat_target[valid].long()
-        flat_pred = pred_soft.float().permute(0, 2, 3, 1).reshape(-1, self.nc)[valid]
-        intersection = torch.zeros(self.nc, device=preds.device, dtype=torch.float32)
-        intersection.scatter_add_(0, target, flat_pred.gather(1, target[:, None]).squeeze(1))
-        pred_sum = flat_pred.sum(dim=0)
-        target_sum = torch.zeros_like(intersection).scatter_add_(
-            0, target, torch.ones_like(target, dtype=torch.float32)
-        )
-        cardinality = pred_sum + target_sum
+        valid = valid.reshape_as(masks)[:, None]
+        pred_soft = F.softmax(preds, dim=1).float() * valid
+        target = (masks[:, None] == torch.arange(self.nc, device=masks.device)[:, None, None]) & valid
+        intersection = (pred_soft * target).sum((0, 2, 3))
+        cardinality = pred_soft.sum((0, 2, 3)) + target.sum((0, 2, 3))
         return (1.0 - (2.0 * intersection + 1.0) / (cardinality + 1.0)).mean()
 
     def _binary_dice_loss(self, preds, masks, valid):

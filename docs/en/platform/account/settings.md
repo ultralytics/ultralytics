@@ -8,7 +8,7 @@ title: Account Settings
 
 # Settings
 
-[Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
+[Ultralytics Platform](https://platform.ultralytics.com) settings let you configure your profile, social links, and workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
 Settings is organized into nine tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Usage`, `Referrals`, `Teams`, `Integrations`, and `Trash`.
 
@@ -71,7 +71,7 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 
 ### Early Access
 
-Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile**, enable **Early access**, and click **Save changes** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
+Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile**, enable **Early access**, and click **Save changes** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** and **Krea 2 Turbo** in [Generate Similar Images](../data/datasets.md#generate-similar-images) and an early-access hosted model for [class-prompted annotation](../data/annotation.md#class-prompted-smart-annotation). [Agents](../agents.md) does not depend on it.
 
 ### Default Visibility
 
@@ -150,7 +150,7 @@ The storage card shows:
 | ------------ | ----------------------------------------------------- |
 | **Datasets** | Uploaded images, videos, labels, and annotation files |
 | **Models**   | Trained model checkpoints (`.pt` files)               |
-| **Exports**  | Exported model formats (ONNX, TensorRT, CoreML, etc)  |
+| **Exports**  | Exported model formats (ONNX, TensorRT, CoreML, etc.) |
 
 #### Storage Limits
 
@@ -241,8 +241,9 @@ are deleted automatically.
 ## API Keys Tab
 
 The `API Keys` tab lets you create and manage API keys for remote training and inference, and stores provider keys for
-Agents, class-prompted annotation, and paid image generation. Only the workspace owner can create, view, or revoke
-keys — a workspace key acts as the owner. See [API Keys](api-keys.md) for full documentation.
+Agents, class-prompted annotation, paid image generation, and Roboflow and W&B imports. Only the workspace owner can
+view Ultralytics API keys or add, replace, or revoke any key — a workspace key acts as the owner. See
+[API Keys](api-keys.md) for full documentation.
 
 ## Plans Tab
 
@@ -266,7 +267,7 @@ See [Billing](billing.md) for detailed plan information, pricing, and upgrade in
 ## Billing Tab
 
 The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits pay for
-metered cloud training.
+metered compute: cloud training, batch annotation, and custom-resource endpoint uptime.
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
 
@@ -305,7 +306,7 @@ The `Usage` tab charts credit spend and storage for the active workspace.
 - **Date range**: any custom range, defaulting to the last 30 days
 - **Storage card**: the same storage breakdown shown on the **Home** page (see [Storage Usage](#storage-usage))
 
-Grouping by user or API key makes it easy to see which team member or automation is consuming a shared team balance.
+Grouping by user or API key shows which team member or automation is consuming a shared team balance.
 
 ## Referrals Tab
 

@@ -24,7 +24,7 @@ Explore [MNIST on Ultralytics Platform](https://platform.ultralytics.com/ultraly
 - Every image is a 28x28 grayscale picture of a single digit, size-normalized and anti-aliased to fit a 20x20 box and centered in the 28x28 frame.
 - The 10 classes span the digits 0–9, with a roughly balanced number of images per class.
 - It ships with a predefined train/test split, so no manual or automatic splitting is required.
-- MNIST is a standard benchmark for [image classification](https://www.ultralytics.com/glossary/image-classification) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) research.
+- MNIST is a standard benchmark for image classification and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) research.
 
 ## Dataset Structure
 
@@ -43,7 +43,7 @@ Each image is labeled with its corresponding digit (0–9), making MNIST a super
 
 ## Applications
 
-MNIST is widely used to train and evaluate [image classification](https://www.ultralytics.com/glossary/image-classification) models, from classic [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs) to modern deep architectures. Its small grayscale images and 10 digit classes make it a fast, reproducible benchmark for algorithm comparison and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) experimentation.
+MNIST is widely used to train and evaluate image classification models, from classic [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs) to modern deep architectures. Its small grayscale images and 10 digit classes make it a fast, reproducible benchmark for algorithm comparison and computer vision experimentation.
 
 Some common applications include:
 
@@ -54,7 +54,7 @@ Some common applications include:
 
 ## Usage
 
-Train a YOLO classification model on MNIST for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 28. The dataset downloads and caches automatically on first use; if you prefer full control over preprocessing, the original gzip archives are also available from the [MNIST database](https://en.wikipedia.org/wiki/MNIST_database). For the full list of available arguments, see the [Training](../../modes/train.md) page and the [image classification](../../tasks/classify.md) task guide.
+[Train](../../modes/train.md) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) classification model on MNIST for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at an image size of 28. The dataset downloads and caches automatically on first use; if you prefer full control over preprocessing, the original gzip archives are also available from the [MNIST database](https://en.wikipedia.org/wiki/MNIST_database).
 
 !!! example "Train Example"
 
@@ -113,7 +113,7 @@ If you use the MNIST dataset in your research or development work, please cite t
         }
         ```
 
-We would like to acknowledge Yann LeCun, Corinna Cortes, and Christopher J.C. Burges for creating and maintaining the MNIST dataset as a valuable resource for the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research community. For more information about the MNIST dataset and its creators, visit the [MNIST dataset website](https://en.wikipedia.org/wiki/MNIST_database).
+We would like to acknowledge Yann LeCun, Corinna Cortes, and Christopher J.C. Burges for creating and maintaining the MNIST dataset as a valuable resource for the machine learning and computer vision research community. For more information about the MNIST dataset and its creators, see the [MNIST database article on Wikipedia](https://en.wikipedia.org/wiki/MNIST_database).
 
 ## FAQ
 

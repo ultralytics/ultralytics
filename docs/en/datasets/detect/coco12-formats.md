@@ -7,7 +7,7 @@ creator:
 license:
     name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
-description: Explore the Ultralytics COCO12-Formats test dataset covering 12 image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading.
+description: COCO12-Formats is a 12-image Ultralytics test dataset with one image per supported format, including AVIF, HEIC, JP2, and WebP, for validating image loading.
 keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection, YOLO, AVIF, BMP, DNG, HEIC, JP2, JPEG, PNG, TIFF, WebP, MPO
 ---
 
@@ -17,7 +17,7 @@ keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection,
 
 The [Ultralytics](https://www.ultralytics.com) COCO12-Formats dataset is a specialized test dataset designed to validate image loading across 12 supported image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to ensure comprehensive testing of the image loading pipeline.
 
-This dataset is invaluable for:
+This dataset is useful for:
 
 - **Testing image format support**: Verify that common image formats load correctly
 - **CI/CD pipelines**: Automated testing of format compatibility
@@ -70,11 +70,11 @@ The COCO12-Formats dataset is configured using a YAML file that defines dataset 
 
 ### Requirements
 
-No manual setup is needed. OpenCV reads most formats directly, and Ultralytics falls back to Pillow for AVIF, HEIC, and HEIF. AVIF is decoded natively by Pillow 11.3 or newer, so upgrade Pillow if AVIF files fail to load, and HEIC/HEIF decoding installs the lightweight `pi-heif` package automatically on first use.
+No manual setup is needed. [OpenCV](https://www.ultralytics.com/glossary/opencv) reads most formats directly, and Ultralytics falls back to Pillow for AVIF, HEIC, and HEIF. AVIF is decoded natively by Pillow 11.3 or newer, so upgrade Pillow if AVIF files fail to load, and HEIC/HEIF decoding installs the lightweight `pi-heif` package automatically on first use.
 
 ## Usage
 
-The COCO12-Formats dataset (1 MB) downloads automatically the first time you start training. To train a YOLO model on the COCO12-Formats dataset, use the following examples:
+The COCO12-Formats dataset (1 MB) downloads automatically the first time you start training. To train a [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model on the COCO12-Formats dataset, use the following examples:
 
 !!! example "Train Example"
 
@@ -109,7 +109,7 @@ DNG is Adobe's open RAW format based on TIFF. For testing purposes, the dataset 
 
 ### JP2 (JPEG 2000)
 
-JPEG 2000 is a wavelet-based image compression standard offering better compression and quality than traditional JPEG. Commonly used in medical imaging (DICOM), geospatial applications, and digital cinema. Natively supported by both OpenCV and Pillow.
+JPEG 2000 is a wavelet-based image compression standard offering better compression and quality than traditional JPEG. It is commonly used in medical imaging (DICOM), geospatial applications, and digital cinema, and is natively supported by both OpenCV and Pillow.
 
 ### MPO (Multi-Picture Object)
 

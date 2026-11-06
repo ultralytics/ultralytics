@@ -7,7 +7,7 @@ keywords: YOLO architecture, YOLOv3, YOLOv5, YOLOv8, YOLO11, YOLO26, backbone, n
 
 # YOLO Architecture Explained: From YOLOv3 to YOLO26
 
-Every Ultralytics YOLO model is built from three stages: a **backbone** that extracts features, a **neck** that fuses them across scales, and a **head** that predicts boxes and classes. This guide documents the modules that make up each stage and how they changed from [YOLOv3](../models/yolov3.md) to [YOLO26](../models/yolo26.md), tracing every component to its definition in the configuration files under `ultralytics/cfg/models/` and the module classes in [`ultralytics/nn/modules/`](../reference/nn/modules/block.md).
+Every Ultralytics YOLO model is built from three stages: a [**backbone**](https://www.ultralytics.com/glossary/backbone) that extracts features, a **neck** that fuses them across scales, and a [**head**](https://www.ultralytics.com/glossary/detection-head) that predicts boxes and classes. This guide documents the modules that make up each stage and how they changed from [YOLOv3](../models/yolov3.md) to [YOLO26](../models/yolo26.md), tracing every component to its definition in the configuration files under `ultralytics/cfg/models/` and the module classes in [`ultralytics/nn/modules/`](../reference/nn/modules/block.md).
 
 Each model is defined declaratively in a YAML file as an ordered list of layers, where every layer follows the `[from, repeats, module, args]` format: which layer(s) feed it, how many times the module repeats, the layer class (`Conv`, `C3k2`, `SPPF`, `Detect`, …), and its constructor arguments. The [Model YAML Configuration Guide](model-yaml-config.md) documents this format — including how `repeats` and `args` scale with the variant's depth and width multiples — along with the module-resolution system in full. This guide focuses on the modules themselves and how they changed from version to version.
 
@@ -21,7 +21,7 @@ Every Ultralytics YOLO model routes the image through three sequential stages, e
 | **Neck**     | Fuse features across scales so small and large objects both have context | Multi-scale fused feature maps                     |
 | **Head**     | Predict bounding boxes and class scores from the fused features          | Detections per anchor point                        |
 
-The fundamental unit is the **`Conv`** block (defined in [`conv.py`](../reference/nn/modules/conv.md)): a 2D convolution, [batch normalization](https://www.ultralytics.com/glossary/batch-normalization), and a [SiLU](https://www.ultralytics.com/glossary/activation-function) activation, applied in sequence. Every larger module below is built by composing `Conv` blocks.
+The fundamental unit is the **`Conv`** block (defined in [`conv.py`](../reference/nn/modules/conv.md)): a 2D convolution, [batch normalization](https://www.ultralytics.com/glossary/batch-normalization), and a [SiLU](https://www.ultralytics.com/glossary/silu-sigmoid-linear-unit) activation, applied in sequence. Every larger module below is built by composing `Conv` blocks.
 
 ## Architecture Diagrams
 
@@ -133,7 +133,7 @@ The second YAML arg sets `c3k` unless the scale is `m`, `l` or `x`, which force 
 
 ## Spatial Pooling: SPP → SPPF
 
-At the end of the backbone, a spatial-pyramid-pooling block widens the receptive field. YOLOv5 replaced the original multi-kernel `SPP` with **`SPPF`** (Spatial Pyramid Pooling - Fast): a single `MaxPool2d(kernel_size=5, stride=1, padding=2)` applied `n = 3` times in sequence, with the input and all three pooled outputs concatenated and fused by a `1x1` `Conv`. This is mathematically equivalent to `SPP(k=(5, 9, 13))` but cheaper, because the chained `5x5` pools cover the larger kernels' receptive fields.
+At the end of the backbone, a spatial-pyramid-pooling block widens the [receptive field](https://www.ultralytics.com/glossary/receptive-field). YOLOv5 replaced the original multi-kernel `SPP` with **`SPPF`** (Spatial Pyramid Pooling - Fast): a single `MaxPool2d(kernel_size=5, stride=1, padding=2)` applied `n = 3` times in sequence, with the input and all three pooled outputs concatenated and fused by a `1x1` `Conv`. This is mathematically equivalent to `SPP(k=(5, 9, 13))` but cheaper, because the chained `5x5` pools cover the larger kernels' receptive fields.
 
 [YOLO26](../models/yolo26.md) passes a shortcut flag (`SPPF, [1024, 5, 3, True]`); since `c1 == c2 == 1024` at the deepest layer, `SPPF` adds a residual connection (`return y + x`).
 
@@ -143,7 +143,7 @@ At the end of the backbone, a spatial-pyramid-pooling block widens the receptive
 
 ## Neck: FPN + PAN
 
-The neck fuses the backbone's P3/P4/P5 feature maps with a top-down Feature Pyramid Network (FPN) followed by a bottom-up Path Aggregation Network (PAN). In the YAML head section, FPN is `nn.Upsample` + `Concat` (carrying semantic information down to higher resolutions) and PAN is stride-2 `Conv` + `Concat` (carrying localization information back up):
+The neck fuses the backbone's P3/P4/P5 feature maps with a top-down [Feature Pyramid Network](https://www.ultralytics.com/glossary/feature-pyramid-network-fpn) (FPN) followed by a bottom-up Path Aggregation Network (PAN). In the YAML head section, FPN is `nn.Upsample` + `Concat` (carrying semantic information down to higher resolutions) and PAN is stride-2 `Conv` + `Concat` (carrying localization information back up):
 
 ```yaml
 # YOLO11 head (FPN top-down, then PAN bottom-up)
@@ -160,18 +160,18 @@ The neck reuses the backbone block of its generation — `C3` in YOLOv5, `C2f` i
 
 ## Detection Head: Anchor-Based → Anchor-Free → NMS-Free
 
-The head turns the three fused feature maps into predictions for the [detection task](../tasks/detect.md). Its design has changed across versions, from anchor-based to anchor-free to NMS-free.
+The head turns the three fused feature maps into predictions for the [detection task](../tasks/detect.md). Its design has changed across versions, from anchor-based to anchor-free to [NMS-free](https://www.ultralytics.com/blog/why-ultralytics-yolo26-removes-nms-and-how-that-changes-deployment).
 
 ### Anchor-free, decoupled `Detect`
 
 The **original** YOLOv3 and YOLOv5 used an [anchor-based](https://www.ultralytics.com/glossary/anchor-based-detectors), coupled head: predefined anchor boxes and a shared branch for box and class predictions. The standalone [ultralytics/yolov3](https://github.com/ultralytics/yolov3) and [ultralytics/yolov5](https://github.com/ultralytics/yolov5) repositories keep that anchor-based design. The main `ultralytics` package instead ships the anchor-free **YOLOv3u** and **YOLOv5u** variants — the same Darknet-53 and `C3` backbones with YOLOv8's anchor-free `Detect` head — and the `yolov3.yaml` and `yolov5.yaml` configs documented here are these `u` variants, not the historical design.
 
-The `Detect` head ([`head.py`](../reference/nn/modules/head.md)) is anchor-free and decoupled: per pyramid level it runs two parallel branches, and predicts directly on grid points rather than against anchor boxes.
+The `Detect` head ([`head.py`](../reference/nn/modules/head.md)) is [anchor-free](https://www.ultralytics.com/glossary/anchor-free-detectors) and decoupled: per pyramid level it runs two parallel branches, and predicts directly on grid points rather than against anchor boxes.
 
 - **Box branch (`cv2`):** `Conv(x, c2, 3)` → `Conv(c2, c2, 3)` → `Conv2d(c2, 4 * reg_max, 1)`.
 - **Class branch (`cv3`):** in YOLO11 and YOLO26, two depthwise-separable blocks (`DWConv` + `1x1 Conv`) → `Conv2d(c3, nc, 1)`; YOLOv8 uses the legacy variant, two `3x3 Conv` layers → `Conv2d(c3, nc, 1)`.
 
-Each anchor point therefore emits `no = nc + 4 * reg_max` outputs. Removing predefined anchors drops the anchor box sizes and aspect ratios from the hyperparameters that must be tuned.
+Each anchor point therefore emits `no = nc + 4 * reg_max` outputs. [Removing predefined anchors](https://www.ultralytics.com/blog/benefits-ultralytics-yolo11-being-anchor-free-detector) drops the anchor box sizes and aspect ratios from the hyperparameters that must be tuned.
 
 ### Distribution Focal Loss (DFL)
 
@@ -184,7 +184,7 @@ YOLOv8 and YOLO11 regress each of the 4 box coordinates as a **distribution** ov
 - **`end2end: True`** — `Detect` deep-copies its branches into a one-to-one head (`one2one_cv2`/`one2one_cv3`) that learns a single prediction per object. This YAML setting creates both training heads; runtime `nms=False` selects the one-to-one head and removes the [Non-Maximum Suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) (NMS) post-processing step. See the [End-to-End Detection guide](end2end-detection.md) for inference and export details.
 - **`reg_max: 1`** — with one bin, `self.dfl` becomes `nn.Identity()` and `no = nc + 4`; the head regresses coordinates directly and no DFL operation appears in the exported [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange) graph.
 
-Across its five model sizes (n/s/m/l/x), YOLO26 reaches 40.9-57.5 mAP on COCO at 1.7-11.8 ms T4 [TensorRT](https://www.ultralytics.com/glossary/tensorrt) latency, as reported in the [YOLO26 paper](https://arxiv.org/abs/2606.03748).
+Across its five model sizes (n/s/m/l/x), YOLO26 reaches 40.9-57.5 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) on COCO at 1.7-11.8 ms T4 [TensorRT](https://www.ultralytics.com/glossary/tensorrt) latency, as reported in the [YOLO26 paper](https://arxiv.org/abs/2606.03748).
 
 ## Version-by-Version Summary
 
@@ -233,7 +233,7 @@ YOLO26n reports `reg_max=1` and an `Identity` DFL layer. Prediction and validati
 
 !!! note "Fused vs unfused counts"
 
-    Parameter and FLOPs values are reported for the **fused** model (`model.fuse()`), which merges each `Conv` and its [batch normalization](https://www.ultralytics.com/glossary/batch-normalization) layer. This matches the published specifications; a freshly loaded checkpoint reports slightly higher counts before fusing.
+    Parameter and FLOPs values are reported for the **fused** model (`model.fuse()`), which merges each `Conv` and its batch normalization layer. This matches the published specifications; a freshly loaded checkpoint reports slightly higher counts before fusing.
 
 ## Conclusion
 

@@ -32,6 +32,26 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.plotting._arabic_forms
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting._rtl
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting._font
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting._text_mask
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.plotting._label_patch
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.plotting.plot_labels
 
 <br><br><hr><br>

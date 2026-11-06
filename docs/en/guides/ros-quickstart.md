@@ -2,7 +2,7 @@
 title: YOLO with ROS Quickstart
 comments: true
 description: Integrate Ultralytics YOLO with ROS1 or ROS2 to run object detection and segmentation on RGB images, depth images, and point clouds for robotic perception.
-keywords: Ultralytics, YOLO, object detection, deep learning, machine learning, guide, ROS, ROS2, Robot Operating System, robotics, rclpy, rospy, ROS Noetic, Python, Ubuntu, simulation, visualization, communication, middleware, hardware abstraction, tools, utilities, ecosystem, Noetic Ninjemys, autonomous vehicle, AMV
+keywords: Ultralytics, YOLO, object detection, segmentation, deep learning, ROS, ROS2, Robot Operating System, robotics, rclpy, rospy, ROS Noetic, Python, Ubuntu, simulation, visualization, middleware, depth images, point clouds, Noetic Ninjemys, autonomous vehicle
 ---
 
 # ROS (Robot Operating System) quickstart guide
@@ -13,7 +13,7 @@ Jump to [setting up YOLO with ROS](#setting-up-ultralytics-yolo-with-ros), then 
 
 ## What is ROS?
 
-The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in robotics research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications. ROS is designed to work with various [robotic platforms](https://robots.ros.org/), making it a flexible and powerful tool for roboticists. For a brief introduction, watch the three-minute [ROS Introduction](https://vimeo.com/639236696) video from Open Robotics.
+The [Robot Operating System (ROS)](https://www.ros.org/) is an open-source framework widely used in [robotics](https://www.ultralytics.com/glossary/robotics) research and industry. ROS provides a collection of [libraries and tools](https://www.ros.org/blog/ecosystem/) to help developers create robot applications. ROS is designed to work with various [robotic platforms](https://robots.ros.org/), making it a flexible and powerful tool for roboticists.
 
 ### Key Features of ROS
 
@@ -47,7 +47,7 @@ In ROS, communication between nodes is facilitated through [messages](https://wi
 
 ## Setting Up Ultralytics YOLO with ROS
 
-The ROS1 examples were tested using [this ROS environment](https://github.com/francesco-mttl/rosbot_ros/tree/noetic), a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). The same YOLO and NumPy processing applies in ROS2; only the node lifecycle and message conversion differ.
+The ROS1 examples were tested using the [ROSbot Noetic environment](https://github.com/francesco-mttl/rosbot_ros/tree/noetic), a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). The same YOLO and NumPy processing applies in ROS2; only the node lifecycle and message conversion differ.
 
 <p align="center">
   <img width="50%" src="https://cdn.ul.run/i/d64082c887f43fb28afc113e3e9a8494.avif" alt="Husarion ROSbot 2 PRO autonomous robot platform">
@@ -248,7 +248,7 @@ while True:
     1. `rostopic echo <TOPIC-NAME>` : This command allows you to view messages published on a specific topic, helping you inspect the data flow.
     2. `rostopic list`: Use this command to list all available topics in the ROS system, giving you an overview of the active data streams.
     3. `rqt_graph`: This visualization tool displays the communication graph between nodes, providing insights into how nodes are interconnected and how they interact.
-    4. For more complex visualizations, such as 3D representations, you can use [RViz](https://wiki.ros.org/rviz). RViz (ROS Visualization) is a powerful 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real-time. With RViz, you can view sensor data (e.g., `sensor_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
+    4. [RViz](https://wiki.ros.org/rviz) (ROS Visualization) is a 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real time. With RViz, you can view sensor data (e.g., `sensor_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
 
 ### Publish Detected Classes with `std_msgs/String`
 
@@ -256,7 +256,7 @@ Standard ROS messages also include `std_msgs/String` messages. In many applicati
 
 #### Example Use Case
 
-Consider a warehouse robot equipped with a camera and object [detection model](../tasks/detect.md). Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box", "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real-time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data.
+Consider a warehouse robot equipped with a camera and object [detection model](../tasks/detect.md). Instead of sending large annotated images over the network, the robot can publish a list of detected classes as `std_msgs/String` messages. For instance, when the robot detects objects like "box", "pallet" and "forklift" it publishes these classes to the `/ultralytics/detection/classes` topic. This information can then be used by a central monitoring system to track the inventory in real time, optimize the robot's path planning to avoid obstacles, or trigger specific actions such as picking up a detected box. This approach reduces the bandwidth required for communication and focuses on transmitting critical data.
 
 ### String Step-by-Step Usage
 
@@ -295,7 +295,7 @@ while True:
 
 ## Use Ultralytics with ROS Depth Images
 
-In addition to RGB images, ROS supports [depth images](https://en.wikipedia.org/wiki/Depth_map), which provide information about the distance of objects from the camera. Depth images are crucial for robotic applications such as obstacle avoidance, 3D mapping, and localization.
+In addition to RGB images, ROS supports [depth images](https://en.wikipedia.org/wiki/Depth_map), which provide information about the distance of objects from the camera. Depth images are crucial for robotic applications such as obstacle avoidance, 3D mapping, and localization. If your robot has only an RGB camera, a [YOLO26 depth estimation](../tasks/depth.md) model can predict a depth map from a single image.
 
 A depth image is an image where each pixel represents the distance from the camera to an object. Unlike RGB images that capture color, depth images capture spatial information, enabling robots to perceive the 3D structure of their environment.
 
@@ -303,7 +303,7 @@ A depth image is an image where each pixel represents the distance from the came
 
     Depth images can be obtained using various sensors:
 
-    1. [Stereo Cameras](https://en.wikipedia.org/wiki/Stereo_camera): Use two cameras to calculate depth based on image disparity.
+    1. [Stereo Cameras](https://www.ultralytics.com/glossary/stereo-vision): Use two cameras to calculate depth based on image disparity.
     2. [Time-of-Flight (ToF) Cameras](https://en.wikipedia.org/wiki/Time-of-flight_camera): Measure the time light takes to return from an object.
     3. [Structured Light Sensors](https://en.wikipedia.org/wiki/Structured-light_3D_scanner): Project a pattern and measure its deformation on surfaces.
 
@@ -436,16 +436,16 @@ A point cloud is a collection of data points defined within a three-dimensional 
 
     Point Clouds can be obtained using various sensors:
 
-    1. **LIDAR (Light Detection and Ranging)**: Uses laser pulses to measure distances to objects and create high-[precision](https://www.ultralytics.com/glossary/precision) 3D maps.
+    1. **LIDAR (Light Detection and Ranging)**: Uses laser pulses to measure distances to objects and create high-precision 3D maps.
     2. **Depth Cameras**: Capture depth information for each pixel, allowing for 3D reconstruction of the scene.
-    3. **Stereo Cameras**: Utilize two or more cameras to obtain depth information through triangulation.
+    3. **Stereo Cameras**: Use two or more cameras to obtain depth information through triangulation.
     4. **Structured Light Scanners**: Project a known pattern onto a surface and measure the deformation to calculate depth.
 
 ### Using YOLO with Point Clouds
 
 To integrate YOLO with `sensor_msgs/PointCloud2` type messages, we can employ a method similar to the one used for depth maps. By leveraging the color information embedded in the point cloud, we can extract a 2D image, perform segmentation on this image using YOLO, and then apply the resulting mask to the three-dimensional points to isolate the 3D object of interest.
 
-For handling point clouds, we recommend using Open3D (`pip install open3d`), a user-friendly Python library. Open3D provides robust tools for managing point cloud data structures, visualizing them, and executing complex operations seamlessly. This library can significantly simplify the process and enhance our ability to manipulate and analyze point clouds in conjunction with YOLO-based segmentation.
+For handling point clouds, we recommend using Open3D (`pip install open3d`), a user-friendly Python library. Open3D provides tools for managing point cloud data structures, visualizing them, and running common geometric operations, which simplifies analyzing point clouds alongside YOLO-based segmentation.
 
 #### Point Clouds Step-by-Step Usage
 
@@ -585,7 +585,7 @@ for index, class_id in enumerate(classes):
     ```
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/64dcd540f380254f5a98e570b34c64f2.avif" alt="Point Cloud Segmentation with Ultralytics ">
+  <img width="100%" src="https://cdn.ul.run/i/64dcd540f380254f5a98e570b34c64f2.avif" alt="Point cloud segmentation with Ultralytics YOLO">
 </p>
 
 ## Conclusion
@@ -703,4 +703,4 @@ for index, class_id in enumerate(classes):
     o3d.visualization.draw_geometries([pcd])
 ```
 
-This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](steps-of-a-cv-project.md).
+This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](https://www.ultralytics.com/blog/understanding-the-integration-of-computer-vision-in-robotics).

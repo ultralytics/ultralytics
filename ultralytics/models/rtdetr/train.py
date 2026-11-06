@@ -79,6 +79,7 @@ class RTDETRTrainer(DetectionTrainer):
             batch_size=batch,
             augment=mode == "train",
             hyp=self.args,
+            tile=self.args.tile,
             rect=False,
             cache=self.args.cache or None,
             single_cls=self.args.single_cls or False,

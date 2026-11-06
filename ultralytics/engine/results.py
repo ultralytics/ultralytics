@@ -296,6 +296,39 @@ class Results(SimpleClass, DataExportMixin):
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
 
+    @classmethod
+    def merge_tiles(
+        cls, results: list, windows: list[tuple], orig_img: np.ndarray, iou: float, agnostic: bool, max_det: int
+    ):
+        """Restore one source image from tile results using the shared task-output merge."""
+        predictions = []
+        rotated = results[0].obb is not None
+        for result in results:
+            pred = {k: getattr(result, k).data for k in result._keys if getattr(result, k) is not None}
+            if hasattr(result, "feats"):
+                pred["feats"] = result.feats
+            boxes = pred.pop("obb" if rotated else "boxes", None)
+            if boxes is not None:
+                n = 5 if rotated else 4
+                pred.update(bboxes=boxes[:, :n], conf=boxes[:, n], cls=boxes[:, n + 1])
+            predictions.append(pred)
+        pred = ops.merge_tiles(predictions, windows, orig_img.shape[:2], iou, agnostic, max_det)
+        if "bboxes" in pred:
+            pred["obb" if rotated else "boxes"] = torch.cat(
+                (pred.pop("bboxes"), pred.pop("conf")[:, None], pred.pop("cls")[:, None]), 1
+            )
+        feats = pred.pop("feats", None)
+        result = cls(orig_img, path=results[0].path, names=results[0].names, **pred)
+        if feats is not None:
+            result.feats = feats
+        if hasattr(results[0], "_loose"):
+            alternatives, thresholds = zip(*(r._loose for r in results))
+            result._loose = (
+                cls.merge_tiles(alternatives, windows, orig_img, thresholds[0], agnostic, max_det),
+                thresholds[0],
+            )
+        return result
+
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
 

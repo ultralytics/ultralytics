@@ -98,6 +98,7 @@ class RTDETRValidator(DetectionValidator):
             batch_size=batch,
             augment=False,  # no augmentation
             hyp=self.args,
+            tile=self.args.tile,
             rect=False,  # no rect
             cache=self.args.cache or None,
             single_cls=self.args.single_cls or False,

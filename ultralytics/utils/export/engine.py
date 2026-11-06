@@ -183,6 +183,9 @@ def modelopt_quantize_onnx(
         calib = calib.to(torch.float32).div_(255.0)
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
+        # On SM 12.1 (GB10, N1X) TensorRT builds RT-DETR's HGBlock squeeze conv and, from 11.4, fully INT8 attention
+        # broken, so both stay in float there; other GPUs keep them in INT8, where excluding them costs speed or mAP
+        sm121 = torch.cuda.get_device_capability() == (12, 1)
         modelopt_quantize(
             onnx_file,
             quantize_mode="int8",
@@ -194,7 +197,8 @@ def modelopt_quantize_onnx(
             calibration_eps=["cpu"],
             # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
             # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
-            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"],
+            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"] + ([r".*/sc/conv/Conv$"] if sm121 else []),
+            disable_mha_qdq=sm121,
             output_path=out_file,
             **kwargs,
         )

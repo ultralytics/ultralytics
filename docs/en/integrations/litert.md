@@ -162,6 +162,8 @@ every CPU row used LiteRT CPU/XNNPACK and every GPU row delegated the complete g
 Depth and OBB have no NPU result: the MediaTek NPU compiler rejects their exponential and trigonometric ops, and LiteRT
 runs those graphs on the GPU.
 
+For the Android deployment workflow and NPU limitations, see the [MediaTek Dimensity guide](mediatek.md).
+
 ## Supported Tasks
 
 LiteRT export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.

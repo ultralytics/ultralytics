@@ -698,14 +698,15 @@ def check_torchvision():
         )
 
 
-def check_paddle(version: str = "==3.0.0" if ARM64 else ">=3.0.0,<3.3.0", gpu: str = ">=3.0.0,<3.3.0"):
+def check_paddle(version: str = "==3.0.0" if ARM64 else ">=3.0.0,<3.3.0", gpu: str = ">=3.0.0"):
     """Ensure a PaddlePaddle build is installed, installing the CPU build if none is.
 
     PaddlePaddle 3.x GPU builds are published only on PaddlePaddle's own package index, not PyPI, so an installed
     `paddlepaddle-gpu` is version-checked and never replaced by the CPU build, which ships the same `paddle` module.
 
     Args:
-        version (str): Required CPU `paddlepaddle` version, defaulting to the Paddle export and inference range.
+        version (str): Required CPU `paddlepaddle` version. The default export and inference range excludes 3.3+, whose
+            oneDNN CPU inference fails (https://github.com/PaddlePaddle/Paddle/issues/77340).
         gpu (str): Required version of an installed `paddlepaddle-gpu` build.
     """
     if check_version("paddlepaddle-gpu", ""):

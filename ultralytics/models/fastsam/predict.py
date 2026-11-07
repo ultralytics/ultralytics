@@ -46,6 +46,7 @@ class FastSAMPredictor(SegmentationPredictor):
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
+        overrides = {"iou": 0.7, **(overrides or {})}  # nested single-class masks, not the YOLO predict default
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
 

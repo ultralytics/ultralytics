@@ -65,8 +65,8 @@ class RegionCounter(BaseSolution):
             name (str): Name assigned to the new region.
             polygon_points (list[tuple]): List of (x, y) coordinates defining the region's polygon.
             region_color (tuple[int, int, int]): BGR color for region visualization.
-            text_color (tuple[int, int, int] | None): BGR color for the text within the region; None picks navy or
-                white by region color luma.
+            text_color (tuple[int, int, int] | None): BGR color for the text within the region; None picks navy or white
+                by region color luma.
 
         Returns:
             (dict[str, Any]): Region information including name, polygon, and display colors.

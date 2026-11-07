@@ -86,15 +86,15 @@ Here's a table with the `OCR` arguments:
 Additionally, the following visualization settings are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "show_conf", "show_labels", "show_boxes"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## How Scene Text OCR Works
 
 1. **Detect text:** YOLO26 produces axis-aligned boxes, oriented boxes, or segmentation polygons.
-2. **Create recognition crops:** Boxes are clipped to the image. OBBs are affine-rectified with the least rotation
-   that makes them upright. For segmentation polygons, the minimum-area rotated rectangle is rectified while the
-   original polygon is retained. Crops at least 1.5× taller than wide are rotated 90° counter-clockwise, as in
-   PaddleOCR, so steeply rotated text lines read horizontally.
+2. **Create recognition crops:** Boxes are clipped to the image. OBBs are affine-rectified along the edge that spans
+   furthest left-to-right, so near-square boxes stay upright and tilted text lines lie horizontally in reading
+   direction. For segmentation polygons, the minimum-area rotated rectangle is rectified while the original polygon is
+   retained. Crops at least 1.5× taller than wide are rotated 90° counter-clockwise, as in PaddleOCR.
 3. **Recognize text:** PaddleOCR processes all crops in batches of 16. Custom recognizers receive one crop at a time.
 4. **Order and render results:** Text is grouped into horizontal lines and ordered top-to-bottom and left-to-right. The
    visualization uses a Unicode font for non-ASCII text such as Chinese.

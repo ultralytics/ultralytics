@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from collections import Counter, defaultdict
-from functools import lru_cache
+from functools import lru_cache, partial
 from typing import Any
 
 import cv2
@@ -169,14 +169,8 @@ class BaseSolution:
         """
         track = self.CFG["tracker"] is not None
         with self.profilers[0]:
-            if track:
-                self.tracks = self.model.track(
-                    source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
-                )[0]
-            else:
-                self.tracks = self.model.predict(
-                    source=im0, classes=self.classes, verbose=False, **self.track_add_args
-                )[0]
+            infer = partial(self.model.track, persist=True) if track else self.model.predict
+            self.tracks = infer(source=im0, classes=self.classes, verbose=False, **self.track_add_args)[0]
         is_obb = self.tracks.obb is not None
         self.track_data = self.tracks.obb if is_obb else self.tracks.boxes  # Extract tracks for OBB or object detection
 

@@ -854,7 +854,7 @@ def save_one_box(
     xyxy = torch.as_tensor(xyxy, dtype=torch.float32)  # float so integer boxes keep fractional centers and gain/pad
     if xyxy.shape[-2:] == (4, 2):  # OBB corners: warp the box upright at its size, then crop the whole warp below
         p = xyxy.reshape(4, 2).cpu().numpy()
-        p = np.roll(p, 2 - int(p.sum(1).argmin()), 0)  # top-left-most corner to crop top-left, least rotation
+        p = np.roll(p, 2 - int((np.roll(p[:, 0], 1) - p[:, 0]).argmax()), 0)  # top edge spanning furthest right
         w, h = (max(round(float(np.linalg.norm(p[0] - p[i]))), 1) for i in (3, 1))
         M = cv2.getAffineTransform(p[:3], np.float32([[w, h], [w, 0], [0, 0]]))
         im, xyxy = cv2.warpAffine(im, M, (w, h)).reshape(h, w, -1), torch.tensor([0.0, 0.0, w, h])

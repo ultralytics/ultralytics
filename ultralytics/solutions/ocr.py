@@ -34,25 +34,20 @@ class OCR(BaseSolution):
     @staticmethod
     def reading_order(polygons: list[np.ndarray]) -> list[int]:
         """Return detection indices in deterministic top-to-bottom, left-to-right reading order."""
-        entries = sorted(
-            enumerate(polygons),
-            key=lambda item: (float(item[1][:, 1].mean()), float(item[1][:, 0].min()), item[0]),
-        )
-        lines = []
-        for index, polygon in entries:
-            center, height = float(polygon[:, 1].mean()), float(np.ptp(polygon[:, 1]))
-            if lines and abs(center - lines[-1][0]) <= max(height, lines[-1][1], 1.0) * 0.5:
+        lines = []  # [mean center y, max height, indices] per text line
+        for i in sorted(range(len(polygons)), key=lambda i: (polygons[i][:, 1].mean(), polygons[i][:, 0].min())):
+            y, h = float(polygons[i][:, 1].mean()), float(np.ptp(polygons[i][:, 1]))
+            if lines and abs(y - lines[-1][0]) <= max(h, lines[-1][1], 1.0) * 0.5:  # same line as previous text
                 line = lines[-1]
-                count = len(line[2])
-                line[0] = (line[0] * count + center) / (count + 1)
-                line[1] = max(line[1], height)
-                line[2].append((index, polygon))
+                line[0] = (line[0] * len(line[2]) + y) / (len(line[2]) + 1)
+                line[1] = max(line[1], h)
+                line[2].append(i)
             else:
-                lines.append([center, height, [(index, polygon)]])
+                lines.append([y, h, [i]])
         return [
-            index
-            for _, _, line in sorted(lines, key=lambda line: line[0])
-            for index, _ in sorted(line, key=lambda item: (float(item[1][:, 0].min()), item[0]))
+            i
+            for *_, idx in sorted(lines, key=lambda x: x[0])
+            for i in sorted(idx, key=lambda i: (polygons[i][:, 0].min(), i))
         ]
 
     def _recognize(self, crops: list[np.ndarray]) -> list[tuple[str, float]]:
@@ -99,26 +94,14 @@ class OCR(BaseSolution):
         for (i, _), (text, confidence) in zip(pending, recognized):
             texts[i].update(text=text, confidence=confidence)
         order = self.reading_order(polygons)
-        annotator = SolutionAnnotator(im0, line_width=self.line_width)
-        if self.CFG["show_boxes"]:
-            for i in order:
-                annotator.draw_region(polygons[i].astype(np.int32).tolist(), (0, 255, 0), self.line_width)
-        if self.show_labels:
-            annotator = SolutionAnnotator(
-                annotator.im,
-                line_width=self.line_width,
-                font_size=max(round(self.line_width * 6), 12),
-                pil=True,
-                example="".join(text["text"] for text in texts),
-            )
-            for i in order:
-                text = texts[i]
-                x1, y1 = polygons[i].min(0)
-                label = text["text"]
-                label += f" {text['confidence']:.2f}" if self.show_conf else ""
-                width, height = annotator.font.getsize(label)
-                x = min(max(int(x1), 0), max(im0.shape[1] - width - 4, 0))
-                annotator.text([x, max(int(y1) - 2, height + 1)], label, anchor="bottom", box_color=(0, 0, 0))
+        annotator = SolutionAnnotator(
+            im0, self.line_width, font_size=max(self.line_width * 6, 12), example="".join(t["text"] for t in texts)
+        )
+        for i in order:
+            text, confidence = texts[i]["text"], texts[i]["confidence"]
+            label = (f"{text} {confidence:.2f}" if self.show_conf else text) if self.show_labels else ""
+            polygon = np.roll(polygons[i], -int(polygons[i].sum(1).argmin()), 0)  # label above top-left-most point
+            annotator.box_label(polygon, label, color=(0, 255, 0))
         result = SolutionResults(plot_im=annotator.result(), texts=[texts[i] for i in order])
         self.display_output(result.plot_im)
         return result

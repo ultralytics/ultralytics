@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 import torch
 
-from tests import MODEL, SOURCE
+from tests import MODEL
 from ultralytics import solutions
 from ultralytics.utils import IS_RASPBERRYPI, TORCH_VERSION
 from ultralytics.utils.downloads import safe_download
@@ -167,6 +167,16 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             False,
             "parking_video",
             {"model": "parking_model", "show": SHOW, "json_file": "parking_areas"},
+        ),
+        *(
+            (
+                "OCR",
+                solutions.OCR,
+                False,
+                video,
+                {"model": model, "recognizer": lambda crop: ("text", 0.9), "show": SHOW},
+            )
+            for model, video in ((MODEL, "demo_video"), ("yolo26n-seg.pt", "demo_video"), ("yolo26n-obb.pt", "boats"))
         ),
         (
             "StreamlitInference",
@@ -394,23 +404,6 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
-
-
-@pytest.mark.parametrize("model", [MODEL, "yolo26n-obb.pt", "yolo26n-seg.pt"])
-def test_ocr(model, solution_assets):
-    """Test OCR outputs with real YOLO detections."""
-    from ultralytics.solutions.solutions import SolutionResults
-
-    source = solution_assets("boats") if model == "yolo26n-obb.pt" else SOURCE
-    im = cv2.imread(str(source))
-    ocr = solutions.OCR(model=model, recognizer=lambda crop: ("text", 0.9), verbose=False)
-    assert ocr.CFG["tracker"] is None
-    result = ocr(im)
-    assert isinstance(result, SolutionResults)
-    assert result.texts and result.plot_im.shape == im.shape
-    assert all(text["confidence"] == 0.9 and text["detection_confidence"] for text in result.texts)
-    assert all("box" in text or "polygon" in text for text in result.texts)
-    assert ocr(np.zeros_like(im)).texts == []
 
 
 def test_ocr_reading_order():

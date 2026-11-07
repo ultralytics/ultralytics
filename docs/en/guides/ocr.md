@@ -25,11 +25,11 @@ own recognition model.
 
 ## Run Scene Text OCR with YOLO26
 
-PaddleOCR is optional and loads when `OCR` is created with `recognizer="paddleocr"` on Python 3.9 or newer. Missing or
-older packages are installed or upgraded to PaddleOCR 3.7+ (PP-OCRv6 recognition) and the CPU PaddlePaddle 3.1+ build.
-For GPU recognition, install or upgrade `paddlepaddle-gpu` to 3.1+ from PaddlePaddle's package index first, because an
-older GPU build would otherwise be replaced by the CPU build. No OCR packages are added to the base Ultralytics
-dependencies.
+PaddleOCR is optional and loads when `OCR` is created with `recognizer="paddleocr"` on a Python version with
+PaddlePaddle 3.1+ wheels (3.9–3.13 as of PaddlePaddle 3.3). Missing or older packages are installed or upgraded to
+PaddleOCR 3.7+ (PP-OCRv6 recognition) and the CPU PaddlePaddle 3.1+ build. For GPU recognition, install or upgrade
+`paddlepaddle-gpu` to 3.1+ from PaddlePaddle's package index first, because an older GPU build would otherwise be
+replaced by the CPU build. No OCR packages are added to the base Ultralytics dependencies.
 
 Pass an image and a text detector to the `OCR` solution. The result contains the annotated image and recognized text:
 

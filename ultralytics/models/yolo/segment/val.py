@@ -126,7 +126,8 @@ class SegmentationValidator(DetectionValidator):
         else:
             masks = batch["masks"][batch["batch_idx"] == si]
         if nl:
-            mask_size = [s if self.process is ops.process_mask_native else s // 4 for s in prepared_batch["imgsz"]]
+            native = self.process is ops.process_mask_native and not self.args.tile  # tiled targets stay at mask_ratio
+            mask_size = [s if native else s // 4 for s in prepared_batch["imgsz"]]
             if masks.shape[1:] != mask_size:
                 masks = F.interpolate(masks[None], mask_size, mode="bilinear", align_corners=False)[0]
                 masks = masks.gt_(0.5)
@@ -162,7 +163,11 @@ class SegmentationValidator(DetectionValidator):
         if gt_cls.shape[0] == 0 or preds["cls"].shape[0] == 0:
             tp_m = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
         else:
-            iou = mask_iou(batch["masks"].flatten(1), preds["masks"].flatten(1))
+            masks, (h, w) = preds["masks"], batch["masks"].shape[1:]
+            if masks.shape[1:] != (h, w):  # sample source-size tiled masks at the target resolution
+                ry, rx = masks.shape[1] // h, masks.shape[2] // w
+                masks = masks[:, ry // 2 :: ry, rx // 2 :: rx][:, :h, :w]
+            iou = mask_iou(batch["masks"].flatten(1), masks.flatten(1))
             tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_m": tp_m})  # update tp with mask IoU
         return tp
@@ -282,12 +287,14 @@ class SegmentationValidator(DetectionValidator):
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Scale predictions to the original image size."""
-        return {
-            **super().scale_preds(predn, pbatch),
-            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[
-                0
-            ].byte(),
-        }
+        masks = ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[0]
+        if "tile" not in pbatch:  # untiled masks keep the existing COCO-evaluated rounding
+            return {**super().scale_preds(predn, pbatch), "masks": masks.byte()}
+        masks = masks.gt_(0.5).byte()
+        if not (self.args.save_json or self.args.save_txt):  # sample source pixels 2 mod 4, the target mask centers
+            x0, y0 = pbatch["tile"][:2]
+            masks = masks[:, (2 - y0) % 4 :: 4, (2 - x0) % 4 :: 4].contiguous()  # pending tile masks 16x smaller
+        return {**super().scale_preds(predn, pbatch), "masks": masks}
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""

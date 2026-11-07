@@ -15,7 +15,7 @@ from ultralytics.utils.plotting import save_one_box
 
 
 class OCR(BaseSolution):
-    """Detect, recognize, order, and track scene text with a YOLO detector and a recognition backend.
+    """Detect, recognize, and order scene text with a YOLO detector and a recognition backend.
 
     Examples:
         >>> ocr = OCR(model="scene-text-obb.pt", recognizer="paddleocr")
@@ -25,21 +25,12 @@ class OCR(BaseSolution):
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize OCR with a YOLO detector and a PaddleOCR backend or custom crop-recognition callable."""
-        kwargs["tracker"] = kwargs.get("tracker", "bytetrack.yaml" if kwargs.get("is_cli") else None)
+        kwargs["tracker"] = None
         super().__init__(**kwargs)
         self.recognizer = self.CFG["recognizer"]
         if not callable(self.recognizer) and self.recognizer != "paddleocr":
             raise ValueError("recognizer must be 'paddleocr' or a callable accepting a BGR image crop.")
-        self.recognition_interval = max(1, self.CFG["recognition_interval"])
-        self.text_cache = {}
-        self.ocr_frame = 0
         self._paddle = None
-
-    def forget_tracks(self, track_ids: list[int]) -> None:
-        """Drop tracking and recognition history for retired track IDs."""
-        super().forget_tracks(track_ids)
-        for track_id in track_ids:
-            self.text_cache.pop(track_id, None)
 
     @staticmethod
     def reading_order(polygons: list[np.ndarray]) -> list[int]:
@@ -92,9 +83,8 @@ class OCR(BaseSolution):
         return [(text, float(confidence)) for text, confidence in outputs]
 
     def process(self, im0: np.ndarray) -> SolutionResults:
-        """Run text detection, recognition, reading-order sorting, and optional track association on one image."""
+        """Run text detection, recognition, and reading-order sorting on one image."""
         self.extract_tracks(im0)
-        self.ocr_frame += 1
         texts = []
         polygons = []
         pending = []
@@ -113,29 +103,21 @@ class OCR(BaseSolution):
                 x1, y1, x2, y2 = box.tolist()
                 polygon = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], dtype=np.float32)
                 geometry = {"box": polygon.tolist()}
-            track_id = self.track_ids[i] if self.track_ids else None
-            cached = self.text_cache.get(track_id) if track_id is not None else None
-            if cached is None or self.ocr_frame - cached["frame"] >= self.recognition_interval:
-                crop = save_one_box(crop_box, im0, gain=1.0, pad=0, BGR=True, save=False)
-                cached = {"text": "", "confidence": 0.0, "frame": self.ocr_frame}
-                if crop.size:
-                    pending.append((i, cached, crop))
-                if track_id is not None:
-                    self.text_cache[track_id] = cached
+            crop = save_one_box(crop_box, im0, gain=1.0, pad=0, BGR=True, save=False)
+            if crop.size:
+                pending.append((i, crop))
             texts.append(
                 {
-                    "text": cached["text"],
-                    "confidence": cached["confidence"],
+                    "text": "",
+                    "confidence": 0.0,
                     "detection_confidence": self.confs[i],
                     "detection_index": i,
                     **geometry,
-                    **({"track_id": track_id} if track_id is not None else {}),
                 }
             )
             polygons.append(polygon)
-        recognized = self._recognize([crop for _, _, crop in pending]) if pending else []
-        for (i, cached, _), (text, confidence) in zip(pending, recognized):
-            cached.update(text=text, confidence=confidence)
+        recognized = self._recognize([crop for _, crop in pending]) if pending else []
+        for (i, _), (text, confidence) in zip(pending, recognized):
             texts[i].update(text=text, confidence=confidence)
         order = self.reading_order(polygons) if polygons else []
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
@@ -155,7 +137,7 @@ class OCR(BaseSolution):
                 text = texts[i]
                 points = np.array(text.get("polygon", text.get("box")), dtype=np.int32)
                 x1, y1 = points.min(0)
-                label = f"{text['track_id']} {text['text']}" if "track_id" in text else text["text"]
+                label = text["text"]
                 label += f" {text['confidence']:.2f}" if self.show_conf else ""
                 width, height = annotator.font.getsize(label)
                 x = min(max(int(x1), 0), max(im0.shape[1] - width - 4, 0))

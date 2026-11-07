@@ -281,7 +281,9 @@ class BaseSolution:
         """Allow instances to be called like a function with flexible arguments."""
         with self.profilers[1]:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method
-        track_or_predict = "predict" if type(self).__name__ == "ObjectCropper" else "track"
+        track_or_predict = (
+            "predict" if self.CFG["tracker"] is None or type(self).__name__ == "ObjectCropper" else "track"
+        )
         track_or_predict_speed = self.profilers[0].dt * 1e3
         solution_speed = (self.profilers[1].dt - self.profilers[0].dt) * 1e3  # solution time = process - track
         result.speed = {track_or_predict: track_or_predict_speed, "solution": solution_speed}
@@ -836,7 +838,7 @@ class SolutionResults:
         region_counts (dict[str, int]): The count of objects within a specific region.
         speed_dict (dict[int, int]): Estimated speed in km/h per track ID from SpeedEstimator.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
-        texts (list[dict]): OCR text, geometry, confidence, detection index, and optional track ID records.
+        texts (list[dict]): OCR text, geometry, confidence, and detection index records.
         speed (dict[str, float]): Performance timing information for tracking and solution processing.
     """
 

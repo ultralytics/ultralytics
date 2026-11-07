@@ -398,27 +398,18 @@ def test_display_output_method():
 
 @pytest.mark.parametrize("model", [MODEL, "yolo26n-obb.pt", "yolo26n-seg.pt"])
 def test_ocr(model, solution_assets):
-    """Test OCR outputs and recognition caching with real YOLO detections."""
+    """Test OCR outputs with real YOLO detections."""
     from ultralytics.solutions.solutions import SolutionResults
 
-    calls = []
     source = solution_assets("boats") if model == "yolo26n-obb.pt" else SOURCE
     im = cv2.imread(str(source))
-    ocr = solutions.OCR(
-        model=model,
-        recognizer=lambda crop: calls.append(crop.shape) or ("text", 0.9),
-        recognition_interval=30,
-        tracker="bytetrack.yaml",
-        verbose=False,
-    )
+    ocr = solutions.OCR(model=model, recognizer=lambda crop: ("text", 0.9), verbose=False)
+    assert ocr.CFG["tracker"] is None
     result = ocr(im)
     assert isinstance(result, SolutionResults)
     assert result.texts and result.plot_im.shape == im.shape
     assert all(text["confidence"] == 0.9 and text["detection_confidence"] for text in result.texts)
     assert all("box" in text or "polygon" in text for text in result.texts)
-    first_calls = len(calls)
-    assert ocr(im).texts
-    assert len(calls) == first_calls  # unchanged tracked text reuses valid cached recognition
     assert ocr(np.zeros_like(im)).texts == []
 
 

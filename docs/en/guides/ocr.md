@@ -1,15 +1,15 @@
 ---
 title: Scene Text OCR with YOLO
 comments: true
-description: Detect, recognize, order, and track scene text with Ultralytics YOLO detectors and optional PaddleOCR recognition.
-keywords: Ultralytics, YOLO, OCR, scene text, text detection, text recognition, PaddleOCR, video OCR
+description: Detect, recognize, and order scene text with Ultralytics YOLO detectors and optional PaddleOCR recognition.
+keywords: Ultralytics, YOLO, OCR, scene text, text detection, text recognition, PaddleOCR
 ---
 
 # Scene Text OCR with YOLO
 
 The `OCR` solution combines an Ultralytics YOLO text detector with text recognition. It handles axis-aligned boxes,
-oriented boxes (OBB), segmentation polygons, recognition crops, reading order, and video text/track association.
-Detection and recognition remain separate components: use a detector trained for your scene-text domain.
+oriented boxes (OBB), segmentation polygons, recognition crops, and reading order. Detection and recognition remain
+separate components: use a detector trained for your scene-text domain.
 
 ## Quickstart
 
@@ -18,7 +18,7 @@ platform and PaddleOCR 3.x; no OCR packages are added to the base Ultralytics de
 
 ```bash
 pip install paddlepaddle "paddleocr>=3.0,<4"
-yolo solutions ocr model="scene-text-obb.pt" source="path/to/video.mp4" recognizer="paddleocr"
+yolo solutions ocr model="scene-text-obb.pt" source="path/to/image.jpg" recognizer="paddleocr"
 ```
 
 ```python
@@ -55,8 +55,8 @@ Replace `yolo26n-text` with `yolo26s-text`, `yolo26m-text`, `yolo26l-text`, or `
 
 ## Custom recognizer
 
-Pass a callable to integrate another recognizer without changing the detection, geometry, ordering, or tracking path.
-The callable receives one BGR `numpy.ndarray` crop and returns `(text, recognition_confidence)`.
+Pass a callable to integrate another recognizer without changing the detection, geometry, or ordering path. The callable
+receives one BGR `numpy.ndarray` crop and returns `(text, recognition_confidence)`.
 
 ```python
 def recognize(crop):
@@ -64,7 +64,7 @@ def recognize(crop):
 
 
 ocr = solutions.OCR(model="customer-text.pt", recognizer=recognize)
-result = ocr(im0)  # feed frames from labels.mp4 through the existing video loop
+result = ocr(im0)
 ```
 
 Invalid backend output raises a `TypeError`. Unsupported backend names and missing Paddle dependencies produce
@@ -83,38 +83,23 @@ object. `result.texts` is a list in deterministic reading order; it is empty whe
 | `detection_index`      | `int`               | Source detection index before reading-order sorting.                        |
 | `box`                  | `list[list[float]]` | Four original-image corners for box or OBB detections.                      |
 | `polygon`              | `list[list[float]]` | Original-image segmentation polygon; replaces `box` for polygon detections. |
-| `track_id`             | `int`               | Track ID when tracking supplies one.                                        |
 
 Entries are grouped into horizontal lines, ordered top-to-bottom and left-to-right, with source detection indices as
 stable tie-breakers. Coordinates always refer to the original image, not the detector input or recognition crop.
 
-## Geometry and video behavior
+## Geometry and recognition
 
 - **Boxes:** clipped axis-aligned recognition crops.
 - **OBBs:** affine-rectified recognition crops using the detected corners.
 - **Segmentation polygons:** the minimum-area rotated rectangle is rectified for recognition; the original polygon is
   retained in `result.texts`.
-- **Recognition:** PaddleOCR processes pending crops in batches of 16. Custom recognizers receive one crop at a time.
+- **Recognition:** PaddleOCR processes all crops in batches of 16. Custom recognizers receive one crop at a time.
 - **Labels:** the visualization uses a Unicode font for non-ASCII text such as Chinese.
-- **Tracking:** still images use prediction by default (`tracker=None`), avoiding persistent-state filtering between
-  independent images. Set a tracker such as `bytetrack.yaml` for video association; the OCR CLI uses ByteTrack by default.
-  Recognition runs for a new track and refreshes every `recognition_interval` frames (default `30`). Valid cached text is
-  reused between refreshes and when the same track returns after temporary occlusion.
-- **Changed text:** appears at the next scheduled refresh. Retired track IDs and their cached text are removed. A new
-  track ID is not assumed to represent previous text.
-
-Adjust the refresh interval for the scene and latency budget:
-
-```python
-ocr = solutions.OCR(model="scene-text-obb.pt", recognizer="paddleocr", recognition_interval=10)
-```
 
 ### OCR arguments
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "recognizer", "recognition_interval", "tracker", "verbose"]) }}
-
-{% include "macros/solutions-track-args.md" %}
+{{ param_table(["model", "recognizer", "verbose"]) }}
 
 ## Train a text detector
 
@@ -133,12 +118,12 @@ when transcripts are available, and distinguish ground-truth-crop recognition fr
 
 ## Dependencies and licenses
 
-| Component       | Required                          | Role                                                         | License                |
-| --------------- | --------------------------------- | ------------------------------------------------------------ | ---------------------- |
-| Ultralytics     | Yes                               | YOLO detection, geometry, tracking, and result orchestration | AGPL-3.0               |
-| PaddlePaddle    | Only for `recognizer="paddleocr"` | Recognition runtime                                          | Apache-2.0             |
-| PaddleOCR 3.x   | Only for `recognizer="paddleocr"` | Text-line recognition models and inference adapter           | Apache-2.0             |
-| Custom callable | No                                | User-owned recognition integration                           | Defined by the backend |
+| Component       | Required                          | Role                                                            | License                |
+| --------------- | --------------------------------- | --------------------------------------------------------------- | ---------------------- |
+| Ultralytics     | Yes                               | YOLO detection, geometry, recognition, and result orchestration | AGPL-3.0               |
+| PaddlePaddle    | Only for `recognizer="paddleocr"` | Recognition runtime                                             | Apache-2.0             |
+| PaddleOCR 3.x   | Only for `recognizer="paddleocr"` | Text-line recognition models and inference adapter              | Apache-2.0             |
+| Custom callable | No                                | User-owned recognition integration                              | Defined by the backend |
 
 PaddleOCR may download recognition weights on first use. Review the selected model's model card and redistribution
 terms before packaging or deploying those artifacts. Dataset and custom checkpoint licenses are separate.

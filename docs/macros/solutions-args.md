@@ -27,7 +27,6 @@
     "data": ["str", "'images'", "Path to image directory used for similarity search."],
     "imgsz": ["int", "640", "Input image size for model inference."],
     "recognizer": ["str` or `Callable", "'paddleocr'", "Text-recognition backend or callable accepting a BGR crop and returning `(text, confidence)`."],
-    "recognition_interval": ["int", "30", "Frames between recognition refreshes for an active text track."],
 } %}
 {% if not params %}
 {% for param, details in default_params.items() %}

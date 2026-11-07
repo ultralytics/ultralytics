@@ -150,8 +150,8 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
 
     Args:
         file_path (str | Path): Path to the requirements.txt file.
-        package (str, optional): Installed Python package whose non-extra requirements are parsed instead of the
-            requirements.txt file.
+        package (str, optional): Installed Python package whose non-extra requirements that apply to the current
+            environment are parsed instead of the requirements.txt file.
 
     Returns:
         requirements (list[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
@@ -162,7 +162,13 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         >>> parse_requirements(package="ultralytics")
     """
     if package:
-        requires = [x for x in metadata.distribution(package).requires if "extra == " not in x]
+        from packaging.markers import Marker  # scoped, 'packaging' is a matplotlib dependency
+
+        requires = [
+            x
+            for x in metadata.distribution(package).requires
+            if "extra == " not in x and (";" not in x or Marker(x.partition(";")[2]).evaluate())
+        ]
     else:
         requires = Path(file_path).read_text().splitlines()
 

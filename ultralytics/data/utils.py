@@ -29,11 +29,11 @@ from ultralytics.utils import (
     emojis,
     is_dir_writeable,
 )
-from ultralytics.utils.checks import check_file, check_font, is_ascii, normalize_platform_uri
+from ultralytics.utils.checks import FONT, FONT_UNICODE, check_file, check_font, is_ascii, normalize_platform_uri
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.ops import segments2boxes
 from ultralytics.utils.patches import imread
-from ultralytics.utils.plotting import FONT, FONT_UNICODE, Colors
+from ultralytics.utils.plotting import Colors
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {

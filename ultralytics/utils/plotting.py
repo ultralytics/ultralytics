@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import contextlib
 import math
 import re
@@ -18,7 +19,7 @@ from PIL import Image, ImageDraw, ImageFont, features
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_version, is_ascii
+from ultralytics.utils.checks import FONT, FONT_UNICODE, check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import TORCH_1_10
 
@@ -51,13 +52,14 @@ class Colors:
     metadata ("#rrggbb" strings indexed by class id, parsed to RGB once per model by `Colors.parse`, which ignores the
     whole list if any entry is malformed) and `c < len(custom)`, else `palette[c % 20]`. Colors never change with a
     light or dark theme.
-    - Box label text: `#111f68` when the background luma 0.299*R + 0.587*G + 0.114*B exceeds 150, else `#ffffff`.
+    - Box label text (`Annotator.get_txt_color`): `#111f68` when the background luma 0.299*R + 0.587*G + 0.114*B
+    exceeds 150, else `#ffffff`.
     - Pose: the 17-keypoint COCO layout colors keypoint k with `kpt_color[k]` (pose palette indices
     `[16]*5+[9]*6+[0]*6`) and limb j, joining the 1-indexed keypoints `Annotator.skeleton[j]`, with `limb_color[j]`
     (indices `[0]*4+[7]*3+[9]*5+[16]*7`): face green, arms blue, legs orange, torso magenta. Any other layout colors
     keypoint k with `palette[k % 20]`.
     - Masks blend at 0.5 opacity (`Annotator.masks`, `Annotator.semantic_mask`); depth uses `colorize_depth` at 0.6.
-    - Label fonts: `FONT` for Latin and `FONT_UNICODE` for other scripts (PIL text); the default ASCII path uses cv2.
+    - Label fonts: `checks.FONT` for Latin and `checks.FONT_UNICODE` for other scripts (PIL); ASCII defaults to cv2.
 
     ## Ultralytics Color Palette
 
@@ -127,7 +129,6 @@ class Colors:
         >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
         >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
         >>> colors(1, custom=[(255, 0, 0), (0, 255, 0)])  # Model colors override the palette: (0, 255, 0)
-        >>> Colors.txt_color((243, 243, 243))  # Navy text on a light background: (17, 31, 104)
     """
 
     def __init__(self):
@@ -200,33 +201,28 @@ class Colors:
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod
-    def txt_color(color: tuple, bgr: bool = False) -> tuple:
-        """Return the box label text color for a background color, in the same RGB or BGR channel order."""
-        r, g, b = reversed(color) if bgr else color
-        if 0.299 * r + 0.587 * g + 0.114 * b > 150:  # light background takes navy #111f68 text
-            return (104, 31, 17) if bgr else (17, 31, 104)
-        return 255, 255, 255
-
-    @staticmethod
     def hex2rgb(h: str) -> tuple:
         """Convert hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
 
     @staticmethod
-    def parse(hexs: list[str] | None) -> list[tuple] | None:
-        """Return class `colors` as RGB tuples, or None with one warning if any entry is not "#rrggbb"."""
+    def parse(hexs: list[str] | str | None) -> list[tuple] | None:
+        """Return `colors` (a list or its repr) as RGB tuples, or None with one warning if an entry is not "#rrggbb"."""
         if not hexs:
             return None
-        if isinstance(hexs, (list, tuple)) and all(
-            isinstance(h, str) and re.fullmatch("#[0-9a-fA-F]{6}", h) for h in hexs
-        ):
-            return [Colors.hex2rgb(h) for h in hexs]
+        v = hexs
+        if isinstance(v, str):  # ONNX/CoreML metadata stores the list's repr
+            try:
+                v = ast.literal_eval(v)
+            except (ValueError, SyntaxError):
+                v = None
+        if isinstance(v, (list, tuple)) and all(isinstance(h, str) and re.fullmatch("#[0-9a-fA-F]{6}", h) for h in v):
+            return [Colors.hex2rgb(h) for h in v]
         LOGGER.warning(f"Ignoring class colors {hexs!r:.100}, expected a list of '#rrggbb' strings. Using the palette.")
         return None
 
 
 colors = Colors()  # create instance for 'from ultralytics.utils.plotting import colors'
-FONT, FONT_UNICODE = "Arial.ttf", "Arial.Unicode.ttf"  # PIL label fonts for Latin text and for all other scripts
 
 
 # Spectral_r anchors (RGB, far→near) baked into a LUT so colorize_depth needs no matplotlib import.
@@ -479,7 +475,10 @@ class Annotator:
             >>> annotator = Annotator(im0, line_width=10)
             >>> annotator.get_txt_color(color=(104, 31, 17))  # return (255, 255, 255)
         """
-        return colors.txt_color(color, bgr=True) if txt_color is None else txt_color
+        if txt_color is not None:
+            return txt_color
+        b, g, r = color
+        return (104, 31, 17) if 0.299 * r + 0.587 * g + 0.114 * b > 150 else (255, 255, 255)  # navy #111f68 or white
 
     def box_label(self, box, label: str = "", color: tuple = (128, 128, 128), txt_color: tuple | None = None):
         """Draw a bounding box on an image with a given label.

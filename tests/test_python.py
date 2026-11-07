@@ -1228,6 +1228,25 @@ def test_annotator_depth_map():
     assert ann.result().shape == (16, 16, 3)
 
 
+@pytest.mark.parametrize(
+    "value",
+    [[None], ["#00ff00", "#f00"], ["red"], ["#00ff00", "ff0000"], ["#ff0000ff"], [16711680], "#ff0000", "[None]", "x"],
+)
+def test_colors_parse_malformed(value):
+    """A malformed class `colors` value is ignored whole (palette fallback), never partly applied or raised."""
+    from ultralytics.utils.plotting import Colors
+
+    assert Colors.parse(value) is None
+
+
+def test_colors_parse_valid():
+    """Valid class `colors` parse to RGB tuples from a list or from its metadata repr string."""
+    from ultralytics.utils.plotting import Colors
+
+    assert Colors.parse(["#FF0000", "#00ff00"]) == Colors.parse("['#ff0000', '#00ff00']") == [(255, 0, 0), (0, 255, 0)]
+    assert Colors.parse(None) is None and Colors.parse([]) is None
+
+
 def test_dense_result_tensor_indexing():
     """Valid indices keep the intact map on SemanticMask/DepthMap; out-of-range raises; empty selections zero len."""
     from ultralytics.engine.results import DepthMap, SemanticMask

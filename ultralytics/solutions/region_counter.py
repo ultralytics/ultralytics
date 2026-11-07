@@ -57,7 +57,7 @@ class RegionCounter(BaseSolution):
         name: str,
         polygon_points: list[tuple],
         region_color: tuple[int, int, int],
-        text_color: tuple[int, int, int],
+        text_color: tuple[int, int, int] | None,
     ) -> dict[str, Any]:
         """Add a new region to the counting list based on the provided template with specific attributes.
 
@@ -65,7 +65,8 @@ class RegionCounter(BaseSolution):
             name (str): Name assigned to the new region.
             polygon_points (list[tuple]): List of (x, y) coordinates defining the region's polygon.
             region_color (tuple[int, int, int]): BGR color for region visualization.
-            text_color (tuple[int, int, int]): BGR color for the text within the region.
+            text_color (tuple[int, int, int] | None): BGR color for the text within the region; None picks navy or
+                white by region color luma.
 
         Returns:
             (dict[str, Any]): Region information including name, polygon, and display colors.
@@ -103,7 +104,7 @@ class RegionCounter(BaseSolution):
         if not isinstance(self.region, dict):  # Ensure self.region is initialized and structured as a dictionary
             self.region = {"Region#01": self.region}
         for i, (name, pts) in enumerate(self.region.items()):
-            self.add_region(name, pts, colors(i, True), (255, 255, 255))
+            self.add_region(name, pts, colors(i, True), None)  # None: navy or white text by region color luma
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """Process the input frame to detect and count objects within each defined region.

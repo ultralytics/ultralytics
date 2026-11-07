@@ -148,9 +148,8 @@ def merge_tiles(
     # A box touching an interior window edge is a cut fragment when another window sees it clear of its own interior
     # edges, because that window saw the whole object.
     border = own.new_tensor([0, 0, shape[1], shape[0]])
-    fragment = (torch.cat((extent[:, :2] <= own[:, :2] + 2, extent[:, 2:] >= own[:, 2:] - 2), 1) & (own != border)).any(
-        1
-    )
+    fragment = torch.cat((extent[:, :2] <= own[:, :2] + 2, extent[:, 2:] >= own[:, 2:] - 2), 1) & (own != border)
+    fragment = fragment.any(1)
     if fragment.any():
         e = extent[fragment, None]
         inside = torch.cat((regions[:, :2] + 2 < e[..., :2], regions[:, 2:] - 2 > e[..., 2:]), -1) | (regions == border)

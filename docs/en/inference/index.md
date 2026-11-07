@@ -95,7 +95,7 @@ Common flags:
 | `--task`         | `detect`       | One of `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`.     |
 | `--source`, `-s` | sample         | Image, directory, glob, video, webcam index, or URL.                            |
 | `--conf`         | `0.25`         | Confidence threshold.                                                           |
-| `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                                      |
+| `--iou`          | `0.5`          | IoU threshold for non-maximum suppression.                                      |
 | `--imgsz`        | model metadata | Inference image size.                                                           |
 | `--device`       | auto           | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.                 |
 | `--max-det`      | `300`          | Maximum number of detections per image.                                         |

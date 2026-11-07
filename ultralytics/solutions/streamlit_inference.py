@@ -56,7 +56,7 @@ class Inference:
         >>> inf.inference()
     """
 
-    def __init__(self, model: str | None = None, imgsz: int = 640, conf: float = 0.25, iou: float = 0.7) -> None:
+    def __init__(self, model: str | None = None, imgsz: int = 640, conf: float = 0.25, iou: float = 0.45) -> None:
         """Initialize the Inference class, checking Streamlit requirements and setting up the model path.
 
         Args:

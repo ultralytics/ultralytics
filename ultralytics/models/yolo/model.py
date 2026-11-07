@@ -489,7 +489,8 @@ class YOLOE(Model):
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (type, optional): Visual-prompt predictor class. Defaults to the predictor matching the model
                 task.
-            **kwargs (Any): Additional keyword arguments passed to the predictor.
+            **kwargs (Any): Additional keyword arguments passed to the predictor. Calls with `visual_prompts`
+                default to `conf=0.05`.
 
         Returns:
             (list | generator): List of Results objects or generator of Results objects if stream=True.
@@ -503,6 +504,7 @@ class YOLOE(Model):
         """
         visual_prompts = visual_prompts if visual_prompts is not None else {}
         if len(visual_prompts):
+            kwargs.setdefault("conf", 0.05)
             assert not self.model.model[-1].is_fused, "Visual prompts need an unfused YOLOE model."
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"

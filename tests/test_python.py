@@ -173,6 +173,22 @@ def test_cfg_rejects_fuzzed_values(tmp_path):
     assert get_cfg(tmp_path / "args.yaml").lr0 == 1e-5
 
 
+@pytest.mark.parametrize(
+    ("fraction", "split"),
+    [(0.5, "val"), (0.5, "test"), ([0.5], "val"), ([0.5, 0.25], "test")],
+)
+def test_get_split_fraction_defaults_to_full_non_train_splits(fraction, split):
+    """Test scalar and incomplete list fractions default to the full validation and test splits."""
+    assert get_split_fraction(fraction, split) == 1.0
+
+
+@pytest.mark.parametrize("fraction", [True, [True, 0.25], [0.25, True]])
+def test_get_split_fraction_rejects_bool_fraction_values(fraction):
+    """Test boolean fractions are rejected instead of silently being treated as numerical values."""
+    with pytest.raises(TypeError, match="fraction"):
+        get_split_fraction(fraction, "train")
+
+
 def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:

@@ -57,7 +57,7 @@ To install the required packages, run:
         pip install ultralytics
         ```
 
-The `dx_com` compiler is automatically installed from [PyPI](https://pypi.org/project/dx-com/) on first export. DX-COM 2.4.1 provides wheels for Python 3.8–3.14 on x86-64 Linux with glibc 2.31 or newer. To preinstall the export dependencies:
+The `dx_com` compiler is automatically installed from [PyPI](https://pypi.org/project/dx-com/) on first export. DX-COM 2.5.0 provides wheels for Python 3.8–3.14 on x86-64 Linux with glibc 2.31 or newer and requires at least 16 GB of RAM. To preinstall the export dependencies:
 
 ```bash
 pip install "ultralytics[export-deepx]"
@@ -71,9 +71,17 @@ ULTRALYTICS_ISOLATED_VENVS="$PWD/.venvs" python .github/scripts/create-export-en
 
 The environment builder requires [uv](https://docs.astral.sh/uv/getting-started/installation/) and an installed Ultralytics checkout. It applies the tested dependency constraints automatically.
 
+!!! warning "Runtime compatibility"
+
+    DX-COM 2.5.0 produces `.dxnn` file format v9, which only loads on DX-RT 3.5.0 or newer. Install the matching DEEPX runtime described in [Runtime Installation](#runtime-installation), and check the [DEEPX version compatibility matrix](https://github.com/DEEPX-AI/dx-all-suite/blob/main/docs/source/04_Version_Compatibility.md) before upgrading individual components.
+
 ### Usage
 
 The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on DEEPX NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! note
+
+    Predict and Validate require a DEEPX NPU device with the DEEPX runtime installed (see [Runtime Installation](#runtime-installation)). Export runs on an x86-64 Linux host without an NPU; copy the exported `_deepx_model/` directory to the NPU device to run inference.
 
 !!! example "Export"
 
@@ -163,12 +171,13 @@ After a successful export, a model directory is created with the following layou
 
 ```text
 yolo26n_deepx_model/
-├── yolo26n.dxnn     # Compiled DEEPX model binary (NPU executable)
-├── config.json      # Calibration and preprocessing configuration
-└── metadata.yaml    # Model metadata (classes, image size, task, etc.)
+├── yolo26n.dxnn          # Compiled DEEPX model binary (NPU executable)
+├── yolo26n_summary.html  # DX-COM Compilation Summary Report
+├── config.json           # Calibration and preprocessing configuration
+└── metadata.yaml         # Model metadata (classes, image size, task, etc.)
 ```
 
-The `.dxnn` file is the compiled model binary that the `dx_engine` runtime loads directly on the NPU. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline.
+The `.dxnn` file is the compiled model binary that the `dx_engine` runtime loads directly on the NPU. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline. The `yolo26n_summary.html` report is described in [Inspecting the Compiled Model](#inspecting-the-compiled-model).
 
 ## Deploying Exported YOLO DEEPX Models
 
@@ -176,62 +185,75 @@ Once you've successfully exported your Ultralytics YOLO model to DEEPX format, t
 
 ### Runtime Installation
 
-Inference requires the DEEPX NPU driver, the `libdxrt` runtime, and the `dx_engine` Python package.
+Inference requires the DEEPX NPU driver (v2.7.0 or newer), the DX-RT runtime (v3.5.0 or newer), NPU firmware v2.7.6 or newer, and the `dx_engine` Python package. These are the versions required to run models compiled with DX-COM 2.5.0.
 
 !!! note
 
     DEEPX runtime supports both x86-64 Linux and ARM64 (e.g., Raspberry Pi 5).
 
+Install the NPU driver and the `libdxrt-bin` runtime package with either of the following options.
+
+#### Option A: Install from GitHub Release Packages
+
+Download the driver and runtime `.deb` packages from the DEEPX-AI GitHub repositories and install them. The runtime package is provided per CPU architecture (`amd64` or `arm64`):
+
 ```bash
-# Install the NPU driver and libdxrt runtime
+# Install the NPU driver and DX-RT runtime
 sudo apt update
-wget https://github.com/DEEPX-AI/dx_rt_npu_linux_driver/raw/main/release/2.4.1/dxrt-driver-dkms_2.4.1-2_all.deb
-sudo apt install ./dxrt-driver-dkms_2.4.1-2_all.deb
-wget https://github.com/DEEPX-AI/dx_rt/raw/main/release/3.3.2/libdxrt_3.3.2_all.deb
-sudo apt install ./libdxrt_3.3.2_all.deb
-
-# Create dx-engine wheel
-cd /usr/share/libdxrt/python_package && sudo ./make_whl.sh
-
-# Install the bundled dx_engine Python wheel
-pip install dx_engine-*.whl
+wget https://github.com/DEEPX-AI/dx_rt_npu_linux_driver/raw/main/release/2.7.0/dxrt-driver-dkms_2.7.0-2_all.deb
+sudo apt install ./dxrt-driver-dkms_2.7.0-2_all.deb
+wget https://github.com/DEEPX-AI/dx_rt/raw/main/release/3.5.0/libdxrt-bin_3.5.0_$(dpkg --print-architecture).deb
+sudo apt install ./libdxrt-bin_3.5.0_$(dpkg --print-architecture).deb
 ```
 
-Verify the runtime is installed correctly with `dxrt-cli --version`. You should see output similar to:
+#### Option B: Install from the DEEPX apt Repository
 
-```sh
-DXRT v3.3.2
-Minimum Driver Versions
-Device Driver: v2.4.0
-PCIe Driver: v2.2.0
-Firmware: v2.5.2
-Minimum Compiler Versions
-Compiler: v1.18.1
-.dxnn File Format: v6
+Register the DEEPX apt repository once, then install and upgrade the driver and runtime with `apt`:
+
+```bash
+# Add the DEEPX apt repository
+wget -O - https://apt.releases.deepx.ai/gpg | sudo gpg --dearmor -o /usr/share/keyrings/deepx-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/deepx-archive-keyring.gpg] https://apt.releases.deepx.ai $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") main" | sudo tee /etc/apt/sources.list.d/deepx.list
+
+# Install the NPU driver and DX-RT runtime
+sudo apt update
+sudo apt install dxrt-driver-dkms libdxrt-bin
 ```
+
+#### Python Package and Firmware
+
+`libdxrt-bin` installs `dx_engine` into the system Python and bundles wheels for Python 3.8–3.14 in `/usr/share/libdxrt-bin/python/`. To use `dx_engine` inside a virtual environment, install the wheel that matches your Python version:
+
+```bash
+pip install --no-index --find-links /usr/share/libdxrt-bin/python dx_engine
+```
+
+DX-RT 3.5.0 requires NPU firmware v2.7.6 or newer. Check the firmware version with `dxcli -s` and, if it is older, update it with the firmware image for your module. DX-M1 and DX-M1M M.2 modules use different firmware images, so download only the one that matches your module; `dxcli -s` reports the module as `M1` or `M1M` in its device information:
+
+```bash
+# Download the firmware image for your module (DX-M1 by default)
+wget https://github.com/DEEPX-AI/dx_fw/raw/main/m1/2.7.6/mdot2/fw.bin
+# wget https://github.com/DEEPX-AI/dx_fw/raw/main/m1m/2.7.6/mdot2/fw.bin # use this line instead for DX-M1M
+
+# Update the firmware
+sudo systemctl stop dxrt.service
+dxcli -u fw.bin
+sudo systemctl start dxrt.service
+```
+
+Verify the installation with `dxcli -s`, which reports the runtime, driver, and firmware versions of each device. `import dx_engine` raises a `RuntimeError` if the `dx_engine` wheel and the installed `libdxrt` runtime versions differ, so reinstall the wheel from `/usr/share/libdxrt-bin/python/` after upgrading the runtime.
 
 Once the runtime is installed, run inference and validation on your DEEPX device exactly as shown in the [Usage](#usage) section above — the exported `_deepx_model` loads directly with `YOLO(...)`.
 
-### Visualizing with dxtron
+### Inspecting the Compiled Model
 
-[dxtron](https://developer.deepx.ai) is DEEPX's graph visualizer for inspecting the compiled `.dxnn` model.
-
-Install `dxtron` on x86-64 Linux by downloading the `.deb` package from the DEEPX SDK and installing it via `dpkg`:
+DX-COM 2.5.0 replaces the DX-TRON graph visualizer with an interactive HTML Compilation Summary Report that shows the compiled model structure and the CPU/NPU workload split. To generate it, recompile the intermediate ONNX model written by the export with the `dxcom` CLI on the x86-64 export host:
 
 ```bash
-wget https://sdk.deepx.ai/release/dxtron/v2.0.1/dxtron_2.0.1_amd64.deb
-sudo dpkg -i dxtron_2.0.1_amd64.deb
+dxcom -m yolo26n.onnx -c yolo26n_deepx_model/config.json -o yolo26n_deepx_report --export_html
 ```
 
-Then open your exported model:
-
-```bash
-dxtron yolo26n_deepx_model/yolo26n.dxnn
-```
-
-!!! note
-
-    `dxtron` is available for both x86-64 and aarch64 platforms.
+Open `yolo26n_deepx_report/yolo26n_summary.html` in a browser to view the report.
 
 ## Benchmarks
 
@@ -358,6 +380,7 @@ DEEPX model export (compilation) requires an **x86-64 Linux** host. The export s
 The export creates a directory (e.g., `yolo26n_deepx_model/`) containing:
 
 - `yolo26n.dxnn` — the compiled NPU binary
+- `yolo26n_summary.html` — the DX-COM Compilation Summary Report
 - `config.json` — calibration and preprocessing settings
 - `metadata.yaml` — model metadata including class names and image size
 
@@ -371,4 +394,4 @@ The DEEPX export pipeline configures the `dx_com` compiler for 100 EMA calibrati
 
 ### How do I install the DEEPX runtime for inference?
 
-The DEEPX runtime is not bundled with `ultralytics` and must be installed separately before running inference. On x86-64 Linux machines and ARM64 Linux machines (e.g., Raspberry Pi 5), install the NPU driver (`dxrt-driver-dkms`) and runtime (`libdxrt`) from the DEEPX-AI GitHub releases, then install the bundled `dx_engine` Python wheel. See the [Runtime Installation](#runtime-installation) section above for step-by-step commands.
+The DEEPX runtime is not bundled with `ultralytics` and must be installed separately before running inference. On x86-64 Linux machines and ARM64 Linux machines (e.g., Raspberry Pi 5), install the NPU driver (`dxrt-driver-dkms`) and runtime (`libdxrt-bin`) from the DEEPX-AI GitHub release packages or the DEEPX apt repository, update the NPU firmware to v2.7.6 or newer if needed, and install the bundled `dx_engine` Python wheel into your environment. Models exported with DX-COM 2.5.0 require DX-RT 3.5.0 or newer. See the [Runtime Installation](#runtime-installation) section above for step-by-step commands.

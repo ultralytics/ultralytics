@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from collections import Counter, defaultdict
-from functools import lru_cache
+from functools import lru_cache, partial
 from typing import Any
 
 import cv2
@@ -157,7 +157,7 @@ class BaseSolution:
         return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
     def extract_tracks(self, im0: np.ndarray) -> None:
-        """Apply object tracking and extract tracks from an input image or frame.
+        """Apply object tracking, or prediction when `tracker` is None, and extract boxes from an image or frame.
 
         Args:
             im0 (np.ndarray): The input image or frame.
@@ -167,22 +167,22 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
+        track = self.CFG["tracker"] is not None
         with self.profilers[0]:
-            self.tracks = self.model.track(
-                source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
-            )[0]
+            infer = partial(self.model.track, persist=True) if track else self.model.predict
+            self.tracks = infer(source=im0, classes=self.classes, verbose=False, **self.track_add_args)[0]
         is_obb = self.tracks.obb is not None
         self.track_data = self.tracks.obb if is_obb else self.tracks.boxes  # Extract tracks for OBB or object detection
 
-        if self.track_data and self.track_data.is_track:
+        if self.track_data and (not track or self.track_data.is_track):
             self.boxes = (self.track_data.xyxyxyxy if is_obb else self.track_data.xyxy).cpu()
             self.clss = self.track_data.cls.cpu().tolist()
-            self.track_ids = self.track_data.id.int().cpu().tolist()
+            self.track_ids = self.track_data.id.int().cpu().tolist() if track else []
             self.confs = self.track_data.conf.cpu().tolist()
         else:
-            self.LOGGER.warning("No tracks found.")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
-        self.forget_tracks([track.track_id for track in self.model.predictor.trackers[0].removed_stracks_frame])
+        if track:
+            self.forget_tracks([track.track_id for track in self.model.predictor.trackers[0].removed_stracks_frame])
 
     def forget_tracks(self, track_ids: list[int]) -> None:
         """Drop bookkeeping for IDs retired by the active tracker.
@@ -275,7 +275,7 @@ class BaseSolution:
         """Allow instances to be called like a function with flexible arguments."""
         with self.profilers[1]:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method
-        track_or_predict = "predict" if type(self).__name__ == "ObjectCropper" else "track"
+        track_or_predict = "predict" if self.CFG["tracker"] is None else "track"
         track_or_predict_speed = self.profilers[0].dt * 1e3
         solution_speed = (self.profilers[1].dt - self.profilers[0].dt) * 1e3  # solution time = process - track
         result.speed = {track_or_predict: track_or_predict_speed, "solution": solution_speed}
@@ -830,6 +830,7 @@ class SolutionResults:
         region_counts (dict[str, int]): The count of objects within a specific region.
         speed_dict (dict[int, int]): Estimated speed in km/h per track ID from SpeedEstimator.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
+        texts (list[dict]): OCR text, geometry, confidence, and detection index records.
         speed (dict[str, float]): Performance timing information for tracking and solution processing.
     """
 
@@ -855,6 +856,7 @@ class SolutionResults:
         self.region_counts = {}
         self.speed_dict = {}  # for speed estimation
         self.total_crop_objects = 0
+        self.texts = []
         self.speed = {}
 
         # Override with user-defined values

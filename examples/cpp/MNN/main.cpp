@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     yolo::Config config;
     config.model_path = yolo::ArgValue(argc, argv, "--model", "yolo26n.mnn");
     config.conf = std::stof(yolo::ArgValue(argc, argv, "--conf", "0.25"));
-    config.iou = std::stof(yolo::ArgValue(argc, argv, "--iou", "0.45"));
+    config.iou = std::stof(yolo::ArgValue(argc, argv, "--iou", "0.5"));
     config.threads = std::stoi(yolo::ArgValue(argc, argv, "--threads", "4"));
     const std::string source = yolo::ArgValue(argc, argv, "--source", "bus.jpg");
     const std::string output = yolo::ArgValue(argc, argv, "--out", "result.jpg");

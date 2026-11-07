@@ -137,9 +137,9 @@ Filter predictions by [confidence](https://www.ultralytics.com/glossary/confiden
 
 Control [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), which removes boxes whose [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) with a higher-confidence box exceeds this threshold:
 
-- **Higher (0.7+)**: Allow more overlapping boxes
-- **Lower (0.3-0.5)**: Suppress overlapping detections more aggressively
-- **Default (0.7)**: Balanced NMS behavior for most use cases
+- **Higher (0.6+)**: Allow more overlapping boxes
+- **Lower (0.3-0.4)**: Suppress overlapping detections more aggressively
+- **Default (0.5)**: Balanced NMS behavior for most use cases
 
 ## Deployment Predict
 
@@ -170,7 +170,7 @@ after you disconnect or close the page. Once the connected camera shows results,
 background**. The deployment header shows **Camera on**, and results go to the
 [Monitoring tab](monitoring.md#monitoring-tab) as temporary examples and prediction statistics.
 
-- **Settings:** The background camera always uses the default confidence (0.25), IoU (0.7), and the model's training
+- **Settings:** The background camera always uses the default confidence (0.25), IoU (0.5), and the model's training
   image size; the sliders do not apply to it.
 - **Cost:** It runs on the endpoint's warm instance at no extra charge; the hourly uptime rate applies whether the
   camera is on or off.
@@ -263,7 +263,7 @@ with open("image.jpg", "rb") as f:
 
     url = "https://YOUR_DEPLOYMENT_URL.run.app/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
-    data = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
+    data = {"conf": 0.25, "iou": 0.5, "imgsz": 640}
 
     with open("image.jpg", "rb") as image_file:
         response = requests.post(url, headers=headers, files={"file": image_file}, data=data)
@@ -278,7 +278,7 @@ with open("image.jpg", "rb") as f:
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.7" \
+      -F "iou=0.5" \
       -F "imgsz=640"
     ```
 
@@ -288,7 +288,7 @@ with open("image.jpg", "rb") as f:
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
     formData.append("conf", "0.25");
-    formData.append("iou", "0.7");
+    formData.append("iou", "0.5");
     formData.append("imgsz", "640");
 
     const response = await fetch(

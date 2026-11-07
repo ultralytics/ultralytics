@@ -158,7 +158,7 @@ class NMSWrapper(torch.nn.Module):
         self,
         model: torch.nn.Module,
         score_threshold: float = 0.001,
-        iou_threshold: float = 0.7,
+        iou_threshold: float = 0.5,
         max_detections: int = 300,
         task: str = "detect",
     ):

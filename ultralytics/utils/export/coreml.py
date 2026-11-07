@@ -60,7 +60,7 @@ def pipeline_coreml(
     output_shape: tuple[int, ...],
     metadata: dict,
     mlmodel: bool = False,
-    iou: float = 0.45,
+    iou: float = 0.5,
     conf: float = 0.25,
     agnostic_nms: bool = False,
     weights_dir: Path | str | None = None,
@@ -73,7 +73,7 @@ def pipeline_coreml(
         output_shape (tuple[int, ...]): Output shape tuple from the exporter.
         metadata (dict): Model metadata.
         mlmodel (bool): Whether the model is an MLModel (vs MLProgram).
-        iou (float): IoU threshold for NMS, default 0.45; the exporter passes its `iou` arg (default 0.5).
+        iou (float): IoU threshold for NMS, default 0.5; the exporter passes its `iou` arg.
         conf (float): Confidence threshold for NMS.
         agnostic_nms (bool): Whether to use class-agnostic NMS.
         weights_dir (Path | str | None): Weights directory for MLProgram models.

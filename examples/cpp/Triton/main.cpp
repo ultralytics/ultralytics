@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     config.model = yolo::ArgValue(argc, argv, "--model", "yolo26n");
     config.model_version = yolo::ArgValue(argc, argv, "--version", "");
     config.conf = std::stof(yolo::ArgValue(argc, argv, "--conf", "0.25"));
-    config.iou = std::stof(yolo::ArgValue(argc, argv, "--iou", "0.45"));
+    config.iou = std::stof(yolo::ArgValue(argc, argv, "--iou", "0.5"));
     config.imgsz = std::stoi(yolo::ArgValue(argc, argv, "--imgsz", "640"));
     config.task = yolo::TaskFromString(yolo::ArgValue(argc, argv, "--task", "unknown"));
     const std::string source = yolo::ArgValue(argc, argv, "--source", "bus.jpg");

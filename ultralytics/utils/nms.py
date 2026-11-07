@@ -13,7 +13,7 @@ from ultralytics.utils.ops import xywh2xyxy
 def non_max_suppression(
     prediction,
     conf_thres: float = 0.25,
-    iou_thres: float = 0.45,
+    iou_thres: float = 0.5,
     classes=None,
     agnostic: bool = False,
     multi_label: bool = False,

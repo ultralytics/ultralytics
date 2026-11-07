@@ -87,14 +87,14 @@ iface = gr.Interface(
     inputs=[
         gr.Image(type="pil", label="Upload Image"),
         gr.Slider(minimum=0, maximum=1, value=0.25, label="Confidence threshold"),
-        gr.Slider(minimum=0, maximum=1, value=0.45, label="IoU threshold"),
+        gr.Slider(minimum=0, maximum=1, value=0.5, label="IoU threshold"),
     ],
     outputs=gr.Image(type="pil", label="Result"),
     title="Ultralytics Gradio",
     description="Upload images for inference. The Ultralytics YOLO26n model is used by default.",
     examples=[
-        [ASSETS / "bus.jpg", 0.25, 0.45],
-        [ASSETS / "zidane.jpg", 0.25, 0.45],
+        [ASSETS / "bus.jpg", 0.25, 0.5],
+        [ASSETS / "zidane.jpg", 0.25, 0.5],
     ],
 )
 
@@ -154,7 +154,7 @@ iface = gr.Interface(
     inputs=[
         gr.Image(type="pil", label="Upload Image"),
         gr.Slider(minimum=0, maximum=1, value=0.25, label="Confidence threshold"),
-        gr.Slider(minimum=0, maximum=1, value=0.45, label="IoU threshold"),
+        gr.Slider(minimum=0, maximum=1, value=0.5, label="IoU threshold"),
     ],
     outputs=gr.Image(type="pil", label="Result"),
     title="Ultralytics Gradio YOLO26",

@@ -23,7 +23,7 @@ struct Config {
     Task task = Task::Unknown;           // optional override; otherwise inferred from output shapes
     int imgsz = 640;                     // fallback input size if the model shape is dynamic
     float conf = 0.25f;                  // confidence threshold
-    float iou = 0.45f;                   // NMS IoU threshold (grid models only)
+    float iou = 0.5f;                    // NMS IoU threshold (grid models only)
 };
 
 // Connects to a Triton-served YOLO model (any task / generation) over gRPC and runs

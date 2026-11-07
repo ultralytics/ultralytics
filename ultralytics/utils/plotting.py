@@ -495,7 +495,8 @@ class Annotator:
             box = box.tolist()
 
         multi_points = isinstance(box[0], list)  # multiple points with shape (n, 2)
-        p1 = [int(b) for b in box[0]] if multi_points else (int(box[0]), int(box[1]))
+        # Polygon labels sit above the enclosing box's top-left corner, like axis-aligned box labels
+        p1 = tuple(max(int(v), 0) for v in np.min(box, 0)) if multi_points else (int(box[0]), int(box[1]))
         cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw) if multi_points else cv2.rectangle(
             self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
         )

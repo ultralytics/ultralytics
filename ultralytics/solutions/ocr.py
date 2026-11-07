@@ -98,8 +98,7 @@ class OCR(BaseSolution):
         for i in order:
             text, confidence = texts[i]["text"], texts[i]["confidence"]
             label = (f"{text} {confidence:.2f}" if self.show_conf else text) if self.show_labels else ""
-            polygon = np.roll(polygons[i], -int(polygons[i].sum(1).argmin()), 0)  # label above top-left-most point
-            annotator.box_label(polygon, label, color=(0, 255, 0))
+            annotator.box_label(polygons[i], label, color=(0, 255, 0), txt_color=(0, 0, 0))
         result = SolutionResults(plot_im=annotator.result(), texts=[texts[i] for i in order])
         self.display_output(result.plot_im)
         return result

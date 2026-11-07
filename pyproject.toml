@@ -132,7 +132,7 @@ export-executorch = [
     "numpy<=2.3.5",
 ]
 export-deepx = [
-    "dx_com>=2.4.1",
+    "dx_com>=2.5.0",
     "numpy<2; python_version < '3.13'",  # NumPy 1.x wheels stop at Python 3.12
 ]
 export-xilinx = [  # AMD Xilinx Versal AI Edge Gen 2 export, AMD Quark quantizer

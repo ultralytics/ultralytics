@@ -32,7 +32,7 @@ def onnx2deepx(
         (str): Path to the exported DEEPX model directory.
     """
     # dx_com requires GUI opencv-python, which would replace headless OpenCV, so install its other requirements only
-    check_requirements("dx_com>=2.4.1", cmds="--no-deps")
+    check_requirements("dx_com>=2.5.0", cmds="--no-deps")
     check_requirements(
         [
             f"{r.name}{r.specifier}"
@@ -70,7 +70,13 @@ def onnx2deepx(
     with open(config_path, "w") as file:
         json.dump(config, file)
 
-    dx_com.compile(model=str(onnx_file), output_dir=str(export_path), config=str(config_path), opt_level=int(optimize))
+    dx_com.compile(
+        model=str(onnx_file),
+        output_dir=str(export_path),
+        config=str(config_path),
+        opt_level=int(optimize),
+        export_html=True,  # write the <model>_summary.html compilation report
+    )
 
     if metadata is not None:
         YAML.save(export_path / "metadata.yaml", metadata)

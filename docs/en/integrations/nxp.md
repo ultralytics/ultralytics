@@ -13,7 +13,7 @@ This target is distinct from [Sony IMX500](sony-imx500.md) (`format="imx"`). NXP
 
 ## Export
 
-Export on **Linux x86_64**, with Python 3.10 or later. Compilation has been validated with Python 3.13 and 3.14. Ultralytics installs the conversion dependencies when needed. The Neutron SDK comes from [NXP's package repository](https://eiq.nxp.com/repository/eiq-neutron-sdk/).
+Export on **Linux x86_64**, with Python 3.10 or later. Compilation has been validated with Python 3.13 and 3.14. Ultralytics installs the conversion dependencies when needed. The Neutron SDK comes from NXP's pip package index:
 
 ```bash
 pip install -U ultralytics

@@ -157,7 +157,7 @@ class BaseSolution:
         return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
     def extract_tracks(self, im0: np.ndarray) -> None:
-        """Apply object tracking and extract tracks from an input image or frame.
+        """Apply object tracking, or prediction when `tracker` is None, and extract boxes from an image or frame.
 
         Args:
             im0 (np.ndarray): The input image or frame.
@@ -281,9 +281,7 @@ class BaseSolution:
         """Allow instances to be called like a function with flexible arguments."""
         with self.profilers[1]:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method
-        track_or_predict = (
-            "predict" if self.CFG["tracker"] is None or type(self).__name__ == "ObjectCropper" else "track"
-        )
+        track_or_predict = "predict" if self.CFG["tracker"] is None else "track"
         track_or_predict_speed = self.profilers[0].dt * 1e3
         solution_speed = (self.profilers[1].dt - self.profilers[0].dt) * 1e3  # solution time = process - track
         result.speed = {track_or_predict: track_or_predict_speed, "solution": solution_speed}

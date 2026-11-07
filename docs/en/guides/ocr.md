@@ -25,12 +25,9 @@ own recognition model.
 
 ## Run Scene Text OCR with YOLO26
 
-PaddleOCR is optional and loads only when recognition first runs. Install a PaddlePaddle build appropriate for your
-platform and PaddleOCR 3.x; no OCR packages are added to the base Ultralytics dependencies.
-
-```bash
-pip install paddlepaddle "paddleocr>=3.0,<4"
-```
+PaddleOCR is optional and loads only when recognition first runs, installing PaddleOCR 3.x and the CPU PaddlePaddle
+build if they are missing. For GPU recognition, install a matching `paddlepaddle-gpu` build first; no OCR packages are
+added to the base Ultralytics dependencies.
 
 Pass an image and a text detector to the `OCR` solution. The result contains the annotated image and recognized text:
 
@@ -39,7 +36,7 @@ Pass an image and a text detector to the `OCR` solution. The result contains the
     === "CLI"
 
         ```bash
-        yolo solutions ocr model="scene-text-obb.pt" source="path/to/image.jpg" recognizer="paddleocr"
+        yolo solutions ocr model="scene-text-obb.pt" source="path/to/video.mp4" recognizer="paddleocr"
         ```
 
     === "Python"
@@ -94,8 +91,9 @@ Additionally, the following visualization settings are supported:
 ## How Scene Text OCR Works
 
 1. **Detect text:** YOLO26 produces axis-aligned boxes, oriented boxes, or segmentation polygons.
-2. **Create recognition crops:** Boxes are clipped to the image. OBBs are affine-rectified using their corners. For
-   segmentation polygons, the minimum-area rotated rectangle is rectified while the original polygon is retained.
+2. **Create recognition crops:** Boxes are clipped to the image. OBBs are affine-rectified with the least rotation
+   that makes them upright. For segmentation polygons, the minimum-area rotated rectangle is rectified while the
+   original polygon is retained.
 3. **Recognize text:** PaddleOCR processes all crops in batches of 16. Custom recognizers receive one crop at a time.
 4. **Order and render results:** Text is grouped into horizontal lines and ordered top-to-bottom and left-to-right. The
    visualization uses a Unicode font for non-ASCII text such as Chinese.
@@ -119,12 +117,12 @@ def recognize(crop):
     return "example", 0.95
 
 
-ocr = solutions.OCR(model="customer-text.pt", recognizer=recognize)
+ocr = solutions.OCR(model="custom-text.pt", recognizer=recognize)
 result = ocr(im0)
 ```
 
-Non-string text or nonnumeric confidence raises a `TypeError`. Unsupported backend names and missing Paddle dependencies
-produce actionable errors. When no text is detected, `result.texts` is empty and the recognizer is not called.
+Unsupported backend names raise a `ValueError`. When no text is detected, `result.texts` is empty and the recognizer
+is not called.
 
 ## OCR Results
 

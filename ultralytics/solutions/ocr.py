@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import cv2
 import numpy as np
-import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import ops
@@ -56,54 +54,32 @@ class OCR(BaseSolution):
             for index, _ in sorted(line, key=lambda item: (float(item[1][:, 0].min()), item[0]))
         ]
 
-    def _init_paddle(self) -> None:
-        """Initialize PaddleOCR lazily for text-line recognition without duplicate text detection."""
-        if not check_requirements(["paddlepaddle", "paddleocr>=3.0,<4"], install=False):
-            raise ModuleNotFoundError(
-                "PaddleOCR recognition requires PaddlePaddle and PaddleOCR 3.x. "
-                "Install matching builds with 'pip install paddlepaddle paddleocr>=3.0,<4'."
-            )
-        from paddleocr import TextRecognition
-
-        self._paddle = TextRecognition()
-
     def _recognize(self, crops: list[np.ndarray]) -> list[tuple[str, float]]:
         """Recognize BGR crops with the configured backend, batching PaddleOCR inference."""
         if callable(self.recognizer):
-            outputs = [self.recognizer(crop) for crop in crops]
-        else:
-            if self._paddle is None:
-                self._init_paddle()
-            outputs = [
-                (output["rec_text"], output["rec_score"]) for output in self._paddle.predict(crops, batch_size=16)
-            ]
-        for text, confidence in outputs:
-            if not isinstance(text, str) or not isinstance(confidence, (float, int, np.floating)):
-                raise TypeError("recognizer must return a (text, confidence) tuple containing str and float values.")
-        return [(text, float(confidence)) for text, confidence in outputs]
+            return [(text, float(confidence)) for text, confidence in map(self.recognizer, crops)]
+        if self._paddle is None:  # load lazily so custom recognizers never require Paddle
+            check_requirements((("paddlepaddle>=3.0.0", "paddlepaddle-gpu>=3.0.0"), "paddleocr>=3.0,<4"))
+            from paddleocr import TextRecognition
+
+            self._paddle = TextRecognition()
+        return [(r["rec_text"], float(r["rec_score"])) for r in self._paddle.predict(crops, batch_size=16)]
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """Run text detection, recognition, and reading-order sorting on one image."""
         self.extract_tracks(im0)
-        texts = []
-        polygons = []
-        pending = []
+        texts, polygons, pending = [], [], []
+        key = "box" if self.tracks.masks is None else "polygon"
         for i, box in enumerate(self.boxes):
-            polygon = box.numpy().reshape(-1, 2)
-            crop_box = box
-            geometry = {"box": polygon.tolist()}
-            if self.tracks.masks is not None:
-                polygon = self.tracks.masks.xy[i].astype(np.float32)
-                rectangle = cv2.minAreaRect(polygon)
-                crop_box = ops.xywhr2xyxyxyxy(
-                    torch.tensor([*rectangle[0], *rectangle[1], np.deg2rad(rectangle[2])], dtype=torch.float32)
-                )
-                geometry = {"polygon": polygon.tolist()}
-            elif polygon.size == 4:
+            if self.tracks.masks is not None:  # keep the polygon, crop its minimum-area rectangle
+                polygon = self.tracks.masks.xy[i]
+                box = ops.xywhr2xyxyxyxy(ops.xyxyxyxy2xywhr(polygon[None]))[0]
+            elif box.ndim == 2:  # OBB corners
+                polygon = box.numpy()
+            else:  # xyxy box corners
                 x1, y1, x2, y2 = box.tolist()
                 polygon = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], dtype=np.float32)
-                geometry = {"box": polygon.tolist()}
-            crop = save_one_box(crop_box, im0, gain=1.0, pad=0, BGR=True, save=False)
+            crop = save_one_box(box, im0, gain=1.0, pad=0, BGR=True, save=False)
             if crop.size:
                 pending.append((i, crop))
             texts.append(
@@ -112,19 +88,18 @@ class OCR(BaseSolution):
                     "confidence": 0.0,
                     "detection_confidence": self.confs[i],
                     "detection_index": i,
-                    **geometry,
+                    key: polygon.tolist(),
                 }
             )
             polygons.append(polygon)
         recognized = self._recognize([crop for _, crop in pending]) if pending else []
         for (i, _), (text, confidence) in zip(pending, recognized):
             texts[i].update(text=text, confidence=confidence)
-        order = self.reading_order(polygons) if polygons else []
+        order = self.reading_order(polygons)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
-        for i in order:
-            if self.CFG["show_boxes"]:
-                points = np.array(texts[i].get("polygon", texts[i].get("box")), dtype=np.int32)
-                annotator.draw_region(points.tolist(), (0, 255, 0), self.line_width)
+        if self.CFG["show_boxes"]:
+            for i in order:
+                annotator.draw_region(polygons[i].astype(np.int32).tolist(), (0, 255, 0), self.line_width)
         if self.show_labels:
             annotator = SolutionAnnotator(
                 annotator.im,
@@ -135,8 +110,7 @@ class OCR(BaseSolution):
             )
             for i in order:
                 text = texts[i]
-                points = np.array(text.get("polygon", text.get("box")), dtype=np.int32)
-                x1, y1 = points.min(0)
+                x1, y1 = polygons[i].min(0)
                 label = text["text"]
                 label += f" {text['confidence']:.2f}" if self.show_conf else ""
                 width, height = annotator.font.getsize(label)

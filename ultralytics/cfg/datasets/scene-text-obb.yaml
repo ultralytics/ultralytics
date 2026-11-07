@@ -1,0 +1,160 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Scene Text OBB dataset combining COCO-Text and HierText legible word annotations
+# COCO-Text: https://bgshih.github.io/cocotext/ (annotations: CC BY 4.0; COCO image terms apply)
+# HierText: https://github.com/google-research-datasets/hiertext (CC BY-SA 4.0; Open Images terms apply)
+# Documentation: https://docs.ultralytics.com/datasets/obb/scene-text
+# Example usage: yolo obb train data=scene-text-obb.yaml model=yolo26n-obb.pt imgsz=640
+# parent
+# ├── ultralytics
+# └── datasets
+#     ├── coco
+#     ├── coco-text
+#     ├── coco-text-yolo
+#     ├── hiertext
+#     └── hiertext-yolo
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: scene-text-yolo # dataset root dir
+train:
+  - ../coco-text-yolo/train/images # 43686 images, 65919 words
+  - ../hiertext-yolo/train/images # 8281 images, 862577 words
+val:
+  - ../coco-text-yolo/val/images # 4927 images, 7211 words
+  - ../hiertext-yolo/val/images # 1724 images, 178382 words
+test:
+  - ../coco-text-yolo/test/images # 5073 images, 7714 words
+  - ../hiertext-yolo/test/images # 1634 images, 167188 words
+
+names:
+  0: text
+
+# Download COCO 2017 images and both annotation sources, then convert legible words to YOLO OBB format (~24 GB)
+download: |
+  import gzip
+  import hashlib
+  import json
+  import os
+  import shutil
+  from pathlib import Path
+
+  import cv2
+  import numpy as np
+
+  from ultralytics.data.utils import check_det_dataset
+  from ultralytics.utils import TQDM
+  from ultralytics.utils.downloads import download
+
+
+  def polygon_label(vertices, width, height):
+      polygon = np.asarray(vertices, dtype=np.float32).reshape(-1, 2)
+      if len(polygon) < 3 or cv2.contourArea(polygon) < 1:
+          return ""
+      polygon[:, 0] = polygon[:, 0].clip(0, width - 1)
+      polygon[:, 1] = polygon[:, 1].clip(0, height - 1)
+      polygon /= np.array([width, height], dtype=np.float32)
+      return "0 " + " ".join(f"{x:.7f} {y:.7f}" for x, y in polygon)
+
+
+  def link_image(source, destination):
+      destination.parent.mkdir(parents=True, exist_ok=True)
+      if destination.exists():
+          return
+      try:
+          os.link(source, destination)
+      except OSError:
+          shutil.copy2(source, destination)
+
+
+  def write_labels(label_dir, stem, labels):
+      label_dir.mkdir(parents=True, exist_ok=True)
+      (label_dir / f"{stem}.txt").write_text("\n".join(labels) + ("\n" if labels else ""), encoding="utf-8")
+
+
+  def convert_coco_text(parent):
+      source_dir = parent / "coco-text"
+      annotations = source_dir / "cocotext.v2.json"
+      if not annotations.is_file():
+          download(
+              "https://github.com/bgshih/cocotext/releases/download/dl/cocotext.v2.zip",
+              dir=source_dir,
+              delete=True,
+          )
+      coco = check_det_dataset("coco.yaml")
+      images = Path(coco["path"]) / "images"
+      data = json.loads(annotations.read_text(encoding="utf-8"))
+      final = parent / "coco-text-yolo"
+      destination = parent / ".coco-text-yolo.partial"
+      shutil.rmtree(destination, ignore_errors=True)
+      for image_id, image in TQDM(data["imgs"].items(), desc="Converting COCO-Text"):
+          split = (
+              "train"
+              if image["set"] == "train"
+              else ("val" if hashlib.sha256(str(image["id"]).encode()).digest()[0] < 128 else "test")
+          )
+          filename = image["file_name"].replace("COCO_train2014_", "", 1)
+          source = images / "train2017" / filename
+          if not source.exists():
+              source = images / "val2017" / filename
+          if not source.exists():
+              continue
+          image_dir = destination / split / "images"
+          link_image(source, image_dir / filename)
+          im = cv2.imread(str(source))
+          if im is None:
+              raise ValueError(f"Unreadable image: {source}")
+          height, width = im.shape[:2]
+          labels = []
+          for ann_id in data["imgToAnns"].get(image_id, []):
+              ann = data["anns"][str(ann_id)]
+              if ann["legibility"] == "legible" and (label := polygon_label(ann["mask"], width, height)):
+                  labels.append(label)
+          write_labels(destination / split / "labels", Path(filename).stem, labels)
+      shutil.rmtree(final, ignore_errors=True)
+      destination.rename(final)
+
+
+  def convert_hiertext(parent):
+      source = parent / "hiertext" / "source"
+      splits = {"train": "train", "validation": "val", "test": "test"}
+      base = "https://raw.githubusercontent.com/google-research-datasets/hiertext/main"
+      if not all((source / "gt" / f"{split}.jsonl.gz").is_file() for split in splits):
+          download([f"{base}/gt/{split}.jsonl.gz" for split in splits], dir=source / "gt", unzip=False, threads=3)
+      if not all((source / split).is_dir() for split in splits):
+          download(
+              [f"https://open-images-dataset.s3.amazonaws.com/ocr/{split}.tgz" for split in splits],
+              dir=source,
+              delete=True,
+              threads=3,
+          )
+      final = parent / "hiertext-yolo"
+      destination = parent / ".hiertext-yolo.partial"
+      shutil.rmtree(destination, ignore_errors=True)
+      for source_split, split in splits.items():
+          with gzip.open(source / "gt" / f"{source_split}.jsonl.gz", "rt", encoding="utf-8") as f:
+              rows = json.load(f)["annotations"]
+          for row in TQDM(rows, desc=f"Converting HierText {source_split}"):
+              image_id = row["image_id"]
+              source_image = source / source_split / f"{image_id}.jpg"
+              if not source_image.exists():
+                  continue
+              image = destination / split / "images" / f"{image_id}.jpg"
+              link_image(source_image, image)
+              im = cv2.imread(str(image))
+              if im is None:
+                  raise ValueError(f"Unreadable image: {source_image}")
+              height, width = im.shape[:2]
+              labels = []
+              for paragraph in row["paragraphs"]:
+                  for line in paragraph["lines"]:
+                      for word in line["words"]:
+                          if word["legible"] and (label := polygon_label(word["vertices"], width, height)):
+                              labels.append(label)
+              write_labels(destination / split / "labels", image_id, labels)
+      shutil.rmtree(final, ignore_errors=True)
+      destination.rename(final)
+
+
+  parent = Path(yaml["path"]).parent
+  convert_coco_text(parent)
+  convert_hiertext(parent)

@@ -130,8 +130,10 @@ def merge_tiles(
         keypoints[..., :2] += offsets[keep, None]
         output["keypoints"] = keypoints
     if any("masks" in p for p in predictions):
-        template = next(p["masks"] for p in predictions if "masks" in p)
-        output["masks"] = template.new_zeros((len(keep), *shape))
+        i = next(i for i, p in enumerate(predictions) if "masks" in p)
+        template = predictions[i]["masks"]
+        r = round((windows[i][2] - windows[i][0]) / template.shape[-1])  # mask stride, 1 at source resolution
+        output["masks"] = template.new_zeros((len(keep), -(-shape[0] // r), -(-shape[1] // r)))
         ends, count = [], 0
         for p in predictions:
             count += len(p["bboxes"])
@@ -139,8 +141,10 @@ def merge_tiles(
         for j, k in enumerate(keep.tolist()):
             source = bisect_right(ends, k)
             local = k - (ends[source - 1] if source else 0)
-            x1, y1, x2, y2 = windows[source]
-            output["masks"][j, y1:y2, x1:x2] = predictions[source]["masks"][local]
+            x1, y1 = windows[source][0] // r, windows[source][1] // r
+            mask = predictions[source]["masks"][local]
+            target = output["masks"][j, y1 : y1 + mask.shape[0], x1 : x1 + mask.shape[1]]
+            target[:] = mask[: target.shape[0], : target.shape[1]]
     return output
 
 

@@ -679,7 +679,7 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
         TypeError: If the fraction or a per-split value is a boolean.
         ValueError: If the resolved fraction is 0 for the 'train' or 'val' split.
     """
-    if isinstance(fraction, bool) or isinstance(fraction, list) and any(isinstance(x, bool) for x in fraction):
+    if isinstance(fraction, bool) or (isinstance(fraction, list) and any(isinstance(x, bool) for x in fraction)):
         raise TypeError(f"'fraction' must not contain boolean values: {fraction!r}")
     if isinstance(fraction, list) and split in (splits := ("train", "val", "test")):
         index = splits.index(split)

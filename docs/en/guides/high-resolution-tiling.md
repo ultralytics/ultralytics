@@ -82,7 +82,7 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 
 ### How do I choose the tile size?
 
-`tile=True` uses `imgsz` as the window size, and an integer such as `tile=1024` sets it independently. Windows overlap by 20%, so a 1920 × 1080 image at `tile=640` runs eight windows and a 3840 × 2160 image at `tile=1280` also runs eight. A window smaller than `imgsz`, such as `tile=400` with `imgsz=640`, is enlarged to the model input, which helps when objects are only a few pixels wide even at native resolution. Much smaller windows can also enlarge background clutter into false positives. Smaller windows keep more detail but add model passes and remove more global context, so compare a few sizes on your own validation set.
+`tile=True` uses `imgsz` as the window size, and an integer such as `tile=1024` sets it independently. Windows overlap by 20%, so a 1920 × 1080 image at `tile=640` runs eight windows and a 3840 × 2160 image at `tile=1280` also runs eight. A window smaller than `imgsz`, such as `tile=400` with `imgsz=640`, is enlarged to the model input, which helps when objects are only a few pixels wide even at native resolution. Smaller windows keep more detail but add model passes, remove more global context, and can enlarge background clutter into false positives, so compare a few sizes on your own validation set.
 
 ### Do I still need SAHI for sliced inference with YOLO?
 

@@ -258,7 +258,7 @@ Requires `x2paddle`, `six`, and a PaddlePaddle build, which is installed automat
 
 - `paddlepaddle==3.0.0` on ARM64
 - `paddlepaddle>=3.0.0,<3.3.0` on other platforms, including CUDA machines; conversion does not need a GPU build
-- An installed `paddlepaddle-gpu>=3.0.0,<3.3.0` from [PaddlePaddle's package index](https://www.paddlepaddle.org.cn/en/install/quick) is also accepted. GPU builds are not on PyPI.
+- An installed `paddlepaddle-gpu>=3.0.0,<3.3.0` from [PaddlePaddle's package index](https://www.paddlepaddle.org.cn/en/install/quick) is used instead. GPU builds are not on PyPI, so a GPU build outside this range raises an error rather than being replaced by the CPU build.
 
 Not supported on NVIDIA Jetson.
 

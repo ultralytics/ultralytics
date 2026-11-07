@@ -698,6 +698,22 @@ def check_torchvision():
         )
 
 
+def check_paddle(version: str = "==3.0.0" if ARM64 else ">=3.0.0,<3.3.0", gpu: str = ">=3.0.0,<3.3.0"):
+    """Ensure a PaddlePaddle build is installed, installing the CPU build if none is.
+
+    PaddlePaddle 3.x GPU builds are published only on PaddlePaddle's own package index, not PyPI, so an installed
+    `paddlepaddle-gpu` is version-checked and never replaced by the CPU build, which ships the same `paddle` module.
+
+    Args:
+        version (str): Required CPU `paddlepaddle` version, defaulting to the Paddle export and inference range.
+        gpu (str): Required version of an installed `paddlepaddle-gpu` build.
+    """
+    if check_version("paddlepaddle-gpu", ""):
+        check_version("paddlepaddle-gpu", gpu, hard=True, msg="(see https://www.paddlepaddle.org.cn/en/install)")
+    else:
+        check_requirements(f"paddlepaddle{version}")
+
+
 def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
     """Check file(s) for acceptable suffix.
 

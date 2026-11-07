@@ -1,0 +1,28 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Scene-text OBB dataset combining COCO-Text v2 and HierText in YOLO OBB format
+# Sources: https://bgshih.github.io/cocotext and https://github.com/google-research-datasets/hiertext
+# Annotation licenses: COCO-Text CC BY 4.0; HierText CC BY-SA 4.0
+# COCO and Open Images image terms apply separately. Review all terms before commercial use or redistribution.
+# Example usage: yolo obb train model=yolo26n-obb.pt data=scene-text-obb.yaml epochs=50 imgsz=640
+
+# Convert both datasets before training. This YAML does not download or convert them.
+# Expected dataset roots under datasets_dir:
+# ├── coco-text-yolo
+# │   └── {train,val,test}/{images,labels}
+# └── hiertext-yolo
+#     └── {train,val,test}/{images,labels}
+
+path: scene-text-yolo # combined dataset root; split paths resolve alongside it under datasets_dir
+train:
+  - ../coco-text-yolo/train/images
+  - ../hiertext-yolo/train/images
+val:
+  - ../coco-text-yolo/val/images
+  - ../hiertext-yolo/val/images
+test:
+  - ../coco-text-yolo/test/images
+  - ../hiertext-yolo/test/images
+
+names:
+  0: text

@@ -143,13 +143,28 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 ## Train a Text Detector
 
 Train the detector with the standard YOLO detection, segmentation, or OBB workflow; OCR does not add a native training
-task or train the external recognizer. For rotated scene text with quadrilateral annotations, use an OBB dataset and
-disable augmentations that corrupt text orientation:
+task or train the external recognizer. The released YOLO26-Text models use the official `scene-text-obb.yaml`
+configuration, which combines COCO-Text v2 and HierText:
 
 ```bash
-yolo obb train model="yolo26n-obb.pt" data="scene-text-obb.yaml" epochs=100 imgsz=1024 seed=0 flipud=0.0
+yolo obb train model="yolo26n-obb.pt" data="scene-text-obb.yaml" epochs=50 imgsz=640 seed=0 flipud=0.0
 yolo obb val model="runs/obb/train/weights/best.pt" data="scene-text-obb.yaml" split=test
 ```
+
+The YAML expects `coco-text-yolo` and `hiertext-yolo` directories under your Ultralytics datasets directory, each with
+`train`, `val`, and `test` images and labels in YOLO OBB format. It does not download or convert the source datasets.
+For custom rotated-text datasets, disable augmentations that corrupt text orientation.
+
+### Dataset Licensing
+
+| Dataset                                                          | Annotation license                                              | Commercial-use considerations                                                                                                                                   |
+| ---------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [COCO-Text v2](https://bgshih.github.io/cocotext/)               | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)       | Permits commercial use with attribution; [COCO image terms](https://cocodataset.org/#termsofuse) also apply.                                                    |
+| [HierText](https://github.com/google-research-datasets/hiertext) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | Permits commercial use with attribution and share-alike terms; [Open Images terms](https://storage.googleapis.com/openimages/web/factsfigures.html) also apply. |
+
+HierText's share-alike terms apply when adapted dataset material is redistributed. Image licenses and other rights are
+separate from the annotation licenses; Open Images asks users to verify individual image licenses. Review all terms
+before commercial training, deployment, or redistribution.
 
 Record the dataset source, license, checksums, split, augmentation settings, seed, and evaluation labels. Detection
 metrics alone do not measure recognition quality: evaluate character error rate (CER) and word error rate (WER) only

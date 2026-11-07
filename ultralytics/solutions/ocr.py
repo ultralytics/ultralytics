@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import cv2
 import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
@@ -80,6 +81,8 @@ class OCR(BaseSolution):
                 x1, y1, x2, y2 = box.tolist()
                 polygon = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], dtype=np.float32)
             crop = save_one_box(box, im0, gain=1.0, pad=0, BGR=True, save=False)
+            if crop.shape[0] >= 1.5 * crop.shape[1] > 0:  # read tall crops sideways like PaddleOCR for steep text
+                crop = cv2.rotate(crop, cv2.ROTATE_90_COUNTERCLOCKWISE)
             if crop.size:
                 pending.append((i, crop))
             texts.append(

@@ -15,7 +15,7 @@ from ultralytics import YOLO
 from ultralytics.solutions.config import SolutionConfig
 from ultralytics.utils import ASSETS_URL, LOGGER, ops
 from ultralytics.utils.checks import check_imshow, check_requirements
-from ultralytics.utils.plotting import Annotator
+from ultralytics.utils.plotting import FONT, Annotator
 
 
 class BaseSolution:
@@ -339,7 +339,7 @@ class SolutionAnnotator(Annotator):
         im: np.ndarray,
         line_width: int | None = None,
         font_size: int | None = None,
-        font: str = "Arial.ttf",
+        font: str = FONT,
         pil: bool = False,
         example: str = "abc",
     ):

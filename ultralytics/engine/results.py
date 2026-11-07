@@ -16,7 +16,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
-from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.plotting import FONT, Annotator, colors, save_one_box
 
 
 class BaseTensor(SimpleClass):
@@ -214,7 +214,7 @@ class Results(SimpleClass, DataExportMixin):
         depth (DepthMap | None): Per-pixel depth map.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
-        colors (list[str] | None): Model class colors as "#rrggbb" strings overriding the default palette.
+        colors (list[tuple] | None): Model class colors as RGB tuples indexed by class id, overriding the palette.
         path (str): Path to the input image file.
         save_dir (str | None): Directory to save results.
 
@@ -524,7 +524,7 @@ class Results(SimpleClass, DataExportMixin):
         conf: bool = True,
         line_width: int | None = None,
         font_size: float | None = None,
-        font: str = "Arial.ttf",
+        font: str = FONT,
         pil: bool = False,
         img: np.ndarray | torch.Tensor | None = None,
         kpt_radius: int = 5,

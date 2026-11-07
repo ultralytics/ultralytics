@@ -48,13 +48,15 @@ class Colors:
     Colors are RGB and are drawn as RGB; convert to BGR only when drawing into a BGR buffer (`bgr=True`).
 
     - Class color (boxes, OBB, instance and semantic masks, box labels): `custom[c]` when the model carries `colors`
-    metadata (a list of "#rrggbb" strings indexed by class id) and `c < len(custom)`, else `palette[c % 20]`.
+    metadata ("#rrggbb" strings indexed by class id, parsed to RGB once per model) and `c < len(custom)`, else
+    `palette[c % 20]`. Colors never change with a light or dark theme.
     - Box label text: `#111f68` when the background luma 0.299*R + 0.587*G + 0.114*B exceeds 150, else `#ffffff`.
-    - Pose: the 17-keypoint COCO layout colors keypoint k with `kpt_color[k]` (pose palette indices `[16] * 5 + [9] * 6
-    + [0] * 6`) and limb j, joining the 1-indexed keypoints `Annotator.skeleton[j]`, with `limb_color[j]` (indices `[0]
-    * 4 + [7] * 3 + [9] * 5 + [16] * 7`): face green, arms blue, legs orange, torso magenta. Any other layout colors
+    - Pose: the 17-keypoint COCO layout colors keypoint k with `kpt_color[k]` (pose palette indices
+    `[16]*5+[9]*6+[0]*6`) and limb j, joining the 1-indexed keypoints `Annotator.skeleton[j]`, with `limb_color[j]`
+    (indices `[0]*4+[7]*3+[9]*5+[16]*7`): face green, arms blue, legs orange, torso magenta. Any other layout colors
     keypoint k with `palette[k % 20]`.
     - Masks blend at 0.5 opacity (`Annotator.masks`, `Annotator.semantic_mask`); depth uses `colorize_depth` at 0.6.
+    - Label fonts: `FONT` for Latin and `FONT_UNICODE` for other scripts (PIL text); the default ASCII path uses cv2.
 
     ## Ultralytics Color Palette
 
@@ -123,7 +125,7 @@ class Colors:
         >>> colors = Colors()
         >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
         >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
-        >>> colors(1, custom=["#ff0000", "#00ff00"])  # Model colors override the palette: (0, 255, 0)
+        >>> colors(1, custom=[(255, 0, 0), (0, 255, 0)])  # Model colors override the palette: (0, 255, 0)
         >>> Colors.txt_color((243, 243, 243))  # Navy text on a light background: (17, 31, 104)
     """
 
@@ -181,19 +183,19 @@ class Colors:
         self.kpt_color = self.pose_palette[[16] * 5 + [9] * 6 + [0] * 6]
         self.limb_color = self.pose_palette[[0] * 4 + [7] * 3 + [9] * 5 + [16] * 7]
 
-    def __call__(self, i: int | torch.Tensor, bgr: bool = False, custom: list[str] | None = None) -> tuple:
+    def __call__(self, i: int | torch.Tensor, bgr: bool = False, custom: list[tuple] | None = None) -> tuple:
         """Return the color for a class index from the model's custom colors, else from the palette.
 
         Args:
             i (int | torch.Tensor): Color index.
             bgr (bool, optional): Whether to return BGR format instead of RGB.
-            custom (list[str], optional): Model `colors` metadata, "#rrggbb" strings indexed by class id.
+            custom (list[tuple], optional): Model class colors as RGB tuples indexed by class id.
 
         Returns:
             (tuple): RGB or BGR color tuple.
         """
         i = int(i)
-        c = self.hex2rgb(custom[i]) if custom and i < len(custom) else self.palette[i % self.n]
+        c = custom[i] if custom and i < len(custom) else self.palette[i % self.n]
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod
@@ -211,6 +213,7 @@ class Colors:
 
 
 colors = Colors()  # create instance for 'from ultralytics.utils.plotting import colors'
+FONT, FONT_UNICODE = "Arial.ttf", "Arial.Unicode.ttf"  # PIL label fonts for Latin text and for all other scripts
 
 
 # Spectral_r anchors (RGB, far→near) baked into a LUT so colorize_depth needs no matplotlib import.
@@ -373,7 +376,7 @@ class Annotator:
         im,
         line_width: int | None = None,
         font_size: int | None = None,
-        font: str = "Arial.ttf",
+        font: str = FONT,
         pil: bool = False,
         example: str = "abc",
     ):
@@ -412,7 +415,7 @@ class Annotator:
         if self.pil:  # TrueType text on a BGR copy of the image, all other drawing uses cv2/NumPy
             self.im = np.array(im, order="C")
             size = font_size or max(round(sum(im.shape[:2]) / 2 * 0.035), 12)
-            self.font = _font("Arial.Unicode.ttf" if non_ascii else font, size)
+            self.font = _font(FONT_UNICODE if non_ascii else font, size)
         else:  # draw in place on the caller's BGR image
             assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
                 "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
@@ -552,14 +555,14 @@ class Annotator:
             im = ((im * inv_alpha_masks + mcs) * 255).byte()
             self.im[:] = im if tensor_image else im.cpu().numpy()
 
-    def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255, custom: list[str] | None = None):
+    def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255, custom: list[tuple] | None = None):
         """Plot a semantic segmentation mask on the image.
 
         Args:
             mask (np.ndarray): Semantic mask with shape [h, w] containing integer class indices.
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
-            custom (list[str], optional): Model `colors` metadata overriding the palette, see `Colors`.
+            custom (list[tuple], optional): RGB class colors overriding the palette, see `Colors`.
         """
         self._to_numpy()
         mask = np.asarray(mask)
@@ -877,6 +880,7 @@ def plot_images(
     paths: list[str] | None = None,
     fname: str | Path = "images.jpg",
     names: dict[int, str] | None = None,
+    class_colors: list[str] | None = None,
     on_plot: Callable | None = None,
     max_size: int = 1920,
     max_subplots: int = 16,
@@ -895,6 +899,7 @@ def plot_images(
         paths (list[str] | None): List of file paths for each image in the batch.
         fname (str | Path): Output filename for the plotted image grid.
         names (dict[int, str] | None): Dictionary mapping class indices to class names.
+        class_colors (list[str] | None): Dataset `colors`, "#rrggbb" strings indexed by class id overriding the palette.
         on_plot (Callable | None): Callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
         max_subplots (int): Maximum number of subplots in the image grid.
@@ -935,6 +940,7 @@ def plot_images(
     semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
     depth_maps = labels.get("depth", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
+    custom = class_colors and [colors.hex2rgb(h) for h in class_colors]  # parsed once per mosaic
 
     images = images[:max_subplots]  # convert only the plotted images
     if len(images) and images[0].max() <= 1:
@@ -997,7 +1003,7 @@ def plot_images(
                 boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
-                    color = colors(c, True)
+                    color = colors(c, True, custom)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
                         conf_text = f" {conf[j]:.1f}" if conf is not None and show_conf else ""
@@ -1006,7 +1012,7 @@ def plot_images(
 
             elif len(classes):
                 for c in classes:
-                    color = colors(c, True)
+                    color = colors(c, True, custom)
                     c = names.get(c, c) if names else c
                     label = f"{c}" if labels else f"{c} {conf[0]:.1f}"
                     annotator.text([x, y], label, txt_color=color, box_color=(64, 64, 64, 128))
@@ -1035,7 +1041,7 @@ def plot_images(
                 else:  # overlap_mask=True, the mask already holds instance indices
                     index = np.r_[0, ids][masks[i].astype(int)]
                 index = cv2.resize(index.astype(np.uint16), (w, h), interpolation=cv2.INTER_NEAREST)
-                lut = np.array([(0, 0, 0)] + [colors(c, True) for c in classes], np.uint8)
+                lut = np.array([(0, 0, 0)] + [colors(c, True, custom) for c in classes], np.uint8)
                 patch = annotator.im[y : y + h, x : x + w]
                 np.copyto(patch, cv2.addWeighted(patch, 0.4, lut[index], 0.6, 0), where=(index > 0)[..., None])
 
@@ -1047,7 +1053,7 @@ def plot_images(
                 mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
             sub_annotator = Annotator(np.ascontiguousarray(annotator.im[y : y + h, x : x + w]), line_width=1)
             mask = np.where(mask == 1, 0, 255) if names and len(names) == 1 else mask
-            sub_annotator.semantic_mask(mask, alpha=0.4)
+            sub_annotator.semantic_mask(mask, alpha=0.4, custom=custom)
             annotator.im[y : y + h, x : x + w] = sub_annotator.im
 
         # Plot depth maps

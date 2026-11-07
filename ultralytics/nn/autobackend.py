@@ -14,6 +14,7 @@ from torch import nn
 from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
+from ultralytics.utils.plotting import Colors
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, smart_inference_mode
 
 from .backends import (
@@ -281,6 +282,8 @@ class AutoBackend(nn.Module):
         empty = [k for k, v in self.backend.names.items() if not v.strip()]
         if empty:
             LOGGER.warning(f"Empty class name string(s) at class indices {empty} will display as blank labels.")
+        if getattr(self.backend, "colors", None):  # parse "#rrggbb" class colors once per model for Results.plot
+            self.backend.colors = [Colors.hex2rgb(c) for c in self.backend.colors]
 
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to the backend.

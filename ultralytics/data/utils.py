@@ -33,6 +33,7 @@ from ultralytics.utils.checks import check_file, check_font, is_ascii, normalize
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.ops import segments2boxes
 from ultralytics.utils.patches import imread
+from ultralytics.utils.plotting import FONT, FONT_UNICODE
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {
@@ -833,7 +834,7 @@ def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str
             LOGGER.info(f"Dataset download {s}\n")
     if data.get("masks_dir") is None and (path / "masks").is_dir():  # after download so scripts can create it
         data["masks_dir"] = "masks"  # PNG semantic masks in the default folder select SemanticDataset
-    check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")  # download fonts
+    check_font(FONT if is_ascii(data["names"]) else FONT_UNICODE)  # download fonts
 
     return data  # dictionary
 

@@ -355,6 +355,23 @@ def test_tiled_prediction_single_window():
     assert batches == [[image.shape, (256, 256, 3)]]
 
 
+def test_tiled_merge_drops_seam_fragments():
+    """A box cut by a window edge is dropped when a neighboring window holds the whole object."""
+    from ultralytics.utils.ops import merge_tiles
+
+    windows = [(0, 0, 100, 100), (60, 0, 160, 100)]
+    predictions = [  # window 0 sees the left 30 px of an object at x=70-110; window 1 sees it whole
+        {
+            "bboxes": torch.tensor([[70.0, 10, 100, 30], [5, 5, 20, 20]]),
+            "conf": torch.tensor([0.9, 0.8]),
+            "cls": torch.zeros(2),
+        },
+        {"bboxes": torch.tensor([[10.0, 10, 50, 30]]), "conf": torch.tensor([0.7]), "cls": torch.zeros(1)},
+    ]
+    out = merge_tiles(predictions, windows, (100, 160), iou=0.7, agnostic=False, max_det=300)
+    assert sorted(out["bboxes"].tolist()) == [[5.0, 5.0, 20.0, 20.0], [70.0, 10.0, 110.0, 30.0]]
+
+
 def test_tiled_dataset_targets(tmp_path):
     """Crop native pixels and targets before formatting, without retaining full-image backing allocations."""
     from ultralytics.data.dataset import YOLODataset

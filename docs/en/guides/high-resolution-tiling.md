@@ -71,7 +71,7 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 - Consecutive tiles reuse the decoded source. With `cache="ram"`, training stores source images once; `cache="disk"` uses the existing image cache. Training shuffles tiles, so caching is especially useful for large compressed source images.
 - Source-sized masks and dense maps still require memory proportional to the original image. `max_det` limits the number of retained instance masks.
 - Tiling removes global context. Validate accuracy on your own data, especially for classification and depth, whose tile outputs may not agree globally.
-- Duplicate suppression selects whole predictions; it does not reconstruct an object from separate visible fragments. Overlap reduces boundary truncation but cannot eliminate it for objects larger than a tile.
+- A box cut by an interior window edge is dropped when another window sees the object clear of its edges and a kept box covers it, so seams keep the more complete prediction. A cut box is kept when no other box covers it. Objects larger than the overlap can still be split, because no window sees them whole, and merging does not join separate fragments.
 - Tensor sources, `embed`, and `visualize` are unsupported. Tracking runs on the merged predictions once per source frame, including ReID features.
 
 ## FAQ

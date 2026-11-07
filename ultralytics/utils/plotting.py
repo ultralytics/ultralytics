@@ -48,8 +48,9 @@ class Colors:
     Colors are RGB and are drawn as RGB; convert to BGR only when drawing into a BGR buffer (`bgr=True`).
 
     - Class color (boxes, OBB, instance and semantic masks, box labels): `custom[c]` when the model carries `colors`
-    metadata ("#rrggbb" strings indexed by class id, parsed to RGB once per model) and `c < len(custom)`, else
-    `palette[c % 20]`. Colors never change with a light or dark theme.
+    metadata ("#rrggbb" strings indexed by class id, parsed to RGB once per model by `Colors.parse`, which ignores the
+    whole list if any entry is malformed) and `c < len(custom)`, else `palette[c % 20]`. Colors never change with a
+    light or dark theme.
     - Box label text: `#111f68` when the background luma 0.299*R + 0.587*G + 0.114*B exceeds 150, else `#ffffff`.
     - Pose: the 17-keypoint COCO layout colors keypoint k with `kpt_color[k]` (pose palette indices
     `[16]*5+[9]*6+[0]*6`) and limb j, joining the 1-indexed keypoints `Annotator.skeleton[j]`, with `limb_color[j]`
@@ -210,6 +211,18 @@ class Colors:
     def hex2rgb(h: str) -> tuple:
         """Convert hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
+
+    @staticmethod
+    def parse(hexs: list[str] | None) -> list[tuple] | None:
+        """Return class `colors` as RGB tuples, or None with one warning if any entry is not "#rrggbb"."""
+        if not hexs:
+            return None
+        if isinstance(hexs, (list, tuple)) and all(
+            isinstance(h, str) and re.fullmatch("#[0-9a-fA-F]{6}", h) for h in hexs
+        ):
+            return [Colors.hex2rgb(h) for h in hexs]
+        LOGGER.warning(f"Ignoring class colors {hexs!r:.100}, expected a list of '#rrggbb' strings. Using the palette.")
+        return None
 
 
 colors = Colors()  # create instance for 'from ultralytics.utils.plotting import colors'
@@ -940,7 +953,7 @@ def plot_images(
     semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
     depth_maps = labels.get("depth", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
-    custom = class_colors and [colors.hex2rgb(h) for h in class_colors]  # parsed once per mosaic
+    custom = colors.parse(class_colors)  # parsed once per mosaic
 
     images = images[:max_subplots]  # convert only the plotted images
     if len(images) and images[0].max() <= 1:

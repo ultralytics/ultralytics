@@ -33,7 +33,7 @@ from ultralytics.utils.checks import check_file, check_font, is_ascii, normalize
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.ops import segments2boxes
 from ultralytics.utils.patches import imread
-from ultralytics.utils.plotting import FONT, FONT_UNICODE
+from ultralytics.utils.plotting import FONT, FONT_UNICODE, Colors
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {
@@ -789,6 +789,8 @@ def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str
         data["nc"] = len(data["names"])
 
     data["names"] = check_class_names(data["names"])
+    if not Colors.parse(data.get("colors")):  # a malformed list warns once here and never reaches model or plots
+        data.pop("colors", None)
     data["channels"] = data.get("channels", 3)  # get image channels, default to 3
 
     # Resolve paths

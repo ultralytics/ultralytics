@@ -282,8 +282,7 @@ class AutoBackend(nn.Module):
         empty = [k for k, v in self.backend.names.items() if not v.strip()]
         if empty:
             LOGGER.warning(f"Empty class name string(s) at class indices {empty} will display as blank labels.")
-        if getattr(self.backend, "colors", None):  # parse "#rrggbb" class colors once per model for Results.plot
-            self.backend.colors = [Colors.hex2rgb(c) for c in self.backend.colors]
+        self.backend.colors = Colors.parse(getattr(self.backend, "colors", None))  # once per model for Results.plot
 
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to the backend.

@@ -226,7 +226,7 @@ Reboot the host after installing the driver so the new kernel module is loaded b
 `libdxrt-bin` bundles `dx_engine` wheels for Python 3.8–3.14 in `/usr/share/libdxrt-bin/python/` but does not install them. In the environment where Ultralytics and NumPy are installed, install the wheel that matches your Python version:
 
 ```bash
-python -m pip install --no-index --find-links /usr/share/libdxrt-bin/python dx_engine
+python -m pip install --upgrade --no-index --find-links /usr/share/libdxrt-bin/python dx_engine
 ```
 
 DX-RT 3.5.0 requires NPU firmware v2.7.6 or newer. Check the firmware version and device ID with `dxcli -s` and, if it is older, update it with the firmware image for your module. DX-M1 and DX-M1M M.2 modules use different firmware images, so download only the one that matches your module; `dxcli -s` reports the module as `M1` or `M1M` in its device information:

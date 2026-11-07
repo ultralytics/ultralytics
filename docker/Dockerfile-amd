@@ -5,7 +5,7 @@
 
 # Start FROM ROCm PyTorch image https://hub.docker.com/r/rocm/pytorch
 # See https://hub.docker.com/r/rocm/pytorch/tags for available tags
-FROM rocm/pytorch:rocm10.0_ubuntu24.04_py3.12_pytorch_release_2.13.0
+FROM rocm/pytorch:rocm10.0_ubuntu26.04_py3.14_pytorch_release_2.13.0
 
 # Set environment variables
 # Suppress TensorFlow and PyTorch warnings

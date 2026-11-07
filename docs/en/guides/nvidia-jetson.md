@@ -351,7 +351,7 @@ The [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model
 
 !!! warning "TensorRT and DLA compatibility"
 
-    NVIDIA lists TensorRT 10.7 as the last release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html); TensorRT 11.x does not support DLA. Use a DLA-capable TensorRT release supported by your JetPack version. TensorRT 11.2.1 does not support JetPack, including GPU-only exports.
+    NVIDIA lists TensorRT 10.7 as the last release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html); TensorRT 11.x does not support DLA. Use a DLA-capable TensorRT release supported by your JetPack version. TensorRT 11 does not support JetPack, including GPU-only exports.
 
 The following Jetson devices are equipped with DLA hardware:
 

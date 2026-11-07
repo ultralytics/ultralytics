@@ -102,6 +102,7 @@ class Predictor(BasePredictor):
             overrides = {}
         overrides.update({"task": "segment", "batch": 1})
         overrides.setdefault("mode", "predict")  # keep track mode so tracker callbacks run
+        overrides.setdefault("iou", 0.7)  # SAM's mask NMS default, not the YOLO predict default
         super().__init__(cfg, overrides, _callbacks)
         self.args.retina_masks = True
         self.im = None

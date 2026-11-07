@@ -154,8 +154,6 @@ class BasePredictor:
         self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
-        if self.args.iou is None:
-            self.args.iou = 0.45  # fewer duplicate boxes than val's 0.7 at the predict conf
         self.done_warmup = False
         if self.args.show:
             self.args.show = check_imshow(warn=True)
@@ -362,6 +360,8 @@ class BasePredictor:
         """
         if self.args.verbose:
             LOGGER.info("")
+        if self.args.iou is None:
+            self.args.iou = 0.5  # fewer duplicate boxes than val's 0.7 at the predict conf
 
         # Setup model
         if self.model is None:

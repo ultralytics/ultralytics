@@ -622,7 +622,7 @@ class Exporter:
         """
         self.args = get_cfg(cfg, overrides)
         if self.args.iou is None:
-            self.args.iou = 0.45  # export-time NMS serves predict
+            self.args.iou = 0.5  # export-time NMS serves predict
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 

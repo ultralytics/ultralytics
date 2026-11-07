@@ -93,7 +93,7 @@ class SolutionConfig:
     meter_per_pixel: float = 0.05
     max_speed: int = 120
     show: bool = False
-    iou: float = 0.7
+    iou: float = 0.5
     conf: float = 0.25
     device: str | None = None
     max_det: int = 300

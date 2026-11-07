@@ -144,7 +144,7 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # reduce OBB val memory usage
         if self.args.iou is None:
-            self.args.iou = 0.7  # highest mAP; predict defaults to 0.45
+            self.args.iou = 0.7  # highest mAP; predict defaults to 0.5
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}

@@ -75,28 +75,6 @@ class Profile(contextlib.ContextDecorator):
         return time.perf_counter()
 
 
-def clip_polygon(points: np.ndarray, window: tuple[int, int, int, int]) -> np.ndarray:
-    """Intersect a polygon with a rectangle, vectorizing vertices at each clipping edge."""
-    for axis, limit, upper in (
-        (0, window[0], True),
-        (0, window[2], False),
-        (1, window[1], True),
-        (1, window[3], False),
-    ):
-        if len(points) < 3:
-            return np.empty((0, 2), dtype=np.float32)
-        inside = points[:, axis] >= limit if upper else points[:, axis] <= limit
-        crossing = inside != np.roll(inside, 1)
-        previous = np.roll(points, 1, axis=0)[crossing]
-        delta = points[crossing] - previous
-        output = np.repeat(points, 2, axis=0)
-        intersections = 2 * np.flatnonzero(crossing)
-        output[intersections] = previous + delta * ((limit - previous[:, axis]) / delta[:, axis])[:, None]
-        output[intersections, axis] = limit
-        points = output[np.stack((crossing, inside), axis=1).ravel()]
-    return points
-
-
 def merge_tiles(
     predictions: list[dict], windows: list[tuple], shape: tuple[int, int], iou: float, agnostic: bool, max_det: int
 ) -> dict:
@@ -190,7 +168,23 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
         return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
     if xmax < 0 or ymax < 0 or xmin > width or ymin > height:  # fully outside image
         return np.zeros(4, dtype=segment.dtype)
-    points = clip_polygon(segment, (0, 0, width, height))
+    axes = np.array((0, 0, 1, 1))
+    bounds = np.array((0, width, 0, height), dtype=segment.dtype)
+    lims = np.array((height, height, width, width), dtype=segment.dtype)  # (height, width)[axis] per boundary
+    start, delta = segment, np.roll(segment, -1, axis=0) - segment
+    with np.errstate(divide="ignore", invalid="ignore"):
+        t = (bounds - start[:, axes]) / delta[:, axes]
+        inter = start[:, None, :] + t[:, :, None] * delta[:, None, :]
+    other = inter[:, np.arange(4), 1 - axes]
+    corners = np.array(((0, 0), (width, 0), (0, height), (width, height)), dtype=segment.dtype)
+    contour = segment.astype(np.float32)
+    points = np.concatenate(
+        (
+            segment[(x >= 0) & (y >= 0) & (x <= width) & (y <= height)],
+            inter[(t >= 0) & (t <= 1) & (other >= 0) & (other <= lims)],
+            corners[[cv2.pointPolygonTest(contour, tuple(map(float, p)), False) >= 0 for p in corners]],
+        )
+    )
     return (
         np.array([*points.min(0), *points.max(0)], dtype=segment.dtype)
         if len(points)

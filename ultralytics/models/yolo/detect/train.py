@@ -148,7 +148,9 @@ class DetectionTrainer(BaseTrainer):
 
     def get_class_counts(self):
         """Return per-class instance counts from the training dataset labels."""
-        classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
+        labels = self.train_loader.dataset.labels
+        labels = {lb.get("source_index", i): lb for i, lb in enumerate(labels)}  # count each tiled source once
+        classes = np.concatenate([lb["cls"].flatten() for lb in labels.values()], 0)
         return np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
 
     def compute_class_weights(self, class_counts):

@@ -9,7 +9,7 @@ import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import ops
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_paddle, check_requirements
 from ultralytics.utils.plotting import save_one_box
 
 
@@ -28,7 +28,8 @@ class OCR(BaseSolution):
         super().__init__(**kwargs)
         self.recognizer = self.CFG["recognizer"]
         if self.recognizer == "paddleocr":
-            check_requirements((("paddlepaddle>=3.1.0", "paddlepaddle-gpu>=3.1.0"), "paddleocr>=3.7,<4"))  # PP-OCRv6
+            check_paddle(">=3.1.0", gpu=">=3.1.0")  # PP-OCRv6 requires PaddlePaddle 3.1+
+            check_requirements("paddleocr>=3.7,<4")
             from paddleocr import TextLineOrientationClassification, TextRecognition
 
             self._paddle = TextRecognition()

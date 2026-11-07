@@ -720,6 +720,8 @@ The optional image-level `metadata` object is preserved when an NDJSON file is i
 
 Pose datasets also carry a `kpt_shape` field in the dataset header line, inferred from the annotations when it is not already set.
 
+Datasets with custom class colors also carry a `colors` list of `"#rrggbb"` strings indexed by class id in the dataset header line. Models trained on the dataset draw their predictions with these colors.
+
 Depth exports declare `"task": "depth"` and `"depth_scale": 1000` in the dataset line. Each image line includes a
 `depth.url` for its paired plain uint16 PNG. Ultralytics downloads image and depth URLs concurrently and writes a
 training YAML with the same scale, so the NDJSON file can be passed directly to `model.train(data=...)`.

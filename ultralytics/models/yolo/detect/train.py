@@ -138,6 +138,7 @@ class DetectionTrainer(BaseTrainer):
         """Set model attributes based on dataset information."""
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
+        self.model.colors = self.data.get("colors")  # attach optional class colors to model
         self.model.args = self.args  # attach hyperparameters to model
 
     def set_model_names_for_load(self, model):

@@ -214,6 +214,7 @@ class Results(SimpleClass, DataExportMixin):
         depth (DepthMap | None): Per-pixel depth map.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
+        colors (list[str] | None): Model class colors as "#rrggbb" strings overriding the default palette.
         path (str): Path to the input image file.
         save_dir (str | None): Directory to save results.
 
@@ -292,6 +293,7 @@ class Results(SimpleClass, DataExportMixin):
         self.depth = DepthMap(depth, self.orig_shape) if depth is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
+        self.colors = None
         self.path = path
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
@@ -514,7 +516,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> new_result = results[0].new()
         """
         result = Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
-        result.save_dir = self.save_dir
+        result.save_dir, result.colors = self.save_dir, self.colors
         return result
 
     def plot(
@@ -598,7 +600,8 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx])
+            custom = self.colors if pred_boxes and color_mode == "class" else None
+            annotator.masks(pred_mask_data, colors=[colors(x, True, custom) for x in idx])
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -608,20 +611,8 @@ class Results(SimpleClass, DataExportMixin):
                 d_conf, id = float(d.conf.item()) if conf else None, int(d.id.item()) if d.is_track else None
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else (f"{d_conf:.2f}" if conf else None)
-                annotator.box_label(
-                    box,
-                    label,
-                    color=colors(
-                        c
-                        if color_mode == "class"
-                        else id
-                        if id is not None
-                        else i
-                        if color_mode == "instance"
-                        else None,
-                        True,
-                    ),
-                )
+                color = colors(c, True, self.colors) if color_mode == "class" else colors(i if id is None else id, True)
+                annotator.box_label(box, label, color=color)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -635,7 +626,7 @@ class Results(SimpleClass, DataExportMixin):
             if isinstance(sem_mask, torch.Tensor):
                 sem_mask = sem_mask.cpu().numpy()
             sem_mask = np.where(sem_mask == 1, 0, 255) if len(names) == 1 else sem_mask
-            annotator.semantic_mask(sem_mask, alpha=0.5)
+            annotator.semantic_mask(sem_mask, alpha=0.5, custom=self.colors)
 
         # Plot Depth results — blend colorized depth heatmap over the image
         if self.depth and show_masks:

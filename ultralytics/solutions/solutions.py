@@ -753,7 +753,7 @@ class SolutionAnnotator(Annotator):
         box: tuple[float, float, float, float],
         label: str = "",
         color: tuple[int, int, int] = (128, 128, 128),
-        txt_color: tuple[int, int, int] = (255, 255, 255),
+        txt_color: tuple[int, int, int] | None = None,
         shape: str = "rect",
         margin: int = 5,
     ):
@@ -763,7 +763,8 @@ class SolutionAnnotator(Annotator):
             box (tuple[float, float, float, float]): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
             color (tuple[int, int, int]): The background color of the rectangle (B, G, R).
-            txt_color (tuple[int, int, int]): The color of the text (B, G, R).
+            txt_color (tuple[int, int, int], optional): The color of the text (B, G, R); None picks navy or white by
+                background luma.
             shape (str): Label shape. Options: "circle" or "rect".
             margin (int): The margin between the text and the rectangle border.
         """

@@ -25,9 +25,9 @@ own recognition model.
 
 ## Run Scene Text OCR with YOLO26
 
-PaddleOCR is optional and loads when `OCR` is created with `recognizer="paddleocr"`, installing PaddleOCR 3.x and the
-CPU PaddlePaddle build if they are missing. For GPU recognition, install a matching `paddlepaddle-gpu` build first; no OCR packages are
-added to the base Ultralytics dependencies.
+PaddleOCR is optional and loads when `OCR` is created with `recognizer="paddleocr"`, installing PaddleOCR 3.7 or newer
+(PP-OCRv6 recognition) and the CPU PaddlePaddle 3.1+ build if they are missing. For GPU recognition, install a matching
+`paddlepaddle-gpu` 3.1+ build first; no OCR packages are added to the base Ultralytics dependencies.
 
 Pass an image and a text detector to the `OCR` solution. The result contains the annotated image and recognized text:
 
@@ -142,15 +142,15 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 
 ## Dependencies and Licenses
 
-| Component       | Required                          | Role                                                     | License                |
-| --------------- | --------------------------------- | -------------------------------------------------------- | ---------------------- |
-| Ultralytics     | Yes                               | YOLO detection, crop geometry, and result orchestration  | AGPL-3.0               |
-| PaddlePaddle    | Only for `recognizer="paddleocr"` | Recognition runtime                                      | Apache-2.0             |
-| PaddleOCR 3.x   | Only for `recognizer="paddleocr"` | Text-line orientation and recognition models and adapter | Apache-2.0             |
-| Custom callable | No                                | User-owned recognition integration                       | Defined by the backend |
+| Component         | Required                          | Role                                                     | License                |
+| ----------------- | --------------------------------- | -------------------------------------------------------- | ---------------------- |
+| Ultralytics       | Yes                               | YOLO detection, crop geometry, and result orchestration  | AGPL-3.0               |
+| PaddlePaddle 3.1+ | Only for `recognizer="paddleocr"` | Orientation and recognition runtime                      | Apache-2.0             |
+| PaddleOCR 3.7+    | Only for `recognizer="paddleocr"` | Text-line orientation and recognition models and adapter | Apache-2.0             |
+| Custom callable   | No                                | User-owned recognition integration                       | Defined by the backend |
 
-PaddleOCR may download orientation and recognition weights on first use. Review the selected model's model card and redistribution
-terms before packaging or deploying those artifacts. Custom checkpoint licenses are separate.
+PaddleOCR may download orientation and recognition weights on first use. Review the selected model's model card and
+redistribution terms before packaging or deploying those artifacts. Custom checkpoint licenses are separate.
 
 ## FAQ
 

@@ -28,7 +28,7 @@ class OCR(BaseSolution):
         super().__init__(**kwargs)
         self.recognizer = self.CFG["recognizer"]
         if self.recognizer == "paddleocr":
-            check_requirements((("paddlepaddle>=3.0.0", "paddlepaddle-gpu>=3.0.0"), "paddleocr>=3.0,<4"))
+            check_requirements((("paddlepaddle>=3.1.0", "paddlepaddle-gpu>=3.1.0"), "paddleocr>=3.7,<4"))  # PP-OCRv6
             from paddleocr import TextLineOrientationClassification, TextRecognition
 
             self._paddle = TextRecognition()

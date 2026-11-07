@@ -291,6 +291,10 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
         Inference time does not include pre/post-processing.
 
+!!! note "More runtime optimizations coming soon"
+
+    Further ExecuTorch runtime optimizations are in progress and will ship in upcoming Ultralytics releases, so expect these inference times to improve.
+
 ## Troubleshooting
 
 ### Common Issues

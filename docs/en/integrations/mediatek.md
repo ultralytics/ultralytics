@@ -46,6 +46,16 @@ You can check an exported model on the host with `YOLO("yolo26n.tflite")("https:
 
 The [Ultralytics YOLO Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) runs LiteRT `.tflite` exports on Android with camera and single-image inference for all seven YOLO26 tasks. Official `w8a32` assets are published in the [yolo-flutter-app `v0.7.0` release](https://github.com/ultralytics/yolo-flutter-app/releases/tag/v0.7.0).
 
+Try the [Ultralytics YOLO Android app](https://play.google.com/store/apps/details?id=com.ultralytics.yolo) on Google Play. The previews below show the app on iOS.
+
+<p align="center">
+  <img width="100%" src="https://cdn.ul.run/i/4d2098fa5d7bc0e5a5aa28660da41eb4.avif" alt="Ultralytics YOLO app previews on iOS showing segmentation, pose, depth, oriented boxes, and detection">
+</p>
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.ultralytics.yolo"><img width="160" src="https://raw.githubusercontent.com/ultralytics/assets/main/app/google-play.svg" alt="Get it on Google Play"></a>
+</p>
+
 To run your exported model, copy `yolo26n_w8a32.tflite` into `assets/models/` in a Flutter app and add the plugin and asset to `pubspec.yaml`:
 
 ```yaml
@@ -83,6 +93,8 @@ Set Android's minimum SDK to 24, add camera permission, and run `flutter run` on
 ## Measured Performance
 
 The [Xiaomi 17T Pro results in the LiteRT guide](litert.md#xiaomi-17t-pro) cover all seven YOLO26n tasks on a **MediaTek Dimensity 9500** (MT6993) with MediaTek NPU 990 and Android 16 / API 36. Each value is the mean of 15 calls after 3 warmups. CPU and GPU measurements used `ultralytics_yolo` `0.7.1` and the official `v0.7.0` `w8a32` assets; the prototype NPU measurements used FP32 exports. YOLO26n detection takes 31.4 ms on the CPU, 25.6 ms on the GPU, and 11.0 ms on the prototype NPU path. Depth and OBB have no NPU result and run on the GPU instead.
+
+Compare more devices and models on the [Ultralytics mobile benchmarks page](https://www.ultralytics.com/benchmarks?tab=mobile).
 
 ## MediaTek Genio
 

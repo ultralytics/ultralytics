@@ -171,13 +171,12 @@ After a successful export, a model directory is created with the following layou
 
 ```text
 yolo26n_deepx_model/
-├── yolo26n.dxnn          # Compiled DEEPX model binary (NPU executable)
-├── yolo26n_summary.html  # DX-COM Compilation Summary Report
-├── config.json           # Calibration and preprocessing configuration
-└── metadata.yaml         # Model metadata (classes, image size, task, etc.)
+├── yolo26n.dxnn     # Compiled DEEPX model binary (NPU executable)
+├── config.json      # Calibration and preprocessing configuration
+└── metadata.yaml    # Model metadata (classes, image size, task, etc.)
 ```
 
-The `.dxnn` file is the compiled model binary that the `dx_engine` runtime loads directly on the NPU. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline. The `yolo26n_summary.html` report is described in [Inspecting the Compiled Model](#inspecting-the-compiled-model).
+The `.dxnn` file is the compiled model binary that the `dx_engine` runtime loads directly on the NPU. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline.
 
 ## Deploying Exported YOLO DEEPX Models
 
@@ -220,26 +219,29 @@ sudo apt update
 sudo apt install dxrt-driver-dkms libdxrt-bin
 ```
 
+Reboot the host after installing the driver so the new kernel module is loaded before running `dxcli`.
+
 #### Python Package and Firmware
 
-`libdxrt-bin` installs `dx_engine` into the system Python and bundles wheels for Python 3.8–3.14 in `/usr/share/libdxrt-bin/python/`. To use `dx_engine` inside a virtual environment, install the wheel that matches your Python version:
+`libdxrt-bin` bundles `dx_engine` wheels for Python 3.8–3.14 in `/usr/share/libdxrt-bin/python/` but does not install them. In the environment where Ultralytics and NumPy are installed, install the wheel that matches your Python version:
 
 ```bash
-pip install --no-index --find-links /usr/share/libdxrt-bin/python dx_engine
+python -m pip install --no-index --find-links /usr/share/libdxrt-bin/python dx_engine
 ```
 
-DX-RT 3.5.0 requires NPU firmware v2.7.6 or newer. Check the firmware version with `dxcli -s` and, if it is older, update it with the firmware image for your module. DX-M1 and DX-M1M M.2 modules use different firmware images, so download only the one that matches your module; `dxcli -s` reports the module as `M1` or `M1M` in its device information:
+DX-RT 3.5.0 requires NPU firmware v2.7.6 or newer. Check the firmware version and device ID with `dxcli -s` and, if it is older, update it with the firmware image for your module. DX-M1 and DX-M1M M.2 modules use different firmware images, so download only the one that matches your module; `dxcli -s` reports the module as `M1` or `M1M` in its device information:
 
 ```bash
-# Download the firmware image for your module (DX-M1 by default)
-wget https://github.com/DEEPX-AI/dx_fw/raw/main/m1/2.7.6/mdot2/fw.bin
-# wget https://github.com/DEEPX-AI/dx_fw/raw/main/m1m/2.7.6/mdot2/fw.bin # use this line instead for DX-M1M
+# Download the firmware image matching your module (DX-M1 shown)
+wget -O dx-m1-2.7.6.bin https://github.com/DEEPX-AI/dx_fw/raw/main/m1/2.7.6/mdot2/fw.bin
+# wget -O dx-m1m-2.7.6.bin https://github.com/DEEPX-AI/dx_fw/raw/main/m1m/2.7.6/mdot2/fw.bin # DX-M1M
 
-# Update the firmware
+# Update the selected device; replace DEVICE_ID with its ID from dxcli -s
 sudo systemctl stop dxrt.service
-dxcli -u fw.bin
-sudo systemctl start dxrt.service
+dxcli -d DEVICE_ID -u dx-m1-2.7.6.bin # for DX-M1M use dx-m1m-2.7.6.bin instead
 ```
+
+After flashing, power the host off completely and start it again before checking the firmware version. If physical power disconnection is not possible, reboot the host as described in the [DEEPX troubleshooting guide](https://developer.deepx.ai/tech-docs/2.4.0/DX-AllSuite/FAQ_Troubleshooting_Guide/).
 
 Verify the installation with `dxcli -s`, which reports the runtime, driver, and firmware versions of each device. `import dx_engine` raises a `RuntimeError` if the `dx_engine` wheel and the installed `libdxrt` runtime versions differ, so reinstall the wheel from `/usr/share/libdxrt-bin/python/` after upgrading the runtime.
 
@@ -247,7 +249,7 @@ Once the runtime is installed, run inference and validation on your DEEPX device
 
 ### Inspecting the Compiled Model
 
-DX-COM 2.5.0 replaces the DX-TRON graph visualizer with an interactive HTML Compilation Summary Report that shows the compiled model structure and the CPU/NPU workload split. To generate it, recompile the intermediate ONNX model written by the export with the `dxcom` CLI on the x86-64 export host:
+DX-COM 2.5.0 replaces the DX-TRON graph visualizer with an interactive HTML Compilation Summary Report that shows the compiled model structure and the CPU/NPU workload split. If needed, generate it by recompiling the intermediate ONNX model written by the export with the `dxcom` CLI on the x86-64 export host:
 
 ```bash
 dxcom -m yolo26n.onnx -c yolo26n_deepx_model/config.json -o yolo26n_deepx_report --export_html
@@ -380,7 +382,6 @@ DEEPX model export (compilation) requires an **x86-64 Linux** host. The export s
 The export creates a directory (e.g., `yolo26n_deepx_model/`) containing:
 
 - `yolo26n.dxnn` — the compiled NPU binary
-- `yolo26n_summary.html` — the DX-COM Compilation Summary Report
 - `config.json` — calibration and preprocessing settings
 - `metadata.yaml` — model metadata including class names and image size
 

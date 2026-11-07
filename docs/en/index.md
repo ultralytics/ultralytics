@@ -52,6 +52,12 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
     Explore the [YOLO27 preview](models/yolo27.md), including architecture details, preliminary benchmarks, and examples for use after release. Models are undergoing final R&D for an anticipated launch later this year; they are not yet available, and no launch date is set.
 
+!!! tip "🚀 New: Scene Text OCR"
+
+    Detect and recognize scene text with YOLO26-Text using PaddleOCR or your own recognition model.
+
+    [:octicons-arrow-right-24: Learn more](guides/ocr.md)
+
 !!! tip "🚀 New: Monocular Depth Estimation"
 
     Turn a single photo into a depth map, a distance in meters for every pixel.

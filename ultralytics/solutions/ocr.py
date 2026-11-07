@@ -1,0 +1,147 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+from __future__ import annotations
+
+from typing import Any
+
+import cv2
+import numpy as np
+import torch
+
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils import ops
+from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.plotting import save_one_box
+
+
+class OCR(BaseSolution):
+    """Detect, recognize, and order scene text with a YOLO detector and a recognition backend.
+
+    Examples:
+        >>> ocr = OCR(model="scene-text-obb.pt", recognizer="paddleocr")
+        >>> result = ocr(im0)
+        >>> print(result.texts)
+    """
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize OCR with a YOLO detector and a PaddleOCR backend or custom crop-recognition callable."""
+        kwargs["tracker"] = None
+        super().__init__(**kwargs)
+        self.recognizer = self.CFG["recognizer"]
+        if not callable(self.recognizer) and self.recognizer != "paddleocr":
+            raise ValueError("recognizer must be 'paddleocr' or a callable accepting a BGR image crop.")
+        self._paddle = None
+
+    @staticmethod
+    def reading_order(polygons: list[np.ndarray]) -> list[int]:
+        """Return detection indices in deterministic top-to-bottom, left-to-right reading order."""
+        entries = sorted(
+            enumerate(polygons),
+            key=lambda item: (float(item[1][:, 1].mean()), float(item[1][:, 0].min()), item[0]),
+        )
+        lines = []
+        for index, polygon in entries:
+            center, height = float(polygon[:, 1].mean()), float(np.ptp(polygon[:, 1]))
+            if lines and abs(center - lines[-1][0]) <= max(height, lines[-1][1], 1.0) * 0.5:
+                line = lines[-1]
+                count = len(line[2])
+                line[0] = (line[0] * count + center) / (count + 1)
+                line[1] = max(line[1], height)
+                line[2].append((index, polygon))
+            else:
+                lines.append([center, height, [(index, polygon)]])
+        return [
+            index
+            for _, _, line in sorted(lines, key=lambda line: line[0])
+            for index, _ in sorted(line, key=lambda item: (float(item[1][:, 0].min()), item[0]))
+        ]
+
+    def _init_paddle(self) -> None:
+        """Initialize PaddleOCR lazily for text-line recognition without duplicate text detection."""
+        if not check_requirements(["paddlepaddle", "paddleocr>=3.0,<4"], install=False):
+            raise ModuleNotFoundError(
+                "PaddleOCR recognition requires PaddlePaddle and PaddleOCR 3.x. "
+                "Install matching builds with 'pip install paddlepaddle paddleocr>=3.0,<4'."
+            )
+        from paddleocr import TextRecognition
+
+        self._paddle = TextRecognition()
+
+    def _recognize(self, crops: list[np.ndarray]) -> list[tuple[str, float]]:
+        """Recognize BGR crops with the configured backend, batching PaddleOCR inference."""
+        if callable(self.recognizer):
+            outputs = [self.recognizer(crop) for crop in crops]
+        else:
+            if self._paddle is None:
+                self._init_paddle()
+            outputs = [
+                (output["rec_text"], output["rec_score"]) for output in self._paddle.predict(crops, batch_size=16)
+            ]
+        for text, confidence in outputs:
+            if not isinstance(text, str) or not isinstance(confidence, (float, int, np.floating)):
+                raise TypeError("recognizer must return a (text, confidence) tuple containing str and float values.")
+        return [(text, float(confidence)) for text, confidence in outputs]
+
+    def process(self, im0: np.ndarray) -> SolutionResults:
+        """Run text detection, recognition, and reading-order sorting on one image."""
+        self.extract_tracks(im0)
+        texts = []
+        polygons = []
+        pending = []
+        for i, box in enumerate(self.boxes):
+            polygon = box.numpy().reshape(-1, 2)
+            crop_box = box
+            geometry = {"box": polygon.tolist()}
+            if self.tracks.masks is not None:
+                polygon = self.tracks.masks.xy[i].astype(np.float32)
+                rectangle = cv2.minAreaRect(polygon)
+                crop_box = ops.xywhr2xyxyxyxy(
+                    torch.tensor([*rectangle[0], *rectangle[1], np.deg2rad(rectangle[2])], dtype=torch.float32)
+                )
+                geometry = {"polygon": polygon.tolist()}
+            elif polygon.size == 4:
+                x1, y1, x2, y2 = box.tolist()
+                polygon = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], dtype=np.float32)
+                geometry = {"box": polygon.tolist()}
+            crop = save_one_box(crop_box, im0, gain=1.0, pad=0, BGR=True, save=False)
+            if crop.size:
+                pending.append((i, crop))
+            texts.append(
+                {
+                    "text": "",
+                    "confidence": 0.0,
+                    "detection_confidence": self.confs[i],
+                    "detection_index": i,
+                    **geometry,
+                }
+            )
+            polygons.append(polygon)
+        recognized = self._recognize([crop for _, crop in pending]) if pending else []
+        for (i, _), (text, confidence) in zip(pending, recognized):
+            texts[i].update(text=text, confidence=confidence)
+        order = self.reading_order(polygons) if polygons else []
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)
+        for i in order:
+            if self.CFG["show_boxes"]:
+                points = np.array(texts[i].get("polygon", texts[i].get("box")), dtype=np.int32)
+                annotator.draw_region(points.tolist(), (0, 255, 0), self.line_width)
+        if self.show_labels:
+            annotator = SolutionAnnotator(
+                annotator.im,
+                line_width=self.line_width,
+                font_size=max(round(self.line_width * 6), 12),
+                pil=True,
+                example="".join(text["text"] for text in texts),
+            )
+            for i in order:
+                text = texts[i]
+                points = np.array(text.get("polygon", text.get("box")), dtype=np.int32)
+                x1, y1 = points.min(0)
+                label = text["text"]
+                label += f" {text['confidence']:.2f}" if self.show_conf else ""
+                width, height = annotator.font.getsize(label)
+                x = min(max(int(x1), 0), max(im0.shape[1] - width - 4, 0))
+                annotator.text([x, max(int(y1) - 2, height + 1)], label, anchor="bottom", box_color=(0, 0, 0))
+        result = SolutionResults(plot_im=annotator.result(), texts=[texts[i] for i in order])
+        self.display_output(result.plot_im)
+        return result

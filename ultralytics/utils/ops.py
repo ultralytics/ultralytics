@@ -81,7 +81,7 @@ def merge_tiles(
     """Merge tile payloads after task postprocessing has restored their native window coordinates.
 
     Each payload contains bboxes (xyxy or xywhr), conf and cls, optionally with masks, keypoints or extra columns;
-    alternatively it contains one semantic_mask, depth or probs tensor. Masks and dense maps match their window size.
+    alternatively it contains one semantic_mask, depth or probs tensor. Masks match their window size or a whole-pixel stride of it, inferred from the larger side; dense maps match their window size.
     Only masks surviving box suppression are expanded to the full image.
     """
     from bisect import bisect_right

@@ -48,12 +48,12 @@ class Colors:
     Colors are RGB and are drawn as RGB; convert to BGR only when drawing into a BGR buffer (`bgr=True`).
 
     - Class color (boxes, OBB, instance and semantic masks, box labels): `custom[c]` when the model carries `colors`
-      metadata (a list of "#rrggbb" strings indexed by class id) and `c < len(custom)`, else `palette[c % 20]`.
+    metadata (a list of "#rrggbb" strings indexed by class id) and `c < len(custom)`, else `palette[c % 20]`.
     - Box label text: `#111f68` when the background luma 0.299*R + 0.587*G + 0.114*B exceeds 150, else `#ffffff`.
     - Pose: the 17-keypoint COCO layout colors keypoint k with `kpt_color[k]` (pose palette indices `[16] * 5 + [9] * 6
-      + [0] * 6`) and limb j, joining the 1-indexed keypoints `Annotator.skeleton[j]`, with `limb_color[j]` (indices
-      `[0] * 4 + [7] * 3 + [9] * 5 + [16] * 7`): face green, arms blue, legs orange, torso magenta. Any other layout
-      colors keypoint k with `palette[k % 20]`.
+    + [0] * 6`) and limb j, joining the 1-indexed keypoints `Annotator.skeleton[j]`, with `limb_color[j]` (indices `[0]
+    * 4 + [7] * 3 + [9] * 5 + [16] * 7`): face green, arms blue, legs orange, torso magenta. Any other layout colors
+    keypoint k with `palette[k % 20]`.
     - Masks blend at 0.5 opacity (`Annotator.masks`, `Annotator.semantic_mask`); depth uses `colorize_depth` at 0.6.
 
     ## Ultralytics Color Palette

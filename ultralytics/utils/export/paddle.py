@@ -34,16 +34,12 @@ def torch2paddle(
     check_requirements(
         (
             # Interchangeable candidates so an installed variant is never dual-installed over (both ship 'paddle')
-            (
-                "paddlepaddle-gpu>=3.0.0,<3.3.0"  # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
-                if im.device.type == "cuda"
-                else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
-                if ARM64
-                else "paddlepaddle>=3.0.0,<3.3.0",  # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
+            (  # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340 and 3.0.0 for ARM64
                 "paddlepaddle==3.0.0" if ARM64 else "paddlepaddle>=3.0.0,<3.3.0",
-                "paddlepaddle-gpu>=3.0.0,<3.3.0",
+                "paddlepaddle-gpu>=3.0.0,<3.3.0",  # not on PyPI, so an installed GPU build is used but never installed
             ),
             "x2paddle",
+            "six",  # x2paddle imports six without declaring it; python-dateutil 4 no longer installs it
         )
     )
 

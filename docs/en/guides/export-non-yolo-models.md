@@ -45,7 +45,7 @@ The `torch2*` functions take a standard `torch.nn.Module` and an example input t
 | Core AI         | [`torch2coreai()`](../reference/utils/export/coreai.md)           | `pip install coreai-torch` (Apple silicon macOS 26+, x86_64 Linux glibc 2.34+; Python 3.11-3.14) | `.aimodel` directory           |
 | TF SavedModel   | [`onnx2saved_model()`](../reference/utils/export/tensorflow.md)   | [see detailed requirements below](#export-to-tensorflow-savedmodel)                              | `_saved_model/` directory      |
 | TF Frozen Graph | [`keras2pb()`](../reference/utils/export/tensorflow.md)           | [see detailed requirements below](#export-to-tensorflow-savedmodel)                              | `.pb` file                     |
-| PaddlePaddle    | [`torch2paddle()`](../reference/utils/export/paddle.md)           | `pip install paddlepaddle x2paddle`                                                              | `_paddle_model/` directory     |
+| PaddlePaddle    | [`torch2paddle()`](../reference/utils/export/paddle.md)           | `pip install paddlepaddle x2paddle six`                                                          | `_paddle_model/` directory     |
 | MNN             | [`onnx2mnn()`](../reference/utils/export/mnn.md)                  | `pip install MNN`                                                                                | `.mnn` file                    |
 | NCNN            | [`torch2ncnn()`](../reference/utils/export/ncnn.md)               | `pip install ncnn pnnx`                                                                          | `_ncnn_model/` directory       |
 | ExecuTorch      | [`torch2executorch()`](../reference/utils/export/executorch.md)   | `pip install executorch`                                                                         | `_executorch_model/` directory |
@@ -254,11 +254,11 @@ resnet18_paddle_model/
 └── x2paddle_code.py
 ```
 
-Requires `x2paddle` and the correct PaddlePaddle distribution for your platform:
+Requires `x2paddle`, `six`, and a PaddlePaddle build, which is installed automatically if missing:
 
-- `paddlepaddle-gpu>=3.0.0,<3.3.0` on CUDA
-- `paddlepaddle==3.0.0` on ARM64 CPU
-- `paddlepaddle>=3.0.0,<3.3.0` on other CPUs
+- `paddlepaddle==3.0.0` on ARM64
+- `paddlepaddle>=3.0.0,<3.3.0` on other platforms, including CUDA machines; conversion does not need a GPU build
+- An installed `paddlepaddle-gpu>=3.0.0,<3.3.0` from [PaddlePaddle's package index](https://www.paddlepaddle.org.cn/en/install/quick) is also accepted. GPU builds are not on PyPI.
 
 Not supported on NVIDIA Jetson.
 

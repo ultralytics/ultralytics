@@ -29,14 +29,13 @@ from ultralytics import solutions
 ocr = solutions.OCR(
     model="scene-text-obb.pt",  # custom detect, OBB, or segmentation text detector
     recognizer="paddleocr",
-    tracker="bytetrack.yaml",
 )
 im0 = cv2.imread("path/to/image.jpg")
 result = ocr(im0)
 cv2.imwrite("ocr.jpg", result.plot_im)
 
 for text in result.texts:
-    print(text["text"], text["confidence"], text.get("track_id"))
+    print(text["text"], text["confidence"])
 ```
 
 The public YOLO26-Text family provides `n`, `s`, `m`, `l`, and `x` OBB checkpoints trained on COCO-Text and HierText at

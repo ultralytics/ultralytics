@@ -104,8 +104,8 @@ def merge_tiles(
 
     Each payload contains bboxes (xyxy or xywhr), conf and cls, optionally with masks, keypoints or extra columns;
     alternatively it contains one semantic_mask, depth or probs tensor. Masks and dense maps match their window size.
-    Boxes cut by an interior window edge are dropped when another window contains them past that edge, then NMS removes
-    duplicates. Only masks surviving box suppression are expanded to the full image.
+    Boxes cut by an interior window edge are dropped when another window sees them clear of its edges and a kept box
+    covers them, then NMS removes duplicates. Only masks surviving box suppression are expanded to the full image.
     """
     from bisect import bisect_right
 
@@ -145,21 +145,27 @@ def merge_tiles(
         boxes[:, 2:4] += offsets
     corners = xywhr2xyxyxyxy(boxes) if rotated else boxes.reshape(-1, 2, 2)
     extent = torch.cat((corners.amin(1), corners.amax(1)), 1)
-    # A box touching an interior window edge is a cut fragment when another window contains it and reaches past that
-    # edge, because that window saw more of the same object.
-    cut = torch.cat((extent[:, :2] <= own[:, :2] + 2, extent[:, 2:] >= own[:, 2:] - 2), 1)
-    cut &= own != own.new_tensor([0, 0, shape[1], shape[0]])
-    fragment = cut.any(1)
+    # A box touching an interior window edge is a cut fragment when another window sees it clear of its own interior
+    # edges, because that window saw the whole object.
+    border = own.new_tensor([0, 0, shape[1], shape[0]])
+    fragment = (torch.cat((extent[:, :2] <= own[:, :2] + 2, extent[:, 2:] >= own[:, 2:] - 2), 1) & (own != border)).any(
+        1
+    )
     if fragment.any():
-        e, o, c = extent[fragment, None], own[fragment, None], cut[fragment, None]
-        contains = (regions[:, :2] <= e[..., :2]).all(-1) & (regions[:, 2:] >= e[..., 2:]).all(-1)
-        reaches = torch.cat((regions[:, :2] < o[..., :2], regions[:, 2:] > o[..., 2:]), -1) | ~c
-        fragment[fragment.clone()] = (contains & reaches.all(-1)).any(1)
+        e = extent[fragment, None]
+        inside = torch.cat((regions[:, :2] + 2 < e[..., :2], regions[:, 2:] - 2 > e[..., 2:]), -1) | (regions == border)
+        fragment[fragment.clone()] = inside.all(-1).any(1)
     valid = (~fragment).nonzero().squeeze(1)
     output = {k: torch.cat([p[k] for p in predictions]) for k in first if k not in {"bboxes", "masks", "keypoints"}}
     classes = output["cls"][:, None] * (0 if agnostic else 2 * max(shape) + 1)
     candidates = torch.cat((boxes[:, :2] + classes, boxes[:, 2:]), 1) if rotated else boxes + classes
     keep = valid[nms_boxes(candidates[valid], output["conf"][valid].float(), iou, rotated=rotated)][:max_det]
+    if fragment.any():  # restore fragments that no kept box covers by half, i.e. the whole-view window missed them
+        lone = fragment.nonzero().squeeze(1)
+        e, k = extent[lone, None], extent[keep]
+        overlap = (torch.min(e[..., 2:], k[:, 2:]) - torch.max(e[..., :2], k[:, :2])).clamp(0).prod(-1)
+        keep = torch.cat((keep, lone[~(overlap > (e[..., 2:] - e[..., :2]).prod(-1) / 2).any(1)]))
+        keep = keep[nms_boxes(candidates[keep], output["conf"][keep].float(), iou, rotated=rotated)][:max_det]
     output = {"bboxes": boxes[keep], **{k: v[keep] for k, v in output.items()}}
     if "keypoints" in first:
         keypoints = torch.cat([p["keypoints"] for p in predictions])[keep].clone()

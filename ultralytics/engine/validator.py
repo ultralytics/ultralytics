@@ -164,7 +164,13 @@ class BaseValidator:
             shape = (window[3] - window[1], window[2] - window[0])
             if isinstance(pred, dict):
                 pred = self.scale_preds(
-                    pred, {"imgsz": batch["img"].shape[2:], "ori_shape": shape, "ratio_pad": batch["ratio_pad"][i]}
+                    pred,
+                    {
+                        "imgsz": batch["img"].shape[2:],
+                        "ori_shape": shape,
+                        "ratio_pad": batch["ratio_pad"][i],
+                        "tile": window,
+                    },
                 )
             elif self.args.task == "classify":
                 pred = {"probs": pred}

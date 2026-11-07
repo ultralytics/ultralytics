@@ -288,9 +288,12 @@ class SegmentationValidator(DetectionValidator):
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Scale predictions to the original image size."""
         masks = ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[0]
+        if "tile" not in pbatch:  # untiled masks keep the existing COCO-evaluated rounding
+            return {**super().scale_preds(predn, pbatch), "masks": masks.byte()}
         masks = masks.gt_(0.5).byte()
-        if self.args.tile and not (self.args.save_json or self.args.save_txt):  # metrics use target mask resolution
-            masks = masks[:, 2::4, 2::4].contiguous()  # keep pending tile masks 16x smaller
+        if not (self.args.save_json or self.args.save_txt):  # sample source pixels 2 mod 4, the target mask centers
+            x0, y0 = pbatch["tile"][:2]
+            masks = masks[:, (2 - y0) % 4 :: 4, (2 - x0) % 4 :: 4].contiguous()  # pending tile masks 16x smaller
         return {**super().scale_preds(predn, pbatch), "masks": masks}
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:

@@ -132,7 +132,8 @@ def merge_tiles(
     if any("masks" in p for p in predictions):
         i = next(i for i, p in enumerate(predictions) if "masks" in p)
         template = predictions[i]["masks"]
-        r = round((windows[i][2] - windows[i][0]) / template.shape[-1])  # mask stride, 1 at source resolution
+        x1, y1, x2, y2 = windows[i]
+        r = round(max(x2 - x1, y2 - y1) / max(template.shape[-2:]))  # mask stride, 1 at source resolution
         output["masks"] = template.new_zeros((len(keep), -(-shape[0] // r), -(-shape[1] // r)))
         ends, count = [], 0
         for p in predictions:
@@ -141,7 +142,7 @@ def merge_tiles(
         for j, k in enumerate(keep.tolist()):
             source = bisect_right(ends, k)
             local = k - (ends[source - 1] if source else 0)
-            x1, y1 = windows[source][0] // r, windows[source][1] // r
+            x1, y1 = ((v - r // 2 + r - 1) // r for v in windows[source][:2])  # first sampled pixel, x1 when r=1
             mask = predictions[source]["masks"][local]
             target = output["masks"][j, y1 : y1 + mask.shape[0], x1 : x1 + mask.shape[1]]
             target[:] = mask[: target.shape[0], : target.shape[1]]

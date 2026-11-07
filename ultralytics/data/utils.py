@@ -678,8 +678,11 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
         (float | int): Fraction of the split to use as a ratio (float) or image count (int).
 
     Raises:
+        TypeError: If the fraction or a per-split value is a boolean.
         ValueError: If the resolved fraction is 0 for the 'train' or 'val' split.
     """
+    if isinstance(fraction, bool) or (isinstance(fraction, list) and any(isinstance(x, bool) for x in fraction)):
+        raise TypeError(f"'fraction' must not contain boolean values: {fraction!r}")
     if isinstance(fraction, list) and split in (splits := ("train", "val", "test")):
         index = splits.index(split)
         fraction = fraction[index] if index < len(fraction) else 1.0

@@ -706,7 +706,7 @@ def check_paddle(version: str = "==3.0.0" if ARM64 else ">=3.0.0,<3.3.0", gpu: s
 
     Args:
         version (str): Required CPU `paddlepaddle` version. The default export and inference range excludes 3.3+, whose
-            oneDNN CPU inference fails (https://github.com/PaddlePaddle/Paddle/issues/77340).
+        oneDNN CPU inference fails (https: //github.com/PaddlePaddle/Paddle/issues/77340).
         gpu (str): Required version of an installed `paddlepaddle-gpu` build.
     """
     if check_version("paddlepaddle-gpu", ""):

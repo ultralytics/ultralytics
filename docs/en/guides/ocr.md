@@ -95,7 +95,9 @@ Additionally, the following visualization settings are supported:
    furthest left-to-right, so near-square boxes stay upright and tilted text lines lie horizontally in reading
    direction. For segmentation polygons, the minimum-area rotated rectangle is rectified while the original polygon is
    retained. Crops at least 1.5× taller than wide are rotated 90° counter-clockwise, as in PaddleOCR.
-3. **Recognize text:** PaddleOCR processes all crops in batches of 16. Custom recognizers receive one crop at a time.
+3. **Recognize text:** PaddleOCR recognizes all crops in batches of 16. Its text-line orientation classifier flags
+   crops that look upside down; those are also read after a 180° turn, and the more confident reading is kept. Custom
+   recognizers receive one crop at a time, without orientation correction.
 4. **Order and render results:** Text is grouped into horizontal lines and ordered top-to-bottom and left-to-right. The
    visualization uses a Unicode font for non-ASCII text such as Chinese.
 
@@ -140,14 +142,14 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 
 ## Dependencies and Licenses
 
-| Component       | Required                          | Role                                                    | License                |
-| --------------- | --------------------------------- | ------------------------------------------------------- | ---------------------- |
-| Ultralytics     | Yes                               | YOLO detection, crop geometry, and result orchestration | AGPL-3.0               |
-| PaddlePaddle    | Only for `recognizer="paddleocr"` | Recognition runtime                                     | Apache-2.0             |
-| PaddleOCR 3.x   | Only for `recognizer="paddleocr"` | Text-line recognition models and inference adapter      | Apache-2.0             |
-| Custom callable | No                                | User-owned recognition integration                      | Defined by the backend |
+| Component       | Required                          | Role                                                     | License                |
+| --------------- | --------------------------------- | -------------------------------------------------------- | ---------------------- |
+| Ultralytics     | Yes                               | YOLO detection, crop geometry, and result orchestration  | AGPL-3.0               |
+| PaddlePaddle    | Only for `recognizer="paddleocr"` | Recognition runtime                                      | Apache-2.0             |
+| PaddleOCR 3.x   | Only for `recognizer="paddleocr"` | Text-line orientation and recognition models and adapter | Apache-2.0             |
+| Custom callable | No                                | User-owned recognition integration                       | Defined by the backend |
 
-PaddleOCR may download recognition weights on first use. Review the selected model's model card and redistribution
+PaddleOCR may download orientation and recognition weights on first use. Review the selected model's model card and redistribution
 terms before packaging or deploying those artifacts. Custom checkpoint licenses are separate.
 
 ## FAQ
@@ -156,6 +158,13 @@ terms before packaging or deploying those artifacts. Custom checkpoint licenses 
 
 Yes. Pass a callable as `recognizer` and return `(text, confidence)` for each BGR crop. See
 [Use a Custom Recognizer](#use-a-custom-recognizer) for the input and output contract.
+
+### Does OCR read rotated or upside-down text?
+
+Yes. OBB and segmentation detections are cropped upright along the text line. A box alone cannot tell which way its
+text reads, so with `recognizer="paddleocr"` a text-line orientation classifier flags crops that look upside down, and
+OCR keeps whichever of the original and 180°-turned readings is more confident. Custom recognizers receive the geometric
+crop and handle orientation themselves.
 
 ### Does OCR track text across video frames?
 

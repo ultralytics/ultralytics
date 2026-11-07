@@ -40,20 +40,17 @@ Images with no retained words remain in the dataset with empty label files and s
 
 ```text
 datasets/
-├── coco-text-yolo/
-│   ├── train/
-│   │   ├── images/
-│   │   └── labels/
-│   ├── val/
-│   │   ├── images/
-│   │   └── labels/
-│   └── test/
-│       ├── images/
-│       └── labels/
-└── hiertext-yolo/
-    ├── train/
-    ├── val/
-    └── test/
+└── scene-text-yolo/
+    ├── coco-text/
+    │   ├── train/
+    │   │   ├── images/
+    │   │   └── labels/
+    │   ├── val/
+    │   └── test/
+    └── hiertext/
+        ├── train/
+        ├── val/
+        └── test/
 ```
 
 Each label row contains class `0` followed by normalized polygon coordinates. Images are hard-linked when the filesystem supports it and copied otherwise.

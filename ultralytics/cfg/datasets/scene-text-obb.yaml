@@ -10,21 +10,20 @@
 # └── datasets
 #     ├── coco
 #     ├── coco-text
-#     ├── coco-text-yolo
 #     ├── hiertext
-#     └── hiertext-yolo
+#     └── scene-text-yolo
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: scene-text-yolo # dataset root dir
 train:
-  - ../coco-text-yolo/train/images # 43686 images, 65919 words
-  - ../hiertext-yolo/train/images # 8281 images, 862577 words
+  - coco-text/train/images # 43686 images, 65919 words
+  - hiertext/train/images # 8281 images, 862577 words
 val:
-  - ../coco-text-yolo/val/images # 4927 images, 7211 words
-  - ../hiertext-yolo/val/images # 1724 images, 178382 words
+  - coco-text/val/images # 4927 images, 7211 words
+  - hiertext/val/images # 1724 images, 178382 words
 test:
-  - ../coco-text-yolo/test/images # 5073 images, 7714 words
-  - ../hiertext-yolo/test/images # 1634 images, 167188 words
+  - coco-text/test/images # 5073 images, 7714 words
+  - hiertext/test/images # 1634 images, 167188 words
 
 names:
   0: text
@@ -37,6 +36,7 @@ download: |
   import os
   import shutil
   from pathlib import Path
+  from tempfile import TemporaryDirectory
 
   import cv2
   import numpy as np
@@ -58,8 +58,6 @@ download: |
 
   def link_image(source, destination):
       destination.parent.mkdir(parents=True, exist_ok=True)
-      if destination.exists():
-          return
       try:
           os.link(source, destination)
       except OSError:
@@ -71,7 +69,7 @@ download: |
       (label_dir / f"{stem}.txt").write_text("\n".join(labels) + ("\n" if labels else ""), encoding="utf-8")
 
 
-  def convert_coco_text(parent):
+  def convert_coco_text(parent, destination):
       source_dir = parent / "coco-text"
       annotations = source_dir / "cocotext.v2.json"
       if not annotations.is_file():
@@ -83,9 +81,6 @@ download: |
       coco = check_det_dataset("coco.yaml")
       images = Path(coco["path"]) / "images"
       data = json.loads(annotations.read_text(encoding="utf-8"))
-      final = parent / "coco-text-yolo"
-      destination = parent / ".coco-text-yolo.partial"
-      shutil.rmtree(destination, ignore_errors=True)
       for image_id, image in TQDM(data["imgs"].items(), desc="Converting COCO-Text"):
           split = (
               "train"
@@ -110,11 +105,9 @@ download: |
               if ann["legibility"] == "legible" and (label := polygon_label(ann["mask"], width, height)):
                   labels.append(label)
           write_labels(destination / split / "labels", Path(filename).stem, labels)
-      shutil.rmtree(final, ignore_errors=True)
-      destination.rename(final)
 
 
-  def convert_hiertext(parent):
+  def convert_hiertext(parent, destination):
       source = parent / "hiertext" / "source"
       splits = {"train": "train", "validation": "val", "test": "test"}
       base = "https://raw.githubusercontent.com/google-research-datasets/hiertext/main"
@@ -127,9 +120,6 @@ download: |
               delete=True,
               threads=3,
           )
-      final = parent / "hiertext-yolo"
-      destination = parent / ".hiertext-yolo.partial"
-      shutil.rmtree(destination, ignore_errors=True)
       for source_split, split in splits.items():
           with gzip.open(source / "gt" / f"{source_split}.jsonl.gz", "rt", encoding="utf-8") as f:
               rows = json.load(f)["annotations"]
@@ -151,10 +141,13 @@ download: |
                           if word["legible"] and (label := polygon_label(word["vertices"], width, height)):
                               labels.append(label)
               write_labels(destination / split / "labels", image_id, labels)
-      shutil.rmtree(final, ignore_errors=True)
+
+
+  final = Path(yaml["path"])
+  parent = final.parent
+  parent.mkdir(parents=True, exist_ok=True)
+  with TemporaryDirectory(dir=parent, prefix=".scene-text-") as tmp:
+      destination = Path(tmp)
+      convert_coco_text(parent, destination / "coco-text")
+      convert_hiertext(parent, destination / "hiertext")
       destination.rename(final)
-
-
-  parent = Path(yaml["path"]).parent
-  convert_coco_text(parent)
-  convert_hiertext(parent)

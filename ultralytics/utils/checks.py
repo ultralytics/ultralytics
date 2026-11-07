@@ -703,10 +703,11 @@ def check_paddle(version: str = "==3.0.0" if ARM64 else ">=3.0.0,<3.3.0", gpu: s
 
     PaddlePaddle 3.x GPU builds are published only on PaddlePaddle's own package index, not PyPI, so an installed
     `paddlepaddle-gpu` is version-checked and never replaced by the CPU build, which ships the same `paddle` module.
+    The default CPU range excludes 3.3+, whose oneDNN CPU inference fails, see
+    https://github.com/PaddlePaddle/Paddle/issues/77340.
 
     Args:
-        version (str): Required CPU `paddlepaddle` version. The default export and inference range excludes 3.3+, whose
-        oneDNN CPU inference fails (https: //github.com/PaddlePaddle/Paddle/issues/77340).
+        version (str): Required CPU `paddlepaddle` version, defaulting to the export and inference range.
         gpu (str): Required version of an installed `paddlepaddle-gpu` build.
     """
     if check_version("paddlepaddle-gpu", ""):

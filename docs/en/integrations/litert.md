@@ -28,7 +28,7 @@ The LiteRT export format optimizes your models for tasks like [object detection]
 
 !!! tip "Run YOLO on Android with LiteRT today via the official Flutter plugin"
 
-    The official [Ultralytics YOLO Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) runs LiteRT `.tflite` exports on Android out of the box — real-time camera inference, single-image prediction, GPU acceleration, and automatic model download for all seven [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) tasks, including Depth. For Apple devices use the [CoreML export](coreml.md); for Qualcomm Snapdragon NPUs see the [Qualcomm QNN integration](qnn.md).
+    The official [Ultralytics YOLO Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) runs LiteRT `.tflite` exports on Android out of the box — real-time camera inference, single-image prediction, GPU acceleration, and automatic model download for all seven [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) tasks, including Depth. See the [MediaTek Dimensity guide](mediatek.md) for Android deployment, the [Qualcomm QNN integration](qnn.md) for Snapdragon NPUs, and the [CoreML export](coreml.md) for Apple devices.
 
 !!! important "Official mobile input sizes"
 

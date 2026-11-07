@@ -11,9 +11,9 @@ keywords: Ultralytics, YOLO26, high resolution tiling, tile argument, tiled infe
 
 Use `tile=True` to process high-resolution images in overlapping windows before resizing them to the model input. This can preserve small-object detail that would be lost by resizing the whole image. No additional package is required, and `tile` replaces the deprecated [SAHI integration](sahi-tiled-inference.md) for Ultralytics models.
 
-|                                                         Whole image, `imgsz=640`: 35 detections                                                          |                                                                                `tile=640`: 170 detections                                                                                |
+|                                                         Whole image, `imgsz=640`: 35 detections                                                          |                                                                                `tile=640`: 161 detections                                                                                |
 | :------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![YOLO26s whole-image prediction on a drone view of a city intersection, with 35 detections](https://cdn.ul.run/i/197756a7765c387e6b3ecef2da707ef2.avif) | ![YOLO26s tiled prediction on the same intersection, with 170 detections, including distant pedestrians, cyclists, and cars](https://cdn.ul.run/i/f24115497afe748017bcf54d69aa5511.avif) |
+| ![YOLO26s whole-image prediction on a drone view of a city intersection, with 35 detections](https://cdn.ul.run/i/197756a7765c387e6b3ecef2da707ef2.avif) | ![YOLO26s tiled prediction on the same intersection, with 161 detections, including distant pedestrians, cyclists, and cars](https://cdn.ul.run/i/c9e7956b41324d0d2d3f6949d80e5d0e.avif) |
 
 YOLO26s on a 1920 × 1080 [VisDrone](../datasets/detect/visdrone.md) frame at the default confidence threshold. With `tile=640`, the model runs eight overlapping 640-pixel windows at native resolution instead of one pass over the frame shrunk to 640 pixels.
 
@@ -82,7 +82,7 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 
 ### How do I choose the tile size?
 
-`tile=True` uses `imgsz` as the window size, and an integer such as `tile=1024` sets it independently. Windows overlap by 20%, so a 1920 × 1080 image at `tile=640` runs eight windows and a 3840 × 2160 image at `tile=1280` also runs eight. Smaller windows keep more detail but add model passes and remove more global context, so compare a few sizes on your own validation set.
+`tile=True` uses `imgsz` as the window size, and an integer such as `tile=1024` sets it independently. Windows overlap by 20%, so a 1920 × 1080 image at `tile=640` runs eight windows and a 3840 × 2160 image at `tile=1280` also runs eight. A window smaller than `imgsz`, such as `tile=400` with `imgsz=640`, is enlarged to the model input, which helps when objects are only a few pixels wide even at native resolution. Smaller windows keep more detail but add model passes, remove more global context, and can enlarge background clutter into false positives, so compare a few sizes on your own validation set.
 
 ### Do I still need SAHI for sliced inference with YOLO?
 

@@ -489,8 +489,8 @@ class YOLOE(Model):
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (type, optional): Visual-prompt predictor class. Defaults to the predictor matching the model
                 task.
-            **kwargs (Any): Additional keyword arguments passed to the predictor. Calls with `visual_prompts`
-                default to `conf=0.05`.
+            **kwargs (Any): Additional keyword arguments passed to the predictor. Calls with `visual_prompts` default to
+                `conf=0.05`.
 
         Returns:
             (list | generator): List of Results objects or generator of Results objects if stream=True.

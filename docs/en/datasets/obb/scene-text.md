@@ -34,7 +34,7 @@ The converted dataset has the following splits. Counts include only legible word
 | Test  |            5,073 / 7,714 |         1,634 / 167,188 |         6,707 / 174,902 |
 | Total |          53,686 / 80,844 |      11,639 / 1,208,147 |      65,325 / 1,288,991 |
 
-COCO-Text uses its official training split. Its official validation images are partitioned deterministically into equal-sized validation and test subsets using the image ID. HierText retains its official train, validation, and test splits, with `validation` renamed to `val`.
+COCO-Text uses its official training split. Its official validation images are partitioned deterministically into approximately balanced validation and test subsets using the image ID. HierText retains its official train, validation, and test splits, with `validation` renamed to `val`.
 
 Images with no retained words remain in the dataset with empty label files and serve as background images. The converted directories use this structure:
 

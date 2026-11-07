@@ -83,7 +83,9 @@ download: |
       coco = check_det_dataset("coco.yaml")
       images = Path(coco["path"]) / "images"
       data = json.loads(annotations.read_text(encoding="utf-8"))
-      destination = parent / "coco-text-yolo"
+      final = parent / "coco-text-yolo"
+      destination = parent / ".coco-text-yolo.partial"
+      shutil.rmtree(destination, ignore_errors=True)
       for image_id, image in TQDM(data["imgs"].items(), desc="Converting COCO-Text"):
           split = (
               "train"
@@ -108,6 +110,8 @@ download: |
               if ann["legibility"] == "legible" and (label := polygon_label(ann["mask"], width, height)):
                   labels.append(label)
           write_labels(destination / split / "labels", Path(filename).stem, labels)
+      shutil.rmtree(final, ignore_errors=True)
+      destination.rename(final)
 
 
   def convert_hiertext(parent):
@@ -123,7 +127,9 @@ download: |
               delete=True,
               threads=3,
           )
-      destination = parent / "hiertext-yolo"
+      final = parent / "hiertext-yolo"
+      destination = parent / ".hiertext-yolo.partial"
+      shutil.rmtree(destination, ignore_errors=True)
       for source_split, split in splits.items():
           with gzip.open(source / "gt" / f"{source_split}.jsonl.gz", "rt", encoding="utf-8") as f:
               rows = json.load(f)["annotations"]
@@ -145,6 +151,8 @@ download: |
                           if word["legible"] and (label := polygon_label(word["vertices"], width, height)):
                               labels.append(label)
               write_labels(destination / split / "labels", image_id, labels)
+      shutil.rmtree(final, ignore_errors=True)
+      destination.rename(final)
 
 
   parent = Path(yaml["path"]).parent

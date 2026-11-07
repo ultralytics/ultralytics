@@ -75,36 +75,15 @@ class Profile(contextlib.ContextDecorator):
         return time.perf_counter()
 
 
-def clip_polygon(points: np.ndarray, window: tuple[int, int, int, int]) -> np.ndarray:
-    """Intersect a polygon with a rectangle, vectorizing vertices at each clipping edge."""
-    for axis, limit, upper in (
-        (0, window[0], True),
-        (0, window[2], False),
-        (1, window[1], True),
-        (1, window[3], False),
-    ):
-        if len(points) < 3:
-            return np.empty((0, 2), dtype=np.float32)
-        inside = points[:, axis] >= limit if upper else points[:, axis] <= limit
-        crossing = inside != np.roll(inside, 1)
-        previous = np.roll(points, 1, axis=0)[crossing]
-        delta = points[crossing] - previous
-        output = np.repeat(points, 2, axis=0)
-        intersections = 2 * np.flatnonzero(crossing)
-        output[intersections] = previous + delta * ((limit - previous[:, axis]) / delta[:, axis])[:, None]
-        output[intersections, axis] = limit
-        points = output[np.stack((crossing, inside), axis=1).ravel()]
-    return points
-
-
 def merge_tiles(
     predictions: list[dict], windows: list[tuple], shape: tuple[int, int], iou: float, agnostic: bool, max_det: int
 ) -> dict:
     """Merge tile payloads after task postprocessing has restored their native window coordinates.
 
     Each payload contains bboxes (xyxy or xywhr), conf and cls, optionally with masks, keypoints or extra columns;
-    alternatively it contains one semantic_mask, depth or probs tensor. Masks and dense maps match their window size.
-    Only masks surviving box suppression are expanded to the full image.
+    alternatively it contains one semantic_mask, depth or probs tensor. Masks match their window size or a whole-pixel
+    stride of it, inferred from the larger side; dense maps match their window size. Only masks surviving box
+    suppression are expanded to the full image.
     """
     from bisect import bisect_right
 
@@ -152,8 +131,11 @@ def merge_tiles(
         keypoints[..., :2] += offsets[keep, None]
         output["keypoints"] = keypoints
     if any("masks" in p for p in predictions):
-        template = next(p["masks"] for p in predictions if "masks" in p)
-        output["masks"] = template.new_zeros((len(keep), *shape))
+        i = next(i for i, p in enumerate(predictions) if "masks" in p)
+        template = predictions[i]["masks"]
+        x1, y1, x2, y2 = windows[i]
+        r = round(max(x2 - x1, y2 - y1) / max(template.shape[-2:]))  # mask stride, 1 at source resolution
+        output["masks"] = template.new_zeros((len(keep), -(-shape[0] // r), -(-shape[1] // r)))
         ends, count = [], 0
         for p in predictions:
             count += len(p["bboxes"])
@@ -161,8 +143,10 @@ def merge_tiles(
         for j, k in enumerate(keep.tolist()):
             source = bisect_right(ends, k)
             local = k - (ends[source - 1] if source else 0)
-            x1, y1, x2, y2 = windows[source]
-            output["masks"][j, y1:y2, x1:x2] = predictions[source]["masks"][local]
+            x1, y1 = ((v - r // 2 + r - 1) // r for v in windows[source][:2])  # first sampled pixel, x1 when r=1
+            mask = predictions[source]["masks"][local]
+            target = output["masks"][j, y1 : y1 + mask.shape[0], x1 : x1 + mask.shape[1]]
+            target[:] = mask[: target.shape[0], : target.shape[1]]
     return output
 
 
@@ -190,7 +174,23 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
         return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
     if xmax < 0 or ymax < 0 or xmin > width or ymin > height:  # fully outside image
         return np.zeros(4, dtype=segment.dtype)
-    points = clip_polygon(segment, (0, 0, width, height))
+    axes = np.array((0, 0, 1, 1))
+    bounds = np.array((0, width, 0, height), dtype=segment.dtype)
+    lims = np.array((height, height, width, width), dtype=segment.dtype)  # (height, width)[axis] per boundary
+    start, delta = segment, np.roll(segment, -1, axis=0) - segment
+    with np.errstate(divide="ignore", invalid="ignore"):
+        t = (bounds - start[:, axes]) / delta[:, axes]
+        inter = start[:, None, :] + t[:, :, None] * delta[:, None, :]
+    other = inter[:, np.arange(4), 1 - axes]
+    corners = np.array(((0, 0), (width, 0), (0, height), (width, height)), dtype=segment.dtype)
+    contour = segment.astype(np.float32)
+    points = np.concatenate(
+        (
+            segment[(x >= 0) & (y >= 0) & (x <= width) & (y <= height)],
+            inter[(t >= 0) & (t <= 1) & (other >= 0) & (other <= lims)],
+            corners[[cv2.pointPolygonTest(contour, tuple(map(float, p)), False) >= 0 for p in corners]],
+        )
+    )
     return (
         np.array([*points.min(0), *points.max(0)], dtype=segment.dtype)
         if len(points)

@@ -9,7 +9,7 @@ from numbers import Number
 import cv2
 import numpy as np
 
-from .ops import clip_polygon, ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
+from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, segment2box, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
 
 
 def _ntuple(n):
@@ -443,19 +443,16 @@ class Instances:
     def crop(self, window: tuple[int, int, int, int], preserve_obb: bool = False) -> np.ndarray:
         """Crop pixel-space instances and return the mask retaining at least 10% of each original box area."""
         x1, y1, x2, y2 = window
+        w, h = x2 - x1, y2 - y1
         areas = self.bbox_areas.copy()
         self.convert_bbox("xyxy")
-        if len(self.segments) and not preserve_obb:
-            outside = ((self.segments < (x1, y1)) | (self.segments > (x2, y2))).any((1, 2))
-            for i in np.flatnonzero(outside):
-                polygon = clip_polygon(self.segments[i], window)
-                if len(polygon) < 3 or cv2.contourArea(polygon.astype(np.float32)) == 0:
-                    self.segments[i], self.bboxes[i] = 0, 0
-                else:
-                    self.segments[i] = resample_segments([polygon], n=self.segments.shape[1])[0]
-                    self.bboxes[i] = np.concatenate((polygon.min(0), polygon.max(0)))
         self.add_padding(-x1, -y1)
-        self.clip(x2 - x1, y2 - y1, preserve_obb=preserve_obb)
+        if len(self.segments) and not preserve_obb:
+            outside = ((self.segments < 0) | (self.segments > (w, h))).any((1, 2))
+            for i in np.flatnonzero(outside):
+                self.bboxes[i] = box = segment2box(self.segments[i], w, h)
+                self.segments[i] = self.segments[i].clip(box[:2], box[2:])
+        self.clip(w, h, preserve_obb=preserve_obb)
         return (self.bbox_areas > 0) & (self.bbox_areas >= areas * 0.1)
 
     def remove_zero_area_boxes(self) -> np.ndarray:

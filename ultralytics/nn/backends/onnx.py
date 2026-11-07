@@ -229,6 +229,10 @@ class ONNXBackend(BaseBackend):
                     LOGGER.warning(f"MIGraphX execution provider unavailable ({e}). Using CPU...")
                     self.device, cuda, rocm = torch.device("cpu"), False, False
             if not rocm:
+                if self.session_options is None:
+                    self.session_options = onnxruntime.SessionOptions()
+                    self.session_options.add_session_config_entry("session.intra_op.allow_spinning", "0")
+                    self.session_options.add_session_config_entry("session.inter_op.allow_spinning", "0")
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider
@@ -245,7 +249,6 @@ class ONNXBackend(BaseBackend):
                     providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
                 elif winml:  # Windows ML selects execution providers using its maximum-performance policy
                     providers = None
-                    self.session_options = self.session_options or onnxruntime.SessionOptions()
                     if not self.session_options.has_providers():
                         policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
                         self.session_options.set_provider_selection_policy(policy)

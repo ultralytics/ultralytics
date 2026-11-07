@@ -25,8 +25,8 @@ own recognition model.
 
 ## Run Scene Text OCR with YOLO26
 
-PaddleOCR is optional and loads only when recognition first runs, installing PaddleOCR 3.x and the CPU PaddlePaddle
-build if they are missing. For GPU recognition, install a matching `paddlepaddle-gpu` build first; no OCR packages are
+PaddleOCR is optional and loads when `OCR` is created with `recognizer="paddleocr"`, installing PaddleOCR 3.x and the
+CPU PaddlePaddle build if they are missing. For GPU recognition, install a matching `paddlepaddle-gpu` build first; no OCR packages are
 added to the base Ultralytics dependencies.
 
 Pass an image and a text detector to the `OCR` solution. The result contains the annotated image and recognized text:
@@ -130,14 +130,13 @@ is not called.
 Each call returns a [`SolutionResults`](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionResults)
 object. Use `result.plot_im` for the annotated image and `result.texts` for records in deterministic reading order:
 
-| Key                    | Type                | Description                                                                 |
-| ---------------------- | ------------------- | --------------------------------------------------------------------------- |
-| `text`                 | `str`               | Recognized text.                                                            |
-| `confidence`           | `float`             | Recognition confidence, kept separate from detection confidence.            |
-| `detection_confidence` | `float`             | YOLO detector confidence.                                                   |
-| `detection_index`      | `int`               | Source detection index before reading-order sorting.                        |
-| `box`                  | `list[list[float]]` | Four original-image corners for box or OBB detections.                      |
-| `polygon`              | `list[list[float]]` | Original-image segmentation polygon; replaces `box` for polygon detections. |
+| Key                    | Type                | Description                                                                           |
+| ---------------------- | ------------------- | ------------------------------------------------------------------------------------- |
+| `text`                 | `str`               | Recognized text.                                                                      |
+| `confidence`           | `float`             | Recognition confidence, kept separate from detection confidence.                      |
+| `detection_confidence` | `float`             | YOLO detector confidence.                                                             |
+| `detection_index`      | `int`               | Source detection index before reading-order sorting.                                  |
+| `polygon`              | `list[list[float]]` | Original-image polygon: four corners for box and OBB detections, or the mask outline. |
 
 ## Dependencies and Licenses
 

@@ -27,9 +27,13 @@ class OCR(BaseSolution):
         kwargs["tracker"] = None
         super().__init__(**kwargs)
         self.recognizer = self.CFG["recognizer"]
-        if not callable(self.recognizer) and self.recognizer != "paddleocr":
+        if self.recognizer == "paddleocr":
+            check_requirements((("paddlepaddle>=3.0.0", "paddlepaddle-gpu>=3.0.0"), "paddleocr>=3.0,<4"))
+            from paddleocr import TextRecognition
+
+            self._paddle = TextRecognition()
+        elif not callable(self.recognizer):
             raise ValueError("recognizer must be 'paddleocr' or a callable accepting a BGR image crop.")
-        self._paddle = None
 
     @staticmethod
     def reading_order(polygons: list[np.ndarray]) -> list[int]:
@@ -54,18 +58,12 @@ class OCR(BaseSolution):
         """Recognize BGR crops with the configured backend, batching PaddleOCR inference."""
         if callable(self.recognizer):
             return [(text, float(confidence)) for text, confidence in map(self.recognizer, crops)]
-        if self._paddle is None:  # load lazily so custom recognizers never require Paddle
-            check_requirements((("paddlepaddle>=3.0.0", "paddlepaddle-gpu>=3.0.0"), "paddleocr>=3.0,<4"))
-            from paddleocr import TextRecognition
-
-            self._paddle = TextRecognition()
         return [(r["rec_text"], float(r["rec_score"])) for r in self._paddle.predict(crops, batch_size=16)]
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """Run text detection, recognition, and reading-order sorting on one image."""
         self.extract_tracks(im0)
         texts, polygons, pending = [], [], []
-        key = "box" if self.tracks.masks is None else "polygon"
         for i, box in enumerate(self.boxes):
             if self.tracks.masks is not None:  # keep the polygon, crop its minimum-area rectangle
                 polygon = self.tracks.masks.xy[i]
@@ -86,7 +84,7 @@ class OCR(BaseSolution):
                     "confidence": 0.0,
                     "detection_confidence": self.confs[i],
                     "detection_index": i,
-                    key: polygon.tolist(),
+                    "polygon": polygon.tolist(),
                 }
             )
             polygons.append(polygon)

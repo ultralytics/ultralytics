@@ -1989,6 +1989,8 @@ class SAVPE(nn.Module):
 
         score = y * vp + torch.logical_not(vp) * torch.finfo(y.dtype).min
         score = F.softmax(score, dim=-1).to(y.dtype)
+        # Empty prompts soft-max to a uniform map (= whole-image embedding); keep them zero instead.
+        score = torch.where(vp.eq(0).all(-1, keepdim=True), torch.zeros_like(score), score)
         aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
 
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)

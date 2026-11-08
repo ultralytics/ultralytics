@@ -1,0 +1,41 @@
+# YOLOv10n small-object experiment with SPD downsampling and EMA at P2/P3.
+# Focus implements space-to-depth followed by stride-1 convolution (SPD-Conv).
+# Detection outputs remain P3/8 - P5/32; there is no P2 detection head.
+
+nc: 80
+nwd_constant: 12.8 # pixel normalization for 0.5 * (1 - CIoU) + 0.5 * (1 - NWD); 0 disables NWD
+scales:
+  n: [0.33, 0.25, 1024]
+
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Focus, [128, 3, 1]] # 1-P2/4 (SPD-Conv)
+  - [-1, 3, C2fEMA, [128, True]]
+  - [-1, 1, Focus, [256, 3, 1]] # 3-P3/8 (SPD-Conv)
+  - [-1, 6, C2fEMA, [256, True]]
+  - [-1, 1, SCDown, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, C2f, [512, True]]
+  - [-1, 1, SCDown, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, C2f, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5]] # 9
+  - [-1, 1, PSA, [1024]] # 10
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 3, C2f, [512]] # 13
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 3, C2f, [256]] # 16-P3/8
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]]
+  - [-1, 3, C2f, [512]] # 19-P4/16
+
+  - [-1, 1, SCDown, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]]
+  - [-1, 3, C2fCIB, [1024, True, True]] # 22-P5/32
+
+  - [[16, 19, 22], 1, v10Detect, [nc]]

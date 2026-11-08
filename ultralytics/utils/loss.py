@@ -119,10 +119,16 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses for bounding boxes."""
 
-    def __init__(self, reg_max: int = 16):
-        """Initialize the BboxLoss module; DFL is used when reg_max > 1, otherwise an L1 distance loss."""
+    def __init__(self, reg_max: int = 16, nwd_constant: float = 0.0):
+        """Initialize box regression with optional equal-weight CIoU/NWD blending.
+
+        Args:
+            reg_max (int): Distribution bins; values above one enable DFL, otherwise L1 is used.
+            nwd_constant (float): NWD normalization constant in input-image pixels; zero disables NWD.
+        """
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
+        self.nwd_constant = nwd_constant
 
     def forward(
         self,
@@ -136,10 +142,17 @@ class BboxLoss(nn.Module):
         imgsz: torch.Tensor,
         stride: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Compute CIoU and DFL (or L1 when reg_max <= 1) losses for bounding boxes."""
+        """Compute CIoU (optionally blended with NWD) and DFL or L1 losses for bounding boxes."""
         fg_mask = fg_mask.nonzero(as_tuple=True)  # index once; long-index gathers and their backward do not sync
         weight = target_scores[fg_mask].sum(-1, keepdim=True)
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
+        if self.nwd_constant:
+            # Gaussian means are box centers, and standard deviations are half the box widths/heights.
+            delta = xyxy2xywh(pred_bboxes[fg_mask].float() - target_bboxes[fg_mask].float())
+            delta[..., 2:] *= 0.5
+            fg_stride = stride.unsqueeze(0).expand(pred_bboxes.shape[0], -1, -1)[fg_mask]
+            distance = delta.norm(dim=-1, keepdim=True) * fg_stride
+            iou = 0.5 * (iou + torch.exp(-distance / self.nwd_constant))
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
@@ -387,7 +400,7 @@ class v8DetectionLoss:
             stride=self.stride.tolist(),
             topk2=tal_topk2,
         )
-        self.bbox_loss = BboxLoss(m.reg_max).to(device)
+        self.bbox_loss = BboxLoss(m.reg_max, model.yaml.get("nwd_constant", 0.0)).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:

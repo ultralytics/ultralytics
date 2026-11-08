@@ -203,6 +203,33 @@ For training YOLOv10 on a custom dataset:
         yolo predict model=yolov10n.yaml source=path/to/bus.jpg
         ```
 
+### Small-object experiment
+
+`yolov10n-sod.yaml` provides an experimental combination for small objects such as a distant football:
+
+- **SPD-Conv at P2/P3** uses the existing `Focus` layer with a stride-1 convolution. The space-to-depth rearrangement is
+  lossless; the following channel-reducing convolution does not guarantee lossless features.
+- **C2fEMA at P2/P3** applies [Efficient Multi-Scale Attention](https://arxiv.org/abs/2305.13563) after each C2f block.
+- **Box regression** blends `0.5 * (1 - CIoU) + 0.5 * (1 - NWD)`, retaining DFL and applying the blend to both training
+  branches. [NWD](https://arxiv.org/abs/2110.13389) uses input-image pixel coordinates with `nwd_constant: 12.8` in the model
+  YAML. This is an initial experimental value, not a football-specific optimum. Set it to `0` for CIoU-only regression.
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolov10n-sod.yaml")
+model.train(data="football.yaml", epochs=100, imgsz=1280)
+```
+
+Supply a dataset YAML with your own images and annotations. Optional `.load("yolov10n.pt")` transfers matching pretrained
+parameters; the new downsampling convolutions and attention parameters still need training. For ablation, copy the model
+YAML and independently replace `Focus, [128, 3, 1]` / `Focus, [256, 3, 1]` with the corresponding stride-2 `Conv` layers,
+replace `C2fEMA` with `C2f`, or disable NWD. Compare the variants at the same image size and training settings.
+
+The experiment retains PSA and the P3/P4/P5 detection outputs. It does not add a P2 head or change task-aligned label
+assignment. It requires training and evaluation on your dataset before claiming an accuracy or latency improvement;
+space-to-depth convolutions and high-resolution attention add computation.
+
 ## Supported Tasks and Modes
 
 The YOLOv10 model series offers a range of models, each optimized for [object detection](../tasks/detect.md). The variants cover a range of computational budgets and accuracy requirements.

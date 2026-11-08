@@ -36,6 +36,7 @@ __all__ = (
     "C2f",
     "C2fAttn",
     "C2fCIB",
+    "C2fEMA",
     "C2fPSA",
     "C3Ghost",
     "C3k2",
@@ -320,6 +321,56 @@ class C2f(nn.Module):
         y = [y[0], y[1]]
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+
+
+class C2fEMA(C2f):
+    """C2f followed by Efficient Multi-Scale Attention with cross-spatial learning.
+
+    Retains the C2f parameter names for partial loading of pretrained weights. Spatial features are processed in
+    up to eight channel groups, using coordinate pooling and parallel 1x1 and 3x3 convolutions.
+
+    References:
+        https://arxiv.org/abs/2305.13563
+    """
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+        """Initialize C2f and grouped spatial attention.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            n (int): Number of Bottleneck blocks.
+            shortcut (bool): Whether to use shortcut connections.
+            g (int): Groups for bottleneck convolutions.
+            e (float): Expansion ratio.
+        """
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.groups = math.gcd(c2, 8)
+        channels = c2 // self.groups
+        self.axis = nn.Conv2d(channels, channels, 1)
+        self.local = nn.Conv2d(channels, channels, 3, padding=1)
+        self.norm = nn.GroupNorm(channels, channels)
+
+    def _attention(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply coordinate gates and cross-spatial attention without changing the feature shape."""
+        b, c, h, w = x.shape
+        grouped = x.reshape(b * self.groups, c // self.groups, h, w)
+        axes = torch.cat((grouped.mean(3, keepdim=True), grouped.mean(2, keepdim=True).transpose(2, 3)), 2)
+        gate_h, gate_w = self.axis(axes).split((h, w), 2)
+        coordinate = self.norm(grouped * gate_h.sigmoid() * gate_w.transpose(2, 3).sigmoid())
+        local = self.local(grouped)
+        coordinate_weights = coordinate.mean((2, 3)).softmax(1).unsqueeze(1)
+        local_weights = local.mean((2, 3)).softmax(1).unsqueeze(1)
+        spatial = coordinate_weights @ local.flatten(2) + local_weights @ coordinate.flatten(2)
+        return (grouped * spatial.reshape(b * self.groups, 1, h, w).sigmoid()).reshape(b, c, h, w)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply C2f feature extraction followed by EMA."""
+        return self._attention(super().forward(x))
+
+    def forward_split(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply C2f with split-based export followed by EMA."""
+        return self._attention(super().forward_split(x))
 
 
 class C3(nn.Module):

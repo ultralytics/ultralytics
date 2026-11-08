@@ -145,13 +145,14 @@ def resolve_platform_uri(uri, hard=True):
     return None
 
 
-def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
+def parse_requirements(file_path=ROOT.parent / "requirements.txt", package="", extra=""):
     """Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
         file_path (str | Path): Path to the requirements.txt file.
         package (str, optional): Installed Python package whose non-extra requirements that apply to the current
             environment are parsed instead of the requirements.txt file.
+        extra (str, optional): Parse only the requirements of this optional extra of `package` instead.
 
     Returns:
         requirements (list[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
@@ -166,8 +167,9 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
 
         requires = [
             x
-            for x in metadata.distribution(package).requires
-            if "extra == " not in x and (";" not in x or Marker(x.partition(";")[2]).evaluate())
+            for x in metadata.distribution(package).requires or ()  # None when no requirements are declared
+            if ("extra == " in x) == bool(extra)
+            and (";" not in x or Marker(x.partition(";")[2]).evaluate({"extra": extra}))
         ]
     else:
         requires = Path(file_path).read_text().splitlines()
@@ -177,7 +179,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         line = line.strip()
         if line and not line.startswith("#"):
             line = line.partition("#")[0].strip()  # ignore inline comments
-            if match := re.match(r"([a-zA-Z0-9-_]+)\s*([<>!=~]+.*)?", line):
+            if match := re.match(r"([a-zA-Z0-9][a-zA-Z0-9-_.]*)\s*([<>!=~]+.*)?", line):
                 requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ""))
 
     return requirements
@@ -584,10 +586,14 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
         for candidate in candidates:
             r_stripped = candidate.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
-            match = re.match(r"([a-zA-Z0-9-_]+)(?:\[[^\]]*\])?([<>!=~]+.*)?", r_stripped)
-            name, required = match[1], match[2].strip() if match[2] else ""
+            match = re.match(r"([a-zA-Z0-9-_.]+)(?:\[([^\]]*)\])?([<>!=~]+.*)?", r_stripped)
+            name, required = match[1], match[3].strip() if match[3] else ""
             try:
-                if check_version(metadata.version(name), required):
+                if check_version(metadata.version(name), required) and all(
+                    metadata.version(x.name)  # raises PackageNotFoundError while a requested extra is not installed
+                    for extra in (match[2].split(",") if match[2] else ())
+                    for x in parse_requirements(package=name, extra=extra.strip())
+                ):
                     satisfied = True
                     break
             except (AssertionError, metadata.PackageNotFoundError):

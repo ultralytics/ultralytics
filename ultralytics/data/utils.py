@@ -398,7 +398,10 @@ def read_mask(mask_file: str, mode: str) -> np.ndarray:
             if len(p) and (p == p[:, :1]).all():
                 gray = np.asarray(im.convert("L"))
                 # Short/constant gray palettes collapse distinct indices; keep the indices instead.
-                if len(np.unique(idx)) > len(np.unique(gray)):
+                # bincount stays O(HW) on uint8; np.unique would sort both full arrays.
+                n_idx = int((np.bincount(idx.ravel(), minlength=256) > 0).sum())
+                n_gray = int((np.bincount(gray.ravel(), minlength=256) > 0).sum())
+                if n_idx > n_gray:
                     return idx
                 return gray
             return idx

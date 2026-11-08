@@ -72,7 +72,7 @@ pub struct Args {
     pub conf: f32,
 
     /// iou threshold in NMS
-    #[arg(long, required = false, default_value_t = 0.45)]
+    #[arg(long, required = false, default_value_t = 0.5)]
     pub iou: f32,
 
     /// confidence threshold of keypoint

@@ -169,14 +169,14 @@ Tracking configuration shares [inference arguments](predict.md#inference-argumen
 
         # Configure the tracking parameters and run the tracker
         model = YOLO("yolo26n.pt")
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.1, iou=0.7, show=True)
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.1, iou=0.5, show=True)
         ```
 
     === "CLI"
 
         ```bash
         # Configure tracking parameters and run the tracker using the command line interface
-        yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show
+        yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.5 show
         ```
 
 ### Custom Tracker Configuration

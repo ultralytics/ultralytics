@@ -436,9 +436,12 @@ def check_pip_update_available():
     return False
 
 
+FONT, FONT_UNICODE = "Arial.ttf", "Arial.Unicode.ttf"  # label fonts for Latin text and for all other scripts
+
+
 @ThreadingLocked()
 @functools.lru_cache
-def check_font(font="Arial.ttf"):
+def check_font(font=FONT):
     """Find font locally or download to user's configuration directory if it does not already exist.
 
     Args:

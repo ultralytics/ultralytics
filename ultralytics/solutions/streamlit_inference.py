@@ -9,7 +9,7 @@ import cv2
 import torch
 
 from ultralytics import YOLO
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, PREDICT_IOU
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
@@ -56,7 +56,9 @@ class Inference:
         >>> inf.inference()
     """
 
-    def __init__(self, model: str | None = None, imgsz: int = 640, conf: float = 0.25, iou: float = 0.7) -> None:
+    def __init__(
+        self, model: str | None = None, imgsz: int = 640, conf: float = 0.25, iou: float = PREDICT_IOU
+    ) -> None:
         """Initialize the Inference class, checking Streamlit requirements and setting up the model path.
 
         Args:

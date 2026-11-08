@@ -974,6 +974,7 @@ class YAML:
 DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
+PREDICT_IOU = 0.5  # NMS IoU when `iou` is unset in predict/export: highest COCO F1 at the predict conf
 
 
 def read_device_model() -> str:

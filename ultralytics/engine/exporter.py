@@ -113,6 +113,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     MACOS_VERSION,
+    PREDICT_IOU,
     QNN_HTP_TARGETS,
     RKNN_CHIPS,
     SETTINGS,
@@ -630,6 +631,8 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        if self.args.iou is None:
+            self.args.iou = PREDICT_IOU  # export-time NMS serves predict
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -1041,6 +1044,8 @@ class Exporter:
             "channels": model.yaml.get("channels", 3),
             "end2end": getattr(model, "end2end", False),
         }  # model metadata
+        if getattr(model, "colors", None):
+            self.metadata["colors"] = model.colors  # class colors, see `ultralytics.utils.plotting.Colors`
         if self.dla is not None:
             self.metadata["dla"] = self.dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":

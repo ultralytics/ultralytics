@@ -301,7 +301,7 @@ Adjust inference parameters:
 | Parameter      | Default | Description                       |
 | -------------- | ------- | --------------------------------- |
 | **Confidence** | 0.25    | Filter low-confidence predictions |
-| **IoU**        | 0.7     | Control overlap for NMS           |
+| **IoU**        | 0.5     | Control overlap for NMS           |
 | **Image Size** | 640     | Resize input for inference        |
 
 Under **API Docs**, the `Predict` tab shows example code in Python, JavaScript, and cURL, pre-filled with the parameters you selected above. Deploy the model first, then replace the placeholder URL and key with the values from your endpoint:
@@ -313,7 +313,7 @@ Under **API Docs**, the `Predict` tab shows example code in Python, JavaScript, 
 
     url = "https://your-deployment-url.run.app/predict"
     api_key = "YOUR_API_KEY"
-    args = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
+    args = {"conf": 0.25, "iou": 0.5, "imgsz": 640}
 
     with open("image.jpg", "rb") as f:
         response = requests.post(
@@ -333,7 +333,7 @@ Under **API Docs**, the `Predict` tab shows example code in Python, JavaScript, 
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.7" \
+      -F "iou=0.5" \
       -F "imgsz=640"
     ```
 

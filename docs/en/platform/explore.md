@@ -110,10 +110,10 @@ On the Datasets and Projects tabs, toggle between three view modes for browsing:
 | ----------- | ------------------------------------------------ |
 | **Cards**   | Grid of preview cards with thumbnails            |
 | **Compact** | Smaller cards in a responsive grid (2-3 columns) |
-| **Table**   | Paginated table with sortable columns            |
+| **Table**   | Table with sortable columns                      |
 
-Cards and compact views load more results by infinite scroll. Table view moves sorting from the dropdown to sortable
-column headers, keeps the filters in the dropdown, and adds its own pagination controls.
+All three views load more results as you scroll. Table view moves sorting from the dropdown to sortable column headers
+and keeps the filters in the dropdown.
 
 ## Content Cards
 

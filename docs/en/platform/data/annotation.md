@@ -335,7 +335,7 @@ With a YOLO model selected, Smart annotation can add predictions from [pretraine
 
 On a detection dataset with 1–200 classes, select a class-prompted model and click `Predict` (or press `P`): it detects the dataset's classes across the whole image with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
 
-Hosted models run on Ultralytics Platform with no provider key; Moondream 3.1 is the default:
+Hosted models run on Ultralytics Platform with no provider key:
 
 | Model                                                                            | Picker project     | Parameters |
 | -------------------------------------------------------------------------------- | ------------------ | ---------- |
@@ -354,13 +354,13 @@ Paid vision models from OpenAI (including [GPT-6 Astra](https://platform.ultraly
 
 <platform-annotation-models></platform-annotation-models>
 
-A paid provider model runs with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation); without one, the prediction fails with an **Add API key** action. The provider bills your key for each prediction. After each prediction, the toast shows the number of objects detected, the elapsed time, and the cost: **Free** for a hosted model; for a paid model, the estimated provider cost when one is returned, otherwise **Billed by** and the provider name.
+A paid provider model runs with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation); without one, the prediction fails with an **Add API key** action. The provider bills your key for each prediction. After each prediction, the toast shows the number of objects detected, the elapsed time, the output tokens when the model reports them (for example `1.8s · 1,248 output tokens · Free`), and the cost: **Free** for a hosted model; for a paid model, the estimated provider cost when one is returned, otherwise **Billed by** and the provider name.
 
 ### Batch Annotation
 
 Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–200 classes a class-prompted model — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Annotate all** action on the toast after an editor prediction that finds objects or after [Find Similar Images](datasets.md#find-similar-images) adds images. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
 
-1. Select a model from the picker (`Models`, including the **Open-source models** and provider projects on detection datasets with 1–200 classes, or `My Models`); on a detection dataset the dialog opens with Moondream 3.1 selected
+1. Select a model from the picker (`Models`, including the **Open-source models** and provider projects on detection datasets with 1–200 classes, or `My Models`); the dialog opens with the model you last used in Smart mode, or with Moondream 3.1 on a detection dataset when that was a SAM model or none
 2. For a YOLO model, adjust the confidence (default `0.25`) and IoU (default `0.5`) sliders — the sample images beside the settings show what the model finds as you move them. A class-prompted model detects the dataset classes (1–200) with model-specific thresholds instead of these settings and returns no scores
 3. Turn on **Include annotated images** to also run over images that already have labels; the run adds what the model finds and keeps the labels they have
 4. Review the **Estimated Cost** and click **Start**
@@ -473,7 +473,7 @@ This lets you define classes as you encounter new object types in your data.
 
 ### Class Colors
 
-Each class is assigned a color from the Ultralytics palette. You can customize colors using the color picker on the `Classes` tab; the selected colors are used throughout that dataset.
+Each class is assigned a color from the Ultralytics palette. You can customize colors using the color picker on the `Classes` tab; the selected colors are used throughout that dataset. [Model exports](../train/models.md#export-model) carry the dataset's current class colors.
 
 ## Keyboard Shortcuts
 

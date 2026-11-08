@@ -33,17 +33,15 @@ def slugify(text):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9\s-]", "", str(text).lower()).replace(" ", "-")).strip("-")[:128]
 
 
-def _compact_plot(plot, nc, n=101):
+def _compact_plot(plot, n=101):
     """Reduce plot data to what Platform renders so the completion payload stays bounded for any class count.
 
     Platform draws the first 100 confusion matrix classes and per-class curves up to 20 classes, else only the mean.
     """
     import numpy as np
 
-    if "matrix" in plot:  # first 100 classes plus any trailing background row and column
-        matrix = np.array(plot["matrix"])
-        keep = np.r_[0 : min(nc, 100), nc : len(matrix)]
-        return {**plot, "matrix": matrix[np.ix_(keep, keep)].tolist()}
+    if "matrix" in plot:  # Platform slices a matrix over 100 rows to its first 100
+        return {**plot, "matrix": [row[:100] for row in plot["matrix"][:100]]}
 
     x, y = np.array(plot["x"]), np.array(plot["y"])
     if len(y) > 20:  # mean curve and AP only, so rows no longer map to classes
@@ -488,7 +486,7 @@ def on_train_end(trainer):
         classes = [int(c) for c in trainer.validator.metrics.ap_class_index]
         if len(classes) < len(trainer.validator.names):
             plots_by_type["pr_curve"] = {**pr, "classes": classes}
-    plots = [_compact_plot(p, len(trainer.validator.names)) for p in plots_by_type.values()]
+    plots = [_compact_plot(p) for p in plots_by_type.values()]
 
     # Get class names
     names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")

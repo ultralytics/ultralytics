@@ -230,6 +230,8 @@ flowchart TD
 5. Click **Start Export**
 6. Download when complete
 
+While the model's source dataset exists, each export carries the dataset's current [class colors](../data/annotation.md#class-colors), so a color you change after training also reaches later exports.
+
 Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
 
 ![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/d5716199766bea7ab5ee097b0cc343e6.avif)<!-- screenshot -->
@@ -324,9 +326,9 @@ Run CoreML, Core AI, and LiteRT exports on your phone in the free Ultralytics YO
 4. In the Ultralytics YOLO app, tap the QR button in the bottom bar and point the camera at the code.
 5. Confirm the model name, task, and download size. The app installs the model in the **Custom** section of its model picker, and it works offline.
 
-![Ultralytics Platform CoreML Export Dialog iPhone App Box](https://cdn.ul.run/i/b3497c87adac56039a1b6dfce091cbe6.avif)<!-- screenshot -->
+![Ultralytics Platform CoreML Export Dialog iPhone App Box](https://cdn.ul.run/i/95937ef054e9870cdf715f0a015019d1.avif)<!-- screenshot -->
 
-![Ultralytics Platform Open on iPhone QR Code Dialog](https://cdn.ul.run/i/245ff114f2630ec0e27d2fe54aa0221e.avif)<!-- screenshot -->
+![Ultralytics Platform Open on iPhone QR Code Dialog](https://cdn.ul.run/i/1041b78be50f4e6cd78effc71e4b6ffe.avif)<!-- screenshot -->
 
 QR codes expire after 24 hours; click **Refresh code** to create a new one. Anyone with the code can download the export until it expires. Without the app, scanning the code with the phone's camera opens a page with App Store and Google Play links.
 
@@ -338,7 +340,7 @@ Some export formats have architecture or task restrictions:
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IMX500**   | Available only for `YOLOv8n` and `YOLO11n` detect, segment, classify, and pose models; INT8 only                                                                                       |
 | **Axelera**  | INT8 only                                                                                                                                                                              |
-| **DeepX**    | INT8 only                                                                                                                                                                              |
+| **DeepX**    | INT8 only; runs on [DX-RT 3.5.0 or newer](../../integrations/deepx.md#runtime-installation)                                                                                            |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
 | **Xilinx**   | INT8 Vitis AI output; select a [Versal AI Edge Series Gen 2 device](../../integrations/xilinx.md) and compile it to `.rai` with AMD Vitis AI                                           |

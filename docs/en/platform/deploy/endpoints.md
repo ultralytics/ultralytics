@@ -35,7 +35,7 @@ Create a deployment from the **Deployments** tab on your profile or from the sid
 4. Choose CPU and memory, review the pricing, and edit the suggested deployment name if needed
 5. Click **Create Deployment**
 
-![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/2d1fc20911da8996760b623166b1e431.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/23e5ff097f801f0312437d3be3c6499e.avif)<!-- screenshot -->
 
 ### Deployment Lifecycle
 
@@ -164,11 +164,11 @@ The `New Deployment` dialog lets you select a model, region, resources, and depl
 | **CPU and Memory**  | Select the resource size and review its displayed pricing         |
 | **Deployment Name** | Auto-generated once model and region are set, and editable        |
 
-![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/5eea1e0b458268cdab03a1ba95a40f2f.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/d54c42dd60d8d6b725a3b4368a489c44.avif)<!-- screenshot -->
 
 Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. CPU options are 1, 2, 4, 6, or 8 vCPU and memory options are 2 to 32 GiB; larger memory sizes need more vCPU (for example, 16 GiB requires at least 4 vCPU), and the dialog explains any invalid combination. The default size (1 vCPU, 2 GiB) is free and scales to zero when idle. Custom sizes keep one warm instance and are charged at the displayed regional hourly rate from readiness until you stop the endpoint, including idle time. Creating, starting, or resizing to a custom size requires available credits, and custom-size endpoints are stopped automatically when the workspace runs out of credits. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
 
-![Ultralytics Platform New Deployment Dialog Custom CPU Memory Pricing](https://cdn.ul.run/i/1707f1a302d6cdfa9c9c55af00ef954c.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog Custom CPU Memory Pricing](https://cdn.ul.run/i/94fc9e76f51eb307d2ba62037131919b.avif)<!-- screenshot -->
 
 !!! note "Auto-Generated Names"
 

@@ -92,7 +92,7 @@ Train a YOLO26 OBB model at 640-pixel image size with the following commands. Ex
 
 ## Applications
 
-Use this dataset to train word-level text detectors for document processing, receipt understanding, sign translation, industrial inspection, and OCR pipelines. Detection is only one stage of OCR: pair the detector with a text recognizer when transcription is required.
+Use this dataset to train word-level text detectors for document processing, receipt understanding, sign translation, industrial inspection, and OCR pipelines. Detection is only one stage of OCR: pair the detector with a text recognizer when transcription is required, for example with the [Scene Text OCR solution](../../guides/ocr.md) and PaddleOCR.
 
 ## Licensing
 

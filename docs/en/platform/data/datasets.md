@@ -265,7 +265,7 @@ To create a dataset:
 5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private). A new public dataset starts with **CC BY 4.0** selected; pick another license or **None** to change it
 6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
-![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/16dcaac210f7f70540f6061c6b98fba9.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/2d90456710a8b99b2fb2b85b54642fb7.avif)<!-- screenshot -->
 
 To add files to an existing dataset, open its dataset page and either drag the files onto the gallery or click the upload icon in the page header. The upload icon opens your browser's native file picker directly because the dataset task is already defined.
 
@@ -799,7 +799,7 @@ Redistribute all images across train, validation, and test splits using custom r
 3. Review the live image count preview to confirm the distribution
 4. Click **Apply** to randomly reassign all images according to your percentages
 
-![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.ul.run/i/64f91c76882fa316d71be1cd0f286bd5.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.ul.run/i/9886754189f74a7c98f27b0965a76fe0.avif)<!-- screenshot -->
 
 The dialog provides three ways to set your target split ratios:
 
@@ -845,7 +845,7 @@ Create new [synthetic training images](https://www.ultralytics.com/glossary/synt
 | **Image Size**       | Target longest edge from `256` to `2048` px in steps of `64` (default `1024`)                                      |
 | **Instructions**     | Optional description of what to vary or keep, such as lighting, viewpoint, background, or objects                  |
 
-![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/734f0110f1ac27a9ac6579c1ffc0ab67.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/18e20e79a9c9a69e538f85e719b122be.avif)<!-- screenshot -->
 
 **Ultralytics Image 9B** and **Krea 2 Turbo** are also listed, but you can select them only after you turn on [Early access](../account/settings.md#early-access). Krea 2 Turbo is the slowest option. Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
 
@@ -870,7 +870,7 @@ In a dataset you can edit, blur the faces in its images, for example to protect 
 
 The dialog first previews the detected faces on up to six images (or on the one image) without changing them. Adjust **Confidence** (default `0.25`) and **Box scale** (`0.5`–`1.5`, default `1`, which scales each face box around its center) to re-run the preview, then click **Apply** to replace the original pixels of every image in which faces are found. Images without detected faces are left unchanged, labels and splits are kept, and some faces may be missed, so review the result. Blurring does not automatically create a [version snapshot](#versions-tab). Blurring a whole dataset costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run (billed as **Auto-Annotation**), and the dialog shows the estimate before you apply; previews and single-image blurring are free.
 
-![Ultralytics Platform Datasets Blur Faces Dialog Preview](https://cdn.ul.run/i/7b82938e0bd11da4e8620b73cf8e8e44.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Blur Faces Dialog Preview](https://cdn.ul.run/i/8b7fe3d3fc18df1dc127c8388d3092d4.avif)<!-- screenshot -->
 
 To blur faces in images as they are uploaded, turn on **Blur faces** when you create a dataset from **Upload** or **URL**, or **Blur future uploads** in the whole-dataset **Blur faces** dialog. The **Blur future uploads** switch saves immediately, even if you close the dialog without clicking **Apply**. Images uploaded to the dataset afterward are blurred during processing, at no charge; changing this setting does not blur images already in the dataset.
 

@@ -391,10 +391,17 @@ def read_mask(mask_file: str, mode: str) -> np.ndarray:
     Raises:
         FileNotFoundError: If the mask file is missing or unreadable.
     """
-    if mode == "P":  # colored (VOC-style) palettes hold class ids as indices, gray palettes as gray levels
+    if mode == "P":  # colored (VOC-style) palettes hold class ids as indices; remapped gray palettes as gray levels
         with Image.open(mask_file) as im:
-            p = np.array(im.getpalette()).reshape(-1, 3)
-            return np.array(im.convert("L") if (p == p[:, :1]).all() else im)
+            p = np.array(im.getpalette() or [], dtype=np.uint8).reshape(-1, 3)
+            idx = np.asarray(im)
+            if len(p) and (p == p[:, :1]).all():
+                gray = np.asarray(im.convert("L"))
+                # Short/constant gray palettes collapse distinct indices; keep the indices instead.
+                if len(np.unique(idx)) > len(np.unique(gray)):
+                    return idx
+                return gray
+            return idx
     mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # keeps 16-bit ids
     if mask is None:
         raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")

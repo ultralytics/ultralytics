@@ -2691,19 +2691,23 @@ class LoadVisualPrompt(BaseTransform):
                 bboxes = torch.from_numpy(bboxes)
             bboxes = bboxes * self.scale_factor
             masks = self.make_mask(bboxes, *masksz).float()
-            # Sub-stride boxes can miss every integer cell under half-open rasterization; expand only those empties.
+            # Sub-stride boxes can miss every integer cell under half-open rasterization; expand only in-grid empties.
             empty = masks.amax((-2, -1)) == 0
             if empty.any():
                 b = bboxes[empty]
-                x1, y1, x2, y2 = b.unbind(-1)
-                x1, y1 = x1.floor(), y1.floor()
-                x2 = torch.maximum(x2.ceil(), x1 + 1).clamp(max=masksz[1])
-                y2 = torch.maximum(y2.ceil(), y1 + 1).clamp(max=masksz[0])
-                x1 = x1.clamp(0, max(masksz[1] - 1, 0))
-                y1 = y1.clamp(0, max(masksz[0] - 1, 0))
-                bboxes = bboxes.clone()
-                bboxes[empty] = torch.stack((x1, y1, x2, y2), -1)
-                masks[empty] = self.make_mask(bboxes[empty], *masksz).float()
+                hit = (b[:, 2] > 0) & (b[:, 3] > 0) & (b[:, 0] < masksz[1]) & (b[:, 1] < masksz[0])
+                if hit.any():
+                    expand = empty.clone()
+                    expand[empty] = hit
+                    x1, y1, x2, y2 = bboxes[expand].unbind(-1)
+                    x1, y1 = x1.floor(), y1.floor()
+                    x2 = torch.maximum(x2.ceil(), x1 + 1).clamp(max=masksz[1])
+                    y2 = torch.maximum(y2.ceil(), y1 + 1).clamp(max=masksz[0])
+                    x1 = x1.clamp(0, max(masksz[1] - 1, 0))
+                    y1 = y1.clamp(0, max(masksz[0] - 1, 0))
+                    bboxes = bboxes.clone()
+                    bboxes[expand] = torch.stack((x1, y1, x2, y2), -1)
+                    masks[expand] = self.make_mask(bboxes[expand], *masksz).float()
         elif masks is not None:
             if isinstance(masks, np.ndarray):
                 masks = torch.from_numpy(masks)  # (N, H, W)

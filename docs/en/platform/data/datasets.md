@@ -514,7 +514,7 @@ The same embeddings power similarity search across public datasets and your own 
 
 All three start on, and one license group always stays on. The license groups apply to your own and team datasets too, and the info icon beside each lists its licenses. Turn on **Show licenses** above the results to badge each image with its license. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
 
-![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/004538a8ce286784bffe8a0e3fd1a3f3.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/b278f503014f8cecace1174d0ad28fcd.avif)<!-- screenshot -->
 
 An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. On cloud storage datasets it needs [AI features](../integrations/index.md#ai-features) on and opens for browsing only, because images cannot be added to a connected dataset; it is unavailable on On Premise datasets. A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search, with the same switches, from its worst-performing images.
 

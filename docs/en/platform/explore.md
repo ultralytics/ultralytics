@@ -70,6 +70,12 @@ click an image to open a side panel with its annotations, source dataset, class 
 24 similar images, including ones from the same dataset, when you are signed in; click one to open it in the panel. On
 narrow screens such as phones, the image opens full size instead.
 
+To search by a photo instead, click the search-by-image icon in the Datasets or Images search bar, or drop an image
+onto the page. The Images tab shows images like it, each with its similarity score, and the Datasets tab shows public
+datasets containing similar images, with those images on their cards. Filters, and sorting on the Datasets tab, still
+apply, and switching between the two tabs keeps the photo. The photo is searched, not saved, and stays out of the URL;
+typing a query, opening the Projects tab, or clicking **Close** ends the photo search.
+
 ### Sort and Filter
 
 The dropdown in the toolbar holds sort options on the Datasets and Projects tabs and filters on all three tabs:

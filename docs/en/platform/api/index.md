@@ -1152,12 +1152,14 @@ GET /api/images/{imageId}/similar
 
 **Python SDK:** `client.images.find_similar_images(image_id)`
 
-Returns up to 24 visually similar `images` from public datasets and from your own and team datasets, each with
-`score` (0-1), a signed `thumbnailUrl`, and the source `dataset` (`owner`, `dataset`, `license`). The source dataset
-and datasets holding a copy of the query image are excluded; `includeSourceDataset=true` keeps them and drops only the
-copies. Requires an API key with view access to the image; an image that has not been embedded yet is embedded first,
-and `503` means that preparation failed, so retry. A cloud storage image's own dataset is included only for its workspace, and `409` means
-the image's storage has AI features off or is an On Premise dataset.
+Returns up to 24 visually similar `images` from public datasets and from your own and team datasets, each with `score`
+(0-1), a signed `thumbnailUrl`, and the source `dataset` (`owner`, `dataset`, `license`). The source dataset and
+datasets holding a copy of the query image are excluded; `includeSourceDataset=true` keeps them and drops only the
+copies. `license` (comma-separated identifiers from [Available Licenses](../data/datasets.md#available-licenses), with
+`None` for datasets without one) and `publicOnly=true` (public datasets alone) narrow the search, which still returns up
+to 24 images. Requires an API key with view access to the image; an image that has not been embedded yet is embedded
+first, and `503` means that preparation failed, so retry. A cloud storage image's own dataset is included only for its
+workspace, and `409` means the image's storage has AI features off or is an On Premise dataset.
 
 ### Auto-Annotate a Dataset
 
@@ -1512,10 +1514,11 @@ GET /api/models/{owner}/{project}/{model}/similar-images
 **Python SDK:** `client.models.find_similar_training_images(owner, project, model)`
 
 Returns up to 100 `images`, in the same shape as [Find Similar Images](#find-similar-images), that look like the
-validation images this training run scored worst on, excluding images its training dataset already holds. Pass
-`hashes` (comma-separated, up to 100) to search from a subset of those worst images. Requires an API key with access to
-the model's workspace. The list is empty when the run recorded no per-image results, and `404` also means the worst
-images are not embedded yet: run [dataset embeddings](#dataset-embeddings) on the training dataset first.
+validation images this training run scored worst on, excluding images its training dataset already holds. Pass `hashes`
+(comma-separated, up to 100) to search from a subset of those worst images, and `license` or `publicOnly` to narrow the
+search as in [Find Similar Images](#find-similar-images). Requires an API key with access to the model's workspace. The
+list is empty when the run recorded no per-image results, and `404` also means the worst images are not embedded yet:
+run [dataset embeddings](#dataset-embeddings) on the training dataset first.
 
 ### Clone Model
 
@@ -2668,8 +2671,8 @@ Each transaction includes `id`, `type` (such as `purchase`, `training`, `monthly
 
 ## Explore API
 
-Search public projects and datasets shared by the community, or search images by what they show. See [Explore
-documentation](../explore.md).
+Search public projects and datasets shared by the community, or search images by what they show or by a photo.
+See [Explore documentation](../explore.md).
 
 ### Search Public Content
 
@@ -2702,6 +2705,22 @@ own and team datasets when you send an API key.
 ```bash
 curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=detect&sort=stars&limit=20"
 ```
+
+### Search by Image
+
+```http
+POST /api/explore/search
+```
+
+**Python SDK:** `client.explore.search_by_image()`
+
+Send a photo as base64 `image` (at most 3 MiB, never stored) in a JSON body with `type` `images` (default) or
+`datasets` and any of `sort`, `offset`, `limit`, `task`, `license`, `author`, `starred`, `minImages`, and `maxImages`
+from [Search Public Content](#search-public-content). The response has the same shape plus a `vector`: send it in place
+of `image` for more pages, other filters, or the other `type`, so the photo is read only once. `type=images` returns
+scored images as a text search does; `type=datasets` returns public datasets ranked by their matching images, which
+their cards show. Photos count against their own limit of 20 per minute. `400` means the photo cannot be read and `503`
+that search is busy, so retry shortly.
 
 ---
 

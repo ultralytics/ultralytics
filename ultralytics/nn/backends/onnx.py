@@ -229,10 +229,9 @@ class ONNXBackend(BaseBackend):
                     LOGGER.warning(f"MIGraphX execution provider unavailable ({e}). Using CPU...")
                     self.device, cuda, rocm = torch.device("cpu"), False, False
             if not rocm:
-                if self.session_options is None:
+                if self.session_options is None:  # idle workers sleep instead of competing with pre/postprocessing
                     self.session_options = onnxruntime.SessionOptions()
                     self.session_options.add_session_config_entry("session.intra_op.allow_spinning", "0")
-                    self.session_options.add_session_config_entry("session.inter_op.allow_spinning", "0")
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider

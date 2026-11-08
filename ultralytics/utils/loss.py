@@ -539,6 +539,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
 
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
+        masks = None
         if fg_mask.sum():
             # Masks loss
             masks = batch["masks"].to(self.device).float()
@@ -559,29 +560,30 @@ class v8SegmentationLoss(v8DetectionLoss):
                 pred_masks,
                 imgsz,
             )
-            if pred_semantic is not None:
-                sem_idx = batch["sem_masks"].to(self.device).long().unsqueeze(1)  # Nx1xHxW
-                if self.overlap:
-                    present = masks != 0  # NxHxW
-                else:
-                    batch_idx = batch["batch_idx"].view(-1)  # [total_instances]
-                    present = torch.zeros(batch_size, *masks.shape[-2:], dtype=torch.bool, device=self.device)
-                    for i in range(batch_size):
-                        instance_mask_i = masks[batch_idx == i]  # [num_instances_i, H, W]
-                        if len(instance_mask_i):
-                            present[i] = instance_mask_i.sum(dim=0) != 0
-                # One-hot targets zeroed at uncovered pixels, without F.one_hot's int64 NxHxWxC intermediate
-                sem_masks = torch.zeros(sem_idx.shape[0], self.nc, *sem_idx.shape[2:], device=self.device)
-                sem_masks.scatter_(1, sem_idx, present.unsqueeze(1).float())  # NxCxHxW
-
-                loss[4] = self.bcedice_loss(pred_semantic, sem_masks)
-                loss[4] *= self.hyp.box  # seg gain
-
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
-            if pred_semantic is not None:
-                loss[4] += (pred_semantic * 0).sum()
+
+        # Semantic head is dense over the image; do not gate it on positive-box assignment.
+        if pred_semantic is not None:
+            if masks is None:
+                masks = batch["masks"].to(self.device).float()
+            sem_idx = batch["sem_masks"].to(self.device).long().unsqueeze(1)  # Nx1xHxW
+            if self.overlap:
+                present = masks != 0  # NxHxW
+            else:
+                batch_idx = batch["batch_idx"].view(-1)  # [total_instances]
+                present = torch.zeros(batch_size, *masks.shape[-2:], dtype=torch.bool, device=self.device)
+                for i in range(batch_size):
+                    instance_mask_i = masks[batch_idx == i]  # [num_instances_i, H, W]
+                    if len(instance_mask_i):
+                        present[i] = instance_mask_i.sum(dim=0) != 0
+            # One-hot targets zeroed at uncovered pixels, without F.one_hot's int64 NxHxWxC intermediate
+            sem_masks = torch.zeros(sem_idx.shape[0], self.nc, *sem_idx.shape[2:], device=self.device)
+            sem_masks.scatter_(1, sem_idx, present.unsqueeze(1).float())  # NxCxHxW
+
+            loss[4] = self.bcedice_loss(pred_semantic, sem_masks)
+            loss[4] *= self.hyp.box  # seg gain
 
         loss[1] *= self.hyp.box  # seg gain
         return loss * batch_size, dict(zip(self.loss_names, loss.detach()))  # loss(box, seg, cls, dfl, semantic)

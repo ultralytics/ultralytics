@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # YOLOv10n small-object experiment with SPD downsampling and EMA at P2/P3.
 # Focus implements space-to-depth followed by stride-1 convolution (SPD-Conv).
 # Detection outputs remain P3/8 - P5/32; there is no P2 detection head.

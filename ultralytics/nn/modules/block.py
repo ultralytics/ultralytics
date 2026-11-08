@@ -326,8 +326,8 @@ class C2f(nn.Module):
 class C2fEMA(C2f):
     """C2f followed by Efficient Multi-Scale Attention with cross-spatial learning.
 
-    Retains the C2f parameter names for partial loading of pretrained weights. Spatial features are processed in
-    up to eight channel groups, using coordinate pooling and parallel 1x1 and 3x3 convolutions.
+    Retains the C2f parameter names for partial loading of pretrained weights. Spatial features are processed in up to
+    eight channel groups, using coordinate pooling and parallel 1x1 and 3x3 convolutions.
 
     References:
         https://arxiv.org/abs/2305.13563

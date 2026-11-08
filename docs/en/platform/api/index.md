@@ -2719,8 +2719,8 @@ Send a photo as base64 `image` (at most 3 MiB, never stored) in a JSON body with
 from [Search Public Content](#search-public-content). The response has the same shape plus a `vector`: send it in place
 of `image` for more pages, other filters, or the other `type`, so the photo is read only once. `type=images` returns
 scored images as a text search does; `type=datasets` returns public datasets ranked by their matching images, which
-their cards show. Photos count against their own limit of 20 per minute. `400` means the photo cannot be read and `503`
-that search is busy, so retry shortly.
+lead each dataset's `sampleImages`. Photos count against their own limit of 20 per minute. `400` means invalid parameters or a photo that
+cannot be read, and `503` that search is busy, so retry shortly.
 
 ---
 

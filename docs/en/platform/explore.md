@@ -74,7 +74,7 @@ To search by a photo instead, click the search-by-image icon in the Datasets or 
 onto the page. The Images tab shows images like it, each with its similarity score, and the Datasets tab shows public
 datasets containing similar images, with those images on their cards. Filters, and sorting on the Datasets tab, still
 apply, and switching between the two tabs keeps the photo. The photo is searched, not saved, and stays out of the URL;
-typing a query, opening the Projects tab, or clicking **Close** ends the photo search.
+the search bar shows it until you click **Close** or open the Projects tab.
 
 ### Sort and Filter
 

@@ -508,11 +508,11 @@ Click `Re-analyze` to recompute [embeddings](https://www.ultralytics.com/glossar
 
 The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog shows the source image beside up to 24 of the nearest images, each labeled with its similarity score, excluding your dataset and any dataset that holds a copy of the selected image. Switches under the source image narrow the search, and each change runs a new search, so a narrower one still returns up to 24 images:
 
-- **Commercial**: datasets under any license in [Available Licenses](#available-licenses) except the non-commercial (`NC`) licenses, `Research-Only`, and `Other`
-- **Research and community**: datasets under an `NC` license, `Research-Only`, or `Other`, and datasets with no license
+- **Commercial**: datasets under any license in [Available Licenses](#available-licenses) except the non-commercial (`NC`) licenses, `Research-Only`, `Other`, and `None`
+- **Research and community**: datasets under an `NC` license, `Research-Only`, or `Other`, and datasets with no license (`None`)
 - **Your images**: your own and team datasets; turn it off to search public datasets alone
 
-All three start on. The license groups apply to every dataset, yours included: the info icon beside each lists its licenses, and the last one left on cannot be turned off. Turn on **Show licenses** above the results to badge each image with its license. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+All three start on. The license groups apply to every dataset, yours included: the info icon beside each lists its licenses, and the last license group left on cannot be turned off, while **Your images** turns off freely. Turn on **Show licenses** above the results to badge each image with its license. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
 
 ![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/004538a8ce286784bffe8a0e3fd1a3f3.avif)<!-- screenshot -->
 

@@ -485,9 +485,9 @@ def xyxyxyxy2xywhr(x):
 
     Returns:
         (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5), as float64 for
-            NumPy input and with the input dtype and device for tensor input. The parameterization is canonical
-            rather than the caller's: w is the longer side and rotation is in radians from [-pi/4, 3pi/4), so a box
-            given with w < h comes back with w and h swapped and its angle shifted by pi/2 modulo pi.
+            NumPy input and with the input dtype and device for tensor input. The parameterization is canonical rather
+            than the caller's: w is the longer side and rotation is in radians from [-pi/4, 3pi/4), so a box given with
+            w < h comes back with w and h swapped and its angle shifted by pi/2 modulo pi.
     """
     is_torch = isinstance(x, torch.Tensor)
     points = np.asarray(x.cpu() if is_torch else x, dtype=np.float32)  # cv2.minAreaRect accepts float32, not float64

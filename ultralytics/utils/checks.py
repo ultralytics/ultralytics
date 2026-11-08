@@ -436,9 +436,12 @@ def check_pip_update_available():
     return False
 
 
+FONT, FONT_UNICODE = "Arial.ttf", "Arial.Unicode.ttf"  # label fonts for Latin text and for all other scripts
+
+
 @ThreadingLocked()
 @functools.lru_cache
-def check_font(font="Arial.ttf"):
+def check_font(font=FONT):
     """Find font locally or download to user's configuration directory if it does not already exist.
 
     Args:
@@ -696,6 +699,24 @@ def check_torchvision():
             "'pip install -U torch torchvision' to update both.\n"
             "For a full compatibility table see https://github.com/pytorch/vision#installation"
         )
+
+
+def check_paddle(version: str = "==3.0.0" if ARM64 else ">=3.0.0,<3.3.0", gpu: str = ">=3.0.0"):
+    """Ensure a PaddlePaddle build is installed, installing the CPU build if none is.
+
+    PaddlePaddle 3.x GPU builds are published only on PaddlePaddle's own package index, not PyPI, so an installed
+    `paddlepaddle-gpu` is version-checked and never replaced by the CPU build, which ships the same `paddle` module. The
+    default CPU range excludes 3.3+, whose oneDNN CPU inference fails, see
+    https://github.com/PaddlePaddle/Paddle/issues/77340.
+
+    Args:
+        version (str): Required CPU `paddlepaddle` version, defaulting to the export and inference range.
+        gpu (str): Required version of an installed `paddlepaddle-gpu` build.
+    """
+    if check_version("paddlepaddle-gpu", ""):
+        check_version("paddlepaddle-gpu", gpu, hard=True, msg="(see https://www.paddlepaddle.org.cn/en/install)")
+    else:
+        check_requirements(f"paddlepaddle{version}")
 
 
 def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):

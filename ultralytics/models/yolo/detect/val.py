@@ -447,6 +447,7 @@ class DetectionValidator(BaseValidator):
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,
+            class_colors=self.data.get("colors"),
             on_plot=self.on_plot,
         )
 
@@ -475,6 +476,7 @@ class DetectionValidator(BaseValidator):
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,
+            class_colors=self.data.get("colors"),
             on_plot=self.on_plot,
         )  # pred
 

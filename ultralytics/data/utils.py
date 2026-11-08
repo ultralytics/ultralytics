@@ -29,10 +29,11 @@ from ultralytics.utils import (
     emojis,
     is_dir_writeable,
 )
-from ultralytics.utils.checks import check_file, check_font, is_ascii, normalize_platform_uri
+from ultralytics.utils.checks import FONT, FONT_UNICODE, check_file, check_font, is_ascii, normalize_platform_uri
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.ops import segments2boxes
 from ultralytics.utils.patches import imread
+from ultralytics.utils.plotting import Colors
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {
@@ -788,6 +789,8 @@ def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str
         data["nc"] = len(data["names"])
 
     data["names"] = check_class_names(data["names"])
+    if not Colors.parse(data.get("colors")):  # a malformed list warns once here and never reaches model or plots
+        data.pop("colors", None)
     data["channels"] = data.get("channels", 3)  # get image channels, default to 3
 
     # Resolve paths
@@ -833,7 +836,7 @@ def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str
             LOGGER.info(f"Dataset download {s}\n")
     if data.get("masks_dir") is None and (path / "masks").is_dir():  # after download so scripts can create it
         data["masks_dir"] = "masks"  # PNG semantic masks in the default folder select SemanticDataset
-    check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")  # download fonts
+    check_font(FONT if is_ascii(data["names"]) else FONT_UNICODE)  # download fonts
 
     return data  # dictionary
 

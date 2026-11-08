@@ -228,7 +228,7 @@ def export_formats():
         ],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
         ["NXP", "nxp", "_nxp.tflite", False, False, ["quantize", "data", "fraction"], "isolated-nxp"],
-        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "paddle"],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "opset", "simplify", "nms"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "quantize", "fraction", "nms"], "isolated-imx"],
@@ -344,6 +344,15 @@ EXPORT_ENVS = {
         "indexes": [],
         "env": {},
         "smoke": ["yolo export format=mnn model=yolo26n.pt imgsz=32"],
+    },
+    "paddle": {
+        "python": "3.13",  # PaddlePaddle wheels stop at cp313
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["paddlepaddle>=3.0.0,<3.3.0", "x2paddle", "six"],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=paddle model=yolo26n.pt imgsz=32"],
     },
     "ncnn": {
         "python": "3.14",
@@ -1035,6 +1044,8 @@ class Exporter:
             "channels": model.yaml.get("channels", 3),
             "end2end": getattr(model, "end2end", False),
         }  # model metadata
+        if getattr(model, "colors", None):
+            self.metadata["colors"] = model.colors  # class colors, see `ultralytics.utils.plotting.Colors`
         if self.dla is not None:
             self.metadata["dla"] = self.dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":

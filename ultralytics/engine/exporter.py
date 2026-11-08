@@ -230,7 +230,7 @@ def export_formats():
         ["NXP", "nxp", "_nxp.tflite", False, False, ["quantize", "data", "fraction"], "isolated-nxp"],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "paddle"],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "opset", "simplify", "nms"], "mnn"],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["quantize"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "quantize", "fraction", "nms"], "isolated-imx"],
         [
             "RKNN",

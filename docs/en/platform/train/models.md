@@ -230,6 +230,8 @@ flowchart TD
 5. Click **Start Export**
 6. Download when complete
 
+While the model's source dataset exists, each export carries the dataset's current [class colors](../data/annotation.md#class-colors), so a color you change after training also reaches later exports.
+
 Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
 
 ![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/d5716199766bea7ab5ee097b0cc343e6.avif)<!-- screenshot -->

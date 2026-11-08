@@ -42,6 +42,8 @@ Each of `train`, `val`, and `test` accepts a directory, an image file, a list of
         /data/shared/im2.jpg
         ```
 
+(Optional) `colors` gives each class a display color as a quoted `"#rrggbb"` string indexed by class id, e.g. `colors: ["#042aff", "#ff0000"]`. Trained and exported models keep these colors for their predictions; classes without one use the default [palette](../../reference/utils/plotting.md#ultralytics.utils.plotting.Colors). An NDJSON dataset record can carry the same `colors` field.
+
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. [Bounding box](https://www.ultralytics.com/glossary/bounding-box) coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 
 <p align="center"><img width="750" src="https://cdn.ul.run/i/19e1e6d0c5d85a19d97d5f3f731cdf83.avif" alt="YOLO labeled image with bounding boxes on persons and tie"></p>

@@ -33,19 +33,10 @@ inline cv::Scalar Color(int class_id) {
     return palette[std::abs(class_id) % static_cast<int>(palette.size())];
 }
 
-// Text color for a given box color, mirroring Annotator.get_txt_color():
-// a fixed set of light palette colors use dark text; everything else uses white.
+// Text color for a BGR box color, mirroring Annotator.get_txt_color() (ultralytics/utils/plotting.py Colors):
+// navy #111F68 when the background luma 0.299R + 0.587G + 0.114B exceeds 150, else white.
 inline cv::Scalar TextColor(const cv::Scalar& bg) {
-    // "dark_colors" in plotting.py: backgrounds that read better with dark text (BGR).
-    static const int dark_bgr[][3] = {
-        {235, 219, 11}, {243, 243, 243}, {183, 223, 0}, {221, 111, 255}, {0, 237, 204},
-        {68, 243, 0}, {255, 255, 0}, {179, 255, 1}, {11, 255, 162},
-    };
-    const int b = static_cast<int>(bg[0]), g = static_cast<int>(bg[1]), r = static_cast<int>(bg[2]);
-    for (const auto& c : dark_bgr) {
-        if (c[0] == b && c[1] == g && c[2] == r) return cv::Scalar(104, 31, 17);
-    }
-    return cv::Scalar(255, 255, 255);
+    return 0.299 * bg[2] + 0.587 * bg[1] + 0.114 * bg[0] > 150 ? cv::Scalar(104, 31, 17) : cv::Scalar(255, 255, 255);
 }
 
 // Line width derived from image size, matching Annotator's default `lw`.
@@ -95,8 +86,8 @@ inline void DrawMask(cv::Mat& image, const cv::Mat& mask, int class_id, float al
     blended.copyTo(image, mask);
 }
 
-// Draw 17 COCO keypoints and the skeleton for one pose detection, using the same
-// pose palette as the Python Annotator (limb and keypoint colors in BGR).
+// Draw 17 COCO keypoints and the skeleton for one pose detection, using the COCO keypoint and limb colors of
+// ultralytics/utils/plotting.py Colors (face green, arms blue, legs orange, torso magenta), in BGR.
 inline void DrawPose(cv::Mat& image, const std::vector<cv::Point2f>& kpts,
                      const std::vector<float>& scores, float kpt_threshold = 0.5f) {
     static const int kSkeleton[19][2] = {
@@ -105,11 +96,11 @@ inline void DrawPose(cv::Mat& image, const std::vector<cv::Point2f>& kpts,
     };
     // pose_palette colors used by Ultralytics, in BGR.
     const cv::Scalar kBlue(255, 153, 51), kMagenta(255, 51, 255), kOrange(0, 128, 255), kGreen(0, 255, 0);
-    static const cv::Scalar kLimbColor[19] = {kBlue, kBlue, kBlue, kBlue, kMagenta, kMagenta, kMagenta,
-                                              kOrange, kOrange, kOrange, kOrange, kOrange, kGreen, kGreen,
+    static const cv::Scalar kLimbColor[19] = {kOrange, kOrange, kOrange, kOrange, kMagenta, kMagenta, kMagenta,
+                                              kBlue, kBlue, kBlue, kBlue, kBlue, kGreen, kGreen,
                                               kGreen, kGreen, kGreen, kGreen, kGreen};
-    static const cv::Scalar kKptColor[17] = {kGreen, kGreen, kGreen, kGreen, kGreen, kOrange, kOrange, kOrange,
-                                             kOrange, kOrange, kOrange, kBlue, kBlue, kBlue, kBlue, kBlue, kBlue};
+    static const cv::Scalar kKptColor[17] = {kGreen, kGreen, kGreen, kGreen, kGreen, kBlue, kBlue, kBlue,
+                                             kBlue, kBlue, kBlue, kOrange, kOrange, kOrange, kOrange, kOrange, kOrange};
 
     for (int i = 0; i < 19; ++i) {
         const int a = kSkeleton[i][0], b = kSkeleton[i][1];
@@ -140,7 +131,7 @@ inline void DrawObb(cv::Mat& image, const cv::RotatedRect& rect, const std::stri
 }
 
 // Color a per-pixel class map (CV_8U or CV_32S, image size) and blend it over the image.
-inline void DrawSemantic(cv::Mat& image, const cv::Mat& class_map, float alpha = 0.45f) {
+inline void DrawSemantic(cv::Mat& image, const cv::Mat& class_map, float alpha = 0.5f) {
     if (class_map.empty()) return;
     cv::Mat colored(image.size(), CV_8UC3);
     for (int y = 0; y < class_map.rows; ++y) {

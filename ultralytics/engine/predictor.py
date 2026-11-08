@@ -463,6 +463,7 @@ class BasePredictor:
                                 k: (p.t - t) * 1e3 / n
                                 for k, p, t in zip(("preprocess", "inference", "postprocess"), profilers, start_times)
                             }
+                            self.results[i].colors = getattr(self.model, "colors", None)  # model class colors
                             if (
                                 self.args.verbose
                                 or self.args.save

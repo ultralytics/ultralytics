@@ -1228,6 +1228,15 @@ def test_annotator_depth_map():
     assert ann.result().shape == (16, 16, 3)
 
 
+def test_colors_parse():
+    """Class `colors` parse from a list or its metadata repr; a malformed value is ignored whole, never raised."""
+    from ultralytics.utils.plotting import Colors
+
+    for bad in ([None], ["#00ff00", "#f00"], ["red"], ["#00ff00", "ff0000"], ["#ff0000ff"], [1], "#ff0000", "[None]"):
+        assert Colors.parse(bad) is None
+    assert Colors.parse(["#FF0000", "#00ff00"]) == Colors.parse("['#ff0000', '#00ff00']") == [(255, 0, 0), (0, 255, 0)]
+
+
 def test_dense_result_tensor_indexing():
     """Valid indices keep the intact map on SemanticMask/DepthMap; out-of-range raises; empty selections zero len."""
     from ultralytics.engine.results import DepthMap, SemanticMask

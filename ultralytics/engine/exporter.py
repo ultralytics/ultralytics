@@ -1041,6 +1041,8 @@ class Exporter:
             "channels": model.yaml.get("channels", 3),
             "end2end": getattr(model, "end2end", False),
         }  # model metadata
+        if getattr(model, "colors", None):
+            self.metadata["colors"] = model.colors  # class colors, see `ultralytics.utils.plotting.Colors`
         if self.dla is not None:
             self.metadata["dla"] = self.dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":

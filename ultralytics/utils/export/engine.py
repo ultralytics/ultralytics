@@ -217,6 +217,7 @@ def modelopt_quantize_onnx(
         autocast.convert_to_mixed_precision(
             onnx_file,
             low_precision_type="fp16",
+            data_max=float(np.finfo(np.float16).max),  # the 512 default keeps pixel-space box post-processing in FP32
             keep_io_types=True,
             calibration_data={input_name: im},
         ),

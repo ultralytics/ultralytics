@@ -74,10 +74,10 @@ def test_mlflow_keep_run_active(tmp_path, monkeypatch):
         mlflow.end_run()
 
 
-@pytest.mark.skipif(not check_requirements("tritonclient", install=False), reason="tritonclient[all] not installed")
+@pytest.mark.skipif(not check_requirements("tritonclient", install=False), reason="tritonclient not installed")
 def test_triton(tmp_path, isolated_model):
     """Test NVIDIA Triton Server functionalities with YOLO model."""
-    check_requirements("tritonclient[all]")
+    check_requirements("tritonclient[http,grpc]")
     from tritonclient.http import InferenceServerClient
 
     # Create variables

@@ -173,7 +173,7 @@ To replay any tour:
 
 Open `Annotate` in the sidebar and click the `+` to create a new dataset. You can also drag and drop files directly onto the Datasets card on the Home dashboard.
 
-![Ultralytics Platform Quickstart Upload Dialog](https://cdn.ul.run/i/0a41e4a1487a50f74266b9164c7fd64f.avif)<!-- screenshot -->
+![Ultralytics Platform Quickstart Upload Dialog](https://cdn.ul.run/i/87cee59e4fb4c86c4cf5a3e86db73b32.avif)<!-- screenshot -->
 
 The **New Dataset** dialog offers four sources. This quickstart uses **Upload**; the others are covered in
 [Datasets](data/datasets.md) and [Integrations](integrations/index.md):
@@ -246,7 +246,7 @@ Read more about [projects](train/projects.md).
 
 From your project, click `New Model` to open the **Train New Model** dialog. You can also start from a dataset page, in which case the dataset is locked in and you pick the destination project instead.
 
-![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.ul.run/i/c93aa9499bf9401557562ffc3cd96be2.avif)<!-- screenshot -->
+![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.ul.run/i/6ca4d4aa87bf818d83393422aa9f36dc.avif)<!-- screenshot -->
 
 ### Training Configuration
 

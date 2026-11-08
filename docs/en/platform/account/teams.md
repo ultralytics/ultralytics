@@ -137,7 +137,7 @@ Admins and Owners can invite new members to the team:
 5. Click **Continue**, review the seat cost, then click **Confirm & invite** (workspaces without seat billing, such as
    Enterprise, show **Send Invitation** instead)
 
-![Ultralytics Platform Teams Invite Member Dialog](https://cdn.ul.run/i/95a332021091e791023d0f789d806a0b.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Invite Member Dialog](https://cdn.ul.run/i/4756bf3fa0f28c66d3726bcf040f7f6b.avif)<!-- screenshot -->
 
 What happens next depends on whether the invitee already uses the Platform:
 

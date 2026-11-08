@@ -215,7 +215,7 @@ Clone a public model to one of your projects:
 4. Optionally, rename the model
 5. Review the source model summary, then click `Clone Model` to confirm
 
-![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/ea87fef6ef1ff9f2d6a00e3fbb46459d.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/dc44c4c61e4d8276fd1829145c2e493b.avif)<!-- screenshot -->
 
 !!! note "Clone vs Download"
 

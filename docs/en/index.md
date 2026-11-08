@@ -20,6 +20,7 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 <a href="https://docs.ultralytics.com/fr">Français</a> ·
 <a href="https://docs.ultralytics.com/es">Español</a> ·
 <a href="https://docs.ultralytics.com/pt">Português</a> ·
+<a href="https://docs.ultralytics.com/it">Italiano</a> ·
 <a href="https://docs.ultralytics.com/tr">Türkçe</a> ·
 <a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> ·
 <a href="https://docs.ultralytics.com/ar">العربية</a>

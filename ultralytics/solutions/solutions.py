@@ -273,6 +273,17 @@ class BaseSolution:
 
     def __call__(self, *args: Any, **kwargs: Any):
         """Allow instances to be called like a function with flexible arguments."""
+        if args and not isinstance(args[0], np.ndarray):
+            # predict/track accept paths and URLs; annotation needs the decoded frame
+            from ultralytics.data.build import load_inference_source
+
+            dataset = load_inference_source(args[0])
+            try:
+                _, im0s, _ = next(iter(dataset))
+            finally:
+                if hasattr(dataset, "close"):
+                    dataset.close()
+            args = (im0s[0], *args[1:])
         with self.profilers[1]:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method
         track_or_predict = "predict" if self.CFG["tracker"] is None else "track"

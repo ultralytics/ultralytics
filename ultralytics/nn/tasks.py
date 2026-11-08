@@ -2311,7 +2311,7 @@ def guess_model_task(model):
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
-        if "detect" in m:
+        if "detect" in m or "rtdetr" in m:
             return "detect"
         if "semanticsegment" in m:
             return "semantic"
@@ -2327,7 +2327,8 @@ def guess_model_task(model):
     # Guess from model cfg
     if isinstance(model, dict):
         with contextlib.suppress(Exception):
-            return cfg2task(model)
+            if task := cfg2task(model):
+                return task
     # Guess from PyTorch model
     if isinstance(model, torch.nn.Module):  # PyTorch model
         for x in "model.args", "model.model.args", "model.model.model.args":
@@ -2335,7 +2336,8 @@ def guess_model_task(model):
                 return eval(x)["task"]  # nosec B307: safe eval of known attribute paths
         for x in "model.yaml", "model.model.yaml", "model.model.model.yaml":
             with contextlib.suppress(Exception):
-                return cfg2task(eval(x))  # nosec B307: safe eval of known attribute paths
+                if task := cfg2task(eval(x)):  # nosec B307: safe eval of known attribute paths
+                    return task
         for m in model.modules():
             if isinstance(m, SemanticSegment):
                 return "semantic"
@@ -2349,7 +2351,7 @@ def guess_model_task(model):
                 return "obb"
             elif isinstance(m, Depth):
                 return "depth"
-            elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
+            elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect, RTDETRDecoder)):
                 return "detect"
 
     if isinstance(model, (str, Path)):
@@ -2372,7 +2374,7 @@ def guess_model_task(model):
             return "obb"
         elif "-depth" in model.stem or "depth" in model.parts:
             return "depth"
-        elif "detect" in model.parts:
+        elif "rtdetr" in model.stem.lower() or "detect" in model.parts:
             return "detect"
 
     # Unable to determine task from model

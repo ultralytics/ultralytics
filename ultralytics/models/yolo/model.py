@@ -79,6 +79,12 @@ class YOLO(Model):
             new_instance = YOLOE(path, task=task, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
+        elif "rtdetr" in path.stem.lower() and path.suffix.lower() in {".yaml", ".yml"}:  # if RT-DETR YAML
+            from ultralytics import RTDETR
+
+            new_instance = RTDETR(path)
+            self.__class__ = type(new_instance)
+            self.__dict__ = new_instance.__dict__
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)

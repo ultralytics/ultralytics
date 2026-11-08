@@ -128,7 +128,7 @@ To train a [YOLO26n-obb](https://platform.ultralytics.com/ultralytics/yolo26/yol
 
 !!! warning "Licensing and dataset provenance"
 
-    All images and associated annotations in the DOTAv1 dataset can be used for academic purposes only; commercial use is prohibited. Ultralytics interprets these restrictions as applying to the source dataset rather than to pretrained or fine-tuned model weights, but DOTA-specific commercial clearance for those weights has not been independently confirmed. An Ultralytics Enterprise License covers Ultralytics software licensing; it does not grant rights to third-party datasets. Review the [DOTA terms](https://captain-whu.github.io/DOTA/dataset.html) for your intended use.
+    All images and associated annotations in the DOTAv1 dataset can be used for academic purposes only; commercial use is prohibited. Ultralytics interprets these restrictions as applying to the source dataset rather than to pretrained or fine-tuned model weights. Review the [DOTA terms](https://captain-whu.github.io/DOTA/dataset.html) for your intended use.
 
 !!! example "Train Example"
 

@@ -40,7 +40,7 @@ YOLO26 OBB models pretrained on the [DOTAv1](../datasets/obb/dota-v2.md#dota-v10
 
 !!! note "Licensing and dataset provenance"
 
-    DOTAv1 images and annotations are limited to academic use and prohibit commercial use. Ultralytics interprets those restrictions as applying to the source dataset rather than to pretrained or fine-tuned model weights, but DOTA-specific commercial clearance for those weights has not been independently confirmed. An Ultralytics Enterprise License covers Ultralytics software licensing; it does not grant rights to third-party datasets. Review the [DOTA terms](https://captain-whu.github.io/DOTA/dataset.html) for your intended use.
+    DOTAv1 images and annotations are limited to academic use and prohibit commercial use. Ultralytics interprets those restrictions as applying to the source dataset rather than to pretrained or fine-tuned model weights. Review the [DOTA terms](https://captain-whu.github.io/DOTA/dataset.html) for your intended use.
 
 {% include "macros/yolo-obb-perf.md" %}
 

@@ -247,7 +247,7 @@ Upgrade for more features and monthly credits:
 4. Choose billing cycle (Monthly or Yearly)
 5. Complete checkout
 
-![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.ul.run/i/7c830c485f58d8d3ec9243c15f0340f6.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.ul.run/i/51b9dfbe2a1fec32580141b350326ef1.avif)<!-- screenshot -->
 
 ### Pro Benefits
 

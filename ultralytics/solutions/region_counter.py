@@ -104,7 +104,7 @@ class RegionCounter(BaseSolution):
         if not isinstance(self.region, dict):  # Ensure self.region is initialized and structured as a dictionary
             self.region = {"Region#01": self.region}
         for i, (name, pts) in enumerate(self.region.items()):
-            self.add_region(name, pts, colors(i, True), None)  # None: navy or white text by region color luma
+            self.add_region(name, pts, colors(i, True), None)
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """Process the input frame to detect and count objects within each defined region.

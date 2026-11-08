@@ -54,12 +54,6 @@ class Colors:
     light or dark theme.
     - Box label text (`Annotator.get_txt_color`): `#111f68` when the background luma 0.299*R + 0.587*G + 0.114*B
     exceeds 150, else `#ffffff`.
-    - Pose: the 17-keypoint COCO layout colors keypoint k with `kpt_color[k]` (pose palette indices
-    `[16]*5+[9]*6+[0]*6`) and limb j, joining the 1-indexed keypoints `Annotator.skeleton[j]`, with `limb_color[j]`
-    (indices `[0]*4+[7]*3+[9]*5+[16]*7`): face green, arms blue, legs orange, torso magenta. Any other layout colors
-    keypoint k with `palette[k % 20]`.
-    - Masks blend at 0.5 opacity (`Annotator.masks`, `Annotator.semantic_mask`); depth uses `colorize_depth` at 0.6.
-    - Label fonts: `checks.FONT` for Latin and `checks.FONT_UNICODE` for other scripts (PIL); ASCII defaults to cv2.
 
     ## Ultralytics Color Palette
 
@@ -120,8 +114,6 @@ class Colors:
         palette (list[tuple]): List of RGB color tuples for general use.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
-        kpt_color (np.ndarray): RGB colors of the 17 COCO keypoints.
-        limb_color (np.ndarray): RGB colors of the 19 COCO skeleton limbs.
 
     Examples:
         >>> from ultralytics.utils.plotting import Colors
@@ -182,8 +174,6 @@ class Colors:
             ],
             dtype=np.uint8,
         )
-        self.kpt_color = self.pose_palette[[16] * 5 + [9] * 6 + [0] * 6]
-        self.limb_color = self.pose_palette[[0] * 4 + [7] * 3 + [9] * 5 + [16] * 7]
 
     def __call__(self, i: int | torch.Tensor, bgr: bool = False, custom: list[tuple] | None = None) -> tuple:
         """Return the color for a class index from the model's custom colors, else from the palette.
@@ -210,14 +200,13 @@ class Colors:
         """Return `colors` (a list or its repr) as RGB tuples, or None with one warning if an entry is not "#rrggbb"."""
         if not hexs:
             return None
-        v = hexs
-        if isinstance(v, str):  # ONNX/CoreML metadata stores the list's repr
-            try:
-                v = ast.literal_eval(v)
-            except (ValueError, SyntaxError):
-                v = None
-        if isinstance(v, (list, tuple)) and all(isinstance(h, str) and re.fullmatch("#[0-9a-fA-F]{6}", h) for h in v):
-            return [Colors.hex2rgb(h) for h in v]
+        if isinstance(hexs, str):  # ONNX/CoreML repr; a failed eval stays a str and is rejected below
+            with contextlib.suppress(ValueError, SyntaxError):
+                hexs = ast.literal_eval(hexs)
+        if isinstance(hexs, (list, tuple)) and all(
+            isinstance(h, str) and re.fullmatch("#[0-9a-fA-F]{6}", h) for h in hexs
+        ):
+            return [Colors.hex2rgb(h) for h in hexs]
         LOGGER.warning(f"Ignoring class colors {hexs!r:.100}, expected a list of '#rrggbb' strings. Using the palette.")
         return None
 
@@ -455,8 +444,9 @@ class Annotator:
             [5, 7],
         ]
 
-        self.limb_color = colors.limb_color[:, [2, 1, 0]]  # RGB to BGR, the image buffer order
-        self.kpt_color = colors.kpt_color[:, [2, 1, 0]]
+        # COCO limb and keypoint colors from the pose palette, RGB to BGR
+        self.limb_color = colors.pose_palette[[0, 0, 0, 0, 7, 7, 7, 9, 9, 9, 9, 9, 16, 16, 16, 16, 16, 16, 16]][:, ::-1]
+        self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0]][:, ::-1]
 
     def get_txt_color(self, color: tuple = (128, 128, 128), txt_color: tuple | None = None) -> tuple:
         """Assign text color based on background color.

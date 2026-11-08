@@ -459,7 +459,7 @@ def check_font(font=FONT):
         return file
 
     # Check system fonts in matplotlib's cached list only: findSystemFonts() rescans the OS (8s on macOS), and a miss
-    # is routine (e.g. FONT_UNICODE on macOS) until the download below lands in USER_CONFIG_DIR
+    # is routine (e.g. Arial.Unicode.ttf on macOS) until the download below lands in USER_CONFIG_DIR
     matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
     if any(matches):
         return matches[0]

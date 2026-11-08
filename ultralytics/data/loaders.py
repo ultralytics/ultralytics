@@ -54,12 +54,13 @@ class SourceTypes:
     tensor: bool = False
 
 
-def tile_batches(images: list[np.ndarray], size: int | tuple[int, int], batch: int):
+def tile_batches(images: list[np.ndarray], size: int | tuple[int, int], batch: int | float):
     """Yield bounded crop batches and their (source index, window) metadata without copying source images."""
+    step = max(int(batch), 1)  # match untiled predict: float/AutoBatch-style values still load at least one crop
     windows = [(i, w) for i, image in enumerate(images) for w in tile_windows(image.shape[:2], size)]
-    for start in range(0, len(windows), batch):
-        chunk = windows[start : start + batch]
-        yield [images[i][y1:y2, x1:x2] for i, (x1, y1, x2, y2) in chunk], chunk, start + batch >= len(windows)
+    for start in range(0, len(windows), step):
+        chunk = windows[start : start + step]
+        yield [images[i][y1:y2, x1:x2] for i, (x1, y1, x2, y2) in chunk], chunk, start + step >= len(windows)
 
 
 class LoadStreams:

@@ -85,6 +85,7 @@ class Predictor(BasePredictor):
     """
 
     stride = 16
+    default_iou = 0.7  # SAM mask NMS, not the YOLO predict default
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the Predictor with configuration, overrides, and callbacks.

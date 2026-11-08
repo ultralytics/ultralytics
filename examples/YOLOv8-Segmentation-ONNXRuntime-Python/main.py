@@ -33,13 +33,13 @@ class YOLOv8Seg:
         postprocess: Post-process model predictions to extract meaningful results.
 
     Examples:
-        >>> model = YOLOv8Seg("yolov8n-seg.onnx", conf=0.25, iou=0.7)
+        >>> model = YOLOv8Seg("yolov8n-seg.onnx", conf=0.25, iou=0.5)
         >>> img = cv2.imread("image.jpg")
         >>> results = model(img)
         >>> cv2.imshow("Segmentation", results[0].plot())
     """
 
-    def __init__(self, onnx_model: str, conf: float = 0.25, iou: float = 0.7, imgsz: int | tuple[int, int] = 640):
+    def __init__(self, onnx_model: str, conf: float = 0.25, iou: float = 0.5, imgsz: int | tuple[int, int] = 640):
         """Initialize the instance segmentation model using an ONNX model.
 
         Args:
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, required=True, help="Path to ONNX model")
     parser.add_argument("--source", type=str, default=str(ASSETS / "bus.jpg"), help="Path to input image")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
-    parser.add_argument("--iou", type=float, default=0.7, help="NMS IoU threshold")
+    parser.add_argument("--iou", type=float, default=0.5, help="NMS IoU threshold")
     args = parser.parse_args()
 
     model = YOLOv8Seg(args.model, args.conf, args.iou)

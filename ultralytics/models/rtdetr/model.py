@@ -40,15 +40,16 @@ class RTDETR(Model):
         >>> results = model("image.jpg")
     """
 
-    def __init__(self, model: str | Path | Model = "rtdetr-l.pt") -> None:
+    def __init__(self, model: str | Path | Model = "rtdetr-l.pt", verbose: bool = False) -> None:
         """Initialize the RT-DETR model with the given pre-trained model file.
 
         Args:
             model (str | Path | Model): Path to the pre-trained model (.pt, .yaml, or .yml), or an already initialized
                 Model instance.
+            verbose (bool): Whether to display model information on load.
         """
         assert TORCH_1_11, "RTDETR requires torch>=1.11"
-        super().__init__(model=model, task="detect")
+        super().__init__(model=model, task="detect", verbose=verbose)
 
     @property
     def task_map(self) -> dict:

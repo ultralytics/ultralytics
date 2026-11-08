@@ -82,7 +82,7 @@ class YOLO(Model):
         elif "rtdetr" in path.stem.lower() and path.suffix.lower() in {".yaml", ".yml"}:  # if RT-DETR YAML
             from ultralytics import RTDETR
 
-            new_instance = RTDETR(path)
+            new_instance = RTDETR(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
         else:

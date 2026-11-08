@@ -33,32 +33,25 @@ def slugify(text):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9\s-]", "", str(text).lower()).replace(" ", "-")).strip("-")[:128]
 
 
-def _interp_plot(plot, n=101):
-    """Interpolate plot curve data to n points to reduce storage size."""
+def _compact_plot(plot, n=101):
+    """Reduce plot data to what Platform renders so the completion payload stays bounded for any class count.
+
+    Platform draws the first 100 confusion matrix classes and per-class curves up to 20 classes, else only the mean.
+    """
     import numpy as np
 
-    if not plot.get("x") or not plot.get("y"):
-        return plot  # No interpolation needed (e.g., confusion_matrix)
+    if "matrix" in plot:  # Platform slices a matrix over 100 rows to its first 100
+        return {**plot, "matrix": [row[:100] for row in plot["matrix"][:100]]}
 
     x, y = np.array(plot["x"]), np.array(plot["y"])
-    if len(x) <= n:
-        return plot  # Already small enough
-
-    # New x values (101 points gives clean 0.01 increments: 0, 0.01, 0.02, ..., 1.0)
-    x_new = np.linspace(x[0], x[-1], n)
-
-    # Interpolate y values (handle both 1D and 2D arrays)
-    if y.ndim == 1:
-        y_new = np.interp(x_new, x, y)
-    else:
-        y_new = np.array([np.interp(x_new, x, yi) for yi in y])
-
-    # Keep ap as-is if present (per-class scalars for PR curves, not interpolated)
-    result = {**plot, "x": x_new.tolist(), "y": y_new.tolist()}
-    if "ap" in plot:
-        result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)
-
-    return result
+    if len(y) > 20:  # mean curve and AP only, so rows no longer map to classes
+        y = y.mean(0, keepdims=True)
+        plot = {k: v for k, v in plot.items() if k != "classes"}
+        if "ap" in plot:
+            plot["ap"] = np.mean(plot["ap"], 0, keepdims=True).tolist()
+    x_new = np.linspace(x[0], x[-1], n)  # 101 points gives clean 0.01 increments
+    y_new = np.array([np.interp(x_new, x, yi) for yi in y])
+    return {**plot, "x": x_new.round(6).tolist(), "y": y_new.round(6).tolist()}  # Platform stores 6 decimals
 
 
 def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
@@ -493,7 +486,7 @@ def on_train_end(trainer):
         classes = [int(c) for c in trainer.validator.metrics.ap_class_index]
         if len(classes) < len(trainer.validator.names):
             plots_by_type["pr_curve"] = {**pr, "classes": classes}
-    plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
+    plots = [_compact_plot(p) for p in plots_by_type.values()]
 
     # Get class names
     names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")

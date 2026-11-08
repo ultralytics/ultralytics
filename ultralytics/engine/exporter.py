@@ -113,6 +113,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     MACOS_VERSION,
+    PREDICT_IOU,
     QNN_HTP_TARGETS,
     RKNN_CHIPS,
     SETTINGS,
@@ -622,7 +623,7 @@ class Exporter:
         """
         self.args = get_cfg(cfg, overrides)
         if self.args.iou is None:
-            self.args.iou = 0.5  # export-time NMS serves predict
+            self.args.iou = PREDICT_IOU  # export-time NMS serves predict
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 

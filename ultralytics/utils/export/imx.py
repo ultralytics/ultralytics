@@ -13,7 +13,7 @@ import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Segment
-from ultralytics.utils import IS_DEBIAN_BOOKWORM, IS_DEBIAN_TRIXIE, IS_RASPBERRYPI, IS_UBUNTU, LOGGER, WINDOWS
+from ultralytics.utils import IS_DEBIAN_BOOKWORM, IS_DEBIAN_TRIXIE, IS_RASPBERRYPI, IS_UBUNTU, LOGGER, PREDICT_IOU, WINDOWS
 from ultralytics.utils.checks import check_apt_requirements, check_requirements
 from ultralytics.utils.patches import onnx_export_patch
 from ultralytics.utils.tal import make_anchors
@@ -158,7 +158,7 @@ class NMSWrapper(torch.nn.Module):
         self,
         model: torch.nn.Module,
         score_threshold: float = 0.001,
-        iou_threshold: float = 0.5,
+        iou_threshold: float = PREDICT_IOU,
         max_detections: int = 300,
         task: str = "detect",
     ):

@@ -34,6 +34,8 @@ class FastSAMPredictor(SegmentationPredictor):
         set_prompts: Set prompts to be used during inference.
     """
 
+    default_iou = 0.7  # nested single-class masks, not the YOLO predict default
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the FastSAMPredictor with configuration and callbacks.
 
@@ -46,7 +48,6 @@ class FastSAMPredictor(SegmentationPredictor):
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
-        overrides = {"iou": 0.7, **(overrides or {})}  # nested single-class masks, not the YOLO predict default
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
 

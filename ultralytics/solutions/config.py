@@ -44,7 +44,7 @@ class SolutionConfig:
         meter_per_pixel (float): Scale for real-world measurement, used in speed or distance calculations.
         max_speed (int): Maximum speed in km/h; speed estimates above this value are capped.
         show (bool): Whether to display the visual output on screen.
-        iou (float): Intersection-over-Union threshold for detection filtering.
+        iou (float, optional): NMS IoU threshold; None uses the predict default.
         conf (float): Confidence threshold for keeping predictions.
         device (str, optional): Device to run inference on (e.g., 'cpu', '0' for CUDA GPU).
         max_det (int): Maximum number of detections allowed per video frame.
@@ -93,7 +93,7 @@ class SolutionConfig:
     meter_per_pixel: float = 0.05
     max_speed: int = 120
     show: bool = False
-    iou: float = 0.5
+    iou: float | None = None
     conf: float = 0.25
     device: str | None = None
     max_det: int = 300

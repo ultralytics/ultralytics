@@ -59,7 +59,7 @@ from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox
 from ultralytics.data.loaders import LoadImagesAndVideos
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, PREDICT_IOU, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.plotting import class_activation_map
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
@@ -119,6 +119,7 @@ class BasePredictor:
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
         scale_fill (bool): Whether pre_transform stretches images to imgsz instead of letterboxing them.
+        default_iou (float): NMS IoU threshold used when the `iou` argument is unset.
 
     Methods:
         preprocess: Prepare input image before inference.
@@ -136,6 +137,7 @@ class BasePredictor:
     """
 
     scale_fill = False
+    default_iou = PREDICT_IOU
 
     def __init__(
         self,
@@ -154,6 +156,8 @@ class BasePredictor:
         self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
+        if self.args.iou is None:
+            self.args.iou = self.default_iou
         self.done_warmup = False
         if self.args.show:
             self.args.show = check_imshow(warn=True)
@@ -360,8 +364,8 @@ class BasePredictor:
         """
         if self.args.verbose:
             LOGGER.info("")
-        if self.args.iou is None:
-            self.args.iou = 0.5  # fewer duplicate boxes than val's 0.7 at the predict conf
+        if self.args.iou is None:  # Model.predict resets a reused predictor's args to the defaults
+            self.args.iou = self.default_iou
 
         # Setup model
         if self.model is None:

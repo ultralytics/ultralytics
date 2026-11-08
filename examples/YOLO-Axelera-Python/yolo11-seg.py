@@ -28,7 +28,7 @@ from axelera.runtime import cv, display, op
 IMAGE_SUFFIXES = {".bmp", ".dng", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"}
 
 
-def build_pipeline(model_path: str, conf: float = 0.25, iou: float = 0.5):
+def build_pipeline(model_path: str, conf: float, iou: float):
     """Build the YOLO11 instance segmentation pipeline.
 
     The seg head emits two outputs (detections, prototypes), so post-processing splits the tuple, runs NMS on the

@@ -5,7 +5,7 @@ import time
 
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, PREDICT_IOU
 from ultralytics.utils.metrics import batch_probiou, box_iou
 from ultralytics.utils.ops import xywh2xyxy
 
@@ -13,7 +13,7 @@ from ultralytics.utils.ops import xywh2xyxy
 def non_max_suppression(
     prediction,
     conf_thres: float = 0.25,
-    iou_thres: float = 0.5,
+    iou_thres: float = PREDICT_IOU,
     classes=None,
     agnostic: bool = False,
     multi_label: bool = False,

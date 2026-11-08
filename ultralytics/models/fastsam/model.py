@@ -75,7 +75,6 @@ class FastSAM(Model):
             (list): List of Results objects containing the prediction results.
         """
         prompts = {"bboxes": bboxes, "points": points, "labels": labels, "texts": texts}
-        kwargs.setdefault("iou", 0.7)  # nested single-class masks, not the YOLO predict default
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     @property

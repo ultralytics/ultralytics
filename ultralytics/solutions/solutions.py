@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from collections import Counter, defaultdict
 from functools import lru_cache, partial
+from pathlib import Path
 from typing import Any
 
 import cv2
@@ -273,7 +274,7 @@ class BaseSolution:
 
     def __call__(self, *args: Any, **kwargs: Any):
         """Allow instances to be called like a function with flexible arguments."""
-        if args and not isinstance(args[0], np.ndarray):
+        if args and isinstance(args[0], (str, Path)):
             # predict/track accept paths and URLs; annotation needs the decoded frame
             from ultralytics.data.build import load_inference_source
 

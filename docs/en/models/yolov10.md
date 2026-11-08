@@ -209,7 +209,10 @@ For training YOLOv10 on a custom dataset:
 
 - **SPD-Conv at P2/P3** uses the existing `Focus` layer with a stride-1 convolution. The space-to-depth rearrangement is
   lossless; the following channel-reducing convolution does not guarantee lossless features.
-- **C2fEMA at P2/P3** applies [Efficient Multi-Scale Attention](https://arxiv.org/abs/2305.13563) after each C2f block.
+- **C2fEMA at P2/P3** applies [Efficient Multi-Scale Attention](https://arxiv.org/abs/2305.13563) in the backbone and on the
+  P2 neck feature.
+- **P2 detection at stride 4** upsamples the P3 neck feature, concatenates it with the backbone P2 feature, and fuses them
+  with C2fEMA. The detection head consumes P2/P3/P4/P5 features, with strides 4/8/16/32.
 - **Box regression** blends `0.5 * (1 - CIoU) + 0.5 * (1 - NWD)`, retaining DFL and applying the blend to both training
   branches. [NWD](https://arxiv.org/abs/2110.13389) uses input-image pixel coordinates with `nwd_constant: 12.8` in the model
   YAML. This is an initial experimental value, not a football-specific optimum. Set it to `0` for CIoU-only regression.
@@ -222,13 +225,13 @@ model.train(data="football.yaml", epochs=100, imgsz=1280)
 ```
 
 Supply a dataset YAML with your own images and annotations. Optional `.load("yolov10n.pt")` transfers matching pretrained
-parameters; the new downsampling convolutions and attention parameters still need training. For ablation, copy the model
+parameters; the new downsampling, attention, and neck/head parameters need training. For ablation, copy the model
 YAML and independently replace `Focus, [128, 3, 1]` / `Focus, [256, 3, 1]` with the corresponding stride-2 `Conv` layers,
 replace `C2fEMA` with `C2f`, or disable NWD. Compare the variants at the same image size and training settings.
 
-The experiment retains PSA and the P3/P4/P5 detection outputs. It does not add a P2 head or change task-aligned label
+The experiment retains PSA and adds P2 alongside the P3/P4/P5 detection outputs without changing task-aligned label
 assignment. It requires training and evaluation on your dataset before claiming an accuracy or latency improvement;
-space-to-depth convolutions and high-resolution attention add computation.
+space-to-depth convolutions, high-resolution attention, and the additional P2 head add computation and memory use.
 
 ## Supported Tasks and Modes
 

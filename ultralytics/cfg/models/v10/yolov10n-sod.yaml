@@ -2,7 +2,7 @@
 
 # YOLOv10n small-object experiment with SPD downsampling and EMA at P2/P3.
 # Focus implements space-to-depth followed by stride-1 convolution (SPD-Conv).
-# Detection outputs remain P3/8 - P5/32; there is no P2 detection head.
+# Detection outputs span P2/4 - P5/32, with EMA on the P2 neck feature.
 
 nc: 80
 nwd_constant: 12.8 # pixel normalization for 0.5 * (1 - CIoU) + 0.5 * (1 - NWD); 0 disables NWD
@@ -30,14 +30,22 @@ head:
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 4], 1, Concat, [1]]
-  - [-1, 3, C2f, [256]] # 16-P3/8
+  - [-1, 3, C2f, [256]] # 16
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 2], 1, Concat, [1]] # fuse backbone P2
+  - [-1, 3, C2fEMA, [128]] # 19-P2/4
+
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [[-1, 16], 1, Concat, [1]]
+  - [-1, 3, C2f, [256]] # 22-P3/8
 
   - [-1, 1, Conv, [256, 3, 2]]
   - [[-1, 13], 1, Concat, [1]]
-  - [-1, 3, C2f, [512]] # 19-P4/16
+  - [-1, 3, C2f, [512]] # 25-P4/16
 
   - [-1, 1, SCDown, [512, 3, 2]]
   - [[-1, 10], 1, Concat, [1]]
-  - [-1, 3, C2fCIB, [1024, True, True]] # 22-P5/32
+  - [-1, 3, C2fCIB, [1024, True, True]] # 28-P5/32
 
-  - [[16, 19, 22], 1, v10Detect, [nc]]
+  - [[19, 22, 25, 28], 1, v10Detect, [nc]] # P2, P3, P4, P5

@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
+from ultralytics.utils import ARM64, LINUX, LOGGER, NUM_THREADS, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, ONNXRUNTIME_BUILDS, check_requirements, rocm_is_available
 
 from .base import BaseBackend
@@ -229,9 +229,12 @@ class ONNXBackend(BaseBackend):
                     LOGGER.warning(f"MIGraphX execution provider unavailable ({e}). Using CPU...")
                     self.device, cuda, rocm = torch.device("cpu"), False, False
             if not rocm:
-                if self.session_options is None:  # idle workers sleep instead of competing with pre/postprocessing
+                if self.session_options is None:
                     self.session_options = onnxruntime.SessionOptions()
-                    self.session_options.add_session_config_entry("session.intra_op.allow_spinning", "0")
+                    if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):
+                        self.session_options.intra_op_num_threads = (
+                            min(NUM_THREADS, len(os.sched_getaffinity(0))) if LINUX else NUM_THREADS
+                        )
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider

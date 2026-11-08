@@ -159,7 +159,7 @@ def test_int8_calibration_validates_split():
     """Check INT8 calibration rejects dataset splits that do not exist."""
     exporter = object.__new__(Exporter)
     exporter.model = SimpleNamespace(task="obb")
-    exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval")
+    exporter.args = get_cfg(overrides={"data": "coco8.yaml", "split": "trainval"})
     exporter.imgsz = [32]
     with pytest.raises(FileNotFoundError, match="trainval"):
         exporter.get_int8_calibration_dataloader()
@@ -418,10 +418,10 @@ def test_export_pb(isolated_model):
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirements conflict.")
 def test_export_paddle(isolated_model):
-    """Test YOLO export to Paddle format, noting protobuf conflicts with ONNX."""
-    YOLO(isolated_model).export(format="paddle", imgsz=32)
+    """Test YOLO export to Paddle format and inference with the exported model."""
+    file = YOLO(isolated_model).export(format="paddle", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")

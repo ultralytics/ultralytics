@@ -59,7 +59,7 @@ from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox
 from ultralytics.data.loaders import LoadImagesAndVideos
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, PREDICT_IOU, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.plotting import class_activation_map
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
@@ -119,6 +119,7 @@ class BasePredictor:
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
         scale_fill (bool): Whether pre_transform stretches images to imgsz instead of letterboxing them.
+        default_iou (float): NMS IoU threshold used when the `iou` argument is unset.
 
     Methods:
         preprocess: Prepare input image before inference.
@@ -136,6 +137,7 @@ class BasePredictor:
     """
 
     scale_fill = False
+    default_iou = PREDICT_IOU
 
     def __init__(
         self,
@@ -154,6 +156,8 @@ class BasePredictor:
         self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
+        if self.args.iou is None:
+            self.args.iou = self.default_iou
         self.done_warmup = False
         if self.args.show:
             self.args.show = check_imshow(warn=True)
@@ -317,6 +321,32 @@ class BasePredictor:
                 LOGGER.warning(STREAM_WARNING)
         self.vid_writer = {}
 
+    def _batches(self, batches):
+        """Run source callbacks before expanding each loaded batch into native tiles."""
+        for self.batch, self.dataset in batches:
+            self.run_callbacks("on_predict_batch_start")
+            yield from self._batch_tiles(self.batch, self.dataset)
+
+    def _batch_tiles(self, batch, dataset):
+        """Expand one loaded source batch into bounded tiles, retaining the original batch metadata."""
+        from ultralytics.data.loaders import tile_batches
+
+        if not self.args.tile:
+            yield batch, dataset, None
+            return
+        size = self.imgsz if self.args.tile is True else self.args.tile
+        paths, images, info = batch
+        for crops, windows, last in tile_batches(images, size, self.args.batch):
+            yield (
+                ([paths[i] for i, _ in windows], crops, [info[i] for i, _ in windows]),
+                dataset,
+                (batch, windows, last),
+            )
+
+    def finalize_results(self, results: list) -> list:
+        """Apply source-level postprocessing after restoring any tiles to the original image."""
+        return results
+
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
         """Stream inference on input source and save results to file.
@@ -334,6 +364,8 @@ class BasePredictor:
         """
         if self.args.verbose:
             LOGGER.info("")
+        if self.args.iou is None:  # Model.predict resets a reused predictor's args to the defaults
+            self.args.iou = self.default_iou
 
         # Setup model
         if self.model is None:
@@ -372,9 +404,15 @@ class BasePredictor:
             ):
                 batches = _prefetch((batch, copy(dataset)) for batch in dataset)
             try:
+                if self.args.tile and (self.source_type.tensor or self.args.embed or self.args.visualize):
+                    raise ValueError("tile requires image/video sources without embed or visualize.")
                 self.run_callbacks("on_predict_start")
-                for self.batch, self.dataset in batches:
-                    self.run_callbacks("on_predict_batch_start")
+                tile_results, tile_windows = [], []
+                for batch, snapshot, tile_context in self._batches(batches):
+                    self.batch, self.dataset = batch, snapshot
+                    if not tile_results:
+                        start_times = [p.t for p in profilers]
+                        pixels = 0
                     paths, im0s, s = self.batch
 
                     # Preprocess
@@ -393,8 +431,32 @@ class BasePredictor:
                             continue
 
                     # Postprocess
+                    pixels += im.shape[0] * im.shape[2] * im.shape[3]
                     with profilers[2]:
                         self.results = self.postprocess(preds, im, im0s)
+                        if tile_context is not None:
+                            from ultralytics.engine.results import Results
+
+                            original, windows, last = tile_context
+                            tile_results.extend(self.results)
+                            tile_windows.extend(windows)
+                            if not last:
+                                continue
+                            self.batch = original
+                            paths, im0s, s = original
+                            groups = [([], []) for _ in im0s]
+                            for result, (i, window) in zip(tile_results, tile_windows):
+                                groups[i][0].append(result)
+                                groups[i][1].append(window)
+                            self.results = [
+                                Results.merge_tiles(
+                                    r, w, image, self.args.iou, self.args.agnostic_nms, self.args.max_det
+                                )
+                                for (r, w), image in zip(groups, im0s)
+                            ]
+                            tile_results.clear()
+                            tile_windows.clear()
+                        self.results = self.finalize_results(self.results)
                     self.run_callbacks("on_predict_postprocess_end")
 
                     # Visualize, save, write results
@@ -402,12 +464,12 @@ class BasePredictor:
                     try:
                         for i in range(n):
                             self.seen += 1
-                            px += im.shape[2] * im.shape[3]
+                            px += pixels / n
                             self.results[i].speed = {
-                                "preprocess": profilers[0].dt * 1e3 / n,
-                                "inference": profilers[1].dt * 1e3 / n,
-                                "postprocess": profilers[2].dt * 1e3 / n,
+                                k: (p.t - t) * 1e3 / n
+                                for k, p, t in zip(("preprocess", "inference", "postprocess"), profilers, start_times)
                             }
+                            self.results[i].colors = getattr(self.model, "colors", None)  # model class colors
                             if (
                                 self.args.verbose
                                 or self.args.save

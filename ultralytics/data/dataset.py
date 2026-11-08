@@ -39,7 +39,9 @@ from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
     IMG_FORMATS,
+    _replace_image,
     check_file_speeds,
+    exif_size,
     get_hash,
     get_split_fraction,
     img2label_paths,
@@ -417,6 +419,19 @@ class YOLODataset(BaseDataset):
         bbox_format = label.pop("bbox_format")
         normalized = label.pop("normalized")
 
+        if "tile" in label:
+            h, w = label.pop("source_shape")
+            x1, y1, x2, y2 = label["tile"]
+            bounds = Instances(bboxes.copy(), bbox_format=bbox_format, normalized=normalized)
+            bounds.denormalize(w, h)
+            bounds.convert_bbox("xyxy")
+            keep = ((bounds.bboxes[:, 2:] > (x1, y1)) & (bounds.bboxes[:, :2] < (x2, y2))).all(1)
+            bboxes, label["cls"] = bboxes[keep], label["cls"][keep]
+            if len(segments):
+                segments = [segments[i] for i in np.flatnonzero(keep)]
+            if keypoints is not None:
+                keypoints = keypoints[keep]
+
         # NOTE: do NOT resample oriented boxes
         segment_resamples = 100 if self.use_obb else 1000
         if len(segments) > 0 and (self.use_segments or self.format_class is not SemanticFormat):
@@ -427,7 +442,14 @@ class YOLODataset(BaseDataset):
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
-        label["instances"] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
+        instances = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
+        if "tile" in label:
+            instances.denormalize(w, h)
+            keep = instances.crop(label["tile"], preserve_obb=self.use_obb)
+            label["cls"], instances = label["cls"][keep], instances[keep]
+            h, w = label["ori_shape"]
+            instances.normalize(w, h)
+        label["instances"] = instances
         return label
 
     @staticmethod
@@ -489,6 +511,7 @@ class DepthDataset(YOLODataset):
         Returns:
             (list[str]): List of depth file paths.
         """
+        self._source_depth = (None, None)
         self.depth_files_by_image = {f: self._depth_path_for(f) for f in self.im_files}
         self.depth_files = list(self.depth_files_by_image.values())
         return self.depth_files
@@ -532,15 +555,28 @@ class DepthDataset(YOLODataset):
     def verify_labels(self, labels: list[dict], cache_path: Path) -> None:
         """Skip box and segment checks; depth datasets carry no box or segment annotations."""
 
-    def _load_depth(self, index: int) -> np.ndarray:
+    def _load_depth(self, index: int, full: bool = False) -> np.ndarray:
         """Return the native-resolution depth map for an image."""
-        return load_depth(self.depth_files_by_image[self.im_files[index]], self.data.get("depth_scale", 1000))
+        path = self.depth_files_by_image[self.im_files[index]]
+        if self.tile and self._source_depth[0] == path:
+            depth = self._source_depth[1]
+        else:
+            depth = load_depth(path, self.data.get("depth_scale", 1000))
+            if self.tile:
+                h, w = self.labels[index]["source_shape"]
+                if depth.shape[:2] != (h, w):
+                    depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
+                self._source_depth = (path, depth)
+        if self.tile and not full:
+            x1, y1, x2, y2 = self.labels[index]["tile"]
+            depth = depth[y1:y2, x1:x2].copy()
+        return depth
 
-    def get_image_and_label(self, index: int) -> dict[str, Any]:
+    def get_image_and_label(self, index: int, full: bool = False) -> dict[str, Any]:
         """Load image, label, and depth map for the given index."""
-        label = super().get_image_and_label(index)
+        label = super().get_image_and_label(index, full=full)
         h, w = label["resized_shape"]
-        depth = self._load_depth(index)
+        depth = self._load_depth(index, full=full)
         if depth.shape[:2] != (h, w):
             depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
         label["depth"] = depth
@@ -928,6 +964,7 @@ class SemanticDataset(YOLODataset):
         self.mask_files = []
         self.include_class = None
         self.masks = {}  # masks of the buffered images, evicted with the image buffer
+        self._source_mask = (None, None)
         super().__init__(*args, data=data, **kwargs)
 
     def update_labels(self, include_class: list[int] | None) -> None:
@@ -1053,7 +1090,19 @@ class SemanticDataset(YOLODataset):
         """Load an image for semantic segmentation, scaling the short side to imgsz when augmenting with rect_mode."""
         return super().load_image(i, rect_mode=rect_mode, resize_short=self.augment)
 
-    def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
+    def load_mask(self, index: int, image_shape: tuple[int, int] | None = None, full: bool = False) -> np.ndarray:
+        """Load a source mask once, then select the same native window as its image."""
+        if not self.tile:
+            return self._read_mask(index, image_shape)
+        label = self.labels[index]
+        key = label["source_index"]
+        if self._source_mask[0] != key:
+            self._source_mask = (key, self._read_mask(index, label["source_shape"]))
+        mask = self._source_mask[1]
+        x1, y1, x2, y2 = label["tile"]
+        return mask.copy() if full else mask[y1:y2, x1:x2].copy()
+
+    def _read_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Load a semantic mask and apply optional dataset label mapping.
 
         Args:
@@ -1085,27 +1134,28 @@ class SemanticDataset(YOLODataset):
         lut = self.inverse_lut if inverse else self.label_lut
         return cv2.LUT(label, lut) if label.dtype == np.uint8 else lut[label]  # cv2.LUT needs a uint8 input
 
-    def get_image_and_label(self, index: int) -> dict[str, Any]:
+    def get_image_and_label(self, index: int, full: bool = False) -> dict[str, Any]:
         """Get image, label and semantic mask for the given index.
 
         Overrides parent to include the semantic mask, served from RAM for the images Mosaic draws from the buffer.
 
         Args:
             index (int): Dataset index.
+            full (bool): Return the original source target instead of a tile.
 
         Returns:
             (dict): Label dict with 'img', 'semantic_mask', and metadata.
         """
-        label = super().get_image_and_label(index)
+        label = super().get_image_and_label(index, full=full)
         h, w = label["img"].shape[:2]
-        mask = self.masks.get(index)
+        mask = None if full else self.masks.get(index)
         if mask is None:
-            mask = self.load_mask(index, image_shape=(h, w))
+            mask = self.load_mask(index, image_shape=(h, w), full=full)
             if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
                 mask[~np.isin(mask, self.include_class)] = 255
             if mask.shape[:2] != (h, w):
                 mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
-            if index in self.buffer:  # image is RAM-resident for mosaic reuse, keep its mask with it
+            if not full and index in self.buffer:  # image is RAM-resident for mosaic reuse, keep its mask with it
                 self.masks[index] = mask
                 if len(self.masks) > len(self.buffer):
                     self.masks = {i: self.masks[i] for i in self.buffer if i in self.masks}
@@ -1143,7 +1193,7 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
     result_to_label = YOLODataset.result_to_label
     verify_labels = YOLODataset.verify_labels
 
-    def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
+    def _read_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Rasterize this image's polygons into a (H, W) uint8 semantic mask, bg = self.bg_class_idx."""
         h, w = image_shape
         label = self.labels[index]
@@ -1261,6 +1311,20 @@ class ClassificationDataset:
             LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
         if self.cache_ram:
             self.cache_images()
+        self.tile = args.tile
+        self.tile_counts = []
+        self._source_image = (None, None)
+        if self.tile:
+            from .utils import tile_windows
+
+            samples, self.samples = self.samples, []
+            for source_index, sample in enumerate(samples):
+                with Image.open(sample[0]) as image:
+                    windows = tile_windows(exif_size(image)[::-1], args.imgsz if self.tile is True else self.tile)
+                self.tile_counts.append(len(windows))
+                self.samples.extend([*sample, window, source_index] for window in windows)
+        if not augment:  # only validation consumes complete source groups
+            self.source_offsets = np.cumsum([0, *self.tile_counts])
         scale = (1.0 - args.scale, 1.0)  # RandomResizedCrop area range, e.g. (0.5, 1.0) for scale=0.5
         self.torch_transforms = (
             classify_augmentations(
@@ -1279,27 +1343,46 @@ class ClassificationDataset:
         )
 
     def __getitem__(self, i: int) -> dict:
-        """Return transformed image and class index for the given sample index.
+        """Return the normally transformed image or native tile and its class."""
+        return self.get_image_and_label(i)
 
-        Args:
-            i (int): Index of the sample to retrieve.
-
-        Returns:
-            (dict): Dictionary containing the image and its class index.
-        """
-        f, j, fn, im = self.samples[i]  # filename, class index, npy cache path, image
+    def get_image_and_label(self, i: int, full: bool = False) -> dict:
+        """Read a source once and transform its image or tile, preserving source identity for validation."""
+        f, j, fn, _, *tile = self.samples[i]
+        source = tile[1] if tile else i
         if self.cache_ram:
-            im = self.img_cache[i]
+            im = self.img_cache[source]
+        elif self.tile and self._source_image[0] == f:
+            im = self._source_image[1]
         elif self.cache_disk:
-            if not fn.exists() or fn.stat().st_mtime < Path(f).stat().st_mtime:  # missing or stale
-                np.save(fn.as_posix(), self.imread(f), allow_pickle=False)
+            if not fn.exists() or fn.stat().st_mtime < Path(f).stat().st_mtime:
+                _replace_image(fn, lambda tmp: np.save(tmp, self.imread(f), allow_pickle=False))
             im = np.load(fn)
-        else:  # read image
-            im = self.imread(f)  # BGR
-        # Convert NumPy array to PIL image
+        else:
+            im = self.imread(f)
+        if self.tile:
+            self._source_image = (f, im)
+        if tile and not full:
+            x1, y1, x2, y2 = tile[0]
+            im = im[y1:y2, x1:x2]
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
-        sample = self.torch_transforms(im)
-        return {"img": sample, "cls": j}
+        output = {"img": self.torch_transforms(im), "cls": j}
+        if tile and not full:
+            output.update(tile=tile[0], source_index=source)
+        return output
+
+    @staticmethod
+    def collate_fn(batch: list[dict]) -> dict:
+        """Use normal classification collation while retaining window tuples as image metadata."""
+        from torch.utils.data.dataloader import default_collate
+
+        output = default_collate(
+            [{k: v for k, v in sample.items() if k not in {"tile", "source_index"}} for sample in batch]
+        )
+        if "tile" in batch[0]:
+            output["tile"] = tuple(sample["tile"] for sample in batch)
+            output["source_index"] = tuple(sample["source_index"] for sample in batch)
+        return output
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""

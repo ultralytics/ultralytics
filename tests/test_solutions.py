@@ -168,6 +168,16 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             "parking_video",
             {"model": "parking_model", "show": SHOW, "json_file": "parking_areas"},
         ),
+        *(
+            (
+                "OCR",
+                solutions.OCR,
+                False,
+                video,
+                {"model": model, "recognizer": lambda crop: ("text", 0.9), "show": SHOW},
+            )
+            for model, video in ((MODEL, "demo_video"), ("yolo26n-seg.pt", "demo_video"), ("yolo26n-obb.pt", "boats"))
+        ),
         (
             "StreamlitInference",
             solutions.Inference,
@@ -394,3 +404,13 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+def test_ocr_reading_order():
+    """Test deterministic line grouping and left-to-right ordering."""
+    polygons = [
+        np.array([[20, 20], [40, 20], [40, 30], [20, 30]]),
+        np.array([[0, 0], [10, 0], [10, 10], [0, 10]]),
+        np.array([[20, 0], [30, 0], [30, 10], [20, 10]]),
+    ]
+    assert solutions.OCR.reading_order(polygons) == [1, 2, 0]

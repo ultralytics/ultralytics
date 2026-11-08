@@ -14,6 +14,7 @@ import os
 import subprocess
 import time
 import warnings
+from contextlib import nullcontext
 from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from functools import partial
@@ -344,6 +345,8 @@ class BaseTrainer:
     def _setup_train(self):
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
+        if self.resume and ckpt:
+            init_seeds(self.args.seed + 2 + RANK + ckpt.get("epoch", -1), deterministic=self.args.deterministic)
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
         # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105).
@@ -538,32 +541,36 @@ class BaseTrainer:
                         if "momentum" in x:
                             x["momentum"] = float(np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum]))
 
+                do_step = ni - last_opt_step >= self.accumulate
+                no_sync = self.world_size > 1 and not self.args.compile and not do_step  # all-reduce on steps only
+
                 # Forward
                 try:
-                    with autocast(torch.bfloat16 if self.args.amp == "bf16" else self.amp, device=self.device.type):
-                        batch = self.preprocess_batch(batch)
-                        if self.args.compile:
-                            # Decouple inference and loss calculations for improved compile performance
-                            preds = self.model(batch["img"])
-                            loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
-                        else:
-                            loss, self.loss_items = self.model(batch)
-                        self.loss = loss.sum()
-                        if RANK != -1:
-                            self.loss *= self.world_size
-                        if not self.loss_names:  # derive loss names from the criterion's loss dict on first batch
-                            self.loss_names = tuple(self.loss_items)
-                            if RANK in {-1, 0}:
-                                LOGGER.info(self.progress_string())
-                                self.metrics.update(dict.fromkeys(self.label_loss_items(prefix="val"), 0.0))
-                        self.tloss = (
-                            self.loss_items
-                            if self.tloss is None
-                            else {k: (self.tloss[k] * i + v) / (i + 1) for k, v in self.loss_items.items()}
-                        )
+                    with self.model.no_sync() if no_sync else nullcontext():
+                        with autocast(torch.bfloat16 if self.args.amp == "bf16" else self.amp, device=self.device.type):
+                            batch = self.preprocess_batch(batch)
+                            if self.args.compile:
+                                # Decouple inference and loss calculations for improved compile performance
+                                preds = self.model(batch["img"])
+                                loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
+                            else:
+                                loss, self.loss_items = self.model(batch)
+                            self.loss = loss.sum()
+                            if RANK != -1:
+                                self.loss *= self.world_size
+                            if not self.loss_names:  # derive loss names from the criterion's loss dict on first batch
+                                self.loss_names = tuple(self.loss_items)
+                                if RANK in {-1, 0}:
+                                    LOGGER.info(self.progress_string())
+                                    self.metrics.update(dict.fromkeys(self.label_loss_items(prefix="val"), 0.0))
+                            self.tloss = (
+                                self.loss_items
+                                if self.tloss is None
+                                else {k: (self.tloss[k] * i + v) / (i + 1) for k, v in self.loss_items.items()}
+                            )
 
-                    # Backward
-                    self.scaler.scale(self.loss).backward()
+                        # Backward
+                        self.scaler.scale(self.loss).backward()
                 except RuntimeError as e:
                     is_oom = "out of memory" in str(e).lower()  # torch.cuda.OutOfMemoryError requires torch>=1.13
                     if not is_oom and not any(
@@ -600,7 +607,7 @@ class BaseTrainer:
                     acc0 = self.accumulate  # the rebuild recomputed the nominal for the reduced batch size
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
-                if ni - last_opt_step >= self.accumulate:
+                if do_step:
                     self.optimizer_step()
                     last_opt_step = ni
 

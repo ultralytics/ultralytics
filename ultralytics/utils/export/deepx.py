@@ -32,12 +32,12 @@ def onnx2deepx(
         (str): Path to the exported DEEPX model directory.
     """
     # dx_com requires GUI opencv-python, which would replace headless OpenCV, so install its other requirements only
-    check_requirements("dx_com>=2.4.1", cmds="--no-deps")
+    check_requirements("dx_com>=2.5.0", cmds="--no-deps")
     check_requirements(
         [
-            f"{r.name}{r.specifier}"
+            f"{r.name}{r.specifier.partition(';')[0].strip()}"
             for r in parse_requirements(package="dx_com")
-            if r.name != "opencv-python" and ";" not in r.specifier
+            if r.name != "opencv-python"
         ]
     )
     import dx_com

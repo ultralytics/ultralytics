@@ -16,7 +16,7 @@ namespace yolo {
 struct Config {
     std::string model_path = "yolo26n.torchscript";
     float conf = 0.25f;  // confidence threshold
-    float iou = 0.45f;   // NMS IoU threshold (grid models only)
+    float iou = 0.5f;    // NMS IoU threshold (grid models only)
     bool cuda = false;   // use CUDA if the LibTorch build and a device are available
 };
 

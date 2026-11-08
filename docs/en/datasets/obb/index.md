@@ -96,6 +96,7 @@ Currently, the following datasets with oriented bounding boxes are supported. Mo
 - [DOTA8](dota8.md): A small, 8-image subset of the full DOTA dataset suitable for testing workflows and Continuous Integration (CI) checks of OBB training in the `ultralytics` repository.
 - [DOTA8 Multispectral](https://platform.ultralytics.com/ultralytics/datasets/dota8-multispectral): An 8-image, 10-channel TIFF subset for testing multispectral OBB training on Ultralytics Platform.
 - [DOTA128](dota128.md): A 128-image subset of the DOTA dataset with all images in the train folder (used for both train and val), providing a good balance between size and diversity for testing OBB models.
+- [Scene Text](scene-text.md): A 65,325-image dataset combining COCO-Text and HierText with 1.29 million legible word polygons for scene-text OBB training.
 
 ### Incorporating your own OBB dataset
 
@@ -175,6 +176,7 @@ Currently, Ultralytics supports the following datasets for OBB training:
 - [DOTA-v2](dota-v2.md#dota-v20): This dataset includes 1.7 million instances with oriented bounding boxes and 11,268 images, primarily focusing on aerial object detection.
 - [DOTA8](dota8.md): A smaller, 8-image subset of the DOTA dataset used for testing and [continuous integration](../../help/CI.md) (CI) checks.
 - [DOTA128](dota128.md): A 128-image subset with all images in the train folder (used for both train and val), offering more diversity than DOTA8 while remaining manageable for initial OBB model development and experimentation.
+- [Scene Text](scene-text.md): COCO-Text and HierText combined into a single-class scene-text dataset with rotated and multi-point word annotations.
 
 These datasets are tailored for scenarios where OBBs offer a significant advantage, such as aerial and [satellite image analysis](https://www.ultralytics.com/glossary/satellite-image-analysis).
 

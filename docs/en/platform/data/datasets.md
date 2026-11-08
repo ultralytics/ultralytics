@@ -506,11 +506,17 @@ Click `Re-analyze` to recompute [embeddings](https://www.ultralytics.com/glossar
 
 ### Find Similar Images
 
-The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog shows the source image beside up to 24 of the nearest images, each labeled with its similarity score, excluding your dataset and any dataset that holds a copy of the selected image. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog shows the source image beside up to 24 of the nearest images, each labeled with its similarity score, excluding your dataset and any dataset that holds a copy of the selected image. Switches under the source image narrow the search, and each change runs a new search, so a narrower one still returns up to 24 images:
 
-![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/004538a8ce286784bffe8a0e3fd1a3f3.avif)<!-- screenshot -->
+- **Commercial**: Datasets under any license in [Available Licenses](#available-licenses) except those with `NC` in their identifier, `Research-Only`, `Other`, and `None`
+- **Research and community**: Datasets under a license with `NC` in its identifier, `Research-Only`, or `Other`, and datasets with no license (`None`)
+- **Your images**: Your own and team datasets; turn it off to search public datasets alone
 
-An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. On cloud storage datasets it needs [AI features](../integrations/index.md#ai-features) on and opens for browsing only, because images cannot be added to a connected dataset; it is unavailable on On Premise datasets. A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
+All three start on, and one license group always stays on. The license groups apply to your own and team datasets too, and the info icon beside each lists its licenses. Turn on **Show licenses** above the results to badge each image with its license. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+
+![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/b278f503014f8cecace1174d0ad28fcd.avif)<!-- screenshot -->
+
+An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. On cloud storage datasets it needs [AI features](../integrations/index.md#ai-features) on and opens for browsing only, because images cannot be added to a connected dataset; it is unavailable on On Premise datasets. A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search, with the same switches, from its worst-performing images.
 
 ## Dataset Tabs
 
@@ -719,6 +725,8 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 The optional image-level `metadata` object is preserved when an NDJSON file is imported into Platform. You can inspect or edit it from the image's fullscreen information panel. For programmatic archive uploads, the [Ingest Dataset Data API](../api/index.md#ingest-dataset-data) accepts the equivalent `imageMetadata` path map.
 
 Pose datasets also carry a `kpt_shape` field in the dataset header line, inferred from the annotations when it is not already set.
+
+Datasets with custom class colors also carry a `colors` list of `"#rrggbb"` strings indexed by class id in the dataset header line. Models trained on the dataset draw their predictions with these colors.
 
 Depth exports declare `"task": "depth"` and `"depth_scale": 1000` in the dataset line. Each image line includes a
 `depth.url` for its paired plain uint16 PNG. Ultralytics downloads image and depth URLs concurrently and writes a

@@ -252,7 +252,7 @@ placeholder:
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
 
     # Inference parameters
-    data = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
+    data = {"conf": 0.25, "iou": 0.5, "imgsz": 640}
 
     # Send image for inference
     with open("image.jpg", "rb") as f:
@@ -268,7 +268,7 @@ placeholder:
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
     formData.append("conf", "0.25");
-    formData.append("iou", "0.7");
+    formData.append("iou", "0.5");
     formData.append("imgsz", "640");
 
     // Send image for inference
@@ -293,7 +293,7 @@ placeholder:
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.7" \
+      -F "iou=0.5" \
       -F "imgsz=640"
     ```
 

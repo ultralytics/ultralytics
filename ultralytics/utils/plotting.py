@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import contextlib
 import math
 import re
@@ -18,7 +19,7 @@ from PIL import Image, ImageDraw, ImageFont, features
 from PIL import __version__ as pil_version
 
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
-from ultralytics.utils.checks import check_font, check_version, is_ascii
+from ultralytics.utils.checks import FONT, FONT_UNICODE, check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import TORCH_1_10
 
@@ -43,10 +44,16 @@ def _gaussian_filter1d(y, sigma: int = 3, truncate: float = 4.0) -> np.ndarray:
 
 
 class Colors:
-    """Ultralytics color palette for visualization and plotting.
+    """Ultralytics annotation colors, the reference spec that every Ultralytics library and app mirrors.
 
-    This class provides methods to work with the Ultralytics color palette, including converting hex color codes to RGB
-    values and accessing predefined color schemes for object detection and pose estimation.
+    Colors are RGB and are drawn as RGB; convert to BGR only when drawing into a BGR buffer (`bgr=True`).
+
+    - Class color (boxes, OBB, instance and semantic masks, box labels): `custom[c]` when the model carries `colors`
+    metadata ("#rrggbb" strings indexed by class id, parsed to RGB once per model by `Colors.parse`, which ignores the
+    whole list if any entry is malformed) and `c < len(custom)`, else `palette[c % 20]`. Colors never change with a
+    light or dark theme.
+    - Box label text (`Annotator.get_txt_color`): `#111f68` when the background luma 0.299*R + 0.587*G + 0.114*B
+    exceeds 150, else `#ffffff`.
 
     ## Ultralytics Color Palette
 
@@ -113,6 +120,7 @@ class Colors:
         >>> colors = Colors()
         >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
         >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
+        >>> colors(1, custom=[(255, 0, 0), (0, 255, 0)])  # Model colors override the palette: (0, 255, 0)
     """
 
     def __init__(self):
@@ -167,23 +175,40 @@ class Colors:
             dtype=np.uint8,
         )
 
-    def __call__(self, i: int | torch.Tensor, bgr: bool = False) -> tuple:
-        """Return a color from the palette by index.
+    def __call__(self, i: int | torch.Tensor, bgr: bool = False, custom: list[tuple] | None = None) -> tuple:
+        """Return the color for a class index from the model's custom colors, else from the palette.
 
         Args:
             i (int | torch.Tensor): Color index.
             bgr (bool, optional): Whether to return BGR format instead of RGB.
+            custom (list[tuple], optional): Model class colors as RGB tuples indexed by class id.
 
         Returns:
             (tuple): RGB or BGR color tuple.
         """
-        c = self.palette[int(i) % self.n]
+        i = int(i)
+        c = custom[i] if custom and i < len(custom) else self.palette[i % self.n]
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod
     def hex2rgb(h: str) -> tuple:
         """Convert hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
+
+    @staticmethod
+    def parse(hexs: list[str] | str | None) -> list[tuple] | None:
+        """Return `colors` (a list or its repr) as RGB tuples, or None with one warning if an entry is not "#rrggbb"."""
+        if not hexs:
+            return None
+        if isinstance(hexs, str):  # ONNX/CoreML repr; a failed eval stays a str and is rejected below
+            with contextlib.suppress(ValueError, SyntaxError):
+                hexs = ast.literal_eval(hexs)
+        if isinstance(hexs, (list, tuple)) and all(
+            isinstance(h, str) and re.fullmatch("#[0-9a-fA-F]{6}", h) for h in hexs
+        ):
+            return [Colors.hex2rgb(h) for h in hexs]
+        LOGGER.warning(f"Ignoring class colors {hexs!r:.100}, expected a list of '#rrggbb' strings. Using the palette.")
+        return None
 
 
 colors = Colors()  # create instance for 'from ultralytics.utils.plotting import colors'
@@ -333,10 +358,8 @@ class Annotator:
         font (ImageFont.FreeTypeFont | ImageFont.ImageFont): Font used for PIL text annotations.
         lw (int): Line width for drawing.
         skeleton (list[list[int]]): Skeleton structure for keypoints.
-        limb_color (np.ndarray): Color palette for limbs.
-        kpt_color (np.ndarray): Color palette for keypoints.
-        dark_colors (set): Set of colors considered dark for text contrast.
-        light_colors (set): Set of colors considered light for text contrast.
+        limb_color (np.ndarray): BGR colors of the COCO skeleton limbs.
+        kpt_color (np.ndarray): BGR colors of the COCO keypoints.
 
     Examples:
         >>> import cv2
@@ -351,7 +374,7 @@ class Annotator:
         im,
         line_width: int | None = None,
         font_size: int | None = None,
-        font: str = "Arial.ttf",
+        font: str = FONT,
         pil: bool = False,
         example: str = "abc",
     ):
@@ -390,7 +413,7 @@ class Annotator:
         if self.pil:  # TrueType text on a BGR copy of the image, all other drawing uses cv2/NumPy
             self.im = np.array(im, order="C")
             size = font_size or max(round(sum(im.shape[:2]) / 2 * 0.035), 12)
-            self.font = _font("Arial.Unicode.ttf" if non_ascii else font, size)
+            self.font = _font(FONT_UNICODE if non_ascii else font, size)
         else:  # draw in place on the caller's BGR image
             assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
                 "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
@@ -421,39 +444,16 @@ class Annotator:
             [5, 7],
         ]
 
-        self.limb_color = colors.pose_palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
-        self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
-        self.dark_colors = {
-            (235, 219, 11),
-            (243, 243, 243),
-            (183, 223, 0),
-            (221, 111, 255),
-            (0, 237, 204),
-            (68, 243, 0),
-            (255, 255, 0),
-            (179, 255, 1),
-            (11, 255, 162),
-        }
-        self.light_colors = {
-            (255, 42, 4),
-            (79, 68, 255),
-            (255, 0, 189),
-            (255, 180, 0),
-            (186, 0, 221),
-            (0, 192, 38),
-            (255, 36, 125),
-            (104, 0, 123),
-            (108, 27, 255),
-            (47, 109, 252),
-            (104, 31, 17),
-        }
+        # COCO limb and keypoint colors from the pose palette, RGB to BGR
+        self.limb_color = colors.pose_palette[[0, 0, 0, 0, 7, 7, 7, 9, 9, 9, 9, 9, 16, 16, 16, 16, 16, 16, 16]][:, ::-1]
+        self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0]][:, ::-1]
 
-    def get_txt_color(self, color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)) -> tuple:
+    def get_txt_color(self, color: tuple = (128, 128, 128), txt_color: tuple | None = None) -> tuple:
         """Assign text color based on background color.
 
         Args:
-            color (tuple, optional): The background color of the rectangle for text.
-            txt_color (tuple, optional): The fallback color of the text.
+            color (tuple, optional): The BGR background color of the rectangle for text.
+            txt_color (tuple, optional): Explicit text color; None picks navy or white by background luma.
 
         Returns:
             (tuple): Text color for label.
@@ -465,14 +465,12 @@ class Annotator:
             >>> annotator = Annotator(im0, line_width=10)
             >>> annotator.get_txt_color(color=(104, 31, 17))  # return (255, 255, 255)
         """
-        if color in self.dark_colors:
-            return 104, 31, 17
-        elif color in self.light_colors:
-            return 255, 255, 255
-        else:
+        if txt_color is not None:
             return txt_color
+        b, g, r = color
+        return (104, 31, 17) if 0.299 * r + 0.587 * g + 0.114 * b > 150 else (255, 255, 255)  # navy #111f68 or white
 
-    def box_label(self, box, label: str = "", color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)):
+    def box_label(self, box, label: str = "", color: tuple = (128, 128, 128), txt_color: tuple | None = None):
         """Draw a bounding box on an image with a given label.
 
         Args:
@@ -480,7 +478,7 @@ class Annotator:
                 polygon points with shape (n, 2), e.g. the 4 corners of an oriented box.
             label (str, optional): The text label to be displayed.
             color (tuple, optional): The color of the box outline and label background.
-            txt_color (tuple, optional): The color of the text, overridden for known dark or light box colors.
+            txt_color (tuple, optional): The color of the text; None picks navy or white by box color luma.
 
         Examples:
             >>> import cv2
@@ -495,7 +493,8 @@ class Annotator:
             box = box.tolist()
 
         multi_points = isinstance(box[0], list)  # multiple points with shape (n, 2)
-        p1 = [int(b) for b in box[0]] if multi_points else (int(box[0]), int(box[1]))
+        # Polygon labels sit above the enclosing box's top-left corner, like axis-aligned box labels
+        p1 = tuple(max(int(v), 0) for v in np.min(box, 0)) if multi_points else (int(box[0]), int(box[1]))
         cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw) if multi_points else cv2.rectangle(
             self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
         )
@@ -558,18 +557,19 @@ class Annotator:
             im = ((im * inv_alpha_masks + mcs) * 255).byte()
             self.im[:] = im if tensor_image else im.cpu().numpy()
 
-    def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255):
+    def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255, custom: list[tuple] | None = None):
         """Plot a semantic segmentation mask on the image.
 
         Args:
             mask (np.ndarray): Semantic mask with shape [h, w] containing integer class indices.
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
+            custom (list[tuple], optional): RGB class colors overriding the palette, see `Colors`.
         """
         self._to_numpy()
         mask = np.asarray(mask)
         mask = mask if mask.dtype.kind in "iu" else mask.astype(int)  # class IDs index the palette directly
-        overlay = np.array([colors(i, True) for i in range(int(mask.max(initial=0)) + 1)], self.im.dtype)[mask]
+        overlay = np.array([colors(i, True, custom) for i in range(int(mask.max(initial=0)) + 1)], self.im.dtype)[mask]
         overlay[mask == ignore_index] = self.im[mask == ignore_index]
         self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
 
@@ -623,7 +623,7 @@ class Annotator:
         is_pose = nkpt == 17 and ndim in {2, 3}
         kpt_line &= is_pose  # `kpt_line=True` for now only supports human pose plotting
         for i, k in enumerate(kpts):
-            color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i))
+            color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i, True))
             x_coord, y_coord = k[0], k[1]
             if len(k) == 3:
                 if k[2] < conf_thres:
@@ -827,7 +827,8 @@ def save_one_box(
 
     This function takes a bounding box and an image, and then saves a cropped portion of the image according to the
     bounding box. Optionally, the crop can be squared, and the function allows for gain and padding adjustments to the
-    bounding box.
+    bounding box. Multispectral JPEGs preview the first three channels; returned crops retain all channels, in their
+    original order with BGR=True or reversed otherwise.
 
     Args:
         xyxy (torch.Tensor | list): A bounding box in xyxy format, or (4, 2) OBB corners for a rotation-aligned crop.
@@ -853,6 +854,7 @@ def save_one_box(
     xyxy = torch.as_tensor(xyxy, dtype=torch.float32)  # float so integer boxes keep fractional centers and gain/pad
     if xyxy.shape[-2:] == (4, 2):  # OBB corners: warp the box upright at its size, then crop the whole warp below
         p = xyxy.reshape(4, 2).cpu().numpy()
+        p = np.roll(p, 2 - int((np.roll(p[:, 0], 1) - p[:, 0]).argmax()), 0)  # top edge spanning furthest right
         w, h = (max(round(float(np.linalg.norm(p[0] - p[i]))), 1) for i in (3, 1))
         M = cv2.getAffineTransform(p[:3], np.float32([[w, h], [w, 0], [0, 0]]))
         im, xyxy = cv2.warpAffine(im, M, (w, h)).reshape(h, w, -1), torch.tensor([0.0, 0.0, w, h])
@@ -868,7 +870,7 @@ def save_one_box(
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
         f = str(increment_path(file.with_suffix(".jpg")))
         # cv2.imwrite(f, crop)  # save BGR, https://github.com/ultralytics/yolov5/issues/7007 chroma subsampling issue
-        im_save = crop.reshape(crop.shape[:2]) if grayscale else crop[..., ::-1]
+        im_save = crop.reshape(crop.shape[:2]) if grayscale else crop[..., :3][..., ::-1]
         Image.fromarray(im_save).save(f, quality=95, subsampling=0)  # save RGB
     return crop if BGR or grayscale else crop[..., ::-1]
 
@@ -880,6 +882,7 @@ def plot_images(
     paths: list[str] | None = None,
     fname: str | Path = "images.jpg",
     names: dict[int, str] | None = None,
+    class_colors: list[str] | None = None,
     on_plot: Callable | None = None,
     max_size: int = 1920,
     max_subplots: int = 16,
@@ -898,6 +901,7 @@ def plot_images(
         paths (list[str] | None): List of file paths for each image in the batch.
         fname (str | Path): Output filename for the plotted image grid.
         names (dict[int, str] | None): Dictionary mapping class indices to class names.
+        class_colors (list[str] | None): Dataset `colors`, "#rrggbb" strings indexed by class id overriding the palette.
         on_plot (Callable | None): Callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
         max_subplots (int): Maximum number of subplots in the image grid.
@@ -938,6 +942,7 @@ def plot_images(
     semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
     depth_maps = labels.get("depth", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
+    custom = colors.parse(class_colors)  # parsed once per mosaic
 
     images = images[:max_subplots]  # convert only the plotted images
     if len(images) and images[0].max() <= 1:
@@ -952,6 +957,7 @@ def plot_images(
         images = np.concatenate((images, zero), axis=1)  # pad 2-ch with a black channel
     elif c > 3:
         images = images[:, :3]  # crop multispectral images to first 3 channels
+    images = images[:, ::-1]  # RGB to BGR, the Annotator buffer order
 
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
@@ -999,7 +1005,7 @@ def plot_images(
                 boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
-                    color = colors(c)
+                    color = colors(c, True, custom)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
                         conf_text = f" {conf[j]:.1f}" if conf is not None and show_conf else ""
@@ -1008,7 +1014,7 @@ def plot_images(
 
             elif len(classes):
                 for c in classes:
-                    color = colors(c)
+                    color = colors(c, True, custom)
                     c = names.get(c, c) if names else c
                     label = f"{c}" if labels else f"{c} {conf[0]:.1f}"
                     annotator.text([x, y], label, txt_color=color, box_color=(64, 64, 64, 128))
@@ -1037,7 +1043,7 @@ def plot_images(
                 else:  # overlap_mask=True, the mask already holds instance indices
                     index = np.r_[0, ids][masks[i].astype(int)]
                 index = cv2.resize(index.astype(np.uint16), (w, h), interpolation=cv2.INTER_NEAREST)
-                lut = np.array([(0, 0, 0)] + [colors(c) for c in classes], np.uint8)
+                lut = np.array([(0, 0, 0)] + [colors(c, True, custom) for c in classes], np.uint8)
                 patch = annotator.im[y : y + h, x : x + w]
                 np.copyto(patch, cv2.addWeighted(patch, 0.4, lut[index], 0.6, 0), where=(index > 0)[..., None])
 
@@ -1047,14 +1053,10 @@ def plot_images(
             mh, mw = mask.shape
             if mh != h or mw != w:
                 mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
-            im = annotator.im
-            # The mosaic deviates from the Annotator BGR-buffer convention (it holds RGB), so convert the patch
-            # to BGR for the overlay, then back to RGB for the mosaic.
-            sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
-            sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
+            sub_annotator = Annotator(np.ascontiguousarray(annotator.im[y : y + h, x : x + w]), line_width=1)
             mask = np.where(mask == 1, 0, 255) if names and len(names) == 1 else mask
-            sub_annotator.semantic_mask(mask, alpha=0.4)
-            im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
+            sub_annotator.semantic_mask(mask, alpha=0.4, custom=custom)
+            annotator.im[y : y + h, x : x + w] = sub_annotator.im
 
         # Plot depth maps
         if len(depth_maps) and i < len(depth_maps):
@@ -1064,17 +1066,14 @@ def plot_images(
             dh, dw = d.shape
             if dh != h or dw != w:
                 d = cv2.resize(d.astype(np.float32), (w, h), interpolation=cv2.INTER_NEAREST)
-            im = annotator.im
-            # The mosaic deviates from the Annotator BGR-buffer convention (it holds RGB), so convert the patch
-            # to BGR for the overlay, then back to RGB for the mosaic.
-            sub_bgr = cv2.cvtColor(np.ascontiguousarray(im[y : y + h, x : x + w]), cv2.COLOR_RGB2BGR)
-            sub_annotator = Annotator(sub_bgr, line_width=1, pil=False)
+            sub_annotator = Annotator(np.ascontiguousarray(annotator.im[y : y + h, x : x + w]), line_width=1)
             sub_annotator.depth_map(d, alpha=0.6)
-            im[y : y + h, x : x + w] = cv2.cvtColor(sub_annotator.im, cv2.COLOR_BGR2RGB)
+            annotator.im[y : y + h, x : x + w] = sub_annotator.im
 
+    im = cv2.cvtColor(annotator.im, cv2.COLOR_BGR2RGB)
     if not save:
-        return annotator.im
-    Image.fromarray(annotator.im).save(fname)  # the mosaic holds RGB
+        return im
+    Image.fromarray(im).save(fname)
     if on_plot:
         on_plot(fname)
 

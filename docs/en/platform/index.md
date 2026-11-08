@@ -165,7 +165,7 @@ flowchart TD
 ```
 
 Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` are optional form fields that default to
-`0.25`, `0.7`, and the model's training image size (640 if unavailable):
+`0.25`, `0.5`, and the model's training image size (640 if unavailable):
 
 === "Python"
 
@@ -174,7 +174,7 @@ Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` 
 
     url = "https://your-deployment-url.run.app/predict"
     api_key = "YOUR_API_KEY"
-    args = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
+    args = {"conf": 0.25, "iou": 0.5, "imgsz": 640}
 
     with open("image.jpg", "rb") as f:
         response = requests.post(
@@ -194,7 +194,7 @@ Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` 
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.7" \
+      -F "iou=0.5" \
       -F "imgsz=640"
     ```
 
@@ -204,7 +204,7 @@ Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` 
     const form = new FormData();
     form.append("file", fileInput.files[0]);
     form.append("conf", "0.25");
-    form.append("iou", "0.7");
+    form.append("iou", "0.5");
     form.append("imgsz", "640");
 
     const response = await fetch("https://your-deployment-url.run.app/predict", {

@@ -29,10 +29,12 @@ class FastSAMPredictor(SegmentationPredictor):
         clip (Any, optional): CLIP model used for text-based prompting, loaded on demand.
 
     Methods:
-        postprocess: Apply postprocessing to FastSAM predictions and handle prompts.
+        finalize_results: Select FastSAM prompts in original-image coordinates.
         prompt: Perform image segmentation inference based on various prompt types.
         set_prompts: Set prompts to be used during inference.
     """
+
+    default_iou = 0.7  # nested single-class masks, not the YOLO predict default
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the FastSAMPredictor with configuration and callbacks.
@@ -49,22 +51,12 @@ class FastSAMPredictor(SegmentationPredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
 
-    def postprocess(self, preds, img, orig_imgs):
-        """Apply postprocessing to FastSAM predictions and handle prompts.
-
-        Args:
-            preds (list[torch.Tensor]): Raw predictions from the model.
-            img (torch.Tensor): Input image tensor that was fed to the model.
-            orig_imgs (list[np.ndarray]): Original images before preprocessing.
-
-        Returns:
-            (list[Results]): Processed results with prompts applied.
-        """
+    def finalize_results(self, results: list) -> list:
+        """Adjust source-space masks and select prompts after any tiles have been merged."""
         bboxes = self.prompts.get("bboxes")
         points = self.prompts.get("points")
         labels = self.prompts.get("labels")
         texts = self.prompts.get("texts")
-        results = super().postprocess(preds, img, orig_imgs)
         for result in results:
             full_box = torch.tensor(
                 [0, 0, result.orig_shape[1], result.orig_shape[0]], device=result.boxes.data.device, dtype=torch.float32
@@ -159,10 +151,10 @@ class FastSAMPredictor(SegmentationPredictor):
             (torch.Tensor): Similarity matrix between texts and images with shape (M, N), where M is the number of texts
                 and N is the number of images.
         """
-        from ultralytics.nn.text_model import CLIP
+        from ultralytics.nn.text_model import MobileCLIPTS
 
         if not hasattr(self, "clip"):
-            self.clip = CLIP("ViT-B/32", device=self.device)
+            self.clip = MobileCLIPTS(self.device, "clip_b32_datacomp.ts")
         if self.device.type == "cuda" and NUM_THREADS > 1 and len(images) >= 2 * NUM_THREADS:
             with ThreadPool(NUM_THREADS) as pool:
                 images = pool.map(self.clip.image_preprocess, images)

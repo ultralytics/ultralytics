@@ -59,7 +59,7 @@ jobs:
             os: windows-latest
             extras: export-base,export-openvino,solutions
           - personality: predict-val
-            os: macos-26
+            os: macos-latest
             extras: export-base,export-openvino,export-coreml,solutions
           - personality: chaos
             os: ubuntu-latest

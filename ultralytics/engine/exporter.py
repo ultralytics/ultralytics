@@ -87,7 +87,7 @@ from ultralytics import __version__
 from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data.build import InfiniteDataLoader, build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
 from ultralytics.nn.modules import (
     OBB,
@@ -113,6 +113,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     MACOS_VERSION,
+    PREDICT_IOU,
     QNN_HTP_TARGETS,
     RKNN_CHIPS,
     SETTINGS,
@@ -227,7 +228,7 @@ def export_formats():
         ],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
         ["NXP", "nxp", "_nxp.tflite", False, False, ["quantize", "data", "fraction"], "isolated-nxp"],
-        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "paddle"],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "opset", "simplify", "nms"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "quantize", "fraction", "nms"], "isolated-imx"],
@@ -343,6 +344,15 @@ EXPORT_ENVS = {
         "indexes": [],
         "env": {},
         "smoke": ["yolo export format=mnn model=yolo26n.pt imgsz=32"],
+    },
+    "paddle": {
+        "python": "3.13",  # PaddlePaddle wheels stop at cp313
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["paddlepaddle>=3.0.0,<3.3.0", "x2paddle", "six"],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=paddle model=yolo26n.pt imgsz=32"],
     },
     "ncnn": {
         "python": "3.14",
@@ -621,6 +631,8 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        if self.args.iou is None:
+            self.args.iou = PREDICT_IOU  # export-time NMS serves predict
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -679,7 +691,9 @@ class Exporter:
         if fmt == "imx" and self.args.device is None and torch.cuda.is_available():
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
-        self.device = select_device("cpu" if self.args.device is None or fmt == "executorch" else self.args.device)
+        self.device = select_device(
+            "cpu" if self.args.device is None or fmt in {"executorch", "litert", "nxp"} else self.args.device
+        )
 
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
@@ -1030,6 +1044,8 @@ class Exporter:
             "channels": model.yaml.get("channels", 3),
             "end2end": getattr(model, "end2end", False),
         }  # model metadata
+        if getattr(model, "colors", None):
+            self.metadata["colors"] = model.colors  # class colors, see `ultralytics.utils.plotting.Colors`
         if self.dla is not None:
             self.metadata["dla"] = self.dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":
@@ -1081,7 +1097,8 @@ class Exporter:
 
         Images are emitted as uint8 [0, 255] at the export input shape. Classification images are resized and
         center-cropped to the exact export (height, width) like classify inference, so rectangular `imgsz` exports
-        calibrate on rectangular inputs; other tasks reuse their validation dataset transforms.
+        calibrate on rectangular inputs; other tasks reuse their validation dataset transforms. Platform and NDJSON
+        datasets are converted locally with the requested calibration fractions.
 
         Args:
             prefix (str): Prefix for log messages.
@@ -1093,27 +1110,20 @@ class Exporter:
         cfg = deepcopy(self.args)
         cfg.imgsz = self.imgsz if self.model.task == "classify" else max(self.imgsz)  # classify keeps exact (h, w)
         cfg.rect = False
-        split = self.args.split or "val"
+        cfg.split = cfg.split or "val"
+        if not isinstance(cfg.fraction, list):
+            cfg.fraction = [cfg.fraction] * 3
+        cfg.data = convert_ndjson_to_yolo_if_needed(cfg.data, cfg.fraction, split=cfg.split)
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-            data = check_cls_dataset(self.args.data, split=split)
-            if not isinstance(cfg.fraction, list):
-                cfg.fraction = [cfg.fraction] * 3
-            dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
+            data = check_cls_dataset(cfg.data, split=cfg.split)
+            dataset = ClassificationDataset(data[cfg.split], args=cfg, augment=False, prefix=cfg.split)
             # INT8 backends divide images by 255, so keep the classify_transforms resize and center crop but emit uint8
             dataset.torch_transforms = T.Compose([*dataset.torch_transforms.transforms[:2], T.PILToTensor()])
         else:
-            data = check_det_dataset(self.args.data, split=split)
-            cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction
-            dataset = build_yolo_dataset(
-                cfg,
-                data[split],
-                self.args.batch,
-                data,
-                mode="val",
-                fraction=cfg.fraction,
-            )
+            data = check_det_dataset(cfg.data, split=cfg.split)
+            dataset = build_yolo_dataset(cfg, data[cfg.split], self.args.batch, data, mode="val")
         if hasattr(dataset, "transforms") and hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
         n = len(dataset)

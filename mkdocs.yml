@@ -451,6 +451,7 @@ nav:
           - DOTA8: datasets/obb/dota8.md
           - DOTA128: datasets/obb/dota128.md
           - DOTAv2: datasets/obb/dota-v2.md
+          - Scene Text: datasets/obb/scene-text.md
       - Multi-Object Tracking:
           - datasets/track/index.md
       - Explorer:
@@ -469,6 +470,7 @@ nav:
       - Object Counting: guides/object-counting.md
       - Object Counting in Regions: guides/region-counting.md
       - Object Cropping: guides/object-cropping.md
+      - OCR: guides/ocr.md
       - Parking Management: guides/parking-management.md
       - Queue Management: guides/queue-management.md
       - Security Alarm System: guides/security-alarm-system.md
@@ -494,6 +496,7 @@ nav:
           - COCO to YOLO Conversion: guides/coco-to-yolo.md
           - COCO JSON Training: guides/coco-json-training.md
       - Train & fine-tune:
+          - High Resolution Tiling: guides/high-resolution-tiling.md
           - Tips for Model Training: guides/model-training-tips.md
           - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
           - YOLO26 Training Recipe: guides/yolo26-training-recipe.md
@@ -518,7 +521,6 @@ nav:
           - ROS Quickstart: guides/ros-quickstart.md
           - YOLO on Vertex AI: guides/vertex-ai-deployment-with-docker.md
       - Optimize inference:
-          - SAHI Tiled Inference: guides/sahi-tiled-inference.md
           - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
           - NVIDIA DALI GPU Preprocessing: guides/nvidia-dali.md
           - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
@@ -578,6 +580,7 @@ nav:
       - Kaggle: integrations/kaggle.md
       - LiteRT: integrations/litert.md
       - Luxonis OAK: integrations/luxonis.md
+      - MediaTek: integrations/mediatek.md
       - MLflow: integrations/mlflow.md
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md
@@ -804,6 +807,7 @@ nav:
           - object_blurrer: reference/solutions/object_blurrer.md
           - object_counter: reference/solutions/object_counter.md
           - object_cropper: reference/solutions/object_cropper.md
+          - ocr: reference/solutions/ocr.md
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - region_counter: reference/solutions/region_counter.md

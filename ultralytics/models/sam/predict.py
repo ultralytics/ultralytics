@@ -85,6 +85,7 @@ class Predictor(BasePredictor):
     """
 
     stride = 16
+    default_iou = 0.7  # SAM mask NMS, not the YOLO predict default
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the Predictor with configuration, overrides, and callbacks.
@@ -600,6 +601,10 @@ class Predictor(BasePredictor):
 
     def setup_source(self, source):
         """Set up the data source for SAM inference."""
+        if self.args.tile:
+            raise ValueError(
+                "SAM uses its own crop_n_layers generation; tile is supported by YOLO and RT-DETR predictors."
+            )
         if source is None:  # handle the situation when set_imgsz in advance
             return
         self.reset_image()

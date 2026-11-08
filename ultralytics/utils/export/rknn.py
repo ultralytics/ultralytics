@@ -69,7 +69,21 @@ def onnx2rknn(
     LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
     # setuptools<82 retains pkg_resources, which rknn-toolkit2 depends on and setuptools 82 removed
     # <2.5: 2.5.0 fails YOLO11 and YOLO26 builds https://github.com/airockchip/rknn-toolkit2/issues/581
-    check_requirements(["rknn-toolkit2>=2.3.2,<2.5", "setuptools<82"])
+    # --no-deps: rknn-toolkit2 requires torch<=2.4.0 and opencv-python, which would replace the installed torch and cv2
+    check_requirements("rknn-toolkit2>=2.3.2,<2.5", cmds="--no-deps")
+    # numpy>=2.4 and protobuf>=7 fail rknn-toolkit2 builds; onnx and onnxruntime come from the preceding ONNX export
+    check_requirements(
+        [
+            "setuptools<82",
+            "numpy<2.4",
+            "protobuf<7",
+            "psutil>=5.9.0",
+            "scipy>=1.9.3",
+            "tqdm>=4.64.1",
+            "ruamel.yaml>=0.17.21",
+            "fast-histogram>=0.11",
+        ]
+    )
 
     if IS_COLAB:
         # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259

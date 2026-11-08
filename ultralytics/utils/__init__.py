@@ -807,7 +807,7 @@ class YAML:
         """Split a 'key: value' line into (key, rest), or return None if it is not a mapping entry."""
         if c[0] in "\"'":
             m = cls._QUOTED.match(c)
-            tail = c[m.end() :] if m else ""
+            tail = c[m.end() :].lstrip(" \t") if m else ""
             return (cls._unquote(m[0]), tail[1:].strip(" \t")) if tail[:1] == ":" and tail[1:2] in {"", " "} else None
         j = c.find(": ")
         j = len(c) - 1 if j < 0 and c[-1] == ":" else j
@@ -974,6 +974,7 @@ class YAML:
 DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
+PREDICT_IOU = 0.5  # NMS IoU when `iou` is unset in predict/export: highest COCO F1 at the predict conf
 
 
 def read_device_model() -> str:
@@ -1263,7 +1264,7 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
-IS_DEBIAN, IS_DEBIAN_BOOKWORM, IS_DEBIAN_TRIXIE = is_debian([None, "bookworm", "trixie"])
+IS_DEBIAN, IS_DEBIAN_BOOKWORM = is_debian([None, "bookworm"])
 IS_UBUNTU = is_ubuntu()
 GIT = GitRepo()
 USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir

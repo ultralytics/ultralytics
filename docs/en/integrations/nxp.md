@@ -13,7 +13,7 @@ This target is distinct from [Sony IMX500](sony-imx500.md) (`format="imx"`). NXP
 
 ## Export
 
-Export on **Linux x86_64**, with Python 3.10 or later. Compilation has been validated with Python 3.13 and 3.14. Ultralytics installs the conversion dependencies when needed. The Neutron SDK comes from [NXP's package repository](https://eiq.nxp.com/repository/eiq-neutron-sdk/).
+Export on **Linux x86_64**, with Python 3.10 or later. Compilation has been validated with Python 3.13 and 3.14. Ultralytics installs the conversion dependencies when needed. The Neutron SDK comes from NXP's pip package index:
 
 ```bash
 pip install -U ultralytics
@@ -40,13 +40,13 @@ pip install eiq-neutron-sdk==3.3.0 --extra-index-url https://eiq.nxp.com/reposit
 
 Use calibration images representative of your deployment, including its camera, lighting, and object sizes. [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) can reduce accuracy, so compare the intermediate `yolo26n_int8.tflite` against the PyTorch model on the host. `coco128.yaml` is a convenient example, not a substitute for application-specific calibration and an independent validation dataset.
 
-| Argument   | Description                                                                    |
-| ---------- | ------------------------------------------------------------------------------ |
-| `imgsz`    | Fixed input image size, for example `640` or `(480, 640)`.                     |
-| `quantize` | INT8 (`8`); enabled automatically. Other precisions are unsupported.           |
-| `data`     | Calibration dataset YAML, or a classification dataset.                         |
-| `fraction` | Fraction or count of calibration images.                                       |
-| `device`   | Device used during export and calibration. The compiled target remains i.MX95. |
+| Argument   | Description                                                                           |
+| ---------- | ------------------------------------------------------------------------------------- |
+| `imgsz`    | Fixed input image size, for example `640` or `(480, 640)`.                            |
+| `quantize` | INT8 (`8`); enabled automatically. Other precisions are unsupported.                  |
+| `data`     | Calibration dataset YAML, or a classification dataset.                                |
+| `fraction` | Fraction or count of calibration images.                                              |
+| `device`   | Export and calibration run on CPU (`device=cpu`). The compiled target remains i.MX95. |
 
 Batch size is fixed to 1. Detection exports use raw predictions for external NMS; Ultralytics applies this postprocessing during prediction and validation. Embedded NMS and the YOLO26 NMS-free top-k output are not supported by this export.
 

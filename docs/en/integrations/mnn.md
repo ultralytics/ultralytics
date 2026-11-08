@@ -188,7 +188,7 @@ The following examples run YOLO26 preprocessing, inference, and postprocessing w
             # get max prob and idx
             scores = np.max(probs, 0)
             class_ids = np.argmax(probs, 0)
-            result_ids = MNN.expr.nms(boxes, scores, 100, 0.45, 0.25)
+            result_ids = MNN.expr.nms(boxes, scores, 100, 0.5, 0.25)
             print(result_ids.shape)
             # nms result box, score, ids
             result_boxes = boxes[result_ids]
@@ -305,7 +305,7 @@ The following examples run YOLO26 preprocessing, inference, and postprocessing w
             auto boxes = _Stack({x0, y0, x1, y1}, 1);
             auto scores = _ReduceMax(probs, {0});
             auto ids = _ArgMax(probs, 0);
-            auto result_ids = _Nms(boxes, scores, 100, 0.45, 0.25);
+            auto result_ids = _Nms(boxes, scores, 100, 0.5, 0.25);
             auto result_ptr = result_ids->readMap<int>();
             auto box_ptr = boxes->readMap<float>();
             auto ids_ptr = ids->readMap<int>();

@@ -8,7 +8,6 @@ from functools import wraps
 from typing import Any
 
 import numpy as np
-import torch
 
 from ultralytics.utils.metrics import bbox_ioa
 
@@ -135,7 +134,7 @@ def _track_aware_nms(
 
 
 def attach_raw_preds_hook(predictor) -> None:
-    """Wrap `predictor.postprocess` to capture raw pre-NMS predictions and inputs (idempotent)."""
+    """Attach loose-NMS alternatives to their results so source-level recovery can follow tile merging."""
     if hasattr(predictor, "_orig_postprocess"):
         return
     orig = predictor.postprocess
@@ -145,11 +144,12 @@ def attach_raw_preds_hook(predictor) -> None:
         if predictor.args.mode != "track":  # plain predict() on this predictor needs no capture
             return orig(preds, img, orig_imgs, *args, **kwargs)
         raw = preds[0] if isinstance(preds, (list, tuple)) else preds  # PyTorch models return [inference, extras]
-        # clone() so the in-place NMS xywh->xyxy conversion can't mutate this capture; keep source device for box_iou
-        predictor._raw_preds = raw.detach().clone() if isinstance(raw, torch.Tensor) else raw
-        predictor._postprocess_im = img
-        predictor._postprocess_im0s = orig_imgs
-        return orig(preds, img, orig_imgs, *args, **kwargs)
+        # Both passes own their coordinates: NMS converts xywh to xyxy in place.
+        loose = orig(raw.clone(), img, orig_imgs, iou=_LOOSE_NMS_IOU)
+        results = orig(preds, img, orig_imgs, *args, **kwargs)
+        for tight, alternative in zip(results, loose):
+            tight._loose = (alternative, _LOOSE_NMS_IOU)
+        return results
 
     predictor._orig_postprocess = orig
     predictor.postprocess = _wrapped
@@ -157,19 +157,16 @@ def attach_raw_preds_hook(predictor) -> None:
 
 def compute_dets_del(predictor) -> list | None:
     """Return per-batch `(xywh, conf, cls)` tuples (`xywhr` for OBB) for detections tight NMS dropped, or None."""
-    raw = getattr(predictor, "_raw_preds", None)
-    if raw is None or not isinstance(raw, torch.Tensor):
+    if not hasattr(predictor.results[0], "_loose"):
         return None
     from ultralytics.utils import ops
     from ultralytics.utils.metrics import box_iou
 
-    loose_results = predictor._orig_postprocess(
-        raw, predictor._postprocess_im, predictor._postprocess_im0s, iou=_LOOSE_NMS_IOU
-    )
-
     is_obb = predictor.args.task == "obb"
     out = []
-    for loose, tight in zip(loose_results, predictor.results):
+    for tight in predictor.results:
+        loose, _ = tight._loose
+        del tight._loose
         tight_boxes = tight.obb if is_obb else tight.boxes
         loose_boxes = loose.obb if is_obb else loose.boxes
         if len(loose_boxes) == 0 or len(tight_boxes) == 0:
@@ -187,7 +184,6 @@ def compute_dets_del(predictor) -> list | None:
             xywh = ops.xyxy2xywh(dels[:, :4]).numpy()
             out.append((xywh, dels[:, 4].numpy(), dels[:, 5].numpy()))
 
-    predictor._raw_preds = None
     return out
 
 

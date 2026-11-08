@@ -75,6 +75,100 @@ class Profile(contextlib.ContextDecorator):
         return time.perf_counter()
 
 
+def merge_tiles(
+    predictions: list[dict], windows: list[tuple], shape: tuple[int, int], iou: float, agnostic: bool, max_det: int
+) -> dict:
+    """Merge tile payloads after task postprocessing has restored their native window coordinates.
+
+    Each payload contains bboxes (xyxy or xywhr), conf and cls, optionally with masks, keypoints or extra columns;
+    alternatively it contains one semantic_mask, depth or probs tensor. Masks match their window size or a whole-pixel
+    stride of it, inferred from the larger side; dense maps match their window size. Boxes cut by an interior window
+    edge are dropped when another window sees them clear of its edges and a kept box covers them, then NMS removes
+    duplicates. Only masks surviving box suppression are expanded to the full image.
+    """
+    from bisect import bisect_right
+
+    from ultralytics.utils.nms import nms_boxes
+
+    first = predictions[0]
+    if len(windows) == 1 and windows[0] == (0, 0, shape[1], shape[0]):
+        return first
+    if "probs" in first:
+        return {"probs": torch.stack([p["probs"] for p in predictions]).mean(0)}
+    if "bboxes" not in first:
+        key = next(iter(first))  # semantic class map or depth
+        discrete = key == "semantic_mask"
+        template = first[key]
+        output = template.new_zeros(shape)
+        weights = template.new_zeros(shape, dtype=torch.float32)
+        h, w = template.shape
+        y, x = torch.arange(h, device=output.device), torch.arange(w, device=output.device)
+        weight = torch.minimum(torch.minimum(y + 1, h - y)[:, None], torch.minimum(x + 1, w - x)[None]).float()
+        for pred, (x1, y1, x2, y2) in zip(predictions, windows):
+            if discrete:
+                current = weights[y1:y2, x1:x2]
+                output[y1:y2, x1:x2] = torch.where(weight > current, pred[key], output[y1:y2, x1:x2])
+                weights[y1:y2, x1:x2] = torch.maximum(weight, current)
+            else:
+                output[y1:y2, x1:x2] += pred[key] * weight
+                weights[y1:y2, x1:x2] += weight
+        return {key: output if discrete else output / weights}
+
+    boxes = torch.cat([p["bboxes"] for p in predictions]).float()
+    rotated = boxes.shape[1] == 5
+    regions = boxes.new_tensor(windows)
+    own = torch.cat([r.expand(len(p["bboxes"]), 4) for r, p in zip(regions, predictions)])  # MPS-safe when empty
+    offsets = own[:, :2]
+    boxes[:, :2] += offsets
+    if not rotated:
+        boxes[:, 2:4] += offsets
+    corners = xywhr2xyxyxyxy(boxes) if rotated else boxes.reshape(-1, 2, 2)
+    extent = torch.cat((corners.amin(1), corners.amax(1)), 1)
+    # A box touching an interior window edge is a cut fragment when another window sees it clear of its own interior
+    # edges, because that window saw the whole object.
+    border = own.new_tensor([0, 0, shape[1], shape[0]])
+    fragment = torch.cat((extent[:, :2] <= own[:, :2] + 2, extent[:, 2:] >= own[:, 2:] - 2), 1) & (own != border)
+    fragment = fragment.any(1)
+    if fragment.any():
+        e = extent[fragment, None]
+        inside = torch.cat((regions[:, :2] + 2 < e[..., :2], regions[:, 2:] - 2 > e[..., 2:]), -1) | (regions == border)
+        fragment[fragment.clone()] = inside.all(-1).any(1)
+    valid = (~fragment).nonzero().squeeze(1)
+    output = {k: torch.cat([p[k] for p in predictions]) for k in first if k not in {"bboxes", "masks", "keypoints"}}
+    classes = output["cls"][:, None] * (0 if agnostic else 2 * max(shape) + 1)
+    candidates = torch.cat((boxes[:, :2] + classes, boxes[:, 2:]), 1) if rotated else boxes + classes
+    keep = valid[nms_boxes(candidates[valid], output["conf"][valid].float(), iou, rotated=rotated)][:max_det]
+    if fragment.any():  # restore fragments that no kept box covers by half, i.e. the whole-view window missed them
+        lone = fragment.nonzero().squeeze(1)
+        e, k = extent[lone, None], extent[keep]
+        overlap = (torch.min(e[..., 2:], k[:, 2:]) - torch.max(e[..., :2], k[:, :2])).clamp(0).prod(-1)
+        keep = torch.cat((keep, lone[~(overlap > (e[..., 2:] - e[..., :2]).prod(-1) / 2).any(1)]))
+        keep = keep[nms_boxes(candidates[keep], output["conf"][keep].float(), iou, rotated=rotated)][:max_det]
+    output = {"bboxes": boxes[keep], **{k: v[keep] for k, v in output.items()}}
+    if "keypoints" in first:
+        keypoints = torch.cat([p["keypoints"] for p in predictions])[keep].clone()
+        keypoints[..., :2] += offsets[keep, None]
+        output["keypoints"] = keypoints
+    if any("masks" in p for p in predictions):
+        i = next(i for i, p in enumerate(predictions) if "masks" in p)
+        template = predictions[i]["masks"]
+        x1, y1, x2, y2 = windows[i]
+        r = round(max(x2 - x1, y2 - y1) / max(template.shape[-2:]))  # mask stride, 1 at source resolution
+        output["masks"] = template.new_zeros((len(keep), -(-shape[0] // r), -(-shape[1] // r)))
+        ends, count = [], 0
+        for p in predictions:
+            count += len(p["bboxes"])
+            ends.append(count)
+        for j, k in enumerate(keep.tolist()):
+            source = bisect_right(ends, k)
+            local = k - (ends[source - 1] if source else 0)
+            x1, y1 = ((v - r // 2 + r - 1) // r for v in windows[source][:2])  # first sampled pixel, x1 when r=1
+            mask = predictions[source]["masks"][local]
+            target = output["masks"][j, y1 : y1 + mask.shape[0], x1 : x1 + mask.shape[1]]
+            target[:] = mask[: target.shape[0], : target.shape[1]]
+    return output
+
+
 def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 
@@ -391,9 +485,9 @@ def xyxyxyxy2xywhr(x):
 
     Returns:
         (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5), as float64 for
-            NumPy input and with the input dtype and device for tensor input. The parameterization is canonical
-            rather than the caller's: w is the longer side and rotation is in radians from [-pi/4, 3pi/4), so a box
-            given with w < h comes back with w and h swapped and its angle shifted by pi/2 modulo pi.
+            NumPy input and with the input dtype and device for tensor input. The parameterization is canonical rather
+            than the caller's: w is the longer side and rotation is in radians from [-pi/4, 3pi/4), so a box given with
+            w < h comes back with w and h swapped and its angle shifted by pi/2 modulo pi.
     """
     is_torch = isinstance(x, torch.Tensor)
     points = np.asarray(x.cpu() if is_torch else x, dtype=np.float32)  # cv2.minAreaRect accepts float32, not float64

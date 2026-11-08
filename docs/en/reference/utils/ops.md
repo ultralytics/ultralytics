@@ -16,6 +16,10 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.ops.merge_tiles
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.ops.segment2box
 
 <br><br><hr><br>

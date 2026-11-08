@@ -2695,8 +2695,8 @@ GET /api/explore/search
 | `license`   | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license                                                                                         |
 | `author`    | string  | Owner username filter                                                                                                                                                                     |
 | `starred`   | boolean | Return only content starred by the authenticated caller; requires an API key                                                                                                              |
-| `minImages` | int     | Return only datasets with at least this many images; ignored by `type=images`                                                                                                             |
-| `maxImages` | int     | Return only datasets with at most this many images; ignored by `type=images`                                                                                                              |
+| `minImages` | int     | Return only datasets with at least this many images; with `type=images`, only images from such datasets                                                                                   |
+| `maxImages` | int     | Return only datasets with at most this many images; with `type=images`, only images from such datasets                                                                                    |
 
 **Response:** `projects`, `datasets`, and `hasMore`. `type=images` returns its matches in `images` instead, best match
 first, each with its source `dataset` and a 0–1 similarity `score`; it needs `q` and searches public datasets, plus your
@@ -2712,15 +2712,17 @@ curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=det
 POST /api/explore/search
 ```
 
-**Python SDK:** `client.explore.search_by_image()`
+**Python SDK:** `client.explore.search_by_image()` (`ultralytics-platform>=0.1.107`)
 
-Send a photo as base64 `image` (at most 3 MiB, never stored) in a JSON body with `type` `images` (default) or
-`datasets` and any of `sort`, `offset`, `limit`, `task`, `license`, `author`, `starred`, `minImages`, and `maxImages`
-from [Search Public Content](#search-public-content). The response has the same shape plus a `vector`: send it in place
-of `image` for more pages, other filters, or the other `type`, so the photo is read only once. `type=images` returns
-scored images as a text search does; `type=datasets` returns public datasets ranked by their matching images, which
-lead each dataset's `sampleImages`. Photos count against their own limit of 20 per minute. `400` means invalid parameters or a photo that
-cannot be read, and `503` that search is busy, so retry shortly.
+Send a photo as base64 `image` (at most 3 MiB, never stored) in a JSON body with `type` `images` (default) or `datasets`
+and any of `sort`, `offset`, `limit`, `task`, `license`, `author`, `starred`, `minImages`, and `maxImages` from [Search
+Public Content](#search-public-content). The response has the same shape, and a request that sends `image` also returns
+a `vector`: send it in place of `image` for more pages, other filters, or the other `type`, so the photo is read only
+once. `type=images` returns scored images as a text search does; `type=datasets` returns public datasets with matching
+images, best matches first under the default `sort=relevance` (other sorts order them as usual), and those images lead
+each dataset's `sampleImages`. Each request that sends `image` also counts against a separate limit of 20 per minute per
+user (per IP address without an API key). `400` means invalid parameters or a photo that cannot be read, and `503` that
+search is busy, so retry shortly.
 
 ---
 

@@ -542,14 +542,11 @@ class BaseTrainer:
                             x["momentum"] = float(np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum]))
 
                 do_step = ni - last_opt_step >= self.accumulate
+                no_sync = self.world_size > 1 and not self.args.compile and not do_step  # all-reduce on steps only
 
                 # Forward
                 try:
-                    with (
-                        self.model.no_sync()
-                        if self.world_size > 1 and not self.args.compile and not do_step
-                        else nullcontext()
-                    ):
+                    with self.model.no_sync() if no_sync else nullcontext():
                         with autocast(torch.bfloat16 if self.args.amp == "bf16" else self.amp, device=self.device.type):
                             batch = self.preprocess_batch(batch)
                             if self.args.compile:

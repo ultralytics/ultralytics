@@ -1742,7 +1742,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
 
         present = torch.zeros((targets.shape[0], self.cm_nc), dtype=torch.bool, device=targets.device)
         batch_idx = torch.arange(targets.shape[0], device=targets.device).view(-1, 1, 1).expand_as(targets)
-        present[batch_idx[valid], targets[valid].long()] = True
+        present.view(-1).index_fill_(0, batch_idx[valid] * self.cm_nc + targets[valid].long(), True)
         if self.nc == 1:
             self.nt_per_image[0] += int(present[:, 1].sum())
         else:

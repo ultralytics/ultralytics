@@ -136,7 +136,8 @@ class DetectionValidator(BaseValidator):
         self.end2end = getattr(model, "end2end", False)
         native_model = model.model if getattr(model, "format", None) == "pt" else model
         if self.end2end and hasattr(native_model, "set_head_attr"):
-            native_model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
+            # Class filtering needs candidates before max_det truncation.
+            native_model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
         self.seen = 0
         self.jdict = []
         self.is_custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
@@ -173,6 +174,7 @@ class DetectionValidator(BaseValidator):
             preds,
             self.args.conf,
             self.args.iou,
+            classes=None if self.args.single_cls and self.nc == 1 else self.args.classes,
             nc=0 if self.args.task == "detect" else self.nc,
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,

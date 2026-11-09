@@ -29,6 +29,7 @@ Usage - formats:
                      yolo26n_hailo_model        # Hailo
                      yolo26n_ascend_model       # Huawei Ascend
                      yolo26n_xilinx_model       # AMD Xilinx
+                     yolo26n_stedgeai.onnx      # ST Edge AI
 """
 
 from __future__ import annotations

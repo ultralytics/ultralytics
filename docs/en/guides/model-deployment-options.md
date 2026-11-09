@@ -60,7 +60,7 @@ Here is a short description of each format and when to reach for it. For the ful
 - **[Huawei Ascend](../integrations/ascend.md)** (`ascend`): Compiles to the `.om` offline format with the CANN ATC compiler for FP16 inference on Ascend AI Processors.
 - **[AMD Xilinx](../integrations/xilinx.md)** (`xilinx`): Quantizes with AMD Quark for Versal AI Edge Series Gen 2 NPUs, which the Vitis AI Execution Provider compiles to a `.rai` model.
 - **[NXP](../integrations/nxp.md)** (`nxp`): Compiles calibrated INT8 LiteRT models for the i.MX95 Neutron NPU with SDK 3.3.0. Unsupported operators remain on CPU; validate accuracy and performance on the target board.
-
+- **[ST Edge AI](../integrations/stedgeai.md)** (`stedgeai`): Quantization-friendly float and QDQ INT8 ONNX models for STMicroelectronics STM32 devices through ST Edge AI Core.
 The [Ambarella integration](../integrations/ambarella.md) has no dedicated export format: it follows an ONNX-first workflow and compiles ONNX exports to the AmbaPB format with Ambarella's CVflow toolchain for CVflow® SoCs such as the CV72, optionally using SpongeTorch compression-aware training.
 
 ## Deployment Options Compared
@@ -93,7 +93,7 @@ The following table summarizes the deployment options for YOLO26 models across t
 | Huawei Ascend     | Higher throughput on the Ascend AI Core         | Atlas boards and OrangePi AIPro                                                                        | Huawei CANN ecosystem                         | Edge inference on Ascend NPUs               | CANN and ATC releases                           | On-device local inference                         | Ascend AI Core                      |
 | AMD Xilinx        | INT8 inference on Versal AI Edge Gen 2 NPUs     | Versal AI Edge Series Gen 2 (VEK385)                                                                   | AMD Vitis AI and Quark                        | Embedded vision on adaptive SoCs            | Vitis AI and Quark releases                     | On-device local inference                         | Versal AI Engine NPU                |
 | NXP               | Compilation validated; measure latency on board | i.MX95 with a compatible Neutron 3.3.0 runtime                                                         | NXP eIQ Neutron SDK                           | Embedded computer vision                    | Match compiler, delegate, and firmware versions | On-device local inference                         | Neutron NPU with CPU fallback       |
-
+| ST Edge AI        | INT8 inference on STM32 MCUs and MPUs           | STM32 devices such as STM32N6 through ST Edge AI Core                                                  | STM32 AI Model Zoo and ST Edge AI tools       | Low-power embedded and battery devices      | ST Edge AI Core releases                        | On-device local inference                         | STM32N6 Neural-ART NPU and Arm CPUs |
 This comparison gives you a high-level overview. For deployment, weigh the specific requirements and constraints of your project against each option, and consult the linked integration guide for the format you choose.
 
 ## Conclusion

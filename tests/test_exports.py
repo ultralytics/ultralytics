@@ -647,6 +647,63 @@ def test_export_qnn(isolated_model):
     Path(file).unlink(missing_ok=True)  # cleanup
 
 
+def test_export_stedgeai(isolated_model):
+    """Test ST Edge AI export keeps the float ONNX model beside a runnable QDQ INT8 model."""
+    file = YOLO(isolated_model).export(format="stedgeai", imgsz=32, quantize=8, data="coco8.yaml", fraction=0.25)
+    assert file.endswith("_int8_stedgeai.onnx"), f"unexpected ST Edge AI INT8 file name: {file}"
+    assert Path(file.replace("_int8_stedgeai", "_stedgeai")).is_file(), "float ST Edge AI model not kept"
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("task", sorted(TASKS))
+def test_export_stedgeai_matrix(task):
+    """Test ST Edge AI float outputs match ONNX, or PyTorch for the pre-upsampling semantic and depth outputs."""
+    from ultralytics.nn.autobackend import AutoBackend
+
+    skip_rpi_semantic(task)
+    file = YOLO(TASK2MODEL[task]).export(format="stedgeai", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    im = torch.rand(1, 3, 32, 32)
+    y = AutoBackend(file).backend.forward(im)
+    if task in {"semantic", "depth"}:  # 1/8 logits and 1/4 depth, like PyTorch eval before predictor upsampling
+        ref = [YOLO(TASK2MODEL[task]).model.fuse().eval()(im).detach().numpy()]
+    else:
+        onnx_file = YOLO(TASK2MODEL[task]).export(format="onnx", imgsz=32)
+        ref = AutoBackend(onnx_file).backend.forward(im)
+        Path(onnx_file).unlink()  # cleanup
+    for x, r in zip(y, ref):
+        torch.testing.assert_close(torch.from_numpy(x), torch.from_numpy(r), atol=1e-3, rtol=1e-4)
+    Path(file).unlink()  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("task", ["semantic", "depth"])
+def test_export_stedgeai_dense_layouts(task):
+    """Test semantic and depth ST Edge AI exports write the ST layout and the default full-resolution layout."""
+    import torch.nn.functional as F
+
+    from ultralytics.nn.autobackend import AutoBackend
+
+    skip_rpi_semantic(task)
+    file = YOLO(TASK2MODEL[task]).export(format="stedgeai", imgsz=32, quantize=8, fraction=0.25)
+    assert file.endswith("_int8_stedgeai.onnx"), f"unexpected ST Edge AI INT8 file name: {file}"
+    float_st, float_full = file.replace("_int8", ""), file.replace("_int8_stedgeai", "_stedgeai_full")
+    int8_full = file.replace("_stedgeai", "_stedgeai_full")
+    for f in (float_st, float_full, int8_full):
+        assert Path(f).is_file(), f"missing ST Edge AI export: {f}"
+        YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    im = torch.rand(1, 3, 32, 32)
+    st = torch.from_numpy(AutoBackend(float_st).backend.forward(im)[0])
+    full = torch.from_numpy(AutoBackend(float_full).backend.forward(im)[0])
+    # The predictor upsamples the ST layout, so it must match the full-resolution graph
+    up = F.interpolate(st, scale_factor=8 if task == "semantic" else 4, mode="bilinear", align_corners=task == "depth")
+    assert full.shape == up.shape == (1, st.shape[1], 32, 32)
+    torch.testing.assert_close(full, up, atol=1e-3, rtol=1e-4)
+    for f in (file, float_st, float_full, int8_full):
+        Path(f).unlink()  # cleanup
+
+
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])
 def test_export_env_has_smoke(env):
     """Ensure every non-base export environment declares a build-time smoke export."""

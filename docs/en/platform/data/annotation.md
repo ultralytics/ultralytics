@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 comments: true
 description: Annotate images in Ultralytics Platform by hand or with AI auto-annotation from SAM 3.1, YOLO, and models like Gemini 4 Argon, GPT-6.1 Sol, and Claude Opus 5.5.
-keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, Claude Fable 5.1, Claude Sonnet 5.5, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, YOLOE, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
+keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, Claude Fable 5.2, Claude Fable 5.1, Claude Sonnet 5.5, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, YOLOE, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
 ---
 
 # Annotation Editor
@@ -351,7 +351,7 @@ Hosted models run on Ultralytics Platform with no provider key:
 | [**SAM 3 Text**](../../models/sam-3.md)                                          | Meta               | 0.86B      |
 | [**SAM 3.1 Text**](../../models/sam-3.md#sam-31)                                 | Meta               | 0.87B      |
 
-Paid vision models from OpenAI (including [GPT-6 Astra](https://platform.ultralytics.com/models/gpt-6-astra) and [GPT-6.1 Sol](https://platform.ultralytics.com/models/gpt-6.1-sol)), Anthropic (including [Claude Fable 5.1](https://platform.ultralytics.com/models/claude-fable-5-1) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, and MiniMax appear under each provider's project in the picker:
+Paid vision models from OpenAI (including [GPT-6 Astra](https://platform.ultralytics.com/models/gpt-6-astra) and [GPT-6.1 Sol](https://platform.ultralytics.com/models/gpt-6.1-sol)), Anthropic (including [Claude Fable 5.2](https://platform.ultralytics.com/models/claude-fable-5-2), [Claude Fable 5.1](https://platform.ultralytics.com/models/claude-fable-5-1) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, and MiniMax appear under each provider's project in the picker:
 
 <platform-annotation-models></platform-annotation-models>
 

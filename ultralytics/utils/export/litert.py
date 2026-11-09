@@ -62,7 +62,10 @@ def torch2litert(
     """
     from ultralytics.utils.checks import check_requirements
 
-    check_requirements(("litert-torch>=0.10.0", "ai-edge-litert>=2.3.0"))
+    # typer<0.29 on Python 3.14: see the export-litert extra in pyproject.toml
+    check_requirements(
+        ("litert-torch>=0.10.0", "ai-edge-litert>=2.3.0"), constrain=("typer<0.29.0; python_version >= '3.14'",)
+    )
     import litert_torch
 
     static_int8 = quantize == 8

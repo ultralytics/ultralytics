@@ -2,15 +2,15 @@
 plans: [free, pro, enterprise]
 title: Pricing, Plans & Billing - Ultralytics Platform
 comments: true
-description: Ultralytics Platform pricing for Free with a $5 signup credit, Pro at $29 per seat/month, and custom-priced Enterprise with the Ultralytics Enterprise License.
+description: Ultralytics Platform pricing for Free with up to $25 in signup credit, Pro at $29 per seat/month, and custom-priced Enterprise with the Enterprise License.
 keywords: Ultralytics Platform, Ultralytics pricing, Enterprise License, plans, billing, credits, subscription, payments, training costs
 ---
 
 # Pricing, Plans and Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) has three plans: **Free** with a $5 signup credit, **Pro** at
-$29 per seat/month, and **Enterprise**, which is custom-priced and includes the Ultralytics Enterprise License for
-commercial use. Every plan uses credits for metered compute: cloud training,
+[Ultralytics Platform](https://platform.ultralytics.com) has three plans: **Free** with a $5 signup credit ($25 after
+verifying a work email), **Pro** at $29 per seat/month, and **Enterprise**, which is custom-priced and includes the
+Ultralytics Enterprise License for commercial use. Every plan uses credits for metered compute: cloud training,
 [batch annotation](../data/annotation.md#batch-annotation), and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 

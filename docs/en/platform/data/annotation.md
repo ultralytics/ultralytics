@@ -351,7 +351,7 @@ Hosted models run on Ultralytics Platform with no provider key:
 | [**SAM 3 Text**](../../models/sam-3.md)                                          | Meta               | 0.86B      |
 | [**SAM 3.1 Text**](../../models/sam-3.md#sam-31)                                 | Meta               | 0.87B      |
 
-Paid vision models from OpenAI (including [GPT-6 Astra](https://platform.ultralytics.com/models/gpt-6-astra) and [GPT-6.1 Sol](https://platform.ultralytics.com/models/gpt-6.1-sol)), Anthropic (including [Claude Fable 5.1](https://platform.ultralytics.com/models/claude-fable-5-1) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, and MiniMax appear under each provider's project in the picker, by API name:
+Paid vision models from OpenAI (including [GPT-6 Astra](https://platform.ultralytics.com/models/gpt-6-astra) and [GPT-6.1 Sol](https://platform.ultralytics.com/models/gpt-6.1-sol)), Anthropic (including [Claude Fable 5.1](https://platform.ultralytics.com/models/claude-fable-5-1) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, and MiniMax appear under each provider's project in the picker:
 
 <platform-annotation-models></platform-annotation-models>
 

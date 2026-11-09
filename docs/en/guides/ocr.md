@@ -79,6 +79,9 @@ result = ocr(im0)
 
 Replace `yolo26n-text` with `yolo26s-text`, `yolo26m-text`, `yolo26l-text`, or `yolo26x-text` for a larger model.
 
+To train your own OBB text detector, use the [Scene Text OBB dataset](../datasets/obb/scene-text.md), which combines
+COCO-Text and HierText word annotations.
+
 ### `OCR` Arguments
 
 Here's a table with the `OCR` arguments:

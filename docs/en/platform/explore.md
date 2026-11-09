@@ -110,10 +110,10 @@ On the Datasets and Projects tabs, toggle between three view modes for browsing:
 | ----------- | ------------------------------------------------ |
 | **Cards**   | Grid of preview cards with thumbnails            |
 | **Compact** | Smaller cards in a responsive grid (2-3 columns) |
-| **Table**   | Paginated table with sortable columns            |
+| **Table**   | Table with sortable columns                      |
 
-Cards and compact views load more results by infinite scroll. Table view moves sorting from the dropdown to sortable
-column headers, keeps the filters in the dropdown, and adds its own pagination controls.
+All three views load more results as you scroll. Table view moves sorting from the dropdown to sortable column headers
+and keeps the filters in the dropdown.
 
 ## Content Cards
 
@@ -215,7 +215,7 @@ Clone a public model to one of your projects:
 4. Optionally, rename the model
 5. Review the source model summary, then click `Clone Model` to confirm
 
-![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/ea87fef6ef1ff9f2d6a00e3fbb46459d.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/dc44c4c61e4d8276fd1829145c2e493b.avif)<!-- screenshot -->
 
 !!! note "Clone vs Download"
 

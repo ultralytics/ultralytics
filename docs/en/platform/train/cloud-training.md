@@ -24,7 +24,7 @@ flowchart TD
 
 Start training from the platform UI by clicking **New Model** on any project or dataset page. The training dialog has two tabs: **Cloud Training** and **Local Training**. When the selected dataset lives on an [On Premise](../integrations/on-premise.md) host, the first tab becomes **On Premise** and the Local Training tab is hidden — that dataset can only be trained on its own host, which requires an Enterprise plan and a connected, online worker.
 
-![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/4b85826e6a1b6b534839a34d86067b7e.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/6ca4d4aa87bf818d83393422aa9f36dc.avif)<!-- screenshot -->
 
 The dialog remembers the base model and any non-default parameters it held when you last closed it, per dataset task and workspace in the current browser, and restores them the next time you open it for that task. The GPU selection is not remembered, and **Retry Training** on a failed run restores that run's own arguments instead.
 
@@ -129,7 +129,7 @@ This preserves the data used for the run even if you later add or remove images,
 
 [Choose your GPU](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform) from Ultralytics Cloud:
 
-![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.ul.run/i/9a53e7f94acd24b99713e6c70d0e6f2f.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.ul.run/i/6ca4d4aa87bf818d83393422aa9f36dc.avif)<!-- screenshot -->
 
 {% include "macros/platform-gpu-table.md" %}
 
@@ -615,7 +615,7 @@ The YAML editor also supports **importing configurations from previous training 
 - **Paste YAML or JSON**: Paste any valid YAML or JSON training configuration into the editor. Parameters are validated automatically, with out-of-range values clamped and warnings displayed.
 - **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
 
-![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/6910a3d511ca59b4bd99e84fbcccd705.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/32b357ab7dd804a177ee122a622bd83c.avif)<!-- screenshot -->
 
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
 

@@ -27,7 +27,7 @@ Create a new API key:
 3. Enter a name for the key (e.g., "Training Server")
 4. Click **Create Key**
 
-![Ultralytics Platform Settings API Keys Tab Create API Key Dialog](https://cdn.ul.run/i/44264db05b4663de74af579ccaaa610d.avif)<!-- screenshot -->
+![Ultralytics Platform Settings API Keys Tab Create API Key Dialog](https://cdn.ul.run/i/1ac88baa9f6b51ddfae0ecb2758875a1.avif)<!-- screenshot -->
 
 ### Key Name
 

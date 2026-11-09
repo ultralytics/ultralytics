@@ -348,10 +348,6 @@ image size, batch size, epochs, and selected GPU. Estimates are approximate; act
 
 Estimates are based on real cloud training runs, and the estimate always uses the GPU you selected — so a job routed to faster Ultralytics infrastructure finishes ahead of its estimate.
 
-!!! note "Estimates"
-
-    Cost estimates are approximate and depend on many factors. The training dialog shows a real-time estimate before you start training.
-
 ### Billing Flow
 
 ```mermaid

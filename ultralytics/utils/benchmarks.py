@@ -206,9 +206,9 @@ def benchmark(
                 assert not (MACOS and is_github_action_running()), (
                     "LiteRT not benchmarked on macOS CI (ai-edge-litert/TF abseil mutex deadlock)"
                 )
-            if "cpu" in device.type:
+            if "cpu" in str(device):  # intel:* devices stay strings
                 assert cpu, "inference not supported on CPU"
-            if "cuda" in device.type:
+            if "cuda" in str(device):
                 assert gpu, "inference not supported on GPU"
 
             # Export

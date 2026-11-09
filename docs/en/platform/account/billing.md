@@ -33,7 +33,7 @@ Get started at no cost:
 - 100 GB storage · 10 GB dataset upload limit
 - Model export to all 23 formats
 - Manual, SAM 3.1, and YOLO Smart annotation
-- 24 cloud GPU types including 5090, H100 & H200 ($0.24–$4.39/hr)
+- 24 cloud GPU types including 5090, H100 & H200
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -223,7 +223,7 @@ Cloud training costs depend on [GPU selection](https://www.ultralytics.com/blog/
 
 B200 and B300 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
 
-See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
+See [Cloud Training](../train/cloud-training.md) for complete GPU options.
 
 ### Cost Calculation
 
@@ -231,10 +231,10 @@ See [Cloud Training](../train/cloud-training.md) for complete GPU options and pr
 Total Cost = GPU Rate x Training Time (hours)
 ```
 
-Example: Training for 2.5 hours on RTX PRO 6000
+Example: Training for 2.5 hours on a GPU priced at $2.00/hour
 
 ```text
-$2.09 x 2.5 = $5.23
+$2.00 x 2.5 = $5.00
 ```
 
 ## Upgrade to Pro

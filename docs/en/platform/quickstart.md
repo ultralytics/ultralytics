@@ -253,7 +253,7 @@ From your project, click `New Model` to open the **Train New Model** dialog. You
 1. **Base Model**: Select official Ultralytics weights (such as [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26)) or one of your own trained models. The dialog warns if the selected model cannot train the dataset task.
 2. **Dataset**: Choose a ready dataset with at least one train image, at least one validation or test image, and at least one labeled image
 3. **Parameters**: Set **Epochs** (default 100), **Batch Size** (blank means auto), **Image Size** (default 640), and an optional run **Name**. Expand **Advanced Settings** to edit any other Ultralytics training argument in a YAML editor.
-4. **Select GPU**: On the **Cloud Training** tab, choose compute based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell, $2.09/hr), which handles every YOLO26 variant. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
+4. **Select GPU**: On the **Cloud Training** tab, choose compute based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell), which handles every YOLO26 variant. See the full [GPU table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
 5. **Start Training**: Review the estimated cost and duration next to your credit balance, then click `Start Training`.
 
 !!! tip "Save Dataset Version"

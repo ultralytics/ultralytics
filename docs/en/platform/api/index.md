@@ -1725,10 +1725,10 @@ POST /api/training/start
     "modelId": "65f1c0a2b3d4e5f601234599",
     "status": "starting",
     "gpuType": "rtx-4090",
-    "estimatedCost": { "pricePerHour": 0.69, "gpuMemoryGb": 24 },
+    "estimatedCost": { "pricePerHour": 0.89, "gpuMemoryGb": 24 },
     "billing": {
-        "estimatedCostCents": 138,
-        "estimatedCostDisplay": "$1.38",
+        "estimatedCostCents": 178,
+        "estimatedCostDisplay": "$1.78",
         "balanceCents": 2500
     }
 }
@@ -1742,7 +1742,7 @@ for the requested GPU.
 
     26 GPU types are available, from `rtx-2000-ada` through `b300`, including `rtx-4090`, `l40s`, `a100-80gb-pcie`,
     `a100-80gb-sxm`, `rtx-pro-6000`, `h100-sxm`, `h200-sxm`, and `b200`. See
-    [Cloud Training](../train/cloud-training.md) for the full list with pricing.
+    [Cloud Training](../train/cloud-training.md) for the full list.
 
 ---
 

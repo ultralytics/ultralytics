@@ -132,7 +132,7 @@ def autocast(enabled: bool | torch.dtype, device: str = "cuda"):
         ...     pass
 
     Notes:
-        Uses `torch.amp.autocast` on torch>=1.13 and the backend-specific AMP context on older releases.
+        Uses `torch.autocast` on torch>=1.10 and the backend-specific AMP context on older releases.
     """
     dtype = enabled if isinstance(enabled, torch.dtype) else None
     enabled = bool(enabled)
@@ -152,10 +152,10 @@ def autocast(enabled: bool | torch.dtype, device: str = "cuda"):
         import torch_npu
 
         return torch_npu.npu.amp.autocast(enabled=enabled, **kwargs)
-    if TORCH_1_13:
+    if TORCH_1_10:
         if device == "mps" and not TORCH_2_5:  # MPS autocast added in torch 2.5.0, errors on older versions
             device, enabled = "cpu", False
-        return torch.amp.autocast(device, enabled=enabled, **kwargs)
+        return torch.autocast(device, enabled=enabled, **kwargs)
     else:
         return torch.cuda.amp.autocast(enabled and device == "cuda")
 

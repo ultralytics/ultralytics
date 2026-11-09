@@ -33,8 +33,8 @@ class YOLO(Model):
     """YOLO (You Only Look Once) object detection model.
 
     This class provides a unified interface for YOLO models, automatically switching to specialized model types
-    (YOLOWorld or YOLOE) based on the loaded model, or on the filename for YAML builds. It supports various computer
-    vision tasks including object detection, instance segmentation, semantic segmentation, depth estimation,
+    (YOLOWorld, YOLOE or RTDETR) based on the loaded model, or on the filename for YAML builds. It supports various
+    computer vision tasks including object detection, instance segmentation, semantic segmentation, depth estimation,
     classification, pose estimation, and oriented bounding box detection.
 
     Attributes:
@@ -60,8 +60,8 @@ class YOLO(Model):
     def __init__(self, model: str | Path | Model = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
-        This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
-        YOLOE) based on the loaded model, or on the filename for YAML builds.
+        This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld,
+        YOLOE or RTDETR) based on the loaded model, or on the filename for YAML builds.
 
         Args:
             model (str | Path | Model): Model name or path to model file, e.g. 'yolo26n.pt', 'yolo26n.yaml', or an

@@ -184,11 +184,11 @@ def modelopt_quantize_onnx(
         calib = calib.to(torch.float32).div_(255.0)
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
-        # On SM 12.1 (GB10, N1X) TensorRT builds RT-DETR's HGBlock squeeze conv and, from 11.4, fully INT8 attention
-        # broken, so both stay in float there; other GPUs keep them in INT8, where excluding them costs speed or mAP
+        # Only on SM 12.1 (GB10, N1X): TensorRT builds RT-DETR's HGBlock squeeze conv and, from 11.4, fully INT8
+        # attention broken, so the squeeze conv and every attention MatMul stay in float there
         sm121 = torch.cuda.get_device_capability() == (12, 1)
-        # RT-DETR's transformer, the AIFI encoder layer and the RTDETRDecoder, stays in float on every GPU: TensorRT
-        # 11.3 and 11.4 build it broken in INT8 (rtdetr-l 4.9-5.4 mAP), and in float it adds ~1-2 mAP on 11.2 too
+        # On every GPU: RT-DETR's transformer, the AIFI encoder layer and the RTDETRDecoder, stays in float, attention
+        # included: TensorRT 11.3 and 11.4 build it broken in INT8 (rtdetr-l 4.9-5.4 mAP), and it adds ~1-2 mAP on 11.2
         transformer = {m[1] for n in graph.node if (m := re.match(r"/model\.(\d+)/(ma|decoder)/", n.name))}
         modelopt_quantize(
             onnx_file,

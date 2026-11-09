@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Pricing, Plans & Billing - Ultralytics Platform
 comments: true
-description: Ultralytics Platform pricing: Free with up to $25 in signup credit, Pro at $29 per seat/month, and custom-priced Enterprise with the Enterprise License.
+description: Ultralytics Platform pricing for Free with up to $25 in signup credit, Pro at $29 per seat/month, and custom-priced Enterprise with the Enterprise License.
 keywords: Ultralytics Platform, Ultralytics pricing, Enterprise License, plans, billing, credits, subscription, payments, training costs
 ---
 

@@ -70,15 +70,16 @@ class YOLO(Model):
                 'pose', 'obb'. Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
         """
-        path = Path(model if isinstance(model, (str, Path)) else "")
-        if "-world" in path.stem and path.suffix.lower() in {".yaml", ".yml"}:  # if YOLOWorld YAML
+        from ultralytics import RTDETR
+
+        path, new_instance = Path(model if isinstance(model, (str, Path)) else ""), None
+        yaml = path.suffix.lower() in {".yaml", ".yml"}
+        if yaml and "-world" in path.stem:  # if YOLOWorld YAML
             new_instance = YOLOWorld(path, verbose=verbose)
-            self.__class__ = type(new_instance)
-            self.__dict__ = new_instance.__dict__
-        elif "yoloe" in path.stem and path.suffix.lower() in {".yaml", ".yml"}:  # if YOLOE YAML
+        elif yaml and "yoloe" in path.stem:  # if YOLOE YAML
             new_instance = YOLOE(path, task=task, verbose=verbose)
-            self.__class__ = type(new_instance)
-            self.__dict__ = new_instance.__dict__
+        elif yaml and "rtdetr" in path.stem:  # if RT-DETR YAML
+            new_instance = RTDETR(path)
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
@@ -86,15 +87,12 @@ class YOLO(Model):
             if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
                 head = BaseBackend.read_metadata(self.model).get("head", "")
             if "RTDETR" in head:  # if RTDETR head
-                from ultralytics import RTDETR
-
                 new_instance = RTDETR(self)
-                self.__class__ = type(new_instance)
-                self.__dict__ = new_instance.__dict__
             elif isinstance(self.model, (WorldModel, YOLOEModel)):  # route checkpoints by model, not filename
                 new_instance = (YOLOWorld if isinstance(self.model, WorldModel) else YOLOE)(self)
-                self.__class__ = type(new_instance)
-                self.__dict__ = new_instance.__dict__
+        if new_instance is not None:
+            self.__class__ = type(new_instance)
+            self.__dict__ = new_instance.__dict__
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

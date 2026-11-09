@@ -176,7 +176,7 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 3. Click on the image to place all keypoints at once
 4. Drag individual keypoints to adjust their positions
 
-![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/740678f4732fd3b862179e209a5ea8c5.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/a92463dc86e1e22085894fe3478b27dc.avif)<!-- screenshot -->
 
 #### Built-in Skeleton Templates
 
@@ -190,7 +190,7 @@ The editor includes 5 built-in templates:
 | **Face**   | 68        | iBUG 300W facial landmarks — jaw, eyebrows, nose, eyes, mouth                                                          |
 | **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
-![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.ul.run/i/e4a90c1619058fa74f045e6ba7d00b27.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.ul.run/i/39c7d759e6aa99eb6d5dc606f77527b7.avif)<!-- screenshot -->
 
 #### Custom Skeleton Templates
 
@@ -203,7 +203,7 @@ Create custom templates for any pose structure:
 5. Connect keypoints by selecting two points (connections are drawn automatically as you place sequential keypoints)
 6. Save the template for reuse across your dataset
 
-![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/4bced0f094f4707c361de3ca93108835.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/8c8dc5aa884bed7a349c68d8bce025e9.avif)<!-- screenshot -->
 
 Custom templates are saved to the dataset's workspace and available in all of its pose datasets. Edit or delete them from the template picker.
 
@@ -224,7 +224,7 @@ Draw rotated boxes for angled objects:
 3. Use the rotation handle to adjust angle
 4. Drag corner handles to resize
 
-![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/bfdc7cf3feb3e9000529b3ed40a9889a.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/a481e5785335560f64f8823cfb2219d6.avif)<!-- screenshot -->
 
 ### Classification (Classify)
 

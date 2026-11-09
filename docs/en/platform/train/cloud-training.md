@@ -348,17 +348,9 @@ image size, batch size, epochs, and selected GPU. Estimates are approximate; act
 
 Estimates are based on real cloud training runs, and the estimate always uses the GPU you selected — so a job routed to faster Ultralytics infrastructure finishes ahead of its estimate.
 
-### Cost Examples
-
 !!! note "Estimates"
 
     Cost estimates are approximate and depend on many factors. The training dialog shows a real-time estimate before you start training.
-
-| Scenario                         | GPU          | Estimated Cost |
-| -------------------------------- | ------------ | -------------- |
-| 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.03         |
-| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.23         |
-| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.56         |
 
 ### Billing Flow
 

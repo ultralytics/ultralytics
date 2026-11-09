@@ -11,7 +11,7 @@
 | RTX A6000    | Ampere     | 48 GB  | Large models               |
 | RTX PRO 4500 | Blackwell  | 32 GB  | Great price/performance    |
 | L40          | Ada        | 48 GB  | Large models               |
-| RTX 4090     | Ada        | 24 GB  | Best price/performance     |
+| RTX 4090     | Ada        | 24 GB  | General training           |
 | RTX PRO 5000 | Blackwell  | 48 GB  | Large batch training       |
 | RTX 6000 Ada | Ada        | 48 GB  | Large batch training       |
 | L40S         | Ada        | 48 GB  | Large batch training       |

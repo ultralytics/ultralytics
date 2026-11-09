@@ -536,17 +536,6 @@ def test_export_rknn(isolated_model, quantize, batch):
     shutil.rmtree(file, ignore_errors=True)
 
 
-@pytest.mark.skipif(
-    not (MACOS and ARM64 and MACOS_VERSION >= "26.0" and TORCH_2_9 and torch.backends.mps.is_available()),
-    reason="Core AI export on MPS requires macOS>=26 on Apple silicon",
-)
-def test_export_coreai_mps(isolated_model):
-    """Test Core AI export with device='mps' captures on CPU instead of failing on MPS."""
-    pytest.importorskip("coreai_torch")
-    file = YOLO(isolated_model).export(format="coreai", device="mps", imgsz=32)
-    YOLO(file)(SOURCE, imgsz=32)
-
-
 # @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")

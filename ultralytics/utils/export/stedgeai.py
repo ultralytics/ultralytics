@@ -38,6 +38,21 @@ def stedgeai_wrapper(model: torch.nn.Module) -> torch.nn.Module:
     return tf_wrapper(model)
 
 
+def stedgeai_default_dense_heads(model: torch.nn.Module) -> torch.nn.Module:
+    """Restore the default Semantic and Depth head forwards patched by `stedgeai_wrapper`.
+
+    Args:
+        model (torch.nn.Module): Model whose Semantic and Depth heads are restored in place.
+
+    Returns:
+        (torch.nn.Module): The same model, with full-resolution Semantic logits and metric Depth outputs.
+    """
+    for m in model.modules():
+        if isinstance(m, (SemanticSegment, Depth)):
+            m.__dict__.pop("forward", None)
+    return model
+
+
 def _semantic_forward(self, x: list[torch.Tensor]) -> torch.Tensor:
     """Return raw semantic logits at 1/8 input resolution."""
     return self.classifier(x[0])

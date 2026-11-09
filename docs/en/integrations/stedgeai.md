@@ -14,7 +14,7 @@ A YOLO detection head concatenates decoded box coordinates and class scores into
 
 The ST Edge AI export normalizes box and keypoint coordinates by the input image size inside the head decode, before the concatenation, using the same normalization Ultralytics applies to its [Edge TPU](edge-tpu.md) exports. Every output channel then lies in a comparable `[0, 1]` range, so the whole graph, including the head, can be quantized to INT8 without a mixed-scale tensor.
 
-Dense prediction heads stop before their final upsampling. Semantic segmentation emits raw class logits at 1/8 of the input resolution and depth estimation emits raw log-depth at 1/4 of the input resolution. This keeps the on-device output buffer 64x (semantic) and 16x (depth) smaller, avoids a full-resolution resize on the device, and keeps the INT8 depth output in the evenly spread log domain instead of after an exponential.
+Dense prediction heads stop before their final upsampling. Semantic segmentation emits raw class logits at 1/8 of the input resolution and depth estimation emits raw log-depth at 1/4 of the input resolution. This keeps the on-device output buffer 64x (semantic) and 16x (depth) smaller, avoids a full-resolution resize on the device, and keeps the INT8 depth output in the evenly spread log domain instead of after an exponential. Because some deployments prefer the standard layout, semantic and depth exports also write a default-layout model with full-resolution outputs; see [Semantic and Depth Layouts](#semantic-and-depth-layouts).
 
 ## Supported Tasks
 
@@ -31,6 +31,17 @@ All Ultralytics tasks are supported. Each task's output, at `imgsz=640`, is:
 | [Oriented Detection](../tasks/obb.md)         | `[1, 4 + nc + 1, anchors]`: boxes normalized to `[0, 1]`, angle in radians; requires a square `imgsz`       |
 
 The depth calibration `[a, b]` is stored in the model metadata as `depth_calibration`. Ultralytics predict and validate apply the depth decode and upsample semantic logits and depth maps automatically.
+
+### Semantic and Depth Layouts
+
+Semantic and depth exports write two models per precision, which differ only in the head output:
+
+| Task     | ST layout (`_stedgeai`)                                               | Default layout (`_stedgeai_full`)                                  |
+| :------- | :-------------------------------------------------------------------- | :----------------------------------------------------------------- |
+| Semantic | Raw logits `[1, nc, 80, 80]`, upsampled by predict and validate        | Upsampled logits `[1, nc, 640, 640]`, ready for a per-pixel argmax |
+| Depth    | Raw log-depth `[1, 1, 160, 160]`, decoded and upsampled by predict and validate | Metric depth `[1, 1, 640, 640]` with the exponential and calibration baked in |
+
+Use the ST layout for the smallest on-device output and the default layout when your pipeline expects full-resolution maps. Both load with `YOLO()` for predict and validate and give the same accuracy in float; the default layout stores no `depth_calibration` because the decode is already in the graph. Detection, segmentation, classification, pose and OBB export only the ST layout.
 
 ## Usage
 
@@ -131,7 +142,9 @@ yolo26n_stedgeai.onnx        # float model with input-normalized coordinates and
 yolo26n_int8_stedgeai.onnx   # QDQ INT8 model, written only with quantize=8
 ```
 
-Both file names end in `_stedgeai.onnx`, which is how Ultralytics recognizes them and applies the coordinate scaling at predict and validate time. Renaming them to a plain `.onnx` name would load them as standard ONNX models and return boxes in `[0, 1]` instead of pixels.
+Semantic and depth models additionally write the default-layout pair, for example `yolo26n-depth_stedgeai_full.onnx` and, with `quantize=8`, `yolo26n-depth_int8_stedgeai_full.onnx`. The returned path and the `Predict` hint of `yolo export` point to the ST layout.
+
+The `_stedgeai.onnx` and `_int8_stedgeai.onnx` file names are how Ultralytics recognizes ST-layout models and applies the coordinate scaling and depth decode at predict and validate time. Renaming them to a plain `.onnx` name would load them as standard ONNX models and return boxes in `[0, 1]` instead of pixels. The `_stedgeai_full` files already have standard outputs, so they correctly load as plain ONNX models.
 
 ### How the INT8 Quantization Works
 
@@ -175,3 +188,7 @@ No. Embedded NMS and the YOLO26 NMS-free head add operators that ST Edge AI Core
 ### How does the ST Edge AI export differ from the standard ONNX export?
 
 The standard [ONNX export](onnx.md) emits box coordinates in pixels and, with `quantize=8`, quantizes only convolution and matrix multiplication layers while keeping the head in float. The ST Edge AI export emits normalized coordinates, raw low-resolution semantic logits and log-depth, quantizes the whole graph in the QDQ format with per-channel weights, fixes the batch size to 1 and never embeds NMS.
+
+### Why do semantic and depth exports write two models?
+
+Semantic and depth exports write the ST layout (`_stedgeai`, low-resolution logits or raw log-depth) and the default layout (`_stedgeai_full`, full-resolution outputs), each with an INT8 copy when `quantize=8`. Pick the ST layout for the smallest on-device output or the default layout if your pipeline expects full-resolution maps. Both work with `yolo predict` and `yolo val`; see [Semantic and Depth Layouts](#semantic-and-depth-layouts).

@@ -677,6 +677,33 @@ def test_export_stedgeai_matrix(task):
     Path(file).unlink()  # cleanup
 
 
+@pytest.mark.slow
+@pytest.mark.parametrize("task", ["semantic", "depth"])
+def test_export_stedgeai_dense_layouts(task):
+    """Test semantic and depth ST Edge AI exports write the ST layout and the default full-resolution layout."""
+    import torch.nn.functional as F
+
+    from ultralytics.nn.autobackend import AutoBackend
+
+    skip_rpi_semantic(task)
+    file = YOLO(TASK2MODEL[task]).export(format="stedgeai", imgsz=32, quantize=8, fraction=0.25)
+    assert file.endswith("_int8_stedgeai.onnx"), f"unexpected ST Edge AI INT8 file name: {file}"
+    float_st, float_full = file.replace("_int8", ""), file.replace("_int8_stedgeai", "_stedgeai_full")
+    int8_full = file.replace("_stedgeai", "_stedgeai_full")
+    for f in (float_st, float_full, int8_full):
+        assert Path(f).is_file(), f"missing ST Edge AI export: {f}"
+        YOLO(f)(SOURCE, imgsz=32)  # exported model inference
+    im = torch.rand(1, 3, 32, 32)
+    st = torch.from_numpy(AutoBackend(float_st).backend.forward(im)[0])
+    full = torch.from_numpy(AutoBackend(float_full).backend.forward(im)[0])
+    # The predictor upsamples the ST layout, so it must match the full-resolution graph
+    up = F.interpolate(st, scale_factor=8 if task == "semantic" else 4, mode="bilinear", align_corners=task == "depth")
+    assert full.shape == up.shape == (1, st.shape[1], 32, 32)
+    torch.testing.assert_close(full, up, atol=1e-3, rtol=1e-4)
+    for f in (file, float_st, float_full, int8_full):
+        Path(f).unlink()  # cleanup
+
+
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])
 def test_export_env_has_smoke(env):
     """Ensure every non-base export environment declares a build-time smoke export."""

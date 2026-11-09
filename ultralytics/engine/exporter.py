@@ -1769,31 +1769,42 @@ class Exporter:
 
     @try_export
     def export_stedgeai(self, prefix=colorstr("ST Edge AI:")):  # noqa: B008
-        """Export YOLO model to ONNX for ST Edge AI, with an optional QDQ INT8 copy."""
-        from ultralytics.utils.export.stedgeai import onnx2stedgeai
+        """Export YOLO model to ONNX for ST Edge AI, with an optional QDQ INT8 copy.
+
+        Semantic and depth models also get a default-layout (full-resolution output) `_stedgeai_full` file.
+        """
+        from ultralytics.utils.export.stedgeai import onnx2stedgeai, stedgeai_default_dense_heads
 
         if self.args.opset and self.args.opset > 20:
             LOGGER.warning(f"{prefix} ST Edge AI supports ONNX opset<=20, setting opset=20.")
         self.args.opset = min(self.args.opset or 18, 20)
+        assert self.args.quantize != 8 or self.args.opset >= 13, (
+            f"QDQ per-channel INT8 requires opset>=13, but got opset={self.args.opset}"
+        )
         head = self.model.model[-1]
         if isinstance(head, Depth):  # the graph emits raw log-depth, so the runtime applies the head calibration
             self.metadata["depth_calibration"] = [float(head.cal_a), float(head.cal_b)]
         file = self.file
-        try:
-            self.file = file.with_name(f"{file.stem}_stedgeai{file.suffix}")  # float ONNX kept for ST Model Zoo
-            f = self.export_onnx()
-        finally:
-            self.file = file
-        if self.args.quantize != 8:
-            return f
-        assert self.args.opset >= 13, f"QDQ per-channel INT8 requires opset>=13, but got opset={self.args.opset}"
-        return onnx2stedgeai(
-            onnx_file=f,
-            output_file=file.with_name(f"{file.stem}_int8_stedgeai.onnx"),
-            dataset=self.get_int8_calibration_dataloader(prefix),
-            transform_fn=self._transform_fn,
-            prefix=prefix,
-        )
+        files = []
+        for suffix in ("_stedgeai", "_stedgeai_full") if isinstance(head, (SemanticSegment, Depth)) else ("_stedgeai",):
+            if suffix == "_stedgeai_full":  # default dense head, same output as the standard export
+                stedgeai_default_dense_heads(self.model)
+                self.metadata.pop("depth_calibration", None)
+            try:
+                self.file = file.with_name(f"{file.stem}{suffix}{file.suffix}")  # float ONNX kept for ST Model Zoo
+                f = self.export_onnx()
+            finally:
+                self.file = file
+            if self.args.quantize == 8:
+                f = onnx2stedgeai(
+                    onnx_file=f,
+                    output_file=file.with_name(f"{file.stem}_int8{suffix}.onnx"),
+                    dataset=self.get_int8_calibration_dataloader(prefix),
+                    transform_fn=self._transform_fn,
+                    prefix=prefix,
+                )
+            files.append(f)
+        return files[0]
 
     @try_export
     def export_hailo(self, prefix=colorstr("Hailo:")):  # noqa: B008

@@ -16,6 +16,10 @@ keywords: Ultralytics, ultralytics.utils.export.stedgeai, API reference, YOLO, P
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.export.stedgeai.stedgeai_default_dense_heads
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.export.stedgeai._semantic_forward
 
 <br><br><hr><br>

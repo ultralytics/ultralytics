@@ -491,12 +491,12 @@ def test_export_ncnn(isolated_model):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
-@pytest.mark.parametrize("task, quantize, batch", list(product(sorted(TASKS), [16], [1])))
-def test_export_ncnn_matrix(task, quantize, batch):
-    """Test YOLO export to NCNN format considering various export configurations."""
+@pytest.mark.parametrize("task", sorted(TASKS))
+def test_export_ncnn_matrix(task):
+    """Test YOLO export to NCNN format for every task."""
     skip_rpi_semantic(task)
-    file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, quantize=quantize, batch=batch)
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, quantize=16)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 

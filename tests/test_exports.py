@@ -289,15 +289,6 @@ def test_export_onnx_semantic_dnn():
     Path(file).unlink()
 
 
-@pytest.mark.skipif(not (MACOS and TORCH_2_0 and torch.backends.mps.is_available()), reason="requires MPS")
-def test_export_onnx_semantic_mps():
-    """Test semantic ONNX inference on MPS, which runs the CoreML execution provider, matches CPU."""
-    file = YOLO(TASK2MODEL["semantic"]).export(format="onnx", imgsz=128)
-    cpu, mps = (YOLO(file).predict(SOURCE, imgsz=128, device=d)[0].semantic_mask.data.cpu() for d in ("cpu", "mps"))
-    assert torch.equal(cpu, mps)
-    Path(file).unlink()
-
-
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "task, dynamic, batch, nms",

@@ -359,7 +359,7 @@ Ultralytics Platform supports multiple GPU types for cloud training:
 
 {% include "macros/platform-gpu-table.md" %}
 
-See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
+See [Cloud Training](train/cloud-training.md) for complete GPU options.
 
 ### How does remote training work?
 

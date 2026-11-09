@@ -224,7 +224,7 @@ Draw rotated boxes for angled objects:
 3. Use the rotation handle to adjust angle
 4. Drag corner handles to resize
 
-![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/a481e5785335560f64f8823cfb2219d6.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/e6873fbf7a2504d748062cf4192cc4ae.avif)<!-- screenshot -->
 
 ### Classification (Classify)
 

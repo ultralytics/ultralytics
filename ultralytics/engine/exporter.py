@@ -692,7 +692,7 @@ class Exporter:
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
         self.device = select_device(
-            "cpu" if self.args.device is None or fmt in {"executorch", "litert", "nxp"} else self.args.device
+            "cpu" if self.args.device is None or fmt in {"coreai", "executorch", "litert", "nxp"} else self.args.device
         )
 
         # Argument compatibility checks

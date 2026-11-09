@@ -165,7 +165,8 @@ def modelopt_quantize_onnx(
     check_requirements("nvidia-modelopt[onnx]>=0.44", constrain=(f"torch=={TORCH_VERSION}",))
     import onnx
 
-    input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
+    graph = onnx.load(onnx_file, load_external_data=False).graph
+    input_name = graph.input[0].name
     if quantize == 8:
         from modelopt.onnx.quantization import quantize as modelopt_quantize
 
@@ -186,6 +187,9 @@ def modelopt_quantize_onnx(
         # On SM 12.1 (GB10, N1X) TensorRT builds RT-DETR's HGBlock squeeze conv and, from 11.4, fully INT8 attention
         # broken, so both stay in float there; other GPUs keep them in INT8, where excluding them costs speed or mAP
         sm121 = torch.cuda.get_device_capability() == (12, 1)
+        # RT-DETR's transformer, the AIFI encoder layer and the RTDETRDecoder, stays in float on every GPU: TensorRT
+        # 11.3 and 11.4 build it broken in INT8 (rtdetr-l 4.9-5.4 mAP), and in float it adds ~1-2 mAP on 11.2 too
+        transformer = {m[1] for n in graph.node if (m := re.match(r"/model\.(\d+)/(ma|decoder)/", n.name))}
         modelopt_quantize(
             onnx_file,
             quantize_mode="int8",
@@ -197,7 +201,9 @@ def modelopt_quantize_onnx(
             calibration_eps=["cpu"],
             # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
             # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
-            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"] + ([r".*/sc/conv/Conv$"] if sm121 else []),
+            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"]
+            + [rf"/model\.{i}/" for i in sorted(transformer)]
+            + ([r".*/sc/conv/Conv$"] if sm121 else []),
             disable_mha_qdq=sm121,
             output_path=out_file,
             **kwargs,

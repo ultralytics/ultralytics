@@ -1,14 +1,17 @@
 ---
 plans: [free, pro, enterprise]
-title: Billing & Credits
+title: Pricing, Plans & Billing - Ultralytics Platform
 comments: true
-description: Manage credits, payments, and Free, Pro, or Enterprise plans on Ultralytics Platform, with metered credits for GPU cloud training, batch annotation, and endpoint uptime.
-keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
+description: Ultralytics Platform pricing for Free with up to $25 in signup credit, Pro at $29 per seat/month, and custom-priced Enterprise with the Enterprise License.
+keywords: Ultralytics Platform, Ultralytics pricing, Enterprise License, plans, billing, credits, subscription, payments, training costs
 ---
 
-# Billing
+# Pricing, Plans and Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, [batch annotation](../data/annotation.md#batch-annotation), and custom-resource endpoint uptime. Add credits, track
+[Ultralytics Platform](https://platform.ultralytics.com) has three plans: **Free** with a $5 signup credit ($25 after
+verifying a work email), **Pro** at $29 per seat/month, and **Enterprise**, which is custom-priced and includes the
+Ultralytics Enterprise License for commercial use. Every plan uses credits for metered compute: cloud training,
+[batch annotation](../data/annotation.md#batch-annotation), and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
@@ -342,6 +345,13 @@ supports free-text search across every field, and exports to CSV or JSON from th
 | **Adjustment**         | Manual correction applied by Ultralytics                                |
 
 ## FAQ
+
+### How much does an Ultralytics Enterprise License cost?
+
+Enterprise License pricing is custom, so no list price is published. Request a quote through the form on
+[Ultralytics Licensing](https://www.ultralytics.com/license). On Platform, the license is included in the
+[Enterprise plan](#enterprise); Free and Pro use AGPL-3.0. See
+[YOLO Licenses](../../index.md#yolo-licenses-how-is-ultralytics-yolo-licensed) for what each license allows.
 
 ### What happens when I run out of credits?
 

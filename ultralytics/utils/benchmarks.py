@@ -539,6 +539,9 @@ class ProfileModels:
                 input_shape = (
                     (1, 3, self.imgsz, self.imgsz) if len(input_tensor.shape) == 4 else (1, *input_tensor.shape[1:])
                 )
+                input_shape = tuple(
+                    d if isinstance(d, int) and d >= 0 else s for d, s in zip(input_tensor.shape, input_shape)
+                )
             else:
                 input_shape = input_tensor.shape
 

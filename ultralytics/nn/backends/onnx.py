@@ -13,7 +13,13 @@ import numpy as np
 import torch
 
 from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, ONNXRUNTIME_BUILDS, check_requirements, rocm_is_available
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_11,
+    ONNXRUNTIME_BUILDS,
+    check_requirements,
+    check_version,
+    rocm_is_available,
+)
 
 from .base import BaseBackend
 
@@ -243,8 +249,10 @@ class ONNXBackend(BaseBackend):
                     providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                     # Dynamic-shape nodes run on CPU: the default NeuralNetwork format returns wrong outputs for them
-                    flags = {"flags": "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"}
-                    providers = [("CoreMLExecutionProvider", flags), "CPUExecutionProvider"]
+                    flags = "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"
+                    if check_version(onnxruntime.__version__, ">=1.20.0"):  # 1.19 aborts the process on ML Program
+                        flags += "|COREML_FLAG_CREATE_MLPROGRAM"  # NeuralNetwork drifts from CPU and fails on semantic
+                    providers = [("CoreMLExecutionProvider", {"flags": flags}), "CPUExecutionProvider"]
                 elif "VitisAIExecutionProvider" in available and (config := w / "vitisai_config.json").exists():
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}

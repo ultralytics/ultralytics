@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, NUM_THREADS, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
+from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, ONNXRUNTIME_BUILDS, check_requirements, rocm_is_available
 
 from .base import BaseBackend
@@ -231,9 +231,9 @@ class ONNXBackend(BaseBackend):
             if not rocm:
                 if self.session_options is None:
                     self.session_options = onnxruntime.SessionOptions()
-                    if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):
-                        self.session_options.intra_op_num_threads = (
-                            min(NUM_THREADS, len(os.sched_getaffinity(0))) if LINUX else NUM_THREADS
+                    if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):  # ORT default pool sizes to host cores
+                        self.session_options.intra_op_num_threads = min(
+                            8, len(os.sched_getaffinity(0)) if LINUX else os.cpu_count()
                         )
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself

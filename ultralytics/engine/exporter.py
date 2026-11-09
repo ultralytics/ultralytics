@@ -895,7 +895,7 @@ class Exporter:
             except ImportError:
                 pass
         if fmt == "coreml":
-            if self.args.nms and model.task != "detect" and self.args.quantize == 32:
+            if self.args.format != "mlmodel" and self.args.nms and model.task != "detect" and self.args.quantize == 32:
                 # CoreML evaluates NMSModel's data-dependent shapes only on its FP16 path, silently dropping
                 # detections from an FP32 ML Program. Detect is unaffected, its NMS is an Apple pipeline stage.
                 LOGGER.warning(f"CoreML 'nms=True' requires FP16 for {model.task} models. Forcing 'quantize=16'.")

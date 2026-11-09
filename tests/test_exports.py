@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import ast
 import io
 import shutil
 import sys
@@ -383,6 +384,27 @@ def test_export_coreml(isolated_model, format, monkeypatch, tmp_path):
     assert quantize[0] == (16 if format == "coreml" else None)
     assert "Error" not in output, f"CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "CoreML export has predict() error"
+
+
+@pytest.mark.skipif(not MACOS, reason="CoreML inference requires macOS")
+@pytest.mark.parametrize("task", ["seg", "pose"])
+@pytest.mark.parametrize("format,expected", [("mlmodel", 32), ("coreml", 16)])
+def test_export_coreml_nms_precision(task, format, expected, tmp_path):
+    """Keep legacy embedded NMS in FP32 while MLProgram NMS requires FP16."""
+    import coremltools as ct
+    import numpy as np
+    from PIL import Image
+
+    model = YOLO(f"yolo11n-{task}.yaml")
+    model.model.pt_path = str(tmp_path / "model.pt")
+    file = model.export(format=format, imgsz=64, nms=True, quantize=32)
+    exported = ct.models.MLModel(str(file), compute_units=ct.ComputeUnit.CPU_ONLY)
+    spec = exported.get_spec()
+    assert ast.literal_eval(spec.description.metadata.userDefined["args"])["quantize"] == expected
+    if format == "mlmodel":
+        assert not any(layer.convolution.weights.float16Value for layer in spec.neuralNetwork.layers)
+    output = exported.predict({"image": Image.fromarray(np.zeros((64, 64, 3), dtype=np.uint8))})
+    assert any(value.shape == (1, 300, 38 if task == "seg" else 57) for value in output.values())
 
 
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR CoreML export requires torch>=1.11")

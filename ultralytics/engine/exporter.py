@@ -1320,6 +1320,7 @@ class Exporter:
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
             int8_detect=isinstance(getattr(self.model, "model", [None])[-1], (Detect, RTDETRDecoder)),
+            device=self.args.device,
             prefix=prefix,
         )
 

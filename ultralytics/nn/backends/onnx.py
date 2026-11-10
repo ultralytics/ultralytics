@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import platform
 import shutil
 import sys
 from functools import lru_cache
@@ -34,6 +35,10 @@ ROCM_EP_PACKAGES = ["onnxruntime-ep-migraphx==1.0.0+rocm10.0.0", "migraphx-libs=
 MIGRAPHX_CACHE_MODELS = 8  # compiled programs kept in the MIGraphX cache, least recently used evicted first
 # Windows ML (onnxruntime-windowsml) on Windows 11 24H2 (build 26100) or newer, with wheels from Python 3.10
 WINML_SUPPORTED = WINDOWS and sys.getwindowsversion().build >= 26100 and sys.version_info >= (3, 10)
+# Intel OpenVINO EP plugin (onnxruntime-ep-openvino) wheels are Linux x86_64 and Windows x64, from Python 3.10
+OPENVINO_EP_SUPPORTED = (
+    (LINUX or WINDOWS) and platform.machine().lower() in {"x86_64", "amd64"} and sys.version_info >= (3, 10)
+)
 
 
 def _register_migraphx_ep(onnxruntime) -> str:
@@ -215,7 +220,7 @@ class ONNXBackend(BaseBackend):
                 check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
             # Stock onnxruntime underlies the MIGraphX plugin and is the CPU fallback if the plugin is unavailable
             # Use Windows ML only when explicitly installed without another ONNX Runtime build.
-            builds = tuple(b for b in ONNXRUNTIME_BUILDS if b != "onnxruntime-windowsml")
+            builds = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai")
             winml = (
                 WINML_SUPPORTED
                 and not check_requirements([builds], install=False)
@@ -259,14 +264,21 @@ class ONNXBackend(BaseBackend):
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
                     providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
-                elif intel and "OpenVINOExecutionProvider" in available:
-                    ids = onnxruntime.capi._pybind_state.get_available_openvino_device_ids()
-                    if intel != "AUTO" and not any(d.startswith(intel) for d in ids):
+                elif intel and OPENVINO_EP_SUPPORTED:
+                    check_requirements("onnxruntime-ep-openvino")
+                    import onnxruntime_ep_openvino as ep
+
+                    name = ep.get_ep_name()
+                    if not any(d.ep_name == name for d in onnxruntime.get_ep_devices()):  # register once per process
+                        onnxruntime.register_execution_provider_library("openvino_ep", ep.get_library_path())
+                    devices = {d.ep_metadata["ov_device"]: d for d in onnxruntime.get_ep_devices() if d.ep_name == name}
+                    if intel != "AUTO" and intel not in devices:
                         LOGGER.warning(f"OpenVINO EP device '{intel}' not available. Using 'AUTO' instead.")
                         intel = "AUTO"
                     if intel == "AUTO":  # first available of NPU, GPU, then CPU
-                        intel = next((t for t in ("NPU", "GPU") if any(d.startswith(t) for d in ids)), "CPU")
-                    providers = [("OpenVINOExecutionProvider", {"device_type": intel}), "CPUExecutionProvider"]
+                        intel = next(d for d in ("NPU", "GPU", "CPU") if d in devices)
+                    self.session_options.add_provider_for_devices([devices[intel]], {})
+                    providers = None
                 elif winml:  # Windows ML selects execution providers using its maximum-performance policy
                     providers = None
                     if not self.session_options.has_providers():

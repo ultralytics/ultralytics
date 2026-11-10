@@ -92,7 +92,7 @@ def benchmark(
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
         device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or Intel 'cpu', 'gpu', 'npu' or
-            'auto' with format='openvino' or 'litert' (or 'onnx' with onnxruntime-openvino).
+            'auto' with format='openvino', 'litert' or 'onnx'.
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
             every successful format's metric exceeds this floor value.
         eps (float): Epsilon value for divide by zero prevention.

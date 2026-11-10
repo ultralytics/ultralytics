@@ -12,7 +12,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import LINUX, LOGGER, RANK, WINDOWS
-from ultralytics.utils.checks import check_requirements, check_suffix
+from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
 from ultralytics.utils.plotting import Colors
 from ultralytics.utils.torch_utils import (
@@ -46,6 +46,7 @@ from .backends import (
     TorchScriptBackend,
     TritonBackend,
 )
+from .backends.onnx import OPENVINO_EP_SUPPORTED
 
 
 def check_class_names(names: list | dict) -> dict[int, str]:
@@ -415,13 +416,10 @@ class AutoBackend(nn.Module):
             device (torch.device | str | None): Device request.
 
         Returns:
-            (bool): True for OpenVINO and LiteRT, and for Intel names on ONNX with onnxruntime-openvino installed.
+            (bool): True for OpenVINO and LiteRT, and for ONNX 'npu', 'gpu' or 'auto' where the OpenVINO EP plugin runs.
         """
-        name = str(device).lower()
         return format in {"openvino", "litert"} or (
-            format == "onnx"
-            and (name.startswith("intel:") or name in {"npu", "gpu", "auto"})
-            and check_requirements("onnxruntime-openvino", install=False)
+            format == "onnx" and OPENVINO_EP_SUPPORTED and str(device).lower() in {"npu", "gpu", "auto"}
         )
 
     @staticmethod

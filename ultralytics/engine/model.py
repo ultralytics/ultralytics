@@ -712,7 +712,7 @@ class Model(torch.nn.Module):
                 - quantize (int | str): Requested precision: 16 (FP16), 8 (INT8), or 32/None (FP32) where
                   supported; only 16 changes the native PyTorch row, and only off CPU.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda'), or Intel 'cpu', 'gpu', 'npu'
-                  or 'auto' with format='openvino', 'litert' or 'onnx' with onnxruntime-openvino.
+                  or 'auto' with format='openvino', 'litert' or 'onnx'.
 
         Returns:
             (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric,

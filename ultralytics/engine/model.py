@@ -546,26 +546,26 @@ class Model(torch.nn.Module):
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         args["quantize"] = QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)  # unset quantize is FP32
 
+        current = self.predictor  # this call's predictor, whatever a concurrent call assigns to self.predictor
         if (
-            not self.predictor
-            or (predictor and type(self.predictor) is not predictor)
-            or any(getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args)
+            not current
+            or (predictor and type(current) is not predictor)
+            or any(getattr(current.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args)
         ):
-            self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
-            self.predictor.setup_model(model=self.model, verbose=is_cli)
-            cfg = self.predictor.args
+            current = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
+            current.setup_model(model=self.model, verbose=is_cli)
+            self.predictor, cfg = current, current.args
         else:  # the predictor applies cfg under its lock, so concurrent calls never run with each other's args
             base_args = {
                 **DEFAULT_CFG_DICT,
                 **self.overrides,
-                **{k: getattr(self.predictor.args, k) for k in PREDICTOR_SETUP_KEYS},
+                **{k: getattr(current.args, k) for k in PREDICTOR_SETUP_KEYS},
             }
             cfg = get_cfg(base_args, {**custom, **kwargs})
             cfg.show = cfg.show and checks.check_imshow(warn=True)
-        predictor = self.predictor  # a concurrent call may replace self.predictor
-        if prompts and hasattr(predictor, "set_prompts"):  # for SAM-type models
-            predictor.set_prompts(prompts)
-        return predictor.predict_cli(source, cfg=cfg) if is_cli else predictor(source=source, stream=stream, cfg=cfg)
+        if prompts and hasattr(current, "set_prompts"):  # for SAM-type models
+            current.set_prompts(prompts)
+        return current.predict_cli(source, cfg=cfg) if is_cli else current(source=source, stream=stream, cfg=cfg)
 
     def track(
         self,

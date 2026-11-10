@@ -238,12 +238,13 @@ class SPPF(nn.Module):
         """Apply sequential pooling operations to input and return concatenated feature maps."""
         y = [self.cv1(x)]
         k = self.m.kernel_size
+        separable = x.is_cpu and not self.export  # faster on CPU only, CUDA and exports keep square pooling
         for _ in range(getattr(self, "n", 3)):
             # Pool width first to preserve square pooling's row-major tie breaking during backpropagation.
             y.append(
-                self.m(y[-1])
-                if self.export
-                else F.max_pool2d(F.max_pool2d(y[-1], (1, k), 1, (0, k // 2)), (k, 1), 1, (k // 2, 0))
+                F.max_pool2d(F.max_pool2d(y[-1], (1, k), 1, (0, k // 2)), (k, 1), 1, (k // 2, 0))
+                if separable
+                else self.m(y[-1])
             )
         y = self.cv2(torch.cat(y, 1))
         return y + x if getattr(self, "add", False) else y

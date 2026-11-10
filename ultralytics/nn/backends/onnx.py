@@ -189,8 +189,10 @@ class ONNXBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .onnx model file, or an AMD Xilinx export directory containing one.
         """
+        intel = None  # Intel 'cpu', 'gpu', 'npu' or 'auto' request for the OpenVINO execution provider
         if not isinstance(self.device, torch.device):  # 'intel', 'tpu' or 'vulkan' device strings run on CPU
-            self.device = torch.device("cpu")
+            name, self.device = str(self.device).upper(), torch.device("cpu")
+            intel = name.replace("INTEL:", "") if name.startswith("INTEL:") or name in {"NPU", "GPU", "AUTO"} else None
         cuda = torch.cuda.is_available() and self.device.type != "cpu"
 
         self.apply_metadata(self.read_metadata(weight))
@@ -213,7 +215,7 @@ class ONNXBackend(BaseBackend):
                 check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
             # Stock onnxruntime underlies the MIGraphX plugin and is the CPU fallback if the plugin is unavailable
             # Use Windows ML only when explicitly installed without another ONNX Runtime build.
-            builds = ("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai")
+            builds = tuple(b for b in ONNXRUNTIME_BUILDS if b != "onnxruntime-windowsml")
             winml = (
                 WINML_SUPPORTED
                 and not check_requirements([builds], install=False)
@@ -257,6 +259,14 @@ class ONNXBackend(BaseBackend):
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
                     providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
+                elif intel and "OpenVINOExecutionProvider" in available:
+                    ids = onnxruntime.capi._pybind_state.get_available_openvino_device_ids()
+                    if intel != "AUTO" and not any(d.startswith(intel) for d in ids):
+                        LOGGER.warning(f"OpenVINO EP device '{intel}' not available. Using 'AUTO' instead.")
+                        intel = "AUTO"
+                    if intel == "AUTO":  # first available of NPU, GPU, then CPU
+                        intel = next((t for t in ("NPU", "GPU") if any(d.startswith(t) for d in ids)), "CPU")
+                    providers = [("OpenVINOExecutionProvider", {"device_type": intel}), "CPUExecutionProvider"]
                 elif winml:  # Windows ML selects execution providers using its maximum-performance policy
                     providers = None
                     if not self.session_options.has_providers():

@@ -12,7 +12,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import LINUX, LOGGER, RANK, WINDOWS
-from ultralytics.utils.checks import check_suffix
+from ultralytics.utils.checks import check_requirements, check_suffix
 from ultralytics.utils.downloads import is_url
 from ultralytics.utils.plotting import Colors
 from ultralytics.utils.torch_utils import (
@@ -221,7 +221,7 @@ class AutoBackend(nn.Module):
         super().__init__()
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
-        if format not in {"openvino", "litert"}:  # these backends resolve Intel 'cpu', 'gpu' and 'npu' themselves
+        if not self.intel_device(format, device):
             if RANK == -1 or str(device).lower() == "cpu":
                 device = select_device(device, verbose=verbose)
             else:  # DDP ranks reuse the device assigned in trainer._setup_ddp(), so skip select_device's set_device()
@@ -405,6 +405,24 @@ class AutoBackend(nn.Module):
                 warmup_boxes = torch.rand(1, 84, 16, device=self.device)  # 16 boxes works best empirically
                 warmup_boxes[:, :4] *= im.shape[-1]
                 non_max_suppression(warmup_boxes)  # warmup NMS
+
+    @staticmethod
+    def intel_device(format: str, device: torch.device | str | None) -> bool:
+        """Return whether the format's backend resolves Intel 'cpu', 'gpu', 'npu' and 'auto' device names itself.
+
+        Args:
+            format (str): Model format, e.g. 'openvino', 'litert' or 'onnx'.
+            device (torch.device | str | None): Device request.
+
+        Returns:
+            (bool): True for OpenVINO and LiteRT, and for Intel names on ONNX with onnxruntime-openvino installed.
+        """
+        name = str(device).lower()
+        return format in {"openvino", "litert"} or (
+            format == "onnx"
+            and (name.startswith("intel:") or name in {"npu", "gpu", "auto"})
+            and check_requirements("onnxruntime-openvino", install=False)
+        )
 
     @staticmethod
     def _model_type(p: str | Path = "path/to/model.pt", dnn: bool = False) -> str:

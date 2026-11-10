@@ -52,6 +52,7 @@ from ultralytics import RTDETR, YOLO, YOLOE, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.data.utils import check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.engine.exporter import export_formats
+from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -91,7 +92,7 @@ def benchmark(
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
         device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or Intel 'cpu', 'gpu', 'npu' or
-            'auto' with format='openvino' or 'litert'.
+            'auto' with format='openvino' or 'litert' (or 'onnx' with onnxruntime-openvino).
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
             every successful format's metric exceeds this floor value.
         eps (float): Epsilon value for divide by zero prevention.
@@ -123,7 +124,7 @@ def benchmark(
     pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
 
     format_arg = format.lower()
-    intel = format_arg in {"openvino", "litert"}  # these runtimes take Intel 'cpu', 'gpu' and 'npu' directly
+    intel = AutoBackend.intel_device(format_arg, device)  # these runtimes take Intel 'cpu', 'gpu' and 'npu' directly
     if not intel:
         device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):

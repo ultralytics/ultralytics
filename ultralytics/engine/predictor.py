@@ -365,8 +365,11 @@ class BasePredictor:
                 set.
         """
         with self._lock:  # for thread-safe inference
-            # This call's args, set under the lock so a concurrent call cannot replace them
-            self.args = cfg or self.args
+            if cfg is not None:  # this call's args and save_dir, set under the lock so concurrent calls keep their own
+                keys = ("project", "name", "save_dir", "exist_ok")  # args that set save_dir
+                if any(getattr(cfg, k, None) != getattr(self.args, k, None) for k in keys):
+                    self.save_dir = get_save_dir(cfg)
+                self.args = cfg
             if self.args.verbose:
                 LOGGER.info("")
             if self.args.iou is None:  # Model.predict resets a reused predictor's args to the defaults

@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
+from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg
 from ultralytics.engine.results import Results
 from ultralytics.nn.backends.base import BaseBackend
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
@@ -553,9 +553,8 @@ class Model(torch.nn.Module):
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
-            cfg = None
-        else:  # a reused predictor applies these args under its lock, so concurrent calls never run with each other's
-            save_keys = ("project", "name", "save_dir", "exist_ok")
+            cfg = self.predictor.args
+        else:  # the predictor applies cfg under its lock, so concurrent calls never run with each other's args
             base_args = {
                 **DEFAULT_CFG_DICT,
                 **self.overrides,
@@ -563,8 +562,6 @@ class Model(torch.nn.Module):
             }
             cfg = get_cfg(base_args, {**custom, **kwargs})
             cfg.show = cfg.show and checks.check_imshow(warn=True)
-            if any(getattr(cfg, k, None) != getattr(self.predictor.args, k, None) for k in save_keys):
-                self.predictor.save_dir = get_save_dir(cfg)
         predictor = self.predictor  # a concurrent call may replace self.predictor
         if prompts and hasattr(predictor, "set_prompts"):  # for SAM-type models
             predictor.set_prompts(prompts)

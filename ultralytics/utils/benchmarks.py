@@ -533,17 +533,11 @@ class ProfileModels:
         input_data_dict = {}
         for input_tensor in backend.session.get_inputs():
             input_type = input_tensor.type
-            if self.check_dynamic(input_tensor.shape):
-                if len(input_tensor.shape) != 4 and self.check_dynamic(input_tensor.shape[1:]):
-                    raise ValueError(f"Unsupported dynamic shape {input_tensor.shape} of {input_tensor.name}")
-                input_shape = (
-                    (1, 3, self.imgsz, self.imgsz) if len(input_tensor.shape) == 4 else (1, *input_tensor.shape[1:])
-                )
-                input_shape = tuple(
-                    d if isinstance(d, int) and d >= 0 else s for d, s in zip(input_tensor.shape, input_shape)
-                )
-            else:
-                input_shape = input_tensor.shape
+            shape = input_tensor.shape
+            if len(shape) != 4 and self.check_dynamic(shape[1:]):
+                raise ValueError(f"Unsupported dynamic shape {shape} of {input_tensor.name}")
+            default = (1, 3, self.imgsz, self.imgsz) if len(shape) == 4 else (1, *shape[1:])
+            input_shape = [d if isinstance(d, int) and d >= 0 else s for d, s in zip(shape, default)]  # fill dynamic
 
             # Mapping ONNX datatype to numpy datatype
             if "float16" in input_type:

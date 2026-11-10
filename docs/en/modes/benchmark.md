@@ -183,7 +183,7 @@ When running benchmarks, several arguments can be customized to suit specific ne
 - **data:** Path to the dataset YAML (e.g., `"coco8.yaml"`); classification instead takes a dataset directory or a built-in dataset name (e.g., `imagenet10`).
 - **imgsz:** The square input image size as a single integer, such as `640`. Benchmark mode uses the same square image size across PyTorch and exported formats for fair comparison.
 - **quantize:** Requested precision: `16` for FP16, `8` for INT8 (useful for edge devices); `32`/unset is FP32 where the format supports it — a format that cannot export FP32 rejects an explicit `32` or falls back to the precision it requires. The native PyTorch row is not exported: only `16` affects it, selecting FP16 inference off CPU; otherwise, it runs in FP32. Each format then runs inference at its own runtime precision.
-- **device:** Specify the computation device (e.g., "cpu", "cuda:0").
+- **device:** Specify the computation device (e.g., "cpu", "cuda:0"), or Intel "cpu", "gpu", "npu" or "auto" with `format="openvino"` or `format="litert"`.
 - **verbose:** Raise on benchmark failures instead of logging them; pass a float to also require each format's metric to exceed that floor.
 
 For a full list of arguments, refer to the [Arguments](#arguments) section.

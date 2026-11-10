@@ -60,7 +60,7 @@ Thread(target=predict, args=("image1.jpg",)).start()
 Thread(target=predict, args=("image2.jpg",)).start()
 ```
 
-In the example above, the `shared_model` is used by multiple threads, which can lead to unpredictable results because `predict` could be executed simultaneously by multiple threads.
+In the example above, both threads share `shared_model`. Each `predict` call keeps its own arguments such as `conf`, `iou` and `imgsz`, but calls on one instance run one at a time behind its internal lock, so the threads gain no parallelism. State that persists between calls, such as tracker state or YOLOE `set_classes` vocabularies, is still shared by every thread.
 
 ### Safe Example: A Dedicated Instance per Thread
 

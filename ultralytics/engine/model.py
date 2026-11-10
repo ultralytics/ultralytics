@@ -553,22 +553,22 @@ class Model(torch.nn.Module):
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
-        else:  # only update args if predictor is already setup
+            cfg = None
+        else:  # a reused predictor applies these args under its lock, so concurrent calls never run with each other's
             save_keys = ("project", "name", "save_dir", "exist_ok")
-            prev_save_args = tuple(getattr(self.predictor.args, k, None) for k in save_keys)
             base_args = {
                 **DEFAULT_CFG_DICT,
                 **self.overrides,
                 **{k: getattr(self.predictor.args, k) for k in PREDICTOR_SETUP_KEYS},
             }
-            self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
-            if self.predictor.args.show:
-                self.predictor.args.show = checks.check_imshow(warn=True)
-            if prev_save_args != tuple(getattr(self.predictor.args, k, None) for k in save_keys):
-                self.predictor.save_dir = get_save_dir(self.predictor.args)
-        if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
-            self.predictor.set_prompts(prompts)
-        return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+            cfg = get_cfg(base_args, {**custom, **kwargs})
+            cfg.show = cfg.show and checks.check_imshow(warn=True)
+            if any(getattr(cfg, k, None) != getattr(self.predictor.args, k, None) for k in save_keys):
+                self.predictor.save_dir = get_save_dir(cfg)
+        predictor = self.predictor  # a concurrent call may replace self.predictor
+        if prompts and hasattr(predictor, "set_prompts"):  # for SAM-type models
+            predictor.set_prompts(prompts)
+        return predictor.predict_cli(source, cfg=cfg) if is_cli else predictor(source=source, stream=stream, cfg=cfg)
 
     def track(
         self,

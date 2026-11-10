@@ -208,8 +208,8 @@ class AutoBackend(nn.Module):
         Args:
             model (str | Path | torch.nn.Module): Path to the model weights file or a module instance.
             device (torch.device | str, optional): Device request for `select_device`. OpenVINO and LiteRT models take
-                Intel 'cpu', 'gpu' or 'npu' instead, and OpenVINO picks the device itself when None. Defaults to the
-                best available device.
+                Intel 'cpu', 'gpu', 'npu' or 'auto' instead, and OpenVINO picks the device itself when None. Defaults
+                to the best available device.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.

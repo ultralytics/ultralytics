@@ -66,7 +66,7 @@ is already installed — running `yolo predict` or `yolo val` with an Axelera
 model auto-installs the runtime dependencies. If you need to install manually:
 
 ```bash
-pip install axelera-rt==1.8.0 --no-cache-dir --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
+pip install axelera-rt==1.9.0 --no-cache-dir --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
 ```
 
 You will also need `opencv-python` and `numpy` (likely already present).
@@ -83,7 +83,7 @@ yolo export model=your-model.pt format=axelera
 To reproduce these examples, export the pretrained Ultralytics models:
 
 ```bash
-yolo export model=yolo26n-pose.pt format=axelera nms=False
+yolo export model=yolo26n-pose.pt format=axelera
 yolo export model=yolo11n-seg.pt format=axelera
 ```
 
@@ -97,9 +97,10 @@ The compiled models are saved to `yolo26n-pose_axelera_model/` and
 > label entry in your own application.
 
 > [!IMPORTANT]
-> Re-export any `.axm` you compiled with an earlier SDK. Voyager SDK
-> 1.8 raises the compiled model format, and older files are rejected at load time
-> with `Unsupported model version: 4.0, expected at least 5.0`.
+> Re-export any `.axm` you compiled with Voyager SDK 1.7 or earlier. 1.8 raised the
+> compiled model format, and older files are rejected at load time with
+> `Unsupported model version: 4.0, expected at least 5.0`. A 1.8 `.axm` loads on 1.9
+> unchanged.
 
 ### Run
 
@@ -148,7 +149,7 @@ python yolo11-seg.py --model yolo11n-seg.axm --source video.mp4 --no-display    
 | `--model`      | _required_          | all       | Path to compiled `.axm` model                                                                                                                                    |
 | `--source`     | `0` (pose)          | all       | Image path, video path, or webcam index. _Required_ for `yolo11-seg.py`.                                                                                         |
 | `--conf`       | `0.25`              | pose, seg | Confidence threshold                                                                                                                                             |
-| `--iou`        | `0.45`              | seg       | NMS IoU threshold                                                                                                                                                |
+| `--iou`        | `0.5`               | seg       | NMS IoU threshold                                                                                                                                                |
 | `--tracker`    | `tracktrack`        | pose      | Tracking algorithm: `bytetrack`, `oc-sort`, `sort`, `tracktrack`, `none`                                                                                         |
 | `--no-display` | _off_               | all       | Disable the GUI window (headless mode)                                                                                                                           |
 | `--output`     | `output.mp4` (pose) | pose, seg | Output video path. Pose: written in headless mode (`--no-display`). Seg: off by default; renders via the display app, so cannot be combined with `--no-display`. |

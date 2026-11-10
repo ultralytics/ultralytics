@@ -7,8 +7,7 @@
 FROM nvcr.io/nvidia/l4t-cuda:10.2.460-runtime
 
 # Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
@@ -22,7 +21,6 @@ RUN wget -q -O - https://repo.download.nvidia.com/jetson/jetson-ota-public.asc |
 
 # Install dependencies
 # pkg-config and libhdf5-dev (not included) are needed to build 'h5py==3.11.0' aarch64 wheel required by 'tensorflow'
-# gnupg required for Edge TPU install
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git python3.8 python3.8-dev python3-pip python3-libnvinfer libopenmpi-dev libopenblas-base libomp-dev gcc && \

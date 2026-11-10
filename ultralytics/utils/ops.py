@@ -75,6 +75,100 @@ class Profile(contextlib.ContextDecorator):
         return time.perf_counter()
 
 
+def merge_tiles(
+    predictions: list[dict], windows: list[tuple], shape: tuple[int, int], iou: float, agnostic: bool, max_det: int
+) -> dict:
+    """Merge tile payloads after task postprocessing has restored their native window coordinates.
+
+    Each payload contains bboxes (xyxy or xywhr), conf and cls, optionally with masks, keypoints or extra columns;
+    alternatively it contains one semantic_mask, depth or probs tensor. Masks match their window size or a whole-pixel
+    stride of it, inferred from the larger side; dense maps match their window size. Boxes cut by an interior window
+    edge are dropped when another window sees them clear of its edges and a kept box covers them, then NMS removes
+    duplicates. Only masks surviving box suppression are expanded to the full image.
+    """
+    from bisect import bisect_right
+
+    from ultralytics.utils.nms import nms_boxes
+
+    first = predictions[0]
+    if len(windows) == 1 and windows[0] == (0, 0, shape[1], shape[0]):
+        return first
+    if "probs" in first:
+        return {"probs": torch.stack([p["probs"] for p in predictions]).mean(0)}
+    if "bboxes" not in first:
+        key = next(iter(first))  # semantic class map or depth
+        discrete = key == "semantic_mask"
+        template = first[key]
+        output = template.new_zeros(shape)
+        weights = template.new_zeros(shape, dtype=torch.float32)
+        h, w = template.shape
+        y, x = torch.arange(h, device=output.device), torch.arange(w, device=output.device)
+        weight = torch.minimum(torch.minimum(y + 1, h - y)[:, None], torch.minimum(x + 1, w - x)[None]).float()
+        for pred, (x1, y1, x2, y2) in zip(predictions, windows):
+            if discrete:
+                current = weights[y1:y2, x1:x2]
+                output[y1:y2, x1:x2] = torch.where(weight > current, pred[key], output[y1:y2, x1:x2])
+                weights[y1:y2, x1:x2] = torch.maximum(weight, current)
+            else:
+                output[y1:y2, x1:x2] += pred[key] * weight
+                weights[y1:y2, x1:x2] += weight
+        return {key: output if discrete else output / weights}
+
+    boxes = torch.cat([p["bboxes"] for p in predictions]).float()
+    rotated = boxes.shape[1] == 5
+    regions = boxes.new_tensor(windows)
+    own = torch.cat([r.expand(len(p["bboxes"]), 4) for r, p in zip(regions, predictions)])  # MPS-safe when empty
+    offsets = own[:, :2]
+    boxes[:, :2] += offsets
+    if not rotated:
+        boxes[:, 2:4] += offsets
+    corners = xywhr2xyxyxyxy(boxes) if rotated else boxes.reshape(-1, 2, 2)
+    extent = torch.cat((corners.amin(1), corners.amax(1)), 1)
+    # A box touching an interior window edge is a cut fragment when another window sees it clear of its own interior
+    # edges, because that window saw the whole object.
+    border = own.new_tensor([0, 0, shape[1], shape[0]])
+    fragment = torch.cat((extent[:, :2] <= own[:, :2] + 2, extent[:, 2:] >= own[:, 2:] - 2), 1) & (own != border)
+    fragment = fragment.any(1)
+    if fragment.any():
+        e = extent[fragment, None]
+        inside = torch.cat((regions[:, :2] + 2 < e[..., :2], regions[:, 2:] - 2 > e[..., 2:]), -1) | (regions == border)
+        fragment[fragment.clone()] = inside.all(-1).any(1)
+    valid = (~fragment).nonzero().squeeze(1)
+    output = {k: torch.cat([p[k] for p in predictions]) for k in first if k not in {"bboxes", "masks", "keypoints"}}
+    classes = output["cls"][:, None] * (0 if agnostic else 2 * max(shape) + 1)
+    candidates = torch.cat((boxes[:, :2] + classes, boxes[:, 2:]), 1) if rotated else boxes + classes
+    keep = valid[nms_boxes(candidates[valid], output["conf"][valid].float(), iou, rotated=rotated)][:max_det]
+    if fragment.any():  # restore fragments that no kept box covers by half, i.e. the whole-view window missed them
+        lone = fragment.nonzero().squeeze(1)
+        e, k = extent[lone, None], extent[keep]
+        overlap = (torch.min(e[..., 2:], k[:, 2:]) - torch.max(e[..., :2], k[:, :2])).clamp(0).prod(-1)
+        keep = torch.cat((keep, lone[~(overlap > (e[..., 2:] - e[..., :2]).prod(-1) / 2).any(1)]))
+        keep = keep[nms_boxes(candidates[keep], output["conf"][keep].float(), iou, rotated=rotated)][:max_det]
+    output = {"bboxes": boxes[keep], **{k: v[keep] for k, v in output.items()}}
+    if "keypoints" in first:
+        keypoints = torch.cat([p["keypoints"] for p in predictions])[keep].clone()
+        keypoints[..., :2] += offsets[keep, None]
+        output["keypoints"] = keypoints
+    if any("masks" in p for p in predictions):
+        i = next(i for i, p in enumerate(predictions) if "masks" in p)
+        template = predictions[i]["masks"]
+        x1, y1, x2, y2 = windows[i]
+        r = round(max(x2 - x1, y2 - y1) / max(template.shape[-2:]))  # mask stride, 1 at source resolution
+        output["masks"] = template.new_zeros((len(keep), -(-shape[0] // r), -(-shape[1] // r)))
+        ends, count = [], 0
+        for p in predictions:
+            count += len(p["bboxes"])
+            ends.append(count)
+        for j, k in enumerate(keep.tolist()):
+            source = bisect_right(ends, k)
+            local = k - (ends[source - 1] if source else 0)
+            x1, y1 = ((v - r // 2 + r - 1) // r for v in windows[source][:2])  # first sampled pixel, x1 when r=1
+            mask = predictions[source]["masks"][local]
+            target = output["masks"][j, y1 : y1 + mask.shape[0], x1 : x1 + mask.shape[1]]
+            target[:] = mask[: target.shape[0], : target.shape[1]]
+    return output
+
+
 def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 
@@ -150,9 +244,9 @@ def scale_boxes(
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        gain_y = gain_x = gain
-        pad_x = round((img1_shape[1] - round(img0_shape[1] * gain)) / 2 - 0.1)
-        pad_y = round((img1_shape[0] - round(img0_shape[0] * gain)) / 2 - 0.1)
+        new_h, new_w = (max(round(x * gain), 1) for x in img0_shape[:2])  # LetterBox rounds each side
+        gain_y, gain_x = new_h / img0_shape[0], new_w / img0_shape[1]
+        pad_x, pad_y = round((img1_shape[1] - new_w) / 2 - 0.1), round((img1_shape[0] - new_h) / 2 - 0.1)
     else:
         gain_y, gain_x = ratio_pad[0]
         pad_x, pad_y = ratio_pad[1]
@@ -386,16 +480,17 @@ def xyxyxyxy2xywhr(x):
     Args:
         x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) or (N, 4, 2) in [xy1, xy2, xy3, xy4] format.
             Polygons with more than four points are accepted in the same two layouts, (N, 2P) or (N, P, 2), and are
-            reduced to their minimum-area rectangle.
+            reduced to their minimum-area rectangle. Any real dtype is accepted, e.g. float64 corners from `np.loadtxt`;
+            corners are cast to float32 for `cv2.minAreaRect`.
 
     Returns:
-        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). The
-            parameterization is canonical rather than the caller's: w is the longer side and rotation is in radians
-            from [-pi/4, 3pi/4), so a box given with w < h comes back with w and h swapped and its angle shifted by
-            pi/2 modulo pi.
+        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5), as float64 for
+            NumPy input and with the input dtype and device for tensor input. The parameterization is canonical rather
+            than the caller's: w is the longer side and rotation is in radians from [-pi/4, 3pi/4), so a box given with
+            w < h comes back with w and h swapped and its angle shifted by pi/2 modulo pi.
     """
     is_torch = isinstance(x, torch.Tensor)
-    points = x.cpu().numpy() if is_torch else x
+    points = np.asarray(x.cpu() if is_torch else x, dtype=np.float32)  # cv2.minAreaRect accepts float32, not float64
     rboxes = []
     for pts in points:
         # NOTE: Use cv2.minAreaRect to get accurate xywhr,
@@ -575,12 +670,14 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     # Upsampling all N masks at once allocates an N*H*W float intermediate (~9 GB on a large image with many
     # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget, thresholding each chunk to
     # uint8 immediately so the float intermediate stays small, then crop the assembled uint8 stack.
-    step = max(1, 32_000_000 // (h * w))
-    masks = [
-        scale_masks(coeffs[i : i + step].view(-1, mh, mw)[None], shape)[0].gt_(0.0).byte()
-        for i in range(0, coeffs.shape[0], step)
-    ]
-    return crop_mask(torch.cat(masks), bboxes)
+    gain = min(4 * mh / h, 4 * mw / w)
+    pad = (4 * mh - max(round(h * gain), 1)) | (4 * mw - max(round(w * gain), 1))  # input-size letterbox padding
+    f = 4 // math.gcd(4, pad | pad // 2)  # smallest upsample (1, 2 or 4) that crops the padding on whole pixels
+    n, masks = max(1, 16_000_000 // (h * w + f * f * mh * mw)), coeffs.new_empty((len(coeffs), h, w), dtype=torch.uint8)
+    for i, c in zip(range(0, len(masks), n), coeffs.view(1, -1, mh, mw).split(n, 1)):  # fill one preallocated stack
+        c = scale_masks(F.interpolate(c, scale_factor=f, mode="bilinear") if f > 1 else c, shape)[0]
+        torch.gt(c, 0, out=masks[i : i + n])  # threshold straight into uint8, no bool or float copy
+    return crop_mask(masks, bboxes)
 
 
 def scale_masks(
@@ -595,8 +692,8 @@ def scale_masks(
     Args:
         masks (torch.Tensor): Masks with shape (N, C, H, W).
         shape (tuple[int, int]): Target height and width as (height, width).
-        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)); only the padding
-            is used.
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)), the letterbox
+            gains and its top-left padding.
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
         mode (str): Interpolation mode, e.g. 'bilinear' for logits or 'nearest' for integer class maps.
 
@@ -612,16 +709,18 @@ def scale_masks(
         return masks.new_zeros((*masks.shape[:2], im0_h, im0_w), dtype=torch.float32)
 
     if ratio_pad is None:  # calculate from im0_shape
-        gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
-        pad_w, pad_h = (im1_w - round(im0_w * gain)), (im1_h - round(im0_h * gain))  # wh padding
-        if padding:
-            pad_w /= 2
-            pad_h /= 2
+        gain_h = gain_w = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
+        pad_w, pad_h = (im1_w - max(round(im0_w * gain_w), 1)) / 2, (im1_h - max(round(im0_h * gain_h), 1)) / 2
     else:
-        pad_w, pad_h = ratio_pad[1]
+        (gain_h, gain_w), (pad_w, pad_h) = ratio_pad
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
-    bottom = im1_h - round(pad_h + 0.1)
-    right = im1_w - round(pad_w + 0.1)
+    bottom, right = top + max(round(im0_h * gain_h), 1), left + max(round(im0_w * gain_w), 1)  # content end
+    if ratio_pad and not padding and abs(im0_h * gain_h - bottom) + abs(im0_w * gain_w - right) > 1e-3:  # mid-pixel
+        sh, sw = im0_h * gain_h / im1_h, im0_w * gain_w / im1_w  # sample the exact content span instead of cropping
+        masks = masks.float()
+        theta = masks.new_tensor([[[sw, 0, sw - 1], [0, sh, sh - 1]]])
+        grid = F.affine_grid(theta, (1, 1, im0_h, im0_w), align_corners=False).expand(len(masks), -1, -1, -1)
+        return F.grid_sample(masks, grid, mode=mode, padding_mode="border", align_corners=False)
     return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
 
 
@@ -644,8 +743,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        gain_y = gain_x = gain
-        pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
+        new_h, new_w = (max(round(x * gain), 1) for x in (img0_h, img0_w))  # LetterBox rounds each side
+        gain_y, gain_x = new_h / img0_h, new_w / img0_w
+        pad = round((img1_w - new_w) / 2 - 0.1), round((img1_h - new_h) / 2 - 0.1)
     else:
         gain_y, gain_x = ratio_pad[0]
         pad = ratio_pad[1]

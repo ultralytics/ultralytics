@@ -32,7 +32,7 @@ The [Heatmap solution](../reference/solutions/heatmap.md) in [Ultralytics YOLO26
 
 |                                                         Transportation                                                          |                                                              Retail                                                              |
 | :-----------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO heatmap overlay showing vehicle traffic density](https://cdn.ul.run/i/704450c331ec65eddec9abe69f1d12fc.avif) | ![Ultralytics YOLO heatmap overlay showing retail customer movement](https://cdn.ul.run/i/17a2a0f51ed28061f9991f3d85c106ae.avif) |
+| ![Ultralytics YOLO heatmap overlay showing vehicle traffic density](https://cdn.ul.run/i/3cd03197081f4d99e3017c7537e01f7a.avif) | ![Ultralytics YOLO heatmap overlay showing retail customer movement](https://cdn.ul.run/i/17a2a0f51ed28061f9991f3d85c106ae.avif) |
 |                                             Ultralytics YOLO Transportation Heatmap                                             |                                                 Ultralytics YOLO Retail Heatmap                                                  |
 
 ## How to Generate Heatmaps with Ultralytics YOLO
@@ -199,6 +199,6 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-### What makes Ultralytics YOLO26 heatmaps different from other data visualization tools like those from [OpenCV](https://www.ultralytics.com/glossary/opencv) or Matplotlib?
+### What makes Ultralytics YOLO26 heatmaps different from other data visualization tools like those from OpenCV or Matplotlib?
 
-Ultralytics YOLO26 heatmaps integrate [object detection](https://www.ultralytics.com/glossary/object-detection), tracking, intensity accumulation, and overlay rendering into a single call, while generic tools like OpenCV or Matplotlib require you to build that pipeline yourself. The solution processes video streams in real time and supports persistent tracking and customizable colormaps out of the box. For details on the underlying model, see the [YOLO26 model page](../models/yolo26.md).
+Ultralytics YOLO26 heatmaps integrate [object detection](https://www.ultralytics.com/glossary/object-detection), tracking, intensity accumulation, and overlay rendering into a single call, while generic tools like [OpenCV](https://www.ultralytics.com/glossary/opencv) or Matplotlib require you to build that pipeline yourself. The solution processes video streams in real time and supports persistent tracking and customizable colormaps out of the box.

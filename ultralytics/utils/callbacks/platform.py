@@ -33,32 +33,25 @@ def slugify(text):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9\s-]", "", str(text).lower()).replace(" ", "-")).strip("-")[:128]
 
 
-def _interp_plot(plot, n=101):
-    """Interpolate plot curve data to n points to reduce storage size."""
+def _compact_plot(plot, n=101):
+    """Reduce plot data to what Platform renders so the completion payload stays bounded for any class count.
+
+    Platform draws the first 100 confusion matrix classes and per-class curves up to 20 classes, else only the mean.
+    """
     import numpy as np
 
-    if not plot.get("x") or not plot.get("y"):
-        return plot  # No interpolation needed (e.g., confusion_matrix)
+    if "matrix" in plot:  # Platform slices a matrix over 100 rows to its first 100
+        return {**plot, "matrix": [row[:100] for row in plot["matrix"][:100]]}
 
     x, y = np.array(plot["x"]), np.array(plot["y"])
-    if len(x) <= n:
-        return plot  # Already small enough
-
-    # New x values (101 points gives clean 0.01 increments: 0, 0.01, 0.02, ..., 1.0)
-    x_new = np.linspace(x[0], x[-1], n)
-
-    # Interpolate y values (handle both 1D and 2D arrays)
-    if y.ndim == 1:
-        y_new = np.interp(x_new, x, y)
-    else:
-        y_new = np.array([np.interp(x_new, x, yi) for yi in y])
-
-    # Keep ap as-is if present (per-class scalars for PR curves, not interpolated)
-    result = {**plot, "x": x_new.tolist(), "y": y_new.tolist()}
-    if "ap" in plot:
-        result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)
-
-    return result
+    if len(y) > 20:  # mean curve and AP only, so rows no longer map to classes
+        y = y.mean(0, keepdims=True)
+        plot = {k: v for k, v in plot.items() if k != "classes"}
+        if "ap" in plot:
+            plot["ap"] = np.mean(plot["ap"], 0, keepdims=True).tolist()
+    x_new = np.linspace(x[0], x[-1], n)  # 101 points gives clean 0.01 increments
+    y_new = np.array([np.interp(x_new, x, yi) for yi in y])
+    return {**plot, "x": x_new.round(6).tolist(), "y": y_new.round(6).tolist()}  # Platform stores 6 decimals
 
 
 def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
@@ -81,14 +74,14 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
 
 
 def _sanitize_json_value(value):
-    """Replace non-finite floats in payloads with None so JSON encoding succeeds."""
+    """Make payloads JSON-encodable: non-finite floats become None and other non-JSON values become strings."""
     if isinstance(value, dict):
         return {k: _sanitize_json_value(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
         return [_sanitize_json_value(v) for v in value]
     if isinstance(value, float):
         return value if isfinite(value) else None  # avoid "Out of range float values are not JSON compliant" warnings
-    return value
+    return value if value is None or isinstance(value, (bool, int, str)) else str(value)  # e.g. np.int64, Path
 
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
@@ -120,6 +113,8 @@ def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
         if event != "console_output" or not _api_key:
             detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
             LOGGER.warning(f"{PREFIX}Failed to send {event}: {detail}")
+        if event == "training_started" and model_id and isinstance(error, APIError) and error.status_code == 404:
+            return {}  # {} marks a missing model, seen only by the resume lookup in on_pretrain_routine_start
         return None
 
 
@@ -216,7 +211,6 @@ def _get_environment_info():
         "pythonExecutable": sys.executable,
         "cpuCount": os.cpu_count() or 0,
         "cpu": get_cpu_info(),
-        "command": " ".join(sys.argv),
         "totalRamGb": round(memory.total / (1 << 30), 1),  # Total RAM in GB
         "totalDiskGb": round(disk_usage.total / (1 << 30), 1),  # Total disk in GB
     }
@@ -247,27 +241,44 @@ def _get_environment_info():
 
 
 def _get_project_name(trainer):
-    """Get slugified project and name from trainer args."""
+    """Get slugified project and raw run name from trainer args; Platform derives the model slug from the name."""
     raw = str(trainer.args.project)
     parts = raw.split("/", 1)
     project = f"{parts[0]}/{slugify(parts[1].replace('/', '-'))}" if len(parts) == 2 else slugify(raw)
-    return project, slugify(str(trainer.args.name or "train"))
+    return project, str(trainer.args.name or "train")
 
 
-def _get_system_metrics(ctx):
+def _get_training_gpus(trainer):
+    """Return the NVML indices of the GPUs a run trains on, so a shared host reports no other runs' GPUs.
+
+    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES. Non-CUDA training
+    reports no GPUs, and a CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every GPU.
+    """
+    if trainer.device.type != "cuda":
+        return []
+    indices = [int(x) for x in trainer.args.device.split(",") if x.isdigit()] or [trainer.device.index]
+    visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
+    if not visible:
+        return indices
+    ids = [visible[i] for i in indices]
+    return [int(x) for x in ids] if all(x.isdigit() for x in ids) else None
+
+
+def _get_system_metrics(trainer):
     """Sample the run's system logger without making optional host monitoring a training dependency."""
+    ctx = trainer.platform
     try:
         if not ctx["system_logger"]:
             from ultralytics.utils.logger import SystemLogger
 
-            ctx["system_logger"] = SystemLogger(all_drives=True)
+            ctx["system_logger"] = SystemLogger(all_drives=True, gpus=_get_training_gpus(trainer))
         return ctx["system_logger"].get_metrics(rates=True)
     except Exception:
         return None
 
 
 def on_pretrain_routine_start(trainer):
-    """Initialize Platform logging at training start."""
+    """Initialize Platform logging at training start, continuing the recorded Platform model when resuming."""
     global _api_key
     if TESTS_RUNNING or not trainer.args.project:
         return
@@ -325,30 +336,28 @@ def on_pretrain_routine_start(trainer):
 
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
-    train_args = {k: str(v) for k, v in vars(trainer.args).items()}
+    data = {
+        "trainArgs": vars(trainer.args),  # _send makes values JSON-encodable
+        "epochs": trainer.epochs,
+        "device": str(trainer.device),
+        "environment": environment,
+        "system": _get_system_metrics(trainer),
+    }
+    record = Path(trainer.save_dir) / "platform_model_id.txt"  # resume continues the Platform model recorded here
+    model_id = record.read_text() if trainer.args.resume and record.exists() else None
 
     # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
-    response = _send(
-        "training_started",
-        {
-            "trainArgs": train_args,
-            "epochs": trainer.epochs,
-            "device": str(trainer.device),
-            "environment": environment,
-            "system": _get_system_metrics(ctx),
-        },
-        project,
-        name,
-        retry=4,
-    )
+    response = _send("training_started", data, project, name, model_id=model_id, retry=4)
+    if model_id and (response == {} or (response and response.get("cancelled"))):  # model gone or ended, track as new
+        response = _send("training_started", data, project, name, retry=4)
     if response and response.get("modelId"):
+        record.write_text(response["modelId"])
         ctx["model_id"] = response["modelId"]
         ctx["run_id"] = response.get("runId")
-        # Server returns actual slug (may differ from requested name due to auto-increment, e.g. "train" → "train-2")
-        if response.get("modelSlug"):
-            ctx["model_slug"] = response["modelSlug"]
-            url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
-            LOGGER.info(f"{PREFIX}View model at {url}")
+        # Server resolves the owner, project and final slug (e.g. "train" → "train-2") into the model link
+        ctx["model_url"] = response.get("modelUrl")
+        if ctx["model_url"]:
+            LOGGER.info(f"{PREFIX}View model at {ctx['model_url']}")
         ctx["console_logger"].start_capture()  # only now: the run is tracked and model_id is known
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
         _handle_control_response(trainer, ctx, response)
@@ -395,7 +404,7 @@ def on_fit_epoch_end(trainer):
     payload = {
         "epoch": trainer.epoch,
         "metrics": metrics,
-        "system": _get_system_metrics(ctx),
+        "system": _get_system_metrics(trainer),
         "fitness": trainer.fitness,
         "best_fitness": trainer.best_fitness,
     }
@@ -444,9 +453,7 @@ def on_train_end(trainer):
         LOGGER.info(f"{PREFIX}Uploading partial results for cancelled training")
 
     # Stop console capture
-    if ctx["console_logger"]:
-        ctx["console_logger"].stop_capture()
-        ctx["console_logger"] = None
+    ctx["console_logger"].stop_capture()
 
     # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None
@@ -471,10 +478,15 @@ def on_train_end(trainer):
     for info in getattr(trainer, "plots", {}).values():
         if info.get("data") and info["data"].get("type"):
             plots_by_type[info["data"]["type"]] = info["data"]
-    for info in getattr(getattr(trainer, "validator", None), "plots", {}).values():
+    for info in reversed(getattr(getattr(trainer, "validator", None), "plots", {}).values()):
         if info.get("data") and info["data"].get("type"):
             plots_by_type.setdefault(info["data"]["type"], info["data"])  # Don't overwrite trainer plots
-    plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
+    # Curve rows only cover classes with val labels: send their model class indices when any class is missing
+    if pr := plots_by_type.get("pr_curve"):
+        classes = [int(c) for c in trainer.validator.metrics.ap_class_index]
+        if len(classes) < len(trainer.validator.names):
+            plots_by_type["pr_curve"] = {**pr, "classes": classes}
+    plots = [_compact_plot(p) for p in plots_by_type.values()]
 
     # Get class names
     names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")
@@ -505,8 +517,8 @@ def on_train_end(trainer):
         ctx["model_id"],
         retry=4,  # Critical, more retries
     )
-    url = f"{PLATFORM_URL}/{project}/{ctx.get('model_slug', name)}"
-    LOGGER.info(f"{PREFIX}View results at {url}")
+    if ctx.get("model_url"):
+        LOGGER.info(f"{PREFIX}View results at {ctx['model_url']}")
 
 
 callbacks = {
@@ -515,4 +527,5 @@ callbacks = {
     "on_fit_epoch_end": on_fit_epoch_end,
     "on_model_save": on_model_save,
     "on_train_end": on_train_end,
+    "teardown": lambda trainer: (ctx := getattr(trainer, "platform", None)) and ctx["console_logger"].stop_capture(),
 }

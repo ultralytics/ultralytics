@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 import os
 import random
@@ -36,7 +37,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, add_polygon_background, get_split_fraction
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import RANK, REQUEST_HEADERS, colorstr
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
 
@@ -179,6 +180,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.epoch = 0
         self.shuffle = shuffle
         self.total_size = len(dataset)
+        self.source_ends = getattr(dataset, "source_offsets", ())
         # Use unit batches when one input batch would span the dataset.
         self.batch_size = 1 if batch_size >= self.total_size else batch_size
         self.num_batches = math.ceil(self.total_size / self.batch_size)
@@ -200,7 +202,9 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         start_idx = min(start_batch * self.batch_size, self.total_size)
         end_idx = min(end_batch * self.batch_size, self.total_size)
 
-        return start_idx, end_idx
+        if len(self.source_ends) > 1:
+            start_idx, end_idx = self.source_ends[np.searchsorted(self.source_ends, [start_idx, end_idx])]
+        return int(start_idx), int(end_idx)
 
     def __iter__(self) -> Iterator:
         """Generate indices for this rank's contiguous chunk of the dataset."""
@@ -298,6 +302,7 @@ def build_yolo_dataset(
         classes=cfg.classes,
         data=data,
         fraction=fraction,
+        tile=cfg.tile,
     )
 
 
@@ -334,6 +339,7 @@ def build_grounding(
         batch_size=batch,
         augment=mode == "train",  # augmentation
         hyp=cfg,
+        tile=cfg.tile,
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
@@ -363,7 +369,8 @@ def build_dataloader(
         workers (int): Number of worker processes for data loading.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
-        drop_last (bool, optional): Whether to drop the last incomplete batch.
+        drop_last (bool, optional): Whether to drop the last incomplete batch of each rank's shard. A shard smaller than
+            one batch is kept.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
 
@@ -386,7 +393,7 @@ def build_dataloader(
         else ContiguousDistributedSampler(dataset)
     )
     samples = len(sampler) if sampler is not None else dataset_len
-    drop_last = drop_last and bool(batch) and dataset_len % batch != 0
+    drop_last = drop_last and samples > batch > 0 and samples % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
     device_type = getattr(device, "type", str(device).split(":")[0])
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
@@ -445,14 +452,22 @@ def check_source(
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
-        is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
-        is_file = (urlsplit(source_lower).path if is_url else source_lower).rpartition(".")[-1] in (
-            IMG_FORMATS | VID_FORMATS
-        )
-        webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
-        screenshot = source_lower == "screen"
-        if is_url and is_file:
+        is_stream = source_lower.startswith(("rtsp://", "rtmp://", "tcp://"))  # streams even with a video suffix
+        is_url = source_lower.startswith(("https://", "http://"))
+        is_file = is_url and urlsplit(source_lower).path.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
+        webcam = source.isnumeric() or source_lower.endswith(".streams") or is_stream or (is_url and not is_file)
+        screenshot = source_lower == "screen" or (source_lower.startswith("screen ") and not Path(source).exists())
+        if is_file:
             source = check_file(source)  # download
+        elif is_url:  # a URL without a media suffix is one image if it returns an image/* response
+            import requests  # scoped as slow import
+
+            with contextlib.suppress(requests.RequestException), requests.get(
+                source, stream=True, headers=REQUEST_HEADERS, timeout=3
+            ) as r:
+                webcam = not r.headers.get("Content-Type", "").startswith("image/")
+            if not webcam:
+                source, from_img = autocast_list([source]), True
     elif isinstance(source, LOADERS):
         in_memory = True
     elif isinstance(source, (list, tuple)):

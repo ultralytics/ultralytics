@@ -17,7 +17,7 @@ namespace yolo {
 struct Config {
     std::string model_path = "yolo26n.onnx";  // OpenVINO IR (.xml) or ONNX (.onnx)
     float conf = 0.25f;                        // confidence threshold
-    float iou = 0.45f;                         // NMS IoU threshold (grid models only)
+    float iou = 0.5f;                          // NMS IoU threshold (grid models only)
     std::string device = "AUTO";               // OpenVINO device: AUTO / CPU / GPU
 };
 

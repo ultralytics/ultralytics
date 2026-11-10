@@ -13,7 +13,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from tests import MODEL, SOURCE
+from tests import SOURCE
 from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
@@ -102,29 +102,6 @@ def test_export_onnx_int8(isolated_model, precision):
     Path(file).unlink()  # cleanup
 
 
-def test_onnx_int8_quantize_excludes_non_weighted_ops(monkeypatch):
-    """Check ONNX INT8 keeps only weighted ops quantized while preserving the string return contract."""
-    import onnx
-    import onnxruntime.quantization as ort_quantization
-
-    from ultralytics.utils.export.onnx import onnx_int8_quantize
-
-    calls = {}
-    graph = SimpleNamespace(
-        node=[
-            SimpleNamespace(name="conv", op_type="Conv"),
-            SimpleNamespace(name="pool", op_type="MaxPool"),
-            SimpleNamespace(name="sigmoid", op_type="Sigmoid"),
-        ]
-    )
-
-    monkeypatch.setattr(onnx, "load", lambda _: SimpleNamespace(graph=graph))
-    monkeypatch.setattr(ort_quantization, "quantize_static", lambda *args, **kwargs: calls.update(kwargs))
-    result = onnx_int8_quantize(Path("model.onnx"), Path("model_int8.onnx"), [], lambda x: x)
-    assert result == "model_int8.onnx"
-    assert calls["nodes_to_exclude"] == ["pool", "sigmoid"]
-
-
 def test_quantize_canonicalization():
     """Quantize accepts 8/16/32 (int or str) and w-notation, canonicalizing to the int form (unset stays None)."""
     for value, expected in [
@@ -164,16 +141,6 @@ def test_quantize_deprecation():
     assert _handle_deprecation({"half": True, "quantize": 8})["quantize"] == 8  # explicit quantize still wins
 
 
-def test_benchmark_forwards_legacy_precision(monkeypatch):
-    """model.benchmark(half=True) must reach the benchmark call as quantize=16, not silently run FP32."""
-    import ultralytics.utils.benchmarks as bm
-
-    captured = {}
-    monkeypatch.setattr(bm, "benchmark", lambda **kw: captured.update(kw) or {})
-    YOLO(MODEL).benchmark(half=True, format="onnx", data="coco8.yaml")
-    assert captured["quantize"] == 16, f"legacy half was dropped: quantize={captured.get('quantize')}"
-
-
 def test_qnn_quantize_requires_w8a16():
     """QNN exports are W8A16; explicit INT8 activation quantization is not supported."""
     valid_args = ["batch", "data", "dynamic", "fraction", "nms"]
@@ -192,7 +159,7 @@ def test_int8_calibration_validates_split():
     """Check INT8 calibration rejects dataset splits that do not exist."""
     exporter = object.__new__(Exporter)
     exporter.model = SimpleNamespace(task="obb")
-    exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval")
+    exporter.args = get_cfg(overrides={"data": "coco8.yaml", "split": "trainval"})
     exporter.imgsz = [32]
     with pytest.raises(FileNotFoundError, match="trainval"):
         exporter.get_int8_calibration_dataloader()
@@ -214,28 +181,6 @@ def test_int8_calibration_fraction(task, fraction, expected, tmp_path):
     exporter.args = get_cfg(overrides={"data": data, "split": "val", "fraction": fraction, "batch": 1})
     exporter.imgsz = [32]
     assert len(exporter.get_int8_calibration_dataloader().dataset) == expected
-
-
-def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
-    """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
-    calls = {}
-    monkeypatch.setattr(
-        "ultralytics.utils.export.rknn.onnx2rknn", lambda **kwargs: calls.update(kwargs) or kwargs["output_dir"]
-    )
-    monkeypatch.setattr("ultralytics.engine.exporter.file_size", lambda _: 1)
-
-    image = tmp_path / "image.jpg"
-    exporter = SimpleNamespace(
-        args=SimpleNamespace(opset=None, quantize=8, name="rk3588", batch=8),
-        im=torch.zeros(8, 3, 32, 32),
-        file=tmp_path / "model.pt",
-        metadata={},
-        get_int8_calibration_dataloader=lambda prefix: SimpleNamespace(dataset=SimpleNamespace(im_files=[image])),
-    )
-    exporter.export_onnx = lambda: calls.update(onnx_batch=len(exporter.im)) or tmp_path / "model.onnx"
-    Exporter.export_rknn(exporter)
-    assert calls["onnx_batch"] == 1
-    assert calls["batch"] == 8
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
@@ -473,10 +418,10 @@ def test_export_pb(isolated_model):
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirements conflict.")
 def test_export_paddle(isolated_model):
-    """Test YOLO export to Paddle format, noting protobuf conflicts with ONNX."""
-    YOLO(isolated_model).export(format="paddle", imgsz=32)
+    """Test YOLO export to Paddle format and inference with the exported model."""
+    file = YOLO(isolated_model).export(format="paddle", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
@@ -546,17 +491,19 @@ def test_export_ncnn(isolated_model):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
-@pytest.mark.parametrize("task, quantize, batch", list(product(sorted(TASKS), [16], [1])))
-def test_export_ncnn_matrix(task, quantize, batch):
-    """Test YOLO export to NCNN format considering various export configurations."""
+@pytest.mark.parametrize("task", sorted(TASKS))
+def test_export_ncnn_matrix(task):
+    """Test YOLO export to NCNN format for every task."""
     skip_rpi_semantic(task)
-    file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, quantize=quantize, batch=batch)
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, quantize=16)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
 @pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="IMX export requires Python>=3.9")
+@pytest.mark.skipif(
+    not checks.IS_PYTHON_MINIMUM_3_10 or checks.IS_PYTHON_MINIMUM_3_13, reason="IMX export requires Python>=3.10,<3.13"
+)
 @pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
@@ -584,7 +531,7 @@ def test_export_imx(tmp_path, conf, expected):
 @pytest.mark.parametrize("quantize,batch", [(8, 8), (16, 1)])
 def test_export_rknn(isolated_model, quantize, batch):
     """Test YOLO export to RKNN format."""
-    file = YOLO(isolated_model).export(format="rknn", imgsz=32, quantize=quantize, batch=batch, data="coco8.yaml")
+    file = YOLO(isolated_model).export(format="rknn", imgsz=64, quantize=quantize, batch=batch, data="coco8.yaml")
     assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
     shutil.rmtree(file, ignore_errors=True)
 
@@ -604,6 +551,25 @@ def test_export_executorch(isolated_model):
     assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found: {metadata_file}"
     # Note: Inference testing skipped as ExecuTorch requires special runtime setup
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="NXP compilation requires Linux x86_64")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="NXP SDK and LiteRT require Python>=3.10")
+@pytest.mark.parametrize("task", TASKS)
+def test_export_nxp(task, tmp_path):
+    """Compile real models and verify that the artifact contains NPU graphs and task metadata."""
+    from ai_edge_litert import schema_py_generated as schema
+
+    from ultralytics.nn.backends.litert import LiteRTBackend
+
+    model = isolated_model_path(tmp_path, WEIGHTS_DIR / TASK2MODEL[task])
+    file = Path(YOLO(model).export(format="nxp", imgsz=64, data=TASK2DATA[task]))
+    flatbuffer = schema.Model.GetRootAsModel(file.read_bytes(), 0)
+    assert any(
+        flatbuffer.OperatorCodes(i).CustomCode() == b"NeutronGraph" for i in range(flatbuffer.OperatorCodesLength())
+    )
+    assert LiteRTBackend.read_metadata(file)["task"] == task
 
 
 @pytest.mark.slow
@@ -672,6 +638,11 @@ def test_export_qnn(isolated_model):
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
     file = YOLO(isolated_model).export(format="qnn", imgsz=32)
     assert Path(file).is_file() and file.endswith("_qnn.onnx"), f"QNN export failed, no context binary found: {file}"
+    # ONNX Runtime's built-in QNN EP (onnxruntime-android-qnn) cannot load EPContext nodes with I/O name overrides
+    import onnx
+
+    ep_nodes = [n for n in onnx.load(file).graph.node if n.op_type == "EPContext"]
+    assert ep_nodes and not any(a.name == "io_name_overrides" for n in ep_nodes for a in n.attribute)
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     Path(file).unlink(missing_ok=True)  # cleanup
 

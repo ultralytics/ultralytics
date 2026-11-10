@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Model Deployment Options
 comments: true
-description: Learn about model deployment options in Ultralytics Platform including inference testing, dedicated endpoints, and monitoring dashboards.
+description: "Compare model deployment options in Ultralytics Platform: browser testing, shared inference, dedicated endpoints in 42 regions, monitoring, and model export."
 keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YOLO, production, cloud deployment
 ---
 
 # Deployment
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive [model deployment options](../../guides/model-deployment-options.md) for putting your YOLO models into production. Test models with browser-based inference, deploy to dedicated endpoints across 42 global regions, and monitor performance in real-time.
+[Ultralytics Platform](https://platform.ultralytics.com) provides several [model deployment options](../../guides/model-deployment-options.md) for [putting your YOLO models into production](https://www.ultralytics.com/blog/how-ultralytics-platform-simplifies-computer-vision-model-deployment). Test models with browser-based inference, deploy to dedicated endpoints across 42 global regions, and monitor endpoint performance in real time.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ The Deployment section helps you:
 - **Monitor** request metrics, logs, health checks, and temporary predictions on every dedicated endpoint
 - **Choose resources**: default endpoints scale to zero; custom sizes keep a warm instance with uptime billing
 
-![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/a2b4289abc2df5bc00a704a7b9575515.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/61603cb9902cf112660c2a5d2fb5bc44.avif)<!-- screenshot -->
 
 ## Deployment Options
 
@@ -38,22 +38,18 @@ Ultralytics Platform offers multiple deployment paths:
 
 | Option                                        | Description                                              | Best For                |
 | --------------------------------------------- | -------------------------------------------------------- | ----------------------- |
-| **[Predict Tab](inference.md)**               | Browser-based inference with image, webcam, and examples | Development, validation |
+| **[Predict Tab](inference.md)**               | Image, webcam, examples; IP camera on own endpoints      | Development, validation |
 | **Shared Inference**                          | Multi-tenant service across 3 data regions               | Light usage, testing    |
 | **[Dedicated Endpoints](endpoints.md)**       | Single-tenant services across 42 regions                 | Production, low latency |
-| **[Export](../train/models.md#export-model)** | Download weights in 21 formats for local or edge runtime | Offline, on-device      |
+| **[Export](../train/models.md#export-model)** | Download weights in 23 formats for local or edge runtime | Offline, on-device      |
 
 ## Workflow
 
 ```mermaid
-graph LR
-    A[✅ Test]:::start --> B[⚙️ Configure]:::proc
-    B --> C[🌐 Deploy]:::proc
-    C --> D[📊 Monitor]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Test]) --> B[Configure]
+    B --> C[Deploy]
+    C --> D([Monitor])
 ```
 
 | Stage         | Description                                                                       |
@@ -71,17 +67,12 @@ The shared inference service runs in 3 key regions. Requests to a model are rout
 [data region](../account/settings.md), so results stay inside the region where the model is stored:
 
 ```mermaid
-graph TB
-    User[User Request]:::start --> API[Platform API]:::proc
-    API --> Router{Model Data Region}:::decide
-    Router -->|US models| US["US Predict Service<br/>Iowa"]:::out
-    Router -->|EU models| EU["EU Predict Service<br/>Belgium"]:::out
-    Router -->|AP models| AP["AP Predict Service<br/>Taiwan"]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([User request]) --> B[Platform API]
+    B --> C{Model data region?}
+    C -->|US| D[Iowa]
+    C -->|EU| E[Belgium]
+    C -->|AP| F[Taiwan]
 ```
 
 {% include "macros/platform-data-regions.md" %}
@@ -115,7 +106,7 @@ page, with a `+` button to create one and a link to the full tab. The tab shows:
   its own page with `Overview`, `Monitoring`, `Predict`, and `Logs` tabs
 - **New Deployment** button to create endpoints from any completed model
 
-![Ultralytics Platform Deployments Tab Overview Cards And Deployments List](https://cdn.ul.run/i/3367ece0827e0f9d43b9acf8d233a49a.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab Overview Cards And Deployments List](https://cdn.ul.run/i/b46672351aac3f3b75e8359a819e941e.avif)<!-- screenshot -->
 
 !!! info "Automatic Polling"
 
@@ -147,7 +138,7 @@ Endpoints currently behave as follows:
 
 ### Regional Deployment
 
-Use the measured region latency to place an endpoint near its callers. Actual inference latency depends on the model,
+Use the measured region latency to place an endpoint near its callers. Actual [inference latency](https://www.ultralytics.com/glossary/inference-latency) depends on the model,
 input size, endpoint state, and network path.
 
 ### Health Checks
@@ -196,6 +187,14 @@ Create a deployment:
 | **Testing**     | Model `Predict` tab          | Deployment page `Predict` tab or API        |
 | **Rate limits** | 20 requests/minute           | No Platform rate limit on direct calls      |
 | **Auth**        | Any workspace API key        | Only the API key bound to the deployment    |
+
+### How do I let someone else test my model?
+
+Share the model page, not a deployment. When the model's project is [public](../train/projects.md#visibility-settings),
+anyone with the link can run the model from its `Predict` tab in their browser, without an account or API key: open the
+`Predict` tab, then click **Share** > **Copy link**. Anonymous predictions are [rate limited](inference.md#rate-limits)
+per IP address. Deployment pages are visible only to your workspace, and a dedicated endpoint accepts only its bound API
+key.
 
 ### How long does deployment take?
 

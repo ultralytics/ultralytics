@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Dive into advanced data exploration with Ultralytics Explorer. Perform semantic searches, execute SQL queries, and leverage AI-powered natural language insights for seamless data analysis.
+description: Explore the PASCAL VOC dataset with the Ultralytics Explorer API - build an embeddings table, run similarity and SQL searches, and ask natural-language questions.
 keywords: Ultralytics Explorer, data exploration, semantic search, vector similarity, SQL queries, AI, natural language queries, machine learning, OpenAI, LLMs, Ultralytics Platform
 ---
 
@@ -23,7 +23,7 @@ yolo checks
 
 ## Similarity Search
 
-Utilize the power of vector similarity search to find the similar data points in your dataset along with their distance in the embedding space. Simply create an embeddings table for the given dataset-model pair. It is only needed once, and it is reused automatically.
+Use [vector similarity search](https://www.ultralytics.com/glossary/vector-search) to find similar data points in your dataset along with their distance in the embedding space. First create an embeddings table for the given dataset-model pair; it is only built once and is reused automatically.
 
 ```python
 from ultralytics import Explorer
@@ -37,7 +37,7 @@ Once the embeddings table is built, you can run semantic search in any of the fo
 - On a given index/list of indices in the dataset, e.g., `exp.get_similar(idx=[1, 10], limit=10)`
 - On any image or list of images not in the dataset, e.g., `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`. In case of multiple inputs, the aggregate of their embeddings is used.
 
-You get a pandas DataFrame with the limit number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering.
+You get a pandas DataFrame with the `limit` number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering.
 
 ![Ultralytics Explorer similarity search results](https://cdn.ul.run/i/7bc3e4197cd7ca856669bcbbac8a7097.avif)
 
@@ -62,7 +62,7 @@ exp.plot_similar(img="https://ultralytics.com/images/bus.jpg", limit=10, labels=
 
 ## Ask AI: Search or Filter with Natural Language
 
-You can prompt the Explorer object with the kind of data points you want to see, and it will try to return a DataFrame with those results. Because it is powered by LLMs, it does not always get it right. In that case, it will return `None`.
+You can prompt the Explorer object with the kind of data points you want to see, and it will try to return a DataFrame with those results. Because it is powered by [LLMs](https://www.ultralytics.com/glossary/large-language-model-llm), it does not always get it right. In that case, it will return `None`.
 
 ![Ultralytics Explorer Ask AI natural language query results](https://cdn.ul.run/i/0f9ec7f0a50dc1c642119451251be4d4.avif)
 
@@ -93,9 +93,9 @@ Sometimes you might want to investigate certain entries in your dataset. For thi
 
 This can be used to investigate model performance and specific data points. For example:
 
-- let's say your model struggles on images that have humans and dogs. You can write a query like this to select the points that have at least 2 humans AND at least one dog.
+- If your model struggles on images that contain people and dogs, you can write a query like the one below to select the points that have at least 2 people AND at least one dog.
 
-You can combine SQL query and semantic search to filter down to specific type of results
+You can combine SQL queries and semantic search to filter down to specific types of results.
 
 ```python
 table = exp.sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%dog%' LIMIT 10")
@@ -109,7 +109,7 @@ table = exp.sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%do
 print(table)
 ```
 
-Just like similarity search, you also get a util to directly plot the SQL queries using `exp.plot_sql_query`
+Just like similarity search, you can plot SQL query results directly with `exp.plot_sql_query`:
 
 ![SQL query matched images visualization](https://cdn.ul.run/i/86cc437bdadbe876ee3dc564add4bbb4.avif)
 
@@ -128,11 +128,11 @@ print(table.schema)
 
 ### Run raw queries
 
-Vector Search finds the nearest vectors from the database. In a recommendation system or search engine, you can find similar products from the one you searched. In LLM and other AI applications, each data point can be presented by the embeddings generated from some models, it returns the most relevant features.
+Vector search finds the nearest vectors in the database. In a [recommendation system](https://www.ultralytics.com/glossary/recommendation-system) or search engine, it finds products similar to the one you searched for. In LLM and other AI applications, each data point can be represented by [embeddings](https://www.ultralytics.com/glossary/embeddings) generated by a model, and vector search returns the most relevant ones.
 
-A search in high-dimensional vector space, is to find K-Nearest-Neighbors (KNN) of the query vector.
+A search in high-dimensional vector space finds the [k-nearest neighbors (KNN)](https://www.ultralytics.com/glossary/k-nearest-neighbors-knn) of the query vector.
 
-Metric In LanceDB, a Metric is the way to describe the distance between a pair of vectors. Currently, it supports the following metrics:
+In LanceDB, a metric describes the distance between a pair of vectors. It currently supports the following metrics:
 
 - L2
 - Cosine
@@ -140,7 +140,7 @@ Metric In LanceDB, a Metric is the way to describe the distance between a pair o
 
 Explorer's similarity search uses L2 by default. You can run queries on tables directly, or use the lance format to build custom utilities to manage datasets. More details on available LanceDB table ops are in the [LanceDB docs](https://lancedb.github.io/lancedb/).
 
-![Explorer raw SQL queries results table](https://cdn.ul.run/i/5bcdb200f50f4ce74e201e7bcfc1711b.avif)
+![Explorer raw vector search results table](https://cdn.ul.run/i/5bcdb200f50f4ce74e201e7bcfc1711b.avif)
 
 ```python
 dummy_img_embedding = [i for i in range(256)]
@@ -156,7 +156,7 @@ pa_table = table.to_arrow()
 
 ### Work with Embeddings
 
-You can access the raw embedding from lancedb Table and analyze it. The image embeddings are stored in column `vector`
+You can access the raw embeddings from the LanceDB table and analyze them. The image embeddings are stored in the `vector` column:
 
 ```python
 import numpy as np
@@ -167,7 +167,7 @@ embeddings = np.array(embeddings)
 
 ### Scatterplot
 
-One of the preliminary steps in analyzing embeddings is by plotting them in 2D space via dimensionality reduction. Let's try an example
+A common first step in analyzing embeddings is plotting them in 2D or 3D space via [dimensionality reduction](https://www.ultralytics.com/glossary/dimensionality-reduction). The example below uses PCA to project them into 3D:
 
 ![Explorer embeddings scatterplot visualization](https://cdn.ul.run/i/23d390fe194b73cfa19b0e3c11425999.avif)
 
@@ -195,12 +195,12 @@ plt.show()
 
 ### Similarity Index
 
-Here's a simple example of an operation powered by the embeddings table. Explorer comes with a `similarity_index` operation-
+Here's a simple example of an operation powered by the embeddings table. Explorer comes with a `similarity_index` operation:
 
 - It tries to estimate how similar each data point is with the rest of the dataset.
-- It does that by counting how many image embeddings lie closer than max_dist to the current image in the generated embedding space, considering top_k similar images at a time.
+- It does that by counting how many image embeddings lie closer than `max_dist` to the current image in the generated embedding space, considering `top_k` similar images at a time.
 
-For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`. Similar to vector and SQL search, this also comes with a util to directly plot it.
+For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. If your dataset has changed, or you need to regenerate the similarity index, pass `force=True`. Like vector and SQL search, it also comes with a utility to plot the result directly.
 
 ```python
 sim_idx = exp.similarity_index(max_dist=0.2, top_k=0.01)
@@ -209,13 +209,13 @@ exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
 
 ![Dataset similarity index analysis](https://cdn.ul.run/i/c9a61579cf6ee742cc4f60b982292ca3.avif)
 
-Let's look at the plot first
+First, look at the plot:
 
 ```python
 exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
 ```
 
-Now let's look at the output of the operation
+Then inspect the output of the operation:
 
 ```python
 sim_idx = exp.similarity_index(max_dist=0.2, top_k=0.01, force=False)
@@ -223,7 +223,7 @@ sim_idx = exp.similarity_index(max_dist=0.2, top_k=0.01, force=False)
 sim_idx
 ```
 
-Let's create a query to see what data points have similarity count of more than 30 and plot images similar to them.
+Next, query the data points with a similarity count above 30 and plot images similar to them:
 
 ```python
 import numpy as np
@@ -232,7 +232,7 @@ sim_count = np.array(sim_idx["count"])
 sim_idx["im_file"][sim_count > 30]
 ```
 
-You should see something like this
+You should see something like this:
 
 ![Similarity index visualization for dataset analysis](https://cdn.ul.run/i/56bbf5100afb0339ff286f7c9db52ac1.avif)
 

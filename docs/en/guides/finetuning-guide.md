@@ -7,7 +7,7 @@ keywords: fine-tune YOLO, finetune YOLO custom dataset, YOLO transfer learning, 
 
 # How to Fine-Tune YOLO on a Custom Dataset
 
-[Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) adapts a pretrained model to recognize new classes by starting from learned weights rather than random initialization. Instead of training from scratch for hundreds of epochs, fine-tuning leverages pretrained [COCO](../datasets/detect/coco.md) features and converges on custom data in a fraction of the time.
+[Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) adapts a pretrained model to recognize new classes by starting from learned weights rather than random initialization. Instead of training from scratch for hundreds of epochs, fine-tuning reuses pretrained [COCO](../datasets/detect/coco.md) features and converges on custom data in a fraction of the time.
 
 This guide covers fine-tuning [YOLO26](../models/yolo26.md) on custom datasets, from basic usage to advanced techniques like [layer freezing](#freezing-layers) and [two-stage training](#two-stage-fine-tuning).
 
@@ -25,15 +25,15 @@ A pretrained model has already learned general visual features - edge detection,
 
 !!! tip "Fine-tuning requires no extra code"
 
-    When a `.pt` file is loaded with `YOLO("yolo26n.pt")`, the pretrained weights are stored in the model. Calling `.train(data="custom.yaml")` after that automatically transfers all compatible weights to the new model architecture, reinitializes any layers that don't match (such as the detection head when the number of classes differs), and begins training. No manual weight loading, layer manipulation, or custom transfer learning code is required.
+    When a `.pt` file is loaded with `YOLO("yolo26n.pt")`, the pretrained weights are stored in the model. Calling `.train(data="custom.yaml")` after that automatically transfers all compatible weights to the new model architecture, reinitializes any layers that don't match (such as the final classification layer when the number of classes differs), and begins training. No manual weight loading, layer manipulation, or custom transfer learning code is required.
 
 ### How Pretrained Weight Transfer Works
 
 When a pretrained model is fine-tuned on a dataset with a different number of classes (for example, COCO's 80 classes to 5 custom classes), Ultralytics performs shape-aware weight transfer:
 
 1. **Backbone and neck transfer fully** - these layers extract general visual features and their shapes are independent of the number of classes.
-2. **Detection head is partially reinitialized** - the classification output layers (`cv3`, `one2one_cv3`) have shapes tied to the class count (80 vs 5). Compatible rows whose class names match are remapped before unmatched rows are initialized. Box regression layers (`cv2`, `one2one_cv2`) in the head have fixed shapes regardless of class count, so they transfer normally.
-3. **The vast majority of weights transfer** when changing class count. For example, fine-tuning YOLO26n from COCO (80 classes) onto a 5-class dataset transfers 606 of 708 weight tensors, plus any compatible classification rows matched by name.
+2. **Detection head is partially reinitialized** - only the final convolution of each classification branch (`cv3`, `one2one_cv3`) has a shape tied to the class count (80 vs 5); the branch's hidden layers transfer when both models share a scale. Compatible rows whose class names match are remapped before unmatched rows are initialized. Box regression layers (`cv2`, `one2one_cv2`) in the head have fixed shapes regardless of class count, so they transfer normally.
+3. **The vast majority of weights transfer** when changing class count. For example, fine-tuning YOLO26n from COCO (80 classes) onto a 5-class dataset transfers 696 of 708 weight tensors, plus any compatible classification rows matched by name.
 
 For datasets with the same number of classes as the pretrained model (for example, fine-tuning COCO-pretrained weights on another 80-class dataset), 100% of weights transfer including the detection head.
 
@@ -87,14 +87,14 @@ The `cls_remap` setting enables this name-based transfer by default. Training pr
 
 ### Choosing a Model Size
 
-Larger models have more capacity but also more parameters to update, which can increase the risk of overfitting when training data is limited. Starting with a smaller model (YOLO26n or YOLO26s) and scaling up only if validation metrics plateau is a practical approach. The optimal model size depends on the complexity of the task, the number of classes, the diversity of the dataset, and the hardware available for deployment. See the full [YOLO26 model page](../models/yolo26.md) for available sizes and performance benchmarks.
+Larger models have more capacity but also more parameters to update, which can increase the risk of overfitting when training data is limited. Starting with a smaller model ([YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) or [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)) and scaling up only if validation metrics plateau is a practical approach. The optimal [model size](../models/yolo26.md#performance-metrics) depends on the complexity of the task, the number of classes, the diversity of the dataset, and the hardware available for deployment.
 
 ## Optimizer and Learning Rate Selection
 
 The default `optimizer=auto` setting selects the optimizer and learning rate based on the total number of training iterations:
 
 - **10,000 iterations or fewer** (small datasets or few epochs): AdamW with a low, auto-calculated learning rate
-- **More than 10,000 iterations** (large datasets): [MuSGD](../reference/optim/muon.md) (a hybrid Muon+SGD optimizer) with lr=0.01
+- **More than 10,000 iterations** (large datasets): [MuSGD](../reference/optim/muon.md) (a [hybrid Muon+SGD optimizer](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd)) with lr=0.01
 
 For most fine-tuning tasks, the default setting works well without any manual tuning. Consider setting the optimizer explicitly when:
 
@@ -103,7 +103,7 @@ For most fine-tuning tasks, the default setting works well without any manual tu
 
 !!! warning "Auto optimizer overrides manual lr0"
 
-    When `optimizer=auto`, the `lr0` and `momentum` values are ignored. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD, lr0=0.005`.
+    When `optimizer=auto`, the `lr0` value is ignored. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD, lr0=0.005`.
 
 ## Freezing Layers
 
@@ -151,7 +151,7 @@ The right freeze depth depends on how similar the target domain is to the pretra
 | Very small dataset            | `freeze=23`             | Only the detection head trains, minimizing overfitting risk |
 | Domain far from COCO          | `freeze=None`           | Backbone features may not transfer well and need retraining |
 
-Freeze depth can also be treated as a hyperparameter - trying a few values (0, 5, 10) and comparing validation mAP is a practical way to find the best setting for a specific dataset.
+Freeze depth can also be treated as a [hyperparameter](hyperparameter-tuning.md) - trying a few values (0, 5, 10) and comparing validation mAP is a practical way to find the best setting for a specific dataset.
 
 ## Key Hyperparameters for Fine-Tuning
 
@@ -206,7 +206,7 @@ This approach is particularly useful when the target domain differs significantl
 
 ### Performance degrades on original classes after fine-tuning
 
-This is known as catastrophic forgetting - the model loses previously learned knowledge when fine-tuned exclusively on new data. Forgetting is mostly unavoidable without including original dataset images alongside new data. To mitigate this:
+This is known as [catastrophic forgetting](https://www.ultralytics.com/glossary/catastrophic-forgetting) - the model loses previously learned knowledge when fine-tuned exclusively on new data. Forgetting is mostly unavoidable without including original dataset images alongside new data. To mitigate this:
 
 - **Merge datasets**: include examples of the original classes alongside the new classes during fine-tuning. This is the only reliable way to prevent forgetting.
 - **Freeze backbone and neck**: freezing both the backbone and neck so only the detection head trains helps for short fine-tuning runs with a very low learning rate.
@@ -220,7 +220,7 @@ There is no fixed minimum - results depend on the complexity of the task, the nu
 
 ### How do I fine-tune YOLO26 on a custom dataset?
 
-Load a pretrained `.pt` file and call `.train()` with the path to a custom `data.yaml`. Ultralytics automatically handles [weight transfer](https://www.ultralytics.com/glossary/transfer-learning), detection head reinitialization, and optimizer selection. See the [Basic Fine-Tuning](#basic-fine-tuning-example) section for the complete code example.
+Load a pretrained `.pt` file and call `.train()` with the path to a custom `data.yaml`. Ultralytics automatically handles [weight transfer](https://www.ultralytics.com/glossary/transfer-learning), classification layer reinitialization, and optimizer selection. See the [Basic Fine-Tuning](#basic-fine-tuning-example) section for the complete code example.
 
 ### Why is my fine-tuned YOLO model not detecting anything?
 

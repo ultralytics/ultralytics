@@ -16,7 +16,6 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
@@ -42,7 +41,6 @@ class DetectionTrainer(BaseTrainer):
         progress_string: Return a formatted string of training progress.
         plot_training_samples: Plot training samples with their annotations.
         plot_training_labels: Plot the class and bounding box label distributions of the training dataset.
-        auto_batch: Calculate optimal batch size based on model memory requirements.
 
     Examples:
         >>> from ultralytics.models.yolo.detect import DetectionTrainer
@@ -140,6 +138,7 @@ class DetectionTrainer(BaseTrainer):
         """Set model attributes based on dataset information."""
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
+        self.model.colors = self.data.get("colors")  # attach optional class colors to model
         self.model.args = self.args  # attach hyperparameters to model
 
     def set_model_names_for_load(self, model):
@@ -150,13 +149,16 @@ class DetectionTrainer(BaseTrainer):
 
     def get_class_counts(self):
         """Return per-class instance counts from the training dataset labels."""
-        classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
+        labels = self.train_loader.dataset.labels
+        labels = {lb.get("source_index", i): lb for i, lb in enumerate(labels)}  # count each tiled source once
+        classes = np.concatenate([lb["cls"].flatten() for lb in labels.values()], 0)
         return np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
 
     def compute_class_weights(self, class_counts):
-        """Convert class counts to inverse-frequency weights raised to the power of cls_pw."""
-        class_counts = np.where(class_counts == 0, 1.0, class_counts)
-        return (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
+        """Return inverse-frequency weights raised to cls_pw, giving classes without train labels the mean weight."""
+        present = class_counts > 0
+        weights = (1.0 / np.where(present, class_counts, 1.0)) ** self.args.cls_pw
+        return np.where(present, weights, weights[present].mean())
 
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance.
@@ -232,6 +234,8 @@ class DetectionTrainer(BaseTrainer):
             labels=batch,
             paths=batch["im_file"],
             fname=self.save_dir / f"train_batch{ni}.jpg",
+            names=self.data["names"] if "semantic_mask" in batch else None,  # World/YOLOE remap cls to prompt slots
+            class_colors=self.data.get("colors"),
             on_plot=self.on_plot,
         )
 
@@ -240,16 +244,3 @@ class DetectionTrainer(BaseTrainer):
         boxes = np.concatenate([lb["bboxes"] for lb in self.train_loader.dataset.labels], 0)
         cls = np.concatenate([lb["cls"] for lb in self.train_loader.dataset.labels], 0)
         plot_labels(boxes, cls.squeeze(), names=self.data["names"], save_dir=self.save_dir, on_plot=self.on_plot)
-
-    def auto_batch(self):
-        """Get optimal batch size by calculating memory occupation of model.
-
-        Returns:
-            (int): Optimal batch size.
-        """
-        with override_configs(self.args, overrides={"cache": False}) as self.args:
-            train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
-        max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
-        n = len(train_dataset)
-        del train_dataset  # free memory
-        return super().auto_batch(max_num_obj, dataset_size=n)

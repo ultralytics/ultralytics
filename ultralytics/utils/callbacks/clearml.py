@@ -4,11 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
+from ultralytics.utils import LOGGER, TESTS_RUNNING
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["clearml"] is True  # verify integration is enabled
     import clearml
     from clearml import Task
 

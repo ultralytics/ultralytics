@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 from copy import copy, deepcopy
-from pathlib import Path
 
 import torch
 
 from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
 from ultralytics.data.augment import LoadVisualPrompt
+from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.nn.tasks import YOLOEModel, YOLOESegModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.patches import torch_load
+from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import unwrap_model
 
 from ..world.train_world import WorldTrainerFromScratch
@@ -100,6 +99,8 @@ class YOLOETrainer(DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
 
+    set_class_weights = BaseTrainer.set_class_weights  # cls channels are prompt positions, not dataset classes
+
 
 class YOLOEPETrainer(DetectionTrainer):
     """Fine-tune YOLOE model using linear probing approach.
@@ -133,16 +134,14 @@ class YOLOEPETrainer(DetectionTrainer):
         del model.model[-1].savpe
 
         assert weights is not None, "Pretrained weights must be provided for linear probing."
-        if weights:
-            model.load(weights)
-
-        model.eval()
         names = list(self.data["names"].values())
-        # NOTE: `get_text_pe` related to text model and YOLOEDetect.reprta,
-        # it'd get correct results as long as loading proper pretrained weights.
-        tpe = model.get_text_pe(names)
-        model.set_classes(names, tpe)
-        model.model[-1].fuse(model.pe)  # fuse text embeddings to classify head
+        model.eval()
+        if weights.model[-1].is_fused:  # resume or continued fine-tuning: build the fused head, then load into it
+            model.set_classes(names, torch.zeros(1, len(names), model.model[-1].embed))
+            model.model[-1].fuse(model.pe)
+        model.load(weights)
+        if not model.model[-1].is_fused:
+            model.get_vocab(names)  # fuse text embeddings to classify head
         model.model[-1].cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
         model.model[-1].cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
         model.model[-1].cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
@@ -188,30 +187,6 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
             (YOLOConcatDataset | Dataset): The constructed dataset for training or validation.
         """
         return WorldTrainerFromScratch.build_dataset(self, img_path, mode, batch)
-
-    def generate_text_embeddings(self, texts: list[str], batch: int, cache_dir: Path):
-        """Generate text embeddings for a list of text samples.
-
-        Args:
-            texts (list[str]): List of text samples to encode.
-            batch (int): Batch size for processing.
-            cache_dir (Path): Directory to save/load cached embeddings.
-
-        Returns:
-            (dict): Dictionary mapping text samples to their embeddings.
-        """
-        model = unwrap_model(self.model).text_model
-        cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
-        if cache_path.exists():
-            LOGGER.info(f"Reading existed cache from '{cache_path}'")
-            txt_map = torch_load(cache_path, map_location=self.device)
-            if sorted(txt_map.keys()) == sorted(texts):
-                return txt_map
-        LOGGER.info(f"Caching text embeddings to '{cache_path}'")
-        txt_feats = unwrap_model(self.model).get_text_pe(texts, batch, without_reprta=True, cache_clip_model=False)
-        txt_map = dict(zip(texts, txt_feats.squeeze(0)))
-        torch.save(txt_map, cache_path)
-        return txt_map
 
 
 class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):

@@ -16,7 +16,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
-from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.plotting import FONT, Annotator, colors, save_one_box
 
 
 class BaseTensor(SimpleClass):
@@ -214,6 +214,7 @@ class Results(SimpleClass, DataExportMixin):
         depth (DepthMap | None): Per-pixel depth map.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
+        colors (list[tuple] | None): Model class colors as RGB tuples indexed by class id, overriding the palette.
         path (str): Path to the input image file.
         save_dir (str | None): Directory to save results.
 
@@ -292,9 +293,43 @@ class Results(SimpleClass, DataExportMixin):
         self.depth = DepthMap(depth, self.orig_shape) if depth is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
+        self.colors = None
         self.path = path
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
+
+    @classmethod
+    def merge_tiles(
+        cls, results: list, windows: list[tuple], orig_img: np.ndarray, iou: float, agnostic: bool, max_det: int
+    ):
+        """Restore one source image from tile results using the shared task-output merge."""
+        predictions = []
+        rotated = results[0].obb is not None
+        for result in results:
+            pred = {k: getattr(result, k).data for k in result._keys if getattr(result, k) is not None}
+            if hasattr(result, "feats"):
+                pred["feats"] = result.feats
+            boxes = pred.pop("obb" if rotated else "boxes", None)
+            if boxes is not None:
+                n = 5 if rotated else 4
+                pred.update(bboxes=boxes[:, :n], conf=boxes[:, n], cls=boxes[:, n + 1])
+            predictions.append(pred)
+        pred = ops.merge_tiles(predictions, windows, orig_img.shape[:2], iou, agnostic, max_det)
+        if "bboxes" in pred:
+            pred["obb" if rotated else "boxes"] = torch.cat(
+                (pred.pop("bboxes"), pred.pop("conf")[:, None], pred.pop("cls")[:, None]), 1
+            )
+        feats = pred.pop("feats", None)
+        result = cls(orig_img, path=results[0].path, names=results[0].names, **pred)
+        if feats is not None:
+            result.feats = feats
+        if hasattr(results[0], "_loose"):
+            alternatives, thresholds = zip(*(r._loose for r in results))
+            result._loose = (
+                cls.merge_tiles(alternatives, windows, orig_img, thresholds[0], agnostic, max_det),
+                thresholds[0],
+            )
+        return result
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -481,15 +516,15 @@ class Results(SimpleClass, DataExportMixin):
             >>> new_result = results[0].new()
         """
         result = Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
-        result.save_dir = self.save_dir
+        result.save_dir, result.colors = self.save_dir, self.colors
         return result
 
     def plot(
         self,
         conf: bool = True,
-        line_width: float | None = None,
+        line_width: int | None = None,
         font_size: float | None = None,
-        font: str = "Arial.ttf",
+        font: str = FONT,
         pil: bool = False,
         img: np.ndarray | torch.Tensor | None = None,
         kpt_radius: int = 5,
@@ -508,7 +543,7 @@ class Results(SimpleClass, DataExportMixin):
 
         Args:
             conf (bool): Whether to plot detection confidence scores.
-            line_width (float | None): Line width of bounding boxes. If None, scaled to image size.
+            line_width (int | None): Line width of bounding boxes. If None, scaled to image size.
             font_size (float | None): Font size for text. If None, scaled to image size.
             font (str): Font to use for text.
             pil (bool): Whether to return the image as a PIL Image.
@@ -565,7 +600,8 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx])
+            custom = self.colors if pred_boxes and color_mode == "class" else None
+            annotator.masks(pred_mask_data, colors=[colors(x, True, custom) for x in idx])
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -575,20 +611,8 @@ class Results(SimpleClass, DataExportMixin):
                 d_conf, id = float(d.conf.item()) if conf else None, int(d.id.item()) if d.is_track else None
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else (f"{d_conf:.2f}" if conf else None)
-                annotator.box_label(
-                    box,
-                    label,
-                    color=colors(
-                        c
-                        if color_mode == "class"
-                        else id
-                        if id is not None
-                        else i
-                        if color_mode == "instance"
-                        else None,
-                        True,
-                    ),
-                )
+                color = colors(c, True, self.colors) if color_mode == "class" else colors(i if id is None else id, True)
+                annotator.box_label(box, label, color=color)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -601,7 +625,8 @@ class Results(SimpleClass, DataExportMixin):
             sem_mask = self.semantic_mask.data
             if isinstance(sem_mask, torch.Tensor):
                 sem_mask = sem_mask.cpu().numpy()
-            annotator.semantic_mask(sem_mask, alpha=0.5)
+            sem_mask = np.where(sem_mask == 1, 0, 255) if len(names) == 1 else sem_mask
+            annotator.semantic_mask(sem_mask, alpha=0.5, custom=self.colors)
 
         # Plot Depth results — blend colorized depth heatmap over the image
         if self.depth and show_masks:
@@ -611,12 +636,13 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Pose results
         if self.keypoints is not None:
+            ids = pred_boxes.id.tolist()[::-1] if pred_boxes and pred_boxes.is_track else None
             for i, k in enumerate(reversed(self.keypoints.cpu().numpy().data)):  # one host transfer, no per-kpt syncs
                 annotator.kpts(
                     k,
                     radius=kpt_radius,
                     kpt_line=kpt_line,
-                    kpt_color=colors(i, True) if color_mode == "instance" else None,
+                    kpt_color=colors(ids[i] if ids else i, True) if color_mode == "instance" else None,
                 )
 
         # Show results
@@ -625,7 +651,7 @@ class Results(SimpleClass, DataExportMixin):
 
         # Save results
         if save:
-            annotator.save(filename or f"results_{Path(self.path).name}")
+            annotator.save(filename or f"results_{Path(self.path or 'image').stem}.jpg")
 
         return annotator.result(pil)
 
@@ -672,9 +698,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> # Directory will be created automatically if it does not exist
             >>> result.save("path/to/annotated_image.jpg")
         """
-        if not filename:
-            filename = f"results_{Path(self.path).name}"
-        Path(filename).absolute().parent.mkdir(parents=True, exist_ok=True)
+        filename = filename or f"results_{Path(self.path or 'image').stem}.jpg"
         self.plot(*args, save=True, filename=filename, **kwargs)
         return filename
 
@@ -707,13 +731,12 @@ class Results(SimpleClass, DataExportMixin):
             return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in self.probs.top5)}, "
         if boxes:
             counts = torch.as_tensor(boxes.cls, dtype=torch.int64).bincount()  # no-op for torch, converts numpy()
-            return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+            return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts.tolist()) if n > 0)
         if self.depth is not None:
             d = self.depth.data
             d = d[d > 0]
             return f"depth {float(d.min()):.2f}-{float(d.max()):.2f}m, " if len(d) else "depth (no valid pixels), "
-        if self.semantic_mask is not None:
-            return ""
+        return ""
 
     def save_txt(self, txt_file: str | Path, save_conf: bool = False) -> str:
         """Save detection results to a text file.
@@ -803,16 +826,14 @@ class Results(SimpleClass, DataExportMixin):
             ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
 
         Notes:
-            - This method does not support Semantic Segmentation, Depth, Classify, or Oriented Bounding Box (OBB) tasks.
+            - This method does not support Semantic Segmentation, Depth, or Classify tasks.
             - Crops are saved as 'save_dir/class_name/file_name.jpg'.
+            - OBB crops follow the box rotation and fill areas outside the source image with black.
             - The method will create necessary subdirectories if they don't exist.
             - Original image is copied before cropping to avoid modifying the original.
         """
         if self.probs is not None:
             LOGGER.warning("Classify task does not support `save_crop`.")
-            return
-        if self.obb is not None:
-            LOGGER.warning("OBB task does not support `save_crop`.")
             return
         if self.semantic_mask is not None:
             LOGGER.warning("Semantic Segmentation task does not support `save_crop`.")
@@ -820,9 +841,10 @@ class Results(SimpleClass, DataExportMixin):
         if self.depth is not None:
             LOGGER.warning("Depth task does not support `save_crop`.")
             return
-        for d in self.boxes.cpu():  # one host transfer avoids per-box GPU syncs in the loop below
+        boxes = self.obb if self.obb is not None else self.boxes
+        for d in boxes.cpu() if boxes is not None else []:  # one host transfer avoids per-box GPU syncs
             save_one_box(
-                d.xyxy,
+                d.xyxyxyxy if self.obb is not None else d.xyxy,
                 self.orig_img.copy(),
                 file=Path(save_dir) / self.names[int(d.cls.item())] / Path(file_name).with_suffix(".jpg"),
                 BGR=True,
@@ -834,8 +856,8 @@ class Results(SimpleClass, DataExportMixin):
         This method creates a list of detection dictionaries, each containing information about a single detection or
         classification result. For classification tasks, it returns the top 5 classes and their
         confidences. For detection tasks, it includes class information, bounding box coordinates, and
-        optionally mask segments and keypoints. For semantic segmentation, it returns the per-class pixel ratio, and
-        for depth estimation it returns an empty list.
+        optionally mask segments and keypoints. For semantic segmentation, it returns the per-class pixel ratio. Depth
+        estimation, and any result with neither boxes nor oriented boxes, returns an empty list.
 
         Args:
             normalize (bool): Whether to normalize bounding box coordinates by image dimensions.
@@ -890,15 +912,12 @@ class Results(SimpleClass, DataExportMixin):
                 )
             return results
 
-        if self.depth is not None:
-            # Depth is a dense per-pixel map, not a per-instance result; excluded from summary.
-            return results
-
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
-        if data:
-            data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
-            coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
+        if not data:  # depth maps and results without boxes have no per-instance rows
+            return results
+        data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
+        coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
         kpts = self.keypoints
         if kpts is not None:
             kpts = kpts.cpu()  # ditto for the per-row keypoints sync below

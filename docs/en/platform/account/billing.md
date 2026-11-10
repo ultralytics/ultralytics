@@ -1,23 +1,26 @@
 ---
 plans: [free, pro, enterprise]
-title: Billing & Credits
+title: Pricing, Plans & Billing - Ultralytics Platform
 comments: true
-description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent compute pricing for cloud training, batch annotation, and endpoints.
-keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
+description: Ultralytics Platform pricing for Free with up to $25 in signup credit, Pro at $29 per seat/month, and custom-priced Enterprise with the Enterprise License.
+keywords: Ultralytics Platform, Ultralytics pricing, Enterprise License, plans, billing, credits, subscription, payments, training costs
 ---
 
-# Billing
+# Pricing, Plans and Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, batch annotation, and custom-resource endpoint uptime. Add credits, track
+[Ultralytics Platform](https://platform.ultralytics.com) has three plans: **Free** with a $5 signup credit ($25 after
+verifying a work email), **Pro** at $29 per seat/month, and **Enterprise**, which is custom-priced and includes the
+Ultralytics Enterprise License for commercial use. Every plan uses credits for metered compute: cloud training,
+[batch annotation](../data/annotation.md#batch-annotation), and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
 
 ## Plans
 
-Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
+Choose the plan that fits your needs. Compare plans in `Settings > Plans` or on the [Ultralytics pricing page](https://www.ultralytics.com/pricing):
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
 
 {% include "macros/platform-plan-comparison.md" %}
 
@@ -31,16 +34,16 @@ Get started at no cost:
 - 3 concurrent cloud training jobs
 - 3 cloud deployments
 - 100 GB storage · 10 GB dataset upload limit
-- Model export to all 21 formats
+- Model export to all 23 formats
 - Manual, SAM 3.1, and YOLO Smart annotation
-- 24 cloud GPU types including 5090, H100 & H200 ($0.24–$4.39/hr)
+- 24 cloud GPU types including 5090, H100 & H200
 - Community support
 
 !!! tip "Company Email Bonus"
 
-    Sign up with, or later add and verify, a company email address (not gmail.com, outlook.com, and similar consumer
-    domains) to top your signup credit up from $5 to $25. The bonus is granted once per account — add the address in
-    [`Settings > Profile`](settings.md#emails).
+    Sign up with a company email address (not gmail.com, outlook.com, and similar consumer domains), or later change your
+    account email to one and confirm it, to top your signup credit up from $5 to $25. The bonus is granted once per
+    account — change the address in [`Settings > Profile`](settings.md#email).
 
 ### Pro Plan
 
@@ -71,6 +74,7 @@ For organizations with advanced needs:
 - SSO / SAML authentication
 - [On Premise](../integrations/on-premise.md) data and compute
 - Custom SLAs on top of [ISO/IEC 27001:2022 and SOC 2 Type I compliance](https://www.ultralytics.com/security)
+- HIPAA Business Associate Agreement (BAA) for eligible customers
 - Dedicated onboarding and support
 
 Enterprise plans are provisioned by the Ultralytics team. Click **Request Enterprise Demo** on the Enterprise card in
@@ -85,7 +89,7 @@ Credits are the currency for Platform compute services.
 
 View your balance in `Settings > Billing`:
 
-![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/e7db27e18b14d2a8d2672966455c965f.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/f45c7ce61c718d4a2517cbffcaece256.avif)<!-- screenshot -->
 
 | Balance Type  | Description                           |
 | ------------- | ------------------------------------- |
@@ -122,7 +126,7 @@ Top up your balance:
 
 Your balance updates automatically once the payment succeeds — you don't need to reload the page.
 
-![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.ul.run/i/41dea87cf64f1a2c6366f0707b7ab3fa.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.ul.run/i/a7203389c72014b326fdb168de898c5d.avif)<!-- screenshot -->
 
 ### Top-Up Presets
 
@@ -144,18 +148,31 @@ Enable automatic credit purchases when your balance drops below a threshold:
 2. Toggle **Auto Top-Up** on
 3. Set **Threshold** (balance level that triggers a top-up)
 4. Set **Amount** (credits to purchase when triggered, $5 – $5,000)
-5. Click **Save**
+5. Click **Save changes**
 
 Default settings: threshold $20, amount $100.
 
 Auto top-up is evaluated whenever a charge lowers your balance, including mid-run training charges, and charges your
-default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined, a
-**Auto Top-Up Failed** row is added to your transaction history with the reason, and no credits are added.
+default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined or
+missing, an **Auto Top-Up Failed** row is added to your transaction history with the reason, no credits are added, and
+auto top-up turns off until you switch it back on.
 
 !!! tip "Reduce Training Interruptions"
 
     Auto top-up can reduce the chance that a paid cloud training job is stopped for insufficient credits. It requires
     a valid default payment method.
+
+### Redeem a Promo Code
+
+If you did not apply a promo code during signup, redeem one later:
+
+1. Switch to your personal workspace and go to **Settings > Billing**
+2. Enter the code under **Promo Code**
+3. Click **Redeem**
+
+The credits are added to your balance immediately and appear as a **Promo Bonus** transaction. Each account redeems
+one promo code in total, so a code applied during signup counts. Referral codes (`REF-` followed by eight characters)
+work only during signup.
 
 ### Payment Methods
 
@@ -180,14 +197,10 @@ Cloud training estimates cost before start, meters GPU time while the run is in 
 when the run ends.
 
 ```mermaid
-flowchart LR
-    A[Start Training]:::start --> B[Estimate Cost]:::proc
-    B --> C[Meter GPU Usage]:::proc
-    C --> D[Settle at Terminal State]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Start training]) --> B[Estimate cost]
+    B --> C[Meter GPU usage]
+    C --> D([Settle when the run ends])
 ```
 
 ### How It Works
@@ -207,13 +220,13 @@ flowchart LR
 
 ## Training Costs
 
-Cloud training costs depend on GPU selection:
+Cloud training costs depend on [GPU selection](https://www.ultralytics.com/blog/how-to-pick-a-cloud-gpu-for-vision-ai-training-on-ultralytics-platform):
 
 {% include "macros/platform-gpu-table.md" %}
 
 B200 and B300 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
 
-See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
+See [Cloud Training](../train/cloud-training.md) for complete GPU options.
 
 ### Cost Calculation
 
@@ -221,10 +234,10 @@ See [Cloud Training](../train/cloud-training.md) for complete GPU options and pr
 Total Cost = GPU Rate x Training Time (hours)
 ```
 
-Example: Training for 2.5 hours on RTX PRO 6000
+Example: Training for 2.5 hours on a GPU priced at $2.00/hour
 
 ```text
-$2.09 x 2.5 = $5.23
+$2.00 x 2.5 = $5.00
 ```
 
 ## Upgrade to Pro
@@ -237,7 +250,7 @@ Upgrade for more features and monthly credits:
 4. Choose billing cycle (Monthly or Yearly)
 5. Complete checkout
 
-![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.ul.run/i/c5c4e48ad1cb59d059bc5112c1c6ed2f.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.ul.run/i/51b9dfbe2a1fec32580141b350326ef1.avif)<!-- screenshot -->
 
 ### Pro Benefits
 
@@ -250,13 +263,13 @@ After upgrading:
 - 10 cloud deployments
 - [Google Cloud Storage, Amazon S3, and Azure Blob Storage datasets](../integrations/index.md)
 - [Team collaboration](teams.md) (up to 5 members, including you)
-- Access to best GPUs (B200, B300)
+- Access to the best GPUs (B200, B300)
 - Priority support
 
 ### Renewals
 
 Ultralytics bills the Pro plan directly from your saved payment method. At the end of each billing period,
-your default payment method is charged for the seats currently in use. If the charge fails you're emailed, and the
+your default payment method is charged for the seats currently in use. If the charge fails, you're emailed, and the
 platform retries on the following days — after three failed attempts the workspace is downgraded to Free.
 
 ### Cancel Pro
@@ -271,7 +284,7 @@ If you cancel before the end of your billing period, a **Resume Subscription** b
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your current billing period. Monthly credits stop being granted at cancellation.
+    Pro features remain active until the end of your current billing period, and yearly plans keep receiving monthly credit grants until then.
 
 ### Downgrading to Free
 
@@ -301,7 +314,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 View all transactions in `Settings > Billing`. The table covers the selected date range (last 30 days by default),
 supports free-text search across every field, and exports to CSV or JSON from the menu in the card header.
 
-![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/ecd72fd02c557801a298593d0f8ad2bb.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/706d984e623d641af877e83e1d08997c.avif)<!-- screenshot -->
 
 | Column          | Description                                                                           |
 | --------------- | ------------------------------------------------------------------------------------- |
@@ -320,7 +333,7 @@ supports free-text search across every field, and exports to CSV or JSON from th
 | **Signup Bonus**       | Signup credit, including the company-email top-up                       |
 | **Credit Purchase**    | Manual top-up                                                           |
 | **Auto Top-Up**        | Automatic top-up triggered by your threshold                            |
-| **Auto Top-Up Failed** | An automatic top-up was declined; no credits were added                 |
+| **Auto Top-Up Failed** | An automatic top-up failed; no credits were added                       |
 | **Subscription**       | Pro subscription or seat charge                                         |
 | **Monthly Grant**      | $30/seat monthly Pro credit                                             |
 | **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade           |
@@ -333,18 +346,28 @@ supports free-text search across every field, and exports to CSV or JSON from th
 
 ## FAQ
 
+### How much does an Ultralytics Enterprise License cost?
+
+Enterprise License pricing is custom, so no list price is published. Request a quote through the form on
+[Ultralytics Licensing](https://www.ultralytics.com/license). On Platform, the license is included in the
+[Enterprise plan](#enterprise); Free and Pro use AGPL-3.0. See
+[YOLO Licenses](../../index.md#yolo-licenses-how-is-ultralytics-yolo-licensed) for what each license allows.
+
 ### What happens when I run out of credits?
 
 - **Running paid cloud training**: Stops when metered usage pushes the balance below zero
 - **New training**: Cannot start new jobs until balance is positive
-- **Deployments**: Continue running regardless of balance
+- **Deployments**: Default-size endpoints keep running; custom-size endpoints, and any background camera on them, are
+  stopped automatically
 
 Add credits to restore a positive balance before starting new training jobs. Enable [auto top-up](#auto-top-up) to
 reduce the chance of an active job being stopped for insufficient funds.
 
 ### How do I get an invoice?
 
-Transaction receipts are available in the transaction history. Click the receipt icon next to any purchase transaction.
+Card payments (credit purchases, auto top-ups, and Pro subscription and seat charges) show a receipt link in the
+**Details** column of the transaction history. It opens the payment's invoice when one was issued, otherwise the card
+receipt.
 
 ### What if training fails?
 
@@ -366,5 +389,8 @@ no extra charge for the rest of the period. See [Teams](teams.md#inviting-member
 
 ### Is there a free trial?
 
-The Free plan includes $5 in signup credit, increased to $25 after verifying a company email. No credit card is
-required to start.
+The Free plan includes $5 in signup credit, and no credit card is required. To raise it to $25, change your account
+email to a company address (not Gmail, Outlook or another consumer domain) from your personal workspace in
+[`Settings > Profile`](settings.md#email) and confirm it; the extra $20 is added once per account. If you have a promo
+code you didn't use at signup, redeem it from your personal workspace under **Settings > Billing**. See
+[Redeem a Promo Code](#redeem-a-promo-code).

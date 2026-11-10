@@ -161,8 +161,8 @@ def modelopt_quantize_onnx(
     if quantize == 8 and dataset is None:
         raise ValueError("INT8 ModelOpt quantization requires a calibration dataset.")
 
-    # Require modelopt >= 0.44: older releases import onnx.mapping which was removed in onnx >= 1.18 and crash
-    check_requirements("nvidia-modelopt[onnx]>=0.44")
+    # modelopt<0.44 imports onnx.mapping (removed in onnx 1.18); pin torch so modelopt's torch>=2.8 can't replace it
+    check_requirements("nvidia-modelopt[onnx]>=0.44", constrain=(f"torch=={TORCH_VERSION}",))
     import onnx
 
     graph = onnx.load(onnx_file, load_external_data=False).graph
@@ -184,8 +184,13 @@ def modelopt_quantize_onnx(
         calib = calib.to(torch.float32).div_(255.0)
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
-        heads = {int(m.group(1)): m.group(0) for n in graph.node if (m := re.match(r".*?/model\.(\d+)/", n.name))}
-        head = heads[max(heads)] if heads else "/"  # `nms=True` wraps the model, so the prefix is `/model/model.N/`
+        # Only on SM 12.1 (GB10, N1X): TensorRT builds RT-DETR's HGBlock squeeze conv broken in INT8, so it stays float
+        sm121 = torch.cuda.get_device_capability() == (12, 1)
+        # On every GPU: RT-DETR's transformer, the AIFI encoder layer and the RTDETRDecoder, stays in float, attention
+        # included: TensorRT 11.3 and 11.4 build it broken in INT8 (rtdetr-l 4.9-5.4 mAP), and it adds ~1-2 mAP on 11.2
+        transformer = {m[1] for n in graph.node if (m := re.match(r"/model\.(\d+)/(ma|decoder)/", n.name))}
+        # search, not match: nms=True exports wrap the model in NMSModel, prefixing every name with "/model"
+        head = max(int(m[1]) for n in graph.node if (m := re.search(r"/model\.(\d+)/", n.name)))
         modelopt_quantize(
             onnx_file,
             quantize_mode="int8",
@@ -198,7 +203,9 @@ def modelopt_quantize_onnx(
             # The head's output layers, the bare convolutions and linears outside its `Conv` blocks, and DFL's fixed
             # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float as in QAT.
             # `Classify.linear` exports as `Gemm` and loses nothing in INT8, so it is not matched
-            nodes_to_exclude=[rf"{head}(?!.*/conv/).*/(Conv|MatMul)", rf"{head}dfl/"],
+            nodes_to_exclude=[rf".*/model\.{head}/((?!.*/conv/).*/(Conv|MatMul)|dfl/)"]
+            + [rf"/model\.{i}/" for i in sorted(transformer)]
+            + ([r".*/sc/conv/Conv$"] if sm121 else []),
             output_path=out_file,
             **kwargs,
         )
@@ -217,6 +224,7 @@ def modelopt_quantize_onnx(
         autocast.convert_to_mixed_precision(
             onnx_file,
             low_precision_type="fp16",
+            data_max=float(np.finfo(np.float16).max),  # the 512 default keeps pixel-space box post-processing in FP32
             keep_io_types=True,
             calibration_data={input_name: im},
         ),
@@ -250,7 +258,7 @@ def onnx2engine(
         dla (int | None): DLA core to use (Jetson devices only).
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration, unused when the
             ONNX graph already carries Q/DQ ranges.
-        metadata (dict | None): Metadata to include in the engine file.
+        metadata (dict | None): Metadata to include in the engine file; its `stride` sizes the dynamic minimum shape.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
 
@@ -258,8 +266,8 @@ def onnx2engine(
         (str): Path to the exported engine file.
 
     Raises:
-        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11.0,
-            or without FP16/INT8 precision.
+        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11, or
+            without FP16/INT8 precision.
         RuntimeError: If the ONNX file cannot be parsed or the engine build fails.
 
     Notes:
@@ -273,10 +281,10 @@ def onnx2engine(
     """
     import onnx
 
-    # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
+    # Force re-install TensorRT on CUDA 13 ARM devices to >=10.15 for RT-DETR exports, <11 on JetPack (unsupported)
     # https://github.com/ultralytics/ultralytics/issues/22873
     if is_jetson(jetpack=7) or is_dgx():
-        check_tensorrt("10.15")
+        check_tensorrt("10.15,<11" if IS_JETSON else "10.15")
 
     try:
         import tensorrt as trt
@@ -320,10 +328,10 @@ def onnx2engine(
     if dla is not None:
         if not IS_JETSON:
             raise ValueError("DLA is only available on NVIDIA Jetson devices")
-        if check_version(trt.__version__, ">=11.0.0,<11.1.0"):
-            # DLA is unsupported in TensorRT 11.0 and is planned to return in a later release
+        if is_trt11:
+            # DLA is unsupported in TensorRT 11 (through at least 11.4) and is planned to return in a later release
             # https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html
-            raise ValueError("DLA is not supported in TensorRT 11.0; export with TensorRT 10.x to use DLA.")
+            raise ValueError("DLA is not supported in TensorRT 11; export with TensorRT 10.x to use DLA.")
         LOGGER.info(f"{prefix} enabling DLA on core {dla}...")
         if not use_fp16 and not use_int8:
             raise ValueError(
@@ -353,7 +361,9 @@ def onnx2engine(
 
     if dynamic:
         profile = builder.create_optimization_profile()
-        min_shape = (1, shape[1], 32, 32)  # minimum input shape
+        old_qdq_gpu = (qdq or (is_trt11 and use_int8)) and torch.cuda.get_device_capability() <= (7, 5)  # e.g. T4
+        min_side = max(64, 2 * (metadata or {}).get("stride", 32)) if old_qdq_gpu else 32  # lacks 1x1 INT8 Q/DQ
+        min_shape = (1, shape[1], *(min(min_side, d) for d in shape[2:]))  # minimum input shape, capped at imgsz
         max_shape = (*shape[:2], *(2 * d for d in shape[2:]))  # max input shape, 2x imgsz
         for inp in inputs:
             inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))
@@ -441,12 +451,13 @@ def onnx2engine(
         # `modelopt_quantize_onnx` does. Scope this to the head: every SiLU activation is also a Sigmoid, and
         # constraining all of them costs INT8 speed across backbone and neck.
         names = [network.get_layer(i).name for i in range(network.num_layers)]
-        heads = {int(m.group(1)): m.group(0) for n in names if (m := re.match(r".*?/model\.(\d+)/", n))}
-        head = heads[max(heads)] if heads else "/"  # `nms=True` wraps the model, so the prefix is `/model/model.N/`
+        # search, not match: nms=True exports wrap the model in NMSModel, prefixing every name with "/model"
+        indices = [int(m.group(1)) for n in names if (m := re.search(r"/model\.(\d+)/", n))]
+        head = f"/model.{max(indices)}/" if indices else "/"
         count = 0
         for i in range(network.num_layers):
             layer = network.get_layer(i)
-            if not layer.name.startswith(head):
+            if head not in layer.name:
                 continue
             if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
                 dtype = trt.float32

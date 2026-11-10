@@ -804,6 +804,7 @@ class Depth(nn.Module):
     """
 
     export = False  # export mode
+    format = None  # export format
 
     def __init__(self, c_mid: int = 256, ch: list[int] | tuple[int, ...] = ()):
         """Initialize Depth head.
@@ -857,15 +858,16 @@ class Depth(nn.Module):
             out = out + feats[i]
             out = self.refine[i](out)
 
-        out = self.head(out)  # (B, 1, H/4, W/4)
-        depth = torch.exp(out.clamp(-4.0, 5.0))
-
+        out = self.head(out).clamp(-4.0, 5.0)  # (B, 1, H/4, W/4) log-depth
         if self.training:
-            return {"depth": depth}
+            return {"depth": torch.exp(out)}
 
-        depth = depth.pow(self.cal_a) * self.cal_b.exp()
-        if self.export:
-            depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=False)
+        # exp(a * log d + b) equals d.pow(a) * exp(b); avoids Pow, which the Intel NPU computes wrongly
+        depth = torch.exp(self.cal_a * out + self.cal_b)
+        if self.export:  # same align_corners=True resize as the depth loss, calibration and validator
+            depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=True)
+            if self.format == "litert":  # no-op ReLU stops the Intel NPU compiler corrupting the final reshape
+                depth = depth.relu()
         return depth
 
 
@@ -1066,16 +1068,17 @@ class LRPCHead(nn.Module):
         Returns:
             loc (torch.Tensor): Box regression output of the localization module.
             cls (torch.Tensor): Class scores with shape (B, num_classes, N) for the N kept anchors.
-            mask (torch.Tensor | None): Boolean mask of kept anchors, or None when `conf` is 0 and the head is enabled.
+            mask (torch.Tensor | None): Boolean mask of anchors kept by any image, or None when `conf` is 0 and the head
+                is enabled.
         """
         if self.enabled:
             if not conf:  # static export, every anchor passes the proposal filter
                 cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2))
                 return self.loc(loc_feat), cls_feat.transpose(-1, -2), None
-            pf_score = self.pf(cls_feat)[0, 0].flatten(0)
-            mask = pf_score.sigmoid() > conf
-            cls_feat = cls_feat.flatten(2).transpose(-1, -2)
-            cls_feat = self.vocab(cls_feat[:, mask])
+            keep = self.pf(cls_feat)[:, 0].flatten(1).sigmoid() > conf  # (B, N) per-image proposals
+            mask = keep.any(0)  # batch union, then suppress anchors each image's own filter rejected
+            cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2)[:, mask])
+            cls_feat = cls_feat.masked_fill(~keep[:, mask, None], float("-inf"))
             return self.loc(loc_feat), cls_feat.transpose(-1, -2), mask
         else:
             cls_feat = self.vocab(cls_feat)
@@ -1308,7 +1311,7 @@ class YOLOEDetect(Detect):
             return {}
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        self.nc = x[-1].shape[1]
+        self.nc = int(x[-1].shape[1])
         scores = torch.cat(
             [contrastive_head[i](cls_head[i](x[i]), x[-1]).reshape(bs, self.nc, -1) for i in range(self.nl)], dim=-1
         )
@@ -1317,6 +1320,8 @@ class YOLOEDetect(Detect):
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
+        if self.is_fused:  # text embeddings are fused into cls_head, which then initializes like Detect
+            return super().bias_init()
         for i, (a, b, c) in enumerate(
             zip(self.one2many["box_head"], self.one2many["cls_head"], self.one2many["contrastive_head"])
         ):

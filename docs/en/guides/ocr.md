@@ -61,12 +61,12 @@ The YOLO26-Text family provides `n`, `s`, `m`, `l`, and `x` OBB checkpoints, whi
 `solutions.OCR(model="yolo26s-text.pt")`. The defaults come from a benchmark of 80 HierText validation photos with
 their transcriptions, PDF pages scored against their text layers, and screenshots:
 
-| Setting                    | Default        | Benchmark result                                                                     |
-| -------------------------- | -------------- | ------------------------------------------------------------------------------------ |
-| `model`                    | `yolo26x-text` | Best word F1 on photos and documents; `yolo26l-text` is within 0.5 points.           |
-| `imgsz`                    | `1280`         | 960 loses 6 points of recall on photos; 1920 adds nothing. Smaller images run at their own size, never upscaled. |
-| Recognition unit           | Word           | Reading words one by one beats reading whole lines by 4 F1 points on photos.        |
-| `max_det`                  | `1000`         | A dense document page holds more than the default 300 words.                         |
+| Setting          | Default        | Benchmark result                                                                                                 |
+| ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `model`          | `yolo26x-text` | Best word F1 on photos and documents; `yolo26l-text` is within 0.5 points.                                       |
+| `imgsz`          | `1280`         | 960 loses 6 points of recall on photos; 1920 adds nothing. Smaller images run at their own size, never upscaled. |
+| Recognition unit | Word           | Reading words one by one beats reading whole lines by 4 F1 points on photos.                                     |
+| `max_det`        | `1000`         | A dense document page holds more than the default 300 words.                                                     |
 
 To train your own OBB text detector, use the [Scene Text OBB dataset](../datasets/obb/scene-text.md), which combines
 COCO-Text and HierText word annotations.
@@ -142,12 +142,12 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 
 ## Dependencies and Licenses
 
-| Component         | Required                          | Role                                                     | License                |
-| ----------------- | --------------------------------- | -------------------------------------------------------- | ---------------------- |
-| Ultralytics       | Yes                               | YOLO detection, crop geometry, and result orchestration  | AGPL-3.0               |
-| ONNX Runtime      | Only for `recognizer="paddleocr"` | PP-OCRv6 recognition runtime                             | MIT                    |
-| PP-OCRv6 medium   | Only for `recognizer="paddleocr"` | Recognition weights from the Ultralytics assets release   | Apache-2.0             |
-| Custom callable   | No                                | User-owned recognition integration                       | Defined by the backend |
+| Component       | Required                          | Role                                                    | License                |
+| --------------- | --------------------------------- | ------------------------------------------------------- | ---------------------- |
+| Ultralytics     | Yes                               | YOLO detection, crop geometry, and result orchestration | AGPL-3.0               |
+| ONNX Runtime    | Only for `recognizer="paddleocr"` | PP-OCRv6 recognition runtime                            | MIT                    |
+| PP-OCRv6 medium | Only for `recognizer="paddleocr"` | Recognition weights from the Ultralytics assets release | Apache-2.0             |
+| Custom callable | No                                | User-owned recognition integration                      | Defined by the backend |
 
 PP-OCRv6 weights download on first use. Review the [model card](https://huggingface.co/PaddlePaddle/PP-OCRv6_medium_rec)
 and redistribution terms before packaging or deploying them. Custom checkpoint licenses are separate.

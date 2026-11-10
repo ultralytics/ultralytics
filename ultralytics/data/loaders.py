@@ -591,6 +591,8 @@ class LoadPilAndNumpy:
             im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
         elif im.dtype == np.uint16:  # e.g. cv2.IMREAD_UNCHANGED frames, scaled to 8 bits like imread and PIL I;16
             im = (im >> 8).astype(np.uint8)
+        elif im.dtype.kind == "f":  # cv2.resize rejects float16, cvtColor rejects float64, and MPS has no float64
+            im = im.astype(np.float32, copy=False)
         im = np.atleast_3d(im)
         # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
         # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check, and
@@ -610,7 +612,6 @@ class LoadPilAndNumpy:
                 return cv2.cvtColor(im[..., 0], cv2.COLOR_GRAY2BGR)
             return np.repeat(im, channels, axis=2)
         if channels == 1:
-            im = im.astype(np.float32, copy=False) if im.dtype.kind == "f" else im
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
         return cv2.cvtColor(im, cv2.COLOR_BGRA2BGR) if u8 and c == 4 else np.ascontiguousarray(im[..., :3])
 
@@ -686,7 +687,7 @@ class LoadTensor:
             )
             im = im.float() / 255.0
 
-        return im
+        return im.float() if im.dtype == torch.float64 else im  # MPS has no float64
 
     def __iter__(self):
         """Return an iterator object for iterating through tensor image data."""

@@ -91,8 +91,8 @@ def benchmark(
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
-        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or Intel 'cpu', 'xpu' (GPU) or
-            'npu' with format='openvino' or 'litert'.
+        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or 'xpu' and 'npu' for the
+            Intel GPU and NPU with format='openvino' or 'litert'.
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
             every successful format's metric exceeds this floor value.
         eps (float): Epsilon value for divide by zero prevention.
@@ -110,7 +110,9 @@ def benchmark(
     """
     from ultralytics.cfg import _handle_deprecation
 
+    kwargs["device"] = device  # deprecated intel:* device names map here too
     quantize = _handle_deprecation(kwargs).pop("quantize", quantize)  # updates kwargs in place, half/int8 -> quantize
+    device = kwargs.pop("device")
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
@@ -124,7 +126,7 @@ def benchmark(
     pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
 
     format_arg = format.lower()
-    intel = format_arg in AutoBackend.INTEL_FORMATS  # these runtimes map 'cpu', 'xpu' and 'npu' onto Intel devices
+    intel = format_arg in AutoBackend.INTEL_FORMATS  # these runtimes map 'xpu' and 'npu' onto Intel devices
     if not intel:
         device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):

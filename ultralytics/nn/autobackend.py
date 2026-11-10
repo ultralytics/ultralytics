@@ -11,17 +11,11 @@ import numpy as np
 import torch
 from torch import nn
 
-from ultralytics.utils import LINUX, LOGGER, RANK, WINDOWS
+from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
 from ultralytics.utils.plotting import Colors
-from ultralytics.utils.torch_utils import (
-    TORCH_1_10,
-    TORCH_1_13,
-    get_torch_device_backend,
-    select_device,
-    smart_inference_mode,
-)
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, select_device, smart_inference_mode
 
 from .backends import (
     AscendBackend,
@@ -189,7 +183,7 @@ class AutoBackend(nn.Module):
         "ascend": AscendBackend,
         "xilinx": ONNXBackend,
     }
-    # Runtimes that map PyTorch device names onto their own hardware: 'cpu', 'xpu' (Intel GPU) and 'npu' (Intel NPU)
+    # Runtimes that map PyTorch device names onto their own hardware, 'xpu' and 'npu' onto the Intel GPU and NPU
     INTEL_FORMATS = frozenset({"openvino", "litert"})
 
     @smart_inference_mode(False)
@@ -210,8 +204,7 @@ class AutoBackend(nn.Module):
         Args:
             model (str | Path | torch.nn.Module): Path to the model weights file or a module instance.
             device (torch.device | str, optional): PyTorch device name, e.g. 'cpu', '0', 'mps', 'xpu' or 'npu'. OpenVINO
-                and LiteRT map 'cpu', 'xpu' and 'npu' onto Intel CPU, GPU and NPU. Defaults to the best
-                available device.
+                and LiteRT map 'xpu' and 'npu' onto the Intel GPU and NPU. Defaults to the best available device.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
@@ -224,12 +217,7 @@ class AutoBackend(nn.Module):
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
         if format not in self.INTEL_FORMATS:
-            if RANK == -1 or str(device).lower() == "cpu":
-                device = select_device(device, verbose=verbose)
-            else:  # DDP ranks reuse the device assigned in trainer._setup_ddp(), so skip select_device's set_device()
-                device_type = str(device).split(":", 1)[0]
-                device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
-                device = torch.device(device_type, get_torch_device_backend(device_type).current_device())
+            device = select_device(device, verbose=verbose)
         if (
             isinstance(model, nn.Module)
             and TORCH_1_10

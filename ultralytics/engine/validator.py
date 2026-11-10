@@ -51,6 +51,7 @@ from ultralytics.utils.ops import Profile, linear_sum_assignment
 from ultralytics.utils.torch_utils import (
     attempt_compile,
     autocast,
+    get_torch_device_backend,
     smart_inference_mode,
     torch_distributed_zero_first,
     unwrap_model,
@@ -247,9 +248,14 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
+            device_type = str(self.args.device).split(":", 1)[0]
+            device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             model = AutoBackend(
                 model=model or self.args.model,
-                device=self.args.device,
+                # DDP ranks reuse the device assigned in trainer._setup_ddp()
+                device=self.args.device
+                if RANK == -1
+                else torch.device(device_type, get_torch_device_backend(device_type).current_device()),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.quantize == 16,

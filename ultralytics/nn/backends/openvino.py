@@ -96,7 +96,7 @@ class OpenVINOBackend(BaseBackend):
         self.ov_compiled_model = self.compile_model(ov_model)
         LOGGER.info(
             f"Using OpenVINO LATENCY mode for batch={self.batch} inference on "
-            f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
+            f"{', '.join(np.atleast_1d(self.ov_compiled_model.get_property('EXECUTION_DEVICES')))}..."  # NPU is a str
         )
         # Sync CPU inference leaves the main thread waiting, so the predictor can load the next batch meanwhile. Not
         # AUTO, whose EXECUTION_DEVICES can report CPU while an accelerator is still compiling

@@ -417,9 +417,12 @@ class AutoBackend(nn.Module):
 
         Returns:
             (bool): True for OpenVINO and LiteRT, and for ONNX 'npu', 'xpu' or 'auto' where the OpenVINO EP plugin runs.
+                'gpu' is never Intel, so it goes to `select_device` like on other formats ('xpu' is the Intel GPU).
         """
-        return format in {"openvino", "litert"} or (
-            format == "onnx" and OPENVINO_EP_SUPPORTED and str(device).lower() in {"npu", "xpu", "auto"}
+        name = str(device).lower()
+        return name != "gpu" and (
+            format in {"openvino", "litert"}
+            or (format == "onnx" and OPENVINO_EP_SUPPORTED and name in {"npu", "xpu", "auto"})
         )
 
     @staticmethod

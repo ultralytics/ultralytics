@@ -77,8 +77,8 @@ The OpenVINO format supports the [Export](../modes/export.md), [Predict](../mode
         # Run inference
         results = model("https://ultralytics.com/images/bus.jpg")
 
-        # Run inference on a specific Intel device: "cpu", "gpu", "npu" or "auto" (the default, OpenVINO AUTO)
-        results = model("https://ultralytics.com/images/bus.jpg", device="gpu")
+        # Run inference on a specific Intel device: "cpu", "xpu" (GPU), "npu" or "auto" (the default, OpenVINO AUTO)
+        results = model("https://ultralytics.com/images/bus.jpg", device="xpu")
         ```
 
     === "CLI"
@@ -87,8 +87,8 @@ The OpenVINO format supports the [Export](../modes/export.md), [Predict](../mode
         # Run inference with the exported OpenVINO model
         yolo predict model=yolo26n_openvino_model source='https://ultralytics.com/images/bus.jpg'
 
-        # Run inference on a specific Intel device: cpu, gpu, npu or auto (the default, OpenVINO AUTO)
-        yolo predict model=yolo26n_openvino_model source='https://ultralytics.com/images/bus.jpg' device=gpu
+        # Run inference on a specific Intel device: cpu, xpu (GPU), npu or auto (the default, OpenVINO AUTO)
+        yolo predict model=yolo26n_openvino_model source='https://ultralytics.com/images/bus.jpg' device=xpu
         ```
 
 !!! example "Validate"
@@ -170,7 +170,7 @@ Once your model is successfully exported to the OpenVINO format, you have two pr
 
 ### Inference with Ultralytics
 
-The `ultralytics` package runs inference on the exported OpenVINO model via the `predict` method. You can also specify the target Intel device (`cpu`, `gpu`, `npu` or `auto`) using the device argument; without one, OpenVINO AUTO selects the device.
+The `ultralytics` package runs inference on the exported OpenVINO model via the `predict` method. You can also specify the target Intel device (`cpu`, `xpu` for the GPU, `npu` or `auto`) using the device argument; without one, OpenVINO AUTO selects the device.
 
 ```python
 from ultralytics import YOLO
@@ -178,7 +178,7 @@ from ultralytics import YOLO
 # Load the exported OpenVINO model
 ov_model = YOLO("yolo26n_openvino_model/")  # the path of your exported OpenVINO model
 # Run inference with the exported model
-ov_model.predict(device="gpu")  # specify the device you want to run inference on
+ov_model.predict(device="xpu")  # specify the device you want to run inference on
 ```
 
 This approach suits fast prototyping or deployment when you don't need full control over the inference pipeline.
@@ -496,7 +496,7 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
         results = model.benchmark(data="coco128.yaml")
 
-        # Benchmark only OpenVINO on a specific Intel device: "cpu", "gpu", "npu" or "auto"
+        # Benchmark only OpenVINO on a specific Intel device: "cpu", "xpu", "npu" or "auto"
         results = model.benchmark(data="coco128.yaml", format="openvino", device="npu")
         ```
 
@@ -506,7 +506,7 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
         yolo benchmark model=yolo26n.pt data=coco128.yaml
 
-        # Benchmark only OpenVINO on a specific Intel device: cpu, gpu, npu or auto
+        # Benchmark only OpenVINO on a specific Intel device: cpu, xpu, npu or auto
         yolo benchmark model=yolo26n.pt data=coco128.yaml format=openvino device=npu
         ```
 

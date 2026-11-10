@@ -194,9 +194,9 @@ class ONNXBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .onnx model file, or an AMD Xilinx export directory containing one.
         """
-        intel = None  # Intel 'cpu', 'gpu', 'npu' or 'auto' request for the OpenVINO execution provider
+        intel = None  # Intel 'npu', 'xpu' (GPU) or 'auto' request for the OpenVINO execution provider
         if not isinstance(self.device, torch.device):  # 'intel', 'tpu' or 'vulkan' device strings run on CPU
-            name, self.device = str(self.device).upper(), torch.device("cpu")
+            name, self.device = str(self.device).upper().replace("XPU", "GPU"), torch.device("cpu")
             intel = name.replace("INTEL:", "") if name.startswith("INTEL:") or name in {"NPU", "GPU", "AUTO"} else None
         cuda = torch.cuda.is_available() and self.device.type != "cpu"
 

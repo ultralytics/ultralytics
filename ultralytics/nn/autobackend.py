@@ -208,9 +208,9 @@ class AutoBackend(nn.Module):
 
         Args:
             model (str | Path | torch.nn.Module): Path to the model weights file or a module instance.
-            device (torch.device | str, optional): Device request for `select_device`. OpenVINO and LiteRT models take
-                Intel 'cpu', 'gpu', 'npu' or 'auto' instead, and OpenVINO picks the device itself when None. Defaults to
-                the best available device.
+            device (torch.device | str, optional): Device request for `select_device`. OpenVINO, LiteRT and ONNX models
+                take Intel 'cpu', 'xpu', 'npu' or 'auto' instead, and OpenVINO picks the device itself when None.
+                Defaults to the best available device.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
@@ -409,17 +409,17 @@ class AutoBackend(nn.Module):
 
     @staticmethod
     def intel_device(format: str, device: torch.device | str | None) -> bool:
-        """Return whether the format's backend resolves Intel 'cpu', 'gpu', 'npu' and 'auto' device names itself.
+        """Return whether the format's backend resolves Intel 'cpu', 'xpu', 'npu' and 'auto' device names itself.
 
         Args:
             format (str): Model format, e.g. 'openvino', 'litert' or 'onnx'.
             device (torch.device | str | None): Device request.
 
         Returns:
-            (bool): True for OpenVINO and LiteRT, and for ONNX 'npu', 'gpu' or 'auto' where the OpenVINO EP plugin runs.
+            (bool): True for OpenVINO and LiteRT, and for ONNX 'npu', 'xpu' or 'auto' where the OpenVINO EP plugin runs.
         """
         return format in {"openvino", "litert"} or (
-            format == "onnx" and OPENVINO_EP_SUPPORTED and str(device).lower() in {"npu", "gpu", "auto"}
+            format == "onnx" and OPENVINO_EP_SUPPORTED and str(device).lower() in {"npu", "xpu", "auto"}
         )
 
     @staticmethod

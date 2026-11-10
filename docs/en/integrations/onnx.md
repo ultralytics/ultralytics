@@ -241,7 +241,7 @@ Ultralytics runs exported ONNX models on AMD GPUs through the ONNX Runtime [MIGr
 
 ## Intel CPU, GPU and NPU Inference with OpenVINO
 
-Exported ONNX models run on Intel hardware through the [OpenVINO execution provider plugin](https://onnxruntime.ai/docs/execution-providers/OpenVINO-ExecutionProvider.html), which Ultralytics installs as `onnxruntime-ep-openvino` on first use on Linux x86_64 and Windows x64 with Python 3.10 or newer. Pass `device="npu"`, `"gpu"` or `"auto"` (NPU, then GPU, then CPU) to select the Intel device, or `"intel:cpu"` for the OpenVINO CPU device. `device="cpu"` keeps the default ONNX Runtime CPU provider, and an unavailable Intel device falls back to `"auto"` with a warning.
+Exported ONNX models run on Intel hardware through the [OpenVINO execution provider plugin](https://onnxruntime.ai/docs/execution-providers/OpenVINO-ExecutionProvider.html), which Ultralytics installs as `onnxruntime-ep-openvino` on first use on Linux x86_64 and Windows x64 with Python 3.10 or newer. Pass `device="npu"`, `"xpu"` for the GPU, or `"auto"` (NPU, then GPU, then CPU) to select the Intel device, or `"intel:cpu"` for the OpenVINO CPU device. `device="cpu"` keeps the default ONNX Runtime CPU provider, and an unavailable Intel device falls back to `"auto"` with a warning.
 
 ```python
 from ultralytics import YOLO

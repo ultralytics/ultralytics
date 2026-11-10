@@ -91,7 +91,7 @@ def benchmark(
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
-        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or Intel 'cpu', 'gpu', 'npu' or
+        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or Intel 'cpu', 'xpu', 'npu' or
             'auto' with format='openvino', 'litert' or 'onnx'.
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
             every successful format's metric exceeds this floor value.
@@ -124,7 +124,7 @@ def benchmark(
     pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
 
     format_arg = format.lower()
-    intel = AutoBackend.intel_device(format_arg, device)  # these runtimes take Intel 'cpu', 'gpu' and 'npu' directly
+    intel = AutoBackend.intel_device(format_arg, device)  # these runtimes take Intel 'cpu', 'xpu' and 'npu' directly
     if not intel:
         device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):

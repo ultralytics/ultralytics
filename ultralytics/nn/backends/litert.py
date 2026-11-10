@@ -41,7 +41,8 @@ class LiteRTBackend(BaseBackend):
             weight (str | Path): Path to the .tflite model file (metadata embedded as a metadata.json entry).
         """
         tflite_file = Path(weight)
-        device = str(self.device or "").upper()  # 'cpu' uses the standard interpreter, 'intel:cpu' the Intel plugin
+        # 'cpu' uses the standard interpreter, 'intel:cpu' the Intel plugin, and 'xpu' is the Intel GPU
+        device = str(self.device or "").upper().replace("XPU", "GPU")
         self.device = torch.device("cpu")
         self.intel = self.format == "litert" and (device.startswith("INTEL:") or device in {"AUTO", "GPU", "NPU"})
 

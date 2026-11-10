@@ -11,7 +11,7 @@ import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LINUX, ops
-from ultralytics.utils.checks import check_requirements, rocm_is_available
+from ultralytics.utils.checks import check_python, check_requirements, rocm_is_available
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
 from ultralytics.utils.torch_utils import select_device
@@ -29,12 +29,15 @@ class TextRecognizer:
         """Load the recognizer on the NVIDIA GPU `device` when available, else on CPU, with its embedded character set."""
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
         cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
-        # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced
-        check_requirements(
-            [("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
+        # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced.
+        # 1.26 hands outputs to torch via DLPack and needs Python 3.11+
+        check_python("3.11")
+        builds = (
+            ("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")  # Jetson lacks [cuda]
             if cuda
-            else [("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml")]
+            else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")
         )
+        check_requirements([tuple(f"{b}>=1.26.0" for b in builds)])
         import onnxruntime as ort
 
         providers = ["CPUExecutionProvider"]
@@ -45,6 +48,8 @@ class TextRecognizer:
             options = {"device_id": device.index or 0, "cudnn_conv_algo_search": "HEURISTIC"}
             providers.insert(0, ("CUDAExecutionProvider", options))
         self.session = ort.InferenceSession(str(attempt_download_asset(model)), providers=providers)
+        # Character probabilities stay on the recognizer's device, which returns only each step's best character
+        self.output = self.session.get_outputs()[0].name, "cuda" if len(providers) > 1 else "cpu", device.index or 0
         # CTC alphabet: blank, the model's embedded characters, then space
         self.characters = ["", *self.session.get_modelmeta().custom_metadata_map["character"].split("\n"), " "]
 
@@ -62,13 +67,17 @@ class TextRecognizer:
             lines.append(cv2.resize(crop, (width, 48)).transpose(2, 0, 1) / 127.5 - 1)
         order = sorted(range(len(lines)), key=lambda i: lines[i].shape[2])
         reads = [("", 0.0)] * len(lines)
+        io = self.session.io_binding()
         for start in range(0, len(order), batch):
             indices = order[start : start + batch]
             x = np.zeros((len(indices), 3, 48, max(320, lines[indices[-1]].shape[2])), np.float32)
             for j, i in enumerate(indices):
                 x[j, :, :, : lines[i].shape[2]] = lines[i]
-            for i, probs in zip(indices, self.session.run(None, {"x": x})[0]):
-                ids, scores = probs.argmax(1), probs.max(1)
+            io.bind_cpu_input("x", x)
+            io.bind_output(*self.output)
+            self.session.run_with_iobinding(io)
+            best = torch.from_dlpack(io.get_outputs()[0]).max(-1)
+            for i, scores, ids in zip(indices, best.values.cpu().numpy(), best.indices.cpu().numpy()):
                 keep = (ids != 0) & np.r_[True, ids[1:] != ids[:-1]]  # CTC: drop blanks and repeats
                 reads[i] = (
                     "".join(self.characters[c] for c in ids[keep]),

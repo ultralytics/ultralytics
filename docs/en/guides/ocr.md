@@ -57,6 +57,8 @@ No OCR packages are added to the base Ultralytics dependencies.
 
 ### YOLO26-Text Checkpoints and Settings
 
+[YOLO26-Text on Ultralytics Platform](https://platform.ultralytics.com/ultralytics-yolo/yolo26-text)
+
 The YOLO26-Text family provides `n`, `s`, `m`, `l`, and `x` OBB checkpoints, which download automatically, for example
 `solutions.OCR(model="yolo26s-text.pt")`. The defaults come from a benchmark of 80 HierText validation photos with
 their transcriptions, PDF pages scored against their text layers, and screenshots:
@@ -145,7 +147,7 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 | Component       | Required                          | Role                                                    | License                |
 | --------------- | --------------------------------- | ------------------------------------------------------- | ---------------------- |
 | Ultralytics     | Yes                               | YOLO detection, crop geometry, and result orchestration | AGPL-3.0               |
-| ONNX Runtime    | Only for `recognizer="paddleocr"` | PP-OCRv6 recognition runtime                            | MIT                    |
+| ONNX Runtime    | Only for `recognizer="paddleocr"` | PP-OCRv6 recognition runtime, 1.26+ on Python 3.11+     | MIT                    |
 | PP-OCRv6 medium | Only for `recognizer="paddleocr"` | Recognition weights from the Ultralytics assets release | Apache-2.0             |
 | Custom callable | No                                | User-owned recognition integration                      | Defined by the backend |
 

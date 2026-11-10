@@ -48,14 +48,17 @@ class LiteRTBackend(BaseBackend):
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
         if self.intel:  # Intel OpenVINO plugin through CompiledModel
             check_requirements(["ai-edge-litert>=2.3.0", "ai-edge-litert-sdk-intel>=2.3.0"])
+            import openvino as ov
             from ai_edge_litert.compiled_model import CompiledModel, HardwareAccelerator, IntelOpenVinoOptions, Options
 
-            if device.endswith("AUTO"):  # first available of NPU, GPU, then CPU
-                import openvino as ov
-
-                available = ov.Core().available_devices
+            available = ov.Core().available_devices  # LiteRT silently runs on CPU if the requested device is missing
+            device = device.replace("INTEL:", "")
+            if device != "AUTO" and not any(a.startswith(device) for a in available):
+                LOGGER.warning(f"LiteRT Intel device '{device}' not available. Using 'AUTO' instead.")
+                device = "AUTO"
+            if device == "AUTO":  # first available of NPU, GPU, then CPU
                 device = next((d for d in ("NPU", "GPU") if any(a.startswith(d) for a in available)), "CPU")
-            backend = getattr(IntelOpenVinoOptions.GRAPH_BACKEND, device.replace("INTEL:", ""))
+            backend = getattr(IntelOpenVinoOptions.GRAPH_BACKEND, device)
             self.model = CompiledModel.from_file(
                 str(tflite_file),
                 options=Options(

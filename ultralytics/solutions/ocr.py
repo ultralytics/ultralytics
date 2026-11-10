@@ -35,7 +35,7 @@ class TextRecognizer:
         builds = (
             ("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")  # Jetson lacks [cuda]
             if cuda
-            else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml")
+            else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")
         )
         check_requirements([tuple(f"{b}>=1.26.0" for b in builds)])
         import onnxruntime as ort

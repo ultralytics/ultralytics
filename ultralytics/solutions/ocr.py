@@ -73,7 +73,11 @@ class TextRecognizer:
             io.bind_cpu_input("x", x)
             io.bind_output(*self.output)
             self.session.run_with_iobinding(io)
-            best = torch.from_dlpack(io.get_outputs()[0]).max(-1)
+            out = io.get_outputs()[0]  # onnxruntime<1.21 lacks DLPack, so its probabilities are copied to host
+            probs = (
+                torch.from_dlpack(out) if hasattr(out, "__dlpack__") else torch.from_numpy(io.copy_outputs_to_cpu()[0])
+            )
+            best = probs.max(-1)
             for i, scores, ids in zip(indices, best.values.cpu().numpy(), best.indices.cpu().numpy()):
                 keep = (ids != 0) & np.r_[True, ids[1:] != ids[:-1]]  # CTC: drop blanks and repeats
                 reads[i] = (

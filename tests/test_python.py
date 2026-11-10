@@ -1088,6 +1088,17 @@ def test_all_model_yamls():
             YOLO(m.name)
 
 
+def test_pose_dataset_flip_idx():
+    """Test packaged pose datasets move each named left or right keypoint into its opposite slot on flips."""
+    swap = {"left": "right", "right": "left"}
+    for file in (ROOT / "cfg" / "datasets").glob("*.yaml"):
+        data = YAML.load(file)
+        if "flip_idx" in data and "kpt_names" in data:
+            names = data["kpt_names"][0]
+            mirrored = ["_".join(swap.get(word, word) for word in name.split("_")) for name in names]
+            assert [names[i] for i in data["flip_idx"]] == mirrored, file.name
+
+
 @pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
 def test_workflow(isolated_model):
     """Test the complete workflow including training, validation, prediction, and exporting."""

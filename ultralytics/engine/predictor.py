@@ -62,7 +62,7 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, PREDICT_IOU, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.plotting import class_activation_map
-from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import attempt_compile, smart_inference_mode
 
 STREAM_WARNING = """
 Inference results will accumulate in RAM unless `stream=True` is passed, which can cause out-of-memory errors for large
@@ -531,7 +531,7 @@ class BasePredictor:
         model = deepcopy(model)
         self.model = AutoBackend(
             model=model or self.args.model,
-            device=select_device(self.args.device, verbose=verbose),
+            device=self.args.device,
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.quantize == 16,

@@ -41,24 +41,16 @@ class LiteRTBackend(BaseBackend):
             weight (str | Path): Path to the .tflite model file (metadata embedded as a metadata.json entry).
         """
         tflite_file = Path(weight)
-        # 'cpu' uses the standard interpreter, 'intel:cpu' the Intel plugin, and 'xpu' is the Intel GPU
-        device = str(self.device or "").upper().replace("XPU", "GPU")
+        # PyTorch device names: 'xpu' (Intel GPU) and 'npu' run through the Intel OpenVINO plugin, others on CPU
+        device = {"XPU": "GPU", "NPU": "NPU"}.get(str(self.device).upper().partition(":")[0])
         self.device = torch.device("cpu")
-        self.intel = self.format == "litert" and (device.startswith("INTEL:") or device in {"AUTO", "GPU", "NPU"})
+        self.intel = self.format == "litert" and device is not None
 
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
         if self.intel:  # Intel OpenVINO plugin through CompiledModel
             check_requirements(["ai-edge-litert>=2.3.0", "ai-edge-litert-sdk-intel>=2.3.0"])
-            import openvino as ov
             from ai_edge_litert.compiled_model import CompiledModel, HardwareAccelerator, IntelOpenVinoOptions, Options
 
-            available = ov.Core().available_devices  # LiteRT silently runs on CPU if the requested device is missing
-            device = device.replace("INTEL:", "")
-            if device != "AUTO" and not any(a.startswith(device) for a in available):
-                LOGGER.warning(f"LiteRT Intel device '{device}' not available. Using 'AUTO' instead.")
-                device = "AUTO"
-            if device == "AUTO":  # first available of NPU, GPU, then CPU
-                device = next((d for d in ("NPU", "GPU") if any(a.startswith(d) for a in available)), "CPU")
             backend = getattr(IntelOpenVinoOptions.GRAPH_BACKEND, device)
             self.model = CompiledModel.from_file(
                 str(tflite_file),

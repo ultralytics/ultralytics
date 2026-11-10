@@ -691,11 +691,9 @@ class Exporter:
         if fmt == "imx" and self.args.device is None and torch.cuda.is_available():
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
-        # Intel inference devices (OpenVINO, LiteRT, and ONNX npu, xpu or auto) trace on CPU
-        intel = str(self.args.device).startswith("intel") or AutoBackend.intel_device(fmt, self.args.device)
         self.device = select_device(
             "cpu"
-            if self.args.device is None or intel or fmt in {"coreai", "executorch", "litert", "nxp"}
+            if self.args.device is None or fmt in {"coreai", "executorch", "litert", "nxp", "openvino"}
             else self.args.device
         )
 

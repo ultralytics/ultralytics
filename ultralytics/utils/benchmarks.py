@@ -91,8 +91,8 @@ def benchmark(
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
-        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or Intel 'cpu', 'xpu', 'npu' or
-            'auto' with format='openvino', 'litert' or 'onnx'.
+        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or Intel 'cpu', 'xpu' (GPU) or
+            'npu' with format='openvino' or 'litert'.
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
             every successful format's metric exceeds this floor value.
         eps (float): Epsilon value for divide by zero prevention.
@@ -124,7 +124,7 @@ def benchmark(
     pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
 
     format_arg = format.lower()
-    intel = AutoBackend.intel_device(format_arg, device)  # these runtimes take Intel 'cpu', 'xpu' and 'npu' directly
+    intel = format_arg in AutoBackend.INTEL_FORMATS  # these runtimes map 'cpu', 'xpu' and 'npu' onto Intel devices
     if not intel:
         device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
@@ -210,7 +210,7 @@ def benchmark(
                 assert not (MACOS and is_github_action_running()), (
                     "LiteRT not benchmarked on macOS CI (ai-edge-litert/TF abseil mutex deadlock)"
                 )
-            if "cpu" in str(device):  # intel:* devices stay strings
+            if "cpu" in str(device):
                 assert cpu, "inference not supported on CPU"
             if "cuda" in str(device):
                 assert gpu, "inference not supported on GPU"

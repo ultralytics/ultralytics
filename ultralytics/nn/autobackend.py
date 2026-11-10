@@ -46,7 +46,6 @@ from .backends import (
     TorchScriptBackend,
     TritonBackend,
 )
-from .backends.onnx import OPENVINO_EP_SUPPORTED
 
 
 def check_class_names(names: list | dict) -> dict[int, str]:
@@ -190,6 +189,8 @@ class AutoBackend(nn.Module):
         "ascend": AscendBackend,
         "xilinx": ONNXBackend,
     }
+    # Runtimes that map PyTorch device names onto their own hardware: 'cpu', 'xpu' (Intel GPU) and 'npu' (Intel NPU)
+    INTEL_FORMATS = frozenset({"openvino", "litert"})
 
     @smart_inference_mode(False)
     def __init__(
@@ -208,9 +209,8 @@ class AutoBackend(nn.Module):
 
         Args:
             model (str | Path | torch.nn.Module): Path to the model weights file or a module instance.
-            device (torch.device | str, optional): Device request for `select_device`. OpenVINO, LiteRT and ONNX models
-                take Intel 'cpu', 'xpu', 'npu' or 'auto' instead, and OpenVINO picks the device itself when None.
-                Defaults to the best available device.
+            device (torch.device | str, optional): PyTorch device name, e.g. 'cpu', '0', 'mps', 'xpu' or 'npu'. OpenVINO
+                and LiteRT map 'cpu', 'xpu' and 'npu' onto Intel CPU, GPU and NPU. Defaults to the best available device.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
@@ -222,7 +222,7 @@ class AutoBackend(nn.Module):
         super().__init__()
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
-        if not self.intel_device(format, device):
+        if format not in self.INTEL_FORMATS:
             if RANK == -1 or str(device).lower() == "cpu":
                 device = select_device(device, verbose=verbose)
             else:  # DDP ranks reuse the device assigned in trainer._setup_ddp(), so skip select_device's set_device()
@@ -406,24 +406,6 @@ class AutoBackend(nn.Module):
                 warmup_boxes = torch.rand(1, 84, 16, device=self.device)  # 16 boxes works best empirically
                 warmup_boxes[:, :4] *= im.shape[-1]
                 non_max_suppression(warmup_boxes)  # warmup NMS
-
-    @staticmethod
-    def intel_device(format: str, device: torch.device | str | None) -> bool:
-        """Return whether the format's backend resolves Intel 'cpu', 'xpu', 'npu' and 'auto' device names itself.
-
-        Args:
-            format (str): Model format, e.g. 'openvino', 'litert' or 'onnx'.
-            device (torch.device | str | None): Device request.
-
-        Returns:
-            (bool): True for OpenVINO and LiteRT, and for ONNX 'npu', 'xpu' or 'auto' where the OpenVINO EP plugin runs.
-                'gpu' is never Intel, so it goes to `select_device` like on other formats ('xpu' is the Intel GPU).
-        """
-        name = str(device).lower()
-        return name != "gpu" and (
-            format in {"openvino", "litert"}
-            or (format == "onnx" and OPENVINO_EP_SUPPORTED and name in {"npu", "xpu", "auto"})
-        )
 
     @staticmethod
     def _model_type(p: str | Path = "path/to/model.pt", dnn: bool = False) -> str:

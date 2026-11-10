@@ -239,16 +239,6 @@ results = YOLO("yolo26n.onnx")("https://ultralytics.com/images/bus.jpg")
 
 Ultralytics runs exported ONNX models on AMD GPUs through the ONNX Runtime [MIGraphX execution provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html). On a ROCm (HIP) system, the ONNX backend installs the `onnxruntime-ep-migraphx` plugin on first use and selects `MIGraphXExecutionProvider` automatically with no code changes, and all YOLO26 tasks are supported. See the [AMD GPU inference guide](amd.md) for prerequisites, installation, usage, [benchmarks](amd.md#benchmarks), and the compiled-program cache.
 
-## Intel CPU, GPU and NPU Inference with OpenVINO
-
-Exported ONNX models run on Intel hardware through the [OpenVINO execution provider plugin](https://onnxruntime.ai/docs/execution-providers/OpenVINO-ExecutionProvider.html), which Ultralytics installs as `onnxruntime-ep-openvino` on first use on Linux x86_64 and Windows x64 with Python 3.10 or newer. Pass `device="npu"`, `"xpu"` for the GPU, or `"auto"` (NPU, then GPU, then CPU) to select the Intel device, or `"intel:cpu"` for the OpenVINO CPU device. `device="cpu"` keeps the default ONNX Runtime CPU provider, and an unavailable Intel device falls back to `"auto"` with a warning.
-
-```python
-from ultralytics import YOLO
-
-results = YOLO("yolo26n.onnx")("https://ultralytics.com/images/bus.jpg", device="npu")
-```
-
 ## Summary
 
 In this guide, you've learned how to export Ultralytics YOLO26 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.

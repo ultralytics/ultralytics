@@ -39,7 +39,8 @@ class OpenVINOBackend(BaseBackend):
             # https://github.com/openvinotoolkit/openvino/issues/37076, so cap oneDNN just below AMX
             os.environ.setdefault("ONEDNN_MAX_CPU_ISA", "AVX512_CORE_FP16")
         fallback_device = "CPU" if core.available_devices == ["CPU"] else "AUTO"
-        device_name = str(self.device or "").upper().replace("INTEL:", "").replace("XPU", "GPU") or fallback_device
+        name, _, index = str(self.device).upper().partition(":")  # PyTorch device names, 'xpu' is the Intel GPU
+        device_name = {"CPU": "CPU", "XPU": f"GPU.{index}" if index else "GPU", "NPU": "NPU"}.get(name, fallback_device)
         self.device = torch.device("cpu")
         if not any(d == device_name or d.startswith(f"{device_name}.") for d in [*core.available_devices, "AUTO"]):
             LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using '{fallback_device}' instead.")

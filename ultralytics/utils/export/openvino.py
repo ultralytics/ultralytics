@@ -72,7 +72,7 @@ def torch2openvino(
             calibration_dataset=calibration_dataset,
             # NPU runs CNN detection heads about 2x faster with symmetric activations; CPU and GPU gain little
             preset=nncf.QuantizationPreset.PERFORMANCE
-            if int8_detect and not transformer and str(device).lower() in {"npu", "intel:npu"}
+            if int8_detect and not transformer and str(device).lower().startswith("npu")
             else nncf.QuantizationPreset.MIXED,
             model_type=nncf.ModelType.TRANSFORMER if transformer else None,
             # Calibrate on the full dataset like other INT8 backends, not nncf's 300-batch default

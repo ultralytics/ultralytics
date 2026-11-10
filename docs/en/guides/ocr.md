@@ -57,6 +57,8 @@ No OCR packages are added to the base Ultralytics dependencies.
 
 ### YOLO26-Text Checkpoints and Settings
 
+[YOLO26-Text on Ultralytics Platform](https://platform.ultralytics.com/ultralytics-yolo/yolo26-text)
+
 The YOLO26-Text family provides `n`, `s`, `m`, `l`, and `x` OBB checkpoints, which download automatically, for example
 `solutions.OCR(model="yolo26s-text.pt")`. The defaults come from a benchmark of 80 HierText validation photos with
 their transcriptions, PDF pages scored against their text layers, and screenshots:

@@ -495,6 +495,9 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
 
         # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
         results = model.benchmark(data="coco128.yaml")
+
+        # Benchmark only OpenVINO on a specific Intel device: "cpu", "gpu", "npu" or "auto"
+        results = model.benchmark(data="coco128.yaml", format="openvino", device="npu")
         ```
 
     === "CLI"
@@ -502,6 +505,9 @@ To reproduce the Ultralytics benchmarks above on all export [formats](../modes/e
         ```bash
         # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
         yolo benchmark model=yolo26n.pt data=coco128.yaml
+
+        # Benchmark only OpenVINO on a specific Intel device: cpu, gpu, npu or auto
+        yolo benchmark model=yolo26n.pt data=coco128.yaml format=openvino device=npu
         ```
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, such as [COCO](https://platform.ultralytics.com/ultralytics/datasets/coco2017) (`data='coco.yaml'`, 5000 val images).

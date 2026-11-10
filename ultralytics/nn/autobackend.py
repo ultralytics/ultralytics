@@ -11,11 +11,17 @@ import numpy as np
 import torch
 from torch import nn
 
-from ultralytics.utils import LINUX, LOGGER, WINDOWS
+from ultralytics.utils import LINUX, LOGGER, RANK, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
 from ultralytics.utils.plotting import Colors
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import (
+    TORCH_1_10,
+    TORCH_1_13,
+    get_torch_device_backend,
+    select_device,
+    smart_inference_mode,
+)
 
 from .backends import (
     AscendBackend,
@@ -217,6 +223,9 @@ class AutoBackend(nn.Module):
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
         if format not in {"openvino", "litert"}:  # these backends resolve Intel 'cpu', 'gpu' and 'npu' themselves
             device = select_device(device, verbose=verbose)
+            if RANK != -1 and getattr(device, "type", None) in {"cuda", "npu", "xpu"}:
+                # DDP ranks reuse the device assigned in trainer._setup_ddp(), not the first of a multi-device request
+                device = torch.device(device.type, get_torch_device_backend(device).current_device())
         if (
             isinstance(model, nn.Module)
             and TORCH_1_10

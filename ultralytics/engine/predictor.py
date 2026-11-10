@@ -205,8 +205,7 @@ class BasePredictor:
                 im = im.flip(1)  # BGR to RGB
             im = (im.half() if self.model.fp16 else im.float()).div_(255)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
         else:
-            im = im.to(self.device)
-            im = im.half() if self.model.fp16 else im.float()  # already 0.0 - 1.0, no division
+            im = im.to(self.device, torch.float16 if self.model.fp16 else torch.float32)  # already 0.0 - 1.0, MPS no fp64
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):

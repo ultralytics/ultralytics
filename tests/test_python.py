@@ -545,7 +545,6 @@ def test_load_tensor_uint8():
     normalized = torch.ones((1, 3, 32, 32), dtype=torch.float32)
     normalized[..., 0, 0] += torch.finfo(normalized.dtype).eps
     assert LoadTensor(normalized).im0.max() > 1
-    assert LoadTensor(torch.zeros((1, 3, 32, 32), dtype=torch.float64)).im0.dtype == torch.float32  # MPS: no float64
 
 
 def test_predict_gray_and_4ch(tmp_path):

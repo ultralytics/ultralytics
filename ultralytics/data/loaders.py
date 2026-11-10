@@ -687,7 +687,7 @@ class LoadTensor:
             )
             im = im.float() / 255.0
 
-        return im.float() if im.dtype == torch.float64 else im  # MPS has no float64
+        return im
 
     def __iter__(self):
         """Return an iterator object for iterating through tensor image data."""

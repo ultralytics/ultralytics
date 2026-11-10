@@ -27,6 +27,7 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"yolo26{k}-objv1{suffix}.pt" for k in "nsmlx" for suffix in ("-150", "-seg")]
     + [f"yolo26{k}-{suffix}.pt" for k in "nsmlx" for suffix in ("distill", "sem-ade20k")]
     + [f"yolo26{k}-reid.onnx" for k in "nsmlx"]
+    + [f"yolo26{k}-text.pt" for k in "nsmlx"]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
@@ -51,6 +52,7 @@ GITHUB_ASSETS_NAMES = frozenset(
         "yolo11n-grayscale.pt",
         "yolov8x-pose-p6.pt",
         "calibration_image_sample_data_20x128x128x3_float32.npy.zip",
+        "PP-OCRv6_medium_rec.onnx",
     ]
 )
 GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAMES)

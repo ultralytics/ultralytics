@@ -256,8 +256,8 @@ def select_device(device="", newline=False, verbose=True):
         verbose (bool, optional): If True, logs the device information.
 
     Returns:
-        (torch.device | str): Selected device. For multi-GPU requests this is the first GPU. 'tpu' and 'vulkan'
-            device strings and other non-cpu/cuda/npu/xpu torch.device inputs are returned unchanged.
+        (torch.device | str): Selected device. For multi-GPU requests this is the first GPU. 'tpu' and 'vulkan' device
+            strings and other non-cpu/cuda/npu/xpu torch.device inputs are returned unchanged.
 
     Raises:
         ValueError: If the requested CUDA, NPU, or XPU device(s) are invalid or unavailable.

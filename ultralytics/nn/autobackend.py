@@ -222,10 +222,12 @@ class AutoBackend(nn.Module):
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
         if format not in {"openvino", "litert"}:  # these backends resolve Intel 'cpu', 'gpu' and 'npu' themselves
-            device = select_device(device, verbose=verbose)
-            if RANK != -1 and getattr(device, "type", None) in {"cuda", "npu", "xpu"}:
-                # DDP ranks reuse the device assigned in trainer._setup_ddp(), not the first of a multi-device request
-                device = torch.device(device.type, get_torch_device_backend(device).current_device())
+            if RANK == -1 or str(device).lower() == "cpu":
+                device = select_device(device, verbose=verbose)
+            else:  # DDP ranks reuse the device assigned in trainer._setup_ddp(), so skip select_device's set_device()
+                device_type = str(device).split(":", 1)[0]
+                device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
+                device = torch.device(device_type, get_torch_device_backend(device_type).current_device())
         if (
             isinstance(model, nn.Module)
             and TORCH_1_10

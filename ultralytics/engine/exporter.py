@@ -691,8 +691,11 @@ class Exporter:
         if fmt == "imx" and self.args.device is None and torch.cuda.is_available():
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
+        intel = str(self.args.device).startswith("intel")  # OpenVINO inference devices; the model traces on CPU
         self.device = select_device(
-            "cpu" if self.args.device is None or fmt in {"coreai", "executorch", "litert", "nxp"} else self.args.device
+            "cpu"
+            if self.args.device is None or intel or fmt in {"coreai", "executorch", "litert", "nxp"}
+            else self.args.device
         )
 
         # Argument compatibility checks
@@ -1319,6 +1322,7 @@ class Exporter:
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
             int8_detect=isinstance(getattr(self.model, "model", [None])[-1], (Detect, RTDETRDecoder)),
+            device=self.args.device,
             prefix=prefix,
         )
 

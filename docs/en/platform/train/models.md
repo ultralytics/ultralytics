@@ -230,6 +230,10 @@ flowchart TD
 5. Click **Start Export**
 6. Download when complete
 
+**TF Edge TPU**, **NXP**, and **Qualcomm** downloads keep the file suffix Ultralytics uses to choose a runtime
+(`yolo26n_edgetpu.tflite`, `_nxp.tflite`, `_qnn.onnx`), so `YOLO()` loads them as downloaded. If an Edge TPU download
+ends in a plain `.tflite`, export again or add `_edgetpu` to the file name before loading it.
+
 While the model's source dataset exists, each export carries the dataset's current [class colors](../data/annotation.md#class-colors), so a color you change after training also reaches later exports.
 
 Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.

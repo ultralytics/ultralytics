@@ -160,7 +160,7 @@ To remove temporary examples, use an image's hover trash control or select examp
 
 Statistics aggregate processed images independently of the gallery. Deleting or replacing an example does not subtract its contribution. The summary shows images, predictions, and images without predictions for the selected period; depth models show image counts.
 
-The date picker defaults to the last **30 days** and accepts ranges up to **365 days**. Selected dates use **UTC** boundaries; chart timestamps display in local time. Recent ranges of up to three days use hourly history when the full range falls within the last 72 hours; other ranges use daily history. The date range filters statistics, while the gallery continues to show the current temporary examples.
+The date picker defaults to the last **30 days** and accepts ranges up to **365 days**. Selected dates are your local days: hourly history follows them exactly, daily totals cover whole **UTC** days, and chart times display in local time. Recent ranges of up to three days use hourly history when the full range falls within the last 72 hours; other ranges use daily history. The date range filters statistics, while the gallery continues to show the current temporary examples.
 
 History is bounded to **72 hourly buckets** and **365 daily buckets**, and is available only since the current instance started. A selected period with no processed images shows **No images processed in this period**.
 

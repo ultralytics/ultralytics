@@ -28,7 +28,7 @@ class TextRecognizer:
     def __init__(self, model: str = "PP-OCRv6_medium_rec.onnx", device: str | int | None = None) -> None:
         """Load the recognizer on the NVIDIA GPU `device` when available, else on CPU, with its embedded character set."""
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
-        cuda = device.type == "cuda" and not rocm_is_available()  # AMD GPUs read on CPU
+        cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
         # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced
         check_requirements(
             [("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]

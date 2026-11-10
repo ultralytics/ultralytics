@@ -372,6 +372,19 @@ def test_tiled_merge_drops_seam_fragments():
     assert sorted(out["bboxes"].tolist()) == [[5.0, 5.0, 20.0, 20.0], [70.0, 10.0, 110.0, 30.0]]
 
 
+
+def test_tiled_merge_dense_different_window_sizes():
+    """Dense prediction maps (e.g. depth, semantic_mask) merge correctly with varying window sizes."""
+    from ultralytics.utils.ops import merge_tiles
+
+    windows = [(0, 0, 60, 100), (60, 0, 100, 100)]
+    predictions = [
+        {"depth": torch.ones(100, 60)},
+        {"depth": torch.ones(100, 40)},
+    ]
+    out = merge_tiles(predictions, windows, (100, 100), iou=0.5, agnostic=False, max_det=100)
+    assert out["depth"].shape == (100, 100)
+
 def test_tiled_dataset_targets(tmp_path):
     """Crop native pixels and targets before formatting, without retaining full-image backing allocations."""
     from ultralytics.data.dataset import YOLODataset

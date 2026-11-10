@@ -101,10 +101,10 @@ def merge_tiles(
         template = first[key]
         output = template.new_zeros(shape)
         weights = template.new_zeros(shape, dtype=torch.float32)
-        h, w = template.shape
-        y, x = torch.arange(h, device=output.device), torch.arange(w, device=output.device)
-        weight = torch.minimum(torch.minimum(y + 1, h - y)[:, None], torch.minimum(x + 1, w - x)[None]).float()
         for pred, (x1, y1, x2, y2) in zip(predictions, windows):
+            h, w = pred[key].shape
+            y, x = torch.arange(h, device=output.device), torch.arange(w, device=output.device)
+            weight = torch.minimum(torch.minimum(y + 1, h - y)[:, None], torch.minimum(x + 1, w - x)[None]).float()
             if discrete:
                 current = weights[y1:y2, x1:x2]
                 output[y1:y2, x1:x2] = torch.where(weight > current, pred[key], output[y1:y2, x1:x2])

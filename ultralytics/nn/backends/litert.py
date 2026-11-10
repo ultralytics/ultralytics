@@ -59,6 +59,8 @@ class LiteRTBackend(BaseBackend):
             self.model = CompiledModel.from_file(
                 str(tflite_file),
                 options=Options(
+                    # NPU loads the Intel dispatch plugin; graph_backend picks the OpenVINO device, so GPU runs on
+                    # the Intel GPU (checked with ai-edge-litert 2.3.0 and 2.4.0 nightly)
                     hardware_accelerators=HardwareAccelerator.NPU | HardwareAccelerator.CPU,
                     intel_openvino_options=IntelOpenVinoOptions(graph_backend=backend),
                 ),

@@ -55,7 +55,8 @@ class SolutionConfig:
         tracker (str | None): Path to tracking configuration YAML file; OCR and ObjectCropper set None to predict.
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.
-        recognizer (str | Callable): PaddleOCR backend name or callable returning `(text, confidence)` from a BGR crop.
+        recognizer (str | Callable): 'paddleocr' for PP-OCRv6 on ONNX Runtime, or a callable returning `(text,
+            confidence)` from a BGR crop.
 
     Methods:
         update: Update the configuration with user-defined keyword arguments and raise error on invalid keys.

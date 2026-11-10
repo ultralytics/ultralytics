@@ -95,7 +95,7 @@ Additionally, the following visualization settings are supported:
 4. **Settle 0° or 180°:** A box cannot tell which way its text reads, so OCR reads the 8 widest words of the page both
    ways and keeps the turn that reads more confidently, since upside-down text reads as low-confidence noise.
 5. **Recognize words:** PP-OCRv6 reads every word, in width-sorted batches of 8 at 48 px high, padded to at least 320 px
-   as PaddleOCR does. Crops at least 1.5× taller than wide, such as vertical text, are read turned 90°.
+   as PaddleOCR does. Words that read as nothing are dropped from the results.
 6. **Order and render results:** Words come back line by line, top to bottom and left to right in the page's own frame.
    The visualization uses a Unicode font for non-ASCII text such as Chinese.
 

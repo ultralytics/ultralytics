@@ -10,10 +10,11 @@ import numpy as np
 import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
-from ultralytics.utils import ops
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils import LINUX, ops
+from ultralytics.utils.checks import check_requirements, rocm_is_available
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
+from ultralytics.utils.torch_utils import select_device
 
 
 class TextRecognizer:
@@ -25,16 +26,24 @@ class TextRecognizer:
     """
 
     def __init__(self, model: str = "PP-OCRv6_medium_rec.onnx", device: str | int | None = None) -> None:
-        """Load the recognizer on CUDA when available and requested, else on CPU, with its embedded character set."""
-        cuda = torch.cuda.is_available() and str(device) != "cpu"
-        check_requirements("onnxruntime-gpu" if cuda else "onnxruntime")
+        """Load the recognizer on the NVIDIA GPU `device` when available, else on CPU, with its embedded character set."""
+        device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
+        cuda = device.type == "cuda" and not rocm_is_available()  # AMD GPUs read on CPU
+        # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced
+        check_requirements(
+            [("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
+            if cuda
+            else [("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml")]
+        )
         import onnxruntime as ort
 
         providers = ["CPUExecutionProvider"]
-        if cuda:
-            ort.preload_dlls()  # CUDA and cuDNN from the pip packages PyTorch uses, which are not on the loader path
+        if cuda and "CUDAExecutionProvider" in ort.get_available_providers():
+            if LINUX and hasattr(ort, "preload_dlls"):
+                ort.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
             # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new line width and batch size
-            providers.insert(0, ("CUDAExecutionProvider", {"cudnn_conv_algo_search": "HEURISTIC"}))
+            options = {"device_id": device.index or 0, "cudnn_conv_algo_search": "HEURISTIC"}
+            providers.insert(0, ("CUDAExecutionProvider", options))
         self.session = ort.InferenceSession(str(attempt_download_asset(model)), providers=providers)
         # CTC alphabet: blank, the model's embedded characters, then space
         self.characters = ["", *self.session.get_modelmeta().custom_metadata_map["character"].split("\n"), " "]
@@ -130,7 +139,8 @@ class OCR(BaseSolution):
         (single characters are taller than wide), so a page of only those stays unrotated. The page is rotated so that
         direction runs left to right, where words are cropped upright and grouped into lines. Of that turn and its
         opposite, the one whose 8 widest words `recognize` reads more confidently wins, as upside-down text reads as
-        low-confidence noise. Each word keeps its `detection_index` and `polygon` and gains its `line` number.
+        low-confidence noise. Each word keeps its `detection_index` and `polygon` and gains its `line` number; words that
+        read as nothing are dropped.
         """
         if not len(polygons):
             return []
@@ -151,10 +161,16 @@ class OCR(BaseSolution):
             turns.append(
                 (OCR.lines(points), [save_one_box(r, page, gain=1.0, pad=0, BGR=True, save=False) for r in rects])
             )
-        widest = [sorted((c for c in crops if c.size), key=lambda c: c.shape[1])[-8:] for _, crops in turns]
-        lines, crops = turns[int(np.argmax([np.mean([0, *(c for _, c in recognize(w))]) for w in widest]))]
-        kept = [i for i, crop in enumerate(crops) if crop.size]
-        reads = dict(zip(kept, recognize([crops[i] for i in kept])))
+        # Read each turn's 8 widest words, keep the more confident turn, and reuse its reads
+        widest = [
+            sorted((i for i, c in enumerate(crops) if c.size), key=lambda i: crops[i].shape[1])[-8:]
+            for _, crops in turns
+        ]
+        trials = [dict(zip(w, recognize([crops[i] for i in w]))) for w, (_, crops) in zip(widest, turns)]
+        best = int(np.argmax([np.mean([0, *(c for _, c in t.values())]) for t in trials]))
+        lines, crops = turns[best]
+        rest = [i for i, crop in enumerate(crops) if crop.size and i not in trials[best]]
+        reads = {**trials[best], **dict(zip(rest, recognize([crops[i] for i in rest])))}
         return [
             {
                 "text": reads[i][0],
@@ -170,7 +186,8 @@ class OCR(BaseSolution):
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """Detect words, then read them and return them in reading order with their line numbers."""
-        self.track_add_args["imgsz"] = min(self.CFG["imgsz"], -(-max(im0.shape[:2]) // 32) * 32)  # never upscale
+        if isinstance(self.CFG["imgsz"], int):  # never upscale: smaller images run at their own size
+            self.track_add_args["imgsz"] = min(self.CFG["imgsz"], -(-max(im0.shape[:2]) // 32) * 32)
         self.extract_tracks(im0)
         if self.tracks.masks is not None:  # segmentation: each mask's minimum-area rectangle
             polygons = np.array([ops.xywhr2xyxyxyxy(ops.xyxyxyxy2xywhr(p[None]))[0] for p in self.tracks.masks.xy])

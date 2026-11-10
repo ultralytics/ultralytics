@@ -45,6 +45,8 @@ class TextRecognizer:
             options = {"device_id": device.index or 0, "cudnn_conv_algo_search": "HEURISTIC"}
             providers.insert(0, ("CUDAExecutionProvider", options))
         self.session = ort.InferenceSession(str(attempt_download_asset(model)), providers=providers)
+        # Character probabilities stay on the recognizer's device, which returns only each step's best character
+        self.output = self.session.get_outputs()[0].name, "cuda" if len(providers) > 1 else "cpu", device.index or 0
         # CTC alphabet: blank, the model's embedded characters, then space
         self.characters = ["", *self.session.get_modelmeta().custom_metadata_map["character"].split("\n"), " "]
 
@@ -62,13 +64,17 @@ class TextRecognizer:
             lines.append(cv2.resize(crop, (width, 48)).transpose(2, 0, 1) / 127.5 - 1)
         order = sorted(range(len(lines)), key=lambda i: lines[i].shape[2])
         reads = [("", 0.0)] * len(lines)
+        io = self.session.io_binding()
         for start in range(0, len(order), batch):
             indices = order[start : start + batch]
             x = np.zeros((len(indices), 3, 48, max(320, lines[indices[-1]].shape[2])), np.float32)
             for j, i in enumerate(indices):
                 x[j, :, :, : lines[i].shape[2]] = lines[i]
-            for i, probs in zip(indices, self.session.run(None, {"x": x})[0]):
-                ids, scores = probs.argmax(1), probs.max(1)
+            io.bind_cpu_input("x", x)
+            io.bind_output(*self.output)
+            self.session.run_with_iobinding(io)
+            best = torch.from_dlpack(io.get_outputs()[0]).max(-1)
+            for i, scores, ids in zip(indices, best.values.cpu().numpy(), best.indices.cpu().numpy()):
                 keep = (ids != 0) & np.r_[True, ids[1:] != ids[:-1]]  # CTC: drop blanks and repeats
                 reads[i] = (
                     "".join(self.characters[c] for c in ids[keep]),

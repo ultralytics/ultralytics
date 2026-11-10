@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Ultralytics Inference for Rust is a high-performance YOLO inference library and CLI built on ONNX Runtime, with GPU acceleration, tiled inference, scene text OCR and no Python runtime.
-keywords: Ultralytics Inference, Rust, YOLO, ONNX Runtime, object detection, segmentation, pose, OBB, classification, semantic segmentation, depth estimation, OCR, tiled inference, CUDA, TensorRT, CoreML, OpenVINO, edge AI, real-time inference
+keywords: Ultralytics Inference, Rust, YOLO, ONNX Runtime, object detection, segmentation, semantic segmentation, depth estimation, classification, pose, OBB, OCR, tiled inference, CUDA, TensorRT, CoreML, OpenVINO, edge AI, real-time inference
 ---
 
 # Ultralytics Inference for Rust

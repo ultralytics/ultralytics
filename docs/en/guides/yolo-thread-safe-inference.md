@@ -60,7 +60,7 @@ Thread(target=predict, args=("image1.jpg",)).start()
 Thread(target=predict, args=("image2.jpg",)).start()
 ```
 
-In the example above, both threads share `shared_model`. Each `predict` call keeps its own arguments such as `conf`, `iou` and `imgsz`, but calls on one instance run one at a time behind its internal lock, so the threads gain no parallelism. State that lives on the instance, such as tracker state, YOLOE `set_classes` vocabularies, or SAM, FastSAM and YOLOE prompts, is still shared by every thread, so give each thread its own instance for those.
+In the example above, both threads share `shared_model`. Each `predict` call keeps its own arguments such as `conf`, `iou` and `imgsz`, but calls that share the same setup (such as `device`) run one at a time behind the predictor's lock, so the threads gain no parallelism. State that lives on the instance, such as tracker state, YOLOE `set_classes` vocabularies, or SAM, FastSAM and YOLOE prompts, is still shared by every thread, so give each thread its own instance for those.
 
 ### Safe Example: A Dedicated Instance per Thread
 

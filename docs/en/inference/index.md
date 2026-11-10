@@ -422,7 +422,7 @@ let results = model.predict("aerial.jpg")?;
 
 ## Scene text OCR
 
-YOLO26-Text detectors find words as oriented boxes, and `TextRecognizer` reads them with PaddleOCR PP-OCRv6, the same as the Python [OCR solution](../guides/ocr.md) with `recognizer="paddleocr"`. Boxes of detection models and masks of segmentation models work too: a mask is read from the minimum-area rectangle around its outline and keeps the outline as its polygon. Each crop is turned upright, text the orientation classifier finds upside down is read again turned around, and the texts come back in reading order. The recognizer runs on the detector's device.
+YOLO26-Text detectors find words as oriented boxes, and `TextRecognizer` reads them with PaddleOCR PP-OCRv6, the same recognizer as the Python [OCR solution](../guides/ocr.md). Boxes of detection models and masks of segmentation models work too: a mask is read from the minimum-area rectangle around its outline and keeps the outline as its polygon. Each crop is turned upright, text the orientation classifier finds upside down is read again turned around, and the texts come back in reading order. The recognizer runs on the detector's device.
 
 ```bash
 # Auto-downloads yolo26n-text.onnx and the PaddleOCR models

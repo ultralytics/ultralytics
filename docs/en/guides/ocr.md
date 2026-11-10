@@ -1,8 +1,8 @@
 ---
 title: Scene Text OCR with YOLO26
 comments: true
-description: Detect, recognize, and order scene text with Ultralytics YOLO26 detectors and optional PaddleOCR recognition.
-keywords: Ultralytics, YOLO26, OCR, scene text, text detection, text recognition, PaddleOCR
+description: Detect, recognize, and order scene and document text at any rotation with Ultralytics YOLO26-Text detectors and PP-OCRv6 recognition.
+keywords: Ultralytics, YOLO26, OCR, scene text, document OCR, text detection, text recognition, PP-OCRv6, ONNX Runtime
 ---
 
 # Scene Text OCR using Ultralytics YOLO26
@@ -10,36 +10,32 @@ keywords: Ultralytics, YOLO26, OCR, scene text, text detection, text recognition
 ## What is Scene Text OCR?
 
 Optical character recognition (OCR) detects and reads text in images. The [OCR solution](../reference/solutions/ocr.md)
-combines an Ultralytics YOLO26 text detector with a text-recognition backend. It supports axis-aligned detection boxes,
-oriented boxes (OBB), and segmentation polygons, then returns recognized text in reading order.
+combines an Ultralytics YOLO26-Text detector with PaddleOCR's PP-OCRv6 recognizer, run on ONNX Runtime. It reads
+photos, documents, and screenshots at any rotation and returns every word with its line in reading order.
 
-Detection and recognition remain separate components, so you can pair your scene-text detector with PaddleOCR or your
-own recognition model.
+Detection and recognition remain separate components, so you can pair any text detector with PP-OCRv6 or your own
+recognition model.
 
 ## Why Use Scene Text OCR?
 
+- **Any rotation:** Pages turned 90° or upside down read in the right order without preprocessing.
 - **Flexible text geometry:** Use detection, OBB, or segmentation models for horizontal, rotated, or irregular text.
-- **Interchangeable recognition:** Run PaddleOCR without extra integration code, or pass a callable for another model.
-- **Structured output:** Access recognized text, recognition and detection confidences, source geometry, and an annotated
-  image from one results object.
+- **No extra framework:** PP-OCRv6 runs on ONNX Runtime from the Ultralytics assets release, on CPU or CUDA, with no
+  PaddlePaddle install.
+- **Structured output:** Access recognized text, recognition and detection confidences, source geometry, line numbers,
+  and an annotated image from one results object.
 
 ## Run Scene Text OCR with YOLO26
 
-PaddleOCR is optional and loads when `OCR` is created with `recognizer="paddleocr"` on a Python version with
-PaddlePaddle 3.1+ wheels (3.9–3.13 as of PaddlePaddle 3.3). Missing or older packages are installed or upgraded to
-PaddleOCR 3.7+ (PP-OCRv6 recognition) and the CPU PaddlePaddle 3.1+ build. GPU builds are not on PyPI, so for GPU
-recognition install `paddlepaddle-gpu` 3.1+ from [PaddlePaddle's package
-index](https://www.paddlepaddle.org.cn/en/install/quick) first; OCR raises an error rather than replacing an older GPU
-build with the CPU build. No OCR packages are added to the base Ultralytics dependencies.
-
-Pass an image and a text detector to the `OCR` solution. The result contains the annotated image and recognized text:
+The first run downloads YOLO26x-Text and PP-OCRv6 and installs ONNX Runtime (`onnxruntime-gpu` when CUDA is available).
+No OCR packages are added to the base Ultralytics dependencies.
 
 !!! example "Scene Text OCR using Ultralytics YOLO26"
 
     === "CLI"
 
         ```bash
-        yolo solutions ocr model="scene-text-obb.pt" source="path/to/video.mp4" recognizer="paddleocr"
+        yolo solutions ocr source="path/to/video.mp4"
         ```
 
     === "Python"
@@ -49,35 +45,28 @@ Pass an image and a text detector to the `OCR` solution. The result contains the
 
         from ultralytics import solutions
 
-        ocr = solutions.OCR(
-            model="scene-text-obb.pt",  # custom detect, OBB, or segmentation text detector
-            recognizer="paddleocr",
-        )
+        ocr = solutions.OCR()  # YOLO26x-Text at imgsz=1280 with PP-OCRv6
         im0 = cv2.imread("path/to/image.jpg")
         assert im0 is not None, "Error reading image file"
         result = ocr(im0)
         cv2.imwrite("ocr.jpg", result.plot_im)
 
         for text in result.texts:
-            print(text["text"], text["confidence"])
+            print(text["line"], text["text"], text["confidence"])
         ```
 
-### YOLO26-Text Checkpoints
+### YOLO26-Text Checkpoints and Settings
 
-The public YOLO26-Text family provides `n`, `s`, `m`, `l`, and `x` OBB checkpoints. Set `ULTRALYTICS_API_KEY` to your
-own [Ultralytics Platform](https://platform.ultralytics.com/settings) API key, then load a checkpoint by its Platform
-URI:
+The YOLO26-Text family provides `n`, `s`, `m`, `l`, and `x` OBB checkpoints, which download automatically, for example
+`solutions.OCR(model="yolo26s-text.pt")`. The defaults come from a benchmark of 80 HierText validation photos with
+their transcriptions, PDF pages scored against their text layers, and screenshots:
 
-```bash
-export ULTRALYTICS_API_KEY="your-api-key"
-```
-
-```python
-ocr = solutions.OCR(model="ul://ultralytics-yolo/yolo26-text/yolo26n-text", recognizer="paddleocr")
-result = ocr(im0)
-```
-
-Replace `yolo26n-text` with `yolo26s-text`, `yolo26m-text`, `yolo26l-text`, or `yolo26x-text` for a larger model.
+| Setting                    | Default        | Benchmark result                                                                     |
+| -------------------------- | -------------- | ------------------------------------------------------------------------------------ |
+| `model`                    | `yolo26x-text` | Best word F1 on photos and documents; `yolo26l-text` is within 0.5 points.           |
+| `imgsz`                    | `1280`         | 960 loses 6 points of recall on photos; 1920 adds nothing. Smaller images run at their own size, never upscaled. |
+| Recognition unit           | Word           | Reading words one by one beats reading whole lines by 4 F1 points on photos.        |
+| `max_det`                  | `1000`         | A dense document page holds more than the default 300 words.                         |
 
 To train your own OBB text detector, use the [Scene Text OBB dataset](../datasets/obb/scene-text.md), which combines
 COCO-Text and HierText word annotations.
@@ -96,23 +85,27 @@ Additionally, the following visualization settings are supported:
 
 ## How Scene Text OCR Works
 
-1. **Detect text:** YOLO26 produces axis-aligned boxes, oriented boxes, or segmentation polygons.
-2. **Create recognition crops:** Boxes are clipped to the image. OBBs are affine-rectified along the edge that spans
-   furthest left-to-right, so near-square boxes stay upright and tilted text lines lie horizontally in reading
-   direction. For segmentation polygons, the minimum-area rotated rectangle is rectified while the original polygon is
-   retained. Crops at least 1.5× taller than wide are rotated 90° counter-clockwise, as in PaddleOCR.
-3. **Recognize text:** PaddleOCR recognizes all crops in batches of 16. Its text-line orientation classifier flags
-   crops that look upside down; those are also read after a 180° turn, and the more confident reading is kept. Custom
-   recognizers receive one crop at a time, without orientation correction.
-4. **Order and render results:** Text is grouped into horizontal lines and ordered top-to-bottom and left-to-right. The
-   visualization uses a Unicode font for non-ASCII text such as Chinese.
+1. **Detect text:** YOLO26 produces axis-aligned boxes, oriented boxes, or segmentation polygons. A mask is read from
+   the minimum-area rectangle around its outline.
+2. **Find the page rotation:** The text direction is the mean long-side angle of the detected words, weighted by how
+   elongated they are. Words under 2:1, such as single characters, abstain, so a page of only those stays unrotated.
+3. **Crop words upright:** The page is rotated so its text runs left to right, and each word is cropped and rectified
+   there. Words are grouped into lines: same baseline within half the smaller text height, split at gaps wider than 1.5
+   text heights.
+4. **Settle 0° or 180°:** A box cannot tell which way its text reads, so OCR reads the 8 widest words of the page both
+   ways and keeps the turn that reads more confidently, since upside-down text reads as low-confidence noise.
+5. **Recognize words:** PP-OCRv6 reads every word, in width-sorted batches of 8 at 48 px high, padded to at least 320 px
+   as PaddleOCR does. Crops at least 1.5× taller than wide, such as vertical text, are read turned 90°.
+6. **Order and render results:** Words come back line by line, top to bottom and left to right in the page's own frame.
+   The visualization uses a Unicode font for non-ASCII text such as Chinese.
 
-Coordinates always refer to the original image, not the detector input or recognition crop.
+Coordinates always refer to the original image, not the detector input, rotated page, or recognition crop.
 
 ## Use a Custom Recognizer
 
-Pass a callable to integrate another recognition model without changing the detection, geometry, or ordering path. The
-callable runs once for each nonempty BGR `numpy.ndarray` crop. Return one `(text, confidence)` tuple per call, not a
+Pass a callable to integrate another recognition model without changing the detection, rotation, geometry, or ordering
+path. The callable runs once for each nonempty BGR `numpy.ndarray` word crop, including the crops read both ways to settle
+the page's turn. Return one `(text, confidence)` tuple per call, not a
 list of batch results:
 
 | Tuple item   | Accepted type                       | Description                                                           |
@@ -144,6 +137,7 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 | `confidence`           | `float`             | Recognition confidence, kept separate from detection confidence.                      |
 | `detection_confidence` | `float`             | YOLO detector confidence.                                                             |
 | `detection_index`      | `int`               | Source detection index before reading-order sorting.                                  |
+| `line`                 | `int`               | Line number in reading order; words of one line share it.                             |
 | `polygon`              | `list[list[float]]` | Original-image polygon: four corners for box and OBB detections, or the mask outline. |
 
 ## Dependencies and Licenses
@@ -151,26 +145,25 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 | Component         | Required                          | Role                                                     | License                |
 | ----------------- | --------------------------------- | -------------------------------------------------------- | ---------------------- |
 | Ultralytics       | Yes                               | YOLO detection, crop geometry, and result orchestration  | AGPL-3.0               |
-| PaddlePaddle 3.1+ | Only for `recognizer="paddleocr"` | Orientation and recognition runtime                      | Apache-2.0             |
-| PaddleOCR 3.7+    | Only for `recognizer="paddleocr"` | Text-line orientation and recognition models and adapter | Apache-2.0             |
+| ONNX Runtime      | Only for `recognizer="paddleocr"` | PP-OCRv6 recognition runtime                             | MIT                    |
+| PP-OCRv6 medium   | Only for `recognizer="paddleocr"` | Recognition weights from the Ultralytics assets release   | Apache-2.0             |
 | Custom callable   | No                                | User-owned recognition integration                       | Defined by the backend |
 
-PaddleOCR may download orientation and recognition weights on first use. Review the selected model's model card and
-redistribution terms before packaging or deploying those artifacts. Custom checkpoint licenses are separate.
+PP-OCRv6 weights download on first use. Review the [model card](https://huggingface.co/PaddlePaddle/PP-OCRv6_medium_rec)
+and redistribution terms before packaging or deploying them. Custom checkpoint licenses are separate.
 
 ## FAQ
 
-### Can I use my own OCR model instead of PaddleOCR?
+### Can I use my own OCR model instead of PP-OCRv6?
 
 Yes. Pass a callable as `recognizer` and return `(text, confidence)` for each BGR crop. See
 [Use a Custom Recognizer](#use-a-custom-recognizer) for the input and output contract.
 
 ### Does OCR read rotated or upside-down text?
 
-Yes. OBB and segmentation detections are cropped upright along the text line. A box alone cannot tell which way its
-text reads, so with `recognizer="paddleocr"` a text-line orientation classifier flags crops that look upside down, and
-OCR keeps whichever of the original and 180°-turned readings is more confident. Custom recognizers receive the geometric
-crop and handle orientation themselves.
+Yes, at any rotation. OCR finds the page's text direction from the word boxes, crops words upright in that frame, and
+reads the widest words both ways to settle 0° or 180°, so pages turned 90° or upside down return the same text in the
+same reading order. See [How Scene Text OCR Works](#how-scene-text-ocr-works).
 
 ### Does OCR track text across video frames?
 
@@ -179,6 +172,6 @@ separate input when frame-by-frame OCR is required.
 
 ### Can I export the complete OCR pipeline?
 
-You can export the YOLO detector with the normal [Export mode](../modes/export.md), but PaddleOCR or a custom recognizer
-is **not** embedded in the ONNX, TensorRT, or other detector artifact. Deploy the exported detector and recognition
+You can export the YOLO detector with the normal [Export mode](../modes/export.md), but the PP-OCRv6 or custom
+recognizer is **not** embedded in the ONNX, TensorRT, or other detector artifact. Deploy the exported detector and recognition
 runtime as separate components, or keep this Python composition layer.

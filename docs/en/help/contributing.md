@@ -1,13 +1,13 @@
 ---
 title: Open-Source Contribution Guide
 comments: true
-description: Learn how to contribute to Ultralytics YOLO open-source repositories. Follow guidelines for pull requests, code of conduct, and bug reporting.
+description: Contribute to Ultralytics YOLO open-source repositories with guidance on pull requests, CLA signing, docstrings, CI tests, bug reports, and AGPL-3.0.
 keywords: Ultralytics, YOLO, open-source, contribution, pull request, code of conduct, bug reporting, GitHub, CLA, Google-style docstrings, AGPL-3.0
 ---
 
 # Contributing to Ultralytics Open-Source Projects
 
-Welcome! We're thrilled that you're considering contributing to our [Ultralytics](https://www.ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. This guide provides clear guidelines and best practices to help you get started.
+Thank you for considering a contribution to our [Ultralytics](https://www.ultralytics.com) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. This guide provides clear guidelines and best practices to [help you get started](https://www.ultralytics.com/blog/tips-to-start-contributing-to-ultralytics-open-source-projects).
 
 [![Ultralytics open-source contributors](https://raw.githubusercontent.com/ultralytics/assets/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
 
@@ -33,7 +33,7 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 1. **[Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo):** Start by forking the relevant Ultralytics repository (e.g., [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)) to your GitHub account.
 2. **[Create a branch](https://docs.github.com/en/desktop/making-changes-in-a-branch/managing-branches-in-github-desktop):** Create a new branch in your forked repository with a clear, descriptive name reflecting your changes (e.g., `fix-issue-123`, `add-feature-xyz`).
 3. **Make your changes:** Implement your improvements or fixes. Ensure your code adheres to the project's style guidelines and doesn't introduce new errors or warnings.
-4. **Test your changes:** Before submitting, test your changes locally to confirm they work as expected and don't cause [regressions](https://en.wikipedia.org/wiki/Software_regression). Add tests if you're introducing new functionality.
+4. **Test your changes:** Before submitting, test your changes locally to confirm they work as expected and don't cause [regressions](https://en.wikipedia.org/wiki/Software_regression). Existing tests cover most changes, so new tests are often unnecessary; when one helps, prefer a few lines in an existing test file over mocked tests.
 5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
 6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
 
@@ -209,13 +209,11 @@ When contributing code to Ultralytics projects, keep these best practices in min
 - **Simplify when possible:** Look for opportunities to simplify the code or remove unnecessary parts.
 - **Consider compatibility:** Before making changes, consider whether they might break existing code using Ultralytics.
 - **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
-- **Add appropriate tests:** Include [tests](../guides/model-testing.md) for new features to ensure they work as expected.
 
 ## Reviewing Pull Requests
 
 Reviewing pull requests is another valuable way to contribute. When reviewing PRs:
 
-- **Check for unit tests:** Verify that the PR includes tests for new features or changes.
 - **Review documentation updates:** Ensure [documentation](../index.md) is updated to reflect changes.
 - **Evaluate performance impact:** Consider how changes might affect [performance](../guides/yolo-performance-metrics.md).
 - **Verify CI tests:** Confirm all [Continuous Integration tests](CI.md) are passing.
@@ -228,12 +226,12 @@ We highly value bug reports as they help us improve the quality and reliability 
 
 - **Check existing issues:** Search first to see if the bug has already been reported.
 - **Provide a [Minimum Reproducible Example](minimum-reproducible-example.md):** Create a small, self-contained code snippet that consistently reproduces the issue. This is crucial for efficient debugging.
-- **Describe the environment:** Specify your operating system, Python version, relevant library versions (e.g., [`torch`](https://pytorch.org/), [`ultralytics`](https://github.com/ultralytics/ultralytics)), and hardware ([CPU](https://en.wikipedia.org/wiki/Central_processing_unit)/[GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
+- **Describe the environment:** Specify your operating system, Python version, relevant library versions (e.g., [`torch`](https://pytorch.org/), [`ultralytics`](https://github.com/ultralytics/ultralytics)), and hardware ([CPU](https://www.ultralytics.com/glossary/cpu)/[GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
 - **Explain expected vs. actual behavior:** Clearly state what you expected to happen and what actually occurred. Include any error messages or tracebacks.
 
 ## License
 
-Ultralytics uses the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.ultralytics.com/legal/agpl-3-0-software-license) for its repositories. This license promotes [openness](https://en.wikipedia.org/wiki/Openness), [transparency](https://www.ultralytics.com/glossary/transparency-in-ai), and [collaborative improvement](https://en.wikipedia.org/wiki/Collaborative_software) in software development. It ensures that all users have the freedom to use, modify, and share the software, fostering a strong community of collaboration and innovation.
+Ultralytics uses the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.ultralytics.com/legal/agpl-3-0-software-license) for its repositories. This license promotes openness, transparency, and collaborative improvement in software development. It ensures that all users have the freedom to use, modify, and share the software, fostering a strong community of collaboration and innovation.
 
 We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://opensource.org/license/agpl-3.0) to contribute effectively and ethically to the Ultralytics open-source community.
 
@@ -309,9 +307,9 @@ By following these guidelines, you ensure compliance with AGPL-3.0, supporting t
 
 ## Conclusion
 
-Thank you for your interest in contributing to [Ultralytics](https://www.ultralytics.com) [open-source](https://github.com/ultralytics) YOLO projects. Your participation is essential in shaping the future of our software and building a vibrant community of innovation and collaboration. Whether you're enhancing code, reporting bugs, or suggesting new features, your contributions are invaluable.
+Thank you for your interest in contributing to Ultralytics open-source YOLO projects. Your participation helps shape our software and community, whether you're enhancing code, reporting bugs, or suggesting new features.
 
-We're excited to see your ideas come to life and appreciate your commitment to advancing [object detection](https://www.ultralytics.com/glossary/object-detection) technology. Together, let's continue to grow and innovate in this exciting open-source journey.
+We appreciate your commitment to advancing [object detection](https://www.ultralytics.com/glossary/object-detection) technology and look forward to your contributions.
 
 ## FAQ
 

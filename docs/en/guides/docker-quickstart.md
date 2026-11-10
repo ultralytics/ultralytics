@@ -1,16 +1,16 @@
 ---
 comments: true
-description: Learn to effortlessly set up Ultralytics in Docker, from installation to running with CPU/GPU support. Follow our comprehensive guide for seamless container experience.
+description: Run Ultralytics YOLO in Docker. Choose an image from Docker Hub, enable NVIDIA GPUs with CDI, mount local data, persist training runs, and display GUI output.
 keywords: Ultralytics, Docker, Quickstart Guide, CPU support, GPU support, NVIDIA Docker, NVIDIA Container Toolkit, container setup, Docker environment, Docker Hub, Ultralytics projects
 ---
 
 # Docker Quickstart Guide for Ultralytics
 
 <p align="center">
-  <img width="800" src="https://cdn.ul.run/i/d99e8da40d9d1fc1ed886265ec8676f0.avif" alt="Ultralytics Docker Package Visual">
+  <img width="800" src="https://cdn.ul.run/i/d99e8da40d9d1fc1ed886265ec8676f0.avif" alt="Ultralytics Docker images on Docker Hub">
 </p>
 
-This guide serves as a comprehensive introduction to setting up a Docker environment for your Ultralytics projects. [Docker](https://www.docker.com/) is a platform for developing, shipping, and running applications in containers. It is particularly beneficial for ensuring that the software will always run the same, regardless of where it's deployed. For more details, visit the Ultralytics Docker repository on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics).
+This guide shows how to set up a Docker environment for your Ultralytics projects. [Docker](https://www.docker.com/) is a platform for developing, shipping, and running applications in [containers](https://www.ultralytics.com/glossary/containerization), which ensures that the software runs the same regardless of where it's deployed.
 
 [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
@@ -50,7 +50,7 @@ nvidia-smi
 
 ### Installing NVIDIA Container Toolkit
 
-Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html) to enable GPU support in Docker containers:
+Install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html) to enable GPU support in Docker containers:
 
 === "Ubuntu/Debian"
 
@@ -99,11 +99,12 @@ Ultralytics publishes the following images to [Docker Hub](https://hub.docker.co
 | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | [`latest`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest)                                 | Linux AMD64 with CUDA for GPU training and inference                                                                                 | [`Dockerfile`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile)                                 |
 | [`latest-export`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-export)                   | Linux AMD64 with CUDA and export dependencies for conversion and benchmarking                                                        | [`Dockerfile-export`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-export)                   |
-| [`latest-python`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python)                   | Lightweight Linux AMD64 Python image for CPU inference                                                                               | [`Dockerfile-python`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python)                   |
-| [`latest-python-export`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python-export)     | Linux AMD64 CPU image with export dependencies                                                                                       | [`Dockerfile-python-export`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python-export)     |
+| [`latest-amd`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-amd)                         | Linux AMD64 with [ROCm](https://rocm.docs.amd.com/) and MIGraphX for AMD GPU training and inference                                  | [`Dockerfile-amd`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-amd)                         |
+| [`latest-python`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python)                   | Lightweight Linux AMD64 Python 3.14 image for CPU inference                                                                          | [`Dockerfile-python`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python)                   |
+| [`latest-python-export`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python-export)     | Linux AMD64 Python 3.13 CPU image with export dependencies                                                                           | [`Dockerfile-python-export`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python-export)     |
 | [`latest-cpu`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-cpu)                         | Linux AMD64 CPU image with Bash as the default command                                                                               | [`Dockerfile-cpu`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-cpu)                         |
 | [`latest-jupyter`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jupyter)                 | Linux AMD64 CPU image with JupyterLab and Ultralytics tutorial notebooks                                                             | [`Dockerfile-jupyter`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jupyter)                 |
-| [`latest-arm64`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-arm64)                     | Linux ARM64 CPU image for Apple silicon, [Raspberry Pi](raspberry-pi.md), and other ARM64 systems                                    | [`Dockerfile-arm64`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-arm64)                     |
+| [`latest-arm64`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-arm64)                     | Linux ARM64 Python 3.13 CPU image for Apple silicon, [Raspberry Pi](raspberry-pi.md), and other ARM64 systems                        | [`Dockerfile-arm64`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-arm64)                     |
 | [`latest-nvidia-arm64`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-nvidia-arm64)       | Linux ARM64 for DGX Spark (DGX OS) and PyTorch on Thor (JetPack 7.1); bundled TensorRT does not support JetPack                      | [`Dockerfile-nvidia-arm64`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-nvidia-arm64)       |
 | [`latest-jetson-jetpack6`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jetson-jetpack6) | Linux ARM64 for [NVIDIA Jetson](nvidia-jetson.md) devices running [JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61)  | [`Dockerfile-jetson-jetpack6`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jetson-jetpack6) |
 | [`latest-jetson-jetpack5`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jetson-jetpack5) | Linux ARM64 for [NVIDIA Jetson](nvidia-jetson.md) devices running [JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512) | [`Dockerfile-jetson-jetpack5`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jetson-jetpack5) |
@@ -111,13 +112,13 @@ Ultralytics publishes the following images to [Docker Hub](https://hub.docker.co
 | [`latest-runner`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-runner)                   | Linux AMD64 CUDA image for a self-hosted GitHub Actions GPU runner                                                                   | [`Dockerfile-runner`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-runner)                   |
 | [`latest-runner-cpu`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-runner-cpu)           | Linux AMD64 image for a self-hosted GitHub Actions CPU runner                                                                        | [`Dockerfile-runner-cpu`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-runner-cpu)           |
 
-The AMD64 GPU images (`latest`, `latest-export`, and `latest-runner`) use PyTorch 2.14 and CUDA 13.2. Check the host driver's CUDA support with `nvidia-smi` before launching them; installing a newer container does not upgrade the host driver. CUDA 13 removes support for Maxwell, Pascal, and Volta GPUs, including Tesla P100 and V100. See [NVIDIA's CUDA release notes](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-toolkit-release-notes/index.html#deprecated-architectures) and [driver compatibility requirements](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html).
+The AMD64 GPU images (`latest`, `latest-export`, and `latest-runner`) use PyTorch 2.15 and CUDA 13.2. Check the [host driver's CUDA support](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html) with `nvidia-smi` before launching them; installing a newer container does not upgrade the host driver. [CUDA 13 removes support](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-toolkit-release-notes/index.html#deprecated-architectures) for Maxwell, Pascal, and Volta GPUs, including Tesla P100 and V100.
 
-The NVIDIA ARM64 image uses NVIDIA PyTorch 26.08 with CUDA 13.4 and TensorRT 11.2. Its PyTorch support for Thor does not extend to TensorRT: NVIDIA does not support TensorRT 11.2 on JetPack. For Jetson TensorRT exports, use the supported TensorRT 10.x runtime for your JetPack release. Follow the platform requirements in the [Jetson guide](nvidia-jetson.md#quick-start-with-docker) or [DGX Spark guide](nvidia-dgx-spark.md#quick-start-with-docker). The JetPack 4, 5, and 6 images retain their separate device-specific stacks.
+The NVIDIA ARM64 image uses NVIDIA PyTorch 26.10 with CUDA 13.4 and TensorRT 11.4. Its PyTorch support for Thor does not extend to TensorRT: NVIDIA does not support TensorRT 11.4 on JetPack. For Jetson TensorRT exports, use the supported TensorRT 10.x runtime for your JetPack release. Follow the platform requirements in the [Jetson guide](nvidia-jetson.md#quick-start-with-docker) or [DGX Spark guide](nvidia-dgx-spark.md#quick-start-with-docker). The JetPack 4, 5, and 6 images retain their separate device-specific stacks.
 
 The Conda Dockerfile is available for [local builds](conda-quickstart.md#ultralytics-conda-docker-image); automated publishing of `latest-conda` is disabled, so that registry tag does not contain these updates.
 
-Use `latest-python-export` for LiteRT exports. The GPU `latest-export` image keeps PyTorch 2.14 and omits LiteRT because its current dependency requires PyTorch below 2.14.
+The Python, CPU, Jupyter, and CPU runner images use Python 3.14. The Python export image uses the `latest-python-3.13` base, built from the same `Dockerfile-python` with `--build-arg PYTHON_VERSION=3.13`, because TensorFlow, CoreML, and PaddlePaddle do not support Python 3.14 yet.
 
 Tags beginning with `latest` track the most recently published main-branch build. Versioned tags replace the `latest` prefix with an Ultralytics release, such as `VERSION`, `VERSION-cpu`, or `VERSION-jetson-jetpack6`. Use a versioned tag for a reproducible environment.
 
@@ -137,7 +138,7 @@ sudo docker build -t ultralytics/ultralytics:latest-cpu -f docker/Dockerfile-cpu
 
 ## Running Ultralytics in Docker Container
 
-Here's how to execute the Ultralytics Docker container:
+Here's how to run the Ultralytics Docker container:
 
 ### Using only the CPU
 
@@ -148,15 +149,28 @@ sudo docker run -it --ipc=host ultralytics/ultralytics:latest-cpu
 
 ### Using GPUs
 
-```bash
-# Run with all GPUs
-sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
+=== "NVIDIA"
 
-# Run specifying which GPUs to use
-sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest
-```
+    ```bash
+    # Run with all GPUs
+    sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
 
-The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--device nvidia.com/gpu=...` flag grants the container access to the host's GPUs through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html).
+    # Run specifying which GPUs to use
+    sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest
+    ```
+
+=== "AMD (ROCm)"
+
+    For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) support on Linux, use the `latest-amd` image and pass the GPU devices:
+
+    ```bash
+    # Run with AMD GPU access
+    sudo docker run -it --ipc=host --device=/dev/kfd --device=/dev/dri --group-add video ultralytics/ultralytics:latest-amd
+    ```
+
+    See the [AMD GPU guide](../integrations/amd.md#usage) for MIGraphX inference in this image.
+
+The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. For NVIDIA GPUs, the `--device nvidia.com/gpu=...` flag grants access through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html). For AMD GPUs, the `--device` flags grant access to the GPU kernel driver (`/dev/kfd`) and display render nodes (`/dev/dri`).
 
 !!! warning "Use CDI instead of `--gpus all`"
 
@@ -193,7 +207,7 @@ This saves all training outputs to `./runs` on your host machine.
 
 !!! danger "Highly Experimental - User Assumes All Risk"
 
-    The following instructions are experimental. Sharing a X11 socket with a Docker container poses potential security risks. Therefore, it's recommended to test this solution only in a controlled environment. For more information, refer to these resources on how to use `xhost`<sup>[(1)](http://users.stat.umn.edu/~geyer/secure.html)[(2)](https://linux.die.net/man/1/xhost)</sup>.
+    The following instructions are experimental. Sharing an X11 socket with a Docker container poses [potential security risks](http://users.stat.umn.edu/~geyer/secure.html). Therefore, it's recommended to test this solution only in a controlled environment.
 
 Docker is primarily used to containerize background applications and CLI programs, but it can also run graphical programs. In the Linux world, two main graphic servers handle graphical display: [X11](https://en.wikipedia.org/wiki/X_Window_System) (also known as the X Window System) and [Wayland](<https://en.wikipedia.org/wiki/Wayland_(protocol)>). Before starting, it's essential to determine which graphics server you are currently using. Run this command to find out:
 
@@ -222,7 +236,7 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
           -it --ipc=host ultralytics/ultralytics:latest
         ```
 
-        This command sets the `DISPLAY` environment variable to the host's display, mounts the X11 socket, and maps the `.Xauthority` file to the container. The `xhost +local:docker` command allows the Docker container to access the X11 server.
+        This command sets the `DISPLAY` environment variable to the host's display, mounts the X11 socket, and maps the `.Xauthority` file to the container. The [`xhost +local:docker`](https://linux.die.net/man/1/xhost) command allows the Docker container to access the X11 server.
 
     === "Wayland"
 
@@ -238,6 +252,13 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
 ### Using Docker with a GUI
 
+Ultralytics images ship headless OpenCV, so first install the GUI build of OpenCV and its system libraries inside the container:
+
+```bash
+apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libsm6
+pip uninstall -y opencv-python-headless && pip install opencv-python
+```
+
 Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLO26 model](../models/yolo26.md):
 
 ```bash
@@ -246,7 +267,7 @@ yolo predict model=yolo26n.pt show=True
 
 ??? info "Testing"
 
-    A simple way to validate that the Docker group has access to the X11 server is to run a container with a GUI program like [`xclock`](https://xorg.freedesktop.org/archive/X11R6.8.1/doc/xclock.1.html) or [`xeyes`](https://xorg.freedesktop.org/archive/X11R7.5/doc/man/man1/xeyes.1.html). Alternatively, you can also install these programs in the Ultralytics Docker container to test the access to the X11 server of your GNU-Linux display server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. Setting this environment variable enables the output of debugging information, aiding in the troubleshooting process.
+    A simple way to validate that the Docker group has access to the X11 server is to run a container with a GUI program like [`xclock`](https://xorg.freedesktop.org/archive/X11R6.8.1/doc/xclock.1.html) or [`xeyes`](https://xorg.freedesktop.org/archive/X11R7.5/doc/man/man1/xeyes.1.html). Alternatively, you can also install these programs in the Ultralytics Docker container to test the access to the X11 server of your GNU/Linux display server. If you run into any problems, consider setting the environment variable `-e QT_DEBUG_PLUGINS=1`. Setting this environment variable enables the output of debugging information, aiding in the troubleshooting process.
 
 ### When finished with Docker GUI
 
@@ -260,25 +281,23 @@ yolo predict model=yolo26n.pt show=True
 
 ??? question "Want to view image results directly in the Terminal?"
 
-    Refer to the following guide on [viewing the image results using a terminal](./view-results-in-terminal.md)
+    On Linux and macOS, you can [display image results in the VSCode integrated terminal](./view-results-in-terminal.md) using the `sixel` protocol.
 
-You are now set up to use Ultralytics with Docker and ready to take advantage of its capabilities. To self-host the Ultralytics web application, see the [Platform On-Premise guide](../platform/integrations/on-premise.md). For alternative Python package installation methods, see the [Ultralytics quickstart documentation](../quickstart.md).
+You are now set up to [use Ultralytics](../quickstart.md) with Docker. To self-host the Ultralytics web application, see the [Platform On-Premise guide](../platform/integrations/on-premise.md).
 
 ## FAQ
 
 ### How do I set up Ultralytics with Docker?
 
-To set up Ultralytics with Docker, first ensure that Docker is installed on your system. If you have an NVIDIA GPU, install the [NVIDIA Container Toolkit](#installing-nvidia-container-toolkit) to enable GPU support. Then, pull the latest Ultralytics Docker image from Docker Hub using the following command:
+To set up Ultralytics with Docker, first ensure that Docker is installed on your system. If you have an NVIDIA GPU, install the [NVIDIA Container Toolkit](#installing-nvidia-container-toolkit) to enable GPU support. Then, pull the latest [Ultralytics Docker image](#installing-ultralytics-docker-images) from Docker Hub using the following command:
 
 ```bash
 sudo docker pull ultralytics/ultralytics:latest
 ```
 
-For detailed steps, refer to our Docker Quickstart Guide.
-
 ### What are the benefits of using Ultralytics Docker images for machine learning projects?
 
-Using Ultralytics Docker images ensures a consistent environment across different machines, replicating the same software and dependencies. This is particularly useful for [collaborating across teams](https://www.ultralytics.com/blog/how-ultralytics-integration-can-enhance-your-workflow), running models on various hardware, and maintaining reproducibility. Use `latest` for general NVIDIA GPU training or select the image matching your JetPack version for an NVIDIA Jetson device. See the [complete image table](#installing-ultralytics-docker-images) or explore [Ultralytics Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics/tags).
+Using Ultralytics Docker images ensures a consistent environment across different machines, replicating the same software and dependencies. This is particularly useful for collaborating across teams, running models on various hardware, and [keeping model deployments reproducible](https://www.ultralytics.com/blog/containerization-using-docker-to-streamline-model-deployment). Use `latest` for general NVIDIA GPU training or select the image matching your JetPack version for an NVIDIA Jetson device.
 
 ### How can I run Ultralytics YOLO in a Docker container with GPU support?
 
@@ -288,7 +307,7 @@ First, ensure that the [NVIDIA Container Toolkit](#installing-nvidia-container-t
 sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest # all GPUs
 ```
 
-This command sets up a Docker container with GPU access. For additional details, see the Docker Quickstart Guide.
+This command sets up a Docker container with [GPU access](#using-gpus), which you can limit to specific GPUs or switch to AMD ROCm.
 
 ### How do I visualize YOLO prediction results in a Docker container with a display server?
 
@@ -309,7 +328,7 @@ xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
   --net=host -it --ipc=host ultralytics/ultralytics:latest
 ```
 
-More information can be found in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section.
+Inside the container, install the GUI build of OpenCV before using `show=True`, as described in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section.
 
 ### Can I mount local directories into the Ultralytics Docker container?
 

@@ -2,11 +2,10 @@
 
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, checks
+from ultralytics.utils import LOGGER, TESTS_RUNNING, checks
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS["dvc"] is True  # verify integration is enabled
     import dvclive
 
     assert checks.check_version("dvclive", "2.11.0", verbose=True)
@@ -74,17 +73,15 @@ def _log_confusion_matrix(validator) -> None:
     into lists of target and prediction labels.
 
     Args:
-        validator (BaseValidator): The validator object containing the confusion matrix and class names. Must have
-            attributes confusion_matrix.matrix, confusion_matrix.task, and names.
+        validator (BaseValidator): The validator object whose confusion_matrix provides matrix and names.
     """
+    if (cm := validator.confusion_matrix) is None:  # e.g. depth has no confusion matrix
+        return
     targets = []
     preds = []
-    matrix = validator.confusion_matrix.matrix
-    names = list(validator.names.values())
-    if validator.confusion_matrix.task in {"detect", "obb"}:
-        names += ["background"]
+    names = [*cm.names.values(), "background"][: len(cm.matrix)]
 
-    for ti, pred in enumerate(matrix.T.astype(int)):
+    for ti, pred in enumerate(cm.matrix.T.astype(int)):
         for pi, num in enumerate(pred):
             targets.extend([names[ti]] * num)
             preds.extend([names[pi]] * num)

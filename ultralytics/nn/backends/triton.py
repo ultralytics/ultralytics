@@ -22,9 +22,9 @@ class TritonBackend(BaseBackend):
         """Connect to a remote model on an NVIDIA Triton Inference Server.
 
         Args:
-            weight (str | Path): Triton model URL (e.g., 'http://localhost:8000/model_name').
+            weight (str | Path): Triton model URL (e.g., `http://localhost:8000/model_name`).
         """
-        check_requirements("tritonclient[all]")
+        check_requirements("tritonclient[http,grpc]")
         from ultralytics.utils.triton import TritonRemoteModel
 
         self.model = TritonRemoteModel(weight)

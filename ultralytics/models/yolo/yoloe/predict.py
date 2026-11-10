@@ -59,14 +59,27 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     def preprocess(self, im):
         """Preprocess a batch and rasterize its visual prompts."""
         imgs = super().preprocess(im)
+        if not self.args.tile:
+            self.visuals = self._prompts_to_tensor(imgs, im)
+        return imgs
+
+    def _batch_tiles(self, batch, dataset):
+        """Extract each source's visual embeddings once before scheduling its tiles."""
+        if self.args.tile:
+            images = batch[1]
+            im = super().preprocess(images)
+            visuals = self._prompts_to_tensor(im, images)
+            embeddings = self.model(im, vpe=visuals, return_vpe=True)
+        for tile_batch, snapshot, context in super()._batch_tiles(batch, dataset):
+            if context is not None:
+                self.visuals = embeddings[[i for i, _ in context[1]]]
+            yield tile_batch, snapshot, context
+
+    def _prompts_to_tensor(self, imgs, im):
+        """Rasterize prompts into a batched tensor on the model device."""
         dst_shape = tuple(imgs.shape[2:])  # one letterboxed shape per batch, since preprocess stacks the images
         # tensor sources skip letterboxing, so their src and dst shapes are identical
         src_shapes = [dst_shape] * len(im) if isinstance(im, torch.Tensor) else [x.shape[:2] for x in im]
-        self.visuals = self._prompts_to_tensor(dst_shape, src_shapes)
-        return imgs
-
-    def _prompts_to_tensor(self, dst_shape, src_shapes):
-        """Rasterize prompts into a batched tensor on the model device."""
         bboxes, category = self.prompts.get("bboxes", None), self.prompts["cls"]
         if not self.is_per_image(self.prompts):  # one flat set, rasterized against every image in the batch
             masks = self.prompts.get("masks", None)
@@ -112,8 +125,9 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         self.setup_source(source)
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
-            im = self.preprocess(im0s)
-            return self.model(im, vpe=self.visuals, return_vpe=True)
+            im = super().preprocess(im0s)
+            visuals = self._prompts_to_tensor(im, im0s)
+            return self.model(im, vpe=visuals, return_vpe=True)
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

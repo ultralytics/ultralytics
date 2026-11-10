@@ -31,6 +31,8 @@ DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
+AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
+NXP                     | `nxp`                     | yolo26n_nxp.tflite
 """
 
 from __future__ import annotations
@@ -40,15 +42,17 @@ import platform
 import shutil
 import time
 from copy import deepcopy
+from importlib.util import find_spec
 from pathlib import Path
 
 import numpy as np
 import torch.cuda
 
-from ultralytics import RTDETR, YOLO, YOLOWorld
+from ultralytics import RTDETR, YOLO, YOLOE, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
+from ultralytics.data.utils import check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.engine.exporter import export_formats
-from ultralytics.nn.modules import Segment26
+from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -85,9 +89,10 @@ def benchmark(
         imgsz (int | list[int]): Square image size for the benchmark.
         quantize (int | str | None): Requested precision: 16 (FP16), 8 (INT8), or None/32 (FP32). Exported rows apply it
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
-            PyTorch row is not exported and only 16 affects it, selecting FP16 inference. Each format then runs
+            PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
-        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps'.
+        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or 'xpu' and 'npu' for the Intel
+            GPU and NPU with format='openvino' or 'litert'.
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
             every successful format's metric exceeds this floor value.
         eps (float): Epsilon value for divide by zero prevention.
@@ -105,7 +110,9 @@ def benchmark(
     """
     from ultralytics.cfg import _handle_deprecation
 
-    kwargs = _handle_deprecation(kwargs)
+    kwargs["device"] = device  # deprecated intel:* device names map here too
+    quantize = _handle_deprecation(kwargs).pop("quantize", quantize)  # updates kwargs in place, half/int8 -> quantize
+    device = kwargs.pop("device")
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
@@ -118,16 +125,25 @@ def benchmark(
     pl.Config.set_tbl_hide_dataframe_shape(True)  # Hide shape info
     pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
 
-    device = select_device(device, verbose=False)
+    format_arg = format.lower()
+    intel = format_arg in AutoBackend.INTEL_FORMATS  # these runtimes map 'xpu' and 'npu' onto Intel devices
+    if not intel:
+        device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
     key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
+    if isinstance(model, (YOLOE, YOLOWorld)) and not hasattr(model.model.model[-1], "lrpc"):
+        data = convert_ndjson_to_yolo_if_needed(data, split="val")
+        names = [name.split("/", 1)[0] for name in check_det_dataset(data)["names"].values()]
+        # exports bake the current vocabulary, while validation re-prompts YOLOE always and YOLO-World on new names
+        if isinstance(model, YOLOE) or list(model.names.values()) != names:
+            model = deepcopy(model, {id(model.predictor): None, id(model.trainer): None})
+            model.set_classes(names, model.get_text_pe(names)) if isinstance(model, YOLOE) else model.set_classes(names)
 
     y = []
     t0 = time.time()
 
-    format_arg = format.lower()
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format_arg in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
@@ -140,9 +156,7 @@ def benchmark(
                 continue
 
             # Checks
-            if export_format == "pb":
-                assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
-            elif export_format == "edgetpu":
+            if export_format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
                 assert shutil.which("edgetpu_compiler"), "Edge TPU benchmark requires edgetpu_compiler"
             elif export_format == "coreml":
@@ -188,9 +202,9 @@ def benchmark(
                 assert LINUX and not (ARM64 and IS_DOCKER), (
                     "export is only supported on Linux and is not supported on ARM64 Docker."
                 )
-                assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
-                    "Axelera export does not currently support YOLO26 segmentation models"
-                )
+            if export_format == "xilinx":
+                assert LINUX, "AMD Xilinx export only supported on Linux"
+                assert find_spec("quark"), "AMD Xilinx benchmark requires amd-quark"
             if export_format == "litert":
                 assert MACOS or (LINUX and not ARM64), "LiteRT benchmark only supported on Linux x86 and macOS"
                 # benchmark() deadlocks on the ai-edge-litert/TensorFlow abseil mutex (RAW: Lock blocking) on macOS CI
@@ -198,15 +212,15 @@ def benchmark(
                 assert not (MACOS and is_github_action_running()), (
                     "LiteRT not benchmarked on macOS CI (ai-edge-litert/TF abseil mutex deadlock)"
                 )
-            if "cpu" in device.type:
+            if "cpu" in str(device):
                 assert cpu, "inference not supported on CPU"
-            if "cuda" in device.type:
+            if "cuda" in str(device):
                 assert gpu, "inference not supported on GPU"
 
             # Export
             if export_format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
-                exported_model = deepcopy(model)  # PyTorch format
+                exported_model = deepcopy(model, {id(model.predictor): None, id(model.trainer): None})  # PyTorch format
             else:
                 export_data = data if "data" in valid_args else None
                 filename = model.export(
@@ -223,7 +237,6 @@ def benchmark(
             emoji = "❎"  # indicates export succeeded
 
             # Predict
-            assert model.task != "pose" or export_format != "pb", "GraphDef Pose inference is not supported"
             assert export_format != "edgetpu", "inference not supported"
             assert export_format != "coreml" or platform.system() == "Darwin", "inference requires macOS>=10.13"
             assert export_format != "coreai" or MACOS, "inference requires macOS"
@@ -260,7 +273,7 @@ def benchmark(
             y.append([name, emoji, round(file_size(filename), 1), None, None, None])  # mAP, t_inference
 
     # Print results
-    check_yolo(device=device)  # print system info
+    check_yolo(device="cpu" if intel else device)  # print system info
     df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"], orient="row")
     df = df.with_row_index(" ", offset=1)  # add index info
     df_display = df.with_columns(pl.all().cast(pl.String).fill_null("-"))
@@ -345,7 +358,7 @@ class ProfileModels:
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.min_time = min_time
-        self.imgsz = imgsz
+        self.imgsz = check_imgsz(imgsz)
         self.quantize = quantize
         self.trt = trt  # run TensorRT profiling
         self.device = select_device(device, verbose=False)
@@ -376,7 +389,7 @@ class ProfileModels:
                 model = YOLO(str(file))
                 model.fuse(verbose=False)
                 model_info = model.info(imgsz=self.imgsz)
-                if self.trt and self.device.type != "cpu" and not engine_file.is_file():
+                if self.trt and self.device.type != "cpu":
                     engine_file = model.export(
                         format="engine",
                         quantize=self.quantize,
@@ -414,8 +427,8 @@ class ProfileModels:
         for path in self.paths:
             path = Path(path)
             if path.is_dir():
-                extensions = ["*.pt", "*.onnx", "*.yaml"]
-                files.extend([file for ext in extensions for file in glob.glob(str(path / ext))])
+                extensions = ["*.onnx", "*.yaml", "*.pt"]  # one file per stem, so a model's own ONNX export is skipped
+                files.extend({Path(f).stem: f for ext in extensions for f in glob.glob(str(path / ext))}.values())
             elif path.suffix in {".pt", ".yaml", ".yml"}:  # add non-existing
                 files.append(str(path))
             else:
@@ -526,14 +539,11 @@ class ProfileModels:
         input_data_dict = {}
         for input_tensor in backend.session.get_inputs():
             input_type = input_tensor.type
-            if self.check_dynamic(input_tensor.shape):
-                if len(input_tensor.shape) != 4 and self.check_dynamic(input_tensor.shape[1:]):
-                    raise ValueError(f"Unsupported dynamic shape {input_tensor.shape} of {input_tensor.name}")
-                input_shape = (
-                    (1, 3, self.imgsz, self.imgsz) if len(input_tensor.shape) == 4 else (1, *input_tensor.shape[1:])
-                )
-            else:
-                input_shape = input_tensor.shape
+            shape = input_tensor.shape
+            if len(shape) != 4 and self.check_dynamic(shape[1:]):
+                raise ValueError(f"Unsupported dynamic shape {shape} of {input_tensor.name}")
+            default = (1, 3, self.imgsz, self.imgsz) if len(shape) == 4 else (1, *shape[1:])
+            input_shape = [d if isinstance(d, int) and d >= 0 else s for d, s in zip(shape, default)]  # fill dynamic
 
             # Mapping ONNX datatype to numpy datatype
             if "float16" in input_type:
@@ -634,7 +644,7 @@ class ProfileModels:
         headers = [
             "Model",
             "size<br><sup>(pixels)",
-            "mAP<sup>val<br>50-95",
+            "mAP<sup>val</sup><sub>50-95</sub>",
             f"Speed<br><sup>CPU ({get_cpu_info()}) ONNX<br>(ms)",
             f"Speed<br><sup>{gpu} TensorRT<br>(ms)",
             "params<br><sup>(M)",

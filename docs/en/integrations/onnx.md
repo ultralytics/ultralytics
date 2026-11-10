@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how to export YOLO26 models to ONNX format for flexible deployment across various platforms with enhanced performance.
+description: Export Ultralytics YOLO26 models to ONNX for portable deployment with ONNX Runtime on CPUs, NVIDIA and AMD GPUs, edge devices, and browsers, plus INT8 quantization.
 keywords: YOLO26, ONNX, model export, Ultralytics, ONNX Runtime, machine learning, model deployment, computer vision, deep learning
 ---
 
@@ -12,7 +12,7 @@ keywords: YOLO26, ONNX, model export, Ultralytics, ONNX Runtime, machine learnin
 
 Often, when deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, you'll need a model format that's both flexible and compatible with multiple platforms.
 
-Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to ONNX format streamlines deployment and ensures optimal performance across various environments. This guide will show you how to easily convert your YOLO26 models to ONNX and enhance their scalability and effectiveness in real-world applications.
+Exporting [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) models to ONNX format simplifies deployment across many runtimes and hardware platforms. This guide shows how to convert your YOLO26 models to ONNX and run them in real-world applications.
 
 <p align="center">
   <br>
@@ -27,17 +27,17 @@ Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) model
 
 ## ONNX and ONNX Runtime
 
-[ONNX](https://onnx.ai/), which stands for Open [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Exchange, is a community project that Facebook and Microsoft initially developed. The ongoing development of ONNX is a collaborative effort supported by various organizations like IBM, Amazon (through AWS), and Google. The project aims to create an open file format designed to represent [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models in a way that allows them to be used across different AI frameworks and hardware.
+[ONNX](https://onnx.ai/), which stands for [Open Neural Network Exchange](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), is a community project that Facebook and Microsoft initially developed. The ongoing development of ONNX is a collaborative effort supported by various organizations like IBM, Amazon (through AWS), and Google. The project aims to create an open file format designed to represent [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models in a way that allows them to be used across different AI frameworks and hardware.
 
-ONNX models can be used to transition between different frameworks seamlessly. For instance, a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model trained in PyTorch can be exported to ONNX format and then easily imported into TensorFlow.
+ONNX models can be used to move between different frameworks. For instance, a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model trained in PyTorch can be exported to ONNX format and then imported into TensorFlow.
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/d82cf8e015f11e3e1f7ea679b043ef00.avif" alt="ONNX model portability across deep learning frameworks">
+  <img width="100%" src="https://cdn.ul.run/i/3d77aaacb115081597b87f6d3a6af615.avif" alt="ONNX model portability across deep learning frameworks">
 </p>
 
 Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https://onnxruntime.ai/) is a versatile cross-platform accelerator for machine learning models that is compatible with frameworks like PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), scikit-learn, etc.
 
-ONNX Runtime optimizes the execution of ONNX models by leveraging hardware-specific capabilities. This optimization allows the models to run efficiently and with high performance on various hardware platforms, including CPUs, GPUs, and specialized accelerators.
+ONNX Runtime optimizes the execution of ONNX models by using hardware-specific capabilities. This optimization allows the models to run efficiently and with high performance on various hardware platforms, including CPUs, GPUs, and specialized accelerators.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/f669dc67507d4abd9928fcda9dee73b1.avif" alt="ONNX Runtime cross-platform inference acceleration">
@@ -55,11 +55,11 @@ The ability of ONNX to handle various formats can be attributed to the following
 
 - **Graph-based Model Representation**: ONNX represents models as computational graphs. This graph-based structure is a universal way of representing machine learning models, where nodes represent operations or computations, and edges represent the tensors flowing between them. This format is easily adaptable to various frameworks which also represent models as graphs.
 
-- **Tools and Ecosystem**: There is a rich ecosystem of tools around ONNX that assist in model conversion, visualization, and optimization. These tools make it easier for developers to work with ONNX models and to convert models between different frameworks seamlessly.
+- **Tools and Ecosystem**: There is a rich ecosystem of tools around ONNX that assist in model conversion, visualization, and optimization. These tools make it easier for developers to work with ONNX models and to convert models between different frameworks.
 
 ## Common Usage of ONNX
 
-Before we jump into how to export YOLO26 models to the ONNX format, let's take a look at where ONNX models are usually used.
+ONNX models are commonly used in the following scenarios.
 
 ### CPU Deployment
 
@@ -69,9 +69,9 @@ ONNX models are often deployed on CPUs due to their compatibility with ONNX Runt
 
 While ONNX models are commonly used on CPUs, they can also be deployed on the following platforms:
 
-- **GPU Acceleration**: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. For native training and inference on AMD GPUs, use [PyTorch ROCm](amd.md); an ONNX file still requires an AMD-compatible runtime.
+- **GPU Acceleration**: ONNX fully supports GPU acceleration on NVIDIA GPUs through CUDA and on [AMD GPUs through ROCm and MIGraphX](amd.md#export-and-inference-with-migraphx).
 
-- **Edge and Mobile Devices**: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware, and serves as the basis for vendor NPU formats such as [Huawei Ascend](ascend.md), [Qualcomm QNN](qnn.md) for Snapdragon devices, and [RKNN](rockchip-rknn.md) for Rockchip NPUs.
+- **Edge and Mobile Devices**: ONNX extends to edge and mobile devices, suited to on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware, and serves as the basis for vendor NPU formats such as [Huawei Ascend](ascend.md), [Qualcomm QNN](qnn.md) for Snapdragon devices, and [RKNN](rockchip-rknn.md) for Rockchip NPUs.
 
 - **Web Browsers**: ONNX can run directly in web browsers, powering interactive and dynamic web-based AI applications.
 
@@ -83,7 +83,7 @@ ONNX export supports all seven Ultralytics tasks. Semantic segmentation and dept
 
 ## Exporting YOLO26 Models to ONNX
 
-You can expand model compatibility and deployment flexibility by converting YOLO26 models to ONNX format. [Ultralytics YOLO26](../models/yolo26.md) provides a straightforward export process that can significantly enhance your model's performance across different platforms.
+You can expand model compatibility and deployment flexibility by converting YOLO26 models to ONNX format. Ultralytics YOLO26 provides a straightforward export process for running your model across different platforms.
 
 ### Installation
 
@@ -102,9 +102,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
-
-The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or [validate its accuracy](https://academy.ultralytics.com/courses/yolo-in-production/export-to-onnx).
 
 !!! example "Export"
 
@@ -188,12 +186,27 @@ When exporting your YOLO26 model to ONNX format, you can customize the process u
 | `fraction` | `float`, `int`, or `list` | `1.0`    | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                                                                                                                                                   |
 | `dynamic`  | `bool`                    | `False`  | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                                                                                                                                                    |
 | `simplify` | `bool`                    | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                                                                                                                                                                           |
-| `opset`    | `int`                     | `None`   | Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses the latest supported version.                                                                                                                                                                                                                                                |
+| `opset`    | `int`                     | `None`   | Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses opset `18` (lower on PyTorch < 2.4), capped at the installed `onnx` version.                                                                                                                                                                                                 |
 | `nms`      | `bool`, optional          | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                                                                                                                                                                                                                |
 | `batch`    | `int`                     | `1`      | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                                                                                                                                    |
 | `device`   | `str`                     | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                                                                                                                            |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+
+### INT8 Quantization
+
+For checkpoints not trained with [quantization-aware training](../modes/export.md#quantization-aware-training), `quantize=8` applies ONNX Runtime static [quantization](https://www.ultralytics.com/glossary/model-quantization) to `Conv`, `Gemm`, and `MatMul` nodes only. All other nodes stay in float, including the ops that assemble `output0`: box coordinates (pixels) and class scores (0 to 1) share that tensor, so a single INT8 scale for it would round every class score to zero. Weights are quantized per channel at opset 13 and above. Exclude the same nodes and set `per_channel=True` if you run `quantize_static` on an exported FP32 model yourself:
+
+```python
+import onnx
+from onnxruntime.quantization import quantize_static
+
+model = "yolo26n.onnx"
+exclude = [n.name for n in onnx.load(model).graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
+quantize_static(model, "yolo26n_int8.onnx", calibration_reader, nodes_to_exclude=exclude, per_channel=True)
+```
+
+Here `calibration_reader` is an `onnxruntime.quantization.CalibrationDataReader` that yields `{"images": array}` for each calibration image, preprocessed as for inference: letterboxed to the export size, RGB, NCHW, `float32` in 0-1.
 
 ## Deploying Exported YOLO26 ONNX Models
 
@@ -201,21 +214,38 @@ Once you've successfully exported your Ultralytics YOLO26 models to ONNX format,
 
 - **[ONNX Runtime Python API Documentation](https://onnxruntime.ai/docs/api/python/api_summary.html)**: This guide provides essential information for loading and running ONNX models using ONNX Runtime.
 
-- **[Deploying on Edge Devices](https://onnxruntime.ai/docs/tutorials/iot-edge/)**: Check out this docs page for different examples of deploying ONNX models on edge.
+- **[Deploying on Edge Devices](https://onnxruntime.ai/docs/tutorials/iot-edge/)**: Examples of deploying ONNX models on edge devices.
 
-- **[ONNX Tutorials on GitHub](https://github.com/onnx/tutorials)**: A collection of comprehensive tutorials that cover various aspects of using and implementing ONNX models in different scenarios.
+- **[ONNX Tutorials on GitHub](https://github.com/onnx/tutorials)**: A collection of tutorials that cover various aspects of using and implementing ONNX models in different scenarios.
 
 - **[Triton Inference Server](../guides/triton-inference-server.md)**: Learn how to deploy your ONNX models with NVIDIA's Triton Inference Server for high-performance, scalable deployments.
+
+## Windows ML Inference
+
+On Windows 11 24H2 (build 26100) or newer with Python 3.10+, you can install `onnxruntime-windowsml` in a separate environment to let [Windows ML select execution providers](https://learn.microsoft.com/en-us/windows/ai/new-windows-ml/select-execution-providers) for your hardware. Install it instead of other ONNX Runtime builds, then use the same exported `.onnx` model with `YOLO("model.onnx")`. The backend preserves the PyTorch thread count and supplied session options, including an explicit provider policy. Without a supplied policy, Windows ML selects hardware for maximum performance, even when the PyTorch device is `cpu`. Measure prediction latency on your device before choosing this runtime; it is optional and is not installed by default.
+
+On integrated GPUs that share power with the CPU, idle PyTorch threads in preprocessing and postprocessing can slow Windows ML inference. Call `torch.set_num_threads(1)` before predicting to reduce this. It applies to the whole process, so other PyTorch models in that process also run on one thread.
+
+```python
+import torch
+
+from ultralytics import YOLO
+
+torch.set_num_threads(1)  # optional, measure on your device
+results = YOLO("yolo26n.onnx")("https://ultralytics.com/images/bus.jpg")
+```
+
+## AMD GPU Inference with MIGraphX
+
+Ultralytics runs exported ONNX models on AMD GPUs through the ONNX Runtime [MIGraphX execution provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html). On a ROCm (HIP) system, the ONNX backend installs the `onnxruntime-ep-migraphx` plugin on first use and selects `MIGraphXExecutionProvider` automatically with no code changes, and all YOLO26 tasks are supported. See the [AMD GPU inference guide](amd.md) for prerequisites, installation, usage, [benchmarks](amd.md#benchmarks), and the compiled-program cache.
 
 ## Summary
 
 In this guide, you've learned how to export Ultralytics YOLO26 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.
 
-ONNX export is just one of many [export formats](../modes/export.md) supported by Ultralytics YOLO26, allowing you to deploy your models in virtually any environment. Depending on your specific needs, you might also want to explore other export options like [TensorRT](../integrations/tensorrt.md) for maximum GPU performance or [CoreML](../integrations/coreml.md) for Apple devices.
+ONNX export is just one of many [export formats](../modes/export.md) supported by Ultralytics YOLO26, allowing you to deploy your models in virtually any environment. Depending on your specific needs, you might also want to explore other export options like [TensorRT](tensorrt.md) for maximum GPU performance or [CoreML](coreml.md) for Apple devices.
 
 For further details on usage, visit the [ONNX official documentation](https://onnx.ai/onnx/intro/).
-
-Also, if you'd like to know more about other Ultralytics YOLO26 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
 
 ## FAQ
 
@@ -260,9 +290,9 @@ For more details, visit the [export documentation](../modes/export.md).
 Using ONNX Runtime for deploying YOLO26 models offers several advantages:
 
 - **Cross-platform compatibility**: ONNX Runtime supports various platforms, such as Windows, macOS, and Linux, ensuring your models run smoothly across different environments.
-- **Hardware acceleration**: ONNX Runtime can leverage hardware-specific optimizations for CPUs, GPUs, and dedicated accelerators, providing high-performance inference.
-- **Framework interoperability**: Models trained in popular frameworks like [PyTorch](https://www.ultralytics.com/glossary/pytorch) or TensorFlow can be easily converted to ONNX format and run using ONNX Runtime.
-- **Performance optimization**: ONNX Runtime can provide up to 3x CPU speedup compared to native PyTorch models, making it ideal for deployment scenarios where GPU resources are limited.
+- **Hardware acceleration**: ONNX Runtime can use hardware-specific optimizations for CPUs, GPUs, and dedicated accelerators, providing high-performance inference.
+- **Framework interoperability**: Models trained in popular frameworks like [PyTorch](https://www.ultralytics.com/glossary/pytorch) or TensorFlow can be converted to ONNX format and run using ONNX Runtime.
+- **Performance optimization**: ONNX Runtime is often faster than native PyTorch inference on CPU, which helps in deployment scenarios where GPU resources are limited.
 
 Learn more by checking the [ONNX Runtime documentation](https://onnxruntime.ai/docs/api/python/api_summary.html).
 
@@ -270,8 +300,9 @@ Learn more by checking the [ONNX Runtime documentation](https://onnxruntime.ai/d
 
 YOLO26 models exported to ONNX can be deployed on various platforms including:
 
-- **CPUs**: Utilizing ONNX Runtime for optimized CPU inference.
-- **GPUs**: Leveraging NVIDIA CUDA for high-performance GPU acceleration.
+- **CPUs**: Using ONNX Runtime for optimized CPU inference.
+- **NVIDIA GPUs**: Using NVIDIA CUDA for high-performance GPU acceleration.
+- **AMD GPUs**: Using [AMD ROCm and the MIGraphX execution provider](amd.md) for high-performance GPU acceleration on Linux.
 - **Edge devices**: Running lightweight models on edge and mobile devices for real-time, on-device inference.
 - **Web browsers**: Executing models directly within web browsers for interactive web-based applications.
 - **Cloud services**: Deploying on cloud platforms that support ONNX format for scalable inference.
@@ -280,14 +311,12 @@ For more information, explore our guide on [model deployment options](../guides/
 
 ### Why should I use ONNX format for Ultralytics YOLO26 models?
 
-Using ONNX format for Ultralytics YOLO26 models provides numerous benefits:
+Using ONNX format for Ultralytics YOLO26 models provides several benefits:
 
-- **Interoperability**: ONNX allows models to be transferred between different machine learning frameworks seamlessly.
+- **Interoperability**: ONNX allows models to be transferred between different machine learning frameworks.
 - **Performance Optimization**: ONNX Runtime can enhance model performance by utilizing hardware-specific optimizations.
 - **Flexibility**: ONNX supports various deployment environments, enabling you to use the same model on different platforms without modification.
 - **Standardization**: ONNX provides a standardized format that is widely supported across the industry, ensuring long-term compatibility.
-
-Refer to the comprehensive guide on [exporting YOLO26 models to ONNX](../integrations/onnx.md).
 
 ### How can I troubleshoot issues when exporting YOLO26 models to ONNX?
 
@@ -299,4 +328,4 @@ When exporting YOLO26 models to ONNX, you might encounter common issues such as 
 4. Try using different export arguments like `simplify=True` or adjusting the `opset` version.
 5. For dynamic input size issues, set `dynamic=True` during export.
 
-If issues persist, contact Ultralytics support for further assistance.
+If issues persist, contact [Ultralytics support](https://www.ultralytics.com/support) for further assistance.

@@ -6,7 +6,7 @@ keywords: Huawei Ascend, CANN, torch_npu, HCCL, NPU training, ATC, om model, Asc
 
 # Huawei Ascend Integration for Ultralytics YOLO
 
-Deploying computer vision models on [Huawei Ascend](https://www.hiascend.com/) AI Processors requires compiling them into the `.om` offline model format executed by the Ascend AI Core. Exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to Ascend lets you run fast, low-power inference on Atlas developer boards and OrangePi AIPro devices used across robotics, industrial inspection, and smart camera deployments.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on [Huawei Ascend](https://www.hiascend.com/) AI Processors requires compiling them into the `.om` offline model format executed by the Ascend AI Core. Exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to Ascend lets you run fast, low-power inference on Atlas developer boards and OrangePi AIPro devices used across robotics, industrial inspection, and smart camera deployments.
 
 ## What is Huawei Ascend?
 
@@ -16,7 +16,7 @@ Because ATC runs entirely on the host, you can compile models on a regular x86-6
 
 ## Train on Ascend NPUs
 
-Ultralytics supports single- and multi-NPU training with `torch_npu`, including AMP, validation, checkpointing, resume, and AutoBatch. Select one NPU with `device=npu:0` or multiple NPUs with `device=npu:0,1`; distributed training uses HCCL. Install compatible CANN, PyTorch, and `torch_npu` versions and source the CANN environment first. See the [Ascend NPU training section](../modes/train.md#huawei-ascend-npu-training) for installation and usage examples.
+Ultralytics supports single- and multi-[NPU](https://www.ultralytics.com/glossary/neural-processing-unit-npu) training with `torch_npu`, including AMP, validation, checkpointing, resume, and AutoBatch. Select one NPU with `device=npu:0` or multiple NPUs with `device=npu:0,1`; distributed training uses HCCL. [Install compatible CANN, PyTorch, and `torch_npu` versions](../modes/train.md#huawei-ascend-npu-training) and source the CANN environment first.
 
 ## Ascend Export Format
 
@@ -40,12 +40,12 @@ Huawei Ascend export supports all seven Ultralytics tasks. Semantic segmentation
 
 Pass the target SoC with `name`; ATC bakes it into the `.om` as `--soc_version`, so it must match the board you deploy to. Locally you can compile for any SoC your CANN installation provides kernels for. [Ultralytics Platform](https://platform.ultralytics.com) supports the Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets.
 
-| `name`        | Devices                           | Local export | Platform |
-| :------------ | :-------------------------------- | :----------- | :------- |
-| `Ascend310P3` | Atlas 300I Pro, Atlas 300V Pro    | ✅           | ✅       |
-| `Ascend310P1` | Atlas 300I                        | ✅           | ✅       |
-| `Ascend310B4` | OrangePi AIPro 20T, Atlas 200I A2 | ✅           | ✅       |
-| `Ascend310B1` | OrangePi AIPro 8T                 | ✅           | ✅       |
+| `name`        | Devices                                     | Local export | Platform |
+| :------------ | :------------------------------------------ | :----------- | :------- |
+| `Ascend310P3` | Atlas 300I Pro, Atlas 300V Pro              | ✅           | ✅       |
+| `Ascend310P1` | Atlas 300I                                  | ✅           | ✅       |
+| `Ascend310B4` | OrangePi AIPro 8T, Atlas 200I A2 (8 TOPS)   | ✅           | ✅       |
+| `Ascend310B1` | OrangePi AIPro 20T, Atlas 200I A2 (20 TOPS) | ✅           | ✅       |
 
 ## Export to Ascend: Converting Your YOLO Model
 
@@ -161,7 +161,7 @@ Copy the exported `yolo26n_ascend_model` directory to the device, then run infer
 
 ## Recommended Workflow
 
-1. **Train** your model using Ultralytics [Train Mode](../modes/train.md), or start from a pre-trained checkpoint.
+1. **Train** your model using Ultralytics [Train Mode](../modes/train.md), or start from a [pretrained YOLO26 checkpoint](https://platform.ultralytics.com/ultralytics/yolo26).
 2. **Export** to Ascend on any Linux host with CANN installed, passing the `name` that matches your target SoC.
 3. **Copy** the exported model directory to the Ascend device.
 4. **Deploy** with the CANN runtime and `ais_bench` for on-device inference.
@@ -180,8 +180,6 @@ YOLO models running on Ascend hardware suit a wide range of embedded and industr
 In this guide, you have learned how to train Ultralytics YOLO on Huawei Ascend NPUs and export models to the Ascend `.om` format using the CANN ATC compiler. Export runs entirely on the host, produces a self-contained model directory, and targets any supported Ascend SoC through a single `name` argument.
 
 For more details on usage, visit the [official CANN documentation](https://www.hiascend.com/cann).
-
-Also, if you'd like to know more about other Ultralytics YOLO integrations, visit our [integration guide page](index.md) to find plenty of helpful resources.
 
 ## FAQ
 

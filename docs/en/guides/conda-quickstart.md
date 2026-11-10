@@ -8,55 +8,56 @@ keywords: Ultralytics, YOLO, Conda, conda-forge, install Ultralytics, conda envi
 # How to Install Ultralytics YOLO with Conda
 
 <p align="center">
-  <img width="800" src="https://cdn.ul.run/i/59a3c831a2309a5822e4d5f5be52dbe5.avif" alt="Ultralytics Conda Package Visual">
+  <img width="800" src="https://cdn.ul.run/i/59a3c831a2309a5822e4d5f5be52dbe5.avif" alt="Ultralytics package for Conda from conda-forge">
 </p>
 
-This guide walks through setting up a Conda environment for your Ultralytics projects. Conda is an open-source package and environment management system that offers an excellent alternative to pip for installing packages and dependencies. Its isolated environments make it particularly well-suited for data science and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) work. For more details, visit the Ultralytics Conda package on [Anaconda](https://anaconda.org/conda-forge/ultralytics) and check out the Ultralytics feedstock repository for package updates on [GitHub](https://github.com/conda-forge/ultralytics-feedstock/).
+This guide walks through setting up a Conda environment for your Ultralytics projects. Conda is an open-source package and environment management system and an alternative to pip for installing packages and dependencies. Its isolated environments make it particularly well-suited for data science and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) work.
 
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge)](https://anaconda.org/conda-forge/ultralytics)
 [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
-[![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics)
+[![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://github.com/conda-forge/ultralytics-feedstock)
 [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
 
-This guide covers how to [create an environment](#setting-up-a-conda-environment), [install Ultralytics](#installing-ultralytics), [run inference](#using-ultralytics), use the [Conda Docker image](#ultralytics-conda-docker-image), and [speed up installs with libmamba](#speeding-up-installation-with-libmamba).
+This guide covers how to [create an environment with Ultralytics](#installing-ultralytics), [run inference](#using-ultralytics), use the [Conda Docker image](#ultralytics-conda-docker-image), and [speed up installs with libmamba](#speeding-up-installation-with-libmamba).
 
 ## Prerequisites
 
 You should have Anaconda or Miniconda installed on your system. If not, download and install it from [Anaconda](https://www.anaconda.com/) or [Miniconda](https://www.anaconda.com/docs/main).
 
-## Setting up a Conda Environment
-
-First, create a new Conda environment. Open your terminal and run the following command:
-
-```bash
-conda create --name ultralytics-env python=3.11 -y
-```
-
-Activate the new environment:
-
-```bash
-conda activate ultralytics-env
-```
-
 ## Installing Ultralytics
 
-You can install the Ultralytics package from the conda-forge channel. Execute the following command:
+Create a new Conda environment with Ultralytics from the conda-forge channel, then activate it. Install Python, Ultralytics, and `torchvision` (not a dependency of the conda-forge package) in the same command so conda resolves current, compatible versions together:
 
 ```bash
-conda install -c conda-forge ultralytics
+conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision -y
+conda activate ultralytics-env
 ```
 
 !!! note "Installing in a CUDA environment"
 
-    If you're working in a CUDA-enabled environment, install `ultralytics` together with the conda-forge `pytorch-gpu` metapackage so the Conda package manager resolves a CUDA-enabled PyTorch build alongside it:
+    If you're working in a CUDA-enabled environment, add the conda-forge `pytorch-gpu` metapackage to the same command so conda resolves a CUDA-enabled PyTorch build:
 
     ```bash
-    conda install -c conda-forge ultralytics pytorch-gpu
+    conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision pytorch-gpu -y
+    conda activate ultralytics-env
     ```
+
+### Note on ROCm Environment (AMD GPU, Linux)
+
+For AMD GPU acceleration on Linux using [ROCm](https://rocm.docs.amd.com/), PyTorch ROCm wheels are not available via Conda and must be installed with `pip`. Use a Conda environment for isolation, then install PyTorch ROCm and Ultralytics via `pip`:
+
+```bash
+conda create --name ultralytics-rocm python=3.12 -y
+conda activate ultralytics-rocm
+pip install "torch[device-all]" "torchvision[device-all]" --index-url https://stable.repo.amd.com/rocm/whl-next/
+pip install ultralytics
+```
+
+See the [PyTorch Get Started](https://pytorch.org/get-started/locally/) page for supported ROCm versions and the [AMD GPU guide](../integrations/amd.md#installation) for MIGraphX inference setup, which requires **Python 3.11 or newer** on **Linux x86_64**.
 
 ## Using Ultralytics
 
-With Ultralytics installed, you can now start using its robust features for [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and more. For example, to predict an image, you can run:
+With Ultralytics installed, you can run [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and other vision tasks. For example, to run inference on an image:
 
 ```python
 from ultralytics import YOLO
@@ -111,34 +112,24 @@ You have successfully set up a Conda environment, installed the Ultralytics pack
 
 ### What is the process for setting up a Conda environment for Ultralytics projects?
 
-Setting up a Conda environment for Ultralytics projects is straightforward and ensures smooth package management. First, create a new Conda environment using the following command:
+Create the environment with Python and Ultralytics from the conda-forge channel in one command, so conda resolves them together, then activate it:
 
 ```bash
-conda create --name ultralytics-env python=3.11 -y
-```
-
-Then, activate the new environment with:
-
-```bash
+conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision -y
 conda activate ultralytics-env
-```
-
-Finally, install Ultralytics from the conda-forge channel:
-
-```bash
-conda install -c conda-forge ultralytics
 ```
 
 ### Why should I use Conda over pip for managing dependencies in Ultralytics projects?
 
-Conda is a robust package and environment management system that offers several advantages over pip. It manages dependencies efficiently and ensures that all necessary libraries are compatible. Conda's isolated environments prevent conflicts between packages, which is crucial in data science and machine learning projects. Additionally, Conda supports binary package distribution, speeding up the installation process.
+Conda is a package and environment management system that offers several advantages over pip. It manages dependencies efficiently and ensures that all necessary libraries are compatible. Conda's isolated environments prevent conflicts between packages, which is crucial in data science and machine learning projects. Additionally, Conda supports binary package distribution, speeding up the installation process.
 
 ### Can I use Ultralytics YOLO in a CUDA-enabled environment for faster performance?
 
-Yes, you can enhance performance by utilizing a CUDA-enabled environment. Install `ultralytics` together with the conda-forge `pytorch-gpu` metapackage so a CUDA-enabled PyTorch build is resolved alongside it:
+Yes. Create the environment with `ultralytics` and the conda-forge `pytorch-gpu` metapackage in the same command so a CUDA-enabled PyTorch build is resolved alongside it:
 
 ```bash
-conda install -c conda-forge ultralytics pytorch-gpu
+conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision pytorch-gpu -y
+conda activate ultralytics-env
 ```
 
 This setup enables GPU acceleration, crucial for intensive tasks like [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model training and inference. For more information, visit the [Ultralytics installation guide](../quickstart.md).
@@ -161,4 +152,4 @@ Then configure Conda to use `libmamba` as the solver:
 conda config --set solver libmamba
 ```
 
-This setup provides faster and more efficient package management. For more tips on optimizing your environment, read about [libmamba installation](https://www.anaconda.com/blog/a-faster-conda-for-a-growing-community).
+This setup provides faster and more efficient package management.

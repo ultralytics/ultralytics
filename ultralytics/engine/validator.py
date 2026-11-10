@@ -28,6 +28,7 @@ Usage - formats:
                      yolo26n_qnn.onnx           # Qualcomm QNN
                      yolo26n_hailo_model        # Hailo
                      yolo26n_ascend_model       # Huawei Ascend
+                     yolo26n_xilinx_model       # AMD Xilinx
 """
 
 from __future__ import annotations
@@ -51,7 +52,6 @@ from ultralytics.utils.torch_utils import (
     attempt_compile,
     autocast,
     get_torch_device_backend,
-    select_device,
     smart_inference_mode,
     torch_distributed_zero_first,
     unwrap_model,
@@ -142,10 +142,76 @@ class BaseValidator:
         (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
             self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # reduce OBB val memory usage
+        if self.args.iou is None:
+            self.args.iou = 0.7  # highest mAP; predict defaults to 0.5
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
+
+    @property
+    def num_images(self) -> int:
+        """Return the number of source images represented by the validation dataset."""
+        dataset = self.dataloader.dataset
+        return len(dataset.tile_counts) if self.args.tile else len(dataset)
+
+    def merge_tiles(self, preds: list | torch.Tensor, batch: dict, pending: dict):
+        """Restore completed sources using existing task scaling, then evaluate their original targets."""
+        from ultralytics.utils import ops
+
+        dataset = self.dataloader.dataset
+        for i, (pred, window, source) in enumerate(zip(preds, batch["tile"], batch["source_index"])):
+            source = int(source)
+            shape = (window[3] - window[1], window[2] - window[0])
+            if isinstance(pred, dict):
+                pred = self.scale_preds(
+                    pred,
+                    {
+                        "imgsz": batch["img"].shape[2:],
+                        "ori_shape": shape,
+                        "ratio_pad": batch["ratio_pad"][i],
+                        "tile": window,
+                    },
+                )
+            elif self.args.task == "classify":
+                pred = {"probs": pred}
+            elif self.args.task == "semantic":
+                pred = {
+                    "semantic_mask": ops.scale_masks(
+                        pred[None, None].float(), shape, mode="nearest", ratio_pad=batch["ratio_pad"][i]
+                    )[0, 0].to(torch.int32)
+                }
+            else:
+                pred = {
+                    "depth": torch.nn.functional.interpolate(
+                        pred.reshape(1, 1, *pred.shape[-2:]).float(), shape, mode="bilinear", align_corners=True
+                    )[0, 0]
+                }
+            predictions, windows = pending.setdefault(source, ([], []))
+            predictions.append(pred)
+            windows.append(window)
+            if len(predictions) != dataset.tile_counts[source]:
+                continue
+            sample = dataset.get_image_and_label(dataset.source_offsets[source], full=True)
+            if self.args.task != "classify":
+                sample = dataset.transforms.transforms[-1](sample)
+            full_batch = self.preprocess_targets(dataset.collate_fn([sample]))
+            output = ops.merge_tiles(
+                predictions,
+                windows,
+                tuple(full_batch["img"].shape[2:]),
+                self.args.iou,
+                self.args.single_cls or self.args.agnostic_nms,
+                self.args.max_det,
+            )
+            if "bboxes" in output:
+                output = [output]
+            elif "depth" in output:
+                output = output["depth"][None, None]
+            else:
+                output = next(iter(output.values()))[None]
+            del pending[source]
+            yield output, full_batch, source
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None, **kwargs):
@@ -160,6 +226,11 @@ class BaseValidator:
             (dict | None): Dictionary containing validation statistics, or None on non-zero DDP ranks during training.
         """
         self.training = trainer is not None
+        if not self.training:
+            with torch_distributed_zero_first(LOCAL_RANK):
+                self.args.data = convert_ndjson_to_yolo_if_needed(
+                    self.args.data, self.args.fraction, split=self.args.split
+                )
         model = self.get_model(model, trainer, **kwargs)
         augment = self.args.augment and (not self.training)
         if self.training:
@@ -177,16 +248,12 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
-            with torch_distributed_zero_first(LOCAL_RANK):
-                self.args.data = convert_ndjson_to_yolo_if_needed(
-                    self.args.data, self.args.fraction, split=self.args.split
-                )
             device_type = str(self.args.device).split(":", 1)[0]
             device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             model = AutoBackend(
                 model=model or self.args.model,
                 # DDP ranks reuse the device assigned in trainer._setup_ddp()
-                device=select_device(self.args.device)
+                device=self.args.device
                 if RANK == -1
                 else torch.device(device_type, get_torch_device_backend(device_type).current_device()),
                 dnn=self.args.dnn,
@@ -202,12 +269,14 @@ class BaseValidator:
             if augment and not model.base_model:
                 LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
                 augment = False
-            imgsz = check_imgsz(self.args.imgsz, stride=stride)
+            imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2)
+            if fmt != "pt" and hasattr(model, "imgsz") and not getattr(model, "dynamic", False):
+                self.args.imgsz = imgsz = model.imgsz  # reuse the full input shape from export metadata
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
-                if hasattr(model, "imgsz"):
-                    self.args.imgsz = imgsz = max(model.imgsz)  # reuse square imgsz from export metadata
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
-                LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
+                LOGGER.info(
+                    f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz[0]}, {imgsz[1]})"
+                )
 
             if self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
@@ -234,7 +303,9 @@ class BaseValidator:
             model.eval()
             if self.args.compile:
                 model = attempt_compile(model, device=self.device, mode=self.args.compile)
-            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
+            model.warmup(
+                imgsz=(1 if pt else self.dataloader.batch_size or self.args.batch, self.data["channels"], *imgsz)
+            )  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (
@@ -246,6 +317,7 @@ class BaseValidator:
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(unwrap_model(model))
         self.jdict = []  # empty before each val
+        tile_results = {}
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
@@ -267,11 +339,14 @@ class BaseValidator:
             # Postprocess
             with dt[3]:
                 preds = self.postprocess(preds)
-
-            self.update_metrics(preds, batch)
-            if self.args.plots and batch_i < 3 and RANK in {-1, 0}:
-                self.plot_val_samples(batch, batch_i)
-                self.plot_predictions(batch, preds, batch_i)
+                outputs = (
+                    list(self.merge_tiles(preds, batch, tile_results)) if self.args.tile else [(preds, batch, batch_i)]
+                )
+            for output, targets, image_i in outputs:
+                self.update_metrics(output, targets)
+                if self.args.plots and image_i < 3 and RANK in {-1, 0}:
+                    self.plot_val_samples(targets, image_i)
+                    self.plot_predictions(targets, output, image_i)
 
             self.run_callbacks("on_val_batch_end")
 
@@ -279,20 +354,21 @@ class BaseValidator:
         self.gather_stats()
         if RANK in {-1, 0}:
             stats = self.get_stats()
-            self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
+            self.speed = dict(zip(self.speed.keys(), (x.t / self.num_images * 1e3 for x in dt)))
             self.finalize_metrics()
             self.print_results()
             self.run_callbacks("on_val_end")
 
         if self.training:
-            # Reduce loss across all GPUs
-            loss = {k: v.clone().detach() for k, v in self.loss.items()}
+            # Reduce sums and their batch count together: source-aligned shards can contain unequal tile counts.
+            loss = torch.stack(
+                [*(v.reshape(()) for v in self.loss.values()), torch.tensor(len(self.dataloader), device=self.device)]
+            )
             if trainer.world_size > 1:
-                for v in loss.values():
-                    dist.reduce(v, dst=0, op=dist.ReduceOp.AVG)
+                dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
             if RANK > 0:
                 return
-            loss = {k: v.cpu() / len(self.dataloader) for k, v in loss.items()}
+            loss = dict(zip(self.loss, (loss[:-1] / loss[-1]).cpu()))
             results = {**stats, **trainer.label_loss_items(loss, prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
@@ -318,7 +394,7 @@ class BaseValidator:
         """Match predictions to ground truth objects using IoU.
 
         Args:
-            pred_classes (torch.Tensor): Predicted class indices of shape (N,).
+            pred_classes (torch.Tensor): Predicted class indices of shape (N,), ordered by descending confidence.
             true_classes (torch.Tensor): Target class indices of shape (M,).
             iou (torch.Tensor): An MxN tensor containing the pairwise IoU values for ground truth (rows) and predictions
                 (columns).
@@ -333,23 +409,22 @@ class BaseValidator:
         correct_class = true_classes[:, None] == pred_classes
         iou = iou * correct_class  # zero out the wrong classes
         iou = iou.cpu().numpy()
-        for i, threshold in enumerate(self.iouv.cpu().tolist()):
-            if use_scipy:
+        thresholds = self.iouv.cpu().numpy()
+        if use_scipy:
+            for i, threshold in enumerate(thresholds):
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
                     labels_idx, detections_idx = linear_sum_assignment(-cost_matrix)  # negate to maximize IoU
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True
-            else:
-                matches = np.nonzero(iou >= threshold)  # IoU >= threshold and classes match
-                matches = np.array(matches).T
-                if matches.shape[0]:
-                    if matches.shape[0] > 1:
-                        matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
-                        matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                        matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
-                    correct[matches[:, 1].astype(int), i] = True
+        else:
+            matched = np.zeros((iou.shape[0], len(thresholds)), dtype=bool)  # targets claimed at each threshold
+            for j in np.flatnonzero((iou >= thresholds.min()).any(0)):  # detections in descending confidence order
+                available = np.where(matched, 0, iou[:, j, None])  # IoU with each unclaimed target per threshold
+                k = available.argmax(0)  # best unclaimed target per threshold
+                correct[j] = available[k, range(len(thresholds))] >= thresholds
+                matched[k, range(len(thresholds))] |= correct[j]
         return torch.from_numpy(correct)
 
     @smart_inference_mode(False)
@@ -384,6 +459,13 @@ class BaseValidator:
 
     def preprocess(self, batch):
         """Preprocess an input batch."""
+        return batch
+
+    def preprocess_targets(self, batch: dict) -> dict:
+        """Move annotations to the model device, keeping full-resolution evaluation images on the host."""
+        for key, value in batch.items():
+            if key != "img" and isinstance(value, torch.Tensor):
+                batch[key] = value.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         return batch
 
     def postprocess(self, preds):

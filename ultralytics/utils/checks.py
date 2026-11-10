@@ -25,7 +25,6 @@ import torch
 
 from ultralytics.utils import (
     ARM64,
-    ASSETS,
     ASSETS_URL,
     AUTOINSTALL,
     GIT,
@@ -70,7 +69,7 @@ def normalize_platform_uri(uri):
         (str | Path): "ul://user/datasets/slug" for Platform web URLs, otherwise the input unchanged.
     """
     s = str(uri)
-    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.startswith(f"{PLATFORM_URL}/") else uri
+    return f"ul://{s[len(PLATFORM_URL) + 1 :].strip('/')}" if s.lower().startswith(f"{PLATFORM_URL}/".lower()) else uri
 
 
 def resolve_platform_uri(uri, hard=True):
@@ -146,13 +145,14 @@ def resolve_platform_uri(uri, hard=True):
     return None
 
 
-def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
+def parse_requirements(file_path=ROOT.parent / "requirements.txt", package="", extra=""):
     """Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
         file_path (str | Path): Path to the requirements.txt file.
-        package (str, optional): Installed Python package whose non-extra requirements are parsed instead of the
-            requirements.txt file.
+        package (str, optional): Installed Python package whose non-extra requirements that apply to the current
+            environment are parsed instead of the requirements.txt file.
+        extra (str, optional): Parse only the requirements of this optional extra of `package` instead.
 
     Returns:
         requirements (list[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
@@ -163,7 +163,14 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         >>> parse_requirements(package="ultralytics")
     """
     if package:
-        requires = [x for x in metadata.distribution(package).requires if "extra == " not in x]
+        from packaging.markers import Marker  # scoped, 'packaging' is a matplotlib dependency
+
+        requires = [
+            x
+            for x in metadata.distribution(package).requires or ()  # None when no requirements are declared
+            if ("extra == " in x) == bool(extra)
+            and (";" not in x or Marker(x.partition(";")[2]).evaluate({"extra": extra}))
+        ]
     else:
         requires = Path(file_path).read_text().splitlines()
 
@@ -172,7 +179,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         line = line.strip()
         if line and not line.startswith("#"):
             line = line.partition("#")[0].strip()  # ignore inline comments
-            if match := re.match(r"([a-zA-Z0-9-_]+)\s*([<>!=~]+.*)?", line):
+            if match := re.match(r"([a-zA-Z0-9][a-zA-Z0-9-_.]*)\s*([<>!=~]+.*)?", line):
                 requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ""))
 
     return requirements
@@ -374,7 +381,7 @@ def check_version(
         if (
             (op == "==" and cn != vn)
             or (op == "!=" and cn == vn)
-            or (op == ">=" and not (cn >= vn))
+            or (op in {">=", "~="} and not (cn >= vn))
             or (op == "<=" and not (cn <= vn))
             or (op == ">" and not (cn > vn))
             or (op == "<" and not (cn < vn))
@@ -431,9 +438,12 @@ def check_pip_update_available():
     return False
 
 
+FONT, FONT_UNICODE = "Arial.ttf", "Arial.Unicode.ttf"  # label fonts for Latin text and for all other scripts
+
+
 @ThreadingLocked()
 @functools.lru_cache
-def check_font(font="Arial.ttf"):
+def check_font(font=FONT):
     """Find font locally or download to user's configuration directory if it does not already exist.
 
     Args:
@@ -450,10 +460,9 @@ def check_font(font="Arial.ttf"):
     if file.exists():
         return file
 
-    # Check system fonts in matplotlib's cached list, findSystemFonts() rescans the OS in every process (7s on macOS)
+    # Check system fonts in matplotlib's cached list only: findSystemFonts() rescans the OS (8s on macOS), and a miss
+    # is routine (e.g. Arial.Unicode.ttf on macOS) until the download below lands in USER_CONFIG_DIR
     matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
-    if not matches:  # font installed after matplotlib's cached list was built, rescan the OS
-        matches = [f for f in font_manager.findSystemFonts() if font in f]
     if any(matches):
         return matches[0]
 
@@ -577,10 +586,14 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
         for candidate in candidates:
             r_stripped = candidate.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
-            match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
-            name, required = match[1], match[2].strip() if match[2] else ""
+            match = re.match(r"([a-zA-Z0-9-_.]+)(?:\[([^\]]*)\])?([<>!=~]+.*)?", r_stripped)
+            name, required = match[1], match[3].strip() if match[3] else ""
             try:
-                if check_version(metadata.version(name), required):
+                if check_version(metadata.version(name), required) and all(
+                    metadata.version(x.name)  # raises PackageNotFoundError while a requested extra is not installed
+                    for extra in (match[2].split(",") if match[2] else ())
+                    for x in parse_requirements(package=name, extra=extra.strip())
+                ):
                     satisfied = True
                     break
             except (AssertionError, metadata.PackageNotFoundError):
@@ -624,13 +637,12 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     if pkgs:
         packages = [*pkgs, *constrain]
         if install and AUTOINSTALL:  # check environment variable
-            # Note uv fails on arm64 macOS and Raspberry Pi runners
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                use_uv = not ARM64 and check_uv()  # uv fails on ARM64
+                use_uv = check_uv()
                 LOGGER.info(attempt_install(packages, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
@@ -677,39 +689,40 @@ def check_tensorrt(min_version: str = "7.0.0"):
 
 
 def check_torchvision():
-    """Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
+    """Warn if the installed torchvision does not match the installed torch release.
 
-    This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
-    to the compatibility table based on: https://github.com/pytorch/vision#installation.
+    Torch 1.x and 2.0-2.13 each pair with one torchvision release, 0.(minor + 1) and 0.(minor + 15) respectively.
+    Torchvision 0.29 is ABI stable with torch 2.14, so torch>=2.14 accepts torchvision>=0.29. See
+    https://github.com/pytorch/vision#installation.
     """
-    compatibility_table = {
-        "2.10": ["0.25"],
-        "2.9": ["0.24"],
-        "2.8": ["0.23"],
-        "2.7": ["0.22"],
-        "2.6": ["0.21"],
-        "2.5": ["0.20"],
-        "2.4": ["0.19"],
-        "2.3": ["0.18"],
-        "2.2": ["0.17"],
-        "2.1": ["0.16"],
-        "2.0": ["0.15"],
-        "1.13": ["0.14"],
-        "1.12": ["0.13"],
-    }
+    major, minor = (int(x) for x in TORCH_VERSION.split(".")[:2])
+    expected = {1: minor + 1, 2: min(minor + 15, 29)}.get(major)  # torchvision 0.x minor
+    v_torchvision = int(TORCHVISION_VERSION.split(".")[1])
+    if expected and v_torchvision != expected and (expected < 29 or v_torchvision < 29):
+        LOGGER.warning(
+            f"torchvision==0.{v_torchvision} is incompatible with torch=={major}.{minor}.\n"
+            f"Run 'pip install torchvision==0.{expected}' to fix torchvision or "
+            "'pip install -U torch torchvision' to update both.\n"
+            "For a full compatibility table see https://github.com/pytorch/vision#installation"
+        )
 
-    # Check major and minor versions
-    v_torch = ".".join(TORCH_VERSION.split("+", 1)[0].split(".")[:2])
-    if v_torch in compatibility_table:
-        compatible_versions = compatibility_table[v_torch]
-        v_torchvision = ".".join(TORCHVISION_VERSION.split("+", 1)[0].split(".")[:2])
-        if all(v_torchvision != v for v in compatible_versions):
-            LOGGER.warning(
-                f"torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
-                f"Run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
-                "'pip install -U torch torchvision' to update both.\n"
-                "For a full compatibility table see https://github.com/pytorch/vision#installation"
-            )
+
+def check_paddle(version: str = "==3.0.0" if ARM64 else ">=3.0.0,<3.3.0", gpu: str = ">=3.0.0"):
+    """Ensure a PaddlePaddle build is installed, installing the CPU build if none is.
+
+    PaddlePaddle 3.x GPU builds are published only on PaddlePaddle's own package index, not PyPI, so an installed
+    `paddlepaddle-gpu` is version-checked and never replaced by the CPU build, which ships the same `paddle` module. The
+    default CPU range excludes 3.3+, whose oneDNN CPU inference fails, see
+    https://github.com/PaddlePaddle/Paddle/issues/77340.
+
+    Args:
+        version (str): Required CPU `paddlepaddle` version, defaulting to the export and inference range.
+        gpu (str): Required version of an installed `paddlepaddle-gpu` build.
+    """
+    if check_version("paddlepaddle-gpu", ""):
+        check_version("paddlepaddle-gpu", gpu, hard=True, msg="(see https://www.paddlepaddle.org.cn/en/install)")
+    else:
+        check_requirements(f"paddlepaddle{version}")
 
 
 def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
@@ -727,8 +740,8 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
         if isinstance(suffix, str):
             suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            if s := clean_url(f).rpartition(".")[-1].lower().strip():  # file suffix
-                assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
+            if s := Path(clean_url(f)).suffix.lower().strip():  # file suffix
+                assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}, not {s}"
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
@@ -744,7 +757,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
     if "yolov3" in file or "yolov5" in file:
         if "u.yaml" in file:
             file = file.replace("u.yaml", ".yaml")  # i.e. yolov5nu.yaml -> yolov5n.yaml
-        elif ".pt" in file and "u" not in file:
+        elif file.endswith(".pt") and "u" not in file:
             original_file = file
             file = re.sub(r"(.*yolov5([nsmlx]))\.pt", "\\1u.pt", file)  # i.e. yolov5n.pt -> yolov5nu.pt
             file = re.sub(r"(.*yolov5([nsmlx])6)\.pt", "\\1u.pt", file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
@@ -796,7 +809,8 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if (
         not file
-        or ("://" not in file and Path(file).exists())  # '://' check required in Windows Python<3.10
+        # os.path.exists over Path.exists: returns False instead of raising PermissionError under unreadable dirs
+        or ("://" not in file and os.path.exists(file))  # '://' check required in Windows Python<3.10
         or file.lower().startswith("grpc://")
     ):  # file exists or gRPC Triton images
         return file
@@ -816,7 +830,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
             downloads.safe_download(url=url, file=local_file, unzip=False)
         return str(local_file)
     elif download and file.lower().startswith(REMOTE_FILE_PREFIXES):  # download
-        if file.startswith("gs://"):
+        if file.lower().startswith("gs://"):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split authentication query strings
@@ -1002,23 +1016,28 @@ def collect_system_info():
 
 
 def check_amp(model):
-    """Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
+    """Check the PyTorch Automatic Mixed Precision (AMP) functionality on a YOLO model's device.
 
-    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
-    results, so AMP will be disabled during training.
+    An untrained YOLO26n built from its YAML runs one FP32 forward pass in train mode on a random batch, and every
+    Conv2d and Attention layer is recomputed under AMP from its own FP32 input. Comparing layer by layer keeps the
+    tolerance independent of model depth and weights, so no pretrained weights are downloaded. If the checks fail, it
+    means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be
+    disabled during training.
 
     Args:
-        model (torch.nn.Module): A YOLO model instance.
+        model (torch.nn.Module): A YOLO model instance, whose device is checked.
 
     Returns:
-        (bool): Returns True if the AMP functionality works correctly with YOLO model, else False.
+        (bool): Returns True if the AMP functionality works correctly on the model's device, else False.
 
     Examples:
         >>> from ultralytics import YOLO
         >>> from ultralytics.utils.checks import check_amp
-        >>> model = YOLO("yolo26n.pt").model.cuda()
+        >>> model = YOLO("yolo26n.yaml").model.cuda()  # any model, only its device is used
         >>> check_amp(model)
     """
+    from ultralytics.nn.modules import Attention
+    from ultralytics.nn.tasks import DetectionModel
     from ultralytics.utils.torch_utils import autocast
 
     device = next(model.parameters()).device  # get model device
@@ -1039,42 +1058,30 @@ def check_amp(model):
             )
             return False
 
-    def amp_allclose(m, im):
-        """All close FP32 vs AMP results."""
-        batch = [im] * 8
-        imgsz = max(256, int(model.stride.max() * 4))  # max stride P5-32 and P6-64
-        a = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # FP32 inference
+    close = []  # per-layer agreement of AMP with FP32
+
+    def compare_amp(layer, inputs, output):
+        """Recompute a layer under AMP from its FP32 input and record whether it matches the FP32 output."""
         with autocast(enabled=True, device=device.type):
-            b = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # AMP inference
-        del m
-        return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
+            y = layer.forward(inputs[0])  # forward() skips this layer's own hook
+        close.append(bool((output - y.float()).norm() <= 0.05 * output.norm()))  # False for NaN or inf
 
-    im = ASSETS / "bus.jpg"  # image to check
     LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
-    warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
-    try:
-        from ultralytics import YOLO
-        from ultralytics.utils import WEIGHTS_DIR
-
-        amp_weights = WEIGHTS_DIR / "yolo26n.pt"
-        if not amp_weights.is_file():
-            LOGGER.info(f"{prefix}downloading yolo26n.pt for AMP checks (one-time, not used for training)...")
-        assert amp_allclose(YOLO(amp_weights), im)
+    # Untrained models underflow FP16 in eval mode; train-mode BatchNorm keeps activations in range as in AMP training
+    m = DetectionModel("yolo26n.yaml", verbose=False).to(device)  # built in train mode
+    for layer in m.modules():
+        if isinstance(layer, (torch.nn.Conv2d, Attention)):  # convolutions and attention matmuls
+            layer.register_forward_hook(compare_amp)
+    with torch.no_grad():
+        m(torch.rand(8, 3, 256, 256, device=device))  # batch 8, as GTX 16xx AMP faults appeared only at batch >= 7
+    if all(close):
         LOGGER.info(f"{prefix}checks passed ✅")
-    except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO26n for AMP checks. {warning_msg}")
-    except (AttributeError, ModuleNotFoundError):
-        LOGGER.warning(
-            f"{prefix}checks skipped. "
-            f"Unable to load YOLO26n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
-        )
-    except AssertionError:
-        LOGGER.error(
-            f"{prefix}checks failed. Anomalies were detected with AMP on your system that may lead to "
-            f"NaN losses or zero-mAP results, so AMP will be disabled during training."
-        )
-        return False
-    return True
+        return True
+    LOGGER.error(
+        f"{prefix}checks failed. Anomalies were detected with AMP on your system that may lead to "
+        f"NaN losses or zero-mAP results, so AMP will be disabled during training."
+    )
+    return False
 
 
 def check_multiple_install():
@@ -1165,6 +1172,15 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
+def rocm_is_available() -> bool:
+    """Check if ROCm (AMD GPU) is available in the environment.
+
+    Returns:
+        (bool): True if running on Linux with ROCm/HIP-enabled PyTorch, False otherwise.
+    """
+    return sys.platform == "linux" and bool(torch.version.hip) and torch.cuda.is_available()
+
+
 def is_rockchip():
     """Check if the current environment is running on a Rockchip SoC.
 
@@ -1210,11 +1226,7 @@ def is_sudo_available() -> bool:
     """
     if WINDOWS:
         return False
-    cmd = "sudo --version"
-    return (
-        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode
-        == 0
-    )
+    return shutil.which("sudo") is not None
 
 
 # Run checks and define constants
@@ -1223,12 +1235,10 @@ check_torchvision()  # check torch-torchvision compatibility
 
 # Define constants
 IS_PYTHON_3_8 = PYTHON_VERSION.startswith("3.8")
-IS_PYTHON_3_9 = PYTHON_VERSION.startswith("3.9")
-IS_PYTHON_3_10 = PYTHON_VERSION.startswith("3.10")
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
-IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 
-IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
-IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
+IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)
+
+ONNXRUNTIME_BUILDS = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"

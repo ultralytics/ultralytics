@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to structure and customize model architectures using Ultralytics YAML configuration files. Master module definitions, connections, and scaling parameters.
+description: Structure and customize Ultralytics model architectures with YAML configuration files, covering module definitions, layer connections, scaling, and custom modules.
 keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural networks, deep learning, backbone, head, modules, custom models
 ---
 
 # Model YAML Configuration Guide
 
-The model YAML configuration file serves as the architectural blueprint for Ultralytics neural networks. It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes.
+The model [YAML](https://www.ultralytics.com/glossary/yaml) configuration file serves as the architectural blueprint for Ultralytics [neural networks](https://www.ultralytics.com/glossary/neural-network-nn). It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes.
 
 <img width="1024" src="https://cdn.ul.run/i/a563b72f7404e71fb4c61b7710d28acf.avif" alt="Model YAML configuration workflow.">
 
@@ -40,11 +40,11 @@ kpt_shape: [17, 3] # pose models only
 
 !!! note "`nc` and `kpt_shape` are dataset-dependent"
 
-    If your dataset specifies a different `nc` or `kpt_shape`, Ultralytics will automatically override the model config at runtime to match the dataset YAML.
+    If your dataset specifies a different `nc` or `kpt_shape`, Ultralytics automatically overrides the model config at runtime to match the dataset YAML.
 
 ### Backbone and Head Architecture
 
-The model architecture consists of backbone (feature extraction) and head (task-specific) sections:
+The model architecture consists of [backbone](https://www.ultralytics.com/glossary/backbone) (feature extraction) and head (task-specific) sections:
 
 ```yaml
 nc: 80
@@ -148,7 +148,7 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 
 ### TorchVision Integration
 
-The TorchVision module enables seamless integration of any [TorchVision model](https://docs.pytorch.org/vision/stable/models.html) as a backbone:
+The TorchVision module lets you use any [TorchVision model](https://docs.pytorch.org/vision/stable/models.html) as a backbone:
 
 === "Python"
 
@@ -382,11 +382,11 @@ head:
 
 **Depth vs Width**: Deep networks capture complex hierarchical features through multiple transformation layers, while wide networks process more information in parallel at each layer. Balance these based on your task complexity.
 
-**Skip Connections**: Improve gradient flow during training and enable feature reuse throughout the network. They're particularly important in deeper architectures to prevent vanishing gradients.
+**Skip Connections**: Improve gradient flow during training and enable feature reuse throughout the network. They're particularly important in deeper architectures to prevent [vanishing gradients](https://www.ultralytics.com/glossary/vanishing-gradient).
 
 **Bottleneck Blocks**: Reduce computational cost while maintaining model expressiveness. Modules like `C2f` use fewer parameters than standard convolutions while preserving feature learning capacity.
 
-**Multi-Scale Features**: Essential for detecting objects at different sizes in the same image. Use Feature Pyramid Network (FPN) patterns with multiple detection heads at different scales.
+**Multi-Scale Features**: Essential for detecting objects at different sizes in the same image. Use [Feature Pyramid Network (FPN)](https://www.ultralytics.com/glossary/feature-pyramid-network-fpn) patterns with multiple detection heads at different scales.
 
 ## Troubleshooting
 

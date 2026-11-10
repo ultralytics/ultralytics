@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
 import tarfile
+import time
 import zlib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -13,7 +15,7 @@ from pathlib import Path
 from urllib import parse
 from uuid import uuid4
 
-from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
+from ultralytics.utils import ASSETS_URL, LOGGER, REQUEST_HEADERS, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
@@ -25,6 +27,7 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"yolo26{k}-objv1{suffix}.pt" for k in "nsmlx" for suffix in ("-150", "-seg")]
     + [f"yolo26{k}-{suffix}.pt" for k in "nsmlx" for suffix in ("distill", "sem-ade20k")]
     + [f"yolo26{k}-reid.onnx" for k in "nsmlx"]
+    + [f"yolo26{k}-text.pt" for k in "nsmlx"]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
@@ -45,9 +48,11 @@ GITHUB_ASSETS_NAMES = frozenset(
         "mobile_sam.pt",
         "mobileclip_blt.ts",
         "mobileclip2_b.ts",
+        "clip_b32_datacomp.ts",
         "yolo11n-grayscale.pt",
         "yolov8x-pose-p6.pt",
         "calibration_image_sample_data_20x128x128x3_float32.npy.zip",
+        "PP-OCRv6_medium_rec.onnx",
     ]
 )
 GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAMES)
@@ -141,7 +146,7 @@ def zip_directory(
 
     # Zip with progress bar
     files = [f for f in directory.rglob("*") if f.is_file() and all(x not in f.name for x in exclude)]  # files to zip
-    zip_file = directory.with_suffix(".zip")
+    zip_file = directory.with_name(f"{directory.name}.zip")
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, "w", compression) as f:
         for file in TQDM(files, desc=f"Zipping {directory} to {zip_file}...", unit="files", disable=not progress):
@@ -190,7 +195,7 @@ def unzip_file(
     # Unzip the file contents
     with ZipFile(file) as zipObj:
         files = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
-        top_level_dirs = {Path(f).parts[0] for f in files}
+        top_level_dirs = {part for f in files for part in Path(f).parts[:1]}
 
         # Decide to unzip directly or unzip into a directory
         unzip_as_dir = len(top_level_dirs) == 1  # (len(files) > 1 and not files[0].endswith("/"))
@@ -266,48 +271,6 @@ def check_disk_space(
     return False
 
 
-def get_google_drive_file_info(link: str) -> tuple[str, str | None]:
-    """Retrieve the direct download link and filename for a shareable Google Drive file link.
-
-    Args:
-        link (str): The shareable link of the Google Drive file.
-
-    Returns:
-        url (str): Direct download URL for the Google Drive file.
-        filename (str | None): Original filename of the Google Drive file. If filename extraction fails, returns None.
-
-    Raises:
-        ConnectionError: If the Google Drive download quota for the file has been exceeded.
-
-    Examples:
-        >>> from ultralytics.utils.downloads import get_google_drive_file_info
-        >>> link = "https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link"
-        >>> url, filename = get_google_drive_file_info(link)
-    """
-    import requests  # scoped as slow import
-
-    file_id = link.split("/d/")[1].split("/view", 1)[0]
-    drive_url = f"https://drive.google.com/uc?export=download&id={file_id}"
-    filename = None
-
-    # Start session
-    with requests.Session() as session:
-        response = session.get(drive_url, stream=True)
-        if "quota exceeded" in str(response.content.lower()):
-            raise ConnectionError(
-                emojis(
-                    f"❌  Google Drive file download quota exceeded. "
-                    f"Please try again later or download this file manually at {link}."
-                )
-            )
-        for k, v in response.cookies.items():
-            if k.startswith("download_warning"):
-                drive_url += f"&confirm={v}"  # v is token
-        if cd := response.headers.get("content-disposition"):
-            filename = re.findall('filename="(.+)"', cd)[0]
-    return drive_url, filename
-
-
 def safe_download(
     url: str | Path,
     file: str | Path | None = None,
@@ -331,7 +294,9 @@ def safe_download(
             the same name as the URL.
         dir (str | Path, optional): The directory to save the downloaded file. If not provided, the file will be saved
             in the current working directory.
-        unzip (bool, optional): Whether to unzip the downloaded file.
+        unzip (bool, optional): Whether to extract the file if it is a zip or tar archive. Only files with no suffix or
+            an archive suffix (`.zip`, `.tar`, `.gz`, `.tgz`, `.xz`, `.bz2`, `.txz`, `.tbz2`, in any letter case)
+            are checked.
         delete (bool, optional): Whether to delete the downloaded file after unzipping.
         curl (bool, optional): Whether to use curl command line tool for downloading.
         retry (int, optional): The number of times to retry the download in case of failure.
@@ -358,14 +323,11 @@ def safe_download(
     else:
         import requests  # scoped as slow import
 
-        gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
-        if gdrive:
-            url, file = get_google_drive_file_info(url)
         url = url.replace(" ", "%20")  # encode spaces for curl compatibility
 
         f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
         if not f.is_file():  # URL and file do not exist
-            uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
+            uri = clean_url(url).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
             desc = f"Downloading {uri} to '{f}'"
             f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
             target = f
@@ -378,7 +340,7 @@ def safe_download(
             for i in range(retry + 1):
                 try:
                     resume = f.stat().st_size if f.exists() else 0  # partial bytes kept from a failed attempt
-                    if (curl or i > 0) and not resume and curl_installed:  # curl download or fallback
+                    if curl and not resume and curl_installed:  # explicit curl download
                         s = "sS" * (not progress)  # silent
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
@@ -397,7 +359,7 @@ def safe_download(
                             b"".join(re.findall(rb"(?im)^content-encoding:\s*(\S+)", final_headers)).decode().lower()
                         )
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
-                        headers = {"Accept-Encoding": "identity"}
+                        headers = {"Accept-Encoding": "identity", **REQUEST_HEADERS}
                         if resume:
                             headers["Range"] = f"bytes={resume}-"
                         with requests.get(url, stream=True, headers=headers, timeout=(30, 300)) as response:
@@ -477,16 +439,19 @@ def safe_download(
                         raise ConnectionError(
                             emojis(f"❌  Download failure for {uri}. Environment may be offline.")
                         ) from e
-                    elif i >= retry:
+                    status = getattr(getattr(e, "response", None), "status_code", None)
+                    # A 4xx other than timeout, range or rate-limit answers will not change on retry, so fail fast
+                    if i >= retry or (status and status < 500 and status not in {408, 416, 429}):
                         f.unlink(missing_ok=True)
-                        raise ConnectionError(
-                            emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
-                        ) from e
-                    LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
+                        limit = "Retry limit reached. " * (i >= retry)
+                        raise ConnectionError(emojis(f"❌  Download failure for {uri}. {limit}{e}")) from e
+                    delay = 5 * 2**i  # 5, 10, 20 s rides out the ~20-40 s HTTP 5xx bursts GitHub Releases returns
+                    LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} in {delay}s {uri}... {e}")
+                    time.sleep(delay)
             else:  # no attempt reached `break`, so every one failed size validation and unlinked its download
                 raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached."))
 
-    if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2"}:
+    if unzip and f.exists() and f.suffix.lower() in {"", ".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2"}:
         from zipfile import is_zipfile
 
         unzip_dir = Path(dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
@@ -516,6 +481,7 @@ def safe_download(
                         target.parent.mkdir(parents=True, exist_ok=True)
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
+                        os.utime(target, (m.mtime, m.mtime))  # keep archive mtimes so re-extraction keeps caches valid
             if len(top_level_dirs) == 1:
                 unzip_dir /= next(iter(top_level_dirs))  # return the single extracted file or directory
         else:
@@ -579,7 +545,8 @@ def attempt_download_asset(
     """Attempt to download a file from GitHub release assets if it is not found locally.
 
     Args:
-        file (str | Path): The filename or file path to be downloaded.
+        file (str | Path): The filename or file path to be downloaded, or an HTTP(S) URL (scheme in any letter case) to
+            download directly.
         repo (str, optional): The GitHub repository in the format 'owner/repo'.
         release (str, optional): The specific release version to be downloaded.
         **kwargs (Any): Additional keyword arguments passed to `safe_download`.
@@ -593,9 +560,7 @@ def attempt_download_asset(
     from ultralytics.utils import SETTINGS  # scoped for circular import
 
     # YOLOv3/5u updates
-    file = str(file)
-    file = checks.check_yolov5u_filename(file)
-    file = Path(file.strip().replace("'", ""))
+    file = Path(checks.check_yolov5u_filename(str(file).strip().replace("'", "")))
     if file.exists():
         return str(file)
     elif (SETTINGS["weights_dir"] / file).exists():
@@ -604,7 +569,7 @@ def attempt_download_asset(
         # URL specified
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         download_url = f"https://github.com/{repo}/releases/download"
-        if str(file).startswith(("http:/", "https:/")):  # download
+        if str(file).lower().startswith(("http:/", "https:/")):  # download
             url = str(file).replace(":/", "://")  # Pathlib turns :// -> :/
             file = url2file(name)  # parse authentication query strings
             if Path(file).is_file():

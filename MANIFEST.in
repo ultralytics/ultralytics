@@ -1,0 +1,2 @@
+# Tests included in the sdist only, for checking Conda builds in https://github.com/conda-forge/ultralytics-feedstock
+recursive-include tests *.py

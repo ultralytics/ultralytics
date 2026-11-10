@@ -14,6 +14,7 @@ import os
 import subprocess
 import time
 import warnings
+from contextlib import nullcontext
 from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from functools import partial
@@ -54,6 +55,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_2_0,
     TORCH_2_4,
+    TORCH_2_8,
     TORCH_2_13,
     EarlyStopping,
     ModelEMA,
@@ -143,6 +145,11 @@ class BaseTrainer:
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
+            if any(isinstance(t, A.Lambda) for t in self.args.augmentations):  # to_dict() can't store user functions
+                raise TypeError(
+                    "A.Lambda augmentations can't be saved in checkpoints. Subclass A.ImageOnlyTransform or "
+                    "A.DualTransform in an importable module instead."
+                )
             self.args.augmentations = [A.to_dict(t) for t in self.args.augmentations]  # YAML/pickle-safe, DDP-safe
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
@@ -232,16 +239,16 @@ class BaseTrainer:
         """Execute the training process, using DDP subprocess for multi-GPU or direct training for single-GPU."""
         # Run subprocess if DDP training, else train normally
         try:
+            if self.world_size > 1 and self.args.batch < self.world_size:
+                raise ValueError(
+                    f"'batch={self.args.batch}' must be >= GPU count {self.world_size} for Multi-GPU training "
+                    f"(AutoBatch batch<1 is not supported), i.e. batch={self.world_size * 8}."
+                )
             if self.ddp:
                 # Argument checks
                 if self.args.rect:
                     LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                     self.args.rect = False
-                if self.args.batch < 1.0:
-                    raise ValueError(
-                        "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                        f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
-                    )
 
                 # Command
                 cmd, file = None, None
@@ -257,8 +264,8 @@ class BaseTrainer:
                 self._do_train()
         finally:
             unset_deterministic()  # never leave deterministic state on, including the DDP parent and failed runs
-        if not self.ddp:
-            self.run_callbacks("teardown")
+            if not self.ddp:
+                self.run_callbacks("teardown")
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -286,11 +293,13 @@ class BaseTrainer:
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         elif device_type == "xpu" and not (hasattr(dist, "is_xccl_available") and dist.is_xccl_available()):
             raise RuntimeError("Multi-XPU training requires XCCL, which is not available in this PyTorch build.")
+        backend = {"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo")
         dist.init_process_group(
-            backend={"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo"),
+            backend=backend,
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
+            **({"device_id": self.device} if backend == "nccl" and TORCH_2_8 else {}),  # bind NCCL to this rank's GPU
         )
 
     def _build_train_pipeline(self):
@@ -300,10 +309,11 @@ class BaseTrainer:
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
         final_batch_size = len(self.train_loader.sampler) % self.train_loader.batch_size or self.train_loader.batch_size
-        if self.args.imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
+        min_imgsz = max(self.stride, int(self.args.imgsz * (1 - self.args.multi_scale))) // self.stride * self.stride
+        if min_imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
             raise ValueError(
-                f"final batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
-                f"change batch or use imgsz >= {2 * self.stride}"
+                f"final batch=1 training at imgsz={min_imgsz} gives BatchNorm a single value per channel; "
+                f"change batch, or use imgsz and multi_scale that keep every size >= {2 * self.stride}"
             )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
@@ -314,6 +324,8 @@ class BaseTrainer:
         )
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
+        if not self.args.time:  # time mode re-estimates epochs after the first epoch
+            self.accumulate = min(self.accumulate, len(self.train_loader) * self.epochs)
         if self.optimizer is None:
             iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
             self.optimizer = self.build_optimizer(
@@ -333,6 +345,8 @@ class BaseTrainer:
     def _setup_train(self):
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
+        if self.resume and ckpt:
+            init_seeds(self.args.seed + 2 + RANK + ckpt.get("epoch", -1), deterministic=self.args.deterministic)
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
         # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105).
@@ -355,7 +369,7 @@ class BaseTrainer:
             if self.resume and ckpt.get("modelopt"):
                 restore_qat(self.model, ckpt["modelopt"])
             else:
-                batch = max(self.batch_size // max(self.world_size, 1), 1) if self.batch_size >= 1 else 16
+                batch = self.batch_size // max(self.world_size, 1) if self.batch_size >= 1 else 16
                 with torch_distributed_zero_first(LOCAL_RANK), override_configs(self.args, {"cache": False}):
                     calibration_loader = self.get_dataloader(
                         self.data["train"], batch_size=batch, rank=-1, mode="train"
@@ -404,9 +418,7 @@ class BaseTrainer:
         self.amp = self.args.amp not in {False, "fp32"}
         self.amp = torch.tensor(self.amp).to(self.device)
         if self.amp and self.args.amp != "bf16" and RANK in {-1, 0}:  # Single-GPU and DDP
-            callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
-            callbacks.default_callbacks = callbacks_backup  # restore callbacks
         if RANK > -1 and self.world_size > 1:  # DDP
             self.amp = self.amp.int()  # gloo errors with boolean
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
@@ -466,6 +478,7 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = self._get_warmup_iterations(nb)
         last_opt_step = -1
+        acc0 = self.accumulate  # nominal (already capped) accumulate; warmup below ramps up to it, never past it
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
@@ -510,9 +523,9 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_start")
                 # Warmup
                 ni = i + nb * epoch
-                if ni < nw:
+                if nw and ni <= nw:  # ni == nw lands accumulate, lr and momentum exactly on their targets
                     xi = [0, nw]  # x interp
-                    self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
+                    self.accumulate = max(1, int(np.interp(ni, xi, [1, acc0]).round()))
                     for x in self.optimizer.param_groups:
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x["lr"] = float(
@@ -528,32 +541,36 @@ class BaseTrainer:
                         if "momentum" in x:
                             x["momentum"] = float(np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum]))
 
+                do_step = ni - last_opt_step >= self.accumulate
+                no_sync = self.world_size > 1 and not self.args.compile and not do_step  # all-reduce on steps only
+
                 # Forward
                 try:
-                    with autocast(torch.bfloat16 if self.args.amp == "bf16" else self.amp, device=self.device.type):
-                        batch = self.preprocess_batch(batch)
-                        if self.args.compile:
-                            # Decouple inference and loss calculations for improved compile performance
-                            preds = self.model(batch["img"])
-                            loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
-                        else:
-                            loss, self.loss_items = self.model(batch)
-                        self.loss = loss.sum()
-                        if RANK != -1:
-                            self.loss *= self.world_size
-                        if not self.loss_names:  # derive loss names from the criterion's loss dict on first batch
-                            self.loss_names = tuple(self.loss_items)
-                            if RANK in {-1, 0}:
-                                LOGGER.info(self.progress_string())
-                                self.metrics.update(dict.fromkeys(self.label_loss_items(prefix="val"), 0.0))
-                        self.tloss = (
-                            self.loss_items
-                            if self.tloss is None
-                            else {k: (self.tloss[k] * i + v) / (i + 1) for k, v in self.loss_items.items()}
-                        )
+                    with self.model.no_sync() if no_sync else nullcontext():
+                        with autocast(torch.bfloat16 if self.args.amp == "bf16" else self.amp, device=self.device.type):
+                            batch = self.preprocess_batch(batch)
+                            if self.args.compile:
+                                # Decouple inference and loss calculations for improved compile performance
+                                preds = self.model(batch["img"])
+                                loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
+                            else:
+                                loss, self.loss_items = self.model(batch)
+                            self.loss = loss.sum()
+                            if RANK != -1:
+                                self.loss *= self.world_size
+                            if not self.loss_names:  # derive loss names from the criterion's loss dict on first batch
+                                self.loss_names = tuple(self.loss_items)
+                                if RANK in {-1, 0}:
+                                    LOGGER.info(self.progress_string())
+                                    self.metrics.update(dict.fromkeys(self.label_loss_items(prefix="val"), 0.0))
+                            self.tloss = (
+                                self.loss_items
+                                if self.tloss is None
+                                else {k: (self.tloss[k] * i + v) / (i + 1) for k, v in self.loss_items.items()}
+                            )
 
-                    # Backward
-                    self.scaler.scale(self.loss).backward()
+                        # Backward
+                        self.scaler.scale(self.loss).backward()
                 except RuntimeError as e:
                     is_oom = "out of memory" in str(e).lower()  # torch.cuda.OutOfMemoryError requires torch>=1.13
                     if not is_oom and not any(
@@ -568,8 +585,8 @@ class BaseTrainer:
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
                         raise  # only auto-reduce during first epoch on single GPU, max 3 retries
                     self._oom_retries += 1
-                    old_batch = self.batch_size
-                    self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
+                    old_batch = self.train_loader.batch_size  # the loader clamps batch to the dataset size
+                    self.args.batch = self.batch_size = max(old_batch // 2, 1)
                     error = f"{self.device.type.upper()} out of memory" if is_oom else "CUDA backend memory error"
                     LOGGER.warning(
                         f"{error} with batch={old_batch}. "
@@ -587,9 +604,10 @@ class BaseTrainer:
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)
                     last_opt_step = -1
+                    acc0 = self.accumulate  # the rebuild recomputed the nominal for the reduced batch size
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
-                if ni - last_opt_step >= self.accumulate:
+                if do_step:
                     self.optimizer_step()
                     last_opt_step = ni
 
@@ -646,6 +664,8 @@ class BaseTrainer:
 
             # NaN recovery
             if self._handle_nan_recovery(epoch):
+                last_opt_step = -1  # redo the epoch with normal step cadence, like the OOM restart
+                self.optimizer.zero_grad()  # drop the corrupted pass's gradients, including NaNs still in .grad
                 continue
 
             self.nan_recovery_attempts = 0
@@ -696,8 +716,14 @@ class BaseTrainer:
             if hasattr(loader, "close"):
                 loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
 
-    def auto_batch(self, max_num_obj=0, dataset_size=0):
-        """Calculate optimal batch size based on model and device memory constraints."""
+    def auto_batch(self):
+        """Calculate optimal batch size based on model, dataset and device memory constraints."""
+        with override_configs(self.args, overrides={"cache": False}):
+            dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
+        dataset_size = len(dataset)
+        dataset = getattr(dataset, "datasets", [dataset])  # concatenated datasets keep labels per subset
+        max_num_obj = max((len(lb["cls"]) for d in dataset for lb in getattr(d, "labels", ())), default=0) * 4  # mosaic
+        del dataset  # free memory before profiling
         # Stride-aligned to match the true multi-scale max size; pyramid heads require stride-multiple inputs
         max_imgsz = math.ceil(self.args.imgsz * (1 + self.args.multi_scale) / self.stride) * self.stride
         return check_train_batch_size(
@@ -789,6 +815,7 @@ class BaseTrainer:
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
+                "stopper": {"best_fitness": self.stopper.best_fitness, "best_epoch": self.stopper.best_epoch},
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
@@ -868,12 +895,14 @@ class BaseTrainer:
 
         cfg, weights = self.model, None
         ckpt = None
-        if str(self.model).endswith(".pt"):
+        if str(self.model).lower().endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
-        if isinstance(self.args.pretrained, (str, Path)) and not self.resume:
+        if self.resume:  # load_checkpoint() returns the student, rebuild a distillation run from its wrapper
+            weights = ckpt.get("ema") or ckpt.get("model")
+        elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)
-        elif self.args.pretrained is False and not self.resume:
+        elif self.args.pretrained is False:
             weights = None
 
         # rebuild DistillationModel from resuming checkpoint
@@ -1056,7 +1085,7 @@ class BaseTrainer:
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):
-        """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
+        """Load optimizer, scaler, EMA, best_fitness, and early stopping state from checkpoint."""
         if ckpt.get("optimizer") is not None:
             for saved, group in zip(ckpt["optimizer"]["param_groups"], self.optimizer.param_groups):
                 saved["fused"] = group.get("fused")  # runtime device, not the checkpoint, picks the kernel
@@ -1070,6 +1099,7 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
+        self.stopper.__dict__.update(ckpt.get("stopper") or {})  # older checkpoints keep a fresh stopper
 
     def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss by loading last checkpoint."""
@@ -1163,13 +1193,13 @@ class BaseTrainer:
         if name == "auto":
             LOGGER.info(
                 f"{colorstr('optimizer:')} 'optimizer=auto' found, "
-                f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
-                f"determining best 'optimizer', 'lr0' and 'momentum' automatically... "
+                f"ignoring 'lr0={self.args.lr0}' and determining best 'optimizer' and 'lr0' automatically... "
             )
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
-            self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
+            self.args.optimizer, self.args.lr0 = name, lr  # resume rebuilds this choice from train_args
+            self.args.warmup_bias_lr = 0.0  # start bias warmup at zero
 
         use_muon = name == "MuSGD"
         for module_name, module in unwrap_model(model).named_modules():

@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 comments: true
 description: Annotate images in Ultralytics Platform by hand or with AI auto-annotation from SAM 3.1, YOLO, and models like Gemini 4 Argon, GPT-6.1 Sol, and Claude Opus 5.5.
-keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, Claude Fable 5.2, Claude Fable 5.1, Claude Sonnet 5.5, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, YOLOE, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
+keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, Claude Fable 5.2, Claude Fable 5.1, Claude Sonnet 5.5, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, Hy4, Muse Ember, YOLOE, visual prompts, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
 ---
 
 # Annotation Editor
@@ -237,7 +237,9 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds [model-assisted annotation](https://www.ultralytics.com/blog/how-ultralytics-platform-uses-ai-to-automate-annotation) to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: nine hosted open-source models (one more with [Early access](../account/settings.md#early-access) on), hosted text-prompted [SAM 3](https://platform.ultralytics.com/models/sam3) and [SAM 3.1](https://platform.ultralytics.com/models/sam3.1), and paid vision models from eleven providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
+Smart annotation adds [model-assisted annotation](https://www.ultralytics.com/blog/how-ultralytics-platform-uses-ai-to-automate-annotation) to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: nine hosted open-source models (one more with [Early access](../account/settings.md#early-access) on), hosted text-prompted [SAM 3](https://platform.ultralytics.com/models/sam3) and [SAM 3.1](https://platform.ultralytics.com/models/sam3.1), and paid vision models from twelve providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
+
+Model predictions never replace your labels: a prediction that overlaps an existing annotation of the same class by more than the prediction [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) setting (default `0.5`, also applied while class-prompted models hide the setting) is skipped. [Batch Annotation](#batch-annotation) applies the same rule to images that already have labels.
 
 ### SAM Smart Annotation
 
@@ -329,7 +331,6 @@ With a YOLO model selected, Smart annotation can add predictions from [pretraine
 
     - The model picker lists models that match the current dataset task, so a pose dataset offers pose models. Detect and segment datasets also show each other's models, disabled.
     - If the model's classes differ from the dataset's, a **Map classes** dialog maps each model class to a dataset class or skips it, and on a dataset without classes it creates them.
-    - Duplicate predictions are skipped when they overlap an existing annotation of the same class at [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) `0.7` or higher.
 
 ### Class-Prompted Smart Annotation
 
@@ -351,19 +352,31 @@ Hosted models run on Ultralytics Platform with no provider key:
 | [**SAM 3 Text**](../../models/sam-3.md)                                          | Meta               | 0.86B      |
 | [**SAM 3.1 Text**](../../models/sam-3.md#sam-31)                                 | Meta               | 0.87B      |
 
-Paid vision models from OpenAI (including [GPT-6 Astra](https://platform.ultralytics.com/models/gpt-6-astra) and [GPT-6.1 Sol](https://platform.ultralytics.com/models/gpt-6.1-sol)), Anthropic (including [Claude Fable 5.2](https://platform.ultralytics.com/models/claude-fable-5-2), [Claude Fable 5.1](https://platform.ultralytics.com/models/claude-fable-5-1) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, and MiniMax appear under each provider's project in the picker:
+Paid vision models from OpenAI (including [GPT-6 Astra](https://platform.ultralytics.com/models/gpt-6-astra) and [GPT-6.1 Sol](https://platform.ultralytics.com/models/gpt-6.1-sol)), Anthropic (including [Claude Fable 5.2](https://platform.ultralytics.com/models/claude-fable-5-2), [Claude Fable 5.1](https://platform.ultralytics.com/models/claude-fable-5-1) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, MiniMax, and Tencent (including [Hy4](https://platform.ultralytics.com/models/hy4)) appear under each provider's project in the picker:
 
 <platform-annotation-models></platform-annotation-models>
 
 A paid provider model runs with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation); without one, the prediction fails with an **Add API key** action. The provider bills your key for each prediction. After each prediction, the toast shows the number of objects detected, the elapsed time, the output tokens when the model reports them (for example `1.8s · 1,248 output tokens · Free`), and the cost: **Free** for a hosted model; for a paid model, the estimated provider cost when one is returned, otherwise **Billed by** and the provider name.
 
+### Annotate Similar Objects with Visual Prompts
+
+On detect, segment, and OBB datasets with smart annotation available, **Annotate similar** uses labels you have already drawn as visual examples: [YOLOE-26x](../../models/yoloe.md#text-and-visual-prompts) finds more objects that look like them, with no class names or training needed.
+
+1. Draw a few labels on an image, then right-click one and choose **Annotate similar**. Every label of the selected classes on the image (at most 200) becomes an example. Right-clicking the image outside any annotation uses every annotation of the dataset task on the image instead; the action stays disabled until the image has one
+2. The dialog shows the **Examples** on the left and the **Result** on the right: the image's existing labels plus only the new objects, with a count such as **3 new objects found**. Adjust the confidence and IoU sliders, which start at `0.01` and `0.5`. On OBB datasets, oriented boxes are fitted to segmentation masks
+3. Click **Apply** to add exactly the new objects to this image, at no cost. **Apply** is disabled when nothing new is found
+
+Re-detections of your examples and of other existing labels are skipped by the same IoU rule as other predictions, and new objects don't repeat each other.
+
+After **Apply**, the toast offers **Annotate all**. It opens [Batch Annotation](#batch-annotation) with the same examples in place of the model picker, listed under **Example classes**: preview the samples, adjust confidence (default `0.25`) and IoU (default `0.5`), and click **Start** to find similar objects in every unlabeled image, or every image with **Include annotated images** on. The examples are read from the image you drew them on, even if you move to another image before clicking **Annotate all**, and the run is billed like any Batch Annotation run.
+
 ### Batch Annotation
 
-Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–200 classes a class-prompted model — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Annotate all** action on the toast after an editor prediction that finds objects or after [Find Similar Images](datasets.md#find-similar-images) adds images. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
+Batch Annotation runs one model — a YOLO model, on detection datasets with 1–200 classes a class-prompted model, or YOLOE-26x with [visual examples](#annotate-similar-objects-with-visual-prompts) — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, from the **Annotate all** action on the toast after an editor prediction that finds objects or after [Find Similar Images](datasets.md#find-similar-images) adds images, or from **Annotate all** after **Annotate similar**. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
 
 1. Select a model from the picker (`Models`, including the **Open-source models** and provider projects on detection datasets with 1–200 classes, or `My Models`); the dialog opens with the model you last used in Smart mode, or with Moondream 3.1 on a detection dataset when that was a SAM model or none
 2. For a YOLO model, adjust the confidence (default `0.25`) and IoU (default `0.5`) sliders — the sample images beside the settings show what the model finds as you move them. A class-prompted model detects the dataset classes (1–200) with model-specific thresholds instead of these settings and returns no scores
-3. Turn on **Include annotated images** to also run over images that already have labels; the run adds what the model finds and keeps the labels they have
+3. Turn on **Include annotated images** to also run over images that already have labels; the run keeps the labels they have and adds only what an image does not already have. Samples of annotated images preview their labels plus what the run adds
 4. Review the **Estimated Cost** and click **Start**
 
 ![Ultralytics Platform Datasets Batch Annotation Dialog Sample Previews](https://cdn.ul.run/i/66288d175f3eeecb2e7867093ac221a1.avif)<!-- screenshot -->
@@ -405,7 +418,7 @@ Right-click an annotation to open a context menu with:
 | Hide Annotation(s)   |                        |
 | Delete Annotation(s) | `Delete` / `Backspace` |
 
-Right-clicking a polygon vertex or edge adds **Remove Point** or **Add Point**, and right-clicking a pose keypoint adds **Hide Point** and **Reset Visibility**. The menu also offers [**Blur faces**](datasets.md#blur-faces) when available, and on detect, segment, and OBB datasets with smart annotation available, **Annotate similar**: YOLOE-26x takes every label of the selected classes on the image (at most 200) as visual prompts and previews the matches with confidence and IoU sliders (starting at `0.01` and `0.5`, respectively), and **Apply** adds them to this image at no cost, skipping duplicates of existing labels. Right-clicking the image outside any annotation also offers **Annotate similar**, with every annotation of the dataset task on the image as the examples (at most 200); it stays disabled until the image has one.
+Right-clicking a polygon vertex or edge adds **Remove Point** or **Add Point**, and right-clicking a pose keypoint adds **Hide Point** and **Reset Visibility**. The menu also offers [**Blur faces**](datasets.md#blur-faces) when available, and on detect, segment, and OBB datasets with smart annotation available, [**Annotate similar**](#annotate-similar-objects-with-visual-prompts), which finds more objects like the selected labels.
 
 ## Visibility Controls
 
@@ -618,7 +631,7 @@ SAM smart annotation is available for **detect**, **segment**, **semantic**, and
 
 ### Can I annotate a whole dataset at once?
 
-Yes. Use [Batch Annotation](#batch-annotation) from **More actions > Batch Annotation** on the dataset page. It runs one model over the dataset: an official YOLO model, one of your own trained or uploaded models from `My Models`, or, on detection datasets with 1–200 classes, a class-prompted model such as SAM 3.1 Text that detects your class names. By default it annotates only unlabeled images, existing labels are kept, and a dataset version is saved first so you can restore it. It costs $1.00 per 1,000 images processed (minimum $0.01), and paid provider models are also billed by the provider. Batch Annotation works on Platform-hosted datasets with up to three image channels and is not available for depth.
+Yes. Use [Batch Annotation](#batch-annotation) from **More actions > Batch Annotation** on the dataset page. It runs one model over the dataset: an official YOLO model, one of your own trained or uploaded models from `My Models`, or, on detection datasets with 1–200 classes, a class-prompted model such as SAM 3.1 Text that detects your class names. By default it annotates only unlabeled images, existing labels are kept, and a dataset version is saved first so you can restore it. It costs $1.00 per 1,000 images processed (minimum $0.01), and paid provider models are also billed by the provider. Batch Annotation works on Platform-hosted datasets with up to three image channels and is not available for depth. To find objects like ones you've already drawn, use [**Annotate similar**](#annotate-similar-objects-with-visual-prompts) and click **Annotate all**.
 
 ### Can I auto-annotate images with GPT, Claude, or Gemini models?
 

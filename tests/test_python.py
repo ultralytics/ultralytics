@@ -586,8 +586,8 @@ def test_predict_ndarray_channels():
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
         for dtype in (np.uint8, np.float64):  # float64 is a dtype cvtColor rejects
-            im = np.zeros((8, 8, source_channels), dtype=dtype)
-            assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
+            im = LoadPilAndNumpy(np.zeros((8, 8, source_channels), dtype=dtype), channels=model_channels).im0[0]
+            assert im.shape == (8, 8, model_channels) and im.dtype != np.float64  # MPS has no float64
 
 
 def test_single_check_channel_order_and_contiguity():

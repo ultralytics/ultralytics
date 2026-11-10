@@ -312,7 +312,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Intel GPU and NPU Inference
 
-Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVINO](https://developers.google.com/edge/litert/next/intel) plugin. Pass `device=xpu` for the GPU or `device=npu`, and Ultralytics installs `ai-edge-litert>=2.3.0` and `ai-edge-litert-sdk-intel` on first use. The plugin pins its own `openvino` version, so keep it in a separate environment if you also run OpenVINO models with a different version. The NPU needs an Intel Core Ultra processor with the [Intel NPU driver](https://github.com/intel/linux-npu-driver) installed.
+Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVINO](https://developers.google.com/edge/litert/next/intel) plugin. Pass `device=xpu` for the GPU or `device=npu` (see [inference devices](../modes/predict.md#inference-devices)), and Ultralytics installs `ai-edge-litert>=2.3.0` and `ai-edge-litert-sdk-intel` on first use. The plugin pins its own `openvino` version, so keep it in a separate environment if you also run OpenVINO models with a different version. The NPU needs an Intel Core Ultra processor with the [Intel NPU driver](https://github.com/intel/linux-npu-driver) installed.
 
 !!! example "Predict"
 

@@ -124,7 +124,7 @@ The OpenVINO format supports the [Export](../modes/export.md), [Predict](../mode
 | `batch`    | `int`                     | `1`          | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`     | `str`                     | `None`       | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
 | `fraction` | `float`, `int`, or `list` | `1.0`        | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                         |
-| `device`   | `str`                     | `None`       | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`). With `quantize=8`, `device=npu` selects symmetric INT8 activations for YOLO detect, segment, pose and OBB models, which run up to 2x faster on Intel NPUs.         |
+| `device`   | `str`                     | `None`       | OpenVINO exports always trace on CPU. With `quantize=8`, `device=npu` selects symmetric INT8 activations for YOLO detect, segment, pose and OBB models, which run up to 2x faster on Intel NPUs.                                                                 |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -170,7 +170,7 @@ Once your model is successfully exported to the OpenVINO format, you have two pr
 
 ### Inference with Ultralytics
 
-The `ultralytics` package runs inference on the exported OpenVINO model via the `predict` method. You can also specify the target Intel device (`cpu`, `xpu` for the GPU, or `npu`) using the device argument; without one, OpenVINO AUTO selects the device.
+The `ultralytics` package runs inference on the exported OpenVINO model via the `predict` method. You can also specify the target Intel device (`cpu`, `xpu` for the GPU, or `npu`) using the device argument; without one, OpenVINO AUTO selects the device. See [inference devices](../modes/predict.md#inference-devices) for how each format maps device names.
 
 ```python
 from ultralytics import YOLO

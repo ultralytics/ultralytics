@@ -145,7 +145,7 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 | Component       | Required                          | Role                                                    | License                |
 | --------------- | --------------------------------- | ------------------------------------------------------- | ---------------------- |
 | Ultralytics     | Yes                               | YOLO detection, crop geometry, and result orchestration | AGPL-3.0               |
-| ONNX Runtime    | Only for `recognizer="paddleocr"` | PP-OCRv6 recognition runtime                            | MIT                    |
+| ONNX Runtime    | Only for `recognizer="paddleocr"` | PP-OCRv6 recognition runtime, 1.26+ on Python 3.11+     | MIT                    |
 | PP-OCRv6 medium | Only for `recognizer="paddleocr"` | Recognition weights from the Ultralytics assets release | Apache-2.0             |
 | Custom callable | No                                | User-owned recognition integration                      | Defined by the backend |
 

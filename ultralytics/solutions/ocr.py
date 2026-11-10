@@ -11,7 +11,7 @@ import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LINUX, ops
-from ultralytics.utils.checks import check_requirements, rocm_is_available
+from ultralytics.utils.checks import check_python, check_requirements, rocm_is_available
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
 from ultralytics.utils.torch_utils import select_device
@@ -29,12 +29,15 @@ class TextRecognizer:
         """Load the recognizer on the NVIDIA GPU `device` when available, else on CPU, with its embedded character set."""
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
         cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
-        # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced
-        check_requirements(
-            [("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
+        # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced.
+        # 1.26 hands outputs to torch via DLPack and needs Python 3.11+
+        check_python("3.11")
+        builds = (
+            ("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")  # Jetson lacks [cuda]
             if cuda
-            else [("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml")]
+            else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml")
         )
+        check_requirements([tuple(f"{b}>=1.26.0" for b in builds)])
         import onnxruntime as ort
 
         providers = ["CPUExecutionProvider"]
@@ -73,11 +76,7 @@ class TextRecognizer:
             io.bind_cpu_input("x", x)
             io.bind_output(*self.output)
             self.session.run_with_iobinding(io)
-            out = io.get_outputs()[0]  # onnxruntime<1.21 lacks DLPack, so its probabilities are copied to host
-            probs = (
-                torch.from_dlpack(out) if hasattr(out, "__dlpack__") else torch.from_numpy(io.copy_outputs_to_cpu()[0])
-            )
-            best = probs.max(-1)
+            best = torch.from_dlpack(io.get_outputs()[0]).max(-1)
             for i, scores, ids in zip(indices, best.values.cpu().numpy(), best.indices.cpu().numpy()):
                 keep = (ids != 0) & np.r_[True, ids[1:] != ids[:-1]]  # CTC: drop blanks and repeats
                 reads[i] = (

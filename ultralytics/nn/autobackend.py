@@ -15,7 +15,7 @@ from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
 from ultralytics.utils.plotting import Colors
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, select_device, smart_inference_mode
 
 from .backends import (
     AscendBackend,
@@ -201,8 +201,9 @@ class AutoBackend(nn.Module):
 
         Args:
             model (str | Path | torch.nn.Module): Path to the model weights file or a module instance.
-            device (torch.device | str, optional): Device to run the model on, or a 'tpu', 'intel' or 'vulkan' device
-                string from `select_device`. Defaults to CPU when None.
+            device (torch.device | str, optional): Device request for `select_device`. OpenVINO and LiteRT models take
+                Intel 'cpu', 'gpu' or 'npu' instead, and OpenVINO picks the device itself when None. Defaults to the
+                best available device.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
@@ -212,9 +213,10 @@ class AutoBackend(nn.Module):
             end2end (bool, optional): Select the native detection head before fusion; None preserves its current mode.
         """
         super().__init__()
-        device = device or torch.device("cpu")
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
+        if format not in {"openvino", "litert"}:  # these backends resolve Intel 'cpu', 'gpu' and 'npu' themselves
+            device = select_device(device, verbose=verbose)
         if (
             isinstance(model, nn.Module)
             and TORCH_1_10

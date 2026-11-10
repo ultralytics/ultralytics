@@ -310,9 +310,9 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-## Intel CPU and NPU Inference
+## Intel GPU and NPU Inference
 
-Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVINO](https://developers.google.com/edge/litert/next/intel) plugin. Pass `device=intel:cpu` or `device=intel:npu`, and Ultralytics installs `ai-edge-litert>=2.3.0` and `ai-edge-litert-sdk-intel` on first use. The NPU needs an Intel Core Ultra processor with the [Intel NPU driver](https://github.com/intel/linux-npu-driver) installed.
+Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVINO](https://developers.google.com/edge/litert/next/intel) plugin. Pass `device=gpu`, `device=npu`, or `device=auto` to let the plugin choose, and Ultralytics installs `ai-edge-litert>=2.3.0` and `ai-edge-litert-sdk-intel` on first use. The plugin pins its own `openvino` version, so keep it in a separate environment if you also run OpenVINO models with a different version. The NPU needs an Intel Core Ultra processor with the [Intel NPU driver](https://github.com/intel/linux-npu-driver) installed.
 
 !!! example "Predict"
 
@@ -322,13 +322,13 @@ Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVI
         from ultralytics import YOLO
 
         model = YOLO("yolo26n.tflite")
-        results = model("https://ultralytics.com/images/bus.jpg", device="intel:npu")  # or "intel:cpu"
+        results = model("https://ultralytics.com/images/bus.jpg", device="npu")  # or "gpu"
         ```
 
     === "CLI"
 
         ```bash
-        yolo predict model=yolo26n.tflite source='https://ultralytics.com/images/bus.jpg' device=intel:npu
+        yolo predict model=yolo26n.tflite source='https://ultralytics.com/images/bus.jpg' device=npu
         ```
 
 **Hardware:** Intel Core Ultra X7 358H (Panther Lake) and Intel AI Boost NPU 5010, Fedora Linux, NPU driver 1.38.0, `ai-edge-litert` 2.3.0.

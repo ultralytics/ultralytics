@@ -39,14 +39,11 @@ class OpenVINOBackend(BaseBackend):
             # https://github.com/openvinotoolkit/openvino/issues/37076, so cap oneDNN just below AMX
             os.environ.setdefault("ONEDNN_MAX_CPU_ISA", "AVX512_CORE_FP16")
         fallback_device = "CPU" if core.available_devices == ["CPU"] else "AUTO"
-        device_name = fallback_device
-
-        if isinstance(self.device, str) and self.device.startswith("intel"):
-            device_name = self.device.partition(":")[2].upper() or fallback_device
-            self.device = torch.device("cpu")
-            if not any(d == device_name or d.startswith(f"{device_name}.") for d in [*core.available_devices, "AUTO"]):
-                LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using '{fallback_device}' instead.")
-                device_name = fallback_device
+        device_name = str(self.device or "").upper().replace("INTEL:", "") or fallback_device  # i.e. 'npu' -> 'NPU'
+        self.device = torch.device("cpu")
+        if not any(d == device_name or d.startswith(f"{device_name}.") for d in [*core.available_devices, "AUTO"]):
+            LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using '{fallback_device}' instead.")
+            device_name = fallback_device
 
         w = Path(weight)
         if not w.is_file():
@@ -96,7 +93,7 @@ class OpenVINOBackend(BaseBackend):
         self.ov_compiled_model = self.compile_model(ov_model)
         LOGGER.info(
             f"Using OpenVINO LATENCY mode for batch={self.batch} inference on "
-            f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
+            f"{', '.join(np.atleast_1d(self.ov_compiled_model.get_property('EXECUTION_DEVICES')))}..."  # NPU is a str
         )
         # Sync CPU inference leaves the main thread waiting, so the predictor can load the next batch meanwhile. Not
         # AUTO, whose EXECUTION_DEVICES can report CPU while an accelerator is still compiling

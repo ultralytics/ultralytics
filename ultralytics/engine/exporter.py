@@ -694,7 +694,7 @@ class Exporter:
         intel = str(self.args.device).startswith("intel")  # OpenVINO inference devices; the model traces on CPU
         self.device = select_device(
             "cpu"
-            if self.args.device is None or intel or fmt in {"coreai", "executorch", "litert", "nxp"}
+            if self.args.device is None or intel or fmt in {"coreai", "executorch", "litert", "nxp", "openvino"}
             else self.args.device
         )
 

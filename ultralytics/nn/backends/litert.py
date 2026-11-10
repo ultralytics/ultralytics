@@ -41,15 +41,16 @@ class LiteRTBackend(BaseBackend):
             weight (str | Path): Path to the .tflite model file (metadata embedded as a metadata.json entry).
         """
         tflite_file = Path(weight)
-        self.intel = self.format == "litert" and str(self.device).startswith("intel")  # intel:cpu|npu
+        device = str(self.device or "").upper().replace("INTEL:", "")
+        self.device = torch.device("cpu")
+        self.intel = self.format == "litert" and device in {"AUTO", "GPU", "NPU"}
 
         LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
         if self.intel:  # Intel OpenVINO plugin through CompiledModel
             check_requirements(["ai-edge-litert>=2.3.0", "ai-edge-litert-sdk-intel>=2.3.0"])
             from ai_edge_litert.compiled_model import CompiledModel, HardwareAccelerator, IntelOpenVinoOptions, Options
 
-            backend = getattr(IntelOpenVinoOptions.GRAPH_BACKEND, self.device.partition(":")[2].upper(), None)
-            self.device = torch.device("cpu")
+            backend = getattr(IntelOpenVinoOptions.GRAPH_BACKEND, device, None)  # None lets the plugin choose
             self.model = CompiledModel.from_file(
                 str(tflite_file),
                 options=Options(

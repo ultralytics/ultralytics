@@ -31,7 +31,7 @@ def torch2openvino(
         quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8 for INT8.
         calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``quantize=8``).
         int8_detect (bool): Whether to keep the detection head in floating-point precision during INT8 quantization.
-        device (str | None): Inference device; ``intel:npu`` selects symmetric INT8 activations for CNN detection heads.
+        device (str | None): Inference device; ``npu`` selects symmetric INT8 activations for CNN detection heads.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -72,7 +72,7 @@ def torch2openvino(
             calibration_dataset=calibration_dataset,
             # NPU runs CNN detection heads about 2x faster with symmetric activations; CPU and GPU gain little
             preset=nncf.QuantizationPreset.PERFORMANCE
-            if int8_detect and not transformer and str(device).lower().startswith("intel:npu")
+            if int8_detect and not transformer and str(device).lower() in {"npu", "intel:npu"}
             else nncf.QuantizationPreset.MIXED,
             model_type=nncf.ModelType.TRANSFORMER if transformer else None,
             # Calibrate on the full dataset like other INT8 backends, not nncf's 300-batch default

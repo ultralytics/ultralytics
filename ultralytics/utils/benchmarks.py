@@ -90,7 +90,8 @@ def benchmark(
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
-        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps'.
+        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or Intel 'cpu', 'gpu' or 'npu'
+            with format='openvino' or 'litert'.
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
             every successful format's metric exceeds this floor value.
         eps (float): Epsilon value for divide by zero prevention.
@@ -121,7 +122,10 @@ def benchmark(
     pl.Config.set_tbl_hide_dataframe_shape(True)  # Hide shape info
     pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
 
-    device = select_device(device, verbose=False)
+    format_arg = format.lower()
+    intel = format_arg in {"openvino", "litert"}  # these runtimes take Intel 'cpu', 'gpu' and 'npu' directly
+    if not intel:
+        device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
@@ -137,7 +141,6 @@ def benchmark(
     y = []
     t0 = time.time()
 
-    format_arg = format.lower()
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format_arg in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
@@ -267,7 +270,7 @@ def benchmark(
             y.append([name, emoji, round(file_size(filename), 1), None, None, None])  # mAP, t_inference
 
     # Print results
-    check_yolo(device=device)  # print system info
+    check_yolo(device="cpu" if intel else device)  # print system info
     df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"], orient="row")
     df = df.with_row_index(" ", offset=1)  # add index info
     df_display = df.with_columns(pl.all().cast(pl.String).fill_null("-"))

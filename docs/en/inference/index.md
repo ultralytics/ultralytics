@@ -432,6 +432,8 @@ ultralytics-inference predict --ocr --source sign.jpg
 ultralytics-inference predict --ocr --model yolo26x-text.onnx --source sign.jpg --device cuda:0
 ```
 
+The library example loads the image with the `image` crate, so add it next to the package with `cargo add image`.
+
 ```rust
 use ultralytics_inference::YOLOModel;
 use ultralytics_inference::ocr::{DEFAULT_ORIENTATION, DEFAULT_RECOGNIZER, TextRecognizer};

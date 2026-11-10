@@ -1349,7 +1349,8 @@ class Exporter:
     def export_litert(self, prefix=colorstr("LiteRT:")):  # noqa: B008
         """Export YOLO model to LiteRT format using litert_torch with optional INT8 quantization.
 
-        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, requires calibration ``data``),
+        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, FP32 head outputs on Detect models,
+        requires calibration ``data``),
         ``quantize='w8a16'`` (static, int8 weights + int16 activations, requires calibration ``data``) and
         ``quantize='w8a32'`` (dynamic/weight-only INT8, int8 weights + FP32 activations, no calibration needed).
         """

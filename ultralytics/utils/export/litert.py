@@ -40,11 +40,11 @@ def torch2litert(
 ) -> str:
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.
 
-    Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations) and
-    ``'w8a16'`` applies static INT8 weights with int16 activations, both requiring a ``calibration_dataset``;
-    ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32 activations) and needs no calibration.
-    ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an FP32 model in FP16 at runtime
-    via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
+    Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations, with
+    FP32 head outputs on Detect models) and ``'w8a16'`` applies static INT8 weights with int16 activations, both
+    requiring a ``calibration_dataset``; ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32 activations)
+    and needs no calibration. ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an
+    FP32 model in FP16 at runtime via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.
@@ -77,7 +77,7 @@ def torch2litert(
     file = Path(file)
     quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_w8a32" if dynamic_int8 else ""
 
-    # Normalize coordinate channels by input size so INT8 quantization preserves scores (denormalized in LiteRTBackend).
+    # Normalize coordinate channels by input size so static quantization keeps scores (denormalized in LiteRTBackend).
     # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.
     meta = metadata or {}
     task = meta.get("task")
@@ -121,6 +121,14 @@ def torch2litert(
             for op in (qtyping.TFLOperationName.INPUT, qtyping.TFLOperationName.OUTPUT):
                 qt.update_quantization_recipe(
                     regex=".*", operation_name=op, algorithm_key=recipe.AlgorithmName.NO_QUANTIZE
+                )
+            if static_int8 and any(isinstance(m, Detect) for m in model.modules()):
+                # Keep head output convs and decode float: int8 clips class logits and one output scale coarsens boxes
+                qt.update_quantization_recipe(
+                    regex=r"\.modules\.head\.(?!.*ultralytics\.nn\.modules\.(conv\.|block\.Proto))"
+                    r"|_NormalizeCoords;|serving_default_output_",
+                    operation_name=qtyping.TFLOperationName.ALL_SUPPORTED,
+                    algorithm_key=recipe.AlgorithmName.NO_QUANTIZE,
                 )
             result = qt.calibrate(
                 {"serving_default": calib_samples}, mode=calibrator.CalibrationMode.CALIBRATION_PROFILER_BASED

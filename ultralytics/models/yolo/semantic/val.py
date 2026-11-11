@@ -17,6 +17,7 @@ from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK, ops
 from ultralytics.utils.metrics import ConfusionMatrix, SemanticMetrics
 from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.torch_utils import interpolate_bilinear
 
 
 class SemanticSegmentationValidator(DetectionValidator):
@@ -105,7 +106,7 @@ class SemanticSegmentationValidator(DetectionValidator):
             return preds.to(torch.int32)
         pred_hw = preds.shape[2:]
         if pred_hw[0] != self._semantic_target_shape[0] or pred_hw[1] != self._semantic_target_shape[1]:
-            preds = F.interpolate(preds, size=self._semantic_target_shape, mode="bilinear", align_corners=False)
+            preds = interpolate_bilinear(preds, self._semantic_target_shape)
         if self.nc > 1:  # CPU argmax over a non-innermost dim runs as a per-output loop; max(dim) streams
             return (preds.max(dim=1).indices if preds.device.type == "cpu" else preds.argmax(dim=1)).to(torch.int32)
         return preds.gt(0).squeeze(1).to(torch.int32)

@@ -814,6 +814,28 @@ def unset_deterministic():
     os.environ.pop("PYTHONHASHSEED", None)
 
 
+def interpolate_bilinear(x, size=None, scale_factor=None, align_corners=False):
+    """Bilinearly resize a 4D tensor, as matmuls where deterministic mode makes torch decompose the native kernel.
+
+    Args:
+        x (torch.Tensor): Input tensor of shape (B, C, H, W).
+        size (tuple[int, int], optional): Output (H, W).
+        scale_factor (float, optional): Spatial multiplier, used when size is None.
+        align_corners (bool): Align the corner pixels of input and output.
+
+    Returns:
+        (torch.Tensor): Resized tensor.
+    """
+    if x.device.type == "cpu" or not torch.are_deterministic_algorithms_enabled():
+        return F.interpolate(x, size, scale_factor, "bilinear", align_corners)
+    with autocast(False, x.device.type):  # keep the input dtype, as the native kernel does
+        h, w = (  # per-axis weights from the native 1D linear kernel, which deterministic mode keeps native
+            F.interpolate(torch.eye(n, device=x.device, dtype=x.dtype)[None], s, scale_factor, "linear", align_corners)
+            for n, s in zip(x.shape[-2:], size or (None, None))
+        )
+        return h[0].T @ x @ w[0]
+
+
 class ModelEMA:
     """Updated Exponential Moving Average (EMA) implementation.
 

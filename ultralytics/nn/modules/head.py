@@ -13,7 +13,7 @@ from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
-from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, interpolate_bilinear, smart_inference_mode
 
 from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Proto26, RealNVP, Residual, SwiGLUFFN
 from .conv import Conv, DWConv
@@ -854,7 +854,7 @@ class Depth(nn.Module):
         for i in range(self.nl - 2, -1, -1):
             # align_corners=True is baked into the released depth weights. Constant scale (consecutive pyramid
             # levels) keeps the upsample static for dynamic-shape CoreML export; output size is identical.
-            out = F.interpolate(out, scale_factor=2, mode="bilinear", align_corners=True)
+            out = interpolate_bilinear(out, scale_factor=2, align_corners=True)
             out = out + feats[i]
             out = self.refine[i](out)
 

@@ -21,7 +21,7 @@ from ultralytics.utils.tal import (
     dist2rbox,
     make_anchors,
 )
-from ultralytics.utils.torch_utils import autocast
+from ultralytics.utils.torch_utils import autocast, interpolate_bilinear
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist, rbox2dist
@@ -544,7 +544,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             masks = batch["masks"].to(self.device).float()
             if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
                 # masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
-                proto = F.interpolate(proto, masks.shape[-2:], mode="bilinear", align_corners=False)
+                proto = interpolate_bilinear(proto, masks.shape[-2:])
 
             imgsz = (
                 torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_masks.dtype) * self.stride[0]
@@ -1259,7 +1259,7 @@ class DepthLoss26:
             gt_depth = gt_depth.unsqueeze(1)
 
         if gt_depth.shape[-2:] != pred_depth.shape[-2:]:
-            pred_depth = F.interpolate(pred_depth, size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
+            pred_depth = interpolate_bilinear(pred_depth, gt_depth.shape[-2:], align_corners=True)
 
         valid = gt_depth > 0.001
         if valid.sum() < 10:
@@ -1495,7 +1495,7 @@ class SemanticSegmentationLoss(nn.Module):
         masks = batch["semantic_mask"].to(preds.device)
         valid = masks.reshape(-1) != 255
         if preds.shape[2:] != masks.shape[1:]:
-            preds = F.interpolate(preds, size=masks.shape[1:], mode="bilinear", align_corners=False)
+            preds = interpolate_bilinear(preds, masks.shape[1:])
 
         # Main cross-entropy and Dice loss.
         ce_loss = self._ce_loss(preds, masks, valid)
@@ -1506,7 +1506,7 @@ class SemanticSegmentationLoss(nn.Module):
         aux_loss = torch.tensor(0.0, device=preds.device, dtype=ce_loss.dtype)
         if aux_logits is not None:
             if aux_logits.shape[2:] != masks.shape[1:]:
-                aux_logits = F.interpolate(aux_logits, size=masks.shape[1:], mode="bilinear", align_corners=False)
+                aux_logits = interpolate_bilinear(aux_logits, masks.shape[1:])
             aux_loss = self._ce_loss(aux_logits, masks, valid) * 0.4
             total += aux_loss
 

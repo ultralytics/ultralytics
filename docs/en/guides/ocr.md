@@ -11,7 +11,8 @@ keywords: Ultralytics, YOLO26, OCR, scene text, document OCR, text detection, te
 
 Optical character recognition (OCR) detects and reads text in images. The [OCR solution](../reference/solutions/ocr.md)
 combines an Ultralytics YOLO26-Text detector with PaddleOCR's PP-OCRv6 recognizer, run on ONNX Runtime. It reads
-photos, documents, and screenshots at any rotation and returns every word with its line in reading order. PP-OCRv6 supports 50 languages and ~200 diacritical characters.
+photos, documents, and screenshots at any rotation and returns every word with its line in reading order. See
+[Supported Languages](#supported-languages) for the scripts PP-OCRv6 can read.
 
 Detection and recognition remain separate components, so you can pair any text detector with PP-OCRv6 or your own
 recognition model.
@@ -103,6 +104,25 @@ Additionally, the following visualization settings are supported:
 
 Coordinates always refer to the original image, not the detector input, rotated page, or recognition crop.
 
+## Supported Languages
+
+PP-OCRv6 can only output characters in its built-in 18,708-character set. The detector finds words in any script, but
+text in a script outside that set comes back as lookalike characters from the set. For example, Cyrillic `ТЕКСТ` reads
+as `TEKCT`, often with high confidence. Coverage of each language's full alphabet, upper and lower case:
+
+| Script        | Languages                                                                                                                                                                       | Coverage                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Chinese (CJK) | Simplified and Traditional Chinese                                                                                                                                              | ✅ About 15,600 CJK characters                                                |
+| Japanese      | Japanese                                                                                                                                                                        | ✅ Hiragana, katakana, and kanji                                              |
+| Latin         | English, French, German, Spanish, Portuguese, Italian, Dutch, Swedish, Finnish, Danish, Norwegian, Polish, Czech, Hungarian, Romanian, Turkish, Croatian, Indonesian, and Malay | ✅ Every letter and accented letter except German capital `ẞ` and Spanish `¡` |
+| Latin         | Vietnamese                                                                                                                                                                      | ⚠️ Partial: most toned vowels, such as `ạ`, `ế`, `ở`, and `ữ`, are missing    |
+| Greek         | Greek                                                                                                                                                                           | ⚠️ Partial: base letters only; accented letters and final `ς` are missing     |
+| Cyrillic      | Russian, Ukrainian, Belarusian, Bulgarian, Serbian, Kazakh, and others                                                                                                          | ❌ Not supported                                                              |
+| Other         | Korean (Hangul), Arabic, Hebrew, Hindi and other Devanagari, Thai                                                                                                               | ❌ Not supported                                                              |
+
+Digits, ASCII punctuation, and common symbols such as `€`, `£`, `¥`, and `°` are included. To read an unsupported
+script, pass a recognizer trained for it as a [custom recognizer](#use-a-custom-recognizer).
+
 ## Use a Custom Recognizer
 
 Pass a callable to integrate another recognition model without changing the detection, rotation, geometry, or ordering
@@ -161,6 +181,12 @@ and redistribution terms before packaging or deploying them. Custom checkpoint l
 
 Yes. Pass a callable as `recognizer` and return `(text, confidence)` for each BGR crop. See
 [Use a Custom Recognizer](#use-a-custom-recognizer) for the input and output contract.
+
+### Can OCR read Cyrillic, Korean, or Arabic text?
+
+Not with the default PP-OCRv6 recognizer: its character set covers Chinese, Japanese, and Latin-script languages, but
+not Cyrillic, Hangul, Arabic, Hebrew, Devanagari, or Thai. YOLO26-Text still detects those words, so pass a recognizer
+for the script as `recognizer`. See [Supported Languages](#supported-languages).
 
 ### Does OCR read rotated or upside-down text?
 

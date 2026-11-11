@@ -468,7 +468,9 @@ INT8_FORMATS = frozenset(
 )
 W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "rdk", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx"})
+FP32_UNSUPPORTED_FORMATS = frozenset(
+    {"edgetpu", "imx", "rknn", "rdk", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx"}
+)
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -672,7 +674,16 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "rdk", "xilinx"} and self.args.quantize not in {
+        if fmt in {
+            "deepx",
+            "axelera",
+            "imx",
+            "edgetpu",
+            "qnn",
+            "hailo",
+            "rdk",
+            "xilinx",
+        } and self.args.quantize not in {
             8,
             "w8a16",
         }:

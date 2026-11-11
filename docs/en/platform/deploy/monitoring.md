@@ -49,6 +49,9 @@ Four summary cards at the top of the page show:
 P95 rather than median latency is reported because health checks return in a couple of milliseconds and would otherwise
 dominate the picture of real [inference latency](https://www.ultralytics.com/glossary/inference-latency).
 
+The three HTTP cards include the last 24 hours of stopped deployments, and a stopped deployment's card in the
+deployments list still shows its request count.
+
 !!! warning "Error Rate Alert"
 
     The error rate card highlights in red when the rate exceeds 5%. Check the `Logs` tab on individual deployments to diagnose errors.
@@ -92,9 +95,9 @@ Each deployment page shows real-time metrics above its `Overview`, `Monitoring`,
 | **HTTP Error Rate (24h)**  | Share of 4xx and 5xx responses                                       |
 | **HTTP P95 Latency (24h)** | 95th percentile of the 15-minute P95 latencies                       |
 
-Each card shows a sparkline and refreshes every minute, next to a card linking to the deployed model. Metrics are
-collected only for deployments in the **Ready** state. On the Deployments tab, metrics are fetched for the 20 most
-recent deployments.
+Each card shows a sparkline and refreshes every minute, next to a card linking to the deployed model. A stopped
+deployment serves no requests, so it records no new metrics, but its page and the Deployments tab still show its last
+24 hours. On the Deployments tab, metrics are fetched for the 20 most recent deployments.
 
 ### Health Check
 
@@ -428,5 +431,6 @@ Yes, the **Deployments** tab on your profile shows all endpoints with aggregated
 
 ### Do stopped deployments still report metrics?
 
-No. Metrics and health checks are collected only for deployments in the **Ready** state. A stopped endpoint keeps its
-deployment page and history window but shows no live numbers until you start it again.
+A stopped deployment records no new metrics, since it serves no requests, but its deployment page and the Deployments
+tab cards still show its HTTP metrics from the last 24 hours. Health checks run only in the **Ready** state, so they
+resume when you start the endpoint again.

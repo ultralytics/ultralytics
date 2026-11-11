@@ -92,6 +92,7 @@ from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_c
 from ultralytics.nn.modules import (
     OBB,
     OBB26,
+    SPPF,
     Attention,
     C2f,
     Classify,
@@ -691,10 +692,9 @@ class Exporter:
         if fmt == "imx" and self.args.device is None and torch.cuda.is_available():
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
-        intel = str(self.args.device).startswith("intel")  # OpenVINO inference devices; the model traces on CPU
         self.device = select_device(
             "cpu"
-            if self.args.device is None or intel or fmt in {"coreai", "executorch", "litert", "nxp"}
+            if self.args.device is None or fmt in {"coreai", "executorch", "litert", "nxp", "openvino"}
             else self.args.device
         )
 
@@ -972,6 +972,8 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
+            if isinstance(m, SPPF):
+                m.export = True
             if isinstance(m, Attention) and fmt == "coreml" and self.args.format != "mlmodel":
                 m.format = fmt
             if isinstance(m, (Classify, SemanticSegment, Depth)):
@@ -1350,7 +1352,8 @@ class Exporter:
     def export_litert(self, prefix=colorstr("LiteRT:")):  # noqa: B008
         """Export YOLO model to LiteRT format using litert_torch with optional INT8 quantization.
 
-        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, requires calibration ``data``),
+        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, FP32 head outputs on Detect models,
+        requires calibration ``data``),
         ``quantize='w8a16'`` (static, int8 weights + int16 activations, requires calibration ``data``) and
         ``quantize='w8a32'`` (dynamic/weight-only INT8, int8 weights + FP32 activations, no calibration needed).
         """

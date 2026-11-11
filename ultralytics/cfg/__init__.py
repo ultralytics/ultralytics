@@ -623,6 +623,12 @@ def _handle_deprecation(custom: dict) -> dict:
         custom["quantize"] = 8 if int8_on else 16 if half_on else None  # False/0 clears precision back to FP32
         deprecation_warn("int8" if int8 is not None else "half", "quantize")
 
+    device = str(custom.get("device"))
+    if device.lower().startswith("intel:"):  # OpenVINO and LiteRT take PyTorch device names, 'xpu' is the Intel GPU
+        name = device[6:].lower()
+        custom["device"] = None if name == "auto" else name.replace("gpu", "xpu").replace(".", ":")
+        deprecation_warn(f"device={device}", f"device={custom['device']}")
+
     for old_key, (new_key, transform) in deprecated_mappings.items():
         if old_key not in custom:
             continue

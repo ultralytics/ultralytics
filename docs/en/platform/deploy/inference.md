@@ -1,17 +1,17 @@
 ---
 plans: [free, pro, enterprise]
-title: Inference API Testing
+title: Test YOLO Model Inference in the Browser and via API
 comments: true
-description: Test YOLO models in the Ultralytics Platform Predict tab with images, webcam, or IP camera, and call shared or dedicated inference endpoints over REST.
-keywords: Ultralytics Platform, inference, API, YOLO, object detection, prediction, testing
+description: Test YOLO model inference in the Ultralytics Platform Predict tab on images, PDFs, or webcam, then call shared or dedicated endpoints over REST.
+keywords: Ultralytics Platform, YOLO inference, inference API, predict, object detection, prediction, testing, PDF, webcam
 ---
 
-# Inference
+# YOLO Model Inference
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides browser-based inference for testing trained models
-and dedicated endpoints for programmatic access.
+[Ultralytics Platform](https://platform.ultralytics.com) lets you test a trained YOLO model on your own images from its
+`Predict` tab, then call it over REST from shared or dedicated endpoints.
 
-![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/7f24f23d72050535fb1184ab78b99f0a.avif)<!-- screenshot -->
+![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/4adbaea0e33520bd47e9225801392f90.avif)<!-- screenshot -->
 
 ## Predict Tab
 
@@ -32,7 +32,7 @@ The predict panel supports multiple input methods:
 
 | Method             | Description                                          |
 | ------------------ | ---------------------------------------------------- |
-| **Image upload**   | Drag and drop or click to upload an image            |
+| **Image upload**   | Drag and drop or click to upload an image or a PDF   |
 | **Example images** | Click built-in examples (dataset images or defaults) |
 | **Webcam capture** | Live camera feed with single-frame capture           |
 | **IP camera**      | RTSP or RTSPS stream on your own deployment          |
@@ -49,7 +49,7 @@ flowchart TD
 
 Drag and drop or click to upload:
 
-- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP
+- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP, and PDF (the first page is rendered as an image and predicted like one)
 - **Max size**: 10 MB
 - **Auto-inference**: Results appear automatically after upload
 
@@ -59,7 +59,7 @@ Drag and drop or click to upload:
 
 !!! note "Client-Side Resize"
 
-    Before uploading, the panel shrinks images whose longest side exceeds the selected `Image Size` to that size, and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized. Images the browser cannot decode, such as TIFF in Chrome, are sent at their original size.
+    Before uploading, the panel shrinks images whose longest side exceeds the selected `Image Size` to that size, sends a JPEG instead of the original when that is smaller (a PNG screenshot, for example), and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized. Images the browser cannot decode, such as TIFF in Chrome, are sent at their original size.
 
 ### Example Images
 
@@ -95,7 +95,7 @@ Inference results display the output appropriate to the model task: boxes, masks
 classification scores, semantic coverage, or a depth map. Object results use the dataset class colors when available.
 The panel also shows preprocess, inference, postprocess, and network timing.
 
-![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/200e9ac95d798975658c5c24baa10d33.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/c32fd4716ad8488b7f5f850383f36f1c.avif)<!-- screenshot -->
 
 The results panel shows:
 
@@ -109,11 +109,16 @@ The results panel shows:
 Two controls sit over the preview once results are in: click the image to enlarge it with overlays intact, and use the
 download button to save an annotated JPEG of the current result.
 
+Hover a detection's row to highlight its box, or hover a box on the image to highlight its row and scroll it into view
+in the list. With more than 10 results, the image shows boxes without labels so labels don't cover the objects; the
+list names each result, and the enlarged image keeps the labels. On wide screens the results card can grow up to the
+height of the input card, so long lists, such as a crowded retail shelf, stay readable.
+
 ## Inference Parameters
 
 Adjust inference behavior with the three sliders below the image (depth models show only **Image Size**):
 
-![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/a5c367ba079dc5d19ab3f02bd37f10bf.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/f0d05f100408a6e5fc4fb6496ed9615d.avif)<!-- screenshot -->
 
 | Parameter      | Range                     | Default | Description                  |
 | -------------- | ------------------------- | ------- | ---------------------------- |
@@ -353,7 +358,7 @@ with open("image.jpg", "rb") as f:
 }
 ```
 
-![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/f89c84fd648ba3aaad454ea9911b28a7.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/d6b0c482bc51f61712839f1def0416e6.avif)<!-- screenshot -->
 
 ### Response Fields
 

@@ -189,7 +189,7 @@ class ONNXBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .onnx model file, or an AMD Xilinx export directory containing one.
         """
-        if not isinstance(self.device, torch.device):  # 'intel', 'tpu' or 'vulkan' device strings run on CPU
+        if not isinstance(self.device, torch.device):  # 'tpu' or 'vulkan' device strings run on CPU
             self.device = torch.device("cpu")
         cuda = torch.cuda.is_available() and self.device.type != "cpu"
 

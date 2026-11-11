@@ -64,8 +64,9 @@ easy to bookmark or share.
 | **Projects** | Name, description, owner username, and tags              |
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
-search, and their cards show the matching images. Before you search, the Images tab lists one image from each of the
-newest public datasets. Search it by what images show with
+search, and their cards show the matching images. Searching an official dataset's name or address (such as `HIT-UAV` or
+`hit uav`) puts the official `@ultralytics` dataset above copies that share its name. Before you search, the Images tab
+lists one image from each of the newest public datasets. Search it by what images show with
 [semantic search](https://www.ultralytics.com/glossary/semantic-search): describe a scene such as `cats on a sofa`. Click any image to open a side panel with its annotations, source dataset, class counts, and license, followed by up to
 24 similar images, including ones from the same dataset, when you are signed in; click one to open it in the panel. On
 narrow screens such as phones, the image opens full size instead.
@@ -231,7 +232,7 @@ Copy a public project to your workspace:
 
 ![Ultralytics Platform Explore Clone Project](https://cdn.ul.run/i/8622d3c0f37ee586198ab9dd447699b7.avif)<!-- screenshot -->
 
-The cloned project includes completed models that have model files. Deployments and exports are not copied. Its default visibility follows the same workspace rules as dataset cloning.
+The cloned project includes completed models that have model files. Deployments and exports are not copied. The models count toward your workspace's [model limit](train/projects.md#how-many-models-can-a-project-contain). Its default visibility follows the same workspace rules as dataset cloning.
 
 See [Projects](train/projects.md) for organizing models in your project.
 

@@ -143,7 +143,7 @@ Clone a public project to your own account:
 
 !!! info "Clone Behavior"
 
-    Cloned projects inherit the source project's visibility by default, or start private when the workspace's [default project visibility](../account/settings.md#default-visibility) is Private, and you can choose Public or Private in the clone dialog before confirming. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
+    Cloned projects inherit the source project's visibility by default, or start private when the workspace's [default project visibility](../account/settings.md#default-visibility) is Private, and you can choose Public or Private in the clone dialog before confirming. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license. Cloned models count toward your workspace's [model limit](#how-many-models-can-a-project-contain): a clone that would exceed it is blocked with **Model limit reached**, so select fewer models, delete some, or upgrade your plan.
 
 ## Compare Models
 

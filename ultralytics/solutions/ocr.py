@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import threading
+import uuid
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -84,7 +85,7 @@ class TextRecognizer:
             from ultralytics.utils.export.engine import onnx2engine
 
             metadata = {p.key: p.value for p in onnx.load(model, load_external_data=False).metadata_props}
-            tmp = f.with_suffix(f".{os.getpid()}.tmp")  # concurrent builders each write their own file
+            tmp = f.with_suffix(f".{uuid.uuid4().hex}.tmp")  # concurrent builders, even in other containers
             onnx2engine(model, tmp, dynamic=True, shape=(8, 3, 48, 1600), metadata=metadata)
             os.replace(tmp, f)
         return TensorRTBackend(f, device)

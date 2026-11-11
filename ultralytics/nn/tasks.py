@@ -949,7 +949,7 @@ class ClassificationModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the ClassificationModel."""
-        return v8ClassificationLoss()
+        return v8ClassificationLoss(self)
 
 
 class RTDETRDetectionModel(DetectionModel):

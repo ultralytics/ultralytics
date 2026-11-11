@@ -5,11 +5,13 @@ from __future__ import annotations
 from copy import copy
 from typing import Any
 
+import numpy as np
 import torch
 
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
+from ultralytics.models.yolo.detect.train import DetectionTrainer
 from ultralytics.nn.tasks import ClassificationModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.plotting import plot_images
@@ -66,6 +68,14 @@ class ClassificationTrainer(BaseTrainer):
     def set_model_attributes(self):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data["names"]
+
+    compute_class_weights = DetectionTrainer.compute_class_weights
+    set_class_weights = DetectionTrainer.set_class_weights
+
+    def get_class_counts(self):
+        """Return per-class image counts from the training dataset."""
+        classes = {s[0]: s[1] for s in self.train_loader.dataset.samples}  # count each tiled source once
+        return np.bincount(list(classes.values()), minlength=self.data["nc"]).astype(np.float32)
 
     def get_model(self, cfg: str | dict | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a modified PyTorch model configured for training YOLO classification.

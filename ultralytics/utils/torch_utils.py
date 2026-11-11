@@ -826,7 +826,7 @@ def interpolate_bilinear(x, size=None, scale_factor=None, align_corners=False):
     Returns:
         (torch.Tensor): Resized tensor.
     """
-    if x.is_cpu or not torch.are_deterministic_algorithms_enabled():
+    if x.device.type == "cpu" or not torch.are_deterministic_algorithms_enabled():
         return F.interpolate(x, size, scale_factor, "bilinear", align_corners)
     with autocast(False, x.device.type):  # keep the input dtype, as the native kernel does
         h, w = (  # per-axis weights from the native 1D linear kernel, which deterministic mode keeps native

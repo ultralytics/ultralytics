@@ -122,7 +122,7 @@ class TextRecognizer:
             x = np.zeros((len(indices), 3, 48, max(320, lines[indices[-1]].shape[2])), np.float32)
             for j, i in enumerate(indices):
                 x[j, :, :, : lines[i].shape[2]] = lines[i]
-            with self.lock:  # read each batch's best characters before the next batch runs
+            with self.lock:  # TensorRT: read this batch before the next one overwrites its output buffer
                 if io is None:
                     with torch.cuda.device(self.backend.device):  # from any thread, on the engine's GPU
                         probs = self.backend.forward(torch.from_numpy(x).to(self.backend.device))[0]

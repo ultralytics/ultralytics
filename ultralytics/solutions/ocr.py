@@ -111,7 +111,7 @@ class TextRecognizer:
             for j, i in enumerate(indices):
                 x[j, :, :, : lines[i].shape[2]] = lines[i]
             if io is None:  # TensorRT: one execution context, whose output buffer the next call overwrites
-                with self.lock:
+                with self.lock, torch.cuda.device(self.backend.device):  # any thread, the engine's GPU
                     best = self.backend.forward(torch.from_numpy(x).to(self.backend.device))[0].max(-1)
                     best = best.values.cpu().numpy(), best.indices.cpu().numpy()  # read before releasing the buffer
             else:

@@ -175,7 +175,7 @@ QAT costs 0.008 to 0.017 mAP<sub>50-95</sub> against FP32 across the range, whil
 
 QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
 
-The head's final output convolutions are deliberately left in float to limit INT8 accuracy loss; TensorRT enables FP16 mixed precision for its unquantized layers. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
+The head's output layers, the bare convolutions and linears outside its `Conv` blocks, are deliberately left in float to limit INT8 accuracy loss; TensorRT enables FP16 mixed precision for its unquantized layers. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 

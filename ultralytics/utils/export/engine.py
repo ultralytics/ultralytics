@@ -189,6 +189,8 @@ def modelopt_quantize_onnx(
         # On every GPU: RT-DETR's transformer, the AIFI encoder layer and the RTDETRDecoder, stays in float, attention
         # included: TensorRT 11.3 and 11.4 build it broken in INT8 (rtdetr-l 4.9-5.4 mAP), and it adds ~1-2 mAP on 11.2
         transformer = {m[1] for n in graph.node if (m := re.match(r"/model\.(\d+)/(ma|decoder)/", n.name))}
+        # search, not match: nms=True exports wrap the model in NMSModel, prefixing every name with "/model"
+        head = max(int(m[1]) for n in graph.node if (m := re.search(r"/model\.(\d+)/", n.name)))
         modelopt_quantize(
             onnx_file,
             quantize_mode="int8",
@@ -198,9 +200,10 @@ def modelopt_quantize_onnx(
             # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
-            # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
-            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
-            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"]
+            # The head's output layers, the bare convolutions outside its `Conv` blocks, and DFL's fixed conv cost most
+            # of the INT8 accuracy for a small share of the runtime, so they stay in float as in QAT. Linears export as
+            # `Gemm` and stay INT8: keeping `Classify.linear` in float measured no accuracy gain
+            nodes_to_exclude=[rf".*/model\.{head}/((?!.*/conv/).*/Conv(Transpose)?$|dfl/)"]
             + [rf"/model\.{i}/" for i in sorted(transformer)]
             + ([r".*/sc/conv/Conv$"] if sm121 else []),
             output_path=out_file,
@@ -273,8 +276,8 @@ def onnx2engine(
         TensorRT 11 these were removed in favor of strongly-typed networks, so reduced precision is baked into the ONNX
         with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by `modelopt_quantize_onnx`. The
         TensorRT 7-10 path keeps the head Sigmoid layers in FP32 to preserve confidence-score calibration (see #24668)
-        and the head's output convolutions in FP16 for accuracy. Metadata is serialized and written to the engine file
-        if provided.
+        and the head's output layers in FP16 for accuracy. Metadata is serialized and written to the engine file if
+        provided.
     """
     import onnx
 
@@ -444,8 +447,8 @@ def onnx2engine(
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep the head Sigmoid (an
         # ACTIVATION layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve
         # confidence-score calibration, mirroring the OpenVINO IgnoredScope
-        # https://github.com/ultralytics/ultralytics/issues/24668, and the head's output convolutions and DFL in FP16
-        # as `modelopt_quantize_onnx` does. Scope this to the head: every SiLU activation is also a Sigmoid, and
+        # https://github.com/ultralytics/ultralytics/issues/24668, and the head's output layers and DFL in FP16 as
+        # `modelopt_quantize_onnx` does. Scope this to the head: every SiLU activation is also a Sigmoid, and
         # constraining all of them costs INT8 speed across backbone and neck.
         names = [network.get_layer(i).name for i in range(network.num_layers)]
         # search, not match: nms=True exports wrap the model in NMSModel, prefixing every name with "/model"
@@ -458,7 +461,9 @@ def onnx2engine(
                 continue
             if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
                 dtype = trt.float32
-            elif layer.type == trt.LayerType.CONVOLUTION and (layer.name.endswith(".2/Conv") or "/dfl/" in layer.name):
+            elif layer.name.endswith(("/Conv", "/ConvTranspose")) and (
+                "/conv/" not in layer.name or "/dfl/" in layer.name
+            ):
                 dtype = trt.float16
             else:
                 continue

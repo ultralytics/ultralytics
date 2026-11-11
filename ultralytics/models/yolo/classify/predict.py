@@ -81,7 +81,13 @@ class ClassificationPredictor(BasePredictor):
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""
         if self.device_transform is None and not isinstance(img, torch.Tensor):
-            img = torch.stack([self.transforms(Image.fromarray(cv2.cvtColor(x, cv2.COLOR_BGR2RGB))) for x in img], 0)
+            img = torch.stack(
+                [
+                    self.transforms(Image.fromarray(cv2.cvtColor(x.astype(np.uint8, copy=False), cv2.COLOR_BGR2RGB)))
+                    for x in img
+                ],
+                0,
+            )
             img = img.to(self.model.device)
             return img.half() if self.model.fp16 else img.float()
         is_tensor = isinstance(img, torch.Tensor)

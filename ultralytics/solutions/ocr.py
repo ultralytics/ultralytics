@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import threading
 import uuid
+import warnings
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -33,8 +34,8 @@ class TextRecognizer:
     def __init__(self, model: str = "PP-OCRv6_medium_rec.onnx", device: str | int | None = None, engine: bool = False):
         """Load the recognizer on the NVIDIA GPU `device` when available, else on CPU, with its embedded character set.
 
-        With `engine=True` on an NVIDIA GPU it runs as a TensorRT engine, built once per TensorRT version and GPU
-        architecture (about 15 s) and cached next to the ONNX model.
+        With `engine=True` on an NVIDIA GPU it runs as an FP16 TensorRT engine, built once per TensorRT version and GPU
+        architecture (about 30 s) and cached next to the ONNX model.
         """
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
         cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
@@ -79,14 +80,21 @@ class TextRecognizer:
         sm = "".join(map(str, torch.cuda.get_device_capability(device)))
         f = Path(model).with_name(f"{Path(model).stem}-trt{trt.__version__}-sm{sm}.engine")
         if not f.exists():  # dynamic batches of up to 8 words, 48 px high and up to 3200 px wide
-            check_requirements("onnx>=1.12.0,<2.0.0")
+            check_requirements(["onnx>=1.12.0,<2.0.0", "onnxconverter-common"])
             import onnx
+            from onnxconverter_common import float16
 
             from ultralytics.utils.export.engine import onnx2engine
 
-            metadata = {p.key: p.value for p in onnx.load(model, load_external_data=False).metadata_props}
             tmp = f.with_suffix(f".{uuid.uuid4().hex}.tmp")  # concurrent builders, even in other containers
-            onnx2engine(model, tmp, dynamic=True, shape=(8, 3, 48, 1600), metadata=metadata)
+            # FP16 weights, which TensorRT builds as typed: the same reads ~40% faster than FP32, with no ModelOpt
+            onnx_model = onnx.load(model)
+            with warnings.catch_warnings():  # one warning per tiny weight clamped to the FP16 range
+                warnings.simplefilter("ignore")
+                onnx.save(float16.convert_float_to_float16(onnx_model, keep_io_types=True), tmp.with_suffix(".onnx"))
+            metadata = {p.key: p.value for p in onnx_model.metadata_props}
+            onnx2engine(str(tmp.with_suffix(".onnx")), tmp, dynamic=True, shape=(8, 3, 48, 1600), metadata=metadata)
+            tmp.with_suffix(".onnx").unlink()
             os.replace(tmp, f)
         return TensorRTBackend(f, device)
 

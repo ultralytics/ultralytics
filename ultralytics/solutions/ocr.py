@@ -7,6 +7,7 @@ import threading
 import uuid
 import warnings
 from collections.abc import Callable
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any
 
@@ -40,9 +41,9 @@ class TextRecognizer:
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
         cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
         model = str(attempt_download_asset(model))
-        self.session, self.lock = None, threading.Lock()  # TensorRT's one context reuses its output buffer per batch
-        if engine and cuda:
-            self.backend = self.load_engine(model, device)
+        self.session = None
+        if engine and cuda:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time
+            self.backend, self.lock = self.load_engine(model, device), threading.Lock()
             alphabet = self.backend.metadata["character"]
         else:
             # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced.
@@ -63,7 +64,7 @@ class TextRecognizer:
                 # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
                 options = {"device_id": device.index or 0, "cudnn_conv_algo_search": "HEURISTIC"}
                 providers.insert(0, ("CUDAExecutionProvider", options))
-            self.session = ort.InferenceSession(model, providers=providers)
+            self.session, self.lock = ort.InferenceSession(model, providers=providers), nullcontext()  # concurrent
             # Character probabilities stay on the recognizer's device, which returns only each step's best character
             output = self.session.get_outputs()[0].name
             self.output = output, "cuda" if len(providers) > 1 else "cpu", device.index or 0

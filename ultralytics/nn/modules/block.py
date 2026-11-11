@@ -238,7 +238,8 @@ class SPPF(nn.Module):
         """Apply sequential pooling operations to input and return concatenated feature maps."""
         y = [self.cv1(x)]
         k = self.m.kernel_size
-        separable = x.is_cpu and not self.export  # faster on CPU only, CUDA and exports keep square pooling
+        # Faster on CPU only, CUDA and exports keep square pooling; export first so torch.fx tracing never reads device
+        separable = not self.export and x.device.type == "cpu"
         for _ in range(getattr(self, "n", 3)):
             # Pool width first to preserve square pooling's row-major tie breaking during backpropagation.
             y.append(

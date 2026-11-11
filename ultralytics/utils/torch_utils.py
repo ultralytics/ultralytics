@@ -829,12 +829,12 @@ def interpolate_bilinear(x, size=None, scale_factor=None, align_corners=False):
     decomposed = x.is_cuda or (TORCH_2_9 and not x.is_cpu)  # devices where deterministic mode decomposes bilinear
     if not (decomposed and torch.are_deterministic_algorithms_enabled()) or torch.jit.is_tracing():
         return F.interpolate(x, size, scale_factor, "bilinear", align_corners)
-    h, w = (  # per-axis weights from the native 1D linear kernel, which deterministic mode keeps native
-        F.interpolate(torch.eye(n, device=x.device, dtype=x.dtype)[None], s, scale_factor, "linear", align_corners)[0]
-        for n, s in zip(x.shape[-2:], size or (None, None))
-    )
     with autocast(False, x.device.type):  # keep the input dtype, as the native kernel does
-        return h.T @ x @ w
+        h, w = (  # per-axis weights from the native 1D linear kernel, which deterministic mode keeps native
+            F.interpolate(torch.eye(n, device=x.device, dtype=x.dtype)[None], s, scale_factor, "linear", align_corners)
+            for n, s in zip(x.shape[-2:], size or (None, None))
+        )
+        return h[0].T @ x @ w[0]
 
 
 class ModelEMA:

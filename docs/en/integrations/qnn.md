@@ -81,8 +81,8 @@ Adreno GPU, and Hexagon NPU (HTP v81).
   OpenCL (`LITERT_CL`), and every NPU row used the QNN Hexagon HTP backend.
 - The detailed benchmark record is in the
   [Flutter performance doc](https://github.com/ultralytics/yolo-flutter-app/blob/main/doc/performance.md).
-- Compare other Android devices in the [LiteRT integration](litert.md#measured-performance) and Apple devices in the
-  [CoreML integration](coreml.md#measured-performance).
+- Compare other Android devices in the [LiteRT integration](litert.md#measured-performance), including the
+  [MediaTek Dimensity guide](mediatek.md#measured-performance), and Apple devices in the [CoreML integration](coreml.md#measured-performance).
 
 ### Windows on Snapdragon Laptop
 

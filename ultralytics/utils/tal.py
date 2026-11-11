@@ -86,7 +86,7 @@ class TaskAlignedAssigner(nn.Module):
         References:
             https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
         """
-        self.bs = pd_scores.shape[0]
+        self.bs, _, self.num_classes = pd_scores.shape
         self.n_max_boxes = gt_bboxes.shape[1]
         if self.n_max_boxes == 0:
             return (
@@ -228,16 +228,14 @@ class TaskAlignedAssigner(nn.Module):
         """
         na = pd_bboxes.shape[-2]
         mask_gt = mask_gt.bool()  # b, max_num_obj, h*w
-        shape = self.bs, self.n_max_boxes, na
         indices = mask_gt.nonzero(as_tuple=True)
         bbox_scores = pd_scores[indices[0], indices[2], gt_labels[indices[0], indices[1], 0].long()]
         overlap_values = self.pair_overlaps(indices, gt_bboxes, pd_bboxes, **extra)
         align_values = bbox_scores.pow(self.alpha) * overlap_values.pow(self.beta)
 
-        overlaps = torch.zeros(shape, dtype=pd_bboxes.dtype, device=pd_bboxes.device)
-        align_metric = torch.zeros(shape, dtype=align_values.dtype, device=pd_scores.device)
-        overlaps[indices] = overlap_values
-        align_metric[indices] = align_values
+        flat = (indices[0] * self.n_max_boxes + indices[1]) * na + indices[2]  # x[indices] = v is very slow on MPS
+        overlaps = overlap_values.new_zeros(mask_gt.numel()).scatter_(0, flat, overlap_values).view_as(mask_gt)
+        align_metric = align_values.new_zeros(mask_gt.numel()).scatter_(0, flat, align_values).view_as(mask_gt)
         return align_metric, overlaps
 
     def pair_overlaps(self, indices, gt_bboxes, pd_bboxes):
@@ -459,7 +457,8 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
         iou = super().pair_overlaps(indices, gt_bboxes, pd_bboxes)
         dense = iou.new_zeros(self.bs, self.n_max_boxes, pd_bboxes.shape[1])
         # Box alignment metric of each pair; eps keeps zero-metric pairs selectable
-        dense[indices] = scores[b, a, labels[b, g, 0].long()].pow(self.alpha) * iou.pow(self.beta) + self.eps
+        metric = scores[b, a, labels[b, g, 0].long()].pow(self.alpha) * iou.pow(self.beta) + self.eps
+        dense.view(-1).scatter_(0, (b * self.n_max_boxes + g) * dense.shape[-1] + a, metric)
         top = dense.topk(min(3 * self.topk, dense.shape[-1]), dim=-1).indices
         sel = torch.zeros_like(dense, dtype=torch.bool).scatter_(-1, top, True)[indices].nonzero().squeeze(1)
         miou = torch.zeros_like(iou)
@@ -473,7 +472,9 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
             r, counts = order.argsort()[ub], n[order].tolist()
             coef = pd_coef.new_zeros(self.bs, counts[0], pd_coef.shape[-1])
             boxes = pd_bboxes.new_zeros(self.bs, counts[0], 4)
-            coef[r, slot], boxes[r, slot] = pd_coef[ub, ua], pd_bboxes[ub, ua] * mask_scale[ub]
+            row = (r * counts[0] + slot)[:, None]
+            coef.view(-1, coef.shape[-1]).scatter_(0, row.expand(-1, coef.shape[-1]), pd_coef[ub, ua])
+            boxes.view(-1, 4).scatter_(0, row.expand(-1, 4), pd_bboxes[ub, ua] * mask_scale[ub])
             dtype = torch.half if proto.device.type == "cuda" else torch.float
             ious = iou.new_zeros(self.bs, gt_masks.shape[1], counts[0])  # gt_masks may exceed n_max_boxes
             i = 0
@@ -489,7 +490,7 @@ class SegTaskAlignedAssigner(TaskAlignedAssigner):
                 union = gm.sum(-1, dtype=torch.float)[..., None] + pm.sum(-1)[:, None] - inter
                 ious[s, :, :m] = inter / union.clamp(min=1)
                 i = s.stop
-            miou[sel] = ious[r[inv], g[sel], slot[inv]]
+            miou.scatter_(0, sel, ious[r[inv], g[sel], slot[inv]])
         return (iou + miou) / 2
 
 

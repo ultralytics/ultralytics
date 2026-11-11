@@ -49,6 +49,9 @@ Four summary cards at the top of the page show:
 P95 rather than median latency is reported because health checks return in a couple of milliseconds and would otherwise
 dominate the picture of real [inference latency](https://www.ultralytics.com/glossary/inference-latency).
 
+The three HTTP cards include the last 24 hours of stopped deployments, and a stopped deployment's card in the
+deployments list still shows its request count.
+
 !!! warning "Error Rate Alert"
 
     The error rate card highlights in red when the rate exceeds 5%. Check the `Logs` tab on individual deployments to diagnose errors.
@@ -92,9 +95,9 @@ Each deployment page shows real-time metrics above its `Overview`, `Monitoring`,
 | **HTTP Error Rate (24h)**  | Share of 4xx and 5xx responses                                       |
 | **HTTP P95 Latency (24h)** | 95th percentile of the 15-minute P95 latencies                       |
 
-Each card shows a sparkline and refreshes every minute, next to a card linking to the deployed model. Metrics are
-collected only for deployments in the **Ready** state. On the Deployments tab, metrics are fetched for the 20 most
-recent deployments.
+Each card shows a sparkline and refreshes every minute, next to a card linking to the deployed model. A stopped
+deployment serves no requests, so it records no new metrics, but its page and the Deployments tab still show its last
+24 hours. On the Deployments tab, metrics are fetched for the 20 most recent deployments.
 
 ### Health Check
 
@@ -160,7 +163,7 @@ To remove temporary examples, use an image's hover trash control or select examp
 
 Statistics aggregate processed images independently of the gallery. Deleting or replacing an example does not subtract its contribution. The summary shows images, predictions, and images without predictions for the selected period; depth models show image counts.
 
-The date picker defaults to the last **30 days** and accepts ranges up to **365 days**. Selected dates use **UTC** boundaries; chart timestamps display in local time. Recent ranges of up to three days use hourly history when the full range falls within the last 72 hours; other ranges use daily history. The date range filters statistics, while the gallery continues to show the current temporary examples.
+The date picker defaults to the last **30 days** and accepts ranges up to **365 days**. Selected dates are your local days: hourly history follows them exactly, daily totals cover whole **UTC** days, and chart times display in local time. Recent ranges of up to three days use hourly history when the full range falls within the last 72 hours; other ranges use daily history. The date range filters statistics, while the gallery continues to show the current temporary examples.
 
 History is bounded to **72 hourly buckets** and **365 daily buckets**, and is available only since the current instance started. A selected period with no processed images shows **No images processed in this period**.
 
@@ -252,7 +255,7 @@ placeholder:
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
 
     # Inference parameters
-    data = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
+    data = {"conf": 0.25, "iou": 0.5, "imgsz": 640}
 
     # Send image for inference
     with open("image.jpg", "rb") as f:
@@ -268,7 +271,7 @@ placeholder:
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
     formData.append("conf", "0.25");
-    formData.append("iou", "0.7");
+    formData.append("iou", "0.5");
     formData.append("imgsz", "640");
 
     // Send image for inference
@@ -293,7 +296,7 @@ placeholder:
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.7" \
+      -F "iou=0.5" \
       -F "imgsz=640"
     ```
 
@@ -428,5 +431,6 @@ Yes, the **Deployments** tab on your profile shows all endpoints with aggregated
 
 ### Do stopped deployments still report metrics?
 
-No. Metrics and health checks are collected only for deployments in the **Ready** state. A stopped endpoint keeps its
-deployment page and history window but shows no live numbers until you start it again.
+A stopped deployment records no new metrics, since it serves no requests, but its deployment page and the Deployments
+tab cards still show its HTTP metrics from the last 24 hours. Health checks run only in the **Ready** state, so they
+resume when you start the endpoint again.

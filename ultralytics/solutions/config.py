@@ -44,7 +44,7 @@ class SolutionConfig:
         meter_per_pixel (float): Scale for real-world measurement, used in speed or distance calculations.
         max_speed (int): Maximum speed in km/h; speed estimates above this value are capped.
         show (bool): Whether to display the visual output on screen.
-        iou (float): Intersection-over-Union threshold for detection filtering.
+        iou (float, optional): NMS IoU threshold; None uses the predict default.
         conf (float): Confidence threshold for keeping predictions.
         device (str, optional): Device to run inference on (e.g., 'cpu', '0' for CUDA GPU).
         max_det (int): Maximum number of detections allowed per video frame.
@@ -52,9 +52,12 @@ class SolutionConfig:
             it, and only off CPU; elsewhere the artifact and runtime decide, though 16 rounds OpenVINO inputs. Replaces
             the deprecated half flag.
         imgsz (int): Input image size for inference.
-        tracker (str): Path to tracking configuration YAML file (e.g., 'tracktrack.yaml').
+        tracker (str | None): Path to tracking configuration YAML file; OCR and ObjectCropper set None to predict.
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.
+        recognizer (str | Callable): 'paddleocr' for PP-OCRv6 on ONNX Runtime, 'tensorrt' for PP-OCRv6 as an FP16
+            TensorRT engine on NVIDIA GPUs (built once, about 30 s), or a callable returning `(text, confidence)` from a
+            BGR crop.
 
     Methods:
         update: Update the configuration with user-defined keyword arguments and raise error on invalid keys.
@@ -92,15 +95,16 @@ class SolutionConfig:
     meter_per_pixel: float = 0.05
     max_speed: int = 120
     show: bool = False
-    iou: float = 0.7
+    iou: float | None = None
     conf: float = 0.25
     device: str | None = None
     max_det: int = 300
     quantize: int | str | None = None
     imgsz: int = 640
-    tracker: str = "tracktrack.yaml"
+    tracker: str | None = "tracktrack.yaml"
     verbose: bool = True
     data: str = "images"
+    recognizer: Any = "paddleocr"
 
     def update(self, **kwargs: Any):
         """Update configuration parameters with new values provided as keyword arguments.

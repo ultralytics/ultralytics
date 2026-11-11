@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Manage trained YOLO models on Ultralytics Platform. Upload weights, review metrics and validation plots, export to 22 formats, clone, move, and deploy.
+description: Manage trained YOLO models on Ultralytics Platform. Upload weights, review metrics and validation plots, export to 23 formats, clone, move, and deploy.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -62,7 +62,7 @@ flowchart TD
     C --> D[Predict]
     C --> E[Export]
     C --> F[Deploy]
-    E --> G[22 formats]
+    E --> G[23 formats]
 ```
 
 ## Model Page Tabs
@@ -164,7 +164,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 22 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 23 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -221,7 +221,7 @@ flowchart TD
     F --> G
 ```
 
-[Export your model](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to 22 deployment formats:
+[Export your model](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to 23 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -230,13 +230,19 @@ flowchart TD
 5. Click **Start Export**
 6. Download when complete
 
+**TF Edge TPU**, **NXP**, and **Qualcomm** downloads keep the file suffix Ultralytics uses to choose a runtime
+(`yolo26n_edgetpu.tflite`, `_nxp.tflite`, `_qnn.onnx`), so `YOLO()` loads them as downloaded. If an Edge TPU download
+ends in a plain `.tflite`, export again or add `_edgetpu` to the file name before loading it.
+
+While the model's source dataset exists, each export carries the dataset's current [class colors](../data/annotation.md#class-colors), so a color you change after training also reaches later exports.
+
 Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
 
 ![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/d5716199766bea7ab5ee097b0cc343e6.avif)<!-- screenshot -->
 
 ### Supported Formats
 
-The Platform supports export to [22 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DeepX, Qualcomm (QNN), Hailo, Huawei Ascend, and AMD Xilinx.
+The Platform supports export to [23 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DeepX, Qualcomm (QNN), Hailo, Huawei Ascend, AMD Xilinx, and [NXP i.MX95](../../integrations/nxp.md).
 
 ### Format Selection Guide
 
@@ -250,6 +256,7 @@ The Platform supports export to [22 deployment formats](../../modes/export.md#ex
 | **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **AMD Versal**     | AMD Xilinx          | Versal AI Edge Series Gen 2 NPUs, compiled with AMD Vitis AI   |
+| **NXP i.MX95**     | NXP                 | Neutron SDK 3.3.0; requires a compatible board runtime         |
 | **General**        | ONNX                | Works with most runtimes                                       |
 
 ### NVIDIA Jetson TensorRT Targets
@@ -323,9 +330,9 @@ Run CoreML, Core AI, and LiteRT exports on your phone in the free Ultralytics YO
 4. In the Ultralytics YOLO app, tap the QR button in the bottom bar and point the camera at the code.
 5. Confirm the model name, task, and download size. The app installs the model in the **Custom** section of its model picker, and it works offline.
 
-![Ultralytics Platform CoreML Export Dialog iPhone App Box](https://cdn.ul.run/i/b3497c87adac56039a1b6dfce091cbe6.avif)<!-- screenshot -->
+![Ultralytics Platform CoreML Export Dialog iPhone App Box](https://cdn.ul.run/i/95937ef054e9870cdf715f0a015019d1.avif)<!-- screenshot -->
 
-![Ultralytics Platform Open on iPhone QR Code Dialog](https://cdn.ul.run/i/245ff114f2630ec0e27d2fe54aa0221e.avif)<!-- screenshot -->
+![Ultralytics Platform Open on iPhone QR Code Dialog](https://cdn.ul.run/i/1041b78be50f4e6cd78effc71e4b6ffe.avif)<!-- screenshot -->
 
 QR codes expire after 24 hours; click **Refresh code** to create a new one. Anyone with the code can download the export until it expires. Without the app, scanning the code with the phone's camera opens a page with App Store and Google Play links.
 
@@ -337,7 +344,7 @@ Some export formats have architecture or task restrictions:
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IMX500**   | Available only for `YOLOv8n` and `YOLO11n` detect, segment, classify, and pose models; INT8 only                                                                                       |
 | **Axelera**  | INT8 only                                                                                                                                                                              |
-| **DeepX**    | INT8 only                                                                                                                                                                              |
+| **DeepX**    | INT8 only; runs on [DX-RT 3.5.0 or newer](../../integrations/deepx.md#runtime-installation)                                                                                            |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
 | **Xilinx**   | INT8 Vitis AI output; select a [Versal AI Edge Series Gen 2 device](../../integrations/xilinx.md) and compile it to `.rai` with AMD Vitis AI                                           |
@@ -439,7 +446,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 22 export formats
+- [**Export Formats**](../../modes/export.md): Full guide to all 23 export formats
 
 ## FAQ
 

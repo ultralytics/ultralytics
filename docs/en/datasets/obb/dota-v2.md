@@ -126,9 +126,9 @@ The raw imagery routinely exceeds 10,000 pixels on a side, so tiling is recommen
 
 To train a [YOLO26n-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-obb) model on the DOTA v1 dataset, use the following code snippets. Always refer to your model's documentation for a thorough list of available arguments. For those looking to experiment with a smaller subset first, consider using the [DOTA8 dataset](dota8.md), which contains just 8 images for quick testing and is browsable on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dota8).
 
-!!! warning
+!!! warning "Licensing and dataset provenance"
 
-    All images and associated annotations in the DOTAv1 dataset can be used for academic purposes only; commercial use is prohibited.
+    All images and associated annotations in the DOTAv1 dataset can be used for academic purposes only; commercial use is prohibited. Ultralytics interprets these restrictions as applying to the source dataset rather than to pretrained or fine-tuned model weights. Review the [DOTA terms](https://captain-whu.github.io/DOTA/dataset.html) for your intended use.
 
 !!! example "Train Example"
 

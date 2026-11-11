@@ -77,7 +77,7 @@ The shared helpers in [`../common`](../common) are header-only and added to the 
 # If the ONNX Runtime libraries are not installed system-wide, add them to the loader path:
 export LD_LIBRARY_PATH=/path/to/onnxruntime/lib:$LD_LIBRARY_PATH
 
-# Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
+# Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.5 --out result.jpg
 ./yolo_onnxruntime --model yolo26n.onnx --source bus.jpg
 ./yolo_onnxruntime --model yolo26n-seg.onnx --source bus.jpg --out seg.jpg
 ./yolo_onnxruntime --model yolo26n-pose.onnx --source bus.jpg --show
@@ -89,7 +89,7 @@ export LD_LIBRARY_PATH=/path/to/onnxruntime/lib:$LD_LIBRARY_PATH
 | `--model`  | `yolo26n.onnx` | Path to the exported `.onnx` model (any task/generation).                                          |
 | `--source` | `bus.jpg`      | Input image.                                                                                       |
 | `--conf`   | `0.25`         | Confidence threshold.                                                                              |
-| `--iou`    | `0.45`         | NMS IoU threshold (grid models only; end2end models skip NMS).                                     |
+| `--iou`    | `0.5`          | NMS IoU threshold (grid models only; end2end models skip NMS).                                     |
 | `--out`    | `result.jpg`   | Output image path.                                                                                 |
 | `--cuda`   | _off_          | Use the CUDA execution provider (requires a GPU ONNX Runtime build compiled with `-DUSE_CUDA=ON`). |
 | `--show`   | _off_          | Also open a display window.                                                                        |

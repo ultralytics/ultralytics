@@ -34,6 +34,7 @@ class ObjectCropper(BaseSolution):
             **kwargs (Any): Keyword arguments passed to the parent class and used for configuration including:
                 - crop_dir (str): Path to the directory for saving cropped object images.
         """
+        kwargs["tracker"] = None  # crop per-image predictions without tracking
         super().__init__(**kwargs)
 
         self.crop_dir = self.CFG["crop_dir"]  # Directory for storing cropped detections
@@ -59,19 +60,10 @@ class ObjectCropper(BaseSolution):
             >>> results = cropper.process(frame)
             >>> print(f"Total cropped objects: {results.total_crop_objects}")
         """
-        with self.profilers[0]:
-            results = self.model.predict(im0, classes=self.classes, verbose=False, **self.track_add_args)[0]
-            boxes = results.obb if results.obb is not None else results.boxes  # OBB models only fill results.obb
-            self.clss = boxes.cls.tolist()  # required for logging only.
-
-        for box in boxes:
+        self.extract_tracks(im0)
+        for box in self.boxes:
             self.crop_idx += 1
-            save_one_box(
-                box.xyxyxyxy if results.obb is not None else box.xyxy,
-                im0,
-                file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
-                BGR=True,
-            )
+            save_one_box(box, im0, file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg", BGR=True)
 
         # Return SolutionResults
         return SolutionResults(plot_im=im0, total_crop_objects=self.crop_idx)

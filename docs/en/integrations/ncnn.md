@@ -84,7 +84,7 @@ To use Vulkan acceleration, specify the Vulkan device when running inference:
 
 ## Supported Tasks
 
-NCNN export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+NCNN export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads. Export raises an error when NCNN cannot load the converted model, which currently affects RT-DETR, YOLO-Worldv2, and text-prompt YOLOE models exported without calling `set_classes()`.
 
 {% include "macros/supported-tasks.md" %}
 
@@ -183,7 +183,6 @@ The NCNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 | `format`   | `str`            | `'ncnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                |
 | `imgsz`    | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                 |
 | `quantize` | `int` or `str`   | `None`   | Quantization precision: `16` (FP16) halves the exported weights; `32`/unset exports FP32 weights, which NCNN's CPU runtime still computes in FP16 by default where the hardware supports it. Replaces the deprecated `half` flag. |
-| `batch`    | `int`            | `1`      | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                           |
 | `device`   | `str`            | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                   |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).

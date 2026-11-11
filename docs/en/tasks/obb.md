@@ -38,6 +38,10 @@ YOLO26 OBB models pretrained on the [DOTAv1](../datasets/obb/dota-v2.md#dota-v10
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
+!!! note "Licensing and dataset provenance"
+
+    DOTAv1 images and annotations are limited to academic use and prohibit commercial use. Ultralytics interprets those restrictions as applying to the source dataset rather than to pretrained or fine-tuned model weights. Review the [DOTA terms](https://captain-whu.github.io/DOTA/dataset.html) for your intended use.
+
 {% include "macros/yolo-obb-perf.md" %}
 
 - **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce with `yolo obb val data=DOTAv1.yaml device=0 split=test nms=False save_json=True` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).

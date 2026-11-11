@@ -73,8 +73,8 @@ class SemanticSegmentationValidator(DetectionValidator):
             cm_names = {i: base[i] for i in range(cm_nc)}
         self.confusion_matrix = ConfusionMatrix(names=cm_names, task="semantic")
 
-    def preprocess(self, batch):
-        """Preprocess a batch of images and masks.
+    def preprocess_targets(self, batch):
+        """Move semantic targets to the device and retain their shape.
 
         Args:
             batch (dict): Batch data containing images and masks.
@@ -82,7 +82,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         Returns:
             (dict): Preprocessed batch.
         """
-        batch = super().preprocess(batch)
+        batch = super().preprocess_targets(batch)
         batch["semantic_mask"] = batch["semantic_mask"].to(self.device, dtype=torch.int32)
         self._semantic_target_shape = tuple(batch["semantic_mask"].shape[-2:])
         return batch
@@ -193,5 +193,6 @@ class SemanticSegmentationValidator(DetectionValidator):
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,
+            class_colors=self.data.get("colors"),
             on_plot=self.on_plot,
         )

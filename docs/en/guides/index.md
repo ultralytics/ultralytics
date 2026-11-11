@@ -47,6 +47,7 @@ Guides are grouped by project stage — from environment setup and data preparat
 
 ### Train & fine-tune
 
+- [High Resolution Tiling](high-resolution-tiling.md): Train, validate, and predict on high-resolution images with fixed tiling across every vision task.
 - [Tips for Model Training](model-training-tips.md): Explore tips on optimizing [batch sizes](https://www.ultralytics.com/glossary/batch-size), using [mixed precision](https://www.ultralytics.com/glossary/mixed-precision), applying pretrained weights, and more to train computer vision models more effectively.
 - [Fine-Tuning YOLO on Custom Data](finetuning-guide.md): Complete guide to fine-tuning YOLO26 on custom datasets with pretrained weights, covering transfer learning, layer freezing, optimizer selection, two-stage training, and troubleshooting.
 - [YOLO26 Training Recipe](yolo26-training-recipe.md): Full documentation of the hyperparameters, augmentation pipelines, and optimizer settings used to train the official YOLO26 base checkpoints on COCO, with practical fine-tuning guidance.
@@ -77,7 +78,6 @@ Guides are grouped by project stage — from environment setup and data preparat
 
 ### Optimize inference
 
-- [SAHI Tiled Inference](sahi-tiled-inference.md): Use SAHI sliced inference with YOLO26 to detect small objects in high-resolution images.
 - [OpenVINO Latency vs Throughput Modes](optimizing-openvino-latency-vs-throughput-modes.md): Learn latency and throughput optimization techniques for peak YOLO inference performance.
 - [NVIDIA DALI GPU Preprocessing](nvidia-dali.md): Eliminate CPU preprocessing bottlenecks by running YOLO letterbox resize, padding, and normalization on the GPU using NVIDIA DALI, with Triton Inference Server integration.
 - [Isolating Segmentation Objects](isolating-segmentation-objects.md): Step-by-step recipe for extracting and isolating objects from images with Ultralytics segmentation models.

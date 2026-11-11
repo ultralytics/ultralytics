@@ -1134,15 +1134,16 @@ POST /api/images/{imageId}/predict
 Runs the model on the image and returns predicted annotations. It does not save them — write the results back with
 `PATCH /api/images/{imageId}` when you are happy with them.
 
-| Field           | Type   | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| --------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `modelId`       | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`, or a class-prompted model ID for a detection dataset with 1–200 classes (`yoloe26x` with `visualPrompts` also takes segment and OBB datasets): a hosted model (`qwen`, `gemma`, `nemotron`, `moondream`, `florence2`, `owlv2`, `yoloe26x`, `sam3`, `sam3.1`, `groundingdino`) or a paid provider model ID from the `modelId` enum in [`openapi.json`](https://platform.ultralytics.com/openapi.json) |
-| `confidence`    | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25); ignored by class-prompted models without `visualPrompts`, which use model-specific thresholds                                                                                                                                                                                                                                                                                                                   |
-| `iou`           | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7); ignored by class-prompted models without `visualPrompts`                                                                                                                                                                                                                                                                                                                                    |
-| `visualPrompts` | array  | No       | With `modelId` `yoloe26x` on a detect, segment, or OBB dataset, 1–200 annotation objects from this image (`classId` plus `bbox`, `segments`, or `obb`) whose classes the model finds again in the image                                                                                                                                                                                                                                                           |
-| `classMapping`  | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models and not allowed with `visualPrompts`                                                                                                                                                                                                                |
+| Field              | Type   | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------ | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`          | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`, or a class-prompted model ID for a detection dataset with 1–200 classes (`yoloe26x` with `visualPrompts` also takes segment and OBB datasets): a hosted model (`qwen`, `gemma`, `nemotron`, `moondream`, `wevisone`, `florence2`, `owlv2`, `yoloe26x`, `sam3`, `sam3.1`, `groundingdino`) or a paid provider model ID from the `modelId` enum in [`openapi.json`](https://platform.ultralytics.com/openapi.json) |
+| `confidence`       | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25); ignored by class-prompted models without `visualPrompts`, which use model-specific thresholds                                                                                                                                                                                                                                                                                                                               |
+| `iou`              | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.5); ignored by class-prompted models without `visualPrompts`                                                                                                                                                                                                                                                                                                                                                |
+| `visualPrompts`    | array  | No       | With `modelId` `yoloe26x` on a detect, segment, or OBB dataset, 1–200 annotation objects (`classId` plus `bbox`, `segments`, or `obb`) from this image, or from the `referenceImageId` image, whose classes the model finds again in the image                                                                                                                                                                                                                                |
+| `referenceImageId` | string | No       | With `visualPrompts`, the ID of the image in the same dataset that the prompts are drawn on, when it is not the image being predicted                                                                                                                                                                                                                                                                                                                                         |
+| `classMapping`     | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models and not allowed with `visualPrompts`                                                                                                                                                                                                                            |
 
-**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models without `visualPrompts`), `modelUsed`, `inferenceTime`, for class-prompted models `partial` (`true` when an output limit was reached or suspected, so returned annotations may omit objects), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes (unless it uses `visualPrompts`), `visualPrompts` with another model or task, an unknown `classId`, a prompt too small or outside the image, or `classMapping`, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `402`, `403`, or `404` (a rejected key, model, or request, or an unpaid provider balance; `code`: `provider_refused` for all but `400`), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`. On Premise datasets, cloud storage datasets whose AI features are off or whose credential is disconnected, and datasets with more than 3 image channels return `409`.
+**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models without `visualPrompts`), `modelUsed`, `inferenceTime`, `usage` (`[input tokens, output tokens]`, when a language model reports them), for class-prompted models `partial` (`true` when an output limit was reached or suspected, so returned annotations may omit objects), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes (unless it uses `visualPrompts`), `visualPrompts` with another model or task, an unknown `classId`, a prompt too small or outside the image, or `classMapping`, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A `referenceImageId` that is not an image in this dataset returns `404`. A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `402`, `403`, or `404` (a rejected key, model, or request, or an unpaid provider balance; `code`: `provider_refused` for all but `400`), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`. On Premise datasets, cloud storage datasets whose AI features are off or whose credential is disconnected, and datasets with more than 3 image channels return `409`.
 
 ### Find Similar Images
 
@@ -1152,12 +1153,14 @@ GET /api/images/{imageId}/similar
 
 **Python SDK:** `client.images.find_similar_images(image_id)`
 
-Returns up to 24 visually similar `images` from public datasets and from your own and team datasets, each with
-`score` (0-1), a signed `thumbnailUrl`, and the source `dataset` (`owner`, `dataset`, `license`). The source dataset
-and datasets holding a copy of the query image are excluded; `includeSourceDataset=true` keeps them and drops only the
-copies. Requires an API key with view access to the image; an image that has not been embedded yet is embedded first,
-and `503` means that preparation failed, so retry. A cloud storage image's own dataset is included only for its workspace, and `409` means
-the image's storage has AI features off or is an On Premise dataset.
+Returns up to 24 visually similar `images` from public datasets and from your own and team datasets, each with `score`
+(0-1), a signed `thumbnailUrl`, and the source `dataset` (`owner`, `dataset`, `license`). The source dataset and
+datasets holding a copy of the query image are excluded; `includeSourceDataset=true` keeps them and drops only the
+copies. `license` (comma-separated identifiers from [Available Licenses](../data/datasets.md#available-licenses), with
+`None` for datasets without one) and `publicOnly=true` (public datasets alone) narrow the search, which still returns up
+to 24 images. Requires an API key with view access to the image; an image that has not been embedded yet is embedded
+first, and `503` means that preparation failed, so retry. A cloud storage image's own dataset is included only for its
+workspace, and `409` means the image's storage has AI features off or is an On Premise dataset.
 
 ### Auto-Annotate a Dataset
 
@@ -1169,9 +1172,14 @@ POST /api/datasets/{owner}/{dataset}/predict/batch
 
 Saves a dataset version (cloud storage datasets have none), then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
 The body takes the same `modelId`, `confidence`, `iou`, and `classMapping` fields as the single-image endpoint, plus
-`includeAnnotated` (default `false`) to also annotate images that already have labels. A [class-prompted model](https://platform.ultralytics.com/models) detects
+`includeAnnotated` (default `false`) to also annotate images that already have labels. With `modelId` `yoloe26x`,
+`visualPrompts` and `referenceImageId` (required with them; `422` without it, `404` when that image is no longer in the
+dataset) find objects like the examples in the run's images (unlabeled only, unless `includeAnnotated`), on detect, segment, and
+OBB datasets; the examples are encoded
+once when the run starts. A [class-prompted model](https://platform.ultralytics.com/models) detects
 the dataset classes without confidence scores, and a paid provider model needs a provider key saved in the dataset
-workspace's **Settings > API Keys** (`422`, `code`: `missing_provider_api_key`, before the run is admitted). Existing labels are never changed, and the run is billed for the images it actually
+workspace's **Settings > API Keys** (`422`, `code`: `missing_provider_api_key`, before the run is admitted). Existing labels are never changed, predictions that overlap an existing label of the
+same class by more than `iou` are skipped, and the run is billed for the images it actually
 processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not ready, its storage has AI features off or is On Premise, has no images left to
 annotate, or already has a run in progress, and `422` that the dataset has no classes, or that a class-prompted model
 was given a non-detection dataset or one outside 1–200 classes: create the classes with the
@@ -1375,6 +1383,7 @@ Clones an accessible project and its completed models. The optional body accepts
 `visibility`, `license`, a destination `owner`, and `models`, a list of model names to clone instead of every completed
 model. Without `visibility`, the clone is private when the destination workspace's
 [default visibility](../account/settings.md#default-visibility) is Private and otherwise keeps the source's visibility.
+A clone whose models would exceed the destination workspace's model limit returns `403` and copies nothing.
 
 ---
 
@@ -1512,10 +1521,11 @@ GET /api/models/{owner}/{project}/{model}/similar-images
 **Python SDK:** `client.models.find_similar_training_images(owner, project, model)`
 
 Returns up to 100 `images`, in the same shape as [Find Similar Images](#find-similar-images), that look like the
-validation images this training run scored worst on, excluding images its training dataset already holds. Pass
-`hashes` (comma-separated, up to 100) to search from a subset of those worst images. Requires an API key with access to
-the model's workspace. The list is empty when the run recorded no per-image results, and `404` also means the worst
-images are not embedded yet: run [dataset embeddings](#dataset-embeddings) on the training dataset first.
+validation images this training run scored worst on, excluding images its training dataset already holds. Pass `hashes`
+(comma-separated, up to 100) to search from a subset of those worst images, and `license` or `publicOnly` to narrow the
+search as in [Find Similar Images](#find-similar-images). Requires an API key with access to the model's workspace. The
+list is empty when the run recorded no per-image results, and `404` also means the worst images are not embedded yet:
+run [dataset embeddings](#dataset-embeddings) on the training dataset first.
 
 ### Clone Model
 
@@ -1722,10 +1732,10 @@ POST /api/training/start
     "modelId": "65f1c0a2b3d4e5f601234599",
     "status": "starting",
     "gpuType": "rtx-4090",
-    "estimatedCost": { "pricePerHour": 0.69, "gpuMemoryGb": 24 },
+    "estimatedCost": { "pricePerHour": 0.89, "gpuMemoryGb": 24 },
     "billing": {
-        "estimatedCostCents": 138,
-        "estimatedCostDisplay": "$1.38",
+        "estimatedCostCents": 178,
+        "estimatedCostDisplay": "$1.78",
         "balanceCents": 2500
     }
 }
@@ -1739,7 +1749,7 @@ for the requested GPU.
 
     26 GPU types are available, from `rtx-2000-ada` through `b300`, including `rtx-4090`, `l40s`, `a100-80gb-pcie`,
     `a100-80gb-sxm`, `rtx-pro-6000`, `h100-sxm`, `h200-sxm`, and `b200`. See
-    [Cloud Training](../train/cloud-training.md) for the full list with pricing.
+    [Cloud Training](../train/cloud-training.md) for the full list.
 
 ---
 
@@ -2668,8 +2678,8 @@ Each transaction includes `id`, `type` (such as `purchase`, `training`, `monthly
 
 ## Explore API
 
-Search public projects and datasets shared by the community, or search images by what they show. See [Explore
-documentation](../explore.md).
+Search public projects and datasets shared by the community, or search images by what they show or by a photo.
+See [Explore documentation](../explore.md).
 
 ### Search Public Content
 
@@ -2692,16 +2702,35 @@ GET /api/explore/search
 | `license`   | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license                                                                                         |
 | `author`    | string  | Owner username filter                                                                                                                                                                     |
 | `starred`   | boolean | Return only content starred by the authenticated caller; requires an API key                                                                                                              |
-| `minImages` | int     | Return only datasets with at least this many images; ignored by `type=images`                                                                                                             |
-| `maxImages` | int     | Return only datasets with at most this many images; ignored by `type=images`                                                                                                              |
+| `minImages` | int     | Return only datasets with at least this many images; with `type=images`, only images from such datasets                                                                                   |
+| `maxImages` | int     | Return only datasets with at most this many images; with `type=images`, only images from such datasets                                                                                    |
 
 **Response:** `projects`, `datasets`, and `hasMore`. `type=images` returns its matches in `images` instead, best match
-first, each with its source `dataset` and a 0–1 similarity `score`; it needs `q` and searches public datasets, plus your
-own and team datasets when you send an API key.
+first, each with its source `dataset` and a 0–1 similarity `score`; with `q` it searches public datasets, plus your own
+and team datasets when you send an API key. Without `q`, it lists one image from each of the newest public datasets,
+unranked with `score` `1`, honoring the filters.
 
 ```bash
 curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=detect&sort=stars&limit=20"
 ```
+
+### Search by Image
+
+```http
+POST /api/explore/search
+```
+
+**Python SDK:** `client.explore.search_by_image()` (`ultralytics-platform>=0.1.107`)
+
+Send a photo as base64 `image` (at most 3 MiB, never stored) in a JSON body with `type` `images` (default) or `datasets`
+and any of `sort`, `offset`, `limit`, `task`, `license`, `author`, `starred`, `minImages`, and `maxImages` from [Search
+Public Content](#search-public-content). The response has the same shape, and a request that sends `image` also returns
+a `vector`: send it in place of `image` for more pages, other filters, or the other `type`, so the photo is read only
+once. `type=images` returns scored images as a text search does; `type=datasets` returns public datasets with matching
+images, best matches first under the default `sort=relevance` (other sorts order them as usual), and those images lead
+each dataset's `sampleImages`. Each request that sends `image` also counts against a separate limit of 20 per minute per
+user (per IP address without an API key). `400` means invalid parameters or a photo that cannot be read, and `503` that
+search is busy, so retry shortly.
 
 ---
 

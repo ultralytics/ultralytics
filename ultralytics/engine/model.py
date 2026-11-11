@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
+from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg
 from ultralytics.engine.results import Results
 from ultralytics.nn.backends.base import BaseBackend
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
@@ -546,29 +546,26 @@ class Model(torch.nn.Module):
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         args["quantize"] = QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)  # unset quantize is FP32
 
+        current = self.predictor  # this call's predictor, whatever a concurrent call assigns to self.predictor
         if (
-            not self.predictor
-            or (predictor and type(self.predictor) is not predictor)
-            or any(getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args)
+            not current
+            or (predictor and type(current) is not predictor)
+            or any(getattr(current.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args)
         ):
-            self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
-            self.predictor.setup_model(model=self.model, verbose=is_cli)
-        else:  # only update args if predictor is already setup
-            save_keys = ("project", "name", "save_dir", "exist_ok")
-            prev_save_args = tuple(getattr(self.predictor.args, k, None) for k in save_keys)
+            current = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
+            current.setup_model(model=self.model, verbose=is_cli)
+            self.predictor, cfg = current, current.args
+        else:  # the predictor applies cfg under its lock, so concurrent calls never run with each other's args
             base_args = {
                 **DEFAULT_CFG_DICT,
                 **self.overrides,
-                **{k: getattr(self.predictor.args, k) for k in PREDICTOR_SETUP_KEYS},
+                **{k: getattr(current.args, k) for k in PREDICTOR_SETUP_KEYS},
             }
-            self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
-            if self.predictor.args.show:
-                self.predictor.args.show = checks.check_imshow(warn=True)
-            if prev_save_args != tuple(getattr(self.predictor.args, k, None) for k in save_keys):
-                self.predictor.save_dir = get_save_dir(self.predictor.args)
-        if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
-            self.predictor.set_prompts(prompts)
-        return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+            cfg = get_cfg(base_args, {**custom, **kwargs})
+            cfg.show = cfg.show and checks.check_imshow(warn=True)
+        if prompts and hasattr(current, "set_prompts"):  # for SAM-type models
+            current.set_prompts(prompts)
+        return current.predict_cli(source, cfg=cfg) if is_cli else current(source=source, stream=stream, cfg=cfg)
 
     def track(
         self,
@@ -711,7 +708,8 @@ class Model(torch.nn.Module):
                 - imgsz (int | list[int]): Image size for benchmarking.
                 - quantize (int | str): Requested precision: 16 (FP16), 8 (INT8), or 32/None (FP32) where
                   supported; only 16 changes the native PyTorch row, and only off CPU.
-                - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
+                - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda'), or 'xpu' and 'npu' for
+                  the Intel GPU and NPU with format='openvino' or 'litert'.
 
         Returns:
             (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric,
@@ -837,8 +835,8 @@ class Model(torch.nn.Module):
         Returns:
             (ultralytics.utils.metrics.DetMetrics | dict | None): Training metrics if available and training is
                 successful; otherwise, None. The specific metrics type depends on the task. When `data` is a list or
-                tuple of datasets, the base model is fine-tuned on each in series and a {dataset: metrics} dict is
-                returned.
+                tuple of datasets, the base model is fine-tuned on each in series and a {dataset: metrics} dict
+                is returned.
 
         Raises:
             TypeError: If the model is not a PyTorch model.

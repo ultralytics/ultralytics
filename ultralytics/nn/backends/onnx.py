@@ -13,7 +13,13 @@ import numpy as np
 import torch
 
 from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, ONNXRUNTIME_BUILDS, check_requirements, rocm_is_available
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_11,
+    ONNXRUNTIME_BUILDS,
+    check_requirements,
+    check_version,
+    rocm_is_available,
+)
 
 from .base import BaseBackend
 
@@ -183,7 +189,7 @@ class ONNXBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .onnx model file, or an AMD Xilinx export directory containing one.
         """
-        if not isinstance(self.device, torch.device):  # 'intel', 'tpu' or 'vulkan' device strings run on CPU
+        if not isinstance(self.device, torch.device):  # 'tpu' or 'vulkan' device strings run on CPU
             self.device = torch.device("cpu")
         cuda = torch.cuda.is_available() and self.device.type != "cpu"
 
@@ -216,7 +222,7 @@ class ONNXBackend(BaseBackend):
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
                 if rocm
-                else [("onnxruntime-gpu[cuda]", "onnxruntime-windowsml")]
+                else [("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
                 if cuda
                 else [(*builds, "onnxruntime-windowsml")]  # keep GPU, QNN, AMD Vitis AI or Windows ML builds
             )
@@ -229,6 +235,12 @@ class ONNXBackend(BaseBackend):
                     LOGGER.warning(f"MIGraphX execution provider unavailable ({e}). Using CPU...")
                     self.device, cuda, rocm = torch.device("cpu"), False, False
             if not rocm:
+                if self.session_options is None:
+                    self.session_options = onnxruntime.SessionOptions()
+                    if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):  # ORT default pool sizes to host cores
+                        self.session_options.intra_op_num_threads = min(
+                            8, len(os.sched_getaffinity(0)) if LINUX else os.cpu_count()
+                        )
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider
@@ -237,15 +249,16 @@ class ONNXBackend(BaseBackend):
                     providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                     # Dynamic-shape nodes run on CPU: the default NeuralNetwork format returns wrong outputs for them
-                    flags = {"flags": "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"}
-                    providers = [("CoreMLExecutionProvider", flags), "CPUExecutionProvider"]
+                    flags = "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"
+                    if check_version(onnxruntime.__version__, ">=1.20.0"):  # 1.19 aborts the process on ML Program
+                        flags += "|COREML_FLAG_CREATE_MLPROGRAM"  # NeuralNetwork drifts from CPU and fails on semantic
+                    providers = [("CoreMLExecutionProvider", {"flags": flags}), "CPUExecutionProvider"]
                 elif "VitisAIExecutionProvider" in available and (config := w / "vitisai_config.json").exists():
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
                     providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
                 elif winml:  # Windows ML selects execution providers using its maximum-performance policy
                     providers = None
-                    self.session_options = self.session_options or onnxruntime.SessionOptions()
                     if not self.session_options.has_providers():
                         policy = onnxruntime.OrtExecutionProviderDevicePolicy.MAX_PERFORMANCE
                         self.session_options.set_provider_selection_policy(policy)

@@ -132,7 +132,7 @@ export-executorch = [
     "numpy<=2.3.5",
 ]
 export-deepx = [
-    "dx_com>=2.4.1",
+    "dx_com>=2.5.0",
     "numpy<2; python_version < '3.13'",  # NumPy 1.x wheels stop at Python 3.12
 ]
 export-xilinx = [  # AMD Xilinx Versal AI Edge Gen 2 export, AMD Quark quantizer
@@ -142,6 +142,7 @@ export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai
     "litert-torch>=0.10.0; ((platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin') and python_version >= '3.10'",
     "ai-edge-litert>=2.3.0; ((platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin') and python_version >= '3.10'",
     "ai-edge-quantizer>=0.10.0; ((platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin') and python_version >= '3.10'",
+    "typer<0.29.0; ((platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin') and python_version >= '3.14'",  # typer>=0.29 needs pydantic, held at 2.11 by ai-edge-litert's xdsl==0.28.0 (typing-extensions<4.13): pydantic-core 2.33.2 has no Python 3.14 wheel
 ]
 export = [
     "ultralytics[export-base]",

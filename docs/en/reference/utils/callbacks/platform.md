@@ -16,7 +16,7 @@ keywords: platform callbacks, training callbacks, console logging, YOLO11 traini
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.callbacks.platform._interp_plot
+## ::: ultralytics.utils.callbacks.platform._compact_plot
 
 <br><br><hr><br>
 

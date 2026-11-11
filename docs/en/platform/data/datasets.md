@@ -265,7 +265,7 @@ To create a dataset:
 5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private). A new public dataset starts with **CC BY 4.0** selected; pick another license or **None** to change it
 6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
-![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/16dcaac210f7f70540f6061c6b98fba9.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/2d90456710a8b99b2fb2b85b54642fb7.avif)<!-- screenshot -->
 
 To add files to an existing dataset, open its dataset page and either drag the files onto the gallery or click the upload icon in the page header. The upload icon opens your browser's native file picker directly because the dataset task is already defined.
 
@@ -506,11 +506,17 @@ Click `Re-analyze` to recompute [embeddings](https://www.ultralytics.com/glossar
 
 ### Find Similar Images
 
-The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog shows the source image beside up to 24 of the nearest images, each labeled with its similarity score, excluding your dataset and any dataset that holds a copy of the selected image. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog shows the source image beside up to 24 of the nearest images, each labeled with its similarity score, excluding your dataset and any dataset that holds a copy of the selected image. Switches under the source image narrow the search, and each change runs a new search, so a narrower one still returns up to 24 images:
 
-![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/004538a8ce286784bffe8a0e3fd1a3f3.avif)<!-- screenshot -->
+- **Commercial**: Datasets under any license in [Available Licenses](#available-licenses) except those with `NC` in their identifier, `Research-Only`, `Other`, and `None`
+- **Research and community**: Datasets under a license with `NC` in its identifier, `Research-Only`, or `Other`, and datasets with no license (`None`)
+- **Your images**: Your own and team datasets; turn it off to search public datasets alone
 
-An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. On cloud storage datasets it needs [AI features](../integrations/index.md#ai-features) on and opens for browsing only, because images cannot be added to a connected dataset; it is unavailable on On Premise datasets. A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
+All three start on, and one license group always stays on. The license groups apply to your own and team datasets too, and the info icon beside each lists its licenses. Turn on **Show licenses** above the results to badge each image with its license. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+
+![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/b278f503014f8cecace1174d0ad28fcd.avif)<!-- screenshot -->
+
+An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. On cloud storage datasets it needs [AI features](../integrations/index.md#ai-features) on and opens for browsing only, because images cannot be added to a connected dataset; it is unavailable on On Premise datasets. A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search, with the same switches, from its worst-performing images.
 
 ## Dataset Tabs
 
@@ -720,6 +726,8 @@ The optional image-level `metadata` object is preserved when an NDJSON file is i
 
 Pose datasets also carry a `kpt_shape` field in the dataset header line, inferred from the annotations when it is not already set.
 
+Datasets with custom class colors also carry a `colors` list of `"#rrggbb"` strings indexed by class id in the dataset header line. Models trained on the dataset draw their predictions with these colors.
+
 Depth exports declare `"task": "depth"` and `"depth_scale": 1000` in the dataset line. Each image line includes a
 `depth.url` for its paired plain uint16 PNG. Ultralytics downloads image and depth URLs concurrently and writes a
 training YAML with the same scale, so the NDJSON file can be passed directly to `model.train(data=...)`.
@@ -791,7 +799,7 @@ Redistribute all images across train, validation, and test splits using custom r
 3. Review the live image count preview to confirm the distribution
 4. Click **Apply** to randomly reassign all images according to your percentages
 
-![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.ul.run/i/64f91c76882fa316d71be1cd0f286bd5.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.ul.run/i/9886754189f74a7c98f27b0965a76fe0.avif)<!-- screenshot -->
 
 The dialog provides three ways to set your target split ratios:
 
@@ -837,7 +845,7 @@ Create new [synthetic training images](https://www.ultralytics.com/glossary/synt
 | **Image Size**       | Target longest edge from `256` to `2048` px in steps of `64` (default `1024`)                                      |
 | **Instructions**     | Optional description of what to vary or keep, such as lighting, viewpoint, background, or objects                  |
 
-![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/734f0110f1ac27a9ac6579c1ffc0ab67.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/18e20e79a9c9a69e538f85e719b122be.avif)<!-- screenshot -->
 
 **Ultralytics Image 9B** and **Krea 2 Turbo** are also listed, but you can select them only after you turn on [Early access](../account/settings.md#early-access). Krea 2 Turbo is the slowest option. Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
 
@@ -845,9 +853,9 @@ Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear a
 
 #### Paid Image Generation Models
 
-![Ultralytics Platform Datasets Generate Similar Images Model Picker](https://cdn.ul.run/i/795e7421c7e44b3905f851598276c6c9.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Generate Similar Images Model Picker](https://cdn.ul.run/i/75c5b3225c5f6ddba70ede28b6d3b2fd.avif)<!-- screenshot -->
 
-The model picker also lists paid models from each provider, by API name. OpenAI models generate at low quality.
+The model picker also lists paid models from each provider. OpenAI models generate at low quality.
 
 <platform-image-models></platform-image-models>
 
@@ -862,7 +870,7 @@ In a dataset you can edit, blur the faces in its images, for example to protect 
 
 The dialog first previews the detected faces on up to six images (or on the one image) without changing them. Adjust **Confidence** (default `0.25`) and **Box scale** (`0.5`–`1.5`, default `1`, which scales each face box around its center) to re-run the preview, then click **Apply** to replace the original pixels of every image in which faces are found. Images without detected faces are left unchanged, labels and splits are kept, and some faces may be missed, so review the result. Blurring does not automatically create a [version snapshot](#versions-tab). Blurring a whole dataset costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run (billed as **Auto-Annotation**), and the dialog shows the estimate before you apply; previews and single-image blurring are free.
 
-![Ultralytics Platform Datasets Blur Faces Dialog Preview](https://cdn.ul.run/i/7b82938e0bd11da4e8620b73cf8e8e44.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Blur Faces Dialog Preview](https://cdn.ul.run/i/8b7fe3d3fc18df1dc127c8388d3092d4.avif)<!-- screenshot -->
 
 To blur faces in images as they are uploaded, turn on **Blur faces** when you create a dataset from **Upload** or **URL**, or **Blur future uploads** in the whole-dataset **Blur faces** dialog. The **Blur future uploads** switch saves immediately, even if you close the dialog without clicking **Apply**. Images uploaded to the dataset afterward are blurred during processing, at no charge; changing this setting does not blur images already in the dataset.
 
@@ -976,7 +984,7 @@ Workspace viewers can inspect metadata, while members with edit access can repla
 
 ## Clone Dataset
 
-When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions unless you pick only some of its **Splits** or one of its saved **Versions**, and **Existing dataset** adds the images without labels to a dataset you own instead. To copy only some images, select them and click **Clone Images**; its **Annotations** switch decides whether their labels come along. Public source datasets stay public by default unless the workspace's [default dataset visibility](../account/settings.md#default-visibility) is Private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
+When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions unless you pick only some of its **Splits** or one of its saved **Versions**, and **Existing dataset** adds the images without labels to a dataset you own instead. To copy only some images, tick them in **Grid** or **Compact** view and click **Clone Images**; its **Annotations** switch decides whether their labels come along. In datasets you can edit, use [Copy and Paste](#copy-and-move-images) instead. Public source datasets stay public by default unless the workspace's [default dataset visibility](../account/settings.md#default-visibility) is Private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
 
 For a new dataset, the clone dialog keeps **Clone Dataset** disabled while the URL is already used in the target workspace. Cloning requires enough remaining storage quota to hold the copy.
 

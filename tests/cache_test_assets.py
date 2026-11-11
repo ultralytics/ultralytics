@@ -21,11 +21,13 @@ from ultralytics.utils.downloads import attempt_download_asset, safe_download
 
 WEIGHTS = [
     *TASK2MODEL.values(),
+    "yolo11n.pt",
     "yolo11n-grayscale.pt",
     "rtdetr-l.pt",
     "FastSAM-s.pt",
     "mobile_sam.pt",
     "mobileclip2_b.ts",
+    "clip_b32_datacomp.ts",
     "yoloe-26n-seg.pt",
     "yoloe-26n-seg-pf.pt",
     "yolo26s.pt",

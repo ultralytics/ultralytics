@@ -4,7 +4,7 @@
 # Lightweight CPU image optimized for YOLO inference
 
 ARG PYTHON_VERSION=3.14
-FROM python:${PYTHON_VERSION}-slim-trixie
+FROM python:${PYTHON_VERSION}-slim
 
 # Set environment variables (suppress PyTorch NNPACK warnings)
 ENV PYTHONUNBUFFERED=1 \

@@ -21,7 +21,7 @@ import numpy as np
 import torch
 from PIL import Image, ImageOps
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
+from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS, tile_windows
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, NUM_THREADS, REQUEST_HEADERS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
@@ -52,6 +52,14 @@ class SourceTypes:
     screenshot: bool = False
     from_img: bool = False
     tensor: bool = False
+
+
+def tile_batches(images: list[np.ndarray], size: int | tuple[int, int], batch: int):
+    """Yield bounded crop batches and their (source index, window) metadata without copying source images."""
+    windows = [(i, w) for i, image in enumerate(images) for w in tile_windows(image.shape[:2], size)]
+    for start in range(0, len(windows), batch):
+        chunk = windows[start : start + batch]
+        yield [images[i][y1:y2, x1:x2] for i, (x1, y1, x2, y2) in chunk], chunk, start + batch >= len(windows)
 
 
 class LoadStreams:
@@ -583,6 +591,8 @@ class LoadPilAndNumpy:
             im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
         elif im.dtype == np.uint16:  # e.g. cv2.IMREAD_UNCHANGED frames, scaled to 8 bits like imread and PIL I;16
             im = (im >> 8).astype(np.uint8)
+        elif im.dtype.kind == "f":  # cv2.resize rejects float16, cvtColor rejects float64, and MPS has no float64
+            im = im.astype(np.float32, copy=False)
         im = np.atleast_3d(im)
         # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
         # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check, and
@@ -602,7 +612,6 @@ class LoadPilAndNumpy:
                 return cv2.cvtColor(im[..., 0], cv2.COLOR_GRAY2BGR)
             return np.repeat(im, channels, axis=2)
         if channels == 1:
-            im = im.astype(np.float32, copy=False) if im.dtype.kind == "f" else im
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
         return cv2.cvtColor(im, cv2.COLOR_BGRA2BGR) if u8 and c == 4 else np.ascontiguousarray(im[..., :3])
 

@@ -103,9 +103,8 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Preprocessed batch.
         """
-        for k, v in batch.items():
-            if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
+        batch = self.preprocess_targets(batch)
+        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
         return batch
 
@@ -137,13 +136,18 @@ class DetectionValidator(BaseValidator):
         self.end2end = getattr(model, "end2end", False)
         native_model = model.model if getattr(model, "format", None) == "pt" else model
         if self.end2end and hasattr(native_model, "set_head_attr"):
-            native_model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
+            # Class filtering needs candidates before max_det truncation.
+            native_model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
         self.seen = 0
         self.jdict = []
         self.is_custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
         self.gdict = getattr(self, "gdict", None) if self.is_custom_json else None
         self.build_gdict = self.is_custom_json and self.gdict is None
         self.eval_ids = list(self.dataloader.sampler) if self.is_custom_json else None
+        if self.is_custom_json and self.args.tile:
+            self.eval_ids = list(
+                dict.fromkeys(self.dataloader.dataset.labels[i]["source_index"] for i in self.eval_ids)
+            )
         self.pred_counts = []
         if self.build_gdict:
             self.gdict = {"images": [], "annotations": [], "categories": [{"id": x} for x in self.class_map]}
@@ -170,6 +174,7 @@ class DetectionValidator(BaseValidator):
             preds,
             self.args.conf,
             self.args.iou,
+            classes=None if self.args.single_cls and self.nc == 1 else self.args.classes,
             nc=0 if self.args.task == "detect" else self.nc,
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
@@ -344,7 +349,7 @@ class DetectionValidator(BaseValidator):
                     self.gdict[key] = [x for _, gdict, _ in gathered_json for x in gdict[key]]
             self.metrics.stats = merged_stats
             self._gather_image_metrics(self.metrics.box)
-            self.seen = len(self.dataloader.dataset)  # total image count from dataset
+            self.seen = self.num_images
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
             dist.gather_object((self.jdict, self.gdict if self.build_gdict else None, self.pred_counts), None, dst=0)
@@ -464,6 +469,7 @@ class DetectionValidator(BaseValidator):
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,
+            class_colors=self.data.get("colors"),
             on_plot=self.on_plot,
         )
 
@@ -492,6 +498,7 @@ class DetectionValidator(BaseValidator):
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,
+            class_colors=self.data.get("colors"),
             on_plot=self.on_plot,
         )  # pred
 

@@ -159,7 +159,7 @@ def test_int8_calibration_validates_split():
     """Check INT8 calibration rejects dataset splits that do not exist."""
     exporter = object.__new__(Exporter)
     exporter.model = SimpleNamespace(task="obb")
-    exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval")
+    exporter.args = get_cfg(overrides={"data": "coco8.yaml", "split": "trainval"})
     exporter.imgsz = [32]
     with pytest.raises(FileNotFoundError, match="trainval"):
         exporter.get_int8_calibration_dataloader()
@@ -418,10 +418,10 @@ def test_export_pb(isolated_model):
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirements conflict.")
 def test_export_paddle(isolated_model):
-    """Test YOLO export to Paddle format, noting protobuf conflicts with ONNX."""
-    YOLO(isolated_model).export(format="paddle", imgsz=32)
+    """Test YOLO export to Paddle format and inference with the exported model."""
+    file = YOLO(isolated_model).export(format="paddle", imgsz=32)
+    YOLO(file)(SOURCE, imgsz=32)
 
 
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
@@ -491,12 +491,12 @@ def test_export_ncnn(isolated_model):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
-@pytest.mark.parametrize("task, quantize, batch", list(product(sorted(TASKS), [16], [1])))
-def test_export_ncnn_matrix(task, quantize, batch):
-    """Test YOLO export to NCNN format considering various export configurations."""
+@pytest.mark.parametrize("task", sorted(TASKS))
+def test_export_ncnn_matrix(task):
+    """Test YOLO export to NCNN format for every task."""
     skip_rpi_semantic(task)
-    file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, quantize=quantize, batch=batch)
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, quantize=16)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
@@ -551,6 +551,25 @@ def test_export_executorch(isolated_model):
     assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found: {metadata_file}"
     # Note: Inference testing skipped as ExecuTorch requires special runtime setup
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="NXP compilation requires Linux x86_64")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="NXP SDK and LiteRT require Python>=3.10")
+@pytest.mark.parametrize("task", TASKS)
+def test_export_nxp(task, tmp_path):
+    """Compile real models and verify that the artifact contains NPU graphs and task metadata."""
+    from ai_edge_litert import schema_py_generated as schema
+
+    from ultralytics.nn.backends.litert import LiteRTBackend
+
+    model = isolated_model_path(tmp_path, WEIGHTS_DIR / TASK2MODEL[task])
+    file = Path(YOLO(model).export(format="nxp", imgsz=64, data=TASK2DATA[task]))
+    flatbuffer = schema.Model.GetRootAsModel(file.read_bytes(), 0)
+    assert any(
+        flatbuffer.OperatorCodes(i).CustomCode() == b"NeutronGraph" for i in range(flatbuffer.OperatorCodesLength())
+    )
+    assert LiteRTBackend.read_metadata(file)["task"] == task
 
 
 @pytest.mark.slow

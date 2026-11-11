@@ -74,7 +74,7 @@ jobs:
       fail-fast: false
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
-        os: [ubuntu-latest, macos-26, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-latest, ubuntu-26.04-arm]
         python: ["3.13"]
         model: [yolo26n]
     steps:
@@ -156,7 +156,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-26.04-arm]
         python: ["3.13"]
         torch: [latest]
         include:
@@ -191,14 +191,14 @@ jobs:
       - uses: ./.github/actions/ci-assets
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism: ubuntu-24.04-arm runs
-        # single-process, and the 3-vCPU/7GB macos-26 runners cap at 2 workers to avoid memory starvation.
+        # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism: Ubuntu ARM runs
+        # single-process, and the 3-vCPU/7GB macOS runners cap at 2 workers to avoid memory starvation.
         run: |
           # --max-worker-restart=0 fails fast on a worker crash: loadfile re-queues the crashed test onto replacement
           # workers (pytest-dev/pytest-xdist#1371), which crash-loop or hang instead of adding coverage
           xdist="-n auto --dist=loadfile --max-worker-restart=0"
-          [[ "${{ matrix.os }}" == "macos-26" ]] && xdist="-n 2 --dist=loadfile --max-worker-restart=0"
-          [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] && xdist=""
+          [[ "${{ matrix.os }}" == "macos-latest" ]] && xdist="-n 2 --dist=loadfile --max-worker-restart=0"
+          [[ "${{ matrix.os }}" == ubuntu-*-arm ]] && xdist=""
           # Python 3.15 skips ONNX Runtime and OpenVINO tests until cp315 wheels ship (then drop this and the 3.15 extras):
           # https://github.com/microsoft/onnxruntime/issues/33271, https://github.com/openvinotoolkit/openvino/issues/38721
           skip=""
@@ -232,7 +232,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-26.04-arm]
         python: ["3.14"]
         torch: [latest]
         include:
@@ -366,13 +366,13 @@ jobs:
           # single-process to avoid xdist worker overhead and runner disconnects during long slow-test runs.
           run: |
             pytest_args=(-vv -s --slow --durations=50 --durations-min=1 tests/ --export-env base)
-            if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
+            if [[ "${{ matrix.os }}" == ubuntu-*-arm ]]; then
               PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest "${pytest_args[@]}"
             else
               PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile --max-worker-restart=0 "${pytest_args[@]}"
             fi
           retries: 1 # Retry once after initial attempt (2 total runs)
-          timeout_minutes: 60 # ~2x the slowest observed attempt (~31 min on ubuntu-24.04-arm)
+          timeout_minutes: 60 # ~2x the slowest observed attempt (~31 min on Ubuntu ARM)
           retry_delay_seconds: 60
         env:
           YOLO_AUTOINSTALL: "false"
@@ -427,6 +427,7 @@ jobs:
         run: uv cache prune --ci
 
   GPU:
+    needs: Assets
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     permissions:
       contents: read
@@ -438,17 +439,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          activate-environment: false # each runner is single-use: install over the image's CUDA torch, not a fresh venv
       - name: Install requirements
         run: |
           sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml  # headless OpenCV
           # Use the CUDA 13 ONNX Runtime wheel; ModelOpt still pins its CUDA 12 predecessor.
-          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu tensorrt-cu13 "nvidia-modelopt[onnx]>=0.44" lap cloudpickle --torch-backend cu132 --excludes <(echo onnxruntime) --overrides <(echo "onnxruntime-gpu[cuda]>=1.30.0")
-        env:
-          PIP_BREAK_SYSTEM_PACKAGES: 1
+          uv pip install --system -e ".[export-base]" pytest-cov onnxruntime-gpu tensorrt-cu13 "nvidia-modelopt[onnx]>=0.44" lap cloudpickle --torch-backend cu132 --excludes <(echo onnxruntime) --overrides <(echo "onnxruntime-gpu[cuda]>=1.30.0")
       - name: Check environment
         run: |
           yolo checks
           uv pip list
+      - uses: ./.github/actions/ci-assets
       - name: Pytest tests
         run: |
           slow=""

@@ -5,7 +5,7 @@ import time
 
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, PREDICT_IOU
 from ultralytics.utils.metrics import batch_probiou, box_iou
 from ultralytics.utils.ops import xywh2xyxy
 
@@ -13,7 +13,7 @@ from ultralytics.utils.ops import xywh2xyxy
 def non_max_suppression(
     prediction,
     conf_thres: float = 0.25,
-    iou_thres: float = 0.45,
+    iou_thres: float = PREDICT_IOU,
     classes=None,
     agnostic: bool = False,
     multi_label: bool = False,
@@ -38,8 +38,7 @@ def non_max_suppression(
             or angle), or end-to-end predictions with shape (batch_size, num_boxes, 6 + num_extra). For a list or tuple,
             the first element is used.
         conf_thres (float): Confidence threshold for filtering detections. Valid values are between 0.0 and 1.0.
-        iou_thres (float): IoU threshold for NMS filtering. Valid values are between 0.0 and 1.0. The 0.45 default is
-            not the cfg `iou` default (0.7), which predictors and validators always pass explicitly.
+        iou_thres (float): IoU threshold for NMS filtering. Valid values are between 0.0 and 1.0.
         classes (list[int], optional): List of class indices to consider. If None, all classes are considered.
         agnostic (bool): Whether to perform class-agnostic NMS.
         multi_label (bool): Whether each box can have multiple labels.
@@ -95,8 +94,7 @@ def non_max_suppression(
 
     t = time.time()
     output = [torch.zeros((0, 6 + extra), device=prediction.device)] * bs
-    keepi = [torch.zeros((0, 1), device=prediction.device)] * bs  # to store the kept idxs
-    use_torchvision = prediction.device.type != "xpu" and "torchvision" in sys.modules
+    keepi = [torch.empty(0, dtype=torch.long, device=prediction.device)] * bs  # to store the kept idxs
     for xi, (x, xk) in enumerate(zip(prediction, xinds)):  # image index, (preds, preds indices)
         # Apply constraints
         # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
@@ -145,18 +143,8 @@ def non_max_suppression(
 
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
         scores = x[:, 4]  # scores
-        if rotated:
-            boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1)  # xywhr
-            i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
-        else:
-            boxes = x[:, :4] + c  # boxes (offset by class)
-            # Use torchvision if already imported; it has no XPU NMS kernel, but torch_npu CPU-falls back on NPU.
-            if use_torchvision:
-                import torchvision  # scope as slow import
-
-                i = torchvision.ops.nms(boxes, scores, iou_thres)
-            else:
-                i = TorchNMS.nms(boxes, scores, iou_thres)
+        boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1) if rotated else x[:, :4] + c
+        i = nms_boxes(boxes, scores, iou_thres, rotated=rotated)
         i = i[:max_det]  # limit detections
 
         output[xi] = x[i]
@@ -167,6 +155,18 @@ def non_max_suppression(
             break  # time limit exceeded
 
     return (output, keepi) if return_idxs else output
+
+
+def nms_boxes(boxes: torch.Tensor, scores: torch.Tensor, iou: float, rotated: bool = False) -> torch.Tensor:
+    """Suppress boxes already offset by class, retaining the existing device-specific NMS implementation."""
+    if rotated:
+        return TorchNMS.fast_nms(boxes, scores, iou, iou_func=batch_probiou)
+    # Keep torchvision lazy and preserve XPU's native torch path.
+    if boxes.device.type != "xpu" and "torchvision" in sys.modules:
+        import torchvision
+
+        return torchvision.ops.nms(boxes, scores, iou)
+    return TorchNMS.nms(boxes, scores, iou)
 
 
 class TorchNMS:

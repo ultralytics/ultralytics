@@ -85,6 +85,10 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for
 
 See full `train` mode details in the [Train](../modes/train.md) page. Semantic segmentation models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
+!!! tip "Deterministic Training"
+
+    Set `deterministic=False` to avoid slower deterministic CUDA kernels when exact reproducibility is not required.
+
 ### Dataset format
 
 Semantic segmentation datasets use single-channel mask images, typically PNG, where each pixel value represents a class ID. Pixels with value 255 are treated as "ignore" and excluded from loss computation. The dataset YAML should specify paths to images and their corresponding mask directories. Datasets with YOLO polygon labels train directly, converted to masks on the fly (see [Can I use instance segmentation data](#can-i-use-instance-segmentation-data-to-train-semantic-segmentation) below). See the [Semantic Segmentation Dataset Guide](../datasets/semantic/index.md) for format details. Supported datasets include [Cityscapes](../datasets/semantic/cityscapes.md) and [ADE20K](../datasets/semantic/ade20k.md). You can manage and label semantic datasets with [Ultralytics Platform annotation](../platform/data/annotation.md).

@@ -38,7 +38,7 @@ Enter your project details:
 - **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects start with the workspace's [default visibility](../account/settings.md#default-visibility).
 - **License**: Optional license for your project (None, Apache-2.0, MIT, BSD-3-Clause, AGPL-3.0, GPL-3.0, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, CC0-1.0, Ultralytics-Enterprise, or Other). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license). Enterprise workspaces preselect it for new projects.
 
-![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/6a29c20aabd7a9ff39c6bca031d655a1.avif)<!-- screenshot -->
+![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/659b6394cfacc217746ce3bb800d0054.avif)<!-- screenshot -->
 
 Click **Create Project** to finalize. Your new project appears in the Projects list and sidebar.
 
@@ -143,7 +143,7 @@ Clone a public project to your own account:
 
 !!! info "Clone Behavior"
 
-    Cloned projects inherit the source project's visibility by default, or start private when the workspace's [default project visibility](../account/settings.md#default-visibility) is Private, and you can choose Public or Private in the clone dialog before confirming. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license.
+    Cloned projects inherit the source project's visibility by default, or start private when the workspace's [default project visibility](../account/settings.md#default-visibility) is Private, and you can choose Public or Private in the clone dialog before confirming. The clone count is displayed on the original project. If the original has a copyleft license (e.g., AGPL-3.0), the clone inherits and locks that license. Cloned models count toward your workspace's [model limit](#how-many-models-can-a-project-contain): a clone that would exceed it is blocked with **Model limit reached**, so select fewer models, delete some, or upgrade your plan.
 
 ## Compare Models
 

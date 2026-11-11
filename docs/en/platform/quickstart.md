@@ -173,7 +173,7 @@ To replay any tour:
 
 Open `Annotate` in the sidebar and click the `+` to create a new dataset. You can also drag and drop files directly onto the Datasets card on the Home dashboard.
 
-![Ultralytics Platform Quickstart Upload Dialog](https://cdn.ul.run/i/0a41e4a1487a50f74266b9164c7fd64f.avif)<!-- screenshot -->
+![Ultralytics Platform Quickstart Upload Dialog](https://cdn.ul.run/i/87cee59e4fb4c86c4cf5a3e86db73b32.avif)<!-- screenshot -->
 
 The **New Dataset** dialog offers four sources. This quickstart uses **Upload**; the others are covered in
 [Datasets](data/datasets.md) and [Integrations](integrations/index.md):
@@ -246,14 +246,14 @@ Read more about [projects](train/projects.md).
 
 From your project, click `New Model` to open the **Train New Model** dialog. You can also start from a dataset page, in which case the dataset is locked in and you pick the destination project instead.
 
-![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.ul.run/i/c93aa9499bf9401557562ffc3cd96be2.avif)<!-- screenshot -->
+![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.ul.run/i/6ca4d4aa87bf818d83393422aa9f36dc.avif)<!-- screenshot -->
 
 ### Training Configuration
 
 1. **Base Model**: Select official Ultralytics weights (such as [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26)) or one of your own trained models. The dialog warns if the selected model cannot train the dataset task.
 2. **Dataset**: Choose a ready dataset with at least one train image, at least one validation or test image, and at least one labeled image
 3. **Parameters**: Set **Epochs** (default 100), **Batch Size** (blank means auto), **Image Size** (default 640), and an optional run **Name**. Expand **Advanced Settings** to edit any other Ultralytics training argument in a YAML editor.
-4. **Select GPU**: On the **Cloud Training** tab, choose compute based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell, $2.09/hr), which handles every YOLO26 variant. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
+4. **Select GPU**: On the **Cloud Training** tab, choose compute based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell), which handles every YOLO26 variant. See the full [GPU table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
 5. **Start Training**: Review the estimated cost and duration next to your credit balance, then click `Start Training`.
 
 !!! tip "Save Dataset Version"
@@ -294,14 +294,14 @@ After training completes, test your model directly in the browser:
 2. Upload an image, drag and drop, capture one from your webcam, or click an example image (auto-inference on drop)
 3. View task-appropriate prediction overlays, per-stage timings (preprocess, inference, postprocess, network), and the raw JSON response
 
-![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/7f20a14a7e6f05a1c43c42229d0e3745.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/5e2267bbbc1ab3db0e2813d503cfde78.avif)<!-- screenshot -->
 
 Adjust inference parameters:
 
 | Parameter      | Default | Description                       |
 | -------------- | ------- | --------------------------------- |
 | **Confidence** | 0.25    | Filter low-confidence predictions |
-| **IoU**        | 0.7     | Control overlap for NMS           |
+| **IoU**        | 0.5     | Control overlap for NMS           |
 | **Image Size** | 640     | Resize input for inference        |
 
 Under **API Docs**, the `Predict` tab shows example code in Python, JavaScript, and cURL, pre-filled with the parameters you selected above. Deploy the model first, then replace the placeholder URL and key with the values from your endpoint:
@@ -313,7 +313,7 @@ Under **API Docs**, the `Predict` tab shows example code in Python, JavaScript, 
 
     url = "https://your-deployment-url.run.app/predict"
     api_key = "YOUR_API_KEY"
-    args = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
+    args = {"conf": 0.25, "iou": 0.5, "imgsz": 640}
 
     with open("image.jpg", "rb") as f:
         response = requests.post(
@@ -333,7 +333,7 @@ Under **API Docs**, the `Predict` tab shows example code in Python, JavaScript, 
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.7" \
+      -F "iou=0.5" \
       -F "imgsz=640"
     ```
 

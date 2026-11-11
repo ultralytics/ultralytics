@@ -132,7 +132,7 @@ def autocast(enabled: bool | torch.dtype, device: str = "cuda"):
         ...     pass
 
     Notes:
-        Uses `torch.amp.autocast` on torch>=1.13 and the backend-specific AMP context on older releases.
+        Uses `torch.autocast` on torch>=1.10 and the backend-specific AMP context on older releases.
     """
     dtype = enabled if isinstance(enabled, torch.dtype) else None
     enabled = bool(enabled)
@@ -152,10 +152,10 @@ def autocast(enabled: bool | torch.dtype, device: str = "cuda"):
         import torch_npu
 
         return torch_npu.npu.amp.autocast(enabled=enabled, **kwargs)
-    if TORCH_1_13:
+    if TORCH_1_10:
         if device == "mps" and not TORCH_2_5:  # MPS autocast added in torch 2.5.0, errors on older versions
             device, enabled = "cpu", False
-        return torch.amp.autocast(device, enabled=enabled, **kwargs)
+        return torch.autocast(device, enabled=enabled, **kwargs)
     else:
         return torch.cuda.amp.autocast(enabled and device == "cuda")
 
@@ -256,8 +256,8 @@ def select_device(device="", newline=False, verbose=True):
         verbose (bool, optional): If True, logs the device information.
 
     Returns:
-        (torch.device | str): Selected device. For multi-GPU requests this is the first GPU. 'tpu', 'intel', and
-            'vulkan' device strings and other non-cpu/cuda/npu/xpu torch.device inputs are returned unchanged.
+        (torch.device | str): Selected device. For multi-GPU requests this is the first GPU. 'tpu' and 'vulkan' device
+            strings and other non-cpu/cuda/npu/xpu torch.device inputs are returned unchanged.
 
     Raises:
         ValueError: If the requested CUDA, NPU, or XPU device(s) are invalid or unavailable.
@@ -279,7 +279,7 @@ def select_device(device="", newline=False, verbose=True):
     if isinstance(device, torch.device):
         if device.type not in {"cpu", "cuda", "npu", "xpu"}:
             return device  # other torch.device inputs pass through; cpu and accelerator inputs canonicalize below
-    elif str(device).startswith(("tpu", "intel", "vulkan")):
+    elif str(device).startswith(("tpu", "vulkan")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "

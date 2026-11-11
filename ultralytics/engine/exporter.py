@@ -27,6 +27,7 @@ Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
+NXP                     | `nxp`                     | yolo26n_nxp.tflite
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -86,11 +87,12 @@ from ultralytics import __version__
 from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data.build import InfiniteDataLoader, build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
 from ultralytics.nn.modules import (
     OBB,
     OBB26,
+    SPPF,
     Attention,
     C2f,
     Classify,
@@ -112,6 +114,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     MACOS_VERSION,
+    PREDICT_IOU,
     QNN_HTP_TARGETS,
     RKNN_CHIPS,
     SETTINGS,
@@ -225,9 +228,10 @@ def export_formats():
             "tensorflow",
         ],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
-        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
+        ["NXP", "nxp", "_nxp.tflite", False, False, ["quantize", "data", "fraction"], "isolated-nxp"],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "paddle"],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "opset", "simplify", "nms"], "mnn"],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["quantize"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "quantize", "fraction", "nms"], "isolated-imx"],
         [
             "RKNN",
@@ -342,6 +346,15 @@ EXPORT_ENVS = {
         "env": {},
         "smoke": ["yolo export format=mnn model=yolo26n.pt imgsz=32"],
     },
+    "paddle": {
+        "python": "3.13",  # PaddlePaddle wheels stop at cp313
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["paddlepaddle>=3.0.0,<3.3.0", "x2paddle", "six"],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=paddle model=yolo26n.pt imgsz=32"],
+    },
     "ncnn": {
         "python": "3.14",
         "extras": ["export-base"],
@@ -430,6 +443,15 @@ EXPORT_ENVS = {
         "env": {},
         "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
     },
+    "isolated-nxp": {
+        "python": "3.13",
+        "extras": ["export-base", "export-litert"],
+        "torch": None,
+        "requirements": ["eiq-neutron-sdk==3.3.0"],
+        "indexes": [("--extra-index-url", "https://eiq.nxp.com/repository")],
+        "env": {},
+        "smoke": ["yolo export format=nxp model=yolo26n.pt imgsz=64 data=coco8.yaml"],
+    },
     "qnn": {
         "python": "3.14",
         "extras": ["export-base"],
@@ -455,6 +477,7 @@ INT8_FORMATS = frozenset(
         "saved_model",
         "edgetpu",
         "litert",
+        "nxp",
         "mnn",
         "imx",
         "rknn",
@@ -466,7 +489,9 @@ INT8_FORMATS = frozenset(
 )
 W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx"})
+FP32_UNSUPPORTED_FORMATS = frozenset(
+    {"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx", "nxp"}
+)
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -566,6 +591,7 @@ class Exporter:
         export_openvino: Export model to OpenVINO format.
         export_paddle: Export model to PaddlePaddle format.
         export_litert: Export model to LiteRT format.
+        export_nxp: Compile an INT8 model for the NXP i.MX95 NPU.
         export_mnn: Export model to MNN format.
         export_ncnn: Export model to NCNN format.
         export_coreml: Export model to CoreML format.
@@ -606,6 +632,8 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        if self.args.iou is None:
+            self.args.iou = PREDICT_IOU  # export-time NMS serves predict
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -664,18 +692,31 @@ class Exporter:
         if fmt == "imx" and self.args.device is None and torch.cuda.is_available():
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
-        self.device = select_device("cpu" if self.args.device is None else self.args.device)
+        self.device = select_device(
+            "cpu"
+            if self.args.device is None or fmt in {"coreai", "executorch", "litert", "nxp", "openvino"}
+            else self.args.device
+        )
 
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "xilinx"} and self.args.quantize not in {
+        if fmt in {
+            "deepx",
+            "axelera",
+            "imx",
+            "edgetpu",
+            "qnn",
+            "hailo",
+            "xilinx",
+            "nxp",
+        } and self.args.quantize not in {
             8,
             "w8a16",
         }:
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
-        if fmt in {"axelera", "hailo", "xilinx"} and not self.args.data:
+        if fmt in {"axelera", "hailo", "xilinx", "nxp"} and not self.args.data:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
@@ -733,7 +774,7 @@ class Exporter:
                 fmt == "axelera" and self.args.nms is None and getattr(head, "one2one_cv2", None) is not None
             )
         if getattr(model, "end2end", False):
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
+            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn", "nxp"}:
                 # Disable the end2end branch for formats without top-k support
                 model.end2end = False
                 LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
@@ -931,6 +972,8 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
+            if isinstance(m, SPPF):
+                m.export = True
             if isinstance(m, Attention) and fmt == "coreml" and self.args.format != "mlmodel":
                 m.format = fmt
             if isinstance(m, (Classify, SemanticSegment, Depth)):
@@ -1006,6 +1049,8 @@ class Exporter:
             "channels": model.yaml.get("channels", 3),
             "end2end": getattr(model, "end2end", False),
         }  # model metadata
+        if getattr(model, "colors", None):
+            self.metadata["colors"] = model.colors  # class colors, see `ultralytics.utils.plotting.Colors`
         if self.dla is not None:
             self.metadata["dla"] = self.dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":
@@ -1057,7 +1102,8 @@ class Exporter:
 
         Images are emitted as uint8 [0, 255] at the export input shape. Classification images are resized and
         center-cropped to the exact export (height, width) like classify inference, so rectangular `imgsz` exports
-        calibrate on rectangular inputs; other tasks reuse their validation dataset transforms.
+        calibrate on rectangular inputs; other tasks reuse their validation dataset transforms. Platform and NDJSON
+        datasets are converted locally with the requested calibration fractions.
 
         Args:
             prefix (str): Prefix for log messages.
@@ -1069,27 +1115,20 @@ class Exporter:
         cfg = deepcopy(self.args)
         cfg.imgsz = self.imgsz if self.model.task == "classify" else max(self.imgsz)  # classify keeps exact (h, w)
         cfg.rect = False
-        split = self.args.split or "val"
+        cfg.split = cfg.split or "val"
+        if not isinstance(cfg.fraction, list):
+            cfg.fraction = [cfg.fraction] * 3
+        cfg.data = convert_ndjson_to_yolo_if_needed(cfg.data, cfg.fraction, split=cfg.split)
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-            data = check_cls_dataset(self.args.data, split=split)
-            if not isinstance(cfg.fraction, list):
-                cfg.fraction = [cfg.fraction] * 3
-            dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
+            data = check_cls_dataset(cfg.data, split=cfg.split)
+            dataset = ClassificationDataset(data[cfg.split], args=cfg, augment=False, prefix=cfg.split)
             # INT8 backends divide images by 255, so keep the classify_transforms resize and center crop but emit uint8
             dataset.torch_transforms = T.Compose([*dataset.torch_transforms.transforms[:2], T.PILToTensor()])
         else:
-            data = check_det_dataset(self.args.data, split=split)
-            cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction
-            dataset = build_yolo_dataset(
-                cfg,
-                data[split],
-                self.args.batch,
-                data,
-                mode="val",
-                fraction=cfg.fraction,
-            )
+            data = check_det_dataset(cfg.data, split=cfg.split)
+            dataset = build_yolo_dataset(cfg, data[cfg.split], self.args.batch, data, mode="val")
         if hasattr(dataset, "transforms") and hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
         n = len(dataset)
@@ -1285,6 +1324,7 @@ class Exporter:
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
             int8_detect=isinstance(getattr(self.model, "model", [None])[-1], (Detect, RTDETRDecoder)),
+            device=self.args.device,
             prefix=prefix,
         )
 
@@ -1312,7 +1352,8 @@ class Exporter:
     def export_litert(self, prefix=colorstr("LiteRT:")):  # noqa: B008
         """Export YOLO model to LiteRT format using litert_torch with optional INT8 quantization.
 
-        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, requires calibration ``data``),
+        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, FP32 head outputs on Detect models,
+        requires calibration ``data``),
         ``quantize='w8a16'`` (static, int8 weights + int16 activations, requires calibration ``data``) and
         ``quantize='w8a32'`` (dynamic/weight-only INT8, int8 weights + FP32 activations, no calibration needed).
         """
@@ -1330,6 +1371,14 @@ class Exporter:
             metadata=self.metadata,
             prefix=prefix,
         )
+
+    @try_export
+    def export_nxp(self, prefix=colorstr("NXP:")):  # noqa: B008
+        """Export an INT8 model compiled for the NXP i.MX95 Neutron NPU."""
+        assert LINUX and not ARM64, "NXP export is only supported on Linux x86_64."
+        from ultralytics.utils.export.litert import tflite2nxp
+
+        return tflite2nxp(self.export_litert(), self.file.with_name(f"{self.file.stem}_nxp.tflite"), self.metadata)
 
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):  # noqa: B008

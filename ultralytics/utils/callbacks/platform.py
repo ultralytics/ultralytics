@@ -33,32 +33,25 @@ def slugify(text):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9\s-]", "", str(text).lower()).replace(" ", "-")).strip("-")[:128]
 
 
-def _interp_plot(plot, n=101):
-    """Interpolate plot curve data to n points to reduce storage size."""
+def _compact_plot(plot, n=101):
+    """Reduce plot data to what Platform renders so the completion payload stays bounded for any class count.
+
+    Platform draws the first 100 confusion matrix classes and per-class curves up to 20 classes, else only the mean.
+    """
     import numpy as np
 
-    if not plot.get("x") or not plot.get("y"):
-        return plot  # No interpolation needed (e.g., confusion_matrix)
+    if "matrix" in plot:  # Platform slices a matrix over 100 rows to its first 100
+        return {**plot, "matrix": [row[:100] for row in plot["matrix"][:100]]}
 
     x, y = np.array(plot["x"]), np.array(plot["y"])
-    if len(x) <= n:
-        return plot  # Already small enough
-
-    # New x values (101 points gives clean 0.01 increments: 0, 0.01, 0.02, ..., 1.0)
-    x_new = np.linspace(x[0], x[-1], n)
-
-    # Interpolate y values (handle both 1D and 2D arrays)
-    if y.ndim == 1:
-        y_new = np.interp(x_new, x, y)
-    else:
-        y_new = np.array([np.interp(x_new, x, yi) for yi in y])
-
-    # Keep ap as-is if present (per-class scalars for PR curves, not interpolated)
-    result = {**plot, "x": x_new.tolist(), "y": y_new.tolist()}
-    if "ap" in plot:
-        result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)
-
-    return result
+    if len(y) > 20:  # mean curve and AP only, so rows no longer map to classes
+        y = y.mean(0, keepdims=True)
+        plot = {k: v for k, v in plot.items() if k != "classes"}
+        if "ap" in plot:
+            plot["ap"] = np.mean(plot["ap"], 0, keepdims=True).tolist()
+    x_new = np.linspace(x[0], x[-1], n)  # 101 points gives clean 0.01 increments
+    y_new = np.array([np.interp(x_new, x, yi) for yi in y])
+    return {**plot, "x": x_new.round(6).tolist(), "y": y_new.round(6).tolist()}  # Platform stores 6 decimals
 
 
 def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
@@ -81,14 +74,14 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
 
 
 def _sanitize_json_value(value):
-    """Replace non-finite floats in payloads with None so JSON encoding succeeds."""
+    """Make payloads JSON-encodable: non-finite floats become None and other non-JSON values become strings."""
     if isinstance(value, dict):
         return {k: _sanitize_json_value(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
         return [_sanitize_json_value(v) for v in value]
     if isinstance(value, float):
         return value if isfinite(value) else None  # avoid "Out of range float values are not JSON compliant" warnings
-    return value
+    return value if value is None or isinstance(value, (bool, int, str)) else str(value)  # e.g. np.int64, Path
 
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
@@ -218,7 +211,6 @@ def _get_environment_info():
         "pythonExecutable": sys.executable,
         "cpuCount": os.cpu_count() or 0,
         "cpu": get_cpu_info(),
-        "command": " ".join(sys.argv),
         "totalRamGb": round(memory.total / (1 << 30), 1),  # Total RAM in GB
         "totalDiskGb": round(disk_usage.total / (1 << 30), 1),  # Total disk in GB
     }
@@ -345,7 +337,7 @@ def on_pretrain_routine_start(trainer):
     # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
     data = {
-        "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+        "trainArgs": vars(trainer.args),  # _send makes values JSON-encodable
         "epochs": trainer.epochs,
         "device": str(trainer.device),
         "environment": environment,
@@ -494,7 +486,7 @@ def on_train_end(trainer):
         classes = [int(c) for c in trainer.validator.metrics.ap_class_index]
         if len(classes) < len(trainer.validator.names):
             plots_by_type["pr_curve"] = {**pr, "classes": classes}
-    plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
+    plots = [_compact_plot(p) for p in plots_by_type.values()]
 
     # Get class names
     names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")

@@ -113,7 +113,7 @@ The `results.box.image_metrics` attribute is a per-image dictionary keyed by abs
 
 ### Image Tiling for Small Objects
 
-Image tiling can [improve detection accuracy for small objects](https://www.ultralytics.com/blog/how-to-improve-model-map-on-small-objects-a-quick-guide). By dividing larger images into smaller segments, such as splitting 1280x1280 images into multiple 640x640 segments, you preserve the original resolution and let the model learn from high-resolution fragments. Ultralytics supports this at inference time through [SAHI tiled inference](./sahi-tiled-inference.md). When training on tiled images, make sure to adjust your labels for each new segment correctly.
+Image tiling can [improve detection accuracy for small objects](https://www.ultralytics.com/blog/how-to-improve-model-map-on-small-objects-a-quick-guide). By dividing larger images into smaller segments, such as splitting 1280x1280 images into multiple 640x640 segments, you preserve the original resolution and let the model learn from high-resolution fragments. Use `tile=True` for [high resolution tiling](./high-resolution-tiling.md) during training, validation, and prediction. Training crops the annotations with each tile, while validation and prediction merge tile outputs into full-image results.
 
 ## Conclusion
 

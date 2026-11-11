@@ -16,7 +16,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
-from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.plotting import FONT, Annotator, colors, save_one_box
 
 
 class BaseTensor(SimpleClass):
@@ -214,6 +214,7 @@ class Results(SimpleClass, DataExportMixin):
         depth (DepthMap | None): Per-pixel depth map.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
+        colors (list[tuple] | None): Model class colors as RGB tuples indexed by class id, overriding the palette.
         path (str): Path to the input image file.
         save_dir (str | None): Directory to save results.
 
@@ -292,9 +293,43 @@ class Results(SimpleClass, DataExportMixin):
         self.depth = DepthMap(depth, self.orig_shape) if depth is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
+        self.colors = None
         self.path = path
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
+
+    @classmethod
+    def merge_tiles(
+        cls, results: list, windows: list[tuple], orig_img: np.ndarray, iou: float, agnostic: bool, max_det: int
+    ):
+        """Restore one source image from tile results using the shared task-output merge."""
+        predictions = []
+        rotated = results[0].obb is not None
+        for result in results:
+            pred = {k: getattr(result, k).data for k in result._keys if getattr(result, k) is not None}
+            if hasattr(result, "feats"):
+                pred["feats"] = result.feats
+            boxes = pred.pop("obb" if rotated else "boxes", None)
+            if boxes is not None:
+                n = 5 if rotated else 4
+                pred.update(bboxes=boxes[:, :n], conf=boxes[:, n], cls=boxes[:, n + 1])
+            predictions.append(pred)
+        pred = ops.merge_tiles(predictions, windows, orig_img.shape[:2], iou, agnostic, max_det)
+        if "bboxes" in pred:
+            pred["obb" if rotated else "boxes"] = torch.cat(
+                (pred.pop("bboxes"), pred.pop("conf")[:, None], pred.pop("cls")[:, None]), 1
+            )
+        feats = pred.pop("feats", None)
+        result = cls(orig_img, path=results[0].path, names=results[0].names, **pred)
+        if feats is not None:
+            result.feats = feats
+        if hasattr(results[0], "_loose"):
+            alternatives, thresholds = zip(*(r._loose for r in results))
+            result._loose = (
+                cls.merge_tiles(alternatives, windows, orig_img, thresholds[0], agnostic, max_det),
+                thresholds[0],
+            )
+        return result
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -481,7 +516,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> new_result = results[0].new()
         """
         result = Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
-        result.save_dir = self.save_dir
+        result.save_dir, result.colors = self.save_dir, self.colors
         return result
 
     def plot(
@@ -489,7 +524,7 @@ class Results(SimpleClass, DataExportMixin):
         conf: bool = True,
         line_width: int | None = None,
         font_size: float | None = None,
-        font: str = "Arial.ttf",
+        font: str = FONT,
         pil: bool = False,
         img: np.ndarray | torch.Tensor | None = None,
         kpt_radius: int = 5,
@@ -565,7 +600,8 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_mask_data, colors=[colors(x, True) for x in idx])
+            custom = self.colors if pred_boxes and color_mode == "class" else None
+            annotator.masks(pred_mask_data, colors=[colors(x, True, custom) for x in idx])
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -575,20 +611,8 @@ class Results(SimpleClass, DataExportMixin):
                 d_conf, id = float(d.conf.item()) if conf else None, int(d.id.item()) if d.is_track else None
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else (f"{d_conf:.2f}" if conf else None)
-                annotator.box_label(
-                    box,
-                    label,
-                    color=colors(
-                        c
-                        if color_mode == "class"
-                        else id
-                        if id is not None
-                        else i
-                        if color_mode == "instance"
-                        else None,
-                        True,
-                    ),
-                )
+                color = colors(c, True, self.colors) if color_mode == "class" else colors(i if id is None else id, True)
+                annotator.box_label(box, label, color=color)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -601,7 +625,8 @@ class Results(SimpleClass, DataExportMixin):
             sem_mask = self.semantic_mask.data
             if isinstance(sem_mask, torch.Tensor):
                 sem_mask = sem_mask.cpu().numpy()
-            annotator.semantic_mask(sem_mask, alpha=0.5)
+            sem_mask = np.where(sem_mask == 1, 0, 255) if len(names) == 1 else sem_mask
+            annotator.semantic_mask(sem_mask, alpha=0.5, custom=self.colors)
 
         # Plot Depth results — blend colorized depth heatmap over the image
         if self.depth and show_masks:

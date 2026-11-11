@@ -210,9 +210,9 @@ The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for [
 Default settings include:
 
 - **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
-- **IoU Threshold (`iou=0.7`)**: For Non-Maximum Suppression (NMS).
+- **IoU Threshold (`iou=0.5`)**: For Non-Maximum Suppression (NMS). Validation uses `iou=0.7`.
 - **Image Size (`imgsz=640`)**: Resizes input images.
-- **Device (`device=None`)**: Selects CPU, CUDA GPU, Apple MPS, Intel XPU (`xpu`), or Huawei Ascend NPU (`npu`).
+- **Device (`device=None`)**: Selects CPU, CUDA GPU, Apple MPS, Intel XPU (`xpu`), or Huawei Ascend NPU (`npu`). OpenVINO and LiteRT models run `xpu` and `npu` on the Intel GPU and NPU; see [inference devices](https://docs.ultralytics.com/modes/predict/#inference-devices) for every format.
 
 For a full overview, see [Predict Settings](#predict-settings) and the [Predict Guide](../modes/predict.md).
 

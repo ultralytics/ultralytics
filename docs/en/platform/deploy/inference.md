@@ -1,17 +1,17 @@
 ---
 plans: [free, pro, enterprise]
-title: Inference API Testing
+title: Test YOLO Model Inference in the Browser and via API
 comments: true
-description: Test YOLO models in the Ultralytics Platform Predict tab with images, webcam, or IP camera, and call shared or dedicated inference endpoints over REST.
-keywords: Ultralytics Platform, inference, API, YOLO, object detection, prediction, testing
+description: Test YOLO model inference in the Ultralytics Platform Predict tab on images, PDFs, or webcam, then call shared or dedicated endpoints over REST.
+keywords: Ultralytics Platform, YOLO inference, inference API, predict, object detection, prediction, testing, PDF, webcam
 ---
 
-# Inference
+# YOLO Model Inference
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides browser-based inference for testing trained models
-and dedicated endpoints for programmatic access.
+[Ultralytics Platform](https://platform.ultralytics.com) lets you test a trained YOLO model on your own images from its
+`Predict` tab, then call it over REST from shared or dedicated endpoints.
 
-![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/7f24f23d72050535fb1184ab78b99f0a.avif)<!-- screenshot -->
+![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/4adbaea0e33520bd47e9225801392f90.avif)<!-- screenshot -->
 
 ## Predict Tab
 
@@ -32,7 +32,7 @@ The predict panel supports multiple input methods:
 
 | Method             | Description                                          |
 | ------------------ | ---------------------------------------------------- |
-| **Image upload**   | Drag and drop or click to upload an image            |
+| **Image upload**   | Drag and drop or click to upload an image or a PDF   |
 | **Example images** | Click built-in examples (dataset images or defaults) |
 | **Webcam capture** | Live camera feed with single-frame capture           |
 | **IP camera**      | RTSP or RTSPS stream on your own deployment          |
@@ -49,7 +49,7 @@ flowchart TD
 
 Drag and drop or click to upload:
 
-- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP
+- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP, and PDF (the first page is rendered as an image and predicted like one)
 - **Max size**: 10 MB
 - **Auto-inference**: Results appear automatically after upload
 
@@ -59,7 +59,7 @@ Drag and drop or click to upload:
 
 !!! note "Client-Side Resize"
 
-    Before uploading, the panel shrinks images whose longest side exceeds the selected `Image Size` to that size, and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized. Images the browser cannot decode, such as TIFF in Chrome, are sent at their original size.
+    Before uploading, the panel shrinks images whose longest side exceeds the selected `Image Size` to that size, sends a JPEG instead of the original when that is smaller (a PNG screenshot, for example), and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized. Images the browser cannot decode, such as TIFF in Chrome, are sent at their original size.
 
 ### Example Images
 
@@ -95,7 +95,7 @@ Inference results display the output appropriate to the model task: boxes, masks
 classification scores, semantic coverage, or a depth map. Object results use the dataset class colors when available.
 The panel also shows preprocess, inference, postprocess, and network timing.
 
-![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/200e9ac95d798975658c5c24baa10d33.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/c32fd4716ad8488b7f5f850383f36f1c.avif)<!-- screenshot -->
 
 The results panel shows:
 
@@ -109,16 +109,21 @@ The results panel shows:
 Two controls sit over the preview once results are in: click the image to enlarge it with overlays intact, and use the
 download button to save an annotated JPEG of the current result.
 
+Hover a detection's row to highlight its box, or hover a box on the image to highlight its row and scroll it into view
+in the list. With more than 10 results, the image shows boxes without labels so labels don't cover the objects; the
+list names each result, and the enlarged image keeps the labels. On wide screens the results card can grow up to the
+height of the input card, so long lists, such as a crowded retail shelf, stay readable.
+
 ## Inference Parameters
 
 Adjust inference behavior with the three sliders below the image (depth models show only **Image Size**):
 
-![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/a5c367ba079dc5d19ab3f02bd37f10bf.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/f0d05f100408a6e5fc4fb6496ed9615d.avif)<!-- screenshot -->
 
 | Parameter      | Range                     | Default | Description                  |
 | -------------- | ------------------------- | ------- | ---------------------------- |
 | **Confidence** | 0.01 – 1.0, steps of 0.01 | 0.25    | Minimum confidence threshold |
-| **IoU**        | 0.0 – 0.95, steps of 0.01 | 0.7     | NMS IoU threshold            |
+| **IoU**        | 0.0 – 0.95, steps of 0.01 | 0.5     | NMS IoU threshold            |
 | **Image Size** | 32 – 1280, steps of 32    | 640     | Input resize dimension       |
 
 !!! note "Auto-Rerun"
@@ -137,9 +142,9 @@ Filter predictions by [confidence](https://www.ultralytics.com/glossary/confiden
 
 Control [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), which removes boxes whose [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) with a higher-confidence box exceeds this threshold:
 
-- **Higher (0.7+)**: Allow more overlapping boxes
-- **Lower (0.3-0.5)**: Suppress overlapping detections more aggressively
-- **Default (0.7)**: Balanced NMS behavior for most use cases
+- **Higher (0.6+)**: Allow more overlapping boxes
+- **Lower (0.3-0.4)**: Suppress overlapping detections more aggressively
+- **Default (0.5)**: Balanced NMS behavior for most use cases
 
 ## Deployment Predict
 
@@ -170,7 +175,7 @@ after you disconnect or close the page. Once the connected camera shows results,
 background**. The deployment header shows **Camera on**, and results go to the
 [Monitoring tab](monitoring.md#monitoring-tab) as temporary examples and prediction statistics.
 
-- **Settings:** The background camera always uses the default confidence (0.25), IoU (0.7), and the model's training
+- **Settings:** The background camera always uses the default confidence (0.25), IoU (0.5), and the model's training
   image size; the sliders do not apply to it.
 - **Cost:** It runs on the endpoint's warm instance at no extra charge; the hourly uptime rate applies whether the
   camera is on or off.
@@ -263,7 +268,7 @@ with open("image.jpg", "rb") as f:
 
     url = "https://YOUR_DEPLOYMENT_URL.run.app/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
-    data = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
+    data = {"conf": 0.25, "iou": 0.5, "imgsz": 640}
 
     with open("image.jpg", "rb") as image_file:
         response = requests.post(url, headers=headers, files={"file": image_file}, data=data)
@@ -278,7 +283,7 @@ with open("image.jpg", "rb") as f:
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.7" \
+      -F "iou=0.5" \
       -F "imgsz=640"
     ```
 
@@ -288,7 +293,7 @@ with open("image.jpg", "rb") as f:
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
     formData.append("conf", "0.25");
-    formData.append("iou", "0.7");
+    formData.append("iou", "0.5");
     formData.append("imgsz", "640");
 
     const response = await fetch(
@@ -353,7 +358,7 @@ with open("image.jpg", "rb") as f:
 }
 ```
 
-![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/f89c84fd648ba3aaad454ea9911b28a7.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/d6b0c482bc51f61712839f1def0416e6.avif)<!-- screenshot -->
 
 ### Response Fields
 

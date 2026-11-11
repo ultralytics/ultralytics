@@ -64,11 +64,18 @@ easy to bookmark or share.
 | **Projects** | Name, description, owner username, and tags              |
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
-search, and their cards show the matching images. The Images tab uses
-[semantic search](https://www.ultralytics.com/glossary/semantic-search): describe a scene such as `cats on a sofa`, then
-click an image to open a side panel with its annotations, source dataset, class counts, and license, followed by up to
+search, and their cards show the matching images. Searching an official dataset's name or address (such as `HIT-UAV` or
+`hit uav`) puts the official `@ultralytics` dataset above copies that share its name. Before you search, the Images tab
+lists one image from each of the newest public datasets. Search it by what images show with
+[semantic search](https://www.ultralytics.com/glossary/semantic-search): describe a scene such as `cats on a sofa`. Click any image to open a side panel with its annotations, source dataset, class counts, and license, followed by up to
 24 similar images, including ones from the same dataset, when you are signed in; click one to open it in the panel. On
 narrow screens such as phones, the image opens full size instead.
+
+To search by a photo instead, click the search-by-image icon in the Datasets or Images search bar, or drop an image
+onto the page. The Images tab shows images like it, each with its similarity score, and the Datasets tab shows public
+datasets containing similar images, with those images on their cards. Filters, and sorting on the Datasets tab, still
+apply, and switching between the two tabs keeps the photo. The photo is searched, not saved, and stays out of the URL;
+the search bar shows it until you click **Close** or open the Projects tab.
 
 ### Sort and Filter
 
@@ -104,10 +111,10 @@ On the Datasets and Projects tabs, toggle between three view modes for browsing:
 | ----------- | ------------------------------------------------ |
 | **Cards**   | Grid of preview cards with thumbnails            |
 | **Compact** | Smaller cards in a responsive grid (2-3 columns) |
-| **Table**   | Paginated table with sortable columns            |
+| **Table**   | Table with sortable columns                      |
 
-Cards and compact views load more results by infinite scroll. Table view moves sorting from the dropdown to sortable
-column headers, keeps the filters in the dropdown, and adds its own pagination controls.
+All three views load more results as you scroll. Table view moves sorting from the dropdown to sortable column headers
+and keeps the filters in the dropdown.
 
 ## Content Cards
 
@@ -209,7 +216,7 @@ Clone a public model to one of your projects:
 4. Optionally, rename the model
 5. Review the source model summary, then click `Clone Model` to confirm
 
-![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/ea87fef6ef1ff9f2d6a00e3fbb46459d.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/dc44c4c61e4d8276fd1829145c2e493b.avif)<!-- screenshot -->
 
 !!! note "Clone vs Download"
 
@@ -225,7 +232,7 @@ Copy a public project to your workspace:
 
 ![Ultralytics Platform Explore Clone Project](https://cdn.ul.run/i/8622d3c0f37ee586198ab9dd447699b7.avif)<!-- screenshot -->
 
-The cloned project includes completed models that have model files. Deployments and exports are not copied. Its default visibility follows the same workspace rules as dataset cloning.
+The cloned project includes completed models that have model files. Deployments and exports are not copied. The models count toward your workspace's [model limit](train/projects.md#how-many-models-can-a-project-contain). Its default visibility follows the same workspace rules as dataset cloning.
 
 See [Projects](train/projects.md) for organizing models in your project.
 

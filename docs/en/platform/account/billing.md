@@ -1,14 +1,17 @@
 ---
 plans: [free, pro, enterprise]
-title: Billing & Credits
+title: Pricing, Plans & Billing - Ultralytics Platform
 comments: true
-description: Manage credits, payments, and Free, Pro, or Enterprise plans on Ultralytics Platform, with metered credits for GPU cloud training, batch annotation, and endpoint uptime.
-keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
+description: Ultralytics Platform pricing for Free with up to $25 in signup credit, Pro at $29 per seat/month, and custom-priced Enterprise with the Enterprise License.
+keywords: Ultralytics Platform, Ultralytics pricing, Enterprise License, plans, billing, credits, subscription, payments, training costs
 ---
 
-# Billing
+# Pricing, Plans and Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, [batch annotation](../data/annotation.md#batch-annotation), and custom-resource endpoint uptime. Add credits, track
+[Ultralytics Platform](https://platform.ultralytics.com) has three plans: **Free** with a $5 signup credit ($25 after
+verifying a work email), **Pro** at $29 per seat/month, and **Enterprise**, which is custom-priced and includes the
+Ultralytics Enterprise License for commercial use. Every plan uses credits for metered compute: cloud training,
+[batch annotation](../data/annotation.md#batch-annotation), and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
@@ -31,9 +34,9 @@ Get started at no cost:
 - 3 concurrent cloud training jobs
 - 3 cloud deployments
 - 100 GB storage · 10 GB dataset upload limit
-- Model export to all 22 formats
+- Model export to all 23 formats
 - Manual, SAM 3.1, and YOLO Smart annotation
-- 24 cloud GPU types including 5090, H100 & H200 ($0.24–$4.39/hr)
+- 24 cloud GPU types including 5090, H100 & H200
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -223,7 +226,7 @@ Cloud training costs depend on [GPU selection](https://www.ultralytics.com/blog/
 
 B200 and B300 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
 
-See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
+See [Cloud Training](../train/cloud-training.md) for complete GPU options.
 
 ### Cost Calculation
 
@@ -231,10 +234,10 @@ See [Cloud Training](../train/cloud-training.md) for complete GPU options and pr
 Total Cost = GPU Rate x Training Time (hours)
 ```
 
-Example: Training for 2.5 hours on RTX PRO 6000
+Example: Training for 2.5 hours on a GPU priced at $2.00/hour
 
 ```text
-$2.09 x 2.5 = $5.23
+$2.00 x 2.5 = $5.00
 ```
 
 ## Upgrade to Pro
@@ -247,7 +250,7 @@ Upgrade for more features and monthly credits:
 4. Choose billing cycle (Monthly or Yearly)
 5. Complete checkout
 
-![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.ul.run/i/7c830c485f58d8d3ec9243c15f0340f6.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.ul.run/i/51b9dfbe2a1fec32580141b350326ef1.avif)<!-- screenshot -->
 
 ### Pro Benefits
 
@@ -342,6 +345,13 @@ supports free-text search across every field, and exports to CSV or JSON from th
 | **Adjustment**         | Manual correction applied by Ultralytics                                |
 
 ## FAQ
+
+### How much does an Ultralytics Enterprise License cost?
+
+Enterprise License pricing is custom, so no list price is published. Request a quote through the form on
+[Ultralytics Licensing](https://www.ultralytics.com/license). On Platform, the license is included in the
+[Enterprise plan](#enterprise); Free and Pro use AGPL-3.0. See
+[YOLO Licenses](../../index.md#yolo-licenses-how-is-ultralytics-yolo-licensed) for what each license allows.
 
 ### What happens when I run out of credits?
 

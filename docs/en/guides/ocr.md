@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLO26, OCR, scene text, document OCR, text detection, te
 
 Optical character recognition (OCR) detects and reads text in images. The [OCR solution](../reference/solutions/ocr.md)
 combines an Ultralytics YOLO26-Text detector with PaddleOCR's PP-OCRv6 recognizer, run on ONNX Runtime. It reads
-photos, documents, and screenshots at any rotation and returns every word with its line in reading order.
+photos, documents, and screenshots at any rotation and returns every word with its line in reading order. PP-OCRv6 supports 50 languages and ~200 diacritical characters.
 
 Detection and recognition remain separate components, so you can pair any text detector with PP-OCRv6 or your own
 recognition model.

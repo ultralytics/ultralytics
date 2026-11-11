@@ -591,8 +591,8 @@ class LoadPilAndNumpy:
             im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
         elif im.dtype == np.uint16:  # e.g. cv2.IMREAD_UNCHANGED frames, scaled to 8 bits like imread and PIL I;16
             im = (im >> 8).astype(np.uint8)
-        elif im.dtype.kind == "f":  # cv2.resize rejects float16, cvtColor rejects float64, and MPS has no float64
-            im = im.astype(np.float32, copy=False)
+        elif im.dtype.kind == "f":  # 0-255 floats as uint8: cv2, PIL (classify) and MPS reject some float dtypes
+            im = im.astype(np.uint8)
         im = np.atleast_3d(im)
         # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
         # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check, and

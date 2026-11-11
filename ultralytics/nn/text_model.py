@@ -288,7 +288,7 @@ class MobileCLIPTS(TextModel):
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset
 
-        self.encoder = torch.jit.load(attempt_download_asset(weight), map_location="cpu").to(device)
+        self.encoder = torch.jit.load(attempt_download_asset(weight), map_location=device)
         if hasattr(self.encoder, "encode_image"):
             from torchvision import transforms as T
 

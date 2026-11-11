@@ -56,8 +56,8 @@ def torch2executorch(
         metadata (dict | None, optional): Optional metadata to save as YAML.
         prefix (str, optional): Prefix for log messages.
         calibration_dataset (DataLoader | None, optional): Calibration dataloader for static INT8 (int8 weights + int8
-            activations, FP32 head on Detect models), as returned by ``get_int8_calibration_dataloader``. Requires
-            executorch>=1.6.0.
+            activations, FP32 head on Detect models), as returned by ``get_int8_calibration_dataloader``.
+            Requires executorch>=1.6.0.
 
     Returns:
         (str): Path to the exported ExecuTorch model directory.

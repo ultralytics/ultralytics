@@ -242,7 +242,15 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "data", "fraction"],
             "isolated-rknn",
         ],
-        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
+        [
+            "ExecuTorch",
+            "executorch",
+            "_executorch_model",
+            True,
+            False,
+            ["batch", "quantize", "data", "fraction"],
+            "executorch",
+        ],
         [
             "Axelera AI",
             "axelera",
@@ -485,6 +493,7 @@ INT8_FORMATS = frozenset(
         "deepx",
         "hailo",
         "xilinx",
+        "executorch",
     }
 )
 W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
@@ -1575,7 +1584,7 @@ class Exporter:
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):  # noqa: B008
-        """Export YOLO model to ExecuTorch *.pte format."""
+        """Export YOLO model to ExecuTorch *.pte format, with optional static INT8 (requires calibration ``data``)."""
         assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
         from ultralytics.utils.export.executorch import torch2executorch
 
@@ -1585,6 +1594,7 @@ class Exporter:
             output_dir=str(self.file).replace(self.file.suffix, "_executorch_model/"),
             metadata=self.metadata,
             prefix=prefix,
+            calibration_dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 else None,
         )
 
     @try_export

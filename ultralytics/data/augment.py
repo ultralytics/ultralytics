@@ -3175,7 +3175,7 @@ class ClassifyLetterBox:
         """
         imh, imw = im.shape[:2]
         r = min(self.h / imh, self.w / imw)  # ratio of new/old dimensions
-        h, w = round(imh * r), round(imw * r)  # resized image dimensions
+        h, w = max(1, round(imh * r)), max(1, round(imw * r))  # resized image dimensions
 
         # Calculate padding dimensions
         hs, ws = (math.ceil(x / self.stride) * self.stride for x in (h, w)) if self.auto else (self.h, self.w)

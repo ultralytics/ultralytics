@@ -8,6 +8,8 @@ from typing import Any
 import torch
 import torch.nn.functional as F
 
+from ultralytics.utils.torch_utils import TORCH_2_3
+
 
 def select_closest_cond_frames(frame_idx: int, cond_frame_outputs: dict[int, Any], max_cond_frame_num: int):
     """Select the closest conditioning frames to a given frame index.
@@ -202,24 +204,25 @@ def apply_rotary_enc(
         >>> freqs_cis = compute_axial_cis(64, 4, 4)  # For a 4x4 spatial grid with dim=64
         >>> q_encoded, k_encoded = apply_rotary_enc(xq, xk, freqs_cis)
     """
-    xq_ = torch.view_as_complex(xq.float().reshape(*xq.shape[:-1], -1, 2))
-    xk_ = torch.view_as_complex(xk.float().reshape(*xk.shape[:-1], -1, 2)) if xk.shape[-2] != 0 else None
-    freqs_cis = reshape_for_broadcast(freqs_cis, xq_)
-    xq_out = torch.view_as_real(xq_ * freqs_cis).flatten(3)
+    real = TORCH_2_3 and torch.compiler.is_compiling()  # torch.compile fuses real math but not complex math
+    xq_ = xq.float().reshape(*xq.shape[:-1], -1, 2)
+    xk_ = xk.float().reshape(*xk.shape[:-1], -1, 2) if xk.shape[-2] != 0 else None
+    freqs = torch.view_as_real(reshape_for_broadcast(freqs_cis, xq_[..., 0]))
+
+    def rotate(x, f):
+        if real:
+            (a, b), (c, s) = x.unbind(-1), f.unbind(-1)
+            return torch.stack((a * c - b * s, a * s + b * c), -1).flatten(3)
+        return torch.view_as_real(torch.view_as_complex(x) * torch.view_as_complex(f)).flatten(3)  # faster in eager
+
+    xq_out = rotate(xq_, freqs).type_as(xq)
     if xk_ is None:
         # No keys to rotate, due to dropout
-        return xq_out.type_as(xq).to(xq.device), xk
-    # Repeat freqs along seq_len dim to match k seq_len
-    if repeat_freqs_k and (r := xk_.shape[-2] // xq_.shape[-2]) > 1:
-        # MPS doesn't support repeat on complex tensors, decompose to real representation
-        if freqs_cis.device.type == "mps":
-            freqs_cis = torch.view_as_real(freqs_cis)
-            freqs_cis = freqs_cis.repeat(*([1] * (freqs_cis.ndim - 3)), r, 1, 1)
-            freqs_cis = torch.view_as_complex(freqs_cis.contiguous())
-        else:
-            freqs_cis = freqs_cis.repeat(*([1] * (freqs_cis.ndim - 2)), r, 1)
-    xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(3)
-    return xq_out.type_as(xq).to(xq.device), xk_out.type_as(xk).to(xk.device)
+        return xq_out, xk
+    # Repeat freqs along seq_len dim to match k seq_len (as real values, MPS cannot repeat complex tensors)
+    if repeat_freqs_k and (r := xk.shape[-2] // xq.shape[-2]) > 1:
+        freqs = freqs.repeat(*([1] * (freqs.ndim - 3)), r, 1, 1)
+    return xq_out, rotate(xk_, freqs).type_as(xk)
 
 
 def window_partition(x: torch.Tensor, window_size: int):

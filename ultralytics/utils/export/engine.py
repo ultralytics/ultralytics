@@ -200,10 +200,10 @@ def modelopt_quantize_onnx(
             # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
-            # The head's output layers, the bare convolutions and linears outside its `Conv` blocks, and DFL's fixed
-            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float as in QAT.
-            # `Classify.linear` exports as `Gemm` and loses nothing in INT8, so it is not matched
-            nodes_to_exclude=[rf".*/model\.{head}/((?!.*/conv/).*/(Conv|MatMul)|dfl/)"]
+            # The head's output layers, the bare convolutions outside its `Conv` blocks, and DFL's fixed conv cost most
+            # of the INT8 accuracy for a small share of the runtime, so they stay in float as in QAT. Linears export as
+            # `Gemm` and stay INT8: keeping `Classify.linear` in float measured no accuracy gain
+            nodes_to_exclude=[rf".*/model\.{head}/((?!.*/conv/).*/Conv(Transpose)?$|dfl/)"]
             + [rf"/model\.{i}/" for i in sorted(transformer)]
             + ([r".*/sc/conv/Conv$"] if sm121 else []),
             output_path=out_file,
@@ -461,7 +461,7 @@ def onnx2engine(
                 continue
             if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
                 dtype = trt.float32
-            elif layer.name.endswith(("/Conv", "/ConvTranspose", "/MatMul")) and (
+            elif layer.name.endswith(("/Conv", "/ConvTranspose")) and (
                 "/conv/" not in layer.name or "/dfl/" in layer.name
             ):
                 dtype = trt.float16

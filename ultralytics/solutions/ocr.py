@@ -88,13 +88,15 @@ class TextRecognizer:
 
             tmp = f.with_suffix(f".{uuid.uuid4().hex}.tmp")  # concurrent builders, even in other containers
             # FP16 weights, which TensorRT builds as typed: the same reads ~40% faster than FP32, with no ModelOpt
-            onnx_model = onnx.load(model)
-            with warnings.catch_warnings():  # one warning per tiny weight clamped to the FP16 range
-                warnings.simplefilter("ignore")
-                onnx.save(float16.convert_float_to_float16(onnx_model, keep_io_types=True), tmp.with_suffix(".onnx"))
-            metadata = {p.key: p.value for p in onnx_model.metadata_props}
-            onnx2engine(str(tmp.with_suffix(".onnx")), tmp, dynamic=True, shape=(8, 3, 48, 1600), metadata=metadata)
-            tmp.with_suffix(".onnx").unlink()
+            onnx_model, fp16 = onnx.load(model), tmp.with_suffix(".onnx")
+            try:
+                with warnings.catch_warnings():  # one warning per tiny weight clamped to the FP16 range
+                    warnings.simplefilter("ignore")
+                    onnx.save(float16.convert_float_to_float16(onnx_model, keep_io_types=True), fp16)
+                metadata = {p.key: p.value for p in onnx_model.metadata_props}
+                onnx2engine(str(fp16), tmp, dynamic=True, shape=(8, 3, 48, 1600), metadata=metadata)
+            finally:
+                fp16.unlink(missing_ok=True)
             os.replace(tmp, f)
         return TensorRTBackend(f, device)
 

@@ -70,17 +70,19 @@ class TextRecognizer:
     @staticmethod
     def load_engine(model: str, device: torch.device):
         """Load the TensorRT engine for ONNX `model` on `device`, building it on first use for this TensorRT and GPU."""
-        import onnx
-
         check_tensorrt()
         import tensorrt as trt
 
         from ultralytics.nn.backends.tensorrt import TensorRTBackend
-        from ultralytics.utils.export.engine import onnx2engine
 
         sm = "".join(map(str, torch.cuda.get_device_capability(device)))
         f = Path(model).with_name(f"{Path(model).stem}-trt{trt.__version__}-sm{sm}.engine")
         if not f.exists():  # dynamic batches of up to 8 words, 48 px high and up to 3200 px wide
+            check_requirements("onnx>=1.12.0,<2.0.0")
+            import onnx
+
+            from ultralytics.utils.export.engine import onnx2engine
+
             metadata = {p.key: p.value for p in onnx.load(model, load_external_data=False).metadata_props}
             tmp = f.with_suffix(f".{os.getpid()}.tmp")  # concurrent builders each write their own file
             onnx2engine(model, tmp, dynamic=True, shape=(8, 3, 48, 1600), metadata=metadata)

@@ -1383,6 +1383,7 @@ Clones an accessible project and its completed models. The optional body accepts
 `visibility`, `license`, a destination `owner`, and `models`, a list of model names to clone instead of every completed
 model. Without `visibility`, the clone is private when the destination workspace's
 [default visibility](../account/settings.md#default-visibility) is Private and otherwise keeps the source's visibility.
+A clone whose models would exceed the destination workspace's model limit returns `403` and copies nothing.
 
 ---
 

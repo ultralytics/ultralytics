@@ -76,7 +76,7 @@ class ClassificationPredictor(BasePredictor):
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """Resize and crop images on the host, leaving uint8 BGR for the device-side conversion."""
-        return [np.array(self.host_transforms(Image.fromarray(x))) for x in im]
+        return [np.array(self.host_transforms(Image.fromarray(x.astype(np.uint8, copy=False)))) for x in im]
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""

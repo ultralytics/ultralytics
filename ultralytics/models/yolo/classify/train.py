@@ -11,7 +11,7 @@ import torch
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
-from ultralytics.models.yolo.detect.train import DetectionTrainer
+from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import ClassificationModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.plotting import plot_images

@@ -1023,9 +1023,8 @@ class v8ClassificationLoss:
 
     def __init__(self, model: torch.nn.Module | None = None):
         """Initialize the loss with the model's cls_pw class weights, if set."""
-        self.class_weights = getattr(model, "class_weights", None)
-        if self.class_weights is not None:
-            self.class_weights = self.class_weights.to(next(model.parameters()).device)
+        w = getattr(model, "class_weights", None)
+        self.class_weights = None if w is None else w.to(next(model.parameters()))  # match model device and dtype
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Compute the classification loss between predictions and true labels."""

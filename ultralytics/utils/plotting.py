@@ -569,7 +569,10 @@ class Annotator:
         self._to_numpy()
         mask = np.asarray(mask)
         mask = mask if mask.dtype.kind in "iu" else mask.astype(int)  # class IDs index the palette directly
-        overlay = np.array([colors(i, True, custom) for i in range(int(mask.max(initial=0)) + 1)], self.im.dtype)[mask]
+        indices = np.where(mask == ignore_index, 0, mask) if ignore_index < 0 else mask
+        overlay = np.array([colors(i, True, custom) for i in range(int(mask.max(initial=0)) + 1)], self.im.dtype)[
+            indices
+        ]
         overlay[mask == ignore_index] = self.im[mask == ignore_index]
         self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
 

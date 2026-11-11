@@ -1021,10 +1021,15 @@ class PoseLoss26(v8PoseLoss):
 class v8ClassificationLoss:
     """Criterion class for computing training losses for classification."""
 
+    def __init__(self, model: torch.nn.Module | None = None):
+        """Initialize the loss with the model's cls_pw class weights, if set."""
+        w = getattr(model, "class_weights", None)
+        self.class_weights = None if w is None else w.to(next(model.parameters()))  # match model device and dtype
+
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Compute the classification loss between predictions and true labels."""
         preds = preds[1] if isinstance(preds, (list, tuple)) else preds
-        loss = F.cross_entropy(preds, batch["cls"], reduction="mean")
+        loss = F.cross_entropy(preds, batch["cls"], weight=self.class_weights, reduction="mean")
         return loss, {"loss": loss.detach()}
 
 

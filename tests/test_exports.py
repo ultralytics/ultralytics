@@ -370,10 +370,10 @@ def test_export_coreml(isolated_model, format, quantize, tmp_path):
         if quantize in {8, "w8a16"}:
             layers = spec.pipeline.models[0].neuralNetwork.layers
             assert any(layer.convolution.weights.quantization.numberOfBits == 8 for layer in layers)
-        if MACOS:
+        if MACOS:  # CoreML inference is only supported on macOS
             YOLO(file)(SOURCE, imgsz=32)
-            file = YOLO(isolated_model).export(format="coreml", imgsz=32)
-            YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for raw-output models
+            if format == "coreml" and quantize is None:  # raw-output model once, not per parametrization
+                YOLO(YOLO(isolated_model).export(format="coreml", imgsz=32))(SOURCE, imgsz=32)
 
     # Check captured output for errors
     output = stdout.getvalue() + stderr.getvalue()

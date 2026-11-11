@@ -144,12 +144,13 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 
 ## Dependencies and Licenses
 
-| Component       | Required                          | Role                                                    | License                |
-| --------------- | --------------------------------- | ------------------------------------------------------- | ---------------------- |
-| Ultralytics     | Yes                               | YOLO detection, crop geometry, and result orchestration | AGPL-3.0               |
-| ONNX Runtime    | Only for `recognizer="paddleocr"` | PP-OCRv6 recognition runtime, 1.26+ on Python 3.11+     | MIT                    |
-| PP-OCRv6 medium | Only for `recognizer="paddleocr"` | Recognition weights from the Ultralytics assets release | Apache-2.0             |
-| Custom callable | No                                | User-owned recognition integration                      | Defined by the backend |
+| Component       | Required                           | Role                                                         | License                |
+| --------------- | ---------------------------------- | ------------------------------------------------------------ | ---------------------- |
+| Ultralytics     | Yes                                | YOLO detection, crop geometry, and result orchestration      | AGPL-3.0               |
+| ONNX Runtime    | Only for `recognizer="paddleocr"`  | PP-OCRv6 recognition runtime, 1.26+ on Python 3.11+          | MIT                    |
+| PP-OCRv6 medium | For `"paddleocr"` and `"tensorrt"` | Recognition weights from the Ultralytics assets release      | Apache-2.0             |
+| TensorRT        | Only for `recognizer="tensorrt"`   | FP16 PP-OCRv6 engine on NVIDIA GPUs, instead of ONNX Runtime | NVIDIA proprietary     |
+| Custom callable | No                                 | User-owned recognition integration                           | Defined by the backend |
 
 PP-OCRv6 weights download on first use. Review the [model card](https://huggingface.co/PaddlePaddle/PP-OCRv6_medium_rec)
 and redistribution terms before packaging or deploying them. Custom checkpoint licenses are separate.
@@ -171,6 +172,13 @@ same reading order. See [How Scene Text OCR Works](#how-scene-text-ocr-works).
 
 No. OCR treats every input image independently, without track IDs or cached recognition. Process each video frame as a
 separate input when frame-by-frame OCR is required.
+
+### Can I run PP-OCRv6 recognition with TensorRT?
+
+Yes, on NVIDIA GPUs: `solutions.OCR(recognizer="tensorrt")` reads the same text about 2.5x faster than ONNX Runtime on
+dense pages. The first run builds an FP16 TensorRT engine (about 30 seconds) and caches it next to the PP-OCRv6 model
+for each TensorRT version and GPU architecture. The default `recognizer="paddleocr"` builds nothing and starts in about
+a second.
 
 ### Can I export the complete OCR pipeline?
 

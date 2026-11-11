@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+import os
+import threading
+import uuid
+import warnings
 from collections.abc import Callable
+from contextlib import nullcontext
+from pathlib import Path
 from typing import Any
 
 import cv2
@@ -11,47 +17,90 @@ import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LINUX, ops
-from ultralytics.utils.checks import check_python, check_requirements, rocm_is_available
+from ultralytics.utils.checks import check_python, check_requirements, check_tensorrt, rocm_is_available
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
 from ultralytics.utils.torch_utils import select_device
 
 
 class TextRecognizer:
-    """PP-OCRv6 text-line recognizer on ONNX Runtime, reading BGR line crops in width-sorted batches.
+    """PP-OCRv6 text-line recognizer on ONNX Runtime or TensorRT, reading BGR line crops in width-sorted batches.
 
     Examples:
         >>> recognize = TextRecognizer()
         >>> text, confidence = recognize([crop])[0]
+        >>> recognize = TextRecognizer(device=0, engine=True)  # FP16 TensorRT on NVIDIA GPUs
     """
 
-    def __init__(self, model: str = "PP-OCRv6_medium_rec.onnx", device: str | int | None = None) -> None:
-        """Load the recognizer on the NVIDIA GPU `device` when available, else on CPU, with its embedded character set."""
+    def __init__(self, model: str = "PP-OCRv6_medium_rec.onnx", device: str | int | None = None, engine: bool = False):
+        """Load the recognizer on the NVIDIA GPU `device` when available, else on CPU, with its embedded character set.
+
+        With `engine=True` on an NVIDIA GPU it runs as an FP16 TensorRT engine, built once per TensorRT version and GPU
+        architecture (about 30 s) and cached next to the ONNX model.
+        """
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
         cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
-        # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced.
-        # 1.26 hands outputs to torch via DLPack and needs Python 3.11+
-        check_python("3.11")
-        builds = (
-            ("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")  # Jetson lacks [cuda]
-            if cuda
-            else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")
-        )
-        check_requirements([tuple(f"{b}>=1.26.0" for b in builds)])
-        import onnxruntime as ort
+        model = str(attempt_download_asset(model))
+        self.session = None
+        if engine and cuda:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time
+            self.backend, self.lock = self.load_engine(model, device), threading.Lock()
+            alphabet = self.backend.metadata["character"]
+        else:
+            # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced.
+            # 1.26 hands outputs to torch via DLPack and needs Python 3.11+
+            check_python("3.11")
+            builds = (
+                ("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")  # Jetson lacks [cuda]
+                if cuda
+                else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")
+            )
+            check_requirements([tuple(f"{b}>=1.26.0" for b in builds)])
+            import onnxruntime as ort
 
-        providers = ["CPUExecutionProvider"]
-        if cuda and "CUDAExecutionProvider" in ort.get_available_providers():
-            if LINUX and hasattr(ort, "preload_dlls"):
-                ort.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
-            # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new line width and batch size
-            options = {"device_id": device.index or 0, "cudnn_conv_algo_search": "HEURISTIC"}
-            providers.insert(0, ("CUDAExecutionProvider", options))
-        self.session = ort.InferenceSession(str(attempt_download_asset(model)), providers=providers)
-        # Character probabilities stay on the recognizer's device, which returns only each step's best character
-        self.output = self.session.get_outputs()[0].name, "cuda" if len(providers) > 1 else "cpu", device.index or 0
-        # CTC alphabet: blank, the model's embedded characters, then space
-        self.characters = ["", *self.session.get_modelmeta().custom_metadata_map["character"].split("\n"), " "]
+            providers = ["CPUExecutionProvider"]
+            if cuda and "CUDAExecutionProvider" in ort.get_available_providers():
+                if LINUX and hasattr(ort, "preload_dlls"):
+                    ort.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
+                # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
+                options = {"device_id": device.index or 0, "cudnn_conv_algo_search": "HEURISTIC"}
+                providers.insert(0, ("CUDAExecutionProvider", options))
+            self.session, self.lock = ort.InferenceSession(model, providers=providers), nullcontext()  # concurrent
+            # Character probabilities stay on the recognizer's device, which returns only each step's best character
+            output = self.session.get_outputs()[0].name
+            self.output = output, "cuda" if len(providers) > 1 else "cpu", device.index or 0
+            alphabet = self.session.get_modelmeta().custom_metadata_map["character"]
+        self.characters = ["", *alphabet.split("\n"), " "]  # CTC alphabet: blank, the model's characters, then space
+
+    @staticmethod
+    def load_engine(model: str, device: torch.device):
+        """Load the TensorRT engine for ONNX `model` on `device`, building it on first use for this TensorRT and GPU."""
+        check_tensorrt()
+        import tensorrt as trt
+
+        from ultralytics.nn.backends.tensorrt import TensorRTBackend
+
+        sm = "".join(map(str, torch.cuda.get_device_capability(device)))
+        f = Path(model).with_name(f"{Path(model).stem}-trt{trt.__version__}-sm{sm}.engine")
+        if not f.exists():  # dynamic batches of up to 8 words, 48 px high and up to 3200 px wide
+            check_requirements(["onnx>=1.12.0,<2.0.0", "onnxconverter-common"])
+            import onnx
+            from onnxconverter_common import float16
+
+            from ultralytics.utils.export.engine import onnx2engine
+
+            tmp = f.with_suffix(f".{uuid.uuid4().hex}.tmp")  # concurrent builders, even in other containers
+            # FP16 weights, which TensorRT builds as typed: the same reads ~40% faster than FP32, with no ModelOpt
+            onnx_model, fp16 = onnx.load(model), tmp.with_suffix(".onnx")
+            try:
+                with warnings.catch_warnings():  # one warning per tiny weight clamped to the FP16 range
+                    warnings.simplefilter("ignore")
+                    onnx.save(float16.convert_float_to_float16(onnx_model, keep_io_types=True), fp16)
+                metadata = {p.key: p.value for p in onnx_model.metadata_props}
+                onnx2engine(str(fp16), tmp, dynamic=True, shape=(8, 3, 48, 1600), metadata=metadata)
+            finally:
+                fp16.unlink(missing_ok=True)
+            os.replace(tmp, f)
+        return TensorRTBackend(f, device)
 
     def __call__(self, crops: list[np.ndarray], batch: int = 8) -> list[tuple[str, float]]:
         """Read crops 48 px high, right-padded to at least 320 px as PaddleOCR does, returning text and confidence.
@@ -67,17 +116,24 @@ class TextRecognizer:
             lines.append(cv2.resize(crop, (width, 48)).transpose(2, 0, 1) / 127.5 - 1)
         order = sorted(range(len(lines)), key=lambda i: lines[i].shape[2])
         reads = [("", 0.0)] * len(lines)
-        io = self.session.io_binding()
+        io = self.session and self.session.io_binding()
         for start in range(0, len(order), batch):
             indices = order[start : start + batch]
             x = np.zeros((len(indices), 3, 48, max(320, lines[indices[-1]].shape[2])), np.float32)
             for j, i in enumerate(indices):
                 x[j, :, :, : lines[i].shape[2]] = lines[i]
-            io.bind_cpu_input("x", x)
-            io.bind_output(*self.output)
-            self.session.run_with_iobinding(io)
-            best = torch.from_dlpack(io.get_outputs()[0]).max(-1)
-            for i, scores, ids in zip(indices, best.values.cpu().numpy(), best.indices.cpu().numpy()):
+            with self.lock:  # TensorRT: read this batch before the next one overwrites its output buffer
+                if io is None:
+                    with torch.cuda.device(self.backend.device):  # from any thread, on the engine's GPU
+                        probs = self.backend.forward(torch.from_numpy(x).to(self.backend.device))[0]
+                else:
+                    io.bind_cpu_input("x", x)
+                    io.bind_output(*self.output)
+                    self.session.run_with_iobinding(io)
+                    probs = torch.from_dlpack(io.get_outputs()[0])
+                best = probs.max(-1)
+                best = best.values.cpu().numpy(), best.indices.cpu().numpy()
+            for i, scores, ids in zip(indices, *best):
                 keep = (ids != 0) & np.r_[True, ids[1:] != ids[:-1]]  # CTC: drop blanks and repeats
                 reads[i] = (
                     "".join(self.characters[c] for c in ids[keep]),
@@ -103,12 +159,12 @@ class OCR(BaseSolution):
         kwargs.setdefault("max_det", 1000)  # a document page holds more words than the default 300 detections
         super().__init__(**kwargs)
         recognizer = self.CFG["recognizer"]
-        if recognizer == "paddleocr":
-            self.recognize = TextRecognizer(device=self.CFG["device"])
+        if recognizer in {"paddleocr", "tensorrt"}:
+            self.recognize = TextRecognizer(device=self.CFG["device"], engine=recognizer == "tensorrt")
         elif callable(recognizer):
             self.recognize = lambda crops: [(text, float(confidence)) for text, confidence in map(recognizer, crops)]
         else:
-            raise ValueError("recognizer must be 'paddleocr' or a callable accepting a BGR image crop.")
+            raise ValueError("recognizer must be 'paddleocr', 'tensorrt' or a callable accepting a BGR image crop.")
 
     @staticmethod
     def lines(polygons: np.ndarray) -> list[list[int]]:

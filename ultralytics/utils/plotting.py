@@ -858,6 +858,8 @@ def save_one_box(
         w, h = (max(round(float(np.linalg.norm(p[0] - p[i]))), 1) for i in (3, 1))
         M = cv2.getAffineTransform(p[:3], np.float32([[w, h], [w, 0], [0, 0]]))
         im, xyxy = cv2.warpAffine(im, M, (w, h)).reshape(h, w, -1), torch.tensor([0.0, 0.0, w, h])
+        if gain == 1 and pad == 0 and not square and not save:  # the crop is the whole warp: skip the box math
+            return im if BGR or im.shape[2] == 1 else im[..., ::-1]
     b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square

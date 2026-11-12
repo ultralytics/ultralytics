@@ -865,12 +865,15 @@ def _rotate_image(source: Path, path: Path, rotation: int, channels: int) -> boo
     flags = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)  # as BaseDataset
     tmp = path.with_name(f".{uuid4().hex}{path.suffix}")  # new file: `source` may be a hard link into the asset pool
     try:  # publish complete files only, as ensure_file does; multispectral bands are TIFF pages imread stacks back
-        if (im := imread(source, flags)) is not None:
-            im = np.rot90(im, -rotation // 90)
-            if cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im):
-                os.replace(tmp, path)
-                return True
-        LOGGER.warning(f"Failed to rotate {path.name}")  # counted as a failed download
+        if (im := imread(source, flags)) is None:
+            raise OSError("unreadable image")
+        im = np.rot90(im, -rotation // 90)
+        if not (cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im)):
+            raise OSError("write failed")
+        os.replace(tmp, path)
+        return True
+    except Exception as e:  # counted as a failed download, as in ensure_file
+        LOGGER.warning(f"Failed to rotate {path.name}: {e}")
         return False
     finally:  # never leave the hidden download behind, where a classification folder would train on it
         tmp.unlink(missing_ok=True)

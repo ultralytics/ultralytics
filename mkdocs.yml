@@ -564,7 +564,7 @@ nav:
       - Ambarella: integrations/ambarella.md
       - AMD: integrations/amd.md
       - AMD Xilinx: integrations/xilinx.md
-      - Apple CoreML: integrations/coreml.md
+      - Apple Core ML: integrations/coreml.md
       - Axelera AI: integrations/axelera.md
       - Baidu PaddlePaddle: integrations/paddlepaddle.md
       - ClearML: integrations/clearml.md

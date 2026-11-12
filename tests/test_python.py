@@ -2495,10 +2495,13 @@ def test_segment_mask_conversion_rejects_colliding_labels(tmp_path, stem):
     assert {p.name: p.read_text() for p in labels.iterdir()} == {"frame.txt": "existing annotation\n"}
 
     (masks / f"{stem}.png").rename(masks / "background.png")
+    mask = np.ones((8, 8), dtype=np.uint8)
+    mask[:3, :3] = 3  # outside the two configured classes; valid class 1 must still be converted
+    Image.fromarray(mask).save(masks / "aaa.png")
     convert_segment_masks_to_yolo_seg(str(masks), str(labels), classes=2)
     output = {p.name: p.read_text() for p in labels.iterdir()}
     assert set(output) == {"aaa.txt", "frame.txt", "background.txt"}
-    assert output["aaa.txt"].split()[0] == "0"
+    assert [line.split()[0] for line in output["aaa.txt"].splitlines()] == ["0"]
     assert output["frame.txt"].split()[0] == "1"
     assert output["background.txt"] == ""
     convert_segment_masks_to_yolo_seg(str(masks), str(labels), classes=2)

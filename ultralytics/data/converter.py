@@ -860,15 +860,18 @@ def _rotate_ndjson_label(label: list, rotation: int, key: str, kpt_dims: int) ->
     return label
 
 
-def _rotate_image(source: Path, path: Path, rotation: int, channels: int) -> None:
-    """Write `source` as training reads it, rotated clockwise by `rotation` degrees, losslessly to `path`."""
+def _rotate_image(source: Path, path: Path, rotation: int, channels: int) -> bool:
+    """Write `source` as training reads it, rotated clockwise by `rotation` degrees, losslessly to `path` if possible."""
     flags = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)  # as BaseDataset
     tmp = path.with_name(f".{uuid4().hex}{path.suffix}")  # new file: `source` may be a hard link into the asset pool
     try:  # publish complete files only, as ensure_file does; multispectral bands are TIFF pages imread stacks back
-        im = np.rot90(imread(source, flags), -rotation // 90)
-        if not (cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im)):
-            raise OSError(f"Failed to write rotated image {path}")
-        os.replace(tmp, path)
+        if (im := imread(source, flags)) is not None:
+            im = np.rot90(im, -rotation // 90)
+            if cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im):
+                os.replace(tmp, path)
+                return True
+        LOGGER.warning(f"Failed to rotate {path.name}")  # counted as a failed download
+        return False
     finally:  # never leave the hidden download behind, where a classification folder would train on it
         tmp.unlink(missing_ok=True)
         source.unlink(missing_ok=True)
@@ -1242,7 +1245,7 @@ async def _convert_ndjson_to_yolo(
                 source = image_path.with_name(f".{uuid4().hex}{Path(record['file']).suffix}")
             image_ok = await ensure_file(session, source, record.get("url"))
             if image_ok and source != image_path:
-                await asyncio.get_running_loop().run_in_executor(
+                image_ok = await asyncio.get_running_loop().run_in_executor(
                     None, _rotate_image, source, image_path, rotation, channels
                 )
             if not is_depth:

@@ -58,8 +58,8 @@ class SolutionConfig:
         recognizer (str | Callable): 'paddleocr' for PP-OCRv6 on ONNX Runtime, 'tensorrt' for PP-OCRv6 as an FP16
             TensorRT engine on NVIDIA GPUs (built once, about 30 s), or a callable returning `(text, confidence)` from a
             BGR crop.
-        ocr_model (str, optional): PaddleOCR recognition model name for 'paddleocr'; None uses the default PP-OCRv6
-            ONNX model.
+        ocr_model (str, optional): PaddleOCR recognition model name for 'paddleocr'; None uses the default PP-OCRv6 ONNX
+            model.
 
     Methods:
         update: Update the configuration with user-defined keyword arguments and raise error on invalid keys.

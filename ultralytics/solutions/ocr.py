@@ -17,7 +17,13 @@ import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LINUX, ops
-from ultralytics.utils.checks import check_python, check_requirements, check_tensorrt, rocm_is_available
+from ultralytics.utils.checks import (
+    check_python,
+    check_requirements,
+    check_tensorrt,
+    onnxruntime_gpu_requirement,
+    rocm_is_available,
+)
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
 from ultralytics.utils.torch_utils import select_device
@@ -50,11 +56,12 @@ class TextRecognizer:
             # 1.26 hands outputs to torch via DLPack and needs Python 3.11+
             check_python("3.11")
             builds = (
-                ("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")  # Jetson lacks [cuda]
+                ("onnxruntime-gpu", "onnxruntime-windowsml")  # Jetson lacks [cuda]
                 if cuda
                 else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")
             )
-            check_requirements([tuple(f"{b}>=1.26.0" for b in builds)])
+            gpu = (onnxruntime_gpu_requirement("1.26.0"),) if cuda else ()
+            check_requirements([(*gpu, *(f"{b}>=1.26.0" for b in builds))])
             import onnxruntime as ort
 
             providers = ["CPUExecutionProvider"]

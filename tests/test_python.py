@@ -1694,6 +1694,15 @@ def test_utils_checks(monkeypatch):
     assert checks.check_version("4.13.0.92", "!=4.13.0.90")  # 4-segment pins must not be truncated
     assert not checks.check_version("4.13.0.90", "!=4.13.0.90")
     assert checks.check_version("2.0.1", "<2.0.1.5")
+    # onnxruntime-gpu>=1.27 is built for CUDA 13, so CUDA 12 torch builds must stay on the last CUDA 12 release
+    monkeypatch.setattr(torch.version, "cuda", "12.8")
+    assert checks.onnxruntime_gpu_requirement() == "onnxruntime-gpu[cuda]<1.27"
+    assert checks.onnxruntime_gpu_requirement("1.26.0") == "onnxruntime-gpu[cuda]>=1.26.0,<1.27"
+    assert checks.check_version("1.26.0", ">=1.26.0,<1.27") and not checks.check_version("1.31.1", "<1.27")
+    monkeypatch.setattr(torch.version, "cuda", "13.0")
+    assert checks.onnxruntime_gpu_requirement() == "onnxruntime-gpu[cuda]"
+    monkeypatch.setattr(torch.version, "cuda", None)  # CPU-only torch
+    assert checks.onnxruntime_gpu_requirement("1.26.0") == "onnxruntime-gpu[cuda]>=1.26.0"
     checks.print_args()
 
 

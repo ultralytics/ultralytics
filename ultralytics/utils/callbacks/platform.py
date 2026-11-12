@@ -169,7 +169,7 @@ def _upload_file(file_path, project, name, progress=False, retry=1, model_id=Non
         LOGGER.warning(f"{PREFIX}Failed to get upload URL: {detail}")
         return None
 
-    headers = {"Content-Type": "image/jpeg"} if visual else None
+    headers = {"Content-Type": "image/jpeg", **data.get("headers", {})} if visual else None
     if safe_upload(file=file_path, url=data["uploadUrl"], headers=headers, retry=retry, progress=progress):
         gcs_path = data.get("gcsPath")
         if visual:

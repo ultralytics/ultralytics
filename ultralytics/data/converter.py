@@ -863,13 +863,14 @@ def _rotate_ndjson_label(label: list, rotation: int, key: str, kpt_dims: int) ->
 def _rotate_image(source: Path, path: Path, rotation: int, channels: int) -> bool:
     """Write `source` as training reads it, rotated clockwise by `rotation` degrees, losslessly to `path` if possible."""
     flags = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)  # as BaseDataset
-    tmp = path.with_name(f".{uuid4().hex}{path.suffix}")  # new file: `source` may be a hard link into the asset pool
+    tmp = source.with_name(f".{uuid4().hex}{path.suffix}")  # new file: `source` may be a hard link into the asset pool
     try:  # publish complete files only, as ensure_file does; multispectral bands are TIFF pages imread stacks back
         if (im := imread(source, flags)) is None:
             raise OSError("unreadable image")
         im = np.rot90(im, -rotation // 90)
         if not (cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im)):
             raise OSError("write failed")
+        path.parent.mkdir(parents=True, exist_ok=True)  # classification class folders are created on demand
         os.replace(tmp, path)
         return True
     except Exception as e:  # counted as a failed download, as in ensure_file
@@ -1244,8 +1245,8 @@ async def _convert_ndjson_to_yolo(
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
             source = image_path
-            if rotation and not image_path.exists():  # a hidden download: no rerun or concurrent run rotates twice
-                source = image_path.with_name(f".{uuid4().hex}{Path(record['file']).suffix}")
+            if rotation and not image_path.exists():  # hidden in the dataset root, which no loader scans
+                source = dataset_dir / f".{uuid4().hex}{Path(record['file']).suffix}"
             image_ok = await ensure_file(session, source, record.get("url"))
             if image_ok and source != image_path:
                 image_ok = await asyncio.get_running_loop().run_in_executor(

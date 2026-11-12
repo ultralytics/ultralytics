@@ -423,10 +423,10 @@ Custom metadata is separate from training-owned model information, environment d
 
 Control who can see your model:
 
-| Setting     | Description                               |
-| ----------- | ----------------------------------------- |
-| **Private** | Only you and workspace members can access |
-| **Public**  | Anyone can view on Explore page           |
+| Setting     | Description                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| **Private** | Only you and workspace members can access                                                |
+| **Public**  | Anyone can view, including from [Explore](../explore.md#find-models-by-what-they-detect) |
 
 Visibility is set at the project level, so it controls every model in the project. To change it, click the visibility badge (`private` or `public`) beside the project name in the breadcrumb at the top of the page. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
 

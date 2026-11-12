@@ -85,7 +85,7 @@ Projects tab.
 On the Models tab, describe what you need to detect, such as `hard hat` or `aerial drones`, to find public trained
 models even when no model or project name contains your words.
 
-![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/ded394c724f328af58e484202c7846cb.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/c703819d8a01ffbbc0b4454be6bb37c7.avif)<!-- screenshot -->
 
 Results are ranked in three tiers:
 

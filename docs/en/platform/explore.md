@@ -78,14 +78,15 @@ narrow screens such as phones, the image opens full size instead.
 To search by a photo instead, click the search-by-image icon in the Datasets, Images, or Models search bar, or drop an
 image onto the page. iPhone HEIC photos work too: the browser converts them to JPEG before searching. The Images tab
 shows images like it, each with its similarity score, the Datasets tab shows public datasets containing similar images,
-with those images on their cards, and the Models tab shows models trained on similar images. Filters, and sorting on
-the Datasets and Models tabs, still apply, and switching between these three tabs keeps the photo. The photo is searched, not saved, and stays out of the
-URL; the search bar shows it until you click **Close**, type a search, or open the Projects tab.
+with those images on their cards, and the Models tab shows models trained on similar images. Filters, and sorting on the
+Datasets and Models tabs, still apply, and switching between these three tabs keeps the photo. The photo is searched,
+not saved, and stays out of the URL; the search bar shows it until you click **Close**, type a search, or open the
+Projects tab.
 
 ### Find Models by What They Detect
 
-On the Models tab, describe what you need to detect, such as `hard hat` or `aerial drones`, to find public trained models
-even when no model or project name contains your words.
+On the Models tab, describe what you need to detect, such as `hard hat` or `aerial drones`, to find public trained
+models even when no model or project name contains your words.
 
 ![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/1e2dad26d1f7b4963f55df399f648b51.avif)<!-- screenshot -->
 
@@ -95,12 +96,11 @@ Results are ranked in three tiers:
 2. Models whose name or project matches the search
 3. Models trained on public datasets whose images match the search, best match first
 
-To keep repeated runs and copies from filling the page, the tab lists one model per training dataset (or per project
-for models without one), while official `@ultralytics` models each keep their own card. It leaves out cloned models and
+To keep repeated runs and copies from filling the page, the tab lists one model per training dataset (or per project for
+models without one), while official `@ultralytics` models each keep their own card. It leaves out cloned models and
 models that haven't finished training; the training dataset's [Models tab](data/datasets.md#models-tab) lists the other
-models trained on it. Before you search, the tab
-lists models trained on public datasets, newest first. Models without a public training dataset, such as uploaded `.pt`
-files, are found by their model or project name only.
+models trained on it. Before you search, the tab lists models trained on public datasets, newest first. Models without a
+public training dataset, such as uploaded `.pt` files, are found by their model or project name only.
 
 Click a card to open the model, then test it from its `Predict` tab, [deploy it](deploy/endpoints.md),
 [clone it](#clone-model), or [download it](#download-model).

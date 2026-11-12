@@ -27,6 +27,7 @@
     "data": ["str", "'images'", "Path to image directory used for similarity search."],
     "imgsz": ["int", "640", "Input image size for model inference."],
     "recognizer": ["str` or `Callable", "'paddleocr'", "Text-recognition backend: `'paddleocr'` (PP-OCRv6 on ONNX Runtime), `'tensorrt'` (PP-OCRv6 as an FP16 TensorRT engine on NVIDIA GPUs), or a callable accepting a BGR crop and returning `(text, confidence)`."],
+    "ocr_model": ["str", "None", "PaddleOCR recognition model name, such as `'korean_PP-OCRv5_mobile_rec'`, for `recognizer='paddleocr'`; `None` uses the default PP-OCRv6 ONNX model."],
 } %}
 {% if not params %}
 {% for param, details in default_params.items() %}

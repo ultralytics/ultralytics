@@ -79,7 +79,7 @@ COCO-Text and HierText word annotations.
 Here's a table with the `OCR` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "recognizer", "line_width", "verbose"]) }}
+{{ param_table(["model", "recognizer", "ocr_model", "line_width", "verbose"]) }}
 
 Additionally, the following visualization settings are supported:
 
@@ -120,8 +120,23 @@ as `TEKCT`, often with high confidence. Coverage of each language's full alphabe
 | Cyrillic      | Russian, Ukrainian, Belarusian, Bulgarian, Serbian, Kazakh, and others                                                                                                          | ❌ Not supported                                                              |
 | Other         | Korean (Hangul), Arabic, Hebrew, Hindi and other Devanagari, Thai                                                                                                               | ❌ Not supported                                                              |
 
-Digits, ASCII punctuation, and common symbols such as `€`, `£`, `¥`, and `°` are included. To read an unsupported
-script, pass a recognizer trained for it as a [custom recognizer](#use-a-custom-recognizer).
+Digits, ASCII punctuation, and common symbols such as `€`, `£`, `¥`, and `°` are included.
+
+### Choose a PaddleOCR Model
+
+Set `ocr_model` to an official PaddleOCR model name to read another script. For example, use
+`korean_PP-OCRv5_mobile_rec` for Korean, `cyrillic_PP-OCRv5_mobile_rec` for Cyrillic, or
+`arabic_PP-OCRv5_mobile_rec` for Arabic:
+
+```python
+ocr = solutions.OCR(recognizer="paddleocr", ocr_model="korean_PP-OCRv5_mobile_rec")
+result = ocr(im0)
+```
+
+This option installs PaddleOCR and PaddlePaddle and downloads the selected model on first use. See
+[PaddleOCR's text recognition models](https://www.paddleocr.ai/v3.7.0/en/version3.x/module_usage/text_recognition.html)
+for all model names, language coverage, accuracy, and speed. Select the model for your scenario; OCR does not switch
+recognition models automatically. You can also pass a [custom recognizer](#use-a-custom-recognizer).
 
 ## Use a Custom Recognizer
 
@@ -164,13 +179,14 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 
 ## Dependencies and Licenses
 
-| Component       | Required                           | Role                                                         | License                |
-| --------------- | ---------------------------------- | ------------------------------------------------------------ | ---------------------- |
-| Ultralytics     | Yes                                | YOLO detection, crop geometry, and result orchestration      | AGPL-3.0               |
-| ONNX Runtime    | Only for `recognizer="paddleocr"`  | PP-OCRv6 recognition runtime, 1.26+ on Python 3.11+          | MIT                    |
-| PP-OCRv6 medium | For `"paddleocr"` and `"tensorrt"` | Recognition weights from the Ultralytics assets release      | Apache-2.0             |
-| TensorRT        | Only for `recognizer="tensorrt"`   | FP16 PP-OCRv6 engine on NVIDIA GPUs, instead of ONNX Runtime | NVIDIA proprietary     |
-| Custom callable | No                                 | User-owned recognition integration                           | Defined by the backend |
+| Component                | Required                                  | Role                                                         | License                |
+| ------------------------ | ----------------------------------------- | ------------------------------------------------------------ | ---------------------- |
+| Ultralytics              | Yes                                       | YOLO detection, crop geometry, and result orchestration      | AGPL-3.0               |
+| ONNX Runtime             | Default `"paddleocr"` without `ocr_model` | PP-OCRv6 recognition runtime, 1.26+ on Python 3.11+          | MIT                    |
+| PP-OCRv6 medium          | Default `"paddleocr"` and `"tensorrt"`    | Recognition weights from the Ultralytics assets release      | Apache-2.0             |
+| PaddleOCR + PaddlePaddle | Only when `ocr_model` is set              | Official PaddleOCR recognition models                        | Apache-2.0             |
+| TensorRT                 | Only for `recognizer="tensorrt"`          | FP16 PP-OCRv6 engine on NVIDIA GPUs, instead of ONNX Runtime | NVIDIA proprietary     |
+| Custom callable          | No                                        | User-owned recognition integration                           | Defined by the backend |
 
 PP-OCRv6 weights download on first use. Review the [model card](https://huggingface.co/PaddlePaddle/PP-OCRv6_medium_rec)
 and redistribution terms before packaging or deploying them. Custom checkpoint licenses are separate.
@@ -179,14 +195,15 @@ and redistribution terms before packaging or deploying them. Custom checkpoint l
 
 ### Can I use my own OCR model instead of PP-OCRv6?
 
-Yes. Pass a callable as `recognizer` and return `(text, confidence)` for each BGR crop. See
-[Use a Custom Recognizer](#use-a-custom-recognizer) for the input and output contract.
+Yes. Set `ocr_model` to an [official PaddleOCR model](#choose-a-paddleocr-model), or pass a callable as `recognizer` and
+return `(text, confidence)` for each BGR crop. See [Use a Custom Recognizer](#use-a-custom-recognizer) for the custom
+input and output contract.
 
 ### Can OCR read Cyrillic, Korean, or Arabic text?
 
-Not with the default PP-OCRv6 recognizer: its character set covers Chinese, Japanese, and Latin-script languages, but
-not Cyrillic, Hangul, Arabic, Hebrew, Devanagari, or Thai. YOLO26-Text still detects those words, so pass a recognizer
-for the script as `recognizer`. See [Supported Languages](#supported-languages).
+Yes. Select the corresponding PaddleOCR model, such as `cyrillic_PP-OCRv5_mobile_rec`, `korean_PP-OCRv5_mobile_rec`, or
+`arabic_PP-OCRv5_mobile_rec`, with `ocr_model`. The default PP-OCRv6 recognizer does not support these scripts. See
+[Supported Languages](#supported-languages).
 
 ### Does OCR read rotated or upside-down text?
 

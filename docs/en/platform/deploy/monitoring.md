@@ -96,8 +96,8 @@ Each deployment page shows real-time metrics above its `Overview`, `Monitoring`,
 | **HTTP P95 Latency (24h)** | 95th percentile of the 15-minute P95 latencies                       |
 
 Each card shows a sparkline and refreshes every minute, next to a card linking to the deployed model. A stopped
-deployment serves no requests, so it records no new metrics, but its page and the Deployments tab still show its last
-24 hours. On the Deployments tab, metrics are fetched for the 20 most recent deployments.
+deployment serves no requests, so it records no new metrics, but its page still shows its last 24 hours. On the
+Deployments tab, metrics are fetched for the 20 most recent deployments.
 
 ### Health Check
 

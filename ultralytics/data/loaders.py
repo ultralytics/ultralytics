@@ -101,6 +101,7 @@ class LoadStreams:
         - The class uses threading to efficiently load frames from multiple streams simultaneously.
         - It automatically handles YouTube links, converting them to the best available stream URL.
         - The class implements a buffer system to manage frame storage and retrieval.
+        - A streams file such as `list.streams` is read as UTF-8. Re-save a list written in a legacy encoding as UTF-8.
     """
 
     def __init__(self, sources: str = "file.streams", vid_stride: int = 1, buffer: bool = False, channels: int = 3):
@@ -371,6 +372,7 @@ class LoadImagesAndVideos:
         - Supports various image formats including HEIC.
         - Handles both local files and directories.
         - Can read from a *.txt or *.csv file containing paths to images and videos.
+        - A *.txt or *.csv source list is read as UTF-8. Re-save a list written in a legacy encoding as UTF-8.
     """
 
     def __init__(self, path: str | Path | list | tuple, batch: int = 1, vid_stride: int = 1, channels: int = 3):

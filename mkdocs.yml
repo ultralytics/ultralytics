@@ -558,9 +558,9 @@ nav:
       - Integrations: integrations/index.md
       - Export formats:
           - Alibaba MNN: integrations/mnn.md
+          - Apple Core AI: integrations/coreai.md
           - Apple Core ML: integrations/coreml.md
           - Baidu PaddlePaddle: integrations/paddlepaddle.md
-          - Core AI: integrations/coreai.md
           - ExecuTorch: integrations/executorch.md
           - Google LiteRT: integrations/litert.md
           - Intel OpenVINO: integrations/openvino.md
@@ -574,7 +574,7 @@ nav:
           - TorchScript: integrations/torchscript.md
       - Hardware & devices:
           - Ambarella: integrations/ambarella.md
-          - AMD: integrations/amd.md
+          - AMD GPUs: integrations/amd.md
           - AMD Xilinx: integrations/xilinx.md
           - Axelera AI: integrations/axelera.md
           - DEEPX: integrations/deepx.md
@@ -582,8 +582,8 @@ nav:
           - Hailo: integrations/hailo.md
           - Huawei Ascend: integrations/ascend.md
           - Luxonis OAK: integrations/luxonis.md
-          - MediaTek: integrations/mediatek.md
-          - NXP: integrations/nxp.md
+          - MediaTek Dimensity: integrations/mediatek.md
+          - NXP i.MX95: integrations/nxp.md
           - Qualcomm QNN: integrations/qnn.md
           - Rockchip RKNN: integrations/rockchip-rknn.md
           - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
@@ -591,7 +591,7 @@ nav:
       - Data & training:
           - Albumentations: integrations/albumentations.md
           - ClearML: integrations/clearml.md
-          - Comet ML: integrations/comet.md
+          - Comet: integrations/comet.md
           - DVC: integrations/dvc.md
           - MLflow: integrations/mlflow.md
           - Ray Tune: integrations/ray-tune.md
@@ -601,7 +601,7 @@ nav:
       - Cloud & notebooks:
           - Amazon SageMaker: integrations/amazon-sagemaker.md
           - Google Colab: integrations/google-colab.md
-          - IBM Watsonx: integrations/ibm-watsonx.md
+          - IBM watsonx: integrations/ibm-watsonx.md
           - JupyterLab: integrations/jupyterlab.md
           - Kaggle: integrations/kaggle.md
           - Paperspace Gradient: integrations/paperspace.md

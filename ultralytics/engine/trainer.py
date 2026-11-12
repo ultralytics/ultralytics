@@ -638,7 +638,7 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
-                if self.stop:
+                if self.stop and RANK == -1:  # DDP ranks stop together at the epoch-end broadcast below
                     break  # allow external stop (e.g. platform cancellation) between batches
             else:
                 # for/else: this block runs only when the for loop completes without break (no OOM retry)

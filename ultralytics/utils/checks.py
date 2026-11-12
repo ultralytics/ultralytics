@@ -1247,9 +1247,9 @@ ONNXRUNTIME_BUILDS = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxr
 def onnxruntime_gpu_requirement(min_version: str = "") -> str:
     """Return the onnxruntime-gpu[cuda] requirement that matches the CUDA major version torch was built with.
 
-    onnxruntime-gpu>=1.27 on PyPI is built for CUDA 13 and cannot load the CUDA 12 libraries shipped with a CUDA 12 build
-    of torch, so inference would silently fall back to CPUExecutionProvider. CUDA 12 torch is capped at 1.26, the last
-    CUDA 12 release.
+    onnxruntime-gpu>=1.27 on PyPI is built for CUDA 13 and cannot load the CUDA 12 libraries shipped with a CUDA 12
+    build of torch, so inference would silently fall back to CPUExecutionProvider. CUDA 12 torch is capped at 1.26, the
+    last CUDA 12 release.
 
     Args:
         min_version (str, optional): Minimum onnxruntime-gpu version, e.g. "1.26.0".

@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Explore Public Datasets, Models & Projects
 comments: true
-description: Find public datasets, trained YOLO models, and projects on Ultralytics Platform Explore. Search models by what they detect or by a photo, then try, clone, or fine-tune them.
+description: Find public datasets, trained YOLO models, and projects on Ultralytics Platform Explore. Search models by what they detect, then try, clone, or fine-tune them.
 keywords: Ultralytics Platform, explore, public datasets, public models, pretrained models, model search, public projects, semantic search, computer vision, YOLO, community
 ---
 
@@ -60,12 +60,12 @@ easy to bookmark or share.
 
 ![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/3dd1531ea3532850784aa8a2f9e12b50.avif)<!-- screenshot -->
 
-| Tab          | Matched Fields                                              |
-| ------------ | ----------------------------------------------------------- |
-| **Datasets** | Name, description, owner username, tags, and class names    |
-| **Images**   | What the image shows                                        |
-| **Models**   | Model name, project name, and what its training images show |
-| **Projects** | Name, description, owner username, and tags                 |
+| Tab          | Matched Fields                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| **Datasets** | Name, description, owner username, tags, and class names                                                 |
+| **Images**   | What the image shows                                                                                     |
+| **Models**   | Model name; the project's name, description, owner username, and tags; and what its training images show |
+| **Projects** | Name, description, owner username, and tags                                                              |
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
 search, and their cards show the matching images. Searching an official dataset's name or address (such as `HIT-UAV` or
@@ -78,26 +78,27 @@ narrow screens such as phones, the image opens full size instead.
 To search by a photo instead, click the search-by-image icon in the Datasets, Images, or Models search bar, or drop an
 image onto the page. iPhone HEIC photos work too: the browser converts them to JPEG before searching. The Images tab
 shows images like it, each with its similarity score, the Datasets tab shows public datasets containing similar images,
-with those images on their cards, and the Models tab shows models trained on similar images. Filters and sorting still
-apply, and switching between these three tabs keeps the photo. The photo is searched, not saved, and stays out of the
+with those images on their cards, and the Models tab shows models trained on similar images. Filters, and sorting on
+the Datasets and Models tabs, still apply, and switching between these three tabs keeps the photo. The photo is searched, not saved, and stays out of the
 URL; the search bar shows it until you click **Close**, type a search, or open the Projects tab.
 
 ### Find Models by What They Detect
 
-On the Models tab, describe what you need to detect, such as `fire and smoke` or `aerial drones`, to find public trained
-models even when no model or project name contains your words.
+On the Models tab, describe what you need to detect, such as `hard hat` or `aerial drones`, to find public trained models
+even when no model or project name contains your words.
 
-![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/465226282374be4ed777fd4b66a0c232.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/1e2dad26d1f7b4963f55df399f648b51.avif)<!-- screenshot -->
 
 Results are ranked in three tiers:
 
 1. Official `@ultralytics` models that match, such as YOLO26 models for `yolo26`
-2. Models whose name or project name matches the search
+2. Models whose name or project matches the search
 3. Models trained on public datasets whose images match the search, best match first
 
 To keep repeated runs and copies from filling the page, the tab lists one model per training dataset (or per project
-for models without one), and leaves out cloned models and models that haven't finished training; the training
-dataset's [Models tab](data/datasets.md#models-tab) lists the other models trained on it. Before you search, the tab
+for models without one), while official `@ultralytics` models each keep their own card. It leaves out cloned models and
+models that haven't finished training; the training dataset's [Models tab](data/datasets.md#models-tab) lists the other
+models trained on it. Before you search, the tab
 lists models trained on public datasets, newest first. Models without a public training dataset, such as uploaded `.pt`
 files, are found by their model or project name only.
 
@@ -185,18 +186,18 @@ Each item displays:
 
 === "Model Cards"
 
-    | Element             | Description                                                                                                                |
-    | ------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-    | **Training Images** | Images from the model's public training dataset with their labels, or its project's cover image or icon when there is none |
-    | **Name**            | Model name                                                                                                                 |
-    | **Task Badge**      | YOLO task type (detect, segment, etc.)                                                                                     |
-    | **Owner / Project** | Owner username and the project that holds the model                                                                        |
-    | **Metrics**         | The task's first two metrics, such as mAP50 and mAP50-95 for detection or top-1 and top-5 accuracy for classification      |
-    | **Star Count**      | Number of community stars (shown when above zero)                                                                          |
-    | **Epochs**          | Number of training epochs                                                                                                  |
-    | **Size**            | Model file size                                                                                                            |
-    | **Dataset**         | Name of the public dataset the model was trained on                                                                        |
-    | **Class Names**     | First four class names the model detects as badges, then how many more                                                     |
+    | Element             | Description                                                                                                                                    |
+    | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+    | **Training Images** | Images from the model's public training dataset with their labels and its image count, or its project's cover image or icon when there is none |
+    | **Name**            | Model name                                                                                                                                     |
+    | **Task Badge**      | YOLO task type (detect, segment, etc.)                                                                                                         |
+    | **Owner / Project** | Owner username and the project that holds the model                                                                                            |
+    | **Metrics**         | The task's first two metrics, such as mAP50 and mAP50-95 for detection or top-1 and top-5 accuracy for classification                          |
+    | **Star Count**      | Number of community stars (shown when above zero)                                                                                              |
+    | **Epochs**          | Number of training epochs                                                                                                                      |
+    | **Size**            | Model file size                                                                                                                                |
+    | **Dataset**         | Name of the public dataset the model was trained on                                                                                            |
+    | **Class Names**     | First four class names the model detects as badges, then how many more                                                                         |
 
 ## Use Public Content
 
@@ -318,7 +319,7 @@ profiles. The **Share** button next to it copies a link or opens a pre-filled so
 
 ## Make Your Content Public
 
-Make your work available to the community. Public content is visible to everyone, including users who aren't signed in. Explore lists public datasets that contain at least one image and public projects that contain at least one model, so an empty dataset or a project with no models stays off the Explore page until you add content to it. Models follow the visibility of the project that holds them and have no separate badge; a public project's trained models, except clones, appear on the Models tab.
+Make your work available to the community. Public content is visible to everyone, including users who aren't signed in. Explore lists public datasets that contain at least one image and public projects that contain at least one model, so an empty dataset or a project with no models stays off the Explore page until you add content to it. Models follow the visibility of the project that holds them and have no separate badge; a public project's trained models, except clones, can be found on the [Models tab](#find-models-by-what-they-detect).
 
 ```mermaid
 flowchart TD

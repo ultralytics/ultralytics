@@ -162,12 +162,18 @@ class OCR(BaseSolution):
         if recognizer == "paddleocr" and self.CFG["ocr_model"]:
             check_paddle(">=3.1.0", gpu=">=3.1.0")  # PP-OCRv5/v6 require PaddlePaddle 3.1+
             check_requirements("paddleocr>=3.7,<4")
+            import paddle
             from paddleocr import TextRecognition
 
             device = self.CFG["device"]
             if device is not None:
                 device = select_device(device, verbose=False)
-                device = f"gpu:{device.index or 0}" if getattr(device, "type", "cpu") == "cuda" else "cpu"
+                cuda = getattr(device, "type", "cpu") == "cuda"
+                if cuda and not paddle.device.is_compiled_with_cuda():
+                    raise RuntimeError(
+                        "PaddleOCR CUDA inference requires paddlepaddle-gpu; install it or use device='cpu'."
+                    )
+                device = f"gpu:{device.index or 0}" if cuda else "cpu"
             paddle = TextRecognition(model_name=self.CFG["ocr_model"], device=device)
             self.recognize = lambda crops: [
                 (r["rec_text"], float(r["rec_score"])) for r in paddle.predict(crops, batch_size=16)

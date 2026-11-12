@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Ultralytics YOLO integrations for training, experiment tracking, dataset management, and deployment to ONNX, TensorRT, OpenVINO, Core ML, and edge NPUs.
-keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLflow, Ultralytics Platform, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, MediaTek, Luxonis, PaddlePaddle, NCNN, Hailo, Hailo HEF, Ambarella, CVflow, Qualcomm QNN, RKNN, edge AI
+keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLflow, Ultralytics Platform, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, MediaTek, Luxonis, PaddlePaddle, NCNN, Hailo, Hailo HEF, Ambarella, CVflow, Qualcomm QNN, RKNN, edge AI
 ---
 
 # Ultralytics Integrations
@@ -98,8 +98,6 @@ Explore the links to learn more about each integration and how to get the most o
 ## Serving & Pipelines
 
 - [Intel DL Streamer](../guides/dlstreamer-intel.md): Quickstart guide for deploying YOLO26 models on Intel Core Ultra Series 3 devices using DL Streamer and OpenVINO™.
-
-- [Neural Magic](neural-magic.md): Historical guide to sparse CPU inference with the DeepSparse engine, whose community libraries are deprecated.
 
 - [NVIDIA DALI](../guides/nvidia-dali.md): Eliminate CPU preprocessing bottlenecks by running YOLO letterbox resize, padding, and normalization on the GPU using NVIDIA DALI, with Triton Inference Server integration.
 

@@ -638,7 +638,7 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
-                if self.stop:
+                if self.stop and RANK == -1:  # DDP ranks finish the epoch and share stop before validation
                     break  # allow external stop (e.g. platform cancellation) between batches
             else:
                 # for/else: this block runs only when the for loop completes without break (no OOM retry)
@@ -657,6 +657,10 @@ class BaseTrainer:
                 self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
 
             # Validation
+            if RANK != -1:  # an external stop (e.g. platform cancellation) is set on rank 0 only
+                broadcast_list = [self.stop if RANK == 0 else None]
+                dist.broadcast_object_list(broadcast_list, 0)  # all ranks must agree on validating below
+                self.stop = broadcast_list[0]
             final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                 self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike

@@ -11,7 +11,7 @@ keywords: Ultralytics Platform, YOLO inference, inference API, predict, object d
 [Ultralytics Platform](https://platform.ultralytics.com) lets you test a trained YOLO model on your own images from its
 `Predict` tab, then call it over REST from shared or dedicated endpoints.
 
-![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/4adbaea0e33520bd47e9225801392f90.avif)<!-- screenshot -->
+![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/563ca77d653d3486e8bf796e3c42016f.avif)<!-- screenshot -->
 
 ## Predict Tab
 
@@ -95,7 +95,7 @@ Inference results display the output appropriate to the model task: boxes, masks
 classification scores, semantic coverage, or a depth map. Object results use the dataset class colors when available.
 The panel also shows preprocess, inference, postprocess, and network timing.
 
-![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/c32fd4716ad8488b7f5f850383f36f1c.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/0b6527198496efaf3909937fba1b546e.avif)<!-- screenshot -->
 
 The results panel shows:
 
@@ -309,7 +309,7 @@ with open("image.jpg", "rb") as f:
     console.log(result);
     ```
 
-![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/c2abdd3d156fc453381fccb5e90e1569.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/b73b37203502202ec46c6a4622880e89.avif)<!-- screenshot -->
 
 ### Request Parameters
 
@@ -358,7 +358,7 @@ with open("image.jpg", "rb") as f:
 }
 ```
 
-![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/d6b0c482bc51f61712839f1def0416e6.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/c029c742eca35e11a8cb8297892c5b0e.avif)<!-- screenshot -->
 
 ### Response Fields
 

@@ -295,7 +295,7 @@ After training completes, test your model directly in the browser:
 2. Upload an image, drag and drop, capture one from your webcam, or click an example image (auto-inference on drop)
 3. View task-appropriate prediction overlays, per-stage timings (preprocess, inference, postprocess, network), and the raw JSON response
 
-![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/5e2267bbbc1ab3db0e2813d503cfde78.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/a3f37122dbd08b1e2b7c79722656745d.avif)<!-- screenshot -->
 
 Adjust inference parameters:
 

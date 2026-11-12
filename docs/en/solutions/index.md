@@ -35,7 +35,7 @@ Each solution below has a dedicated guide:
 - [Object Counting](../guides/object-counting.md): Count objects that cross a line or enter a region in videos and live streams with YOLO26.
 - [Object Counting in Regions](../guides/region-counting.md): Count objects inside multiple user-defined regions with YOLO26.
 - [Object Cropping](../guides/object-cropping.md): Crop detected objects from images and videos with YOLO26 and save each one as a separate image.
-- [OCR](../guides/ocr.md): Detect, recognize, and order scene text with YOLO detectors and optional PaddleOCR recognition.
+- [OCR](../guides/ocr.md): Detect, recognize, and order scene and document text at any rotation with YOLO26-Text detectors and PP-OCRv6 recognition.
 - [Parking Management](../guides/parking-management.md): Monitor occupied and available parking spaces with YOLO26.
 - [Queue Management](../guides/queue-management.md): Count people waiting in a queue region with YOLO26 to monitor queue lengths.
 - [Security Alarm System](../guides/security-alarm-system.md): Build a security alarm system with YOLO26 that sends an email alert when the number of detected objects reaches a threshold.

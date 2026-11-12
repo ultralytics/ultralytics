@@ -2477,3 +2477,29 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
+
+
+@pytest.mark.parametrize("stem", ["frame", "FRAME"])
+def test_segment_mask_conversion_rejects_colliding_labels(tmp_path, stem):
+    """Reject duplicate label names before writes, while preserving normal conversion and reruns."""
+    from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+
+    masks, labels = tmp_path / "masks", tmp_path / "labels"
+    masks.mkdir()
+    labels.mkdir()
+    (labels / "frame.txt").write_text("existing annotation\n")
+    for name, value in (("aaa.png", 1), ("frame.jpg", 2), (f"{stem}.png", 0)):
+        Image.fromarray(np.full((8, 8), value, dtype=np.uint8)).save(masks / name)
+    with pytest.raises(FileExistsError):
+        convert_segment_masks_to_yolo_seg(str(masks), str(labels), classes=2)
+    assert {p.name: p.read_text() for p in labels.iterdir()} == {"frame.txt": "existing annotation\n"}
+
+    (masks / f"{stem}.png").rename(masks / "background.png")
+    convert_segment_masks_to_yolo_seg(str(masks), str(labels), classes=2)
+    output = {p.name: p.read_text() for p in labels.iterdir()}
+    assert set(output) == {"aaa.txt", "frame.txt", "background.txt"}
+    assert output["aaa.txt"].split()[0] == "0"
+    assert output["frame.txt"].split()[0] == "1"
+    assert output["background.txt"] == ""
+    convert_segment_masks_to_yolo_seg(str(masks), str(labels), classes=2)
+    assert {p.name: p.read_text() for p in labels.iterdir()} == output

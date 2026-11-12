@@ -538,6 +538,7 @@ nav:
           - Hyperparameter evolution: yolov5/tutorials/hyperparameter-evolution.md
           - Transfer learning with frozen layers: yolov5/tutorials/transfer-learning-with-frozen-layers.md
           - Architecture Summary: yolov5/tutorials/architecture-description.md
+          - Neural Magic's DeepSparse: yolov5/tutorials/neural-magic-pruning-quantization.md
           - Comet Logging: yolov5/tutorials/comet-logging-integration.md
           - Clearml Logging: yolov5/tutorials/clearml-logging-integration.md
   - Integrations:
@@ -580,6 +581,7 @@ nav:
           - Sony IMX500: integrations/sony-imx500.md
       - Serving & pipelines:
           - Intel DL Streamer: guides/dlstreamer-intel.md
+          - Neural Magic: integrations/neural-magic.md
           - NVIDIA DALI: guides/nvidia-dali.md
           - NVIDIA DeepStream: guides/deepstream-nvidia-jetson.md
           - NVIDIA Triton: guides/triton-inference-server.md

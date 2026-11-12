@@ -120,7 +120,7 @@ class LoadStreams:
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         if os.path.isfile(sources):
-            with open(sources) as f:
+            with open(sources, encoding="utf-8") as f:
                 sources = f.read().rsplit()
             if not sources:
                 raise FileNotFoundError(f"No streams found in {f.name}. {FORMATS_HELP_MSG}")
@@ -386,7 +386,7 @@ class LoadImagesAndVideos:
         source_path = path
         parent = None
         if isinstance(path, (str, Path)) and Path(path).suffix.lower() in {".txt", ".csv"}:  # txt/csv file with sources
-            parent, content = Path(path).parent, Path(path).read_text()
+            parent, content = Path(path).parent, Path(path).read_text(encoding="utf-8")
             if Path(path).suffix.lower() == ".txt":
                 path = content.splitlines()
             else:

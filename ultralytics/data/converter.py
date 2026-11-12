@@ -34,6 +34,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
+from ultralytics.utils.patches import imread, imwrite
 
 
 def coco91_to_coco80_class() -> list[int | None]:
@@ -848,6 +849,32 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
+def _rotate_ndjson_label(label: list, rotation: int, task: str, kpt_dims: int) -> list:
+    """Rotate a normalized NDJSON label clockwise by `rotation` degrees, a multiple of 90."""
+    label, has_box = list(label), task in {"detect", "pose"}
+    for _ in range(rotation // 90):
+        if has_box:
+            label[1:5] = 1 - label[2], label[1], label[4], label[3]
+        for i in range(5 if has_box else 1, len(label), kpt_dims if has_box else 2):
+            label[i : i + 2] = 1 - label[i + 1], label[i]
+    return label
+
+
+def _rotate_image(source: Path, path: Path, rotation: int, channels: int) -> None:
+    """Write `source` as training reads it, rotated clockwise by `rotation` degrees, losslessly to `path`."""
+    flags = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)  # as BaseDataset
+    turn = {90: cv2.ROTATE_90_CLOCKWISE, 180: cv2.ROTATE_180, 270: cv2.ROTATE_90_COUNTERCLOCKWISE}[rotation]
+    im = cv2.rotate(imread(source, flags), turn)
+    tmp = path.with_name(f".{uuid4().hex}{path.suffix}")  # new file: `source` may be a hard link into the asset pool
+    try:  # publish complete files only, as ensure_file does; multispectral bands are TIFF pages imread stacks back
+        if not (cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im)):
+            raise OSError(f"Failed to write rotated image {path}")
+        source.unlink()
+        os.replace(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
 async def convert_ndjson_to_yolo(
     ndjson_path: str | Path,
     output_path: str | Path | None = None,
@@ -861,7 +888,7 @@ async def convert_ndjson_to_yolo(
     detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. Depth datasets use
     parallel images/ and depth/ trees with scaled uint16 PNG targets. Classification tasks use the ImageNet-style
     {split}/{class_index}/ folder structure, with class names stored in a hidden .ndjson.yaml file. Downloads run
-    concurrently.
+    concurrently. Images with a clockwise `rotation` of 90, 180 or 270 are rotated together with their labels.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names, task type, and configuration
@@ -1179,11 +1206,16 @@ async def _convert_ndjson_to_yolo(
                 )
         return False
 
+    kpt_dims = dataset_record.get("kpt_shape", [0, 3])[1]
+    channels = 3 if is_classification else dataset_record.get("channels", 3)  # classification always trains on color
+
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""
         async with semaphore:
             split, original_name = record["split"], record["file"]
-            annotations = record.get("annotations", {})
+            annotations, rotation = record.get("annotations", {}), record.get("rotation", 0)
+            if rotation:  # rotated images are written losslessly in a format training reads like the source
+                original_name = f"{original_name.rsplit('.', 1)[0]}.{'tiff' if channels > 4 else 'png'}"
 
             if is_classification:
                 # Classification: place image in {split}/{class_index}/ folder
@@ -1196,11 +1228,21 @@ async def _convert_ndjson_to_yolo(
                     label_path = dataset_dir / "labels" / split / f"{stem}.txt"
                     lines_to_write = []
                     for key in annotations:
-                        lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+                        lines_to_write = [
+                            " ".join(map(str, _rotate_ndjson_label(item, rotation, task, kpt_dims)))
+                            for item in annotations[key]
+                        ]
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            image_ok = await ensure_file(session, image_path, record.get("url"))
+            if rotation and not image_path.exists():  # rotate a hidden download, so a rerun never rotates twice
+                source = image_path.with_name(f".{record['file']}")
+                if image_ok := await ensure_file(session, source, record.get("url")):
+                    await asyncio.get_running_loop().run_in_executor(
+                        None, _rotate_image, source, image_path, rotation, channels
+                    )
+            else:
+                image_ok = await ensure_file(session, image_path, record.get("url"))
             if not is_depth:
                 return image_ok
 

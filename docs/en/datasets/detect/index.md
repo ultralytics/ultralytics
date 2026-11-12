@@ -262,6 +262,10 @@ Each image record may include a `metadata` JSON object for application-specific 
 
 Platform limits top-level metadata keys to 128 characters, each image's serialized metadata object to 500,000 characters, and the combined effective metadata in one NDJSON import to 500,000 characters.
 
+#### Image rotation
+
+An image record may include `"rotation": 90`, `180`, or `270`, the clockwise turn Ultralytics Platform shows the image at. `width`, `height`, and annotations stay in the orientation of the image file, and the converter rotates the image and its labels together, so training sees the image as displayed.
+
 #### Usage Example
 
 To use an NDJSON dataset with YOLO26, simply specify the path to the `.ndjson` file:

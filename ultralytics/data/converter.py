@@ -862,9 +862,7 @@ def _rotate_ndjson_label(label: list, rotation: int, task: str, kpt_dims: int) -
 
 def _rotate_image(source: Path, path: Path, rotation: int, channels: int) -> None:
     """Write `source` as training reads it, rotated clockwise by `rotation` degrees, losslessly to `path`."""
-    flags = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)  # as BaseDataset
-    turn = {90: cv2.ROTATE_90_CLOCKWISE, 180: cv2.ROTATE_180, 270: cv2.ROTATE_90_COUNTERCLOCKWISE}[rotation]
-    im = cv2.rotate(imread(source, flags), turn)
+    im = np.rot90(imread(source, cv2.IMREAD_COLOR if channels <= 3 else cv2.IMREAD_UNCHANGED), -rotation // 90)
     tmp = path.with_name(f".{uuid4().hex}{path.suffix}")  # new file: `source` may be a hard link into the asset pool
     try:  # publish complete files only, as ensure_file does; multispectral bands are TIFF pages imread stacks back
         if not (cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im)):
@@ -1208,8 +1206,7 @@ async def _convert_ndjson_to_yolo(
                 )
         return False
 
-    kpt_dims = dataset_record.get("kpt_shape", [0, 3])[1]
-    channels = 3 if is_classification else dataset_record.get("channels", 3)  # classification always trains on color
+    kpt_dims, channels = dataset_record.get("kpt_shape", [0, 3])[1], dataset_record.get("channels", 3)
 
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""
@@ -1237,14 +1234,13 @@ async def _convert_ndjson_to_yolo(
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            if rotation and not image_path.exists():  # rotate a hidden download, so a rerun never rotates twice
-                source = image_path.with_name(f".{record['file']}")
-                if image_ok := await ensure_file(session, source, record.get("url")):
-                    await asyncio.get_running_loop().run_in_executor(
-                        None, _rotate_image, source, image_path, rotation, channels
-                    )
-            else:
-                image_ok = await ensure_file(session, image_path, record.get("url"))
+            # Rotate a hidden download, so a rerun never rotates twice
+            source = image_path.with_name(f".{record['file']}") if rotation and not image_path.exists() else image_path
+            image_ok = await ensure_file(session, source, record.get("url"))
+            if image_ok and source != image_path:
+                await asyncio.get_running_loop().run_in_executor(
+                    None, _rotate_image, source, image_path, rotation, channels
+                )
             if not is_depth:
                 return image_ok
 

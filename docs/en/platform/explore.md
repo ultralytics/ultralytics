@@ -34,9 +34,6 @@ The Explore page features four tabs:
 - **Public Models**: Trained models found by what they detect, each with its training images and headline metrics
 - **Public Projects**: Complete experiments containing trained models
 
-Official `@ultralytics` projects are pinned to the top of the Projects tab, and their models lead the Models tab results
-they match.
-
 Only datasets that contain at least one image and projects that contain at least one model appear on Explore, so empty
 placeholders never surface in results.
 
@@ -102,8 +99,8 @@ models that haven't finished training; the training dataset's [Models tab](data/
 models trained on it. Before you search, the tab lists models trained on public datasets, newest first. Models without a
 public training dataset, such as uploaded `.pt` files, are found by their model or project name only.
 
-Click a card to open the model, then test it from its `Predict` tab, [deploy it](deploy/endpoints.md),
-[clone it](#clone-model), or [download it](#download-model).
+Click a card to open the model, then test it from its `Predict` tab, [clone it](#clone-model) and
+[deploy](deploy/endpoints.md) your copy, or [download it](#download-model).
 
 ### Sort and Filter
 
@@ -283,7 +280,7 @@ See [Projects](train/projects.md) for organizing models in your project.
 
 ## Official Ultralytics Content
 
-Official `@ultralytics` projects are pinned to the top of the Explore Projects tab, and their models lead the Models tab results they match: [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26), [YOLO11](https://platform.ultralytics.com/ultralytics/yolo11), [YOLOv8](https://platform.ultralytics.com/ultralytics/yolov8), and [YOLOv5](https://platform.ultralytics.com/ultralytics/yolov5). Open a project to see its current models and supported tasks.
+Official `@ultralytics` projects are pinned to the top of the Explore Projects tab, and their models lead Models tab searches that match their name or project: [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26), [YOLO11](https://platform.ultralytics.com/ultralytics/yolo11), [YOLOv8](https://platform.ultralytics.com/ultralytics/yolov8), and [YOLOv5](https://platform.ultralytics.com/ultralytics/yolov5). Open a project to see its current models and supported tasks.
 
 Official datasets include benchmark datasets like [coco8](https://platform.ultralytics.com/ultralytics/datasets/coco8) (8-image COCO subset), [VOC](https://platform.ultralytics.com/ultralytics/datasets/voc), [african-wildlife](https://platform.ultralytics.com/ultralytics/datasets/african-wildlife), [dota8](https://platform.ultralytics.com/ultralytics/datasets/dota8), and other commonly used [computer vision datasets](../datasets/index.md).
 
@@ -319,7 +316,7 @@ profiles. The **Share** button next to it copies a link or opens a pre-filled so
 
 ## Make Your Content Public
 
-Make your work available to the community. Public content is visible to everyone, including users who aren't signed in. Explore lists public datasets that contain at least one image and public projects that contain at least one model, so an empty dataset or a project with no models stays off the Explore page until you add content to it. Models follow the visibility of the project that holds them and have no separate badge; a public project's trained models, except clones, can be found on the [Models tab](#find-models-by-what-they-detect).
+Make your work available to the community. Public content is visible to everyone, including users who aren't signed in. Explore lists public datasets that contain at least one image and public projects that contain at least one model, so an empty dataset or a project with no models stays off the Explore page until you add content to it. Models follow the visibility of the project that holds them and have no separate badge; a public project's trained models, except clones, are listed on the [Models tab](#find-models-by-what-they-detect), one per training dataset.
 
 ```mermaid
 flowchart TD

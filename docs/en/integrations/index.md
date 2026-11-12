@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Ultralytics YOLO integrations for training, experiment tracking, dataset management, and deployment to ONNX, TensorRT, OpenVINO, CoreML, and edge NPUs.
-keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLflow, Ultralytics Platform, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, MediaTek, Luxonis, PaddlePaddle, NCNN, Hailo, Hailo HEF, Ambarella, CVflow, Qualcomm QNN, RKNN, edge AI
+keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLflow, Ultralytics Platform, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, MediaTek, Luxonis, PaddlePaddle, NCNN, Hailo, Hailo HEF, Ambarella, CVflow, Qualcomm QNN, RKNN, edge AI
 ---
 
 # Ultralytics Integrations
@@ -94,8 +94,6 @@ This page lists the tools and platforms that Ultralytics integrates with to supp
 - [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a lightweight deep learning framework for on-device inference and training on mobile and embedded hardware.
 
 - [NCNN](ncnn.md): Developed by [Tencent](https://www.tencent.com/), NCNN is a [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework optimized for mobile devices. It runs AI models directly inside apps across various mobile platforms.
-
-- [Neural Magic](neural-magic.md): Historical guide to sparse CPU inference with the DeepSparse engine, whose community libraries are deprecated.
 
 - [NXP](nxp.md): Compile calibrated INT8 YOLO models for the i.MX95 Neutron NPU with Neutron SDK 3.3.0.
 

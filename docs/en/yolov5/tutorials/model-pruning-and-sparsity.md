@@ -145,7 +145,7 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
 
 ### Why is the pruned model not faster?
 
-Unstructured pruning sets weights to zero but leaves the tensor shapes unchanged, so dense PyTorch kernels do the same amount of work. Speedups require a sparsity-aware runtime such as [DeepSparse](neural-magic-pruning-quantization.md) or structured pruning that removes whole channels.
+Unstructured pruning sets weights to zero but leaves the tensor shapes unchanged, so dense PyTorch kernels do the same amount of work. Speedups require a sparsity-aware runtime or structured pruning that removes whole channels.
 
 ### How do I prune a model in code?
 

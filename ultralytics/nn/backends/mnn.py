@@ -48,6 +48,7 @@ class MNNBackend(BaseBackend):
         Returns:
             (list): Model predictions as a list of numpy arrays.
         """
+        im = im.cpu().contiguous()  # const reads raw host memory, so MPS tensors and strided views need a dense copy
         input_var = self.expr.const(im.data_ptr(), im.shape)
         output_var = self.net.onForward([input_var])
         # NOTE: need this copy(), or it'd get incorrect results on ARM devices

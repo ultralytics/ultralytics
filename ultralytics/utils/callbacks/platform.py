@@ -192,18 +192,6 @@ def _upload_file(file_path, project, name, progress=False, retry=1, model_id=Non
     return None
 
 
-def _upload_visuals(trainer, project, name):
-    """Upload the initial training batch images without delaying the training loop."""
-    ctx = trainer.platform
-    visuals = []
-    for path in sorted(trainer.plots):
-        if path.name in {f"train_batch{i}.jpg" for i in range(3)}:
-            visual = _upload_file(path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True)
-            if visual:
-                visuals.append(visual)
-    return visuals
-
-
 def _get_environment_info():
     """Collect comprehensive environment info using existing ultralytics utilities."""
     import shutil
@@ -318,6 +306,7 @@ def on_pretrain_routine_start(trainer):
         "run_id": None,
         "last_upload": time(),
         "checkpoint_upload": None,
+        "visual_upload": None,
         "cancelled": False,
         "console_logger": None,
         "system_logger": None,
@@ -399,6 +388,10 @@ def on_fit_epoch_end(trainer):
     project, name = _get_project_name(trainer)
     metrics = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
     first_epoch = trainer.epoch == 0
+    # Initial training batch plots, listed here because plotting threads may still be adding to trainer.plots
+    visual_files = (
+        [p for i in range(3) if (p := trainer.save_dir / f"train_batch{i}.jpg") in trainer.plots] if first_epoch else []
+    )
 
     if trainer.optimizer and trainer.optimizer.param_groups:
         metrics["lr"] = trainer.optimizer.param_groups[0]["lr"]
@@ -430,8 +423,12 @@ def on_fit_epoch_end(trainer):
 
     def _send_and_check_cancel():
         """Send epoch_end and check response for cancellation (runs in background thread)."""
-        if first_epoch:
-            visuals = _upload_visuals(trainer, project, name)
+        if visual_files:
+            visuals = [
+                v
+                for f in visual_files
+                if (v := _upload_file(f, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True))
+            ]
             if visuals:
                 payload.update({"visuals": visuals, "runId": ctx["run_id"]})
         response = _send("epoch_end", payload, project, name, ctx["model_id"], retry=1)
@@ -477,7 +474,7 @@ def on_train_end(trainer):
 
     # Stop console capture
     ctx["console_logger"].stop_capture()
-    if ctx.get("visual_upload"):
+    if ctx["visual_upload"]:
         ctx["visual_upload"].result()
 
     # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)

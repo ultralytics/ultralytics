@@ -69,6 +69,8 @@ Explore the links to learn more about each integration and how to get the most o
 
 - [Google Coral Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com/) for optimizing TensorFlow Lite models on Edge TPUs, this model format enables fast, efficient [edge computing](https://www.ultralytics.com/glossary/edge-computing).
 
+- [Google Coral Edge TPU on Raspberry Pi](../guides/coral-edge-tpu-on-raspberry-pi.md): [Google Edge TPU](https://developers.google.com/coral) accelerates YOLO inference on [Raspberry Pi](https://www.raspberrypi.com/).
+
 - [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to Hailo HEF; YOLO26 segmentation, pose, and OBB are not yet supported, see the integration guide for validated models and targets.
 
 - [Huawei Ascend](ascend.md): Compile Ultralytics YOLO models to the Huawei Ascend `.om` offline format with the CANN ATC compiler for FP16 inference on Atlas and OrangePi AIPro devices.
@@ -77,15 +79,33 @@ Explore the links to learn more about each integration and how to get the most o
 
 - [MediaTek Dimensity](mediatek.md): Deploy Ultralytics YOLO on MediaTek Dimensity Android phones with the [LiteRT](litert.md) export and the official Flutter plugin, with measured CPU, GPU, and prototype NPU results.
 
+- [NVIDIA DGX Spark](../guides/nvidia-dgx-spark.md): Quickstart guide for deploying YOLO models on NVIDIA DGX Spark devices.
+
+- [NVIDIA Jetson](../guides/nvidia-jetson.md): Quickstart guide for deploying YOLO models on NVIDIA Jetson devices.
+
 - [NXP i.MX95](nxp.md): Compile calibrated INT8 YOLO models for the i.MX95 Neutron NPU with Neutron SDK 3.3.0.
 
 - [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models locally into the QNN (AI Engine Direct) context-binary format with the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider for accelerated inference on Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware in mobile and edge devices.
+
+- [Raspberry Pi](../guides/raspberry-pi.md): Quickstart tutorial to run YOLO models on the latest Raspberry Pi hardware.
 
 - [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs, for real-time AI inference on edge devices.
 
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an edge AI device for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it runs energy-efficient AI inference, and its modular design and video processing capabilities suit use cases such as safety monitoring, environmental applications, and manufacturing.
 
 - [Sony IMX500](sony-imx500.md): Optimize and deploy Ultralytics YOLOv8n and YOLO11n models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
+
+## Serving & Pipelines
+
+- [Intel DL Streamer](../guides/dlstreamer-intel.md): Quickstart guide for deploying YOLO26 models on Intel Core Ultra Series 3 devices using DL Streamer and OpenVINO™.
+
+- [NVIDIA DALI](../guides/nvidia-dali.md): Eliminate CPU preprocessing bottlenecks by running YOLO letterbox resize, padding, and normalization on the GPU using NVIDIA DALI, with Triton Inference Server integration.
+
+- [NVIDIA DeepStream](../guides/deepstream-nvidia-jetson.md): Quickstart guide for deploying YOLO models on NVIDIA Jetson devices using DeepStream and TensorRT.
+
+- [NVIDIA Triton](../guides/triton-inference-server.md): Integrate Ultralytics YOLO26 with NVIDIA Triton Inference Server for scalable, efficient deep learning inference deployments.
+
+- [ROS](../guides/ros-quickstart.md): Learn how to integrate YOLO with the Robot Operating System (ROS) for real-time object detection in robotics applications, including point cloud and depth images.
 
 ## Data & Training
 
@@ -113,11 +133,15 @@ Explore the links to learn more about each integration and how to get the most o
 
 - [Google Colab](google-colab.md): Use Google Colab to train and evaluate Ultralytics models in a cloud-based environment that supports collaboration and sharing.
 
+- [Google Vertex AI](../guides/vertex-ai-deployment-with-docker.md): Streamlined guide to containerizing YOLO models with Docker and deploying them on Google Cloud Vertex AI—covering build, push, autoscaling, and monitoring.
+
 - [IBM watsonx](ibm-watsonx.md): Train and evaluate Ultralytics models in IBM watsonx.ai notebooks, alongside IBM tools for data management and model governance.
 
 - [JupyterLab](jupyterlab.md): Use JupyterLab's interactive, customizable environment to train and evaluate Ultralytics models.
 
 - [Kaggle](kaggle.md): Explore how you can use Kaggle to train and evaluate Ultralytics models in a cloud-based environment with pre-installed libraries, GPU support, and an active community for collaboration and sharing.
+
+- [Microsoft AzureML](../guides/azureml-quickstart.md): Get up and running with Ultralytics YOLO models on Microsoft's Azure [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml) platform. Learn how to train, deploy, and scale your object detection projects in the cloud.
 
 - [Modal](../guides/modal-quickstart.md): Run Ultralytics models on Modal's serverless cloud platform with automatic GPU provisioning, pay-per-second pricing, and automatic scaling for inference and training workloads.
 

@@ -484,8 +484,6 @@ nav:
       - Get started & plan:
           - Conda Quickstart: guides/conda-quickstart.md
           - Docker Quickstart: guides/docker-quickstart.md
-          - AzureML Quickstart: guides/azureml-quickstart.md
-          - Modal Quickstart: guides/modal-quickstart.md
           - Define CV Project Goals: guides/defining-project-goals.md
           - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
           - YOLO Architecture Explained: guides/yolo-architecture.md
@@ -516,22 +514,10 @@ nav:
           - Best Practices for Model Deployment: guides/model-deployment-practices.md
           - Export Non-YOLO Models: guides/export-non-yolo-models.md
           - End-to-End Detection: guides/end2end-detection.md
-          - Triton Inference Server: guides/triton-inference-server.md
           - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
-          - ROS Quickstart: guides/ros-quickstart.md
-          - YOLO on Vertex AI: guides/vertex-ai-deployment-with-docker.md
-      - Optimize inference:
           - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
-          - NVIDIA DALI GPU Preprocessing: guides/nvidia-dali.md
           - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
           - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
-      - Edge & embedded hardware:
-          - NVIDIA Jetson: guides/nvidia-jetson.md
-          - Raspberry Pi: guides/raspberry-pi.md
-          - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
-          - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
-          - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
-          - DL Streamer on Intel: guides/dlstreamer-intel.md
   - YOLOv5 (Legacy):
       - yolov5/index.md
       - Quickstart: yolov5/quickstart-tutorial.md
@@ -579,15 +565,25 @@ nav:
           - Axelera AI: integrations/axelera.md
           - DEEPX: integrations/deepx.md
           - Google Coral Edge TPU: integrations/edge-tpu.md
+          - Google Coral Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
           - Hailo: integrations/hailo.md
           - Huawei Ascend: integrations/ascend.md
           - Luxonis OAK: integrations/luxonis.md
           - MediaTek Dimensity: integrations/mediatek.md
+          - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
+          - NVIDIA Jetson: guides/nvidia-jetson.md
           - NXP i.MX95: integrations/nxp.md
           - Qualcomm QNN: integrations/qnn.md
+          - Raspberry Pi: guides/raspberry-pi.md
           - Rockchip RKNN: integrations/rockchip-rknn.md
           - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
           - Sony IMX500: integrations/sony-imx500.md
+      - Serving & pipelines:
+          - Intel DL Streamer: guides/dlstreamer-intel.md
+          - NVIDIA DALI: guides/nvidia-dali.md
+          - NVIDIA DeepStream: guides/deepstream-nvidia-jetson.md
+          - NVIDIA Triton: guides/triton-inference-server.md
+          - ROS: guides/ros-quickstart.md
       - Data & training:
           - Albumentations: integrations/albumentations.md
           - ClearML: integrations/clearml.md
@@ -601,9 +597,12 @@ nav:
       - Cloud & notebooks:
           - Amazon SageMaker: integrations/amazon-sagemaker.md
           - Google Colab: integrations/google-colab.md
+          - Google Vertex AI: guides/vertex-ai-deployment-with-docker.md
           - IBM watsonx: integrations/ibm-watsonx.md
           - JupyterLab: integrations/jupyterlab.md
           - Kaggle: integrations/kaggle.md
+          - Microsoft AzureML: guides/azureml-quickstart.md
+          - Modal: guides/modal-quickstart.md
           - Paperspace Gradient: integrations/paperspace.md
       - Developer tools:
           - Agent Skills: integrations/agent-skills.md

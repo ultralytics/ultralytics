@@ -76,7 +76,7 @@ flowchart TD
 | [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                         |
 | [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup         |
 | [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                                   |
-| [Explore](../explore.md)                   | Public content search           | Search projects, datasets, and images                         |
+| [Explore](../explore.md)                   | Public content search           | Search projects, datasets, models, and images                 |
 
 ## Authentication
 
@@ -2678,7 +2678,7 @@ Each transaction includes `id`, `type` (such as `purchase`, `training`, `monthly
 
 ## Explore API
 
-Search public projects and datasets shared by the community, or search images by what they show or by a photo.
+Search public projects, datasets, and models shared by the community, or search images by what they show or by a photo.
 See [Explore documentation](../explore.md).
 
 ### Search Public Content
@@ -2693,8 +2693,8 @@ GET /api/explore/search
 
 | Parameter   | Type    | Description                                                                                                                                                                               |
 | ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `q`         | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match                                                                                           |
-| `type`      | string  | `all` (default), `projects`, `datasets`, or `images` (ignores `sort`)                                                                                                                     |
+| `q`         | string  | Search term (max 200 chars); for datasets and models, text matches first, then datasets whose images match (or models trained on them)                                                    |
+| `type`      | string  | `all` (default; projects and datasets), `projects`, `datasets`, `models`, or `images` (ignores `sort`)                                                                                    |
 | `sort`      | string  | `relevance` (default), `newest`, `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`; `relevance` ranks dataset matches for `q` by search score, otherwise newest first |
 | `offset`    | int     | Results to skip (default: 0)                                                                                                                                                              |
 | `limit`     | int     | Maximum results per resource type (default: 20, max: 100)                                                                                                                                 |
@@ -2710,6 +2710,11 @@ first, each with its source `dataset` and a 0–1 similarity `score`; with `q` i
 and team datasets when you send an API key. Without `q`, it lists one image from each of the newest public datasets,
 unranked with `score` `1`, honoring the filters.
 
+`type=models` returns public models in `models`, one per training dataset (or per project without one), leaving out
+clones and models that haven't finished training. With `q`, matching official `@ultralytics` models come first, then
+models whose name or project matches, then models trained on the public datasets whose images best match. Without `q`, it
+lists models trained on public datasets, newest first. It honors `task` and `author`, and sorts by `relevance`, `newest`, or `oldest`; other sorts list the newest first.
+
 ```bash
 curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=detect&sort=stars&limit=20"
 ```
@@ -2722,13 +2727,13 @@ POST /api/explore/search
 
 **Python SDK:** `client.explore.search_by_image()` (`ultralytics-platform>=0.1.107`)
 
-Send a photo as base64 `image` (at most 3 MiB, never stored) in a JSON body with `type` `images` (default) or `datasets`
-and any of `sort`, `offset`, `limit`, `task`, `license`, `author`, `starred`, `minImages`, and `maxImages` from [Search
+Send a photo as base64 `image` (at most 3 MiB, never stored) in a JSON body with `type` `images` (default), `datasets`,
+or `models` and any of `sort`, `offset`, `limit`, `task`, `license`, `author`, `starred`, `minImages`, and `maxImages` from [Search
 Public Content](#search-public-content). The response has the same shape, and a request that sends `image` also returns
 a `vector`: send it in place of `image` for more pages, other filters, or the other `type`, so the photo is read only
 once. `type=images` returns scored images as a text search does; `type=datasets` returns public datasets with matching
 images, best matches first under the default `sort=relevance` (other sorts order them as usual), and those images lead
-each dataset's `sampleImages`. Each request that sends `image` also counts against a separate limit of 20 per minute per
+each dataset's `sampleImages`; `type=models` returns public models trained on those datasets, best first. Each request that sends `image` also counts against a separate limit of 20 per minute per
 user (per IP address without an API key). `400` means invalid parameters or a photo that cannot be read, and `503` that
 search is busy, so retry shortly.
 

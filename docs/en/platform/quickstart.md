@@ -95,7 +95,7 @@ The sidebar provides access to all Platform sections:
 | ----------- | ----------- | ------------------------------------------------------------------------------------- |
 | **Top**     | Search      | Quick search across all your resources (Cmd+K)                                        |
 |             | Home        | Dashboard with quick actions and recent activity                                      |
-|             | Explore     | Discover public projects, datasets, and images                                        |
+|             | Explore     | Discover public datasets, images, models, and projects                                |
 |             | Agents      | Build visual [Agents](agents.md) workflows with YOLO, conditions, and VLMs            |
 | **Content** | Annotate    | Your datasets, with a `+` shortcut to create one                                      |
 |             | Train       | Your projects containing trained models                                               |
@@ -137,7 +137,8 @@ Below the welcome card, the dashboard shows three cards:
 - **Storage**: Overview of your storage usage (datasets, models, exports) with plan limits.
 
 A **Recent Activity** table at the bottom shows your latest datasets, projects, and deployments with their status and
-last update time.
+last update time. A dataset still processing an upload shows **Running**, and one whose processing failed shows
+**Failed**.
 
 ### Global Search
 

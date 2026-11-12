@@ -1,14 +1,14 @@
 ---
 plans: [free, pro, enterprise]
-title: Explore Datasets & Projects
+title: Explore Public Datasets, Models & Projects
 comments: true
-description: Discover public datasets and projects on the Ultralytics Platform Explore page. Browse, search, and clone community content for computer vision and YOLO.
-keywords: Ultralytics Platform, explore, public datasets, public projects, computer vision, YOLO, community
+description: Find public datasets, trained YOLO models, and projects on Ultralytics Platform Explore. Search models by what they detect or by a photo, then try, clone, or fine-tune them.
+keywords: Ultralytics Platform, explore, public datasets, public models, pretrained models, model search, public projects, semantic search, computer vision, YOLO, community
 ---
 
-# Explore
+# Explore Datasets, Models, and Projects
 
-The [Ultralytics Platform](https://platform.ultralytics.com) Explore page lists public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
+The [Ultralytics Platform](https://platform.ultralytics.com) Explore page lists public content from the community. Find [datasets](data/datasets.md) to train on, trained [models](train/models.md) by what they detect, and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
 ![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/0ef70bb4ebae864538173f1176c2e674.avif)<!-- screenshot -->
 
@@ -26,14 +26,16 @@ flowchart TD
 
 ## Overview
 
-The Explore page features three tabs:
+The Explore page features four tabs:
 
 - **Public Datasets**: Community training data with image previews
 - **Search Images**: Images from public datasets, and from your own and team datasets when signed in, found by what
   they show
+- **Public Models**: Trained models found by what they detect, each with its training images and headline metrics
 - **Public Projects**: Complete experiments containing trained models
 
-Official `@ultralytics` projects are pinned to the top of the Projects tab.
+Official `@ultralytics` projects are pinned to the top of the Projects tab, and their models lead the Models tab results
+they match.
 
 Only datasets that contain at least one image and projects that contain at least one model appear on Explore, so empty
 placeholders never surface in results.
@@ -42,12 +44,13 @@ placeholders never surface in results.
 
 ### Tabs
 
-The Explore page uses a tabbed interface with `Datasets`, `Images`, and `Projects` tabs. Each tab has its own search; the Datasets and Projects tabs also have sort and view mode controls.
+The Explore page uses a tabbed interface with `Datasets`, `Images`, `Models`, and `Projects` tabs. Each tab has its own search; the Datasets, Models, and Projects tabs also have sort and view mode controls.
 
 | Tab          | Description                                       |
 | ------------ | ------------------------------------------------- |
 | **Datasets** | Labeled image collections for training (default)  |
 | **Images**   | Images found by what they show                    |
+| **Models**   | Trained models found by what they detect          |
 | **Projects** | Organized model collections with training results |
 
 ### Search
@@ -57,11 +60,12 @@ easy to bookmark or share.
 
 ![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/3dd1531ea3532850784aa8a2f9e12b50.avif)<!-- screenshot -->
 
-| Tab          | Matched Fields                                           |
-| ------------ | -------------------------------------------------------- |
-| **Datasets** | Name, description, owner username, tags, and class names |
-| **Images**   | What the image shows                                     |
-| **Projects** | Name, description, owner username, and tags              |
+| Tab          | Matched Fields                                              |
+| ------------ | ----------------------------------------------------------- |
+| **Datasets** | Name, description, owner username, tags, and class names    |
+| **Images**   | What the image shows                                        |
+| **Models**   | Model name, project name, and what its training images show |
+| **Projects** | Name, description, owner username, and tags                 |
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
 search, and their cards show the matching images. Searching an official dataset's name or address (such as `HIT-UAV` or
@@ -71,32 +75,56 @@ lists one image from each of the newest public datasets. Search it by what image
 24 similar images, including ones from the same dataset, when you are signed in; click one to open it in the panel. On
 narrow screens such as phones, the image opens full size instead.
 
-To search by a photo instead, click the search-by-image icon in the Datasets or Images search bar, or drop an image
-onto the page. The Images tab shows images like it, each with its similarity score, and the Datasets tab shows public
-datasets containing similar images, with those images on their cards. Filters, and sorting on the Datasets tab, still
-apply, and switching between the two tabs keeps the photo. The photo is searched, not saved, and stays out of the URL;
-the search bar shows it until you click **Close** or open the Projects tab.
+To search by a photo instead, click the search-by-image icon in the Datasets, Images, or Models search bar, or drop an
+image onto the page. iPhone HEIC photos work too: the browser converts them to JPEG before searching. The Images tab
+shows images like it, each with its similarity score, the Datasets tab shows public datasets containing similar images,
+with those images on their cards, and the Models tab shows models trained on similar images. Filters and sorting still
+apply, and switching between these three tabs keeps the photo. The photo is searched, not saved, and stays out of the
+URL; the search bar shows it until you click **Close**, type a search, or open the Projects tab.
+
+### Find Models by What They Detect
+
+On the Models tab, describe what you need to detect, such as `fire and smoke` or `aerial drones`, to find public trained
+models even when no model or project name contains your words.
+
+![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/465226282374be4ed777fd4b66a0c232.avif)<!-- screenshot -->
+
+Results are ranked in three tiers:
+
+1. Official `@ultralytics` models that match, such as YOLO26 models for `yolo26`
+2. Models whose name or project name matches the search
+3. Models trained on public datasets whose images match the search, best match first
+
+To keep repeated runs and copies from filling the page, the tab lists one model per training dataset (or per project
+for models without one), and leaves out cloned models and models that haven't finished training; the training
+dataset's [Models tab](data/datasets.md#models-tab) lists the other models trained on it. Before you search, the tab
+lists models trained on public datasets, newest first. Models without a public training dataset, such as uploaded `.pt`
+files, are found by their model or project name only.
+
+Click a card to open the model, then test it from its `Predict` tab, [deploy it](deploy/endpoints.md),
+[clone it](#clone-model), or [download it](#download-model).
 
 ### Sort and Filter
 
-The dropdown in the toolbar holds sort options on the Datasets and Projects tabs and filters on all three tabs:
+The dropdown in the toolbar holds sort options on the Datasets, Models, and Projects tabs and filters on all four tabs.
+The Models tab sorts by **Relevance** or **Created** only:
 
-| Sort Option             | Description                                                                    |
-| ----------------------- | ------------------------------------------------------------------------------ |
-| **Relevance**           | Datasets tab default: best search matches first, newest first without a search |
-| **Stars**               | Community star count (descending)                                              |
-| **Created**             | Creation date, newest or oldest first; newest is the Projects tab default      |
-| **Name**                | Alphabetical, ascending or descending                                          |
-| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first         |
+| Sort Option             | Description                                                                               |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| **Relevance**           | Datasets and Models tab default: best search matches first, newest first without a search |
+| **Stars**               | Community star count (descending)                                                         |
+| **Created**             | Creation date, newest or oldest first; newest is the Projects tab default                 |
+| **Name**                | Alphabetical, ascending or descending                                                     |
+| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first                    |
 
 | Filter          | Tabs                       | Availability   | Description                                                                                      |
 | --------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| **Task**        | Datasets, Images           | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
+| **Task**        | Datasets, Images, Models   | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
 | **My starred**  | Datasets, Images, Projects | Signed in only | Show only datasets or projects you have starred, or images from those datasets                   |
 | **Image count** | Datasets                   | Everyone       | Show only datasets with **Under 1K**, **1K – 10K**, **10K – 100K**, or **100K+** images          |
 | **License**     | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
 
-Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `starred`, `imageCount`,
+Sorting and filtering are also stored in the URL (`dsort`, `msort`, `psort`, `task`, `starred`, `imageCount`,
 `license`, and `plicense`), so the browser back button restores the previous result list.
 
 !!! note "Sorting by Stars"
@@ -105,7 +133,8 @@ Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `sta
 
 ### View Modes
 
-On the Datasets and Projects tabs, toggle between three view modes for browsing:
+On the Datasets and Projects tabs, toggle between three view modes for browsing; the Models tab offers **Cards** and
+**Compact**:
 
 | Mode        | Description                                      |
 | ----------- | ------------------------------------------------ |
@@ -154,6 +183,21 @@ Each item displays:
     | **Tags**        | Dataset tags                                                  |
     | **Split Bar**   | Relative sizes of the train, val, and test splits             |
 
+=== "Model Cards"
+
+    | Element             | Description                                                                                                                |
+    | ------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+    | **Training Images** | Images from the model's public training dataset with their labels, or its project's cover image or icon when there is none |
+    | **Name**            | Model name                                                                                                                 |
+    | **Task Badge**      | YOLO task type (detect, segment, etc.)                                                                                     |
+    | **Owner / Project** | Owner username and the project that holds the model                                                                        |
+    | **Metrics**         | The task's first two metrics, such as mAP50 and mAP50-95 for detection or top-1 and top-5 accuracy for classification      |
+    | **Star Count**      | Number of community stars (shown when above zero)                                                                          |
+    | **Epochs**          | Number of training epochs                                                                                                  |
+    | **Size**            | Model file size                                                                                                            |
+    | **Dataset**         | Name of the public dataset the model was trained on                                                                        |
+    | **Class Names**     | First four class names the model detects as badges, then how many more                                                     |
+
 ## Use Public Content
 
 ```mermaid
@@ -192,7 +236,7 @@ See [Datasets](data/datasets.md) for managing and annotating your cloned dataset
 
 Download a public model:
 
-1. Click on the model within a project
+1. Open the model from the [Models tab](#find-models-by-what-they-detect) or from its project
 2. Click the **download icon** to download its PyTorch `.pt` weights
 3. Open the **Export** tab to download any completed exports that are available
 
@@ -210,7 +254,7 @@ yolo train model=path/to/downloaded-model.pt data=my-dataset.yaml epochs=50
 
 Clone a public model to one of your projects:
 
-1. Click on the model within a project
+1. Open the model from the [Models tab](#find-models-by-what-they-detect) or from its project
 2. Click `Clone Model`
 3. Select a **Project**, or choose **New Project** to create one
 4. Optionally, rename the model
@@ -238,7 +282,7 @@ See [Projects](train/projects.md) for organizing models in your project.
 
 ## Official Ultralytics Content
 
-Official `@ultralytics` projects are pinned to the top of the Explore Projects tab: [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26), [YOLO11](https://platform.ultralytics.com/ultralytics/yolo11), [YOLOv8](https://platform.ultralytics.com/ultralytics/yolov8), and [YOLOv5](https://platform.ultralytics.com/ultralytics/yolov5). Open a project to see its current models and supported tasks.
+Official `@ultralytics` projects are pinned to the top of the Explore Projects tab, and their models lead the Models tab results they match: [YOLO26](https://platform.ultralytics.com/ultralytics/yolo26), [YOLO11](https://platform.ultralytics.com/ultralytics/yolo11), [YOLOv8](https://platform.ultralytics.com/ultralytics/yolov8), and [YOLOv5](https://platform.ultralytics.com/ultralytics/yolov5). Open a project to see its current models and supported tasks.
 
 Official datasets include benchmark datasets like [coco8](https://platform.ultralytics.com/ultralytics/datasets/coco8) (8-image COCO subset), [VOC](https://platform.ultralytics.com/ultralytics/datasets/voc), [african-wildlife](https://platform.ultralytics.com/ultralytics/datasets/african-wildlife), [dota8](https://platform.ultralytics.com/ultralytics/datasets/dota8), and other commonly used [computer vision datasets](../datasets/index.md).
 
@@ -274,7 +318,7 @@ profiles. The **Share** button next to it copies a link or opens a pre-filled so
 
 ## Make Your Content Public
 
-Make your work available to the community. Public content is visible to everyone, including users who aren't signed in. Explore lists public datasets that contain at least one image and public projects that contain at least one model, so an empty dataset or a project with no models stays off the Explore page until you add content to it. Models follow the visibility of the project that holds them and have no separate badge.
+Make your work available to the community. Public content is visible to everyone, including users who aren't signed in. Explore lists public datasets that contain at least one image and public projects that contain at least one model, so an empty dataset or a project with no models stays off the Explore page until you add content to it. Models follow the visibility of the project that holds them and have no separate badge; a public project's trained models, except clones, appear on the Models tab.
 
 ```mermaid
 flowchart TD

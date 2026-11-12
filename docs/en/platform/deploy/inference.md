@@ -59,7 +59,7 @@ Drag and drop or click to upload:
 
 !!! note "Client-Side Resize"
 
-    Before uploading, the panel shrinks images whose longest side exceeds the selected `Image Size` to that size, sends a JPEG instead of the original when that is smaller (a PNG screenshot, for example), and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized. Images the browser cannot decode, such as TIFF in Chrome, are sent at their original size.
+    Before uploading, the panel shrinks images whose longest side exceeds the selected `Image Size` to that size, sends a JPEG instead of the original when that is smaller (a PNG screenshot, for example), and requests normalized coordinates. This keeps browser testing fast; requests you send yourself are not resized. Formats the browser can't display itself, such as iPhone HEIC photos or TIFF in Chrome, are converted in the browser, so they preview like any other image and are resized the same way. HEIC, HEIF, and BMP are always sent as JPEG.
 
 ### Example Images
 

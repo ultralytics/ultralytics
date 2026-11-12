@@ -209,7 +209,7 @@ def test_convert_ndjson_rotates_images_and_labels(tmp_path, depth_server, task, 
     base_url, _ = depth_server
     image = np.arange(36, dtype=np.uint8).reshape(3, 4, 3)
     cv2.imwrite(str(tmp_path / "source" / "rotated.png"), image)
-    records = [{"type": "dataset", "task": task, **({"kpt_shape": [1, 3]} if task == "pose" else {})}] + [
+    records = [{"type": "dataset", "task": task}] + [
         {
             "type": "image",
             "file": f"{split}.png",

@@ -862,7 +862,8 @@ def _rotate_ndjson_label(label: list, rotation: int, task: str, kpt_dims: int) -
 
 def _rotate_image(source: Path, path: Path, rotation: int, channels: int) -> None:
     """Write `source` as training reads it, rotated clockwise by `rotation` degrees, losslessly to `path`."""
-    im = np.rot90(imread(source, cv2.IMREAD_COLOR if channels <= 3 else cv2.IMREAD_UNCHANGED), -rotation // 90)
+    flags = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)  # as BaseDataset
+    im = np.rot90(imread(source, flags), -rotation // 90)
     tmp = path.with_name(f".{uuid4().hex}{path.suffix}")  # new file: `source` may be a hard link into the asset pool
     try:  # publish complete files only, as ensure_file does; multispectral bands are TIFF pages imread stacks back
         if not (cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im)):
@@ -1017,6 +1018,9 @@ async def _convert_ndjson_to_yolo(
             split, source_name = r.get("split"), r.get("file")
             if split not in {"train", "val", "test"}:
                 raise ValueError(f"Invalid NDJSON split: {split!r}")
+            # Depth targets stay in the stored frame, so rotating only the image would misalign them
+            if r.get("rotation", 0) not in ({0} if is_depth else {0, 90, 180, 270}):
+                raise ValueError(f"Invalid NDJSON rotation for {task}: {r['rotation']!r}")
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
             if local_path:
@@ -1050,8 +1054,6 @@ async def _convert_ndjson_to_yolo(
             depth = record.get("depth")
             if not isinstance(depth, dict) or not isinstance(depth.get("url"), str) or not depth["url"]:
                 raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
-            if record.get("rotation"):  # the paired target stays in the stored frame, so it would misalign
-                raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' cannot be rotated")
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
@@ -1206,7 +1208,8 @@ async def _convert_ndjson_to_yolo(
                 )
         return False
 
-    kpt_dims, channels = dataset_record.get("kpt_shape", [0, 3])[1], dataset_record.get("channels", 3)
+    kpt_dims = dataset_record.get("kpt_shape", [0, 3])[1]
+    channels = 3 if is_classification else dataset_record.get("channels", 3)  # classification always trains on color
 
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""
@@ -1214,7 +1217,7 @@ async def _convert_ndjson_to_yolo(
             split, original_name = record["split"], record["file"]
             annotations, rotation = record.get("annotations", {}), record.get("rotation", 0)
             if rotation:  # rotated images are written losslessly in a format training reads like the source
-                original_name = f"{original_name.rsplit('.', 1)[0]}.{'tiff' if channels > 4 else 'png'}"
+                original_name = f"{original_name.rsplit('.', 1)[0]}.{'png' if channels in {1, 3, 4} else 'tiff'}"
 
             if is_classification:
                 # Classification: place image in {split}/{class_index}/ folder
@@ -1234,8 +1237,9 @@ async def _convert_ndjson_to_yolo(
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            # Rotate a hidden download, so a rerun never rotates twice
-            source = image_path.with_name(f".{record['file']}") if rotation and not image_path.exists() else image_path
+            # Rotate a hidden download, so neither a rerun nor a concurrent conversion rotates the same file twice
+            hidden = f".{uuid4().hex}{Path(record['file']).suffix}"
+            source = image_path.with_name(hidden) if rotation and not image_path.exists() else image_path
             image_ok = await ensure_file(session, source, record.get("url"))
             if image_ok and source != image_path:
                 await asyncio.get_running_loop().run_in_executor(

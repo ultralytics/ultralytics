@@ -194,3 +194,39 @@ def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
     yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=0.05))
     train = {p.name for p in (yaml_path.parent / "images" / "train").glob("*")}
     assert train == {"1.jpg"}  # round(9 * 0.05) == 0, yet a nonzero fraction must never write an empty split
+
+
+@pytest.mark.parametrize(
+    "task, label, rotated",  # 90° clockwise maps (x, y) to (1 - y, x) and swaps box width and height
+    [
+        ("detect", [0, 0.25, 0.5, 0.1, 0.2], [0, 0.5, 0.25, 0.2, 0.1]),
+        ("pose", [0, 0.25, 0.5, 0.1, 0.2, 0.25, 0.75, 2], [0, 0.5, 0.25, 0.2, 0.1, 0.25, 0.25, 2]),
+        ("segment", [0, 0.25, 0.5, 0.75, 0.125, 0.5, 1.0], [0, 0.5, 0.25, 0.875, 0.75, 0.0, 0.5]),
+    ],
+)
+def test_convert_ndjson_rotates_images_and_labels(tmp_path, depth_server, task, label, rotated):
+    """Turn each rotated record's image and labels clockwise, as Ultralytics Platform displays them."""
+    base_url, _ = depth_server
+    image = np.arange(36, dtype=np.uint8).reshape(3, 4, 3)
+    cv2.imwrite(str(tmp_path / "source" / "rotated.png"), image)
+    records = [{"type": "dataset", "task": task, **({"kpt_shape": [1, 3]} if task == "pose" else {})}] + [
+        {
+            "type": "image",
+            "file": f"{split}.png",
+            "url": f"{base_url}/rotated.png",
+            "split": split,
+            "rotation": 90,
+            "annotations": {{"detect": "boxes", "pose": "pose", "segment": "segments"}[task]: [label]},
+        }
+        for split in ("train", "val")
+    ]
+    manifest = tmp_path / f"{task}.ndjson"
+    manifest.write_text("\n".join(json.dumps(record) for record in records))
+
+    root = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")).parent
+
+    for index, split in enumerate(("train", "val"), 1):
+        np.testing.assert_array_equal(cv2.imread(str(root / "images" / split / f"{index}.png")), np.rot90(image, -1))
+        assert [float(v) for v in (root / "labels" / split / f"{index}.txt").read_text().split()] == pytest.approx(
+            rotated
+        )

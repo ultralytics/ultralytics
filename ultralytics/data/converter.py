@@ -1052,6 +1052,8 @@ async def _convert_ndjson_to_yolo(
             depth = record.get("depth")
             if not isinstance(depth, dict) or not isinstance(depth.get("url"), str) or not depth["url"]:
                 raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
+            if record.get("rotation"):  # the paired target stays in the stored frame, so it would misalign
+                raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' cannot be rotated")
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.

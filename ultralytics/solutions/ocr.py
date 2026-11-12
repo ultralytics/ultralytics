@@ -164,10 +164,11 @@ class OCR(BaseSolution):
             check_requirements("paddleocr>=3.7,<4")
             from paddleocr import TextRecognition
 
-            device = select_device(self.CFG["device"], verbose=False)
-            paddle = TextRecognition(
-                model_name=self.CFG["ocr_model"], device="cpu" if device.type == "cpu" else f"gpu:{device.index or 0}"
-            )
+            device = self.CFG["device"]
+            if device is not None:
+                device = select_device(device, verbose=False)
+                device = f"gpu:{device.index or 0}" if getattr(device, "type", "cpu") == "cuda" else "cpu"
+            paddle = TextRecognition(model_name=self.CFG["ocr_model"], device=device)
             self.recognize = lambda crops: [
                 (r["rec_text"], float(r["rec_score"])) for r in paddle.predict(crops, batch_size=16)
             ]

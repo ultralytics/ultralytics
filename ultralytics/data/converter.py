@@ -849,9 +849,9 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
-def _rotate_ndjson_label(label: list, rotation: int, task: str, kpt_dims: int) -> list:
-    """Rotate a normalized NDJSON label clockwise by `rotation` degrees, a multiple of 90."""
-    label, has_box = list(label), task in {"detect", "pose"}
+def _rotate_ndjson_label(label: list, rotation: int, key: str, kpt_dims: int) -> list:
+    """Rotate a normalized NDJSON `key` annotation clockwise by `rotation` degrees, a multiple of 90."""
+    label, has_box = list(label), key in {"boxes", "pose"}
     for _ in range(rotation // 90):
         if has_box:
             label[1:5] = 1 - label[2], label[1], label[4], label[3]
@@ -863,15 +863,15 @@ def _rotate_ndjson_label(label: list, rotation: int, task: str, kpt_dims: int) -
 def _rotate_image(source: Path, path: Path, rotation: int, channels: int) -> None:
     """Write `source` as training reads it, rotated clockwise by `rotation` degrees, losslessly to `path`."""
     flags = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)  # as BaseDataset
-    im = np.rot90(imread(source, flags), -rotation // 90)
     tmp = path.with_name(f".{uuid4().hex}{path.suffix}")  # new file: `source` may be a hard link into the asset pool
     try:  # publish complete files only, as ensure_file does; multispectral bands are TIFF pages imread stacks back
+        im = np.rot90(imread(source, flags), -rotation // 90)
         if not (cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im)):
             raise OSError(f"Failed to write rotated image {path}")
-        source.unlink()
         os.replace(tmp, path)
-    finally:
+    finally:  # never leave the hidden download behind, where a classification folder would train on it
         tmp.unlink(missing_ok=True)
+        source.unlink(missing_ok=True)
 
 
 async def convert_ndjson_to_yolo(
@@ -1215,7 +1215,7 @@ async def _convert_ndjson_to_yolo(
         """Process single image record with async session."""
         async with semaphore:
             split, original_name = record["split"], record["file"]
-            annotations, rotation = record.get("annotations", {}), record.get("rotation", 0)
+            annotations, rotation = record.get("annotations", {}), int(record.get("rotation", 0))
             if rotation:  # rotated images are written losslessly in a format training reads like the source
                 original_name = f"{original_name.rsplit('.', 1)[0]}.{'png' if channels in {1, 3, 4} else 'tiff'}"
 
@@ -1231,15 +1231,15 @@ async def _convert_ndjson_to_yolo(
                     lines_to_write = []
                     for key in annotations:
                         lines_to_write = [
-                            " ".join(map(str, _rotate_ndjson_label(item, rotation, task, kpt_dims)))
+                            " ".join(map(str, _rotate_ndjson_label(item, rotation, key, kpt_dims)))
                             for item in annotations[key]
                         ]
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            # Rotate a hidden download, so neither a rerun nor a concurrent conversion rotates the same file twice
-            hidden = f".{uuid4().hex}{Path(record['file']).suffix}"
-            source = image_path.with_name(hidden) if rotation and not image_path.exists() else image_path
+            source = image_path
+            if rotation and not image_path.exists():  # a hidden download: no rerun or concurrent run rotates twice
+                source = image_path.with_name(f".{uuid4().hex}{Path(record['file']).suffix}")
             image_ok = await ensure_file(session, source, record.get("url"))
             if image_ok and source != image_path:
                 await asyncio.get_running_loop().run_in_executor(

@@ -280,7 +280,9 @@ class ONNXBackend(BaseBackend):
                     ) from e
                 LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
                 if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
-                    LOGGER.warning(f"ONNX Runtime CUDA failed, using CPU. Try pip install '{ONNXRUNTIME_CUDA}'")
+                    fix = f" Try 'pip install \"{ONNXRUNTIME_CUDA}\"'."  # e.g. CUDA 13 build next to CUDA 12 torch
+                    fix *= not check_version(onnxruntime.__version__, ONNXRUNTIME_CUDA.partition("]")[2])
+                    LOGGER.warning(f"CUDA requested but CUDAExecutionProvider not available. Using CPU...{fix}")
                     self.device = torch.device("cpu")
                     cuda = False
             self.output_names = [x.name for x in self.session.get_outputs()]

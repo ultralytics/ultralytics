@@ -143,7 +143,7 @@ The `quantize` and `data` arguments are the same on every TensorRT version, but 
 | -------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | INT8 method                      | Implicit quantization with the `IInt8Calibrator` interface   | Explicit quantization: [NVIDIA ModelOpt](https://github.com/NVIDIA/Model-Optimizer) inserts Q/DQ nodes into the ONNX graph |
 | Calibration algorithm            | `MINMAX_CALIBRATION` on GPU, `ENTROPY_CALIBRATION_2` for DLA | ModelOpt `max`, run on the CPU                                                                                             |
-| Calibration images used          | Every image in the split                                     | The first 512 images                                                                                                       |
+| Calibration images used          | Every full batch of the split                                | About the first 512 images                                                                                                 |
 | `dynamic=True` with `quantize=8` | Not covered by tests; export without `dynamic=True`          | Supported                                                                                                                  |
 | FP16 (`quantize=16`)             | TensorRT builder flag                                        | ModelOpt AutoCast [mixed-precision](https://www.ultralytics.com/glossary/mixed-precision) conversion                       |
 

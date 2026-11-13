@@ -830,7 +830,7 @@ class Results(SimpleClass, DataExportMixin):
             - Crops are saved as 'save_dir/class_name/file_name.jpg'.
             - OBB crops follow the box rotation and fill areas outside the source image with black.
             - The method will create necessary subdirectories if they don't exist.
-            - Original image is copied before cropping to avoid modifying the original.
+            - The original image is not modified.
         """
         if self.probs is not None:
             LOGGER.warning("Classify task does not support `save_crop`.")
@@ -845,7 +845,7 @@ class Results(SimpleClass, DataExportMixin):
         for d in boxes.cpu() if boxes is not None else []:  # one host transfer avoids per-box GPU syncs
             save_one_box(
                 d.xyxyxyxy if self.obb is not None else d.xyxy,
-                self.orig_img.copy(),
+                self.orig_img,
                 file=Path(save_dir) / self.names[int(d.cls.item())] / Path(file_name).with_suffix(".jpg"),
                 BGR=True,
             )

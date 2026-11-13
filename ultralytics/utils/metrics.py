@@ -1402,7 +1402,7 @@ class SegmentMetrics(DetMetrics):
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
         """Generate a summarized representation of per-class segmentation metrics as a list of dictionaries.
 
-        Extends the box summary rows with mask precision, recall, and F1-score for each class.
+        Extends the box summary rows with mask precision, recall, F1-score, mAP50, mAP75, and mAP50-95 for each class.
 
         Args:
             normalize (bool): For Segment metrics, everything is normalized by default [0-1].
@@ -1423,6 +1423,9 @@ class SegmentMetrics(DetMetrics):
             "Mask-P": self.seg.p,
             "Mask-R": self.seg.r,
             "Mask-F1": self.seg.f1,
+            "Mask-mAP50": self.seg.ap50,
+            "Mask-mAP75": self.seg.all_ap[:, 5] if len(self.seg.all_ap) else [],
+            "Mask-mAP50-95": self.seg.ap,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
@@ -1555,7 +1558,7 @@ class PoseMetrics(DetMetrics):
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
         """Generate a summarized representation of per-class pose metrics as a list of dictionaries.
 
-        Extends the box summary rows with pose precision, recall, and F1-score for each class.
+        Extends the box summary rows with pose precision, recall, F1-score, mAP50, mAP75, and mAP50-95 for each class.
 
         Args:
             normalize (bool): For Pose metrics, everything is normalized by default [0-1].
@@ -1576,6 +1579,9 @@ class PoseMetrics(DetMetrics):
             "Pose-P": self.pose.p,
             "Pose-R": self.pose.r,
             "Pose-F1": self.pose.f1,
+            "Pose-mAP50": self.pose.ap50,
+            "Pose-mAP75": self.pose.all_ap[:, 5] if len(self.pose.all_ap) else [],
+            "Pose-mAP50-95": self.pose.ap,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
@@ -1883,14 +1889,15 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict]:
         """Generate a per-class summary of semantic segmentation metrics.
 
-        Each row includes the class image and pixel counts, per-class IoU, and the global mIoU and pixel accuracy.
+        Each row includes the class image and pixel counts, per-class IoU and pixel accuracy, and the global mIoU and
+        pixel accuracy.
 
         Args:
             normalize (bool): For semantic metrics, values are already in [0, 1].
             decimals (int): Number of decimal places to round the metric values to.
 
         Returns:
-            (list[dict]): A list of dictionaries, one per class, with per-class IoU and shared scalars.
+            (list[dict]): A list of dictionaries, one per class, with per-class IoU, pixel accuracy, and shared scalars.
         """
         miou = round(self.miou, decimals)
         pixel_acc = round(self.pixel_accuracy, decimals)
@@ -1904,6 +1911,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
                 "IoU": round(float(per_class[c]), decimals),
                 "mIoU": miou,
                 "pixel_acc": pixel_acc,
+                "class_pixel_acc": round(float(self.per_class_pixel_accuracy[c]), decimals),
             }
             for c in self.ap_class_index
         ]

@@ -120,7 +120,7 @@ guard let function = try model.loadFunction(named: "main") else {
 let outputs = try await function.run(inputs: ["images": imageTensor])
 ```
 
-Unlike the current [Core ML and Vision workflow](coreml.md#deploying-exported-yolo26-coreml-models), the Core AI path in the [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app) does its own letterbox preprocessing and `NDArray` construction, reads the same Ultralytics metadata from the asset's `metadata.json`, and reuses the Core ML output decoders. It loads when an app passes an `.aimodel` path or an `.aimodel.zip` URL. Apple provides current API details in the [Core AI framework documentation](https://developer.apple.com/documentation/coreai) and working model examples in the [Core AI models repository](https://github.com/apple/coreai-models).
+Unlike the current [Core ML and Vision workflow](coreml.md#deploying-exported-yolo26-core-ml-models), the Core AI path in the [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app) does its own letterbox preprocessing and `NDArray` construction, reads the same Ultralytics metadata from the asset's `metadata.json`, and reuses the Core ML output decoders. It loads when an app passes an `.aimodel` path or an `.aimodel.zip` URL. Apple provides current API details in the [Core AI framework documentation](https://developer.apple.com/documentation/coreai) and working model examples in the [Core AI models repository](https://github.com/apple/coreai-models).
 
 ## Measured Performance
 

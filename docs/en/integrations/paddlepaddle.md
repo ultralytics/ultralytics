@@ -1,11 +1,11 @@
 ---
-title: Export YOLO26 to PaddlePaddle Format
+title: Export YOLO26 to Baidu PaddlePaddle Format
 comments: true
 description: Export Ultralytics YOLO26 models to Baidu PaddlePaddle format for deployment with Paddle Inference, Paddle Serving, Paddle Lite, and Paddle.js across devices.
 keywords: YOLO26, PaddlePaddle, export models, computer vision, deep learning, model deployment, performance optimization
 ---
 
-# How to Export to PaddlePaddle Format from YOLO26 Models
+# How to Export to Baidu PaddlePaddle Format from YOLO26 Models
 
 Bridging the gap between developing and deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models in real-world scenarios with varying conditions can be difficult. PaddlePaddle makes this process easier with its focus on flexibility, performance, and its capability for parallel processing in distributed environments. This means you can use your YOLO26 computer vision models on a wide variety of devices and platforms, from smartphones to cloud-based servers.
 

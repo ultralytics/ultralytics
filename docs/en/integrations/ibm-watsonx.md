@@ -1,45 +1,45 @@
 ---
-title: Train YOLO26 Models with IBM Watsonx
+title: Train YOLO26 Models with IBM watsonx
 comments: true
 description: Train Ultralytics YOLO26 object detection models in IBM watsonx.ai Jupyter notebooks, from project setup and Kaggle data loading to fine-tuning and evaluation.
-keywords: IBM Watsonx, IBM Watsonx AI, IBM Watson Integration, IBM Watson Features, YOLO26, Ultralytics, Model Training, GPU, TPU, cloud computing
+keywords: IBM watsonx, IBM watsonx AI, IBM Watson Integration, IBM Watson Features, YOLO26, Ultralytics, Model Training, GPU, TPU, cloud computing
 ---
 
-# A Step-by-Step Guide to Training YOLO26 Models with IBM Watsonx
+# A Step-by-Step Guide to Training YOLO26 Models with IBM watsonx
 
-Scalable [computer vision solutions](../guides/steps-of-a-cv-project.md) need infrastructure for data, training, and deployment. IBM Watsonx is an AI and data platform that supports the development, deployment, and management of AI models. It covers the entire AI lifecycle and integrates with IBM Cloud services.
+Scalable [computer vision solutions](../guides/steps-of-a-cv-project.md) need infrastructure for data, training, and deployment. IBM watsonx is an AI and data platform that supports the development, deployment, and management of AI models. It covers the entire AI lifecycle and integrates with IBM Cloud services.
 
-You can train [Ultralytics YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) using IBM Watsonx. It's a good option for enterprises interested in efficient [model training](../modes/train.md), fine-tuning for specific tasks, and improving [model performance](../guides/model-evaluation-insights.md) with robust tools and a user-friendly setup. This guide walks through training YOLO26 with IBM Watsonx, from setting up your environment to evaluating your trained models.
+You can train [Ultralytics YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) using IBM watsonx. It's a good option for enterprises interested in efficient [model training](../modes/train.md), fine-tuning for specific tasks, and improving [model performance](../guides/model-evaluation-insights.md) with robust tools and a user-friendly setup. This guide walks through training YOLO26 with IBM watsonx, from setting up your environment to evaluating your trained models.
 
-## What is IBM Watsonx?
+## What is IBM watsonx?
 
-[Watsonx](https://www.ibm.com/products/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM Watsonx's three components - `watsonx.ai`, `watsonx.data`, and `watsonx.governance` - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
+[watsonx](https://www.ibm.com/products/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM watsonx's three components - `watsonx.ai`, `watsonx.data`, and `watsonx.governance` - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
 
 <p align="center">
-  <img width="800" src="https://cdn.ul.run/i/4bdc3428aca8607280cf61dea931dd67.avif" alt="IBM Watsonx AI platform architecture overview">
+  <img width="800" src="https://cdn.ul.run/i/4bdc3428aca8607280cf61dea931dd67.avif" alt="IBM watsonx AI platform architecture overview">
 </p>
 
-Its interface and collaboration features support model development, management, and deployment. IBM Watsonx serves computer vision, predictive analytics, [natural language processing](https://www.ultralytics.com/glossary/natural-language-processing-nlp), and other AI applications.
+Its interface and collaboration features support model development, management, and deployment. IBM watsonx serves computer vision, predictive analytics, [natural language processing](https://www.ultralytics.com/glossary/natural-language-processing-nlp), and other AI applications.
 
-## Key Features of IBM Watsonx
+## Key Features of IBM watsonx
 
-IBM Watsonx is made of three main components: `watsonx.ai`, `watsonx.data`, and `watsonx.governance`. Each component covers a different aspect of AI and data management.
+IBM watsonx is made of three main components: `watsonx.ai`, `watsonx.data`, and `watsonx.governance`. Each component covers a different aspect of AI and data management.
 
-### Watsonx.ai
+### watsonx.ai
 
-[Watsonx.ai](https://www.ibm.com/products/watsonx-ai) provides tools for AI development and offers access to IBM-supported custom models, third-party models like [Llama 3](https://www.ultralytics.com/blog/getting-to-know-metas-llama-3), and IBM's own Granite models. It includes the Prompt Lab for experimenting with AI prompts and the Tuning Studio for improving model performance with labeled data. Also, it offers comprehensive tools for automating the AI model lifecycle and connecting to various APIs and libraries.
+[watsonx.ai](https://www.ibm.com/products/watsonx-ai) provides tools for AI development and offers access to IBM-supported custom models, third-party models like [Llama 3](https://www.ultralytics.com/blog/getting-to-know-metas-llama-3), and IBM's own Granite models. It includes the Prompt Lab for experimenting with AI prompts and the Tuning Studio for improving model performance with labeled data. Also, it offers comprehensive tools for automating the AI model lifecycle and connecting to various APIs and libraries.
 
-### Watsonx.data
+### watsonx.data
 
-[Watsonx.data](https://www.ibm.com/products/watsonx-data) supports both cloud and on-premises deployments. Its user-friendly console provides centralized access to data across environments and makes data exploration easy with common SQL. It optimizes workloads with efficient query engines like Presto and Spark, accelerates data insights with an AI-powered semantic layer, includes a [vector database](https://www.ultralytics.com/glossary/vector-database) for AI relevance, and supports open data formats for easy sharing of analytics and AI data.
+[watsonx.data](https://www.ibm.com/products/watsonx-data) supports both cloud and on-premises deployments. Its user-friendly console provides centralized access to data across environments and makes data exploration easy with common SQL. It optimizes workloads with efficient query engines like Presto and Spark, accelerates data insights with an AI-powered semantic layer, includes a [vector database](https://www.ultralytics.com/glossary/vector-database) for AI relevance, and supports open data formats for easy sharing of analytics and AI data.
 
-### Watsonx.governance
+### watsonx.governance
 
-[Watsonx.governance](https://www.ibm.com/products/watsonx-governance) makes compliance easier by automatically identifying regulatory changes and enforcing policies. It links requirements to internal risk data and provides up-to-date AI factsheets. The platform helps manage risk with alerts and tools to detect issues such as [bias and drift](../guides/model-monitoring-and-maintenance.md). It also automates the monitoring and documentation of the AI lifecycle, organizes AI development with a model inventory, and enhances collaboration with user-friendly dashboards and reporting tools.
+[watsonx.governance](https://www.ibm.com/products/watsonx-governance) makes compliance easier by automatically identifying regulatory changes and enforcing policies. It links requirements to internal risk data and provides up-to-date AI factsheets. The platform helps manage risk with alerts and tools to detect issues such as [bias and drift](../guides/model-monitoring-and-maintenance.md). It also automates the monitoring and documentation of the AI lifecycle, organizes AI development with a model inventory, and enhances collaboration with user-friendly dashboards and reporting tools.
 
-## How to Train YOLO26 Using IBM Watsonx
+## How to Train YOLO26 Using IBM watsonx
 
-You can use IBM Watsonx to accelerate your YOLO26 model training workflow.
+You can use IBM watsonx to accelerate your YOLO26 model training workflow.
 
 ### Prerequisites
 
@@ -95,7 +95,7 @@ For this tutorial, we will use a [marine litter dataset](https://www.kaggle.com/
 
 We can load the dataset directly into the notebook using the Kaggle API. First, create a free Kaggle account. Once you have created an account, you'll need to generate an API key. Directions for generating your key can be found in the [Kaggle API documentation](https://github.com/Kaggle/kaggle-cli/blob/main/docs/README.md) under the section "API credentials".
 
-Copy and paste your Kaggle username and API key into the following code. Then run the code to install the API and load the dataset into Watsonx.
+Copy and paste your Kaggle username and API key into the following code. Then run the code to install the API and load the dataset into watsonx.
 
 !!! tip "Installation"
 
@@ -106,7 +106,7 @@ Copy and paste your Kaggle username and API key into the following code. Then ru
         pip install kaggle
         ```
 
-After installing Kaggle, we can load the dataset into Watsonx.
+After installing Kaggle, we can load the dataset into watsonx.
 
 !!! example "Load the Data"
 
@@ -314,47 +314,47 @@ You can measure localization accuracy by calculating the [Intersection over Unio
 
 ## Summary
 
-We explored the key features of IBM Watsonx and how to train a YOLO26 model with it. IBM Watsonx also provides tools for model building, data management, and compliance.
+We explored the key features of IBM watsonx and how to train a YOLO26 model with it. IBM watsonx also provides tools for model building, data management, and compliance.
 
-For further details on usage, visit [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
+For further details on usage, visit [IBM watsonx official documentation](https://www.ibm.com/products/watsonx).
 
 ## FAQ
 
-### How do I train a YOLO26 model using IBM Watsonx?
+### How do I train a YOLO26 model using IBM watsonx?
 
-To train a YOLO26 model using IBM Watsonx, follow these steps:
+To train a YOLO26 model using IBM watsonx, follow these steps:
 
-1. **Set Up Your Environment**: Create an IBM Cloud account and set up a Watsonx.ai project. Use a Jupyter Notebook for your coding environment.
+1. **Set Up Your Environment**: Create an IBM Cloud account and set up a watsonx.ai project. Use a Jupyter Notebook for your coding environment.
 2. **Install Libraries**: Install necessary libraries like `torch`, `opencv`, and `ultralytics`.
-3. **Load Data**: Use the Kaggle API to load your dataset into Watsonx.
+3. **Load Data**: Use the Kaggle API to load your dataset into watsonx.
 4. **Preprocess Data**: Organize your dataset into the required directory structure and update the `.yaml` configuration file.
 5. **Train the Model**: Use the YOLO command-line interface to train your model with parameters such as `epochs` and `batch`.
 6. **Test and Evaluate**: Run inference to test the model and evaluate its performance using metrics like precision and recall.
 
 For detailed instructions, refer to our [YOLO26 Model Training guide](../modes/train.md).
 
-### What are the key features of IBM Watsonx for AI model training?
+### What are the key features of IBM watsonx for AI model training?
 
-IBM Watsonx offers several key features for AI model training:
+IBM watsonx offers several key features for AI model training:
 
-- **Watsonx.ai**: Provides tools for AI development, including access to IBM-supported custom models and third-party models like Llama 3. It includes the Prompt Lab and Tuning Studio for comprehensive AI lifecycle management.
-- **Watsonx.data**: Supports cloud and on-premises deployments, offering centralized data access, efficient query engines like Presto and Spark, and an AI-powered semantic layer.
-- **Watsonx.governance**: Automates compliance, manages risk with alerts, and provides tools for detecting issues like bias and drift. It also includes dashboards and reporting tools for collaboration.
+- **watsonx.ai**: Provides tools for AI development, including access to IBM-supported custom models and third-party models like Llama 3. It includes the Prompt Lab and Tuning Studio for comprehensive AI lifecycle management.
+- **watsonx.data**: Supports cloud and on-premises deployments, offering centralized data access, efficient query engines like Presto and Spark, and an AI-powered semantic layer.
+- **watsonx.governance**: Automates compliance, manages risk with alerts, and provides tools for detecting issues like bias and drift. It also includes dashboards and reporting tools for collaboration.
 
-For more information, visit the [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
+For more information, visit the [IBM watsonx official documentation](https://www.ibm.com/products/watsonx).
 
-### Why should I use IBM Watsonx for training Ultralytics YOLO26 models?
+### Why should I use IBM watsonx for training Ultralytics YOLO26 models?
 
-IBM Watsonx suits [Ultralytics YOLO26](../models/yolo26.md) training because its tools cover the full AI lifecycle. Key benefits include:
+IBM watsonx suits [Ultralytics YOLO26](../models/yolo26.md) training because its tools cover the full AI lifecycle. Key benefits include:
 
 - **Scalability**: Easily scale your model training with IBM Cloud services.
 - **Integration**: Connect to various data sources and APIs.
 - **User-Friendly Interface**: Simplifies the development process with a collaborative and intuitive interface.
 - **Advanced Tools**: Access tools like the Prompt Lab and Tuning Studio for enhancing model performance.
 
-### How can I preprocess my dataset for YOLO26 training on IBM Watsonx?
+### How can I preprocess my dataset for YOLO26 training on IBM watsonx?
 
-To preprocess your dataset for YOLO26 training on IBM Watsonx:
+To preprocess your dataset for YOLO26 training on IBM watsonx:
 
 1. **Organize Directories**: Ensure your dataset follows the YOLO directory structure with separate subdirectories for images and labels within the train/val/test split.
 2. **Update .yaml File**: Modify the `.yaml` configuration file to reflect the new directory structure and class names.
@@ -393,12 +393,12 @@ if __name__ == "__main__":
 
 For more details, refer to our [data preprocessing guide](../guides/preprocessing-annotated-data.md).
 
-### What are the prerequisites for training a YOLO26 model on IBM Watsonx?
+### What are the prerequisites for training a YOLO26 model on IBM watsonx?
 
-Before you start training a YOLO26 model on IBM Watsonx, ensure you have the following prerequisites:
+Before you start training a YOLO26 model on IBM watsonx, ensure you have the following prerequisites:
 
-- **IBM Cloud Account**: Create an account on IBM Cloud to access Watsonx.ai.
+- **IBM Cloud Account**: Create an account on IBM Cloud to access watsonx.ai.
 - **Kaggle Account**: For loading datasets, you'll need a Kaggle account and an API key.
-- **Jupyter Notebook**: Set up a Jupyter Notebook environment within Watsonx.ai for coding and model training.
+- **Jupyter Notebook**: Set up a Jupyter Notebook environment within watsonx.ai for coding and model training.
 
 For more information on setting up your environment, visit our [Ultralytics Installation guide](../quickstart.md).

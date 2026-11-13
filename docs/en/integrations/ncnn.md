@@ -4,7 +4,7 @@ description: Export Ultralytics YOLO26 models to Tencent NCNN for fast inference
 keywords: Ultralytics, YOLO26, NCNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, Vulkan, GPU acceleration
 ---
 
-# Ultralytics YOLO NCNN Export
+# Ultralytics YOLO Tencent NCNN Export
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on devices with limited computational power, such as mobile or embedded systems, requires careful format selection. Using an optimized format ensures that even resource-constrained devices can handle advanced computer vision tasks efficiently.
 

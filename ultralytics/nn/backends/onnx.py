@@ -153,6 +153,29 @@ _ORT_DTYPES = {
 }
 
 
+def _cpu_threads() -> int:
+    """Return a conservative ONNX Runtime intra-op thread count for the CPUs this process can use.
+
+    Physical cores, capped at 8, by the CPU affinity mask (cpuset) and by a finite cgroup v2 CPU quota (`docker --cpus`,
+    Kubernetes CPU limits), and at least 1.
+
+    Returns:
+        (int): The number of intra-op threads.
+    """
+    import psutil  # scoped as slow import
+
+    limits = [8, psutil.cpu_count(logical=False) or os.cpu_count() or 8]
+    if hasattr(os, "sched_getaffinity"):
+        limits.append(len(os.sched_getaffinity(0)))
+    try:
+        quota, period = Path("/sys/fs/cgroup/cpu.max").read_text().split()
+        if quota != "max":
+            limits.append(int(quota) // int(period))
+    except (OSError, ValueError, ZeroDivisionError):  # no cgroup v2 quota file, or unexpected contents
+        pass
+    return max(1, min(limits))
+
+
 class ONNXBackend(BaseBackend):
     """Microsoft ONNX Runtime inference backend with optional OpenCV DNN support.
 
@@ -237,10 +260,8 @@ class ONNXBackend(BaseBackend):
             if not rocm:
                 if self.session_options is None:
                     self.session_options = onnxruntime.SessionOptions()
-                    if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):  # ORT default pool sizes to host cores
-                        self.session_options.intra_op_num_threads = min(
-                            8, len(os.sched_getaffinity(0)) if LINUX else os.cpu_count()
-                        )
+                    if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):  # an explicit count also stops ORT pinning workers
+                        self.session_options.intra_op_num_threads = _cpu_threads()
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider

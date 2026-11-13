@@ -41,8 +41,8 @@ class TextRecognizer:
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
         cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
         model = str(attempt_download_asset(model))
-        self.engine = engine and cuda
-        if self.engine:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time
+        self.session = None
+        if engine and cuda:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time
             self.backend, self.lock = self.load_engine(model, device), threading.Lock()
         else:
             # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced.
@@ -57,13 +57,11 @@ class TextRecognizer:
             from ultralytics.nn.backends.onnx import ONNXBackend
 
             # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
-            self.backend = ONNXBackend(
-                model,
-                device if cuda else torch.device("cpu"),
-                provider_options={"CUDAExecutionProvider": {"cudnn_conv_algo_search": "HEURISTIC"}},
-            )
-            self.lock = threading.Lock() if self.backend.use_io_binding else nullcontext()
-        self.input_device = self.backend.device if self.engine else "cpu"
+            options = {"cudnn_conv_algo_search": "HEURISTIC"}
+            self.backend = ONNXBackend(model, device if cuda else torch.device("cpu"), cuda_options=options)
+            # Concurrent reads with per-call IO bindings; character probabilities stay on the recognizer's device
+            self.session, self.lock = self.backend.session, nullcontext()
+            self.output = self.backend.output_names[0], self.backend.device.type, self.backend.device.index or 0
         alphabet = self.backend.metadata["character"]
         self.characters = ["", *alphabet.split("\n"), " "]  # CTC alphabet: blank, the model's characters, then space
 
@@ -112,15 +110,22 @@ class TextRecognizer:
             lines.append(cv2.resize(crop, (width, 48)).transpose(2, 0, 1) / 127.5 - 1)
         order = sorted(range(len(lines)), key=lambda i: lines[i].shape[2])
         reads = [("", 0.0)] * len(lines)
+        io = self.session and self.session.io_binding()
         for start in range(0, len(order), batch):
             indices = order[start : start + batch]
             x = np.zeros((len(indices), 3, 48, max(320, lines[indices[-1]].shape[2])), np.float32)
             for j, i in enumerate(indices):
                 x[j, :, :, : lines[i].shape[2]] = lines[i]
             with self.lock:  # TensorRT: read this batch before the next one overwrites its output buffer
-                with torch.cuda.device(self.backend.device) if self.engine else nullcontext():
-                    output = self.backend.forward(torch.from_numpy(x).to(self.input_device))[0]
-                best = torch.as_tensor(output).max(-1)
+                if io is None:
+                    with torch.cuda.device(self.backend.device):  # from any thread, on the engine's GPU
+                        probs = self.backend.forward(torch.from_numpy(x).to(self.backend.device))[0]
+                else:
+                    io.bind_cpu_input("x", x)
+                    io.bind_output(*self.output)
+                    self.session.run_with_iobinding(io)
+                    probs = torch.from_dlpack(io.get_outputs()[0])
+                best = probs.max(-1)
                 best = best.values.cpu().numpy(), best.indices.cpu().numpy()
             for i, scores, ids in zip(indices, *best):
                 keep = (ids != 0) & np.r_[True, ids[1:] != ids[:-1]]  # CTC: drop blanks and repeats

@@ -1243,4 +1243,7 @@ IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)
 
 ONNXRUNTIME_BUILDS = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
 # onnxruntime-gpu>=1.27 on PyPI is built for CUDA 13 and runs on CPU next to CUDA 12 torch, so keep CUDA 12 on 1.26
-ONNXRUNTIME_CUDA = "onnxruntime-gpu[cuda]" + ("<1.27" if (torch.version.cuda or "").startswith("12.") else "")
+# (PyPI has no aarch64 onnxruntime-gpu wheels before 1.27, so ARM64 hosts such as Jetson stay uncapped)
+ONNXRUNTIME_CUDA = "onnxruntime-gpu[cuda]" + (
+    "<1.27" if not ARM64 and (torch.version.cuda or "").startswith("12.") else ""
+)

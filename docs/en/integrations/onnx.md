@@ -13,7 +13,7 @@ keywords: YOLO26, ONNX, ONNX export, ONNX Runtime, Ultralytics, ONNX opset, ONNX
 | Property          | Details                                                                                                                                                                        |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `format` argument | `onnx`                                                                                                                                                                         |
-| Output            | `yolo26n.onnx`, one file with the class names, task, and image size stored as metadata; `yolo26n_int8.onnx` for `quantize=8`                                                   |
+| Output            | `yolo26n.onnx`, one file with the class names, task, and image size stored as metadata; `yolo26n_int8.onnx` for a calibrated `quantize=8` export                               |
 | Runs on           | CPUs, NVIDIA GPUs (CUDA), [AMD GPUs](#amd-gpu-inference-with-migraphx) (MIGraphX), Apple silicon (Core ML execution provider), and [Windows ML](#windows-ml-inference) devices |
 | Runtime           | [ONNX Runtime](https://onnxruntime.ai/), or [OpenCV](https://www.ultralytics.com/glossary/opencv) DNN with `dnn=True`                                                          |
 | Precision         | FP32, FP16, INT8. YOLO26n is 9.9 MB in FP32, 5.0 MB in FP16, and 3.1 MB in INT8                                                                                                |

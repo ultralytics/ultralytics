@@ -1245,3 +1245,5 @@ IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)
 
 ONNXRUNTIME_BUILDS = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
+# PyPI onnxruntime-gpu 1.27+ is CUDA 13 only, so cap CUDA 12 torch (no aarch64 wheels before 1.27, so not ARM64)
+ONNXRUNTIME_CUDA = f"onnxruntime-gpu[cuda]{'<1.27' * (not ARM64 and str(torch.version.cuda)[:3] == '12.')}"

@@ -16,6 +16,7 @@ from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, Th
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_11,
     ONNXRUNTIME_BUILDS,
+    ONNXRUNTIME_CUDA,
     check_requirements,
     check_version,
     rocm_is_available,
@@ -222,7 +223,7 @@ class ONNXBackend(BaseBackend):
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
                 if rocm
-                else [("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
+                else [(ONNXRUNTIME_CUDA, "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
                 if cuda
                 else [(*builds, "onnxruntime-windowsml")]  # keep GPU, QNN, AMD Vitis AI or Windows ML builds
             )
@@ -279,7 +280,9 @@ class ONNXBackend(BaseBackend):
                     ) from e
                 LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
                 if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
-                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                    fix = f" Try 'pip install \"{ONNXRUNTIME_CUDA}\"'."  # e.g. CUDA 13 build next to CUDA 12 torch
+                    fix *= not check_version(onnxruntime.__version__, ONNXRUNTIME_CUDA.partition("]")[2])
+                    LOGGER.warning(f"CUDA requested but CUDAExecutionProvider not available. Using CPU...{fix}")
                     self.device = torch.device("cpu")
                     cuda = False
             self.output_names = [x.name for x in self.session.get_outputs()]

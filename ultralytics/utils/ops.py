@@ -610,8 +610,9 @@ def crop_mask(masks: torch.Tensor, boxes: torch.Tensor) -> torch.Tensor:
         boxes = boxes.to(masks.device)
     _, h, w = masks.shape
     x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # each shape (n,1,1)
-    r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # columns (1,1,w)
-    c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # rows (1,h,1)
+    dtype = torch.float32 if boxes.dtype in (torch.float16, torch.bfloat16) else boxes.dtype  # preserve pixel indices
+    r = torch.arange(w, device=masks.device, dtype=dtype)[None, None, :]  # columns (1,1,w)
+    c = torch.arange(h, device=masks.device, dtype=dtype)[None, :, None]  # rows (1,h,1)
     # Apply the column and row masks separately and in place: the box region is separable, so this avoids ever
     # materializing the full (n, h, w) boolean grid the combined product would build, and has no per-mask Python loop.
     masks *= (r >= x1) * (r < x2)  # zero columns outside the box

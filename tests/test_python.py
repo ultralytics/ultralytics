@@ -1948,6 +1948,23 @@ def test_nms_end2end_classes_before_max_det():
     assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 
 
+@pytest.mark.parametrize(("dtype", "start"), [(torch.float16, 2050), (torch.bfloat16, 258)])
+@pytest.mark.parametrize("vertical", [False, True])
+def test_crop_mask_low_precision_coordinates(dtype, start, vertical):
+    """Low-precision box coordinates must not round the integer pixel grid."""
+    from ultralytics.utils import ops
+
+    shape = (start + 4, 1) if vertical else (1, start + 4)
+    box = [0, start, 1, start + 2] if vertical else [start, 0, start + 2, 1]
+    masks = torch.ones((1, *shape), dtype=torch.uint8)
+    expected = torch.zeros_like(masks)
+    if vertical:
+        expected[:, start : start + 2, :] = 1
+    else:
+        expected[:, :, start : start + 2] = 1
+    assert torch.equal(ops.crop_mask(masks, torch.tensor([box], dtype=dtype)), expected)
+
+
 def test_process_mask_empty():
     """Process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
     from ultralytics.utils import ops

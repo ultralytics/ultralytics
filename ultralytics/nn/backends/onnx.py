@@ -280,9 +280,12 @@ class ONNXBackend(BaseBackend):
                     ) from e
                 LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
                 if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
-                    # e.g. onnxruntime-gpu>=1.27 (CUDA 13) installed beside a CUDA 12 build of torch
-                    req = onnxruntime_gpu_requirement()
-                    hint = "" if check_requirements(req, install=False) else f" Try 'pip install \"{req}\"'."
+                    hint = ""
+                    if (torch.version.cuda or "").startswith("12.") and check_version(
+                        onnxruntime.__version__, ">=1.27"
+                    ):
+                        # onnxruntime-gpu>=1.27 is built for CUDA 13 and cannot load CUDA 12 torch's libraries
+                        hint = f" Install the CUDA 12 build with 'pip install \"{onnxruntime_gpu_requirement()}\"'."
                     LOGGER.warning(f"CUDA requested but CUDAExecutionProvider not available. Using CPU...{hint}")
                     self.device = torch.device("cpu")
                     cuda = False

@@ -1276,6 +1276,26 @@ class DetMetrics(SimpleClass, DataExportMixin):
             for i in range(len(per_class["Box-P"]))
         ]
 
+    def _task_summary(self, prefix: str, metric: Metric, normalize: bool, decimals: int) -> list[dict[str, Any]]:
+        """Extend the box summary rows with per-class P, R, F1, mAP50, mAP75, and mAP50-95 of a task metric.
+
+        Args:
+            prefix (str): Column name prefix for the task metric, e.g. "Mask" or "Pose".
+            metric (Metric): Task metric whose per-class values are appended to each row.
+            normalize (bool): Passed through to the box summary.
+            decimals (int): Number of decimal places to round the metrics values to.
+
+        Returns:
+            (list[dict[str, Any]]): Box summary rows extended with the prefixed task metric columns.
+        """
+        keys = ("P", "R", "F1", "mAP50", "mAP75", "mAP50-95")
+        summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
+        for i, s in enumerate(summary):
+            ap = metric.all_ap[i]
+            values = (metric.p[i], metric.r[i], metric.f1[i], ap[0], ap[5], ap.mean())
+            s.update({f"{prefix}-{k}": round(v, decimals) for k, v in zip(keys, values)})
+        return summary
+
 
 class SegmentMetrics(DetMetrics):
     """Calculate and aggregate detection and segmentation metrics over a given set of classes.
@@ -1419,18 +1439,7 @@ class SegmentMetrics(DetMetrics):
             >>> seg_summary = results.summary(decimals=4)
             >>> print(seg_summary)
         """
-        per_class = {
-            "Mask-P": self.seg.p,
-            "Mask-R": self.seg.r,
-            "Mask-F1": self.seg.f1,
-            "Mask-mAP50": self.seg.ap50,
-            "Mask-mAP75": self.seg.all_ap[:, 5] if len(self.seg.all_ap) else [],
-            "Mask-mAP50-95": self.seg.ap,
-        }
-        summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
-        for i, s in enumerate(summary):
-            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
-        return summary
+        return self._task_summary("Mask", self.seg, normalize, decimals)
 
 
 class PoseMetrics(DetMetrics):
@@ -1575,18 +1584,7 @@ class PoseMetrics(DetMetrics):
             >>> pose_summary = results.summary(decimals=4)
             >>> print(pose_summary)
         """
-        per_class = {
-            "Pose-P": self.pose.p,
-            "Pose-R": self.pose.r,
-            "Pose-F1": self.pose.f1,
-            "Pose-mAP50": self.pose.ap50,
-            "Pose-mAP75": self.pose.all_ap[:, 5] if len(self.pose.all_ap) else [],
-            "Pose-mAP50-95": self.pose.ap,
-        }
-        summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
-        for i, s in enumerate(summary):
-            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
-        return summary
+        return self._task_summary("Pose", self.pose, normalize, decimals)
 
 
 class ClassifyMetrics(SimpleClass, DataExportMixin):

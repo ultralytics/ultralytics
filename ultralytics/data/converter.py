@@ -679,7 +679,9 @@ def yolo_bbox2segment(
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
         sam_results = sam_model(label["im_file"], bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
-        label["segments"] = sam_results[0].masks.xyn
+        if sam_results[0].masks is not None:
+            label["segments"] = sam_results[0].masks.xyn
+            label["cls"] = label["cls"][sam_results[0].boxes.cls.int().cpu().numpy()]
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
     save_dir.mkdir(parents=True, exist_ok=True)

@@ -199,7 +199,7 @@ with open("yolo26n.engine", "rb") as f:
     engine = trt.Runtime(trt.Logger(trt.Logger.WARNING)).deserialize_cuda_engine(f.read())
 ```
 
-When another tool expects a plain TensorRT engine file, write the bytes after the header to a new file, or build the engine in that tool from the `yolo26n.onnx` file that the export leaves next to the engine. On TensorRT 11, FP16 and INT8 exports also leave `yolo26n.fp16.onnx` and `yolo26n.int8.onnx`; build an INT8 engine in another tool from the `.int8.onnx` file.
+When another tool expects a plain TensorRT engine file, write the bytes after the header to a new file, or build the engine in that tool from the `yolo26n.onnx` file that the export leaves next to the engine. On TensorRT 11, FP16 and calibrated INT8 exports also leave `yolo26n.fp16.onnx` and `yolo26n.int8.onnx`; build an INT8 engine in another tool from the `.int8.onnx` file. For a checkpoint trained with `quantize=8`, `yolo26n.onnx` already holds the Q/DQ nodes, and no `.int8.onnx` file is written.
 
 ## Deploy
 

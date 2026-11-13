@@ -260,8 +260,8 @@ def convert_coco(
             joining multi-part objects; annotations without a usable outline get a box-shaped polygon.
         use_keypoints (bool, optional): Whether to include keypoint annotations in the output. Annotations without any
             labeled keypoint are skipped, as COCO keypoint evaluation ignores them.
-        cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
-            Annotations with unmapped or non-positive category IDs are skipped.
+        cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs. Annotations
+            with unmapped or non-positive category IDs are skipped.
         lvis (bool, optional): Whether to convert data in lvis dataset way.
 
     Raises:

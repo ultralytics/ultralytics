@@ -685,7 +685,9 @@ def check_tensorrt(min_version: str = "7.0.0"):
     """
     if LINUX:
         cuda_version = torch.version.cuda.split(".")[0]
-        check_requirements(f"tensorrt-cu{cuda_version}>={min_version},!=10.2.0")
+        # NVIDIA containers and JetPack ship TensorRT as the `tensorrt` distribution, so accept it before installing
+        spec = f">={min_version},!=10.2.0"
+        check_requirements([(f"tensorrt-cu{cuda_version}{spec}", f"tensorrt{spec}")])
 
 
 def check_torchvision():

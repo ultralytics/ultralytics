@@ -131,13 +131,13 @@ from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_10,
     IS_PYTHON_MINIMUM_3_13,
     ONNXRUNTIME_BUILDS,
+    ONNXRUNTIME_CUDA,
     check_data_portable,
     check_imgsz,
     check_python,
     check_requirements,
     check_version,
     is_intel,
-    onnxruntime_gpu_requirement,
     rocm_is_available,
 )
 from ultralytics.utils.export.axelera import AXELERA_SDK
@@ -1186,11 +1186,7 @@ class Exporter:
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
-            ort = (
-                onnxruntime_gpu_requirement()
-                if "cuda" in self.device.type and not rocm_is_available()
-                else "onnxruntime"
-            )
+            ort = ONNXRUNTIME_CUDA if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
             requirements += [(ort, *ONNXRUNTIME_BUILDS)]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]

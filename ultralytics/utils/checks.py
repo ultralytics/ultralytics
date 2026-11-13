@@ -1242,22 +1242,5 @@ IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)
 
 ONNXRUNTIME_BUILDS = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
-
-
-def onnxruntime_gpu_requirement(min_version: str = "") -> str:
-    """Return the onnxruntime-gpu[cuda] requirement that matches the CUDA major version torch was built with.
-
-    onnxruntime-gpu>=1.27 on PyPI is built for CUDA 13 and cannot load the CUDA 12 libraries shipped with a CUDA 12
-    build of torch, so inference would silently fall back to CPUExecutionProvider. CUDA 12 torch is capped at 1.26, the
-    last CUDA 12 release.
-
-    Args:
-        min_version (str, optional): Minimum onnxruntime-gpu version, e.g. "1.26.0".
-
-    Returns:
-        (str): Requirement string for check_requirements(), e.g. "onnxruntime-gpu[cuda]<1.27".
-    """
-    specifiers = [f">={min_version}"] if min_version else []
-    if (torch.version.cuda or "").split(".")[0] == "12":
-        specifiers.append("<1.27")
-    return "onnxruntime-gpu[cuda]" + ",".join(specifiers)
+# onnxruntime-gpu>=1.27 on PyPI is built for CUDA 13 and runs on CPU next to CUDA 12 torch, so keep CUDA 12 on 1.26
+ONNXRUNTIME_CUDA = "onnxruntime-gpu[cuda]" + ("<1.27" if (torch.version.cuda or "").startswith("12.") else "")

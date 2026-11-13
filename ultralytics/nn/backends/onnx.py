@@ -239,9 +239,16 @@ class ONNXBackend(BaseBackend):
                 if self.session_options is None:
                     self.session_options = onnxruntime.SessionOptions()
                     if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):  # ORT default pool sizes to host cores
-                        self.session_options.intra_op_num_threads = min(
-                            8, len(os.sched_getaffinity(0)) if LINUX else os.cpu_count()
-                        )
+                        import psutil  # scoped as slow import
+
+                        # Physical cores, capped by the affinity mask and a cgroup v2 CPU quota (docker --cpus)
+                        n = min(8, psutil.cpu_count(logical=False) or os.cpu_count())
+                        if LINUX:
+                            n = min(n, len(os.sched_getaffinity(0)))
+                            cpu_max = Path("/sys/fs/cgroup/cpu.max")
+                            if cpu_max.is_file() and (q := cpu_max.read_text().split())[0] != "max":
+                                n = min(n, int(q[0]) // int(q[1]))
+                        self.session_options.intra_op_num_threads = max(1, n)
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider

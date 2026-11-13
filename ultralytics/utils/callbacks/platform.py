@@ -7,7 +7,7 @@ import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from math import isfinite
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from time import time
 
 from ultralytics.utils import (
@@ -241,8 +241,15 @@ def _get_environment_info():
 
 
 def _get_project_name(trainer):
-    """Get slugified project and raw run name from trainer args; Platform derives the model slug from the name."""
+    """Get slugified project and raw run name from trainer args; Platform derives the model slug from the name.
+
+    A local save directory names the project by its last folder with a usable name, so a path never becomes a Platform
+    project name.
+    """
     raw = str(trainer.args.project)
+    path = PureWindowsPath(raw)  # reads both separators and drive letters on any OS
+    if path.anchor or raw.startswith(("~", ".")) or "\\" in raw:  # a local path, not `username/project`
+        raw = next((part for part in reversed(path.parts) if slugify(part)), raw)
     parts = raw.split("/", 1)
     project = f"{parts[0]}/{slugify(parts[1].replace('/', '-'))}" if len(parts) == 2 else slugify(raw)
     return project, str(trainer.args.name or "train")

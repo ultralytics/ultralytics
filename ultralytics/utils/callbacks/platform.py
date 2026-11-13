@@ -391,7 +391,9 @@ def on_fit_epoch_end(trainer):
     first_epoch = trainer.epoch == 0
     # Initial training batch plots, listed here because plotting threads may still be adding to trainer.plots
     visual_files = (
-        [p for i in range(3) if (p := trainer.save_dir / f"train_batch{i}.jpg") in trainer.plots] if first_epoch else []
+        [p for i in range(3) if (p := trainer.save_dir / f"train_batch{i}.jpg") in trainer.plots]
+        if first_epoch and ctx["run_id"]
+        else []
     )
 
     if trainer.optimizer and trainer.optimizer.param_groups:
@@ -427,16 +429,24 @@ def on_fit_epoch_end(trainer):
         if visual_files:
             from ultralytics.data.utils import compress_one_image
 
-            with tempfile.TemporaryDirectory() as tmp:
-                visuals = []
-                for f in visual_files:
-                    compress_one_image(f, Path(tmp) / f.name, max_dim=1280, quality=50)  # 1/3 the bytes, labels legible
-                    if _upload_file(
-                        Path(tmp) / f.name, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True
-                    ):
-                        visuals.append(f.name)
-            if visuals:
-                payload.update({"visuals": visuals, "runId": ctx["run_id"]})
+            try:
+                with tempfile.TemporaryDirectory() as tmp:
+                    visuals = []
+                    for f in visual_files:
+                        compress_one_image(f, Path(tmp) / f.name, max_dim=1280, quality=50)  # 1/3 the bytes
+                        if _upload_file(
+                            Path(tmp) / f.name,
+                            project,
+                            name,
+                            model_id=ctx["model_id"],
+                            run_id=ctx["run_id"],
+                            visual=True,
+                        ):
+                            visuals.append(f.name)
+                if visuals:
+                    payload["visuals"] = visuals
+            except Exception as e:  # optional visuals never block epoch metrics or the end of training
+                LOGGER.warning(f"{PREFIX}Training visuals not uploaded: {e}")
         response = _send("epoch_end", payload, project, name, ctx["model_id"], retry=1)
         _handle_control_response(trainer, ctx, response)
 

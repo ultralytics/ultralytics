@@ -40,9 +40,8 @@ def _compact_plot(plot, n=101):
     """
     import numpy as np
 
-    if "matrix" in plot:  # Platform draws the first 100, normalized by column totals that count the hidden rows
-        m = np.array([row[:100] for row in plot["matrix"]])
-        return {**plot, "matrix": m[:100].tolist(), **({"totals": m.sum(0).tolist()} if len(m) > 100 else {})}
+    if "matrix" in plot:  # Platform draws the first 100 classes, normalized by column totals over all rows
+        return {**plot, "matrix": (m := np.array(plot["matrix"])[:, :100])[:100].tolist(), "totals": m.sum(0).tolist()}
 
     x, y = np.array(plot["x"]), np.array(plot["y"])
     if len(y) > 20:  # mean curve and AP only, so rows no longer map to classes

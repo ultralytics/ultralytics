@@ -57,7 +57,9 @@ class TextRecognizer:
             from ultralytics.nn.backends.onnx import ONNXBackend
 
             # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
-            self.backend = ONNXBackend(model, device, cuda_options={"cudnn_conv_algo_search": "HEURISTIC"})
+            self.backend = ONNXBackend(
+                model, device, provider_options={"CUDAExecutionProvider": {"cudnn_conv_algo_search": "HEURISTIC"}}
+            )
             self.lock = nullcontext()  # concurrent
         self.input_device = self.backend.device if self.engine else "cpu"
         alphabet = self.backend.metadata["character"]

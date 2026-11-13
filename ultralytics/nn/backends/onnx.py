@@ -100,7 +100,7 @@ def _migraphx_cache_dir(weight: str | Path) -> Path:
 
 
 @ThreadingLocked()  # ORT_MIGRAPHX_CACHE_DIR is process-global until the session is built
-def _load_migraphx_session(onnxruntime, weight: str | Path, index: int):
+def _load_migraphx_session(onnxruntime, weight: str | Path, index: int, provider_options: dict | None = None):
     """Create an InferenceSession on the MIGraphX plugin EP for GPU `index`.
 
     Raises if the plugin is missing, the GPU is not enumerated, or compilation fails, so the caller can fall back to
@@ -110,6 +110,7 @@ def _load_migraphx_session(onnxruntime, weight: str | Path, index: int):
         onnxruntime (module): The imported onnxruntime module.
         weight (str | Path): Path to the .onnx model file.
         index (int): GPU device index.
+        provider_options (dict | None): Execution-provider options keyed by provider name.
 
     Returns:
         (onnxruntime.InferenceSession): The session on the MIGraphX EP.
@@ -123,7 +124,7 @@ def _load_migraphx_session(onnxruntime, weight: str | Path, index: int):
     os.environ.setdefault("MIGRAPHX_DISABLE_WINOGRAD", "1")
 
     # Cache the JIT-compiled program so repeat loads skip compilation.
-    options = {}
+    options = (provider_options or {}).get(ep, {}).copy()
     try:
         cache_dir = _migraphx_cache_dir(weight)
         if not any(cache_dir.iterdir()):
@@ -168,7 +169,7 @@ class ONNXBackend(BaseBackend):
         fp16: bool = False,
         format: str = "onnx",
         session_options: object | None = None,
-        cuda_options: dict | None = None,
+        provider_options: dict[str, dict] | None = None,
     ):
         """Initialize the ONNX backend.
 
@@ -178,12 +179,12 @@ class ONNXBackend(BaseBackend):
             fp16 (bool): Whether to use FP16 half-precision inference.
             format (str): Inference engine, either "onnx" for ONNX Runtime or "dnn" for OpenCV DNN.
             session_options (object | None): Optional ONNX Runtime session options.
-            cuda_options (dict | None): Optional CUDA execution provider options.
+            provider_options (dict[str, dict] | None): Optional execution-provider options keyed by provider name.
         """
         assert format in {"onnx", "dnn"}, f"Unsupported ONNX format: {format}."
         self.format = format
         self.session_options = session_options
-        self.cuda_options = cuda_options or {}
+        self.provider_options = provider_options or {}
         super().__init__(weight, device, fp16)
 
     def load_model(self, weight: str | Path) -> None:
@@ -233,7 +234,9 @@ class ONNXBackend(BaseBackend):
 
             if rocm:
                 try:
-                    self.session = _load_migraphx_session(onnxruntime, weight, self.device.index or 0)
+                    self.session = _load_migraphx_session(
+                        onnxruntime, weight, self.device.index or 0, self.provider_options
+                    )
                 except Exception as e:  # plugin missing, GPU not enumerated, or unsupported-op compile failure
                     LOGGER.warning(f"MIGraphX execution provider unavailable ({e}). Using CPU...")
                     self.device, cuda, rocm = torch.device("cpu"), False, False
@@ -249,18 +252,27 @@ class ONNXBackend(BaseBackend):
                 # Select execution provider
                 available = onnxruntime.get_available_providers()
                 if cuda and "CUDAExecutionProvider" in available:
-                    options = {"device_id": self.device.index, **self.cuda_options}
+                    options = {
+                        "device_id": self.device.index,
+                        **self.provider_options.get("CUDAExecutionProvider", {}),
+                    }
                     providers = [("CUDAExecutionProvider", options), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                     # Dynamic-shape nodes run on CPU: the default NeuralNetwork format returns wrong outputs for them
                     flags = "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"
                     if check_version(onnxruntime.__version__, ">=1.20.0"):  # 1.19 aborts the process on ML Program
                         flags += "|COREML_FLAG_CREATE_MLPROGRAM"  # NeuralNetwork drifts from CPU and fails on semantic
-                    providers = [("CoreMLExecutionProvider", {"flags": flags}), "CPUExecutionProvider"]
+                    options = {"flags": flags, **self.provider_options.get("CoreMLExecutionProvider", {})}
+                    providers = [("CoreMLExecutionProvider", options), "CPUExecutionProvider"]
                 elif "VitisAIExecutionProvider" in available and (config := w / "vitisai_config.json").exists():
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
-                    providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
+                    options = {
+                        **options,
+                        "target": "VAIML",
+                        **self.provider_options.get("VitisAIExecutionProvider", {}),
+                    }
+                    providers = [("VitisAIExecutionProvider", options), "CPUExecutionProvider"]
                 elif winml:  # Windows ML selects execution providers using its maximum-performance policy
                     providers = None
                     if not self.session_options.has_providers():

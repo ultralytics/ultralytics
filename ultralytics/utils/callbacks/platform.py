@@ -5,6 +5,7 @@ import platform
 import re
 import socket
 import sys
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from math import isfinite
 from pathlib import Path
@@ -169,11 +170,11 @@ def _upload_file(file_path, project, name, progress=False, retry=1, model_id=Non
         LOGGER.warning(f"{PREFIX}Failed to get upload URL: {detail}")
         return None
 
-    headers = {"Content-Type": "image/jpeg", **data.get("headers", {})} if visual else None
+    headers = {"Content-Type": "image/jpeg"} if visual else None
     if safe_upload(file=file_path, url=data["uploadUrl"], headers=headers, retry=retry, progress=progress):
-        gcs_path = data.get("gcsPath")
         if visual:
-            return {"name": file_path.name, "path": gcs_path, "size": file_size} if gcs_path else None
+            return file_path.name
+        gcs_path = data.get("gcsPath")
         if gcs_path and run_id:
             saved = _send(
                 "checkpoint_saved",
@@ -424,11 +425,16 @@ def on_fit_epoch_end(trainer):
     def _send_and_check_cancel():
         """Send epoch_end and check response for cancellation (runs in background thread)."""
         if visual_files:
-            visuals = [
-                v
-                for f in visual_files
-                if (v := _upload_file(f, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True))
-            ]
+            from ultralytics.data.utils import compress_one_image
+
+            with tempfile.TemporaryDirectory() as tmp:
+                visuals = []
+                for f in visual_files:
+                    compress_one_image(f, Path(tmp) / f.name, max_dim=1280, quality=50)  # 1/3 the bytes, labels legible
+                    if _upload_file(
+                        Path(tmp) / f.name, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True
+                    ):
+                        visuals.append(f.name)
             if visuals:
                 payload.update({"visuals": visuals, "runId": ctx["run_id"]})
         response = _send("epoch_end", payload, project, name, ctx["model_id"], retry=1)

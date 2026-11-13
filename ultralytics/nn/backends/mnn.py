@@ -48,7 +48,7 @@ class MNNBackend(BaseBackend):
         Returns:
             (list): Model predictions as a list of numpy arrays.
         """
-        input_var = self.expr.const(im.data_ptr(), im.shape)
+        input_var = self.expr.const((im := im.cpu().contiguous()).data_ptr(), im.shape)  # MNN reads dense host memory
         output_var = self.net.onForward([input_var])
         # NOTE: need this copy(), or it'd get incorrect results on ARM devices
         if output_var:

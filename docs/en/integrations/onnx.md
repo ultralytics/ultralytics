@@ -350,7 +350,7 @@ It depends on the `nms` argument you exported with. A default export returns raw
 
 ### How do I export an ONNX model with dynamic batch or image size?
 
-Set `dynamic=True`. The `images` input then has shape `(batch, 3, height, width)` with dynamic batch, height, and width, and a detection `output0` has shape `(batch, 84, anchors)`, so the same file accepts different batch sizes and image sizes at inference time. Height and width must be multiples of the model stride, 32 for YOLO26. A dynamic model does not use IO binding on CUDA and does not load in OpenCV DNN, so keep the default static export when the input size is fixed.
+Set `dynamic=True`. The `images` input then has shape `(batch, 3, height, width)` with dynamic batch, height, and width, and a default (`nms=None`) detection `output0` has shape `(batch, 84, anchors)`, so the same file accepts different batch sizes and image sizes at inference time. With `nms=True`, the batch size is limited to the `batch` value used at export. Height and width must be multiples of the model stride, 32 for YOLO26. A dynamic model does not use IO binding on CUDA and does not load in OpenCV DNN, so keep the default static export when the input size is fixed.
 
 !!! example "Dynamic export"
 

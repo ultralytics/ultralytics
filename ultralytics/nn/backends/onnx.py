@@ -16,6 +16,7 @@ from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, Th
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_11,
     ONNXRUNTIME_BUILDS,
+    ONNXRUNTIME_CUDA,
     check_requirements,
     check_version,
     rocm_is_available,
@@ -226,7 +227,7 @@ class ONNXBackend(BaseBackend):
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
                 if rocm
-                else [("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
+                else [(ONNXRUNTIME_CUDA, "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
                 if cuda
                 else [(*builds, "onnxruntime-windowsml")]  # keep GPU, QNN, AMD Vitis AI or Windows ML builds
             )
@@ -244,9 +245,16 @@ class ONNXBackend(BaseBackend):
                 if self.session_options is None:
                     self.session_options = onnxruntime.SessionOptions()
                     if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):  # ORT default pool sizes to host cores
-                        self.session_options.intra_op_num_threads = min(
-                            8, len(os.sched_getaffinity(0)) if LINUX else os.cpu_count()
-                        )
+                        import psutil  # scoped as slow import
+
+                        # Physical cores, capped by the affinity mask and a cgroup v2 CPU quota (docker --cpus)
+                        n = min(8, psutil.cpu_count(logical=False) or os.cpu_count())
+                        if LINUX:
+                            n = min(n, len(os.sched_getaffinity(0)))
+                            cpu_max = Path("/sys/fs/cgroup/cpu.max")
+                            if cpu_max.is_file() and (q := cpu_max.read_text().split())[0] != "max":
+                                n = min(n, int(q[0]) // int(q[1]))
+                        self.session_options.intra_op_num_threads = max(1, n)
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider
@@ -295,7 +303,9 @@ class ONNXBackend(BaseBackend):
                     ) from e
                 LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
                 if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
-                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                    fix = f" Try 'pip install \"{ONNXRUNTIME_CUDA}\"'."  # e.g. CUDA 13 build next to CUDA 12 torch
+                    fix *= not check_version(onnxruntime.__version__, ONNXRUNTIME_CUDA.partition("]")[2])
+                    LOGGER.warning(f"CUDA requested but CUDAExecutionProvider not available. Using CPU...{fix}")
                     self.device = torch.device("cpu")
                     cuda = False
             self.output_names = [x.name for x in self.session.get_outputs()]

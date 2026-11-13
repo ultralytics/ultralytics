@@ -149,7 +149,7 @@ The `quantize` and `data` arguments are the same on every TensorRT version, but 
 
 ModelOpt is installed on first use. Ultralytics does not reuse a calibration cache, so every export calibrates again. For details on both methods, see [Working with Quantized Types](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-quantized-types.html) in the TensorRT documentation.
 
-Pass calibration images with `data`, for example `data="my_dataset.yaml"`. Calibration uses the `val` split of that dataset unless you set `split`, and `fraction` limits the number of images. NVIDIA recommends at least 500 images that represent your deployment data, and the export logs a warning below 300. Without `data`, the export logs a warning and uses the [small example dataset for the model task](../datasets/index.md), such as `coco8.yaml` for detection. Its validation split has 4 images, which is enough to test the export but not to calibrate a model for deployment.
+For a checkpoint not trained with `quantize=8`, pass calibration images with `data`, for example `data="my_dataset.yaml"`. Calibration uses the `val` split of that dataset unless you set `split`, and `fraction` limits the number of images. NVIDIA recommends at least 500 images that represent your deployment data, and the export logs a warning below 300. Without `data`, the export logs a warning and uses the [small example dataset for the model task](../datasets/index.md), such as `coco8.yaml` for detection. Its validation split has 4 images, which is enough to test the export but not to calibrate a model for deployment.
 
 !!! example
 
@@ -231,7 +231,7 @@ An engine exported without `dynamic=True` has a fixed input shape. Predict and v
 - **DLA**: `device=dla:0` and `device=dla:1` work only on NVIDIA Jetson, and only with `quantize=16` or `quantize=8`. The export raises an error on TensorRT 11. Layers that DLA does not support run on the GPU.
 - **Dynamic shapes**: `dynamic=True` needs a maximum batch size, so also set `batch`, for example `batch=8`. Without it the export logs a warning and the maximum batch size is 1. The engine accepts batches from 1 to `batch` and image sizes from 32 pixels up to twice the export `imgsz`. For example, an engine exported with `imgsz=320 batch=4` runs at 640 pixels and rejects 704 pixels or a batch of 6 with `input size ... is outside the TensorRT optimization profile`. Combine `dynamic=True` with `quantize=8` only on TensorRT 11. On GPUs with compute capability 7.5 or lower, such as the T4, the minimum size of those dynamic INT8 engines is 64 pixels (128 for P6 models).
 - **Fixed input size**: an engine exported without `dynamic=True` always runs at its export `imgsz`. Passing another `imgsz` to predict or val has no effect, so re-export to change the input size.
-- **INT8 export without `data`**: the export calibrates on the small default dataset for the task, which has 4 validation images for detection, and logs a warning. Pass `data` with representative images; the export warns below 300.
+- **INT8 export without `data`**: unless the checkpoint was trained with `quantize=8`, the export calibrates on the small default dataset for the task, which has 4 validation images for detection, and logs a warning. Pass `data` with representative images; the export warns below 300.
 - **Slow first inferences**: the first few calls with a new engine, or with a new `imgsz` on a dynamic engine, take longer than later calls.
 
 For other errors, see the [Common Issues guide](../guides/yolo-common-issues.md).

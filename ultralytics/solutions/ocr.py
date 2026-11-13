@@ -17,7 +17,7 @@ import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LINUX, ops
-from ultralytics.utils.checks import check_paddle, check_python, check_requirements, check_tensorrt, rocm_is_available
+from ultralytics.utils.checks import check_python, check_requirements, check_tensorrt, rocm_is_available
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
 from ultralytics.utils.torch_utils import select_device
@@ -159,31 +159,13 @@ class OCR(BaseSolution):
         kwargs.setdefault("max_det", 1000)  # a document page holds more words than the default 300 detections
         super().__init__(**kwargs)
         recognizer = self.CFG["recognizer"]
-        if recognizer == "paddleocr" and self.CFG["ocr_model"]:
-            check_paddle(">=3.1.0", gpu=">=3.1.0")  # PP-OCRv5/v6 require PaddlePaddle 3.1+
-            check_requirements("paddleocr>=3.7,<4")
-            import paddle
-            from paddleocr import TextRecognition
-
-            device = self.CFG["device"]
-            if device is not None:
-                device = select_device(device, verbose=False)
-                cuda = getattr(device, "type", "cpu") == "cuda"
-                if cuda and not paddle.device.is_compiled_with_cuda():
-                    raise RuntimeError(
-                        "PaddleOCR CUDA inference requires paddlepaddle-gpu; install it or use device='cpu'."
-                    )
-                device = f"gpu:{device.index or 0}" if cuda else "cpu"
-            paddle = TextRecognition(model_name=self.CFG["ocr_model"], device=device)
-            self.recognize = lambda crops: [
-                (r["rec_text"], float(r["rec_score"])) for r in paddle.predict(crops, batch_size=16)
-            ]
-        elif recognizer in {"paddleocr", "tensorrt"}:
-            self.recognize = TextRecognizer(device=self.CFG["device"], engine=recognizer == "tensorrt")
+        if isinstance(recognizer, str):  # PaddleOCR model name, e.g. 'korean_PP-OCRv5_mobile_rec'
+            model = "PP-OCRv6_medium_rec" if recognizer in {"paddleocr", "tensorrt"} else recognizer
+            self.recognize = TextRecognizer(f"{model}.onnx", self.CFG["device"], engine=recognizer == "tensorrt")
         elif callable(recognizer):
             self.recognize = lambda crops: [(text, float(confidence)) for text, confidence in map(recognizer, crops)]
         else:
-            raise ValueError("recognizer must be 'paddleocr', 'tensorrt' or a callable accepting a BGR image crop.")
+            raise TypeError("recognizer must be a backend or PaddleOCR model name, or a callable reading a BGR crop.")
 
     @staticmethod
     def lines(polygons: np.ndarray) -> list[list[int]]:

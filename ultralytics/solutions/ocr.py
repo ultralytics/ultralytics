@@ -159,12 +159,13 @@ class OCR(BaseSolution):
         kwargs.setdefault("max_det", 1000)  # a document page holds more words than the default 300 detections
         super().__init__(**kwargs)
         recognizer = self.CFG["recognizer"]
-        if recognizer in {"paddleocr", "tensorrt"}:
-            self.recognize = TextRecognizer(device=self.CFG["device"], engine=recognizer == "tensorrt")
+        if isinstance(recognizer, str):  # PaddleOCR model name, e.g. 'korean_PP-OCRv5_mobile_rec'
+            model = "PP-OCRv6_medium_rec" if recognizer in {"paddleocr", "tensorrt"} else recognizer
+            self.recognize = TextRecognizer(f"{model}.onnx", self.CFG["device"], engine=recognizer == "tensorrt")
         elif callable(recognizer):
             self.recognize = lambda crops: [(text, float(confidence)) for text, confidence in map(recognizer, crops)]
         else:
-            raise ValueError("recognizer must be 'paddleocr', 'tensorrt' or a callable accepting a BGR image crop.")
+            raise TypeError("recognizer must be a backend or PaddleOCR model name, or a callable reading a BGR crop.")
 
     @staticmethod
     def lines(polygons: np.ndarray) -> list[list[int]]:

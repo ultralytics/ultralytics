@@ -22,7 +22,7 @@ Ultralytics Platform accepts images, videos, archives, and NDJSON files.
 
 !!! tip "Already have data elsewhere?"
 
-    If you already have datasets in [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place through **Cloud storage**. Enterprise workspaces can use [On Premise](../integrations/on-premise.md) to index and train on local data without sending pixels to Platform.
+    If you already have datasets in [Roboflow](../integrations/roboflow.md) or hosted [Label Studio](../integrations/label-studio.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place through **Cloud storage**. Enterprise workspaces can use [On Premise](../integrations/on-premise.md) to index and train on local data without sending pixels to Platform.
 
 ### Supported Formats
 
@@ -414,7 +414,7 @@ Click any image to open the fullscreen viewer with:
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
 - **Blur faces**: Right-click the image or an annotation to [preview and apply face blurring](#blur-faces) to the image when available
 - **Download**: Download the original image file
-- **Delete**: Delete the image from the dataset
+- **Delete**: Permanently delete the image from the dataset after you confirm
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
 - **Pan**: Hold `Space` and drag, or drag with the middle mouse button, to pan the canvas at any zoom level
@@ -767,7 +767,7 @@ Right-click an image in **Grid** or **Compact** view, or a single selected row i
 | **Copy** / **Cut**          | Copy or cut the image to paste it into another dataset (see [Copy and Move Images](#copy-and-move-images))           |
 | **Paste**                   | Paste copied or cut images into this dataset; shown when the clipboard holds images from another dataset             |
 | **Download**                | Download the original image file                                                                                     |
-| **Delete**                  | Delete the image from the dataset                                                                                    |
+| **Delete**                  | Permanently delete the image after you confirm; images don't go to [Trash](../account/trash.md)                      |
 
 ![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/cfd31e07fad45487f91d1ba876f5fca3.avif)<!-- screenshot -->
 
@@ -984,7 +984,7 @@ Workspace viewers can inspect metadata, while members with edit access can repla
 
 ## Clone Dataset
 
-When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions unless you pick only some of its **Splits** or one of its saved **Versions**, and **Existing dataset** adds the images without labels to a dataset you own instead. To copy only some images, tick them in **Grid** or **Compact** view and click **Clone Images**; its **Annotations** switch decides whether their labels come along. In datasets you can edit, use [Copy and Paste](#copy-and-move-images) instead. Public source datasets stay public by default unless the workspace's [default dataset visibility](../account/settings.md#default-visibility) is Private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
+When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions unless you pick only some of its **Splits** or one of its saved **Versions**, and **Existing dataset** adds the images without labels to a dataset you own instead. To copy only some images, tick them in **Grid** or **Compact** view and click **Clone Images**; its **Annotations** switch decides whether their labels come along. A clone always goes to a different workspace than its source: to duplicate a dataset in its own workspace, or to copy images between datasets you can edit, create or open the destination dataset and use [Copy and Paste](#copy-and-move-images) instead. Public source datasets stay public by default unless the workspace's [default dataset visibility](../account/settings.md#default-visibility) is Private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
 
 For a new dataset, the clone dialog keeps **Clone Dataset** disabled while the URL is already used in the target workspace. Cloning requires enough remaining storage quota to hold the copy.
 
@@ -1067,7 +1067,7 @@ Platform exports datasets as NDJSON, not as YOLO folders. [Export Dataset](#expo
 
 ### How does Platform split my images into train, val and test?
 
-Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification datasets use their folder structure instead, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
+Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification datasets use their folder structure instead, except classification projects [imported from Label Studio](../integrations/label-studio.md), which move about 20% of their labeled images to `val`, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
 
 To change the split afterwards:
 

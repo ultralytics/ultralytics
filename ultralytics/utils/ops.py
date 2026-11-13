@@ -142,6 +142,8 @@ def merge_tiles(
         lone = fragment.nonzero().squeeze(1)
         e, k = extent[lone, None], extent[keep]
         overlap = (torch.min(e[..., 2:], k[:, 2:]) - torch.max(e[..., :2], k[:, :2])).clamp(0).prod(-1)
+        if not agnostic:
+            overlap *= output["cls"][lone, None] == output["cls"][keep]
         keep = torch.cat((keep, lone[~(overlap > (e[..., 2:] - e[..., :2]).prod(-1) / 2).any(1)]))
         keep = keep[nms_boxes(candidates[keep], output["conf"][keep].float(), iou, rotated=rotated)][:max_det]
     output = {"bboxes": boxes[keep], **{k: v[keep] for k, v in output.items()}}

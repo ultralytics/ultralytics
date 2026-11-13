@@ -40,8 +40,12 @@ def _compact_plot(plot, n=101):
     """
     import numpy as np
 
-    if "matrix" in plot:  # Platform slices a matrix over 100 rows to its first 100
-        return {**plot, "matrix": [row[:100] for row in plot["matrix"][:100]]}
+    if "matrix" in plot:  # Platform draws the first 100; fold the rest into one row and column to keep totals
+        m = np.array(plot["matrix"])
+        if len(m) > 101:
+            m = np.vstack([m[:100], m[100:].sum(0)])
+            m = np.column_stack([m[:, :100], m[:, 100:].sum(1)])
+        return {**plot, "matrix": m.tolist()}
 
     x, y = np.array(plot["x"]), np.array(plot["y"])
     if len(y) > 20:  # mean curve and AP only, so rows no longer map to classes

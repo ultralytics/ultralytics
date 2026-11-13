@@ -263,6 +263,9 @@ def convert_coco(
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
         lvis (bool, optional): Whether to convert data in lvis dataset way.
 
+    Raises:
+        FileExistsError: If images in an annotation file share a label path, ignoring case. That file writes no labels.
+
     Examples:
         >>> from ultralytics.data.converter import convert_coco
 
@@ -289,6 +292,14 @@ def convert_coco(
 
         # Create image dict
         images = {f"{x['id']:d}": x for x in data["images"]}
+        label_files = {
+            image_id: (
+                fn / (Path(img["coco_url"]).relative_to("http://images.cocodataset.org") if lvis else img["file_name"])
+            ).with_suffix(".txt")
+            for image_id, img in images.items()
+        }
+        if len({str(p.resolve()).casefold() for p in label_files.values()}) != len(label_files):
+            raise FileExistsError(f"{json_file}: image filenames must map to unique label paths, ignoring case")
         # Create image-annotations dict
         annotations = defaultdict(list)
         for ann in data["annotations"]:
@@ -304,7 +315,6 @@ def convert_coco(
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
             h, w = img["height"], img["width"]
-            f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
 
             bboxes = []
             segments = []
@@ -362,7 +372,7 @@ def convert_coco(
                         segments.append([cls, *s])
 
             # Write
-            label_file = (fn / f).with_suffix(".txt")
+            label_file = label_files[f"{img_id:d}"]
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
             with open(label_file, "a", encoding="utf-8") as file:
                 rows = keypoints if use_keypoints else segments if use_segments else bboxes

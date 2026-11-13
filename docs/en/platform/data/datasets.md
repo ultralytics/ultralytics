@@ -22,7 +22,7 @@ Ultralytics Platform accepts images, videos, archives, and NDJSON files.
 
 !!! tip "Already have data elsewhere?"
 
-    If you already have datasets in [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place through **Cloud storage**. Enterprise workspaces can use [On Premise](../integrations/on-premise.md) to index and train on local data without sending pixels to Platform.
+    If you already have datasets in [Roboflow](../integrations/roboflow.md) or hosted [Label Studio](../integrations/label-studio.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place through **Cloud storage**. Enterprise workspaces can use [On Premise](../integrations/on-premise.md) to index and train on local data without sending pixels to Platform.
 
 ### Supported Formats
 
@@ -1067,7 +1067,7 @@ Platform exports datasets as NDJSON, not as YOLO folders. [Export Dataset](#expo
 
 ### How does Platform split my images into train, val and test?
 
-Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification archives use their folder structure instead, while classification projects [imported from Label Studio](../integrations/label-studio.md) are split the same way as other uploads, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
+Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification datasets use their folder structure instead, except classification projects [imported from Label Studio](../integrations/label-studio.md), which move about 20% of their labeled images to `val`, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
 
 To change the split afterwards:
 

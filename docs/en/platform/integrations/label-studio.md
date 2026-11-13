@@ -1,7 +1,7 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Import hosted Label Studio projects into Ultralytics Platform with an access token as YOLO detect, OBB, segment, or classify datasets, or upload a YOLO with Images export from self-hosted Label Studio.
+description: Import hosted Label Studio projects into Ultralytics Platform with an access token as YOLO detect, OBB, segment, or classify datasets, or upload a self-hosted export.
 keywords: Ultralytics Platform, Label Studio, Label Studio import, Label Studio to YOLO, HumanSignal, access token, Label Studio export, YOLO export, dataset import, annotation, integrations, YOLO, computer vision
 title: Label Studio Dataset Import - Ultralytics Platform
 ---
@@ -23,7 +23,7 @@ The Label Studio integration imports the projects you select from hosted [Label 
 
 The preview stays open after an import. Started and already-imported projects remain visible but cannot be selected, while projects that could not be started stay selected for a retry. Click **Connect** again to refresh the preview.
 
-![Ultralytics Platform Label Studio Dataset Import](https://cdn.ul.run/i/4eb0d48c7681785242ec0004c4ca54a6.avif)<!-- screenshot -->
+![Ultralytics Platform Label Studio Dataset Import](https://cdn.ul.run/i/dc3618a69d233c6bc4e3cadb7ee95e61.avif)<!-- screenshot -->
 
 Each project becomes a dataset named after the project, which takes the workspace's [default dataset visibility](../account/settings.md#default-visibility) and appears in your [Datasets](../data/datasets.md) list immediately with a `processing` status. Platform snapshots the project in Label Studio, downloads its images, and marks the dataset ready once its images and annotations finish importing.
 
@@ -46,7 +46,7 @@ Projects with anything else, such as keypoints, ellipses, brush masks, text answ
 - **Which annotation imports**: each task's latest annotation that wasn't skipped. Predictions are ignored, and tasks without an annotation import as unlabeled images.
 - **One label per object**: YOLO stores one class per object, so a region or classification with more than one label fails the import and names the task, rather than silently dropping labels. Multi-select `Choices` projects are listed as Classify, but no task may have more than one choice selected. Fix those tasks in Label Studio and import again.
 - **Classes**: the labels in the labeling config become the class names in alphabetical order, as Label Studio's own YOLO export numbers them.
-- **Splits**: Label Studio has no train and validation splits, so about 20% of the images are moved to `val` automatically, as for [any upload without a validation split](../data/datasets.md#how-does-platform-split-my-images-into-train-val-and-test).
+- **Splits**: Label Studio has no train and validation splits, so about 20% of the train images, or of the labeled ones for Classify, move to `val` automatically, as for [any upload without a validation split](../data/datasets.md#how-does-platform-split-my-images-into-train-val-and-test).
 
 ## Images
 
@@ -163,7 +163,7 @@ A box, polygon, or classification in the named task carries more than one label,
 
 ### Why are some of my images missing?
 
-Images in Label Studio cloud storage (`s3://`, `gs://`, or `azure-blob://`) aren't imported yet, and images that are missing, larger than 100 MB, blocked, or on a host that stays down are skipped. Export the project with **YOLO with Images** and [upload the ZIP](#import-from-self-hosted-label-studio) to bring those images in.
+Images in Label Studio cloud storage (`s3://`, `gs://`, or `azure-blob://`) aren't imported yet, and images that are missing, larger than 100 MB, blocked, or on a host that stays down are skipped. To bring in images Platform couldn't fetch, export the project with **YOLO with Images** from a Label Studio that can reach them and [upload the ZIP](#import-from-self-hosted-label-studio) as a dataset.
 
 ### How do I pick up annotations I changed after importing?
 

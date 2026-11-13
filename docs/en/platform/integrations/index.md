@@ -20,8 +20,8 @@ All integrations are managed from your account settings:
 2. Pick a service from the list on the left — grouped into **Infrastructure**, **Notifications**, and **Imports** — or type its name in the search box
 3. Follow the connection prompts
 
-W&B, Roboflow, and Label Studio imports start with a preview so you can select what will be transferred and confirm
-that you have enough [storage](../account/billing.md). Labelbox, LabelMe, and CVAT need no connection at all — upload the
+W&B, Roboflow, and Label Studio imports start with a preview so you can select what will be transferred and check your
+[storage](../account/billing.md). Labelbox, LabelMe, and CVAT need no connection at all — upload the
 exported dataset and Platform reads it directly. Cloud storage connections verify list and read access on every
 selected bucket, and check whether each one can also be written to, before anything is saved.
 

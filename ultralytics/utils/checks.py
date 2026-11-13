@@ -680,8 +680,8 @@ def check_executorch_requirements():
 def check_tensorrt(min_version: str = "7.0.0"):
     """Check and install TensorRT requirements including platform-specific dependencies.
 
-    An installed `tensorrt-cu{N}` or `tensorrt` distribution (as shipped in NVIDIA containers and JetPack) satisfies
-    the check; otherwise `tensorrt-cu{N}` matching the PyTorch CUDA major version is installed.
+    An installed `tensorrt-cu{N}` or `tensorrt` distribution (as shipped in NVIDIA containers and JetPack) satisfies the
+    check; otherwise `tensorrt-cu{N}` matching the PyTorch CUDA major version is installed.
 
     Args:
         min_version (str): Minimum supported TensorRT version (default: "7.0.0").

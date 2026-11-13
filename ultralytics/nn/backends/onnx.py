@@ -253,8 +253,8 @@ class ONNXBackend(BaseBackend):
                 available = onnxruntime.get_available_providers()
                 if cuda and "CUDAExecutionProvider" in available:
                     options = {
-                        "device_id": self.device.index,
                         **self.provider_options.get("CUDAExecutionProvider", {}),
+                        "device_id": self.device.index,
                     }
                     providers = [("CUDAExecutionProvider", options), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:

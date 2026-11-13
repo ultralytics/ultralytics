@@ -58,9 +58,11 @@ class TextRecognizer:
 
             # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
             self.backend = ONNXBackend(
-                model, device, provider_options={"CUDAExecutionProvider": {"cudnn_conv_algo_search": "HEURISTIC"}}
+                model,
+                device if cuda else torch.device("cpu"),
+                provider_options={"CUDAExecutionProvider": {"cudnn_conv_algo_search": "HEURISTIC"}},
             )
-            self.lock = nullcontext()  # concurrent
+            self.lock = threading.Lock() if self.backend.use_io_binding else nullcontext()
         self.input_device = self.backend.device if self.engine else "cpu"
         alphabet = self.backend.metadata["character"]
         self.characters = ["", *alphabet.split("\n"), " "]  # CTC alphabet: blank, the model's characters, then space

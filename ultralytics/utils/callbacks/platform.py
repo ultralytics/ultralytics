@@ -241,8 +241,13 @@ def _get_environment_info():
 
 
 def _get_project_name(trainer):
-    """Get slugified project and raw run name from trainer args; Platform derives the model slug from the name."""
+    """Get slugified project and raw run name from trainer args; Platform derives the model slug from the name.
+
+    A local save directory names the project by its last folder, so a path never becomes a Platform project name.
+    """
     raw = str(trainer.args.project)
+    if re.match(r"[/~.]|[A-Za-z]:|.*\\", raw):  # absolute, home, relative or Windows path, not `username/project`
+        raw = re.split(r"[/\\]", raw.rstrip("/\\"))[-1]
     parts = raw.split("/", 1)
     project = f"{parts[0]}/{slugify(parts[1].replace('/', '-'))}" if len(parts) == 2 else slugify(raw)
     return project, str(trainer.args.name or "train")

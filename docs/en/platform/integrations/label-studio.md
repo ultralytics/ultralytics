@@ -23,7 +23,7 @@ The Label Studio integration imports the projects you select from hosted [Label 
 
 The preview stays open after an import. Started and already-imported projects remain visible but cannot be selected, while projects that could not be started stay selected for a retry. Click **Connect** again to refresh the preview.
 
-![Ultralytics Platform Label Studio Dataset Import](https://cdn.ul.run/i/dc3618a69d233c6bc4e3cadb7ee95e61.avif)<!-- screenshot -->
+![Ultralytics Platform Label Studio Dataset Import](https://cdn.ul.run/i/0d0530f043d408471579f849443179fd.avif)<!-- screenshot -->
 
 Each project becomes a dataset named after the project, which takes the workspace's [default dataset visibility](../account/settings.md#default-visibility) and appears in your [Datasets](../data/datasets.md) list immediately with a `processing` status. Platform snapshots the project in Label Studio, downloads its images, and marks the dataset ready once its images and annotations finish importing.
 

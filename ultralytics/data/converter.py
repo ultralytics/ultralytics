@@ -263,6 +263,10 @@ def convert_coco(
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
         lvis (bool, optional): Whether to convert data in lvis dataset way.
 
+    Raises:
+        FileExistsError: If two images in a COCO annotation file map to the same label file, e.g. `frame.jpg` and
+            `frame.png`, which would mix their labels.
+
     Examples:
         >>> from ultralytics.data.converter import convert_coco
 
@@ -364,7 +368,7 @@ def convert_coco(
             # Write
             label_file = (fn / f).with_suffix(".txt")
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
-            with open(label_file, "a", encoding="utf-8") as file:
+            with open(label_file, "a" if lvis else "x", encoding="utf-8") as file:  # "x" rejects images sharing a label
                 rows = keypoints if use_keypoints else segments if use_segments else bboxes
                 file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in dict.fromkeys(map(tuple, rows)))
 

@@ -414,7 +414,7 @@ Click any image to open the fullscreen viewer with:
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
 - **Blur faces**: Right-click the image or an annotation to [preview and apply face blurring](#blur-faces) to the image when available
 - **Download**: Download the original image file
-- **Delete**: Delete the image from the dataset
+- **Delete**: Permanently delete the image from the dataset after you confirm
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
 - **Pan**: Hold `Space` and drag, or drag with the middle mouse button, to pan the canvas at any zoom level
@@ -767,7 +767,7 @@ Right-click an image in **Grid** or **Compact** view, or a single selected row i
 | **Copy** / **Cut**          | Copy or cut the image to paste it into another dataset (see [Copy and Move Images](#copy-and-move-images))           |
 | **Paste**                   | Paste copied or cut images into this dataset; shown when the clipboard holds images from another dataset             |
 | **Download**                | Download the original image file                                                                                     |
-| **Delete**                  | Delete the image from the dataset                                                                                    |
+| **Delete**                  | Permanently delete the image after you confirm; images don't go to [Trash](../account/trash.md)                      |
 
 ![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/cfd31e07fad45487f91d1ba876f5fca3.avif)<!-- screenshot -->
 
@@ -1067,7 +1067,7 @@ Platform exports datasets as NDJSON, not as YOLO folders. [Export Dataset](#expo
 
 ### How does Platform split my images into train, val and test?
 
-Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification datasets use their folder structure instead, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
+Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification archives use their folder structure instead, while classification projects [imported from Label Studio](../integrations/label-studio.md) are split the same way as other uploads, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
 
 To change the split afterwards:
 

@@ -19,7 +19,7 @@ title: Labelbox Dataset Import - Ultralytics Platform
 
 ![Ultralytics Platform Labelbox Dataset Import](https://cdn.ul.run/i/c3c23f235544c7145eb2472fd62e551c.avif)<!-- screenshot -->
 
-Unlike [CVAT](cvat.md) and [Label Studio](label-studio.md), there is no format to choose — Labelbox's own export is the supported one.
+Unlike [CVAT](cvat.md) and [Label Studio](label-studio.md) exports, there is no format to choose — Labelbox's own export is the supported one.
 
 ### Export with the SDK
 

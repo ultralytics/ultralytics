@@ -169,6 +169,7 @@ class ONNXBackend(BaseBackend):
         fp16: bool = False,
         format: str = "onnx",
         session_options: object | None = None,
+        cuda_options: dict | None = None,
     ):
         """Initialize the ONNX backend.
 
@@ -178,10 +179,11 @@ class ONNXBackend(BaseBackend):
             fp16 (bool): Whether to use FP16 half-precision inference.
             format (str): Inference engine, either "onnx" for ONNX Runtime or "dnn" for OpenCV DNN.
             session_options (object | None): Optional ONNX Runtime session options.
+            cuda_options (dict | None): Optional extra CUDAExecutionProvider options.
         """
         assert format in {"onnx", "dnn"}, f"Unsupported ONNX format: {format}."
         self.format = format
-        self.session_options = session_options
+        self.session_options, self.cuda_options = session_options, cuda_options or {}
         super().__init__(weight, device, fp16)
 
     def load_model(self, weight: str | Path) -> None:
@@ -254,7 +256,8 @@ class ONNXBackend(BaseBackend):
                 # Select execution provider
                 available = onnxruntime.get_available_providers()
                 if cuda and "CUDAExecutionProvider" in available:
-                    providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
+                    options = {**self.cuda_options, "device_id": self.device.index}
+                    providers = [("CUDAExecutionProvider", options), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                     # Dynamic-shape nodes run on CPU: the default NeuralNetwork format returns wrong outputs for them
                     flags = "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"

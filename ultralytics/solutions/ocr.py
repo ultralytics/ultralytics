@@ -16,7 +16,7 @@ import numpy as np
 import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
-from ultralytics.utils import LINUX, checks, ops
+from ultralytics.utils import checks, ops
 from ultralytics.utils.checks import check_python, check_requirements, check_tensorrt, rocm_is_available
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
@@ -44,7 +44,6 @@ class TextRecognizer:
         self.session = None
         if engine and cuda:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time
             self.backend, self.lock = self.load_engine(model, device), threading.Lock()
-            alphabet = self.backend.metadata["character"]
         else:
             # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced.
             # 1.26 hands outputs to torch via DLPack and needs Python 3.11+
@@ -55,20 +54,15 @@ class TextRecognizer:
                 else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")
             )
             check_requirements([tuple(f"{b}{',' * ('<' in b)}>=1.26.0" for b in builds)])
-            import onnxruntime as ort
+            from ultralytics.nn.backends.onnx import ONNXBackend
 
-            providers = ["CPUExecutionProvider"]
-            if cuda and "CUDAExecutionProvider" in ort.get_available_providers():
-                if LINUX and hasattr(ort, "preload_dlls"):
-                    ort.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
-                # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
-                options = {"device_id": device.index or 0, "cudnn_conv_algo_search": "HEURISTIC"}
-                providers.insert(0, ("CUDAExecutionProvider", options))
-            self.session, self.lock = ort.InferenceSession(model, providers=providers), nullcontext()  # concurrent
-            # Character probabilities stay on the recognizer's device, which returns only each step's best character
-            output = self.session.get_outputs()[0].name
-            self.output = output, "cuda" if len(providers) > 1 else "cpu", device.index or 0
-            alphabet = self.session.get_modelmeta().custom_metadata_map["character"]
+            # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
+            options = {"cudnn_conv_algo_search": "HEURISTIC"}
+            self.backend = ONNXBackend(model, device if cuda else torch.device("cpu"), cuda_options=options)
+            # Concurrent reads with per-call IO bindings; character probabilities stay on the recognizer's device
+            self.session, self.lock = self.backend.session, nullcontext()
+            self.output = self.backend.output_names[0], self.backend.device.type, self.backend.device.index or 0
+        alphabet = self.backend.metadata["character"]
         self.characters = ["", *alphabet.split("\n"), " "]  # CTC alphabet: blank, the model's characters, then space
 
     @staticmethod

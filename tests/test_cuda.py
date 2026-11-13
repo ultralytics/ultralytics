@@ -59,9 +59,10 @@ def test_onnx_dynamic_spatial_outputs(tmp_path):
     backend = ONNXBackend(file, torch.device(f"cuda:{DEVICES[0]}"))
     assert "CUDAExecutionProvider" in backend.session.get_providers()
     for x in (im, im.transpose(2, 3)):
-        actual = torch.as_tensor(backend(x.to(backend.device))[0]).cpu()
         expected = backend.session.run(backend.output_names, {"images": x.numpy()})[0]
-        torch.testing.assert_close(actual, torch.from_numpy(expected), rtol=0, atol=0)
+        for value in (x, x.to(backend.device)):
+            actual = torch.as_tensor(backend(value)[0]).cpu()
+            torch.testing.assert_close(actual, torch.from_numpy(expected), rtol=0, atol=0)
 
 
 @pytest.mark.slow

@@ -16,7 +16,7 @@ import numpy as np
 import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
-from ultralytics.utils import LINUX, ops
+from ultralytics.utils import ops
 from ultralytics.utils.checks import check_python, check_requirements, check_tensorrt, rocm_is_available
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
@@ -41,10 +41,9 @@ class TextRecognizer:
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
         cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
         model = str(attempt_download_asset(model))
-        self.session = None
-        if engine and cuda:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time
+        self.engine = engine and cuda
+        if self.engine:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time
             self.backend, self.lock = self.load_engine(model, device), threading.Lock()
-            alphabet = self.backend.metadata["character"]
         else:
             # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced.
             # 1.26 hands outputs to torch via DLPack and needs Python 3.11+
@@ -55,20 +54,13 @@ class TextRecognizer:
                 else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")
             )
             check_requirements([tuple(f"{b}>=1.26.0" for b in builds)])
-            import onnxruntime as ort
+            from ultralytics.nn.backends.onnx import ONNXBackend
 
-            providers = ["CPUExecutionProvider"]
-            if cuda and "CUDAExecutionProvider" in ort.get_available_providers():
-                if LINUX and hasattr(ort, "preload_dlls"):
-                    ort.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
-                # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
-                options = {"device_id": device.index or 0, "cudnn_conv_algo_search": "HEURISTIC"}
-                providers.insert(0, ("CUDAExecutionProvider", options))
-            self.session, self.lock = ort.InferenceSession(model, providers=providers), nullcontext()  # concurrent
-            # Character probabilities stay on the recognizer's device, which returns only each step's best character
-            output = self.session.get_outputs()[0].name
-            self.output = output, "cuda" if len(providers) > 1 else "cpu", device.index or 0
-            alphabet = self.session.get_modelmeta().custom_metadata_map["character"]
+            # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
+            self.backend = ONNXBackend(model, device, cuda_options={"cudnn_conv_algo_search": "HEURISTIC"})
+            self.lock = nullcontext()  # concurrent
+        self.input_device = self.backend.device if self.engine else "cpu"
+        alphabet = self.backend.metadata["character"]
         self.characters = ["", *alphabet.split("\n"), " "]  # CTC alphabet: blank, the model's characters, then space
 
     @staticmethod
@@ -116,22 +108,15 @@ class TextRecognizer:
             lines.append(cv2.resize(crop, (width, 48)).transpose(2, 0, 1) / 127.5 - 1)
         order = sorted(range(len(lines)), key=lambda i: lines[i].shape[2])
         reads = [("", 0.0)] * len(lines)
-        io = self.session and self.session.io_binding()
         for start in range(0, len(order), batch):
             indices = order[start : start + batch]
             x = np.zeros((len(indices), 3, 48, max(320, lines[indices[-1]].shape[2])), np.float32)
             for j, i in enumerate(indices):
                 x[j, :, :, : lines[i].shape[2]] = lines[i]
             with self.lock:  # TensorRT: read this batch before the next one overwrites its output buffer
-                if io is None:
-                    with torch.cuda.device(self.backend.device):  # from any thread, on the engine's GPU
-                        probs = self.backend.forward(torch.from_numpy(x).to(self.backend.device))[0]
-                else:
-                    io.bind_cpu_input("x", x)
-                    io.bind_output(*self.output)
-                    self.session.run_with_iobinding(io)
-                    probs = torch.from_dlpack(io.get_outputs()[0])
-                best = probs.max(-1)
+                with torch.cuda.device(self.backend.device) if self.engine else nullcontext():
+                    output = self.backend.forward(torch.from_numpy(x).to(self.input_device))[0]
+                best = torch.as_tensor(output).max(-1)
                 best = best.values.cpu().numpy(), best.indices.cpu().numpy()
             for i, scores, ids in zip(indices, *best):
                 keep = (ids != 0) & np.r_[True, ids[1:] != ids[:-1]]  # CTC: drop blanks and repeats

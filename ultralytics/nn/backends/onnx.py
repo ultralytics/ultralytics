@@ -158,7 +158,7 @@ class ONNXBackend(BaseBackend):
 
     Loads and runs inference with ONNX models (.onnx files) using either Microsoft ONNX Runtime with CUDA,
     ROCm/MIGraphX, CoreML, or Windows ML execution providers, or OpenCV DNN for lightweight CPU inference. Supports IO
-    binding for optimized GPU inference with static input shapes.
+    binding for optimized GPU inference.
     """
 
     def __init__(
@@ -168,6 +168,7 @@ class ONNXBackend(BaseBackend):
         fp16: bool = False,
         format: str = "onnx",
         session_options: object | None = None,
+        cuda_options: dict | None = None,
     ):
         """Initialize the ONNX backend.
 
@@ -177,10 +178,12 @@ class ONNXBackend(BaseBackend):
             fp16 (bool): Whether to use FP16 half-precision inference.
             format (str): Inference engine, either "onnx" for ONNX Runtime or "dnn" for OpenCV DNN.
             session_options (object | None): Optional ONNX Runtime session options.
+            cuda_options (dict | None): Optional CUDA execution provider options.
         """
         assert format in {"onnx", "dnn"}, f"Unsupported ONNX format: {format}."
         self.format = format
         self.session_options = session_options
+        self.cuda_options = cuda_options or {}
         super().__init__(weight, device, fp16)
 
     def load_model(self, weight: str | Path) -> None:
@@ -246,7 +249,8 @@ class ONNXBackend(BaseBackend):
                 # Select execution provider
                 available = onnxruntime.get_available_providers()
                 if cuda and "CUDAExecutionProvider" in available:
-                    providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
+                    options = {"device_id": self.device.index, **self.cuda_options}
+                    providers = [("CUDAExecutionProvider", options), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                     # Dynamic-shape nodes run on CPU: the default NeuralNetwork format returns wrong outputs for them
                     flags = "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"
@@ -288,26 +292,35 @@ class ONNXBackend(BaseBackend):
             self.dynamic = isinstance(self.session.get_outputs()[0].shape[0], str)
             self.fp16 = "float16" in self.session.get_inputs()[0].type
 
-            # Setup IO binding for CUDA and MIGraphX
-            self.use_io_binding = cuda and all(isinstance(d, int) for o in self.session.get_outputs() for d in o.shape)
+            # Setup IO binding for CUDA and MIGraphX; dynamic CUDA outputs use DLPack on ONNX Runtime 1.26+
+            static_outputs = all(isinstance(d, int) for o in self.session.get_outputs() for d in o.shape)
+            self.dynamic_io = (
+                cuda
+                and not rocm
+                and not static_outputs
+                and IS_PYTHON_MINIMUM_3_11
+                and check_version(onnxruntime.__version__, ">=1.26.0")
+            )
+            self.use_io_binding = cuda and (static_outputs or self.dynamic_io)
             if self.use_io_binding:
                 self.io = self.session.io_binding()
                 self.bindings = []
-                for output in self.session.get_outputs():
-                    torch_dtype, np_dtype = _ORT_DTYPES.get(output.type, (torch.float32, np.float32))
-                    y_tensor = torch.empty(output.shape, dtype=torch_dtype).to(self.device)
-                    if rocm:  # the MIGraphX plugin EP binds GPU tensors through DLPack
-                        self.io.bind_ortvalue_output(output.name, onnxruntime.OrtValue.from_dlpack(y_tensor))
-                    else:
-                        self.io.bind_output(
-                            name=output.name,
-                            device_type=self.device.type,
-                            device_id=self.device.index if cuda else 0,
-                            element_type=np_dtype,
-                            shape=tuple(y_tensor.shape),
-                            buffer_ptr=y_tensor.data_ptr(),
-                        )
-                    self.bindings.append(y_tensor)
+                if not self.dynamic_io:
+                    for output in self.session.get_outputs():
+                        torch_dtype, np_dtype = _ORT_DTYPES.get(output.type, (torch.float32, np.float32))
+                        y_tensor = torch.empty(output.shape, dtype=torch_dtype).to(self.device)
+                        if rocm:  # the MIGraphX plugin EP binds GPU tensors through DLPack
+                            self.io.bind_ortvalue_output(output.name, onnxruntime.OrtValue.from_dlpack(y_tensor))
+                        else:
+                            self.io.bind_output(
+                                name=output.name,
+                                device_type=self.device.type,
+                                device_id=self.device.index if cuda else 0,
+                                element_type=np_dtype,
+                                shape=tuple(y_tensor.shape),
+                                buffer_ptr=y_tensor.data_ptr(),
+                            )
+                        self.bindings.append(y_tensor)
 
     def forward(
         self, im: torch.Tensor | dict[str, torch.Tensor | np.ndarray]
@@ -333,7 +346,8 @@ class ONNXBackend(BaseBackend):
             im = {k: v.cpu().numpy() if isinstance(v, torch.Tensor) else v for k, v in im.items()}
             return self.session.run(self.output_names, im)
 
-        if self.use_io_binding:
+        # Dynamic output binding uses host inputs; GPU inputs use the regular runtime path
+        if self.use_io_binding and (im.device.type == "cpu" or not self.dynamic_io):
             im = im.contiguous()  # binding reads raw memory, so strided views need a dense copy
             if torch.version.hip:  # the MIGraphX plugin EP binds GPU tensors through DLPack
                 from onnxruntime import OrtValue
@@ -348,7 +362,12 @@ class ONNXBackend(BaseBackend):
                     shape=tuple(im.shape),
                     buffer_ptr=im.data_ptr(),
                 )
+            if self.dynamic_io:
+                for name in self.output_names:
+                    self.io.bind_output(name, self.device.type, self.device.index or 0)
             self.session.run_with_iobinding(self.io)
+            if self.dynamic_io:
+                self.bindings = [torch.from_dlpack(x) for x in self.io.get_outputs()]
             return self.bindings
         else:
             return self.session.run(self.output_names, {self.session.get_inputs()[0].name: im.cpu().numpy()})

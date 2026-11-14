@@ -170,7 +170,7 @@ def _upload_file(file_path, project, name, progress=False, retry=1, model_id=Non
         LOGGER.warning(f"{PREFIX}Failed to get upload URL: {detail}")
         return None
 
-    headers = {"Content-Type": "image/webp"} if visual else None
+    headers = {"Content-Type": "image/avif"} if visual else None
     timeout = 30 if visual else 600  # a stalled image upload must not hold the GPU at the end of training
     if safe_upload(
         file=file_path, url=data["uploadUrl"], headers=headers, retry=retry, timeout=timeout, progress=progress
@@ -436,13 +436,13 @@ def on_fit_epoch_end(trainer):
                 with tempfile.TemporaryDirectory() as tmp:
                     visuals = []
                     for f in visual_files:
-                        webp = Path(tmp) / f"{f.stem}.webp"
+                        avif = Path(tmp) / f"{f.stem}.avif"
                         with Image.open(f) as im:
-                            im.save(webp, "WEBP", quality=80)  # Platform's WebP standard, ~75% of the JPEG bytes
+                            im.save(avif, "AVIF", quality=70)  # Platform image standard, needs Pillow>=11.3
                         if _upload_file(
-                            webp, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True
+                            avif, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True
                         ):
-                            visuals.append(webp.name)
+                            visuals.append(avif.name)
                 if visuals:
                     payload["visuals"] = visuals
             except Exception as e:  # optional visuals never block epoch metrics or the end of training

@@ -400,7 +400,8 @@ Images can be sorted and filtered for efficient browsing:
 
     Results are ordered by relevance: images whose filename, class, or metadata match come first, then up to 1,000 more
     images that look like the search, such as `forklift near a doorway`. Sorting is unavailable while a search is
-    active, and a search that ends in a file extension skips the look-alike matches.
+    active. A search that ends in a file extension skips the look-alike matches, and one that ends in an image file
+    extension, such as `img_0042.jpg`, matches filenames only.
 
 ### Fullscreen Viewer
 

@@ -120,8 +120,10 @@ Items in Trash are automatically and permanently deleted after 30 days.
 Permanently delete all items immediately:
 
 1. Navigate to **Settings > Trash**
-2. Click the trash icon in the header
-3. Confirm the action
+2. Click the **Empty trash** (trash) icon in the header
+3. Click **Empty Trash** in the confirmation dialog, which shows how many items will be deleted
+
+The button appears when the selected filter tab lists items, and it empties all of Trash, not only that tab.
 
 !!! warning "Irreversible Action"
 

@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Regression tests: check_amp must degrade gracefully when the AMP probe raises.
 
 A backend error during any part of the AMP probe — probe-model construction, device
@@ -60,8 +61,8 @@ def capture_amp_logs():
 def accelerator_probe_env(monkeypatch):
     """Make check_amp's probe path deterministic on any host.
 
-    Patches torch.cuda.get_device_name so check_amp never performs real CUDA enumeration
-    and never hits the GTX 16xx exclusion list, regardless of the host GPU.
+    Patches torch.cuda.get_device_name so check_amp never performs real CUDA enumeration and never hits the GTX 16xx
+    exclusion list, regardless of the host GPU.
     """
     monkeypatch.setattr(torch.cuda, "get_device_name", lambda device: "Test GPU")
 

@@ -722,9 +722,9 @@ def process_mask_local(protos, masks_in, bboxes, shape):
     batch, row = torch.empty_like(area), torch.empty_like(area)
     while i < len(sizes):
         j, (H, W, total) = i + 1, sizes[i]
-        while j < len(sizes):  # grow while the padded batch fits the budget and wastes under half its pixels
+        while j < len(sizes):  # grow while the batch's interpolation fits the budget and wastes under half its pixels
             H2, W2, n = max(H, sizes[j][0]), max(W, sizes[j][1]), j + 1 - i
-            if n * H2 * W2 > min(1 << 22, max(2 * (total + sizes[j][2]), floor)):
+            if n * W2 * max(H2, mh) > 1 << 22 or n * H2 * W2 > max(2 * (total + sizes[j][2]), floor):
                 break
             H, W, total, j = H2, W2, total + sizes[j][2], j + 1
         k = order[i:j]

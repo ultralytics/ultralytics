@@ -1070,13 +1070,21 @@ def check_amp(model):
         close.append(bool((output - y.float()).norm() <= 0.05 * output.norm()))  # False for NaN or inf
 
     LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
-    # Untrained models underflow FP16 in eval mode; train-mode BatchNorm keeps activations in range as in AMP training
-    m = DetectionModel("yolo26n.yaml", verbose=False).to(device)  # built in train mode
-    for layer in m.modules():
-        if isinstance(layer, (torch.nn.Conv2d, Attention)):  # convolutions and attention matmuls
-            layer.register_forward_hook(compare_amp)
-    with torch.no_grad():
-        m(torch.rand(8, 3, 256, 256, device=device))  # batch 8, as GTX 16xx AMP faults appeared only at batch >= 7
+    try:
+        # Untrained models underflow FP16 in eval mode; train-mode BatchNorm keeps activations in range as in AMP training
+        m = DetectionModel("yolo26n.yaml", verbose=False).to(device)  # built in train mode
+        for layer in m.modules():
+            if isinstance(layer, (torch.nn.Conv2d, Attention)):  # convolutions and attention matmuls
+                layer.register_forward_hook(compare_amp)
+        with torch.no_grad():
+            m(torch.rand(8, 3, 256, 256, device=device))  # batch 8, as GTX 16xx AMP faults appeared only at batch >= 7
+    # probe-time backend errors are heterogeneous across HIP/CUDA/MPS — degrade to FP32, never crash training
+    except Exception as e:
+        LOGGER.error(
+            f"{prefix}checks failed with an exception ({type(e).__name__}: {e}). Anomalies were detected with AMP on "
+            f"your system that may lead to NaN losses or zero-mAP results, so AMP will be disabled during training."
+        )
+        return False
     if all(close):
         LOGGER.info(f"{prefix}checks passed ✅")
         return True

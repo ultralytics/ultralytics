@@ -438,8 +438,7 @@ def on_fit_epoch_end(trainer):
                     for f in visual_files:
                         webp = Path(tmp) / f"{f.stem}.webp"
                         with Image.open(f) as im:
-                            im.thumbnail((1280, 1280))
-                            im.save(webp, "WEBP", quality=50)  # 1/4 the bytes of the plotted JPEG at higher quality
+                            im.save(webp, "WEBP", quality=80)  # Platform's WebP standard, ~75% of the JPEG bytes
                         if _upload_file(
                             webp, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True
                         ):

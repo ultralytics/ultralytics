@@ -2368,7 +2368,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
         names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
         results = []
         for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
             if masks.shape[0] == 0:
@@ -2684,7 +2684,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         obj_id_to_mask = preds["obj_id_to_mask"]  # low res masks
         curr_obj_ids = sorted(obj_id_to_mask.keys())
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         names = self.model.names if self.model.names != ["visual"] else {}
         if len(curr_obj_ids) == 0:

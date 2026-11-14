@@ -34,7 +34,6 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
-from ultralytics.utils.patches import imread, imwrite
 
 
 def coco91_to_coco80_class() -> list[int | None]:
@@ -264,6 +263,10 @@ def convert_coco(
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
         lvis (bool, optional): Whether to convert data in lvis dataset way.
 
+    Raises:
+        FileExistsError: If two images in a COCO annotation file map to the same label file, e.g. `frame.jpg` and
+            `frame.png`, which would mix their labels.
+
     Examples:
         >>> from ultralytics.data.converter import convert_coco
 
@@ -365,7 +368,7 @@ def convert_coco(
             # Write
             label_file = (fn / f).with_suffix(".txt")
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
-            with open(label_file, "a", encoding="utf-8") as file:
+            with open(label_file, "a" if lvis else "x", encoding="utf-8") as file:  # "x" rejects images sharing a label
                 rows = keypoints if use_keypoints else segments if use_segments else bboxes
                 file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in dict.fromkeys(map(tuple, rows)))
 
@@ -675,8 +678,8 @@ def yolo_bbox2segment(
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        sam_results = sam_model(label["im_file"], bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
-        label["segments"] = sam_results[0].masks.xyn
+        res = sam_model(label["im_file"], bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)[0]
+        label["segments"], label["cls"] = res.masks.xyn, label["cls"][res.boxes.cls.int().cpu().numpy()]  # kept masks
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -856,38 +859,6 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
-def _rotate_ndjson_label(label: list, rotation: int, key: str, kpt_dims: int) -> list:
-    """Rotate a normalized NDJSON `key` annotation clockwise by `rotation` degrees, a multiple of 90."""
-    label, has_box = list(label), key in {"boxes", "pose"}
-    for _ in range(rotation // 90):
-        if has_box:
-            label[1:5] = 1 - label[2], label[1], label[4], label[3]
-        for i in range(5 if has_box else 1, len(label), kpt_dims if has_box else 2):
-            label[i : i + 2] = 1 - label[i + 1], label[i]
-    return label
-
-
-def _rotate_image(source: Path, path: Path, rotation: int, channels: int) -> bool:
-    """Write `source` as training reads it, rotated clockwise by `rotation` degrees, losslessly to `path` if possible."""
-    flags = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}.get(channels, cv2.IMREAD_UNCHANGED)  # as BaseDataset
-    tmp = source.with_name(f".{uuid4().hex}{path.suffix}")  # new file: `source` may be a hard link into the asset pool
-    try:  # publish complete files only, as ensure_file does; multispectral bands are TIFF pages imread stacks back
-        if (im := imread(source, flags)) is None:
-            raise OSError("unreadable image")
-        im = np.rot90(im, -rotation // 90)
-        if not (cv2.imwritemulti(str(tmp), im.transpose(2, 0, 1)) if path.suffix == ".tiff" else imwrite(tmp, im)):
-            raise OSError("write failed")
-        path.parent.mkdir(parents=True, exist_ok=True)  # classification class folders are created on demand
-        os.replace(tmp, path)
-        return True
-    except Exception as e:  # counted as a failed download, as in ensure_file
-        LOGGER.warning(f"Failed to rotate {path.name}: {e}")
-        return False
-    finally:  # never leave the hidden download behind, where a classification folder would train on it
-        tmp.unlink(missing_ok=True)
-        source.unlink(missing_ok=True)
-
-
 async def convert_ndjson_to_yolo(
     ndjson_path: str | Path,
     output_path: str | Path | None = None,
@@ -901,7 +872,7 @@ async def convert_ndjson_to_yolo(
     detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. Depth datasets use
     parallel images/ and depth/ trees with scaled uint16 PNG targets. Classification tasks use the ImageNet-style
     {split}/{class_index}/ folder structure, with class names stored in a hidden .ndjson.yaml file. Downloads run
-    concurrently. Images with a clockwise `rotation` of 90, 180 or 270 are rotated together with their labels.
+    concurrently.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names, task type, and configuration
@@ -1032,9 +1003,6 @@ async def _convert_ndjson_to_yolo(
             split, source_name = r.get("split"), r.get("file")
             if split not in {"train", "val", "test"}:
                 raise ValueError(f"Invalid NDJSON split: {split!r}")
-            # Depth targets stay in the stored frame, so rotating only the image would misalign them
-            if r.get("rotation", 0) not in ({0} if is_depth else {0, 90, 180, 270}):
-                raise ValueError(f"Invalid NDJSON rotation for {task}: {r['rotation']!r}")
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
             if local_path:
@@ -1222,16 +1190,11 @@ async def _convert_ndjson_to_yolo(
                 )
         return False
 
-    kpt_dims = dataset_record.get("kpt_shape", [0, 3])[1]
-    channels = 3 if is_classification else dataset_record.get("channels", 3)  # classification always trains on color
-
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""
         async with semaphore:
             split, original_name = record["split"], record["file"]
-            annotations, rotation = record.get("annotations", {}), int(record.get("rotation", 0))
-            if rotation:  # rotated images are written losslessly in a format training reads like the source
-                original_name = f"{original_name.rsplit('.', 1)[0]}.{'png' if channels in {1, 3, 4} else 'tiff'}"
+            annotations = record.get("annotations", {})
 
             if is_classification:
                 # Classification: place image in {split}/{class_index}/ folder
@@ -1244,21 +1207,11 @@ async def _convert_ndjson_to_yolo(
                     label_path = dataset_dir / "labels" / split / f"{stem}.txt"
                     lines_to_write = []
                     for key in annotations:
-                        lines_to_write = [
-                            " ".join(map(str, _rotate_ndjson_label(item, rotation, key, kpt_dims)))
-                            for item in annotations[key]
-                        ]
+                        lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            source = image_path
-            if rotation and not image_path.exists():  # hidden in the dataset root, which no loader scans
-                source = dataset_dir / f".{uuid4().hex}{Path(record['file']).suffix}"
-            image_ok = await ensure_file(session, source, record.get("url"))
-            if image_ok and source != image_path:
-                image_ok = await asyncio.get_running_loop().run_in_executor(
-                    None, _rotate_image, source, image_path, rotation, channels
-                )
+            image_ok = await ensure_file(session, image_path, record.get("url"))
             if not is_depth:
                 return image_ok
 

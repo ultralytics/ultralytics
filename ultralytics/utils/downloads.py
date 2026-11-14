@@ -54,6 +54,10 @@ GITHUB_ASSETS_NAMES = frozenset(
         "calibration_image_sample_data_20x128x128x3_float32.npy.zip",
         "PP-OCRv6_medium_rec.onnx",
     ]
+    + [
+        f"{k}_PP-OCRv5_mobile_rec.onnx"
+        for k in ["arabic", "cyrillic", "devanagari", "el", "en", "eslav", "korean", "latin", "ta", "te", "th"]
+    ]
 )
 GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAMES)
 

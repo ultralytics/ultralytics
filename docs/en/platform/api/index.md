@@ -813,22 +813,22 @@ GET /api/datasets/{owner}/{dataset}/images
 
 **Query Parameters:**
 
-| Parameter           | Type    | Description                                                                                                                                                         |
-| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `limit`             | int     | Maximum images to return (default: 50, max: 5000)                                                                                                                   |
-| `offset`            | int     | Images to skip (default: 0)                                                                                                                                         |
-| `cursor`            | string  | Last image ID from the previous page, for cursor pagination                                                                                                         |
-| `includeTotal`      | boolean | Include the total matching count (default: `true`)                                                                                                                  |
-| `split`             | string  | Filter by split: `train`, `val`, `test`                                                                                                                             |
-| `hasLabel`          | boolean | Filter by annotation state                                                                                                                                          |
-| `hasError`          | boolean | Filter by processing error state                                                                                                                                    |
-| `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                    |
-| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars)                                                                                        |
-| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                        |
-| `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
-| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                     |
-| `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                              |
-| `includeLabels`     | boolean | Include capped preview annotations (default: `false`)                                                                                                               |
+| Parameter           | Type    | Description                                                                                                                                                            |
+| ------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `limit`             | int     | Maximum images to return (default: 50, max: 5000)                                                                                                                      |
+| `offset`            | int     | Images to skip (default: 0)                                                                                                                                            |
+| `cursor`            | string  | Last image ID from the previous page, for cursor pagination                                                                                                            |
+| `includeTotal`      | boolean | Include the total matching count (default: `true`)                                                                                                                     |
+| `split`             | string  | Filter by split: `train`, `val`, `test`                                                                                                                                |
+| `hasLabel`          | boolean | Filter by annotation state                                                                                                                                             |
+| `hasError`          | boolean | Filter by processing error state                                                                                                                                       |
+| `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                       |
+| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars); a term ending in an image file extension, such as `img_0042.jpg`, matches filenames only |
+| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                           |
+| `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc`    |
+| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                        |
+| `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                                 |
+| `includeLabels`     | boolean | Include capped preview annotations (default: `false`)                                                                                                                  |
 
 **Response:**
 
@@ -1681,12 +1681,12 @@ POST /api/training/start
 
 **Python SDK:** `client.training.start(model_id=..., train_args=...)`
 
-| Field                   | Type    | Required | Description                                                         |
-| ----------------------- | ------- | -------- | ------------------------------------------------------------------- |
-| `modelId`               | string  | Yes      | ID of the model to train                                            |
-| `trainArgs`             | object  | Yes      | YOLO training arguments; `model`, `data`, and `epochs` are required |
-| `gpuType`               | string  | No       | Cloud GPU to use (default: `rtx-4090`)                              |
-| `captureDatasetVersion` | boolean | No       | Save an immutable dataset version for this run (default: `false`)   |
+| Field                   | Type    | Required | Description                                                                                                                                                                |
+| ----------------------- | ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`               | string  | Yes      | ID of the model to train                                                                                                                                                   |
+| `trainArgs`             | object  | Yes      | YOLO training arguments; `model`, `data`, and `epochs` are required. `data` is a `ul://username/datasets/slug` dataset URI or a built-in dataset YAML such as `coco8.yaml` |
+| `gpuType`               | string  | No       | Cloud GPU to use (default: `rtx-4090`)                                                                                                                                     |
+| `captureDatasetVersion` | boolean | No       | Save an immutable dataset version for this run (default: `false`)                                                                                                          |
 
 === "cURL"
 
@@ -1741,9 +1741,9 @@ POST /api/training/start
 }
 ```
 
-Training returns `400` when the model task cannot train the dataset task, `402` when your credit balance is too low,
-`409` when the dataset's cloud storage has AI features off or is disconnected, and `503` when no capacity is available
-for the requested GPU.
+Training returns `400` when `data` is a dataset ID or a Platform dataset path without `ul://`, or when the model task
+cannot train the dataset task, `402` when your credit balance is too low, `409` when the dataset's cloud storage has AI
+features off or is disconnected, and `503` when no capacity is available for the requested GPU.
 
 !!! note "GPU Types"
 

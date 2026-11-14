@@ -55,7 +55,7 @@ Images uploaded to Label Studio and images at public `http://` or `https://` URL
 - Images in Label Studio cloud storage (`s3://`, `gs://`, or `azure-blob://` paths), which aren't supported yet
 - Images that are missing, larger than 100 MB, blocked, or on another host that stays down
 
-If Label Studio itself can't be reached, the import fails and is retried in place the next time you import the project.
+If Label Studio itself can't be reached, the import fails and is retried in place the next time you import the project. An image host that is down from the start can also fail the import: when 16 images are lost to connection errors, timeouts, or HTTP 5xx responses before any image has downloaded, the import stops with `Label Studio images couldn't be downloaded`, naming the host. Check that the host is online, then import the project again.
 
 ## Storage
 
@@ -163,7 +163,7 @@ A box, polygon, or classification in the named task carries more than one label,
 
 ### Why are some of my images missing?
 
-Images in Label Studio cloud storage (`s3://`, `gs://`, or `azure-blob://`) aren't imported yet, and images that are missing, larger than 100 MB, blocked, or on a host that stays down are skipped. To bring in images Platform couldn't fetch, export the project with **YOLO with Images** from a Label Studio that can reach them and [upload the ZIP](#import-from-self-hosted-label-studio) as a dataset.
+Images in Label Studio cloud storage (`s3://`, `gs://`, or `azure-blob://`) aren't imported yet, and images that are missing, larger than 100 MB, blocked, or on a host that stays down are skipped. A host that is down from the start can [fail the import](#images) instead. To bring in images Platform couldn't fetch, export the project with **YOLO with Images** from a Label Studio that can reach them and [upload the ZIP](#import-from-self-hosted-label-studio) as a dataset.
 
 ### How do I pick up annotations I changed after importing?
 

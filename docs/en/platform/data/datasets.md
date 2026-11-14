@@ -400,7 +400,8 @@ Images can be sorted and filtered for efficient browsing:
 
     Results are ordered by relevance: images whose filename, class, or metadata match come first, then up to 1,000 more
     images that look like the search, such as `forklift near a doorway`. Sorting is unavailable while a search is
-    active, and a search that ends in a file extension skips the look-alike matches.
+    active. A search that ends in a file extension skips the look-alike matches, and one that ends in an image file
+    extension, such as `img_0042.jpg`, matches filenames only.
 
 ### Fullscreen Viewer
 
@@ -414,7 +415,6 @@ Click any image to open the fullscreen viewer with:
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
 - **Blur faces**: Right-click the image or an annotation to [preview and apply face blurring](#blur-faces) to the image when available
 - **Download**: Download the original image file
-- **Rotate**: Owners and editors turn the image and its annotations 90° clockwise with `Cmd/Ctrl+R` or the rotate button. The image file is unchanged, and training uses the image as displayed
 - **Delete**: Permanently delete the image from the dataset after you confirm
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
@@ -724,8 +724,6 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 ```
 
 The optional image-level `metadata` object is preserved when an NDJSON file is imported into Platform. You can inspect or edit it from the image's fullscreen information panel. For programmatic archive uploads, the [Ingest Dataset Data API](../api/index.md#ingest-dataset-data) accepts the equivalent `imageMetadata` path map.
-
-Rotated images carry a clockwise `rotation` of 90, 180, or 270. Their `width`, `height`, and annotations describe the image file, and Ultralytics rotates the image and its labels together when it builds the YOLO folders.
 
 Pose datasets also carry a `kpt_shape` field in the dataset header line, inferred from the annotations when it is not already set.
 

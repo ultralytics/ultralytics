@@ -575,6 +575,20 @@ def test_predict_gray_and_4ch(tmp_path):
         f.unlink()  # cleanup
 
 
+def test_imread_exif_orientation(tmp_path):
+    """Test imread returns EXIF-rotated images upright for every format and flag."""
+    from ultralytics.utils.patches import imread
+
+    im = Image.open(SOURCE).resize((64, 48))
+    exif = im.getexif()
+    exif[274] = 6  # stored portrait, displayed landscape
+    for suffix in ".jpg", ".png", ".webp":
+        f = tmp_path / f"exif{suffix}"
+        im.rotate(90, expand=True).save(f, exif=exif)
+        for flags in cv2.IMREAD_COLOR, cv2.IMREAD_GRAYSCALE, cv2.IMREAD_UNCHANGED:
+            assert imread(f, flags).shape[:2] == (48, 64), f"{suffix} read with flags={flags} is not upright"
+
+
 def test_predict_ndarray_channels():
     """Test NumPy channel normalization for grayscale and color models."""
     from ultralytics.data.loaders import LoadPilAndNumpy

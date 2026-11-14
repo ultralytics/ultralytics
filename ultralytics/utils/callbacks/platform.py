@@ -5,6 +5,7 @@ import platform
 import re
 import socket
 import sys
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from math import isfinite
 from pathlib import Path, PureWindowsPath
@@ -132,17 +133,17 @@ def _handle_control_response(trainer, ctx, response):
         LOGGER.info(f"{PREFIX}Training cancelled from Platform ⚠️")
 
 
-def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None, run_id=None):
-    """Publish a model checkpoint to its configured Platform storage location."""
+def _upload_file(file_path, project, name, progress=False, retry=1, model_id=None, run_id=None, visual=False):
+    """Publish a training file to its configured Platform storage location."""
     from ultralytics.utils.uploads import safe_upload
 
     if not _api_key:
         return None
-    model_path = Path(model_path)
-    if not model_path.exists():
-        LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
+    file_path = Path(file_path)
+    if not file_path.exists():
+        LOGGER.warning(f"{PREFIX}File not found: {file_path}")
         return None
-    model_size = model_path.stat().st_size
+    file_size = file_path.stat().st_size
     import httpx
 
     from ultralytics import APIError, Platform
@@ -159,7 +160,9 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
             retry_methods=("POST",),
             http_client=httpx.Client(follow_redirects=True),
         ) as client:
-            data = client.models.upload_checkpoint(filename=model_path.name, timeout=30, **identity)
+            data = client.models.upload_checkpoint(
+                filename=file_path.name, size=file_size if visual else None, timeout=30, **identity
+            )
             if not isinstance(data, dict):
                 raise TypeError("Invalid Platform upload response")
     except Exception as error:
@@ -167,8 +170,13 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
         LOGGER.warning(f"{PREFIX}Failed to get upload URL: {detail}")
         return None
 
-    # Upload to GCS using safe_upload with retry logic and optional progress bar
-    if safe_upload(file=model_path, url=data["uploadUrl"], retry=retry, progress=progress):
+    headers = {"Content-Type": "image/avif"} if visual else None
+    timeout = 30 if visual else 600  # a stalled image upload must not hold the GPU at the end of training
+    if safe_upload(
+        file=file_path, url=data["uploadUrl"], headers=headers, retry=retry, timeout=timeout, progress=progress
+    ):
+        if visual:
+            return file_path.name
         gcs_path = data.get("gcsPath")
         if gcs_path and run_id:
             saved = _send(
@@ -183,8 +191,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
                 model_id,
                 timeout=90,
             )
-            return {"modelPath": gcs_path, "modelSize": model_size} if saved else None
-        return {"modelPath": gcs_path, "modelSize": model_size}
+            return {"modelPath": gcs_path, "modelSize": file_size} if saved else None
+        return {"modelPath": gcs_path, "modelSize": file_size}
     return None
 
 
@@ -309,6 +317,7 @@ def on_pretrain_routine_start(trainer):
         "run_id": None,
         "last_upload": time(),
         "checkpoint_upload": None,
+        "visual_upload": None,
         "cancelled": False,
         "console_logger": None,
         "system_logger": None,
@@ -389,13 +398,20 @@ def on_fit_epoch_end(trainer):
 
     project, name = _get_project_name(trainer)
     metrics = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
+    first_epoch = trainer.epoch == 0
+    # Initial training batch plots, listed here because plotting threads may still be adding to trainer.plots
+    visual_files = (
+        [p for i in range(3) if (p := trainer.save_dir / f"train_batch{i}.jpg") in trainer.plots]
+        if first_epoch and ctx["run_id"]
+        else []
+    )
 
     if trainer.optimizer and trainer.optimizer.param_groups:
         metrics["lr"] = trainer.optimizer.param_groups[0]["lr"]
 
     # Extract model info at epoch 0 (sent as separate field, not in metrics)
     model_info = None
-    if trainer.epoch == 0:
+    if first_epoch:
         try:
             from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -420,10 +436,30 @@ def on_fit_epoch_end(trainer):
 
     def _send_and_check_cancel():
         """Send epoch_end and check response for cancellation (runs in background thread)."""
+        if visual_files:
+            try:
+                from PIL import Image
+
+                with tempfile.TemporaryDirectory() as tmp:
+                    visuals = []
+                    for f in visual_files:
+                        avif = Path(tmp) / f"{f.stem}.avif"
+                        with Image.open(f) as im:
+                            im.save(avif, "AVIF", quality=70)  # Platform image standard, needs Pillow>=11.3
+                        if _upload_file(
+                            avif, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True
+                        ):
+                            visuals.append(avif.name)
+                if visuals:
+                    payload["visuals"] = visuals
+            except Exception as e:  # optional visuals never block epoch metrics or the end of training
+                LOGGER.warning(f"{PREFIX}Training visuals not uploaded: {e}")
         response = _send("epoch_end", payload, project, name, ctx["model_id"], retry=1)
         _handle_control_response(trainer, ctx, response)
 
-    _executor.submit(_send_and_check_cancel)
+    upload = _executor.submit(_send_and_check_cancel)
+    if first_epoch:
+        ctx["visual_upload"] = upload
 
 
 def on_model_save(trainer):
@@ -443,7 +479,7 @@ def on_model_save(trainer):
 
     project, name = _get_project_name(trainer)
     ctx["checkpoint_upload"] = _executor.submit(
-        _upload_model, model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"]
+        _upload_file, model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"]
     )
     ctx["last_upload"] = time()
 
@@ -461,6 +497,8 @@ def on_train_end(trainer):
 
     # Stop console capture
     ctx["console_logger"].stop_capture()
+    if ctx["visual_upload"]:
+        ctx["visual_upload"].result()
 
     # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None
@@ -468,7 +506,7 @@ def on_train_end(trainer):
     if Path(model_path).exists():
         if ctx["checkpoint_upload"]:
             ctx["checkpoint_upload"].result()
-        artifact = _upload_model(
+        artifact = _upload_file(
             model_path,
             project,
             name,

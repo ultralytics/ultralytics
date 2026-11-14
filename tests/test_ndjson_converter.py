@@ -158,6 +158,46 @@ def test_convert_depth_ndjson_rejects_missing_url(tmp_path):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 
+@pytest.mark.parametrize("invalid_scale", [0, -1, float("inf"), float("nan"), True, "1000"])
+def test_convert_depth_ndjson_rejects_invalid_scale(tmp_path, invalid_scale):
+    """Reject non-positive or non-finite depth_scale values before running downloads."""
+    manifest = tmp_path / "invalid_scale.ndjson"
+    records = [
+        {"type": "dataset", "task": "depth", "depth_scale": invalid_scale},
+        {"type": "image", "file": "train.jpg", "url": "http://127.0.0.1:1/train.jpg", "split": "train"},
+    ]
+    manifest.write_text("\n".join(json.dumps(record) for record in records))
+
+    with pytest.raises(ValueError, match=r"positive finite depth_scale"):
+        asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+
+
+def test_convert_ndjson_rejects_invalid_split(tmp_path):
+    """Reject image records with unknown or invalid split names."""
+    manifest = tmp_path / "invalid_split.ndjson"
+    records = [
+        {"type": "dataset", "task": "detect"},
+        {"type": "image", "file": "train.jpg", "url": "http://127.0.0.1:1/train.jpg", "split": "invalid_split"},
+    ]
+    manifest.write_text("\n".join(json.dumps(record) for record in records))
+
+    with pytest.raises(ValueError, match=r"Invalid NDJSON split: 'invalid_split'"):
+        asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+
+
+def test_convert_ndjson_rejects_empty_image_name(tmp_path):
+    """Reject image records with empty or non-string file attributes."""
+    manifest = tmp_path / "empty_name.ndjson"
+    records = [
+        {"type": "dataset", "task": "detect"},
+        {"type": "image", "file": "", "url": "http://127.0.0.1:1/train.jpg", "split": "train"},
+    ]
+    manifest.write_text("\n".join(json.dumps(record) for record in records))
+
+    with pytest.raises(ValueError, match=r"Invalid NDJSON image name: ''"):
+        asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+
+
 def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
     """Select requested splits while preserving full metadata and two-item list behavior."""
     base_url, _ = depth_server

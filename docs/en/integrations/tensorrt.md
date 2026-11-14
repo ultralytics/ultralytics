@@ -129,7 +129,7 @@ TensorRT export supports all seven Ultralytics tasks with [YOLOv8](../models/yol
 
 !!! warning "JetPack and DLA compatibility"
 
-    On NVIDIA Jetson, Ultralytics exports with the TensorRT runtime of your JetPack release. On JetPack 7 the export requires TensorRT 10.15 or newer and below 11. `device=dla:0` and `device=dla:1` raise an error on TensorRT 11. NVIDIA lists TensorRT 10.7 as the last 10.x release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html), and [TensorRT 11.4.1 adds JetPack 7.2.2 support](https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html), which Ultralytics 8.4.211 does not use.
+    On NVIDIA Jetson, Ultralytics exports with the TensorRT runtime of your JetPack release. On JetPack 7 the export requires TensorRT 10.15 or newer and below 11. `device=dla:0` and `device=dla:1` raise an error on TensorRT 11. NVIDIA lists TensorRT 10.7 as the last 10.x release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html), and [TensorRT 11.4.1 adds JetPack 7.2.2 support](https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html), which Ultralytics does not use yet.
 
 For the arguments shared by all formats, see the [Export mode documentation](../modes/export.md).
 
@@ -178,7 +178,7 @@ For a checkpoint not trained with `quantize=8`, pass calibration images with `da
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
-On the benchmark GPU, INT8 engines ran 1.04 to 2.3 times faster than FP32 engines, but faster than FP16 engines for only three of ten models. INT8 lost 1.7 to 3.0 mAP on YOLO26n to YOLO26l and far more on YOLO26x and YOLO26n-pose. The YOLO26n INT8 engine was larger than its FP32 engine (30 MB against 11 MB), while large models shrank (53 MB against 103 MB for YOLO26l). INT8 can also shift confidence values, so choose the confidence threshold from the INT8 engine's own [F1](https://www.ultralytics.com/glossary/f1-score) curve. See the [benchmarks](#fp32-fp16-and-int8-compared) for every model.
+On the benchmark GPU, INT8 engines ran 1.04 to 2.3 times faster than FP32 engines, but faster than FP16 engines for only three of ten models. INT8 lost 1.7 to 2.9 mAP on YOLO26n to YOLO26l and far more on YOLO26x and YOLO26n-pose. The YOLO26n INT8 engine was larger than its FP32 engine (30 MB against 11 MB), while large models shrank (53 MB against 103 MB for YOLO26l). INT8 can also shift confidence values, so choose the confidence threshold from the INT8 engine's own [F1](https://www.ultralytics.com/glossary/f1-score) curve. See the [benchmarks](#fp32-fp16-and-int8-compared) for every model.
 
 ## Output Format
 
@@ -238,7 +238,7 @@ For other errors, see the [Common Issues guide](../guides/yolo-common-issues.md)
 
 ## Benchmarks
 
-The [YOLO26 model page](../models/yolo26.md) lists the TensorRT 10 speed of every model and task on an NVIDIA T4 GPU.
+The [YOLO26 model page](../models/yolo26.md) lists the TensorRT 10 speed of every model on an NVIDIA T4 GPU for all tasks except semantic segmentation.
 
 ### FP32, FP16, and INT8 Compared
 
@@ -295,8 +295,8 @@ The tables below compare PyTorch with FP32, FP16, and INT8 TensorRT 11.4 engines
     | YOLO26n-pose | 7.9     | 13.4          | **8.2**       | 30.7          |
     | YOLO26n-obb  | 5.9     | 15.6          | **8.4**       | 67.8          |
 
-- **FP16** kept the FP32 accuracy within 0.1 points on every model and ran 1.4 to 2.2 times faster than the FP32 engine and 2.8 to 6.0 times faster than PyTorch on the detection models.
-- **INT8** ran within 12% of the FP16 latency on the detection models and lost 1.7 to 3.0 mAP on YOLO26n, YOLO26s, YOLO26m, and YOLO26l. On this GPU it was faster than FP16 only for YOLO26l, YOLO26x, and YOLO26n-cls.
+- **FP16** kept the FP32 accuracy within 0.1 points on every model. On the detection models it ran 1.4 to 2.2 times faster than the FP32 engine and 2.8 to 5.9 times faster than PyTorch.
+- **INT8** ran within 12% of the FP16 latency on the detection models and lost 1.7 to 2.9 mAP on YOLO26n, YOLO26s, YOLO26m, and YOLO26l. On this GPU it was faster than FP16 only for YOLO26l, YOLO26x, and YOLO26n-cls.
 - **YOLO26x INT8** accuracy fell to between 25.3 and 38.5 mAP across three builds, against 57.5 in FP32. **YOLO26n-pose INT8** fell from 56.7 to 33.4 pose mAP. Validate every INT8 engine on your own data before you deploy it.
 - **TensorRT 10.16** FP32 and FP16 engines of YOLO26n and YOLO26s matched the TensorRT 11.4 accuracy. Their FP16 engines were about 7% faster and their FP32 engines 4% to 9% slower than on TensorRT 11.4.
 

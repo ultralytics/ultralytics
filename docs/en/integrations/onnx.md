@@ -244,7 +244,7 @@ For other errors, see the [Common Issues guide](../guides/yolo-common-issues.md)
 
 ## Benchmarks
 
-YOLO26n runs up to 43% faster than YOLO11n with ONNX Runtime on CPU (Intel Xeon CPU @ 2.00 GHz). The [YOLO26 model page](../models/yolo26.md) lists the CPU ONNX speed of every model and task.
+YOLO26n runs up to 43% faster than YOLO11n with ONNX Runtime on CPU (Intel Xeon CPU @ 2.00 GHz). The [YOLO26 model page](../models/yolo26.md) lists the CPU ONNX speed of every model for all tasks except semantic segmentation.
 
 <p align="center">
   <br>

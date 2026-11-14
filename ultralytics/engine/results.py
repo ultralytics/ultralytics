@@ -1173,12 +1173,45 @@ class Masks(BaseTensor):
         """Initialize the Masks class with detection mask data and the original image shape.
 
         Args:
-            masks (torch.Tensor | np.ndarray): Detection masks with shape (num_masks, height, width).
+            masks (torch.Tensor | np.ndarray | tuple): Detection masks with shape (num_masks, height, width), or the
+                box-local (rois, masks, shape) of `ops.process_mask_local` with `shape` the (height, width) they span.
             orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
         """
+        if isinstance(masks, tuple):  # stay box-local until `data` is read
+            self.local, self.orig_shape = masks, orig_shape
+            return
         if masks.ndim == 2:
             masks = masks[None, :]
         super().__init__(masks, orig_shape)
+
+    @cached_property
+    def data(self) -> torch.Tensor:
+        """Return the dense (num_masks, height, width) masks, pasting box-local masks into their frame on first use."""
+        rois, masks, shape = self.local
+        data = torch.zeros((len(rois), *shape), dtype=torch.uint8, device=rois.device)
+        for d, (x1, y1, x2, y2, b, r) in zip(data, rois.tolist()):
+            d[y1:y2, x1:x2] = masks[b][r, : y2 - y1, : x2 - x1]
+        return data
+
+    def __len__(self) -> int:
+        """Return the number of masks."""
+        return len(self.local[0]) if hasattr(self, "local") else super().__len__()
+
+    def __getitem__(self, idx):
+        """Return a new Masks instance with the indexed masks, keeping box-local masks box-local."""
+        if not hasattr(self, "local"):
+            return super().__getitem__(idx)
+        rois, masks, shape = self.local
+        return Masks((rois[idx].view(-1, 6), masks, shape), self.orig_shape)
+
+    def _segments(self) -> tuple[list[np.ndarray], tuple[int, int]]:
+        """Return each mask's outline in mask pixels with the (height, width) of the frame the masks span."""
+        if not hasattr(self, "local"):
+            return ops.masks2segments(self.data), self.data.shape[1:]
+        rois, masks, shape = self.local
+        rois, masks = rois.tolist(), [m.cpu().numpy() for m in masks]
+        crops = [masks[b][r, : y2 - y1, : x2 - x1] for x1, y1, x2, y2, b, r in rois]
+        return [s + np.float32(r[:2]) for s, r in zip(ops.masks2segments(crops), rois)], shape
 
     @cached_property
     def xyn(self) -> list[np.ndarray]:
@@ -1198,10 +1231,8 @@ class Masks(BaseTensor):
             >>> normalized_coords = masks.xyn
             >>> print(normalized_coords[0])  # Normalized coordinates of the first mask
         """
-        return [
-            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
-            for x in ops.masks2segments(self.data)
-        ]
+        segments, shape = self._segments()
+        return [ops.scale_coords(shape, x, self.orig_shape, normalize=True) for x in segments]
 
     @cached_property
     def xy(self) -> list[np.ndarray]:
@@ -1221,10 +1252,8 @@ class Masks(BaseTensor):
             >>> print(len(xy_coords))  # Number of masks
             >>> print(xy_coords[0].shape)  # Shape of first mask's coordinates
         """
-        return [
-            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
-            for x in ops.masks2segments(self.data)
-        ]
+        segments, shape = self._segments()
+        return [ops.scale_coords(shape, x, self.orig_shape, normalize=False) for x in segments]
 
 
 class Keypoints(BaseTensor):

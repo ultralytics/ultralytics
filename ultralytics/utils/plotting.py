@@ -394,8 +394,8 @@ class Annotator:
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
-        if input_is_pil:  # PIL pixels keep the caller's channel order
-            im = np.asarray(im if im.mode in {"RGB", "RGBA", "L"} else im.convert("RGB"))
+        if input_is_pil:  # normalize PIL RGB pixels to the BGR drawing buffer
+            im = cv2.cvtColor(np.asarray(im.convert("RGB")), cv2.COLOR_RGB2BGR)
         input_is_tensor = isinstance(im, torch.Tensor)
         self.pil = pil or non_ascii or input_is_pil
         if input_is_tensor:

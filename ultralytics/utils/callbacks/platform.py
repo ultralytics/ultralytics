@@ -170,8 +170,11 @@ def _upload_file(file_path, project, name, progress=False, retry=1, model_id=Non
         LOGGER.warning(f"{PREFIX}Failed to get upload URL: {detail}")
         return None
 
-    headers = {"Content-Type": "image/jpeg"} if visual else None
-    if safe_upload(file=file_path, url=data["uploadUrl"], headers=headers, retry=retry, progress=progress):
+    headers = {"Content-Type": "image/webp"} if visual else None
+    timeout = 30 if visual else 600  # a stalled image upload must not hold the GPU at the end of training
+    if safe_upload(
+        file=file_path, url=data["uploadUrl"], headers=headers, retry=retry, timeout=timeout, progress=progress
+    ):
         if visual:
             return file_path.name
         gcs_path = data.get("gcsPath")
@@ -427,22 +430,20 @@ def on_fit_epoch_end(trainer):
     def _send_and_check_cancel():
         """Send epoch_end and check response for cancellation (runs in background thread)."""
         if visual_files:
-            from ultralytics.data.utils import compress_one_image
-
             try:
+                from PIL import Image
+
                 with tempfile.TemporaryDirectory() as tmp:
                     visuals = []
                     for f in visual_files:
-                        compress_one_image(f, Path(tmp) / f.name, max_dim=1280, quality=50)  # 1/3 the bytes
+                        webp = Path(tmp) / f"{f.stem}.webp"
+                        with Image.open(f) as im:
+                            im.thumbnail((1280, 1280))
+                            im.save(webp, "WEBP", quality=50)  # 1/4 the bytes of the plotted JPEG at higher quality
                         if _upload_file(
-                            Path(tmp) / f.name,
-                            project,
-                            name,
-                            model_id=ctx["model_id"],
-                            run_id=ctx["run_id"],
-                            visual=True,
+                            webp, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True
                         ):
-                            visuals.append(f.name)
+                            visuals.append(webp.name)
                 if visuals:
                     payload["visuals"] = visuals
             except Exception as e:  # optional visuals never block epoch metrics or the end of training

@@ -693,10 +693,10 @@ def process_mask_local(protos, masks_in, bboxes, shape):
         shape (tuple): Target frame as (height, width): the model input size, or an image it was letterboxed from.
 
     Returns:
-        rois (torch.Tensor): Int64 (N, 6) rows of x1, y1, x2, y2 box pixels in `shape`, then the mask's batch and row
-            in `masks`.
-        masks (list[torch.Tensor]): Bool batches of shape (n, h, w), each row holding one box's mask in its top-left
-            (y2 - y1, x2 - x1) corner.
+        rois (torch.Tensor): Int64 (N, 6) rows of x1, y1, x2, y2 box pixels in `shape`, then the mask's batch and row in
+            `masks`.
+        masks (list[torch.Tensor]): Bool batches of shape (n, h, w), each row holding one box's mask in its top-left (y2
+            - y1, x2 - x1) corner.
         keep (torch.Tensor): Bool (N,) flags, False for masks with no pixels.
     """
     c, mh, mw = protos.shape  # CHW

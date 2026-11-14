@@ -97,15 +97,21 @@ class SegmentationPredictor(DetectionPredictor):
             (Results): Result object containing the original image, image path, class names, bounding boxes, and masks.
         """
         if pred.shape[0] == 0:  # save empty boxes
-            masks = None
-        elif self.args.retina_masks or self.args.tile:
-            pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-            masks = ops.process_mask_native(proto, pred[:, 6:], pred[:, :4], orig_img.shape[:2])  # NHW
-        else:
-            masks = ops.process_mask(proto, pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # NHW
-            pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        if masks is not None:
-            keep = masks.amax((-2, -1)) > 0  # only keep predictions with masks
-            if getattr(self, "_feats", None) is None and not keep.all():  # skip filter if native ReID enabled
-                pred, masks = pred[keep], masks[keep]  # indexing is slow
-        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)
+            return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])
+        boxes = pred[:, :4].clone()  # in model input pixels
+        pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
+        native = self.args.retina_masks or self.args.tile  # masks at the original image size
+        shape = orig_img.shape[:2] if native else tuple(img.shape[2:])
+        if len(pred) * shape[0] * shape[1] <= 1 << (25 if pred.is_cuda else 22):  # a small dense stack is faster
+            if native:
+                masks = ops.process_mask_native(proto, pred[:, 6:], pred[:, :4], shape)  # NHW
+            else:
+                masks = ops.process_mask(proto, pred[:, 6:], boxes, shape, upsample=True)  # NHW
+            keep = masks.amax((-2, -1)) > 0
+        else:  # box-local masks cost the boxes' pixels, not N * H * W
+            rois, masks, keep = ops.process_mask_local(proto, pred[:, 6:], pred[:, :4] if native else boxes, shape)
+            masks = rois, masks, shape
+        result = Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)
+        if getattr(self, "_feats", None) is None and not keep.all():  # skip filter if native ReID enabled
+            result = result[keep]  # only keep predictions with masks
+        return result

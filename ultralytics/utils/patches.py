@@ -51,8 +51,7 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
     if not file_bytes.size:  # empty file, cv2 decoders assert on an empty buffer
         return None
     im = None
-    tiff = filename.lower().endswith((".tiff", ".tif"))  # cv2's TIFF decoder applies EXIF orientation itself
-    if flags != cv2.IMREAD_GRAYSCALE and tiff:
+    if flags != cv2.IMREAD_GRAYSCALE and filename.lower().endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         stack = flags == cv2.IMREAD_UNCHANGED and len(frames) > 1 and all(f.shape == frames[0].shape for f in frames)
         if success and (frames[0].ndim == 3 or stack):
@@ -62,7 +61,7 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         im = _imread_pil(filename, flags)  # EXIF-aware
     if im is None:
         # cv2 leaves an image as stored with IMREAD_UNCHANGED, and a WebP with any flag before 5.0
-        stored = not tiff and (flags == cv2.IMREAD_UNCHANGED or filename.lower().endswith(".webp"))
+        stored = flags == cv2.IMREAD_UNCHANGED or bytes(file_bytes[8:12]) == b"WEBP"
         im = cv2.imdecode(file_bytes, flags | cv2.IMREAD_IGNORE_ORIENTATION if stored else flags)
         if stored and im is not None:
             im = _exif_transpose(im, memoryview(file_bytes))
@@ -138,8 +137,10 @@ def _exif_transpose(im: np.ndarray, data: memoryview) -> np.ndarray:
             i += 12 + int.from_bytes(data[i : i + 4], "big")
         if i + 8 > len(data):
             return im
+    elif data[:2] != b"\xff\xd8" and data[8:12] != b"WEBP":  # not JPEG or WebP: cv2 orients a TIFF itself
+        return im
     try:
-        with Image.open(BytesIO(data)) as img:
+        with _image_open(BytesIO(data)) as img:
             orientation = img.getexif().get(274, 1)
     except Exception:
         return im

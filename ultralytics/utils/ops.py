@@ -705,10 +705,11 @@ def process_mask_local(protos, masks_in, bboxes, shape):
     gain = min(4 * mh / h, 4 * mw / w)  # letterbox placement of the frame inside the model input
     cw, ch = max(round(w * gain), 1), max(round(h * gain), 1)
     left, top = round((4 * mw - cw) / 2 - 0.1), round((4 * mh - ch) / 2 - 0.1)
-    # Prototype coordinate of every frame column and row, as bilinear interpolation with align_corners=False samples it
-    fx = ((torch.arange(w, device=dev) + 0.5) * (cw / w) + left).clamp_(left + 0.5, left + cw - 0.5) / 4 - 0.5
-    fy = ((torch.arange(h, device=dev) + 0.5) * (ch / h) + top).clamp_(top + 0.5, top + ch - 0.5) / 4 - 0.5
-    ix, iy = fx.clamp_(0, mw - 1).long(), fy.clamp_(0, mh - 1).long()
+    # Prototype coordinate of every frame column and row, as bilinear interpolation with align_corners=False samples
+    # it, clamped to the prototypes centered on the frame so that letterbox padding never bleeds into a mask edge
+    fx = ((torch.arange(w, device=dev) + 0.5) * (cw / w) + left).clamp_(left + 2, left + cw - 2) / 4 - 0.5
+    fy = ((torch.arange(h, device=dev) + 0.5) * (ch / h) + top).clamp_(top + 2, top + ch - 2) / 4 - 0.5
+    ix, iy = fx.long(), fy.long()
     fx, fy = fx - ix, fy - iy  # interpolation weights
     x1, y1, x2, y2 = bboxes.ceil().long().unbind(1)  # the pixels crop_mask keeps: x1 <= column < x2
     x1, y1, x2, y2 = x1.clamp_(0, w), y1.clamp_(0, h), x2.clamp_(0, w), y2.clamp_(0, h)

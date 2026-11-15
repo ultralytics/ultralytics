@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import random
 from typing import Any
 
@@ -145,7 +146,7 @@ class GPUInfo:
             count (int): The number of idle GPUs to select.
             min_memory_fraction (float): Minimum free memory required as a fraction of total memory.
             min_util_fraction (float): Minimum free utilization rate required from 0.0 - 1.0.
-            indices (list[int] | None): Restrict selection to these GPU indices, e.g. the GPUs visible under an external
+            indices (list[int] | None): Restrict selection to GPU IDs, using physical IDs under an external
                 CUDA_VISIBLE_DEVICES restriction. None searches all GPUs.
 
         Returns:
@@ -179,30 +180,37 @@ class GPUInfo:
                     "stats and is not verified."
                 )
             device_count = torch.cuda.device_count()
+            # NVML uses physical IDs, but PyTorch memory queries use logical IDs after CUDA_VISIBLE_DEVICES remapping.
+            visible = [
+                str(int(x)) if x.isdigit() else x
+                for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",")
+                if x
+            ][:device_count]
             if indices is None:
-                indices = list(range(device_count))
+                indices = [int(x) for x in visible if x.isdigit()] if visible else list(range(device_count))
             selected = []
             for idx in indices:
                 if len(selected) == count:
                     break
-                if idx in selected or not 0 <= idx < device_count:
-                    continue  # skip duplicates and nonexistent devices, as the NVML path would
+                if idx in selected or (visible and str(idx) not in visible) or (not visible and not 0 <= idx < device_count):
+                    continue
+                logical_idx = visible.index(str(idx)) if visible else idx
                 if min_memory_fraction > 0:
                     try:
-                        free, total = torch.cuda.mem_get_info(idx)  # real free-memory data on HIP and CUDA alike
+                        free, total = torch.cuda.mem_get_info(logical_idx)  # logical index on HIP and CUDA
                     except Exception as e:
                         LOGGER.warning(f"Free memory query failed for device {idx}: {e}")
                         continue
-                    if free / total < min_memory_fraction:
+                    if not total or free / total < min_memory_fraction:
                         continue
                 selected.append(idx)
 
             if selected:
                 if len(selected) < count:
-                    LOGGER.warning(f"Requested {count} GPUs but only {len(selected)} met the idle criteria.")
-                LOGGER.info(f"Selected idle CUDA devices {selected}")
+                    LOGGER.warning(f"Requested {count} GPUs but only {len(selected)} met the verifiable criteria.")
+                LOGGER.info(f"Selected CUDA devices {selected} (utilization not verified)")
             else:
-                LOGGER.warning(f"No GPUs met criteria ({criteria}).")
+                LOGGER.warning(f"No CUDA devices met verifiable free-memory/visibility criteria ({criteria}).")
             return selected
 
         # Filter and sort eligible GPUs

@@ -27,7 +27,7 @@ if CUDA_IS_AVAILABLE:
         if idle_gpus := gpu_info.select_idle_gpu(
             count=2,
             min_memory_fraction=autodevice_fraction,
-            min_util_fraction=autodevice_fraction,
+            min_util_fraction=autodevice_fraction if gpu_info.nvml_available else 0,
         ):
             # GPUInfo returns physical IDs without NVML; CUDA tensor indexing uses visible logical IDs.
             visible = [

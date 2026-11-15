@@ -331,6 +331,7 @@ With a YOLO model selected, Smart annotation can add predictions from [pretraine
 
     - The model picker lists models that match the current dataset task, so a pose dataset offers pose models. Detect and segment datasets also show each other's models, disabled.
     - If the model's classes differ from the dataset's, a **Map classes** dialog maps each model class to a dataset class or skips it, and on a dataset without classes it creates them.
+    - Each prediction adds up to 1,000 objects (300 for RT-DETR models), and Batch Annotation with a YOLO model uses the same limit.
 
 ### Class-Prompted Smart Annotation
 

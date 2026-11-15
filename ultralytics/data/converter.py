@@ -658,9 +658,6 @@ def yolo_bbox2segment(
                 ├─ 001.txt
                 ├─ ...
                 └─ NNN.txt
-
-        Images in nested subdirectories (e.g. `train`/`val` splits) keep their layout in the output, so same-stem
-        images in different splits write to separate label files.
     """
     from ultralytics import SAM
     from ultralytics.data import YOLODataset
@@ -685,13 +682,9 @@ def yolo_bbox2segment(
         label["segments"], label["cls"] = res.masks.xyn, label["cls"][res.boxes.cls.int().cpu().numpy()]  # kept masks
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
-    save_dir.mkdir(parents=True, exist_ok=True)
     for label in dataset.labels:
         texts = []
-        # keep subdirectory layout (e.g. train/val splits) so same-stem images don't overwrite each other;
-        # lexical so symlinked images keep their location under im_dir instead of resolving outside it
-        lb_name = Path(label["im_file"]).relative_to(Path(im_dir)).with_suffix(".txt")
-        txt_file = save_dir / lb_name
+        txt_file = save_dir / Path(label["im_file"]).relative_to(im_dir).with_suffix(".txt")  # keep subdirectories
         txt_file.parent.mkdir(parents=True, exist_ok=True)
         cls = label["cls"]
         for i, s in enumerate(label["segments"]):

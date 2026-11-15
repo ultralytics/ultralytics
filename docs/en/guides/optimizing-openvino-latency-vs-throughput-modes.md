@@ -63,9 +63,9 @@ OpenVINO's multi-device mode simplifies scaling throughput by automatically bala
 
 ## Real-World Performance Gains
 
-Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](../integrations/openvino.md#openvino-yolo26-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with [even greater accelerations](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake) possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and NPUs.
+Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](../integrations/openvino.md#openvino-yolo26-benchmarks), INT8 OpenVINO models ran 2.9 to 6.0 times faster than PyTorch on Intel Core Ultra CPUs, and the integrated GPUs of the same processors ran FP32 models 3.6 to 29.1 times faster than PyTorch on the CPU. The [Intel Core Ultra Series 3 blog post](https://www.ultralytics.com/blog/accelerating-ultralytics-yolo26-with-openvino-on-intel-core-ultra-series-3-panther-lake) covers the newest of these processors.
 
-For example, when running YOLO26 models on Intel Xeon CPUs, the OpenVINO-optimized versions consistently outperform their PyTorch counterparts in terms of inference time per image, without compromising on [accuracy](https://www.ultralytics.com/glossary/accuracy).
+For example, on the CPU of an Intel Core Ultra X7 358H, the INT8 YOLO26n model ran in 9.99 ms per image against 29.28 ms for PyTorch, with an mAP50-95 of 0.4720 against 0.4765 on COCO128, a small loss of [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 ## Practical Implementation
 

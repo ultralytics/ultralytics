@@ -1,9 +1,9 @@
 ---
 plans: [free, pro, enterprise]
-title: Cloud GPU Training
+title: Train YOLO Models on Cloud GPUs
 comments: true
-description: Train YOLO models on cloud GPUs with Ultralytics Platform. Configure runs, pick a GPU, monitor live metrics, stream remote training, and manage billing.
-keywords: Ultralytics Platform, cloud training, GPU training, remote training, YOLO, model training, machine learning
+description: Train custom YOLO models on cloud GPUs with Ultralytics Platform. Pick a GPU, see the cost upfront, watch live metrics, or stream local runs.
+keywords: Ultralytics Platform, YOLO cloud training, train YOLO in the cloud, cloud GPU training, remote training, custom YOLO model, model training
 ---
 
 # Cloud Training
@@ -284,6 +284,11 @@ Use the `project` and `name` parameters to stream metrics:
         name="experiment-1",
     )
     ```
+
+`project` names the Platform project and `name` names the model. If the project doesn't exist, the first run creates it
+with the workspace's [default visibility](../account/settings.md#default-visibility). When `project` is a local
+directory, such as `/home/me/runs` or `C:\runs\detect`, the run still saves there, and from `ultralytics` 8.4.213 the
+Platform project is named after its last folder (`runs`, `detect`) instead of the whole path.
 
 The **Local Training** tab in the training dialog shows a pre-configured command with your API key, selected parameters, and advanced arguments included.
 

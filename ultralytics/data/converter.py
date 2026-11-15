@@ -658,6 +658,9 @@ def yolo_bbox2segment(
                 ├─ 001.txt
                 ├─ ...
                 └─ NNN.txt
+
+        Images in nested subdirectories (e.g. `train`/`val` splits) keep their layout in the output, so same-stem
+        images in different splits write to separate label files.
     """
     from ultralytics import SAM
     from ultralytics.data import YOLODataset
@@ -685,8 +688,10 @@ def yolo_bbox2segment(
     save_dir.mkdir(parents=True, exist_ok=True)
     for label in dataset.labels:
         texts = []
-        lb_name = Path(label["im_file"]).with_suffix(".txt").name
+        # keep subdirectory layout (e.g. train/val splits) so same-stem images don't overwrite each other
+        lb_name = Path(label["im_file"]).resolve().relative_to(Path(im_dir).resolve()).with_suffix(".txt")
         txt_file = save_dir / lb_name
+        txt_file.parent.mkdir(parents=True, exist_ok=True)
         cls = label["cls"]
         for i, s in enumerate(label["segments"]):
             if len(s) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts

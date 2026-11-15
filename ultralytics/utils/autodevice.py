@@ -172,7 +172,9 @@ class GPUInfo:
             LOGGER.warning("NVML stats unavailable, selecting devices without idle statistics.")
             import torch
 
-            return list(indices[:count]) if indices else list(range(min(count, torch.cuda.device_count())))
+            if indices is not None:
+                return list(indices[:count])  # explicit (possibly empty) restriction, mirrors the NVML path
+            return list(range(min(count, torch.cuda.device_count())))
 
         # Filter and sort eligible GPUs
         eligible_gpus = [

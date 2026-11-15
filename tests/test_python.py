@@ -241,6 +241,23 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
+def test_select_idle_gpu_fallback():
+    """Check select_idle_gpu restriction handling on the real host, with or without NVML statistics."""
+    from ultralytics.utils.autodevice import GPUInfo
+
+    gpu_info = GPUInfo()
+    assert gpu_info.select_idle_gpu(count=0) == []  # nothing requested
+    assert gpu_info.select_idle_gpu(count=1, indices=[]) == []  # explicit empty restriction selects nothing
+    assert gpu_info.select_idle_gpu(count=1, indices=[99999]) == []  # nonexistent devices are never selected
+    with pytest.raises(AssertionError):
+        gpu_info.select_idle_gpu(count=1, min_util_fraction=1.1)
+    if not gpu_info.nvml_available:  # e.g. CPU CI or AMD HIP hosts: idle statistics cannot be measured
+        assert gpu_info.select_idle_gpu(count=1, min_util_fraction=0.5) == []  # unmeasurable criteria select nothing
+    if not gpu_info.nvml_available and torch.cuda.device_count():  # HIP/CUDA host without NVML, e.g. AMD Windows
+        selected = gpu_info.select_idle_gpu(count=1, min_memory_fraction=0.2)  # free memory checked via mem_get_info
+        assert all(0 <= i < torch.cuda.device_count() for i in selected)  # only real, in-range devices
+
+
 def test_autobackend_memory_format(tmp_path):
     """Check backend memory formats on the real host platform without mocked platform state."""
     from ultralytics.nn.autobackend import AutoBackend

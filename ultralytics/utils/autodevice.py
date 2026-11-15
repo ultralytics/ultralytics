@@ -153,8 +153,9 @@ class GPUInfo:
 
         Notes:
             Returns fewer than 'count' if not enough qualify or exist.
-            Without NVML stats (e.g. AMD HIP or NVML-less hosts) falls back to the first CUDA devices in order,
-            since idle statistics cannot be measured but selection is still possible.
+            Without NVML stats (e.g. AMD HIP or NVML-less hosts), free-memory criteria are still verified via
+            torch.cuda.mem_get_info, but idle-utilization criteria cannot be measured and yield no selection;
+            qualifying devices are chosen in order rather than by idleness.
             Returns empty list if no GPUs meet the criteria.
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
@@ -172,9 +173,37 @@ class GPUInfo:
             LOGGER.warning("NVML stats unavailable, selecting devices without idle statistics.")
             import torch
 
-            if indices is not None:
-                return list(indices[:count])  # explicit (possibly empty) restriction, mirrors the NVML path
-            return list(range(min(count, torch.cuda.device_count())))
+            if min_util_fraction > 0:
+                LOGGER.warning(
+                    "Idle-utilization criteria require NVML statistics, which are unavailable — no GPUs selected."
+                )
+                return []
+            device_count = torch.cuda.device_count()
+            if indices is None:
+                indices = list(range(device_count))
+            selected = []
+            for idx in indices:
+                if len(selected) == count:
+                    break
+                if idx in selected or not 0 <= idx < device_count:
+                    continue  # skip duplicates and nonexistent devices, as the NVML path would
+                if min_memory_fraction > 0:
+                    try:
+                        free, total = torch.cuda.mem_get_info(idx)  # real free-memory data on HIP and CUDA alike
+                    except Exception as e:
+                        LOGGER.warning(f"Free memory query failed for device {idx}: {e}")
+                        continue
+                    if free / total < min_memory_fraction:
+                        continue
+                selected.append(idx)
+
+            if selected:
+                if len(selected) < count:
+                    LOGGER.warning(f"Requested {count} GPUs but only {len(selected)} met the idle criteria.")
+                LOGGER.info(f"Selected idle CUDA devices {selected}")
+            else:
+                LOGGER.warning(f"No GPUs met criteria ({criteria}).")
+            return selected
 
         # Filter and sort eligible GPUs
         eligible_gpus = [

@@ -16,7 +16,7 @@ from ultralytics.data.utils import exif_size, img2label_paths
 from ultralytics.utils import TQDM
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.instance import Instances
-from ultralytics.utils.patches import imread_unicode
+from ultralytics.utils.patches import imread
 
 
 def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.ndarray:
@@ -205,7 +205,7 @@ def crop_and_save(
                     - train
                     - val
     """
-    im = imread_unicode(anno["filepath"])
+    im = imread(anno["filepath"])
     name = Path(anno["filepath"]).stem
     for i, window in enumerate(windows):
         x_start, y_start, x_stop, y_stop = window.tolist()
@@ -340,7 +340,7 @@ def split_test(
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(im_dir / "*"))
     for im_file in TQDM(im_files, total=len(im_files), desc="test"):
-        im = imread_unicode(im_file)
+        im = imread(im_file)
         windows = get_windows(im.shape[:2], crop_sizes=crop_sizes, gaps=gaps)
         name = Path(im_file).stem
         for window in windows:

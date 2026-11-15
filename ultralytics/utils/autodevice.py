@@ -182,8 +182,8 @@ class GPUInfo:
                 for x in os.getenv("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",")
                 if x
             ][:n]
-            candidates = indices if indices is not None else (
-                [int(x) for x in visible if x.isdigit()] if visible else range(n)
+            candidates = (
+                indices if indices is not None else ([int(x) for x in visible if x.isdigit()] if visible else range(n))
             )
             selected = []
             for idx in candidates:

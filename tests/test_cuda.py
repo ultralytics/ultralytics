@@ -31,7 +31,9 @@ if CUDA_IS_AVAILABLE:
         ):
             # Without NVML, GPUInfo returns physical IDs but cuda:N expects visible logical IDs.
             visible = [str(int(x)) for x in os.getenv("CUDA_VISIBLE_DEVICES", "").split(",") if x.isdigit()]
-            DEVICES = [visible.index(str(i)) for i in idle_gpus] if visible and not gpu_info.nvml_available else idle_gpus
+            DEVICES = (
+                [visible.index(str(i)) for i in idle_gpus] if visible and not gpu_info.nvml_available else idle_gpus
+            )
 
 
 def test_checks():

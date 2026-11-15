@@ -58,7 +58,7 @@ Brain tumor [detection](../../tasks/detect.md) models locate tumors in brain MRI
 
 - **Learning the workflow**: running the full train, [validate](../../modes/val.md), and [predict](../../modes/predict.md) cycle on medical images with a small dataset.
 - **Prototyping**: building and testing a tumor localization pipeline before moving to a larger clinical dataset.
-- **Held-out patient evaluation**: measuring detection on the 25 validation patients, with no identified patient in both splits.
+- **Evaluation on identified patients**: measuring detection on the 25 validation patients. Because 541 training images carry no patient ID, overlap with these patients cannot be ruled out.
 - **Research and education**: comparing detection models and studying [medical image analysis](https://www.ultralytics.com/glossary/medical-image-analysis) and [AI in radiology](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency).
 
 Models trained on this dataset are for research and education and are not validated for clinical diagnosis.

@@ -192,7 +192,11 @@ class GPUInfo:
             for idx in indices:
                 if len(selected) == count:
                     break
-                if idx in selected or (visible and str(idx) not in visible) or (not visible and not 0 <= idx < device_count):
+                if (
+                    idx in selected
+                    or (visible and str(idx) not in visible)
+                    or (not visible and not 0 <= idx < device_count)
+                ):
                     continue
                 logical_idx = visible.index(str(idx)) if visible else idx
                 if min_memory_fraction > 0:

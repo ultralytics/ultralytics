@@ -528,8 +528,8 @@ class Annotator:
         """Plot masks on image.
 
         Args:
-            masks (torch.Tensor | np.ndarray | list): Predicted masks with shape [n, h, w], or a list of box-local
-                ((x1, y1, x2, y2), mask) pairs at the image size.
+            masks (torch.Tensor | np.ndarray | list): Predicted masks with shape [n, h, w], or a list of box-local ((x1,
+                y1, x2, y2), mask) pairs at the image size.
             colors (list[list[int]]): BGR colors for predicted masks, [[b, g, r] * n], matching `self.im`.
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
         """

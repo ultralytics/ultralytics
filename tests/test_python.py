@@ -575,6 +575,20 @@ def test_predict_gray_and_4ch(tmp_path):
         f.unlink()  # cleanup
 
 
+def test_imread_exif_orientation(tmp_path):
+    """Test imread returns EXIF-rotated images upright for every format and flag."""
+    from ultralytics.utils.patches import imread
+
+    im = Image.open(SOURCE).resize((64, 48))
+    exif = im.getexif()
+    exif[274] = 6  # stored portrait, displayed landscape
+    for suffix in ".jpg", ".png", ".webp":
+        f = tmp_path / f"exif{suffix}"
+        im.rotate(90, expand=True).save(f, exif=exif)
+        for flags in cv2.IMREAD_COLOR, cv2.IMREAD_GRAYSCALE, cv2.IMREAD_UNCHANGED:
+            assert imread(f, flags).shape[:2] == (48, 64), f"{suffix} read with flags={flags} is not upright"
+
+
 def test_predict_ndarray_channels():
     """Test NumPy channel normalization for grayscale and color models."""
     from ultralytics.data.loaders import LoadPilAndNumpy
@@ -2226,6 +2240,7 @@ def test_process_mask_local():
     rois, masks, keep = ops.process_mask_local(protos, coeffs, bboxes, (640, 640))
     local = Masks((rois, masks, (640, 640)), (1280, 1280))
     assert len(local) == 40 and not keep[0] and torch.equal(keep, dense.amax((-2, -1)) > 0)
+    assert local.shape == dense.shape and "data" not in vars(local)  # shape must not expand the dense mask stack
     assert (local.data != dense).float().mean() < 1e-4  # float rounding may flip a pixel on the mask edge
     assert (local[keep][::3].data != dense[keep][::3]).float().mean() < 1e-4
     assert len(local[5].xy) == 1 and local[5].xy[0][:, 0].min() >= bboxes[5, 0] * 2

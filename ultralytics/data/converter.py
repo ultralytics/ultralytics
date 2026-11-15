@@ -682,11 +682,10 @@ def yolo_bbox2segment(
         label["segments"], label["cls"] = res.masks.xyn, label["cls"][res.boxes.cls.int().cpu().numpy()]  # kept masks
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
-    save_dir.mkdir(parents=True, exist_ok=True)
     for label in dataset.labels:
         texts = []
-        lb_name = Path(label["im_file"]).with_suffix(".txt").name
-        txt_file = save_dir / lb_name
+        txt_file = save_dir / Path(label["im_file"]).relative_to(im_dir).with_suffix(".txt")  # keep subdirectories
+        txt_file.parent.mkdir(parents=True, exist_ok=True)
         cls = label["cls"]
         for i, s in enumerate(label["segments"]):
             if len(s) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts

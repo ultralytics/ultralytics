@@ -20,7 +20,7 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
-from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread, imread_unicode
+from ultralytics.utils.patches import imread
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
@@ -57,10 +57,11 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models.
+# 1.0.13: EXIF-rotated WebP shapes are upright on every OpenCV version.
 # 1.0.12: Accept UTF-8 byte-order marks in labels (since removed, version kept to avoid cache rescans).
 # 1.0.11: Reject negative box dimensions.
 # 1.0.10: EXIF-rotated image shapes match the decoded image.
-DATASET_CACHE_VERSION = "1.0.12"
+DATASET_CACHE_VERSION = "1.0.13"
 
 
 class YOLODataset(BaseDataset):
@@ -1390,8 +1391,8 @@ class ClassificationDataset:
 
     @staticmethod
     def imread(f: str) -> np.ndarray:
-        """Read a BGR image with cv2, decoding the formats cv2 cannot read through the shared PIL fallback."""
-        if (im := imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else imread_unicode(f)) is None:
+        """Read a BGR image as every other dataset and predictor does."""
+        if (im := imread(f)) is None:
             raise FileNotFoundError(f"Image Not Found {f}")
         return im
 

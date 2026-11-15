@@ -196,6 +196,11 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert LINUX, "RKNN only supported on Linux"
                 assert not is_rockchip(), "RKNN Inference only supported on Rockchip devices"
+            if export_format == "rdk":
+                assert LINUX and not ARM64, "RDK export only supported on x86_64 Linux"
+                assert shutil.which("hb_mapper") and shutil.which("rdkx5-sim"), (
+                    "RDK benchmark requires hb_mapper and rdkx5-sim"
+                )
             if export_format == "executorch":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 ExecuTorch exports not supported yet"
             if export_format == "axelera":

@@ -52,6 +52,7 @@ from ultralytics import RTDETR, YOLO, YOLOE, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.data.utils import check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.engine.exporter import export_formats
+from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -90,7 +91,8 @@ def benchmark(
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference off CPU. Each format then runs
             inference at its own runtime precision.
-        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps'.
+        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps', or 'xpu' and 'npu' for the Intel
+            GPU and NPU with format='openvino' or 'litert'.
         verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
             every successful format's metric exceeds this floor value.
         eps (float): Epsilon value for divide by zero prevention.
@@ -108,7 +110,9 @@ def benchmark(
     """
     from ultralytics.cfg import _handle_deprecation
 
+    kwargs["device"] = device  # deprecated intel:* device names map here too
     quantize = _handle_deprecation(kwargs).pop("quantize", quantize)  # updates kwargs in place, half/int8 -> quantize
+    device = kwargs.pop("device")
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
@@ -121,7 +125,10 @@ def benchmark(
     pl.Config.set_tbl_hide_dataframe_shape(True)  # Hide shape info
     pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
 
-    device = select_device(device, verbose=False)
+    format_arg = format.lower()
+    intel = format_arg in AutoBackend.INTEL_FORMATS  # these runtimes map 'xpu' and 'npu' onto Intel devices
+    if not intel:
+        device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
@@ -137,7 +144,6 @@ def benchmark(
     y = []
     t0 = time.time()
 
-    format_arg = format.lower()
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format_arg in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
@@ -206,7 +212,7 @@ def benchmark(
                 assert not (MACOS and is_github_action_running()), (
                     "LiteRT not benchmarked on macOS CI (ai-edge-litert/TF abseil mutex deadlock)"
                 )
-            if "cpu" in str(device):  # intel:* devices stay strings
+            if "cpu" in str(device):
                 assert cpu, "inference not supported on CPU"
             if "cuda" in str(device):
                 assert gpu, "inference not supported on GPU"
@@ -267,7 +273,7 @@ def benchmark(
             y.append([name, emoji, round(file_size(filename), 1), None, None, None])  # mAP, t_inference
 
     # Print results
-    check_yolo(device=device)  # print system info
+    check_yolo(device="cpu" if intel else device)  # print system info
     df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"], orient="row")
     df = df.with_row_index(" ", offset=1)  # add index info
     df_display = df.with_columns(pl.all().cast(pl.String).fill_null("-"))
@@ -533,14 +539,11 @@ class ProfileModels:
         input_data_dict = {}
         for input_tensor in backend.session.get_inputs():
             input_type = input_tensor.type
-            if self.check_dynamic(input_tensor.shape):
-                if len(input_tensor.shape) != 4 and self.check_dynamic(input_tensor.shape[1:]):
-                    raise ValueError(f"Unsupported dynamic shape {input_tensor.shape} of {input_tensor.name}")
-                input_shape = (
-                    (1, 3, self.imgsz, self.imgsz) if len(input_tensor.shape) == 4 else (1, *input_tensor.shape[1:])
-                )
-            else:
-                input_shape = input_tensor.shape
+            shape = input_tensor.shape
+            if len(shape) != 4 and self.check_dynamic(shape[1:]):
+                raise ValueError(f"Unsupported dynamic shape {shape} of {input_tensor.name}")
+            default = (1, 3, self.imgsz, self.imgsz) if len(shape) == 4 else (1, *shape[1:])
+            input_shape = [d if isinstance(d, int) and d >= 0 else s for d, s in zip(shape, default)]  # fill dynamic
 
             # Mapping ONNX datatype to numpy datatype
             if "float16" in input_type:

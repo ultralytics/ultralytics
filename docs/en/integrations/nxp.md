@@ -104,7 +104,7 @@ benchmark_model --graph=yolo26n_nxp.tflite --external_delegate_path=/usr/lib/lib
 
 ## Operator Coverage and Performance
 
-Compilation replaces supported subgraphs with `NeutronGraph` operations. Unsupported operators remain on CPU. A successful export does **not** imply that every operation runs on the NPU or that CPU/NPU switching overhead has been eliminated. Attention, tensor layout changes, and postprocessing can still require CPU execution.
+Compilation replaces supported subgraphs with `NeutronGraph` operations. Unsupported operators remain on CPU. A successful export does **not** imply that every operation runs on the NPU or that CPU/NPU switching overhead has been eliminated. Attention, tensor layout changes, the detect, segment, pose, and OBB head outputs kept in FP32, and postprocessing can still require CPU execution.
 
 The export log includes NXP compiler statistics: converted operators, NPU partitions, memory estimates, and estimated NPU cycles. These estimates exclude CPU operators, preprocessing, postprocessing, and runtime overhead. Measure complete frame latency, peak RAM, and deployment storage on the target board; theoretical TOPS and compiled file size cannot determine those values.
 

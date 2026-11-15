@@ -198,8 +198,8 @@ def torch2coreml(
         classifier_names (list[str] | None): Class names for classifier config, or None if not a classifier.
         output_file (Path | str | None): Output file path, or None to skip saving.
         mlmodel (bool): Whether to export as ``.mlmodel`` (neural network) instead of ``.mlpackage`` (ML program).
-        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8/``"w8a16"`` for 8-bit k-means palettized
-            weights.
+        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8/``"w8a16"`` for 8-bit weights (linear
+            quantization for neural networks, k-means palettization for ML programs).
         metadata (dict | None): Metadata to embed in the CoreML model.
         prefix (str): Prefix for log messages.
 
@@ -213,7 +213,7 @@ def torch2coreml(
         if isinstance(m, Detect):
             m._gather = types.MethodType(_coreml_gather, m)
     ts = torch.jit.trace(model.eval(), im, strict=False, check_trace=False)  # skip re-trace check, like other exports
-    bits, mode = (8, "kmeans") if quantize in {8, "w8a16"} else (16, "linear") if quantize == 16 else (32, None)
+    bits = 8 if quantize in {8, "w8a16"} else 16 if quantize == 16 else 32
 
     # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
     # internally based on the model conversion and output type.
@@ -249,11 +249,10 @@ def torch2coreml(
             )
     ct_model = ct.convert(ts, **convert_kwargs)
     if bits < 32:
-        if "kmeans" in mode:
-            check_requirements("scikit-learn")  # scikit-learn package required for k-means quantization
         if mlmodel:
-            ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
+            ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, "linear")
         elif bits == 8:  # mlprogram already quantized to FP16
+            check_requirements("scikit-learn")  # scikit-learn package required for k-means quantization
             import coremltools.optimize.coreml as cto
 
             op_config = cto.OpPalettizerConfig(mode="kmeans", nbits=bits, weight_threshold=512)

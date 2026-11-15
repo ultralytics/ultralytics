@@ -44,7 +44,6 @@ These tutorials guide you through different aspects of YOLOv5:
 - [Transfer Learning with Frozen Layers](tutorials/transfer-learning-with-frozen-layers.md): Learn how to implement [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by freezing layers in YOLOv5.
 - [Architecture Summary](tutorials/architecture-description.md): Delve into the structural details of the YOLOv5 model.
 - [ClearML Logging Integration](tutorials/clearml-logging-integration.md): Learn how to integrate [ClearML](https://clear.ml/) for logging during model training.
-- [YOLOv5 with Neural Magic](tutorials/neural-magic-pruning-quantization.md): Discover how to use [Neural Magic's DeepSparse](https://github.com/neuralmagic/deepsparse/blob/main/README.md) to prune and quantize your YOLOv5 model.
 - [Comet Logging Integration](tutorials/comet-logging-integration.md): Learn how to use [Comet](https://www.comet.com/site/) to log and visualize training runs.
 
 ## Supported Environments

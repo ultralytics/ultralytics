@@ -586,8 +586,8 @@ def test_predict_ndarray_channels():
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
         for dtype in (np.uint8, np.float64):  # float64 is a dtype cvtColor rejects
-            im = np.zeros((8, 8, source_channels), dtype=dtype)
-            assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
+            im = LoadPilAndNumpy(np.zeros((8, 8, source_channels), dtype=dtype), channels=model_channels).im0[0]
+            assert im.shape == (8, 8, model_channels) and im.dtype != np.float64  # MPS has no float64
 
 
 def test_single_check_channel_order_and_contiguity():
@@ -2211,6 +2211,27 @@ def test_model_embeddings():
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
     assert isinstance(model_classify.predict(SOURCE, imgsz=32, embed=[-2])[0], torch.Tensor)
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+
+
+def test_process_mask_local():
+    """Box-local masks must match the dense masks they replace, through `Masks` data, outlines and indexing."""
+    from ultralytics.engine.results import Masks
+    from ultralytics.utils import ops
+
+    torch.manual_seed(0)
+    protos, coeffs, xy = torch.randn(32, 160, 160), torch.randn(40, 32), torch.rand(40, 2) * 400
+    bboxes = torch.cat((xy, xy + torch.rand(40, 2) * 240), 1)
+    bboxes[0, 2:] = bboxes[0, :2]  # an empty box
+    dense = ops.process_mask(protos, coeffs, bboxes, (640, 640), upsample=True)
+    rois, masks, keep = ops.process_mask_local(protos, coeffs, bboxes, (640, 640))
+    local = Masks((rois, masks, (640, 640)), (1280, 1280))
+    assert len(local) == 40 and not keep[0] and torch.equal(keep, dense.amax((-2, -1)) > 0)
+    assert (local.data != dense).float().mean() < 1e-4  # float rounding may flip a pixel on the mask edge
+    assert (local[keep][::3].data != dense[keep][::3]).float().mean() < 1e-4
+    assert len(local[5].xy) == 1 and local[5].xy[0][:, 0].min() >= bboxes[5, 0] * 2
+    native = ops.process_mask_native(protos[:, :96], coeffs, bboxes, (720, 1280))  # letterboxed, 12 rows of padding
+    rois, masks, _ = ops.process_mask_local(protos[:, :96], coeffs, bboxes, (720, 1280))
+    assert (Masks((rois, masks, (720, 1280)), (720, 1280)).data != native).float().mean() < 1e-4
 
 
 def test_process_mask_native_chunked():

@@ -1,14 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""D-Robotics RDK X5 inference backend for deployments exported with `format="rdk"`.
-
-Loads a `{stem}_rdk_model/` deployment (compiled `.bin` + `metadata.yaml` + the `tail.onnx` decode
-graph), runs the compiled body and decodes its outputs through the tail with ONNX Runtime, yielding
-the standard predictions of the exported graph:
-
-- On Linux x86_64 the body runs through the external `rdkx5-sim` CLI from `rdkx5-yolo-mapper`
-  (one isolated subprocess per call; never installed automatically).
-- On RDK X5 (Linux aarch64) the board `hbm_runtime.HB_HBMRuntime` SDK is used.
-"""
+"""D-Robotics RDK X5 inference backend for deployments exported with `format="rdk"`."""
 
 from __future__ import annotations
 
@@ -43,12 +34,7 @@ def _check(condition, message):
 
 
 def _normalized_shape(shape, expected):
-    """Return `shape` without extra trailing unit dims when it then equals `expected`, else None.
-
-    The BPU reports some outputs with appended trailing unit dimensions (e.g. classifier logits as
-    (1, nc, 1, 1) instead of (1, nc)); anything else — including a same-element-count reordering —
-    leaves None so the caller rejects or ONNX Runtime reports it.
-    """
+    """Return `shape` matching `expected` with only BPU-appended trailing unit dims removed, else None."""
     shape = [int(d) for d in shape]
     while len(shape) > len(expected) and shape[-1] == 1:
         shape.pop()
@@ -195,11 +181,7 @@ class RDKBackend(BaseBackend):
         self._input_name, self._hw = entry["name"], (h, w)
 
     def _load_board_runtime(self):
-        """Construct the board SDK session and validate its actual I/O.
-
-        The SDK exposes names, dtypes, quanti types and logical shapes; anything it does not expose
-        is not claimed as verified.
-        """
+        """Construct the board `hbm_runtime` session and validate its actual I/O."""
         try:
             import hbm_runtime
         except ImportError as e:

@@ -8,12 +8,12 @@ from typing import Any
 
 import torch
 import torch.distributed as dist
-import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DepthMetrics
 from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.torch_utils import interpolate_bilinear
 
 
 class DepthValidator(DetectionValidator):
@@ -56,7 +56,7 @@ class DepthValidator(DetectionValidator):
         if preds.ndim == 3:
             preds = preds.unsqueeze(1)
         if preds.shape[-2:] != gt_depth.shape[-2:]:
-            preds = F.interpolate(preds.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
+            preds = interpolate_bilinear(preds.float(), gt_depth.shape[-2:], align_corners=True)
         self.metrics.update_stats(preds, gt_depth)
 
     def get_stats(self) -> dict[str, float]:

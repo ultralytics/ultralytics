@@ -15,7 +15,7 @@ val: images/val # val images (relative to 'path') 53 images
 
 # Keypoints
 kpt_shape: [12, 2] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
-flip_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+flip_idx: [0, 1, 2, 3, 7, 6, 5, 4, 10, 11, 8, 9]
 
 # Classes
 names:

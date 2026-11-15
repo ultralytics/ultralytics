@@ -36,8 +36,8 @@ def split_rdk_graph(onnx_file, head, body_file, tail_file):
 
     The cut follows ``onnx2rknn``: the head's terminal ``Conv`` outputs plus any further graph outputs (e.g. segment
     prototypes) end the BPU body, except the classifier which ends at its ``Gemm`` logits so the fully-connected layer
-    stays on the BPU; everything after the cut is the decode tail. Boundary names containing "/" (all Torch export
-    names do) are renamed to ``outN`` in both graphs: the X5 runtime rejects "/" in output names.
+    stays on the BPU; everything after the cut is the decode tail. Boundary names containing "/" are renamed to
+    ``outN`` in both graphs: the X5 runtime rejects "/" in output names.
 
     Args:
         onnx_file (str | Path): Standard ONNX export from `Exporter.export_onnx`.
@@ -86,9 +86,8 @@ def split_rdk_graph(onnx_file, head, body_file, tail_file):
 def _write_calibration_files(dataset, cal_dir, prefix=""):
     """Write calibration images as the X5 toolchain's expected RGB float32 NCHW files.
 
-    The loader applies the deployment geometry (detector-like LetterBox at the export size, classification resize +
-    center crop) and emits uint8 RGB. The 0-255 float32 bytes match the toolchain's raw NV12 calibration pipeline
-    (RGB -> NV12 -> YUV444 -> -128); the compiled model itself applies the configured ``data_scale`` 1/255.
+    The shared calibration loader applies the deployment geometry (detector-like LetterBox, classification resize +
+    center crop) and emits 0-255 RGB; the compiled model itself applies the configured ``data_scale`` 1/255.
     """
     cal_dir.mkdir(parents=True, exist_ok=True)
     count = 0
@@ -151,11 +150,7 @@ def _verify_compiled(spec, expected, prefix=""):
 
 
 def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
-    """Compile the BPU body of a standard ONNX export to an INT8 `.bin` with `hb_mapper`.
-
-    Splits the graph (`split_rdk_graph`), compiles the body (Bayes-E, O3, NV12 input) calibrated on `dataset`, verifies
-    the compiled I/O against the tail when `rdkx5-sim` is available, and publishes `{stem}.bin` + `tail.onnx` +
-    `metadata.yaml` in a staged replacement that never destroys the previous deployment on failure.
+    """Compile a standard ONNX export's BPU body to an INT8 `.bin` with `hb_mapper` and publish its deployment.
 
     Args:
         onnx_file (str | Path): Standard ONNX export from `Exporter.export_onnx` (opset 11).
@@ -291,4 +286,4 @@ def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
             if backup is not None:
                 shutil.move(str(backup), str(output_dir))
             raise
-        return str(output_dir)  # @try_export owns the success log
+        return str(output_dir)

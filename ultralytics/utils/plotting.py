@@ -394,8 +394,8 @@ class Annotator:
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
-        if input_is_pil:  # PIL pixels keep the caller's channel order
-            im = np.asarray(im if im.mode in {"RGB", "RGBA", "L"} else im.convert("RGB"))
+        if input_is_pil:  # normalize PIL RGB pixels to the BGR drawing buffer
+            im = cv2.cvtColor(np.asarray(im.convert("RGB")), cv2.COLOR_RGB2BGR)
         input_is_tensor = isinstance(im, torch.Tensor)
         self.pil = pil or non_ascii or input_is_pil
         if input_is_tensor:
@@ -858,6 +858,8 @@ def save_one_box(
         w, h = (max(round(float(np.linalg.norm(p[0] - p[i]))), 1) for i in (3, 1))
         M = cv2.getAffineTransform(p[:3], np.float32([[w, h], [w, 0], [0, 0]]))
         im, xyxy = cv2.warpAffine(im, M, (w, h)).reshape(h, w, -1), torch.tensor([0.0, 0.0, w, h])
+        if gain == 1 and pad == 0 and not square and not save:  # the crop is the whole warp: skip the box math
+            return im if BGR or im.shape[2] == 1 else im[..., ::-1]
     b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square

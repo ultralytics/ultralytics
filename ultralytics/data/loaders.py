@@ -101,6 +101,7 @@ class LoadStreams:
         - The class uses threading to efficiently load frames from multiple streams simultaneously.
         - It automatically handles YouTube links, converting them to the best available stream URL.
         - The class implements a buffer system to manage frame storage and retrieval.
+        - A streams file such as `list.streams` is read as UTF-8. Re-save a list written in a legacy encoding as UTF-8.
     """
 
     def __init__(self, sources: str = "file.streams", vid_stride: int = 1, buffer: bool = False, channels: int = 3):
@@ -120,7 +121,7 @@ class LoadStreams:
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         if os.path.isfile(sources):
-            with open(sources) as f:
+            with open(sources, encoding="utf-8") as f:
                 sources = f.read().rsplit()
             if not sources:
                 raise FileNotFoundError(f"No streams found in {f.name}. {FORMATS_HELP_MSG}")
@@ -371,6 +372,7 @@ class LoadImagesAndVideos:
         - Supports various image formats including HEIC.
         - Handles both local files and directories.
         - Can read from a *.txt or *.csv file containing paths to images and videos.
+        - A *.txt or *.csv source list is read as UTF-8. Re-save a list written in a legacy encoding as UTF-8.
     """
 
     def __init__(self, path: str | Path | list | tuple, batch: int = 1, vid_stride: int = 1, channels: int = 3):
@@ -386,7 +388,7 @@ class LoadImagesAndVideos:
         source_path = path
         parent = None
         if isinstance(path, (str, Path)) and Path(path).suffix.lower() in {".txt", ".csv"}:  # txt/csv file with sources
-            parent, content = Path(path).parent, Path(path).read_text()
+            parent, content = Path(path).parent, Path(path).read_text(encoding="utf-8")
             if Path(path).suffix.lower() == ".txt":
                 path = content.splitlines()
             else:
@@ -591,6 +593,8 @@ class LoadPilAndNumpy:
             im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
         elif im.dtype == np.uint16:  # e.g. cv2.IMREAD_UNCHANGED frames, scaled to 8 bits like imread and PIL I;16
             im = (im >> 8).astype(np.uint8)
+        elif im.dtype.kind == "f":  # 0-255 floats as uint8: cv2, PIL (classify) and MPS reject some float dtypes
+            im = im.astype(np.uint8)
         im = np.atleast_3d(im)
         # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
         # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check, and
@@ -610,7 +614,6 @@ class LoadPilAndNumpy:
                 return cv2.cvtColor(im[..., 0], cv2.COLOR_GRAY2BGR)
             return np.repeat(im, channels, axis=2)
         if channels == 1:
-            im = im.astype(np.float32, copy=False) if im.dtype.kind == "f" else im
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
         return cv2.cvtColor(im, cv2.COLOR_BGRA2BGR) if u8 and c == 4 else np.ascontiguousarray(im[..., :3])
 

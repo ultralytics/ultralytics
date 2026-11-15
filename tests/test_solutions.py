@@ -406,11 +406,13 @@ def test_display_output_method():
         mock_destroy.assert_called_once()
 
 
-def test_ocr_reading_order():
+def test_ocr_lines():
     """Test deterministic line grouping and left-to-right ordering."""
-    polygons = [
-        np.array([[20, 20], [40, 20], [40, 30], [20, 30]]),
-        np.array([[0, 0], [10, 0], [10, 10], [0, 10]]),
-        np.array([[20, 0], [30, 0], [30, 10], [20, 10]]),
-    ]
-    assert solutions.OCR.reading_order(polygons) == [1, 2, 0]
+    polygons = np.array(
+        [
+            [[20, 20], [40, 20], [40, 30], [20, 30]],
+            [[0, 0], [10, 0], [10, 10], [0, 10]],
+            [[20, 0], [30, 0], [30, 10], [20, 10]],
+        ]
+    )
+    assert solutions.OCR.lines(polygons) == [[1, 2], [0]]

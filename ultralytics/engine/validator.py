@@ -52,7 +52,6 @@ from ultralytics.utils.torch_utils import (
     attempt_compile,
     autocast,
     get_torch_device_backend,
-    select_device,
     smart_inference_mode,
     torch_distributed_zero_first,
     unwrap_model,
@@ -254,7 +253,7 @@ class BaseValidator:
             model = AutoBackend(
                 model=model or self.args.model,
                 # DDP ranks reuse the device assigned in trainer._setup_ddp()
-                device=select_device(self.args.device)
+                device=self.args.device
                 if RANK == -1
                 else torch.device(device_type, get_torch_device_backend(device_type).current_device()),
                 dnn=self.args.dnn,

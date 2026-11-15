@@ -680,12 +680,15 @@ def check_executorch_requirements():
 def check_tensorrt(min_version: str = "7.0.0"):
     """Check and install TensorRT requirements including platform-specific dependencies.
 
+    An installed `tensorrt-cu{N}` or `tensorrt` distribution (as shipped in NVIDIA containers and JetPack) satisfies the
+    check; otherwise `tensorrt-cu{N}` matching the PyTorch CUDA major version is installed.
+
     Args:
         min_version (str): Minimum supported TensorRT version (default: "7.0.0").
     """
     if LINUX:
-        cuda_version = torch.version.cuda.split(".")[0]
-        check_requirements(f"tensorrt-cu{cuda_version}>={min_version},!=10.2.0")
+        spec = f">={min_version},!=10.2.0"
+        check_requirements([(f"tensorrt-cu{torch.version.cuda.split('.')[0]}{spec}", f"tensorrt{spec}")])
 
 
 def check_torchvision():
@@ -1242,3 +1245,5 @@ IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)
 
 ONNXRUNTIME_BUILDS = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
+# PyPI onnxruntime-gpu 1.27+ is CUDA 13 only, so cap CUDA 12 torch (no aarch64 wheels before 1.27, so not ARM64)
+ONNXRUNTIME_CUDA = f"onnxruntime-gpu[cuda]{'<1.27' * (not ARM64 and str(torch.version.cuda)[:3] == '12.')}"

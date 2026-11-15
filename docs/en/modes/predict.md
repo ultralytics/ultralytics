@@ -443,6 +443,38 @@ Visualization arguments:
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table() }}
 
+## Inference Devices
+
+`device` takes PyTorch device names for every model format, so the same value selects the same hardware whether you run a `.pt` checkpoint or an exported model. Leave it unset to use the best available device. Each runtime maps the name onto its own hardware, and [validation](val.md) and [benchmarking](benchmark.md) take the same values:
+
+| Format                                                       | unset              | `cpu`      | `0` or `cuda:0`                       | `mps`     | `xpu`                                   | `npu`                                 |
+| ------------------------------------------------------------ | ------------------ | ---------- | ------------------------------------- | --------- | --------------------------------------- | ------------------------------------- |
+| PyTorch `.pt`, [TorchScript](../integrations/torchscript.md) | CUDA GPU, else CPU | CPU        | NVIDIA GPU                            | Apple GPU | Intel GPU                               | Huawei Ascend NPU                     |
+| [ONNX](../integrations/onnx.md)                              | CUDA GPU, else CPU | CPU        | NVIDIA GPU (CUDA), AMD GPU (MIGraphX) | Core ML   | -                                       | -                                     |
+| [TensorRT](../integrations/tensorrt.md)                      | NVIDIA GPU         | NVIDIA GPU | NVIDIA GPU                            | -         | -                                       | -                                     |
+| [OpenVINO](../integrations/openvino.md)                      | OpenVINO AUTO      | Intel CPU  | -                                     | -         | Intel GPU (`xpu:1` is OpenVINO `GPU.1`) | Intel NPU                             |
+| [LiteRT](../integrations/litert.md)                          | CPU                | CPU        | -                                     | -         | Intel GPU through the OpenVINO plugin   | Intel NPU through the OpenVINO plugin |
+| [PaddlePaddle](../integrations/paddlepaddle.md)              | CUDA GPU, else CPU | CPU        | NVIDIA GPU                            | -         | -                                       | -                                     |
+
+`-` means the runtime has no backend for that device. ONNX, TensorRT and PaddlePaddle check the name with PyTorch first, so they reject a device PyTorch cannot see and otherwise run on their default hardware. OpenVINO warns and falls back to AUTO when a requested Intel device is missing, and the LiteRT Intel plugin falls back to CPU. Other formats choose their own hardware: [CoreML](../integrations/coreml.md) runs on the Apple Neural Engine and CPU, [Edge TPU](../integrations/edge-tpu.md) takes `tpu:0`, [NCNN](../integrations/ncnn.md) takes `vulkan:0` for its Vulkan GPU path, and the remaining formats run on their target's CPU or accelerator. The older `intel:cpu`, `intel:gpu` and `intel:npu` names still work as deprecated aliases for `cpu`, `xpu` and `npu`.
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n_openvino_model/")
+        results = model("https://ultralytics.com/images/bus.jpg", device="npu")  # Intel NPU
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo predict model=yolo26n_openvino_model/ source='https://ultralytics.com/images/bus.jpg' device=npu
+        ```
+
 ## Image and Video Formats
 
 YOLO26 supports various image and video formats, as specified in [ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). See the tables below for the valid suffixes and example predict commands.

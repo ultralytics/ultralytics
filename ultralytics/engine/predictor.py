@@ -62,7 +62,7 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, PREDICT_IOU, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.plotting import class_activation_map
-from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import attempt_compile, smart_inference_mode
 
 STREAM_WARNING = """
 Inference results will accumulate in RAM unless `stream=True` is passed, which can cause out-of-memory errors for large
@@ -205,8 +205,7 @@ class BasePredictor:
                 im = im.flip(1)  # BGR to RGB
             im = (im.half() if self.model.fp16 else im.float()).div_(255)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
         else:
-            im = im.to(self.device)
-            im = im.half() if self.model.fp16 else im.float()  # already 0.0 - 1.0, no division
+            im = im.to(self.device, torch.float16 if self.model.fp16 else torch.float32)  # already 0-1, MPS no fp64
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
@@ -270,7 +269,7 @@ class BasePredictor:
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Results into one
 
-    def predict_cli(self, source=None, model=None):
+    def predict_cli(self, source=None, model=None, cfg=None):
         """Run prediction for the Command Line Interface (CLI).
 
         This function is designed to run predictions using the CLI. It sets up the source and model, then processes the
@@ -281,12 +280,13 @@ class BasePredictor:
             source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor, optional):
                 Source for inference.
             model (str | Path | torch.nn.Module, optional): Model for inference.
+            cfg (SimpleNamespace, optional): Arguments for this run, applied under the inference lock.
 
         Notes:
             Do not modify this function or remove the generator. The generator ensures that no outputs are
             accumulated in memory, which is critical for preventing memory issues during long-running predictions.
         """
-        gen = self.stream_inference(source, model)
+        gen = self.stream_inference(source, model, cfg=cfg)
         for _ in gen:  # sourcery skip: remove-empty-nested-block, noqa
             pass
 
@@ -348,7 +348,7 @@ class BasePredictor:
         return results
 
     @smart_inference_mode()
-    def stream_inference(self, source=None, model=None, *args, **kwargs):
+    def stream_inference(self, source=None, model=None, *args, cfg=None, **kwargs):
         """Stream inference on input source and save results to file.
 
         Args:
@@ -356,27 +356,31 @@ class BasePredictor:
                 Source for inference.
             model (str | Path | torch.nn.Module, optional): Model for inference.
             *args (Any): Additional arguments for the inference method.
+            cfg (SimpleNamespace, optional): Arguments for this run, applied under the inference lock.
             **kwargs (Any): Additional keyword arguments for the inference method.
 
         Yields:
             (ultralytics.engine.results.Results | torch.Tensor): Results objects, or embedding tensors when `embed` is
                 set.
         """
-        if self.args.verbose:
-            LOGGER.info("")
-        if self.args.iou is None:  # Model.predict resets a reused predictor's args to the defaults
-            self.args.iou = self.default_iou
-
-        # Setup model
-        if self.model is None:
-            self.setup_model(model)
-        if not getattr(self.model, "base_model", True) and (
-            unsupported := [k for k in ("augment", "embed", "visualize") if getattr(self.args, k)]
-        ):
-            LOGGER.warning(f"{unsupported} not supported by this model (format='{self.model.format}'), ignoring.")
-            self.args.augment, self.args.embed, self.args.visualize = False, None, False
-
         with self._lock:  # for thread-safe inference
+            if cfg is not None:  # this call's args and save_dir, set under the lock so concurrent calls keep their own
+                keys = ("project", "name", "save_dir", "exist_ok")  # args that set save_dir
+                if any(getattr(cfg, k, None) != getattr(self.args, k, None) for k in keys):
+                    self.save_dir = get_save_dir(cfg)
+                self.args = cfg
+            if self.args.verbose:
+                LOGGER.info("")
+            if self.args.iou is None:  # Model.predict resets a reused predictor's args to the defaults
+                self.args.iou = self.default_iou
+            if self.model is None:
+                self.setup_model(model)
+            if not getattr(self.model, "base_model", True) and (
+                unsupported := [k for k in ("augment", "embed", "visualize") if getattr(self.args, k)]
+            ):
+                LOGGER.warning(f"{unsupported} not supported by this model (format='{self.model.format}'), ignoring.")
+                self.args.augment, self.args.embed, self.args.visualize = False, None, False
+
             if self.model.format == "pt" and self.model.end2end:
                 # Class filtering needs candidates before max_det truncation.
                 self.model.model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
@@ -507,14 +511,14 @@ class BasePredictor:
                         f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
                     )
 
-        if self.args.show:
-            cv2.destroyAllWindows()  # close any open windows
+            if self.args.show:
+                cv2.destroyAllWindows()  # close any open windows
 
-        if self.args.save or self.args.save_txt or self.args.save_crop:
-            nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
-            s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
-            LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
-        self.run_callbacks("on_predict_end")
+            if self.args.save or self.args.save_txt or self.args.save_crop:
+                nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
+                s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
+                LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
+        self.run_callbacks("on_predict_end")  # outside the lock, so a callback can predict with this model
 
     @smart_inference_mode(False)
     def setup_model(self, model, verbose: bool = True):
@@ -527,7 +531,7 @@ class BasePredictor:
         model = deepcopy(model)
         self.model = AutoBackend(
             model=model or self.args.model,
-            device=select_device(self.args.device, verbose=verbose),
+            device=self.args.device,
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.quantize == 16,

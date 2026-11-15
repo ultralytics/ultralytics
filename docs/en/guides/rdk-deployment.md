@@ -7,7 +7,7 @@ keywords: RDK X5, D-Robotics, RDK, YOLO11, YOLO26, model export, BPU, hb_mapper,
 
 # D-Robotics RDK X5 Deployment for Ultralytics YOLO Models
 
-The [D-Robotics RDK X5](https://developer.d-robotics.cc/rdk_x5) is an embedded developer kit whose BPU (Brain Processing Unit) runs quantized neural networks directly in hardware. Ultralytics exports the standard YOLO11 and YOLO26 model families to the RDK X5 BPU format with `format="rdk"`: the model's standard ONNX graph is split into a BPU body (compiled to an INT8 `.bin` by the D-Robotics `hb_mapper` toolchain) and a `tail.onnx` decode graph that runs on the host through ONNX Runtime — on the board through the `hbm_runtime` SDK, or on an x86_64 Linux host through Mapper's external `rdkx5-sim` CLI.
+Ultralytics exports the standard YOLO11 and YOLO26 model families to the [D-Robotics RDK X5](https://developer.d-robotics.cc/rdk_x5) BPU with `format="rdk"`: the export compiles an INT8 BPU body with the D-Robotics `hb_mapper` toolchain and generates an ONNX `tail.onnx` decode graph that runs on the host.
 
 ## Supported Tasks and Heads
 
@@ -21,15 +21,13 @@ RDK export supports the five standard YOLO tasks for both model families. YOLO26
 | [Pose](../tasks/pose.md)         | `yolo11n-pose.pt` … | `yolo26n-pose.pt` … | YOLO26 only              |
 | [OBB](../tasks/obb.md)           | `yolo11n-obb.pt` …  | `yolo26n-obb.pt` …  | YOLO26 only              |
 
-The validated matrix is the standard YOLO11/YOLO26 heads above; other head protocols (YOLOE, YOLOWorld, RT-DETR) and the semantic-segmentation and depth tasks are not supported for RDK export.
+The validated matrix is the standard YOLO11/YOLO26 heads above; other head protocols (YOLOE, YOLOWorld, RT-DETR) and the semantic-segmentation and depth tasks have not been validated for RDK export.
 
 ## How the Pipeline Works
 
-1. **Standard ONNX export** — the model exports exactly like `format="onnx"` (opset 11, static single image), with the usual `output0`/`output1` outputs.
-2. **Body/tail split** — the export cuts the graph at the head's terminal convolutions (and the classifier's final fully-connected layer, which stays on the BPU). Everything after that cut — DFL, anchors, sigmoid, keypoint/angle math, one-to-one top-k, the classifier's softmax — becomes the generated `tail.onnx` that ONNX Runtime executes on the host, so no decode is re-implemented outside the exported graph itself.
-3. **INT8 compilation** — `hb_mapper makertbin` quantizes the body (Bayes-E architecture, `O3`, NV12 input) with calibration images taken from the `data` you pass to `export`. When `rdkx5-sim` is on `PATH`, the export also verifies the compiled model's actual I/O against the tail graph before publishing.
-4. **Deployment directory** — the export writes `{model}_rdk_model/` containing the compiled `{model}.bin`, its sibling `tail.onnx`, `metadata.yaml` (the standard Ultralytics export metadata plus a `format: rdk` marker), the quantization info and the compiler log. A failed re-export never destroys the previous deployment.
-5. **Runtime decode** — the backend validates the actual model I/O (single NV12 input, dequantized float32 outputs matching the tail inputs by name and shape), runs the body and feeds its outputs to the tail. NMS, mask assembly and all thresholds stay with the standard Ultralytics predictor.
+1. **Standard ONNX and body/tail split** — the model exports exactly like `format="onnx"` (opset 11, static single image), then the graph is cut at the head's terminal convolutions (the classifier at its final Gemm, keeping the fully-connected layer on the BPU). Everything after the cut — DFL, anchors, sigmoid, keypoint/angle math, one-to-one top-k, the classifier softmax — becomes the generated `tail.onnx`, so no decode is re-implemented outside the exported graph itself.
+2. **INT8 compilation** — `hb_mapper makertbin` quantizes the body (Bayes-E architecture, `O3`, NV12 input) with calibration images taken from the `data` you pass to `export`; when `rdkx5-sim` is on `PATH`, the export also verifies the compiled model's actual I/O against the tail graph before publishing, and a failed export never destroys the previous deployment.
+3. **Deployment and runtime** — the export writes `{model}_rdk_model/` (the compiled `{model}.bin`, its sibling `tail.onnx`, `metadata.yaml` with a `format: rdk` marker, the quantization info and the compiler log). The backend validates the actual model I/O, runs the body through the board `hbm_runtime` SDK or the external x86 `rdkx5-sim` CLI, and feeds its outputs to the tail, so NMS, mask assembly and all thresholds stay with the standard Ultralytics predictor.
 
 ## Requirements
 
@@ -82,7 +80,7 @@ The export leaves the deployment in `{model}_rdk_model/`. Copy that whole direct
 
 ## Run Inference on the RDK X5 Board
 
-Board inference needs an X5-compatible `hbm_runtime` SDK importable in the **same Python environment Ultralytics is installed in** — verify which SDK build your environment provides against your compiled model, as Ultralytics never installs or manages it. Do **not** install the public `hbm-runtime` PyPI wheel (an unrelated package), and do not set any SDK check bypass variables. The tail graph runs through ONNX Runtime — if that environment has no `onnxruntime`, install it into a separate virtual environment together with Ultralytics instead of the system packages.
+Board inference requires an X5-compatible `hbm_runtime` SDK and `onnxruntime` in the Python environment running Ultralytics. Use the SDK supplied for your X5 board software; the public `hbm-runtime` PyPI wheel has not been validated for this integration.
 
 ```python
 from ultralytics import YOLO

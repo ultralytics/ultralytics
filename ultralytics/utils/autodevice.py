@@ -153,7 +153,9 @@ class GPUInfo:
 
         Notes:
             Returns fewer than 'count' if not enough qualify or exist.
-            Returns empty list if NVML stats are unavailable or no GPUs meet the criteria.
+            Without NVML stats (e.g. AMD HIP or NVML-less hosts) falls back to the first CUDA devices in order,
+            since idle statistics cannot be measured but selection is still possible.
+            Returns empty list if no GPUs meet the criteria.
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
         assert min_util_fraction <= 1.0, f"min_util_fraction must be <= 1.0, got {min_util_fraction}"
@@ -167,8 +169,10 @@ class GPUInfo:
 
         self.refresh_stats()
         if not self.gpu_stats:
-            LOGGER.warning("NVML stats unavailable.")
-            return []
+            LOGGER.warning("NVML stats unavailable, selecting devices without idle statistics.")
+            import torch
+
+            return list(indices[:count]) if indices else list(range(min(count, torch.cuda.device_count())))
 
         # Filter and sort eligible GPUs
         eligible_gpus = [

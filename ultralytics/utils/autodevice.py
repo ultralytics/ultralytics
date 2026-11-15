@@ -170,51 +170,41 @@ class GPUInfo:
 
         self.refresh_stats()
         if not self.gpu_stats:
-            LOGGER.warning("NVML stats unavailable, selecting devices without idle statistics.")
+            LOGGER.warning("NVML stats unavailable; GPU utilization cannot be measured.")
             import torch
 
-            if min_util_fraction > 0:
-                LOGGER.warning(
-                    f"Cannot verify the required {min_util_fraction * 100:.1f}% free GPU utilization without NVML; "
-                    "no device will be selected."
-                )
+            if min_util_fraction:
+                LOGGER.warning(f"Cannot verify {min_util_fraction * 100:.1f}% free GPU utilization without NVML.")
                 return []
-            device_count = torch.cuda.device_count()
-            # NVML uses physical IDs, but PyTorch memory queries use logical IDs after CUDA_VISIBLE_DEVICES remapping.
+            n = torch.cuda.device_count()
             visible = [
                 str(int(x)) if x.isdigit() else x
-                for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",")
+                for x in os.getenv("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",")
                 if x
-            ][:device_count]
-            if indices is None:
-                indices = [int(x) for x in visible if x.isdigit()] if visible else list(range(device_count))
+            ][:n]
+            candidates = indices if indices is not None else (
+                [int(x) for x in visible if x.isdigit()] if visible else range(n)
+            )
             selected = []
-            for idx in indices:
-                if len(selected) == count:
-                    break
-                if (
-                    idx in selected
-                    or (visible and str(idx) not in visible)
-                    or (not visible and not 0 <= idx < device_count)
-                ):
+            for idx in candidates:
+                logical = visible.index(str(idx)) if visible and str(idx) in visible else (idx if not visible else -1)
+                if not 0 <= logical < n or idx in selected:
                     continue
-                logical_idx = visible.index(str(idx)) if visible else idx
-                if min_memory_fraction > 0:
+                if min_memory_fraction:
                     try:
-                        free, total = torch.cuda.mem_get_info(logical_idx)  # logical index on HIP and CUDA
+                        free, total = torch.cuda.mem_get_info(logical)
                     except Exception as e:
                         LOGGER.warning(f"Free memory query failed for device {idx}: {e}")
                         continue
                     if not total or free / total < min_memory_fraction:
                         continue
                 selected.append(idx)
-
+                if len(selected) == count:
+                    break
             if selected:
-                if len(selected) < count:
-                    LOGGER.warning(f"Requested {count} GPUs but only {len(selected)} met the verifiable criteria.")
-                LOGGER.info(f"Selected CUDA devices {selected} (utilization not verified)")
+                LOGGER.info(f"Selected CUDA devices {selected} (utilization not measured)")
             else:
-                LOGGER.warning(f"No CUDA devices met verifiable free-memory/visibility criteria ({criteria}).")
+                LOGGER.warning("No visible CUDA devices meet the verifiable free-memory requirements.")
             return selected
 
         # Filter and sort eligible GPUs

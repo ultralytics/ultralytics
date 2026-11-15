@@ -943,10 +943,11 @@ class Exporter:
         # INT8 zeroes the pixel-space boxes decoded inside YOLO-NAS; tf_wrapper only normalizes Ultralytics heads
         assert fmt != "edgetpu" or head is not model, "Edge TPU export is not supported for YOLO-NAS models."
         if fmt == "stedgeai":
-            # tf_wrapper normalizes only Ultralytics heads; OBB rotation is only exact under uniform (square) scaling
-            assert head is not model, "ST Edge AI export is not supported for YOLO-NAS models."
-            if model.task == "obb" and self.imgsz[0] != self.imgsz[1]:
-                raise ValueError(f"ST Edge AI OBB export requires a square imgsz, but got imgsz={self.imgsz}.")
+            # tf_wrapper normalizes only Ultralytics YOLO heads; rotated boxes only survive uniform (square) scaling
+            assert head is not model and not isinstance(head, RTDETRDecoder), (
+                "ST Edge AI export is not supported for YOLO-NAS and RT-DETR models."
+            )
+            assert model.task != "obb" or self.imgsz[0] == self.imgsz[1], "ST Edge AI OBB export requires square imgsz."
         self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
         if self.qat:
             assert fmt in {"onnx", "engine"}, (
@@ -1204,7 +1205,9 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8 and not self.qat):
+        if self.args.simplify or (
+            self.args.format in {"onnx", "stedgeai"} and self.args.quantize == 8 and not self.qat
+        ):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
@@ -1787,42 +1790,16 @@ class Exporter:
 
     @try_export
     def export_stedgeai(self, prefix=colorstr("ST Edge AI:")):  # noqa: B008
-        """Export YOLO model to ONNX for ST Edge AI, with an optional QDQ INT8 copy.
+        """Export YOLO model to float ONNX for ST Edge AI Core, or whole-graph QDQ INT8 ONNX with quantize=8."""
+        int8 = self.args.quantize == 8
+        self.file = self.file.with_name(f"{self.file.stem}{'_int8' if int8 else ''}_stedgeai.onnx")
+        f = self.export_onnx()
+        if int8:  # quantize in place so no float intermediate is left behind
+            from ultralytics.utils.export.onnx import onnx_int8_quantize
 
-        Semantic and depth models also get a default-layout (full-resolution output) `_stedgeai_full` file.
-        """
-        from ultralytics.utils.export.stedgeai import onnx2stedgeai, stedgeai_default_dense_heads
-
-        if self.args.opset and self.args.opset > 20:
-            LOGGER.warning(f"{prefix} ST Edge AI supports ONNX opset<=20, setting opset=20.")
-        self.args.opset = min(self.args.opset or 18, 20)
-        assert self.args.quantize != 8 or self.args.opset >= 13, (
-            f"QDQ per-channel INT8 requires opset>=13, but got opset={self.args.opset}"
-        )
-        head = self.model.model[-1]
-        if isinstance(head, Depth):  # the graph emits raw log-depth, so the runtime applies the head calibration
-            self.metadata["depth_calibration"] = [float(head.cal_a), float(head.cal_b)]
-        file = self.file
-        files = []
-        for suffix in ("_stedgeai", "_stedgeai_full") if isinstance(head, (SemanticSegment, Depth)) else ("_stedgeai",):
-            if suffix == "_stedgeai_full":  # default dense head, same output as the standard export
-                stedgeai_default_dense_heads(self.model)
-                self.metadata.pop("depth_calibration", None)
-            try:
-                self.file = file.with_name(f"{file.stem}{suffix}{file.suffix}")  # float ONNX kept for ST Model Zoo
-                f = self.export_onnx()
-            finally:
-                self.file = file
-            if self.args.quantize == 8:
-                f = onnx2stedgeai(
-                    onnx_file=f,
-                    output_file=file.with_name(f"{file.stem}_int8{suffix}.onnx"),
-                    dataset=self.get_int8_calibration_dataloader(prefix),
-                    transform_fn=self._transform_fn,
-                    prefix=prefix,
-                )
-            files.append(f)
-        return files[0]
+            calibration = self.get_int8_calibration_dataloader(prefix)
+            onnx_int8_quantize(f, f, calibration, self._transform_fn, prefix=prefix, whole_graph=True)
+        return f
 
     @try_export
     def export_hailo(self, prefix=colorstr("Hailo:")):  # noqa: B008

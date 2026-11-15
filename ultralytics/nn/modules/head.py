@@ -835,17 +835,14 @@ class Depth(nn.Module):
         self.register_buffer("cal_a", torch.ones(1))
         self.register_buffer("cal_b", torch.zeros(1))
 
-    def forward(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor] | torch.Tensor:
-        """Fuse multi-scale features and predict depth.
+    def log_depth(self, x: list[torch.Tensor]) -> torch.Tensor:
+        """Fuse multi-scale features and predict clamped log-depth.
 
         Args:
             x (list[torch.Tensor]): Feature tensors [P3, P4, P5] from the backbone/neck.
 
         Returns:
-            (dict[str, torch.Tensor] | torch.Tensor): In training, a dict {"depth": (B, 1, H/4, W/4)} with the raw head
-                output the loss supervises. In eval, a (B, 1, H/4, W/4) tensor with calibration applied; the
-                predictor/validator resize it to image/GT size. In export mode, a (B, 1, H, W) tensor upsampled 4x to
-                the input size. Depth values are positive (exp of the clamped head output).
+            (torch.Tensor): Uncalibrated log-depth of shape (B, 1, H/4, W/4), clamped to [-4, 5].
         """
         # Project all levels to same channel dim
         feats = [self.proj[i](x[i]) for i in range(self.nl)]
@@ -858,7 +855,21 @@ class Depth(nn.Module):
             out = out + feats[i]
             out = self.refine[i](out)
 
-        out = self.head(out).clamp(-4.0, 5.0)  # (B, 1, H/4, W/4) log-depth
+        return self.head(out).clamp(-4.0, 5.0)
+
+    def forward(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor] | torch.Tensor:
+        """Predict depth from multi-scale features.
+
+        Args:
+            x (list[torch.Tensor]): Feature tensors [P3, P4, P5] from the backbone/neck.
+
+        Returns:
+            (dict[str, torch.Tensor] | torch.Tensor): In training, a dict {"depth": (B, 1, H/4, W/4)} with the raw head
+                output the loss supervises. In eval, a (B, 1, H/4, W/4) tensor with calibration applied; the
+                predictor/validator resize it to image/GT size. In export mode, a (B, 1, H, W) tensor upsampled 4x to
+                the input size. Depth values are positive (exp of the clamped head output).
+        """
+        out = self.log_depth(x)  # (B, 1, H/4, W/4)
         if self.training:
             return {"depth": torch.exp(out)}
 

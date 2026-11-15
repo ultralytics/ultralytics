@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import hashlib
 import os
 import shutil
@@ -369,12 +368,11 @@ class ONNXBackend(BaseBackend):
 
 
 class STEdgeAIBackend(ONNXBackend):
-    """ONNX Runtime backend for ST Edge AI exports.
+    """ONNX Runtime backend for ST Edge AI exports, restoring pixel coordinates and metric depth on the host.
 
-    ST Edge AI exports (float or QDQ INT8) emit box and pose keypoint coordinates normalized to [0, 1] by the input size
-    so a single INT8 scale preserves class-score resolution; they are denormalized here by the input image size. Depth
-    exports emit raw log-depth at 1/4 input resolution, decoded here with the head's clamp, exp and calibration. Semantic
-    logits (1/8 resolution) and depth maps are upsampled by the predictor and validator, as for PyTorch models.
+    ST Edge AI exports emit box and pose keypoint coordinates normalized to [0, 1] by the input size and depth as
+    log-depth. Semantic logits and depth maps stay at 1/8 and 1/4 of the input resolution and are upsampled by the
+    predictor and validator, as for PyTorch models.
     """
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
@@ -387,12 +385,11 @@ class STEdgeAIBackend(ONNXBackend):
             (list[np.ndarray]): Model predictions with pixel-space coordinates or metric depth.
         """
         y = super().forward(im)
+        x = y[0]  # (B, 4 + nc + extra, anchors), extra are mask coefficients, keypoints or angle
         h, w = im.shape[2:4]
-        if self.task == "depth":  # Depth head decode: exp(clamp(log-depth)) ** cal_a * exp(cal_b)
-            a, b = ast.literal_eval(str(self.metadata.get("depth_calibration", [1.0, 0.0])))
-            y[0] = np.exp(np.clip(y[0], -4.0, 5.0)) ** a * float(np.exp(b))  # Python floats keep float32
-        elif self.task in {"detect", "segment", "pose", "obb"} and getattr(self, "head", None) != "RTDETRDecoder":
-            x = y[0]  # (B, 4 + nc + extra, anchors), extra are mask coefficients, keypoints or angle
+        if self.task == "depth":
+            np.exp(x, out=x)
+        elif self.task in {"detect", "segment", "pose", "obb"}:
             x[:, [0, 2]] *= w
             x[:, [1, 3]] *= h
             if self.task == "pose":

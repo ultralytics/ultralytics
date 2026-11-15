@@ -19,7 +19,7 @@ from ultralytics.utils.checks import ONNXRUNTIME_BUILDS, check_requirements
 
 from .base import BaseBackend
 
-TOOLCHAIN_DOC = "https://developer.d-robotics.cc/rdk_x5"
+TOOLCHAIN_DOC = "https://developer.d-robotics.cc/rdk_doc_center"
 _RE_EXPORT = (
     "Re-export with YOLO(model).export(format='rdk') so the deployment carries tail.onnx and a 'format: rdk' marker."
 )

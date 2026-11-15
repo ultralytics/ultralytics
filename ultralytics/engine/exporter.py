@@ -20,6 +20,7 @@ MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
 IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
+RDK                     | `rdk`                     | yolo26n_rdk_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
@@ -59,6 +60,7 @@ Inference:
                          yolo26n_ncnn_model         # NCNN
                          yolo26n_imx_model          # IMX
                          yolo26n_rknn_model         # RKNN
+                         yolo26n_rdk_model          # D-Robotics RDK
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
@@ -612,6 +614,7 @@ class Exporter:
         export_pb: Export model to TensorFlow GraphDef format.
         export_edgetpu: Export model to Edge TPU format.
         export_rknn: Export model to RKNN format.
+        export_rdk: Export model to D-Robotics RDK format.
         export_imx: Export model to IMX format.
         export_executorch: Export model to ExecuTorch format.
         export_coreai: Export model to Apple Core AI format.

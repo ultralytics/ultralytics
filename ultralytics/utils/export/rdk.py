@@ -14,7 +14,7 @@ import numpy as np
 
 from ultralytics.utils import ARM64, LINUX, LOGGER, YAML, colorstr
 
-TOOLCHAIN_DOC = "https://developer.d-robotics.cc/rdk_x5"
+TOOLCHAIN_DOC = "https://developer.d-robotics.cc/rdk_doc_center"
 _COMPILE_TIMEOUT = 3600  # seconds; a 640px O3 INT8 compile of a nano model takes minutes
 _DESCRIBE_TIMEOUT = 600  # seconds for one rdkx5-sim --describe call
 
@@ -171,8 +171,9 @@ def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
     if shutil.which("hb_mapper") is None:
         raise RuntimeError(
             f"{prefix} 'hb_mapper' not found on PATH. Install the D-Robotics OpenExplore X5 toolchain (Python 3.10) "
-            "and put its bin directory on PATH, e.g. 'PATH=/opt/explore/3.x.x/x86_64/gcc/bin:$PATH'. "
-            f"See {TOOLCHAIN_DOC}. Dependencies are never installed automatically."
+            "and put that Python environment's bin directory on PATH. "
+            f"See {TOOLCHAIN_DOC}, selecting the OpenExplore X5 algorithm toolchain manual. "
+            "Dependencies are never installed automatically."
         )
 
     # The workspace lives beside output_dir so the final os.replace stays on one filesystem.

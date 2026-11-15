@@ -52,6 +52,7 @@ Here is a short description of each format and when to reach for it. For the ful
 - **[NCNN](../integrations/ncnn.md)** (`ncnn`): A high-performance, lightweight inference framework tuned for mobile ARM devices.
 - **[Sony IMX500](../integrations/sony-imx500.md)** (`imx`): Exports for Sony's IMX500 intelligent vision sensor with on-chip processing, such as the Raspberry Pi AI Camera.
 - **[Rockchip RKNN](../integrations/rockchip-rknn.md)** (`rknn`): Targets Rockchip NPUs on embedded boards with FP16 and INT8 quantization.
+- **[D-Robotics RDK X5](rdk-deployment.md)** (`rdk`): Compiles INT8 models for the RDK X5 BPU, with board inference and x86 simulation.
 - **[ExecuTorch](../integrations/executorch.md)** (`executorch`): PyTorch's native on-device runtime for mobile (iOS and Android) and embedded systems via XNNPACK.
 - **[Axelera AI](../integrations/axelera.md)** (`axelera`): Compiles for Axelera's Metis AIPU (up to 856 TOPS) over PCIe or M.2 for high-throughput edge inference.
 - **[DEEPX](../integrations/deepx.md)** (`deepx`): Targets DEEPX NPU hardware with INT8 quantization for embedded edge inference.

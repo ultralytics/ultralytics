@@ -107,6 +107,8 @@ This page lists the tools and platforms that Ultralytics integrates with to supp
 
 - [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs, for real-time AI inference on edge devices.
 
+- [D-Robotics RDK X5](../guides/rdk-deployment.md): Export Ultralytics YOLO models to the RDK X5 BPU with `format="rdk"`, compiling an INT8 body with the hb_mapper toolchain for inference on the board or in x86 simulation.
+
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an edge AI device for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it runs energy-efficient AI inference, and its modular design and video processing capabilities suit use cases such as safety monitoring, environmental applications, and manufacturing.
 
 - [SONY IMX500](sony-imx500.md): Optimize and deploy Ultralytics YOLOv8n and YOLO11n models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.

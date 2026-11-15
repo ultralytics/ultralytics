@@ -1,27 +1,29 @@
 ---
 title: YOLO Deployment on D-Robotics RDK X5
 comments: true
-description: Export Ultralytics YOLO11 and YOLO26 models to the D-Robotics RDK X5 BPU with the hb_mapper toolchain and run detection, segmentation, classification, pose and OBB inference on the board or in x86 simulation.
-keywords: RDK X5, D-Robotics, RDK, YOLO11, YOLO26, model export, BPU, hb_mapper, hbm_runtime, INT8 quantization, edge AI, embedded deployment, computer vision, Ultralytics
+description: Export Ultralytics YOLO models to the D-Robotics RDK X5 BPU with the hb_mapper toolchain and run detection, segmentation, classification, pose and OBB inference on the board or in x86 simulation.
+keywords: RDK X5, D-Robotics, RDK, Ultralytics YOLO, model export, BPU, hb_mapper, hbm_runtime, INT8 quantization, edge AI, embedded deployment, computer vision, Ultralytics
 ---
 
 # D-Robotics RDK X5 Deployment for Ultralytics YOLO Models
 
-Ultralytics exports the standard YOLO11 and YOLO26 model families to the [D-Robotics RDK X5](https://developer.d-robotics.cc/rdk_x5) BPU with `format="rdk"`: the export compiles an INT8 BPU body with the D-Robotics `hb_mapper` toolchain and generates an ONNX `tail.onnx` decode graph that runs on the host.
+Ultralytics exports the YOLO model family to the [D-Robotics RDK X5](https://developer.d-robotics.cc/rdk_doc_center) BPU with `format="rdk"`: the export compiles an INT8 BPU body with the D-Robotics `hb_mapper` toolchain and generates an ONNX `tail.onnx` decode graph that runs on the host.
 
-## Supported Tasks and Heads
+## Supported Models and Tasks
 
-RDK export supports the five standard YOLO tasks for both model families. YOLO26 additionally has an NMS-free one-to-one head that can be exported instead of the default one-to-many branch.
+RDK X5 supports the Ultralytics YOLO model families, including YOLOv5u, YOLOv8, YOLOv9, YOLOv10, YOLO11, YOLO12, YOLOv13 and YOLO26. See the [D-Robotics Model Zoo](https://github.com/D-Robotics/rdk_model_zoo/tree/main/samples/vision/ultralytics_yolo) for the model sizes and tasks available for each family. Use checkpoints compatible with your installed Ultralytics version.
 
-| Task                             | YOLO11              | YOLO26              | One-to-one (`nms=False`) |
-| -------------------------------- | ------------------- | ------------------- | ------------------------ |
-| [Detect](../tasks/detect.md)     | `yolo11n.pt` …      | `yolo26n.pt` …      | YOLO26 only              |
-| [Segment](../tasks/segment.md)   | `yolo11n-seg.pt` …  | `yolo26n-seg.pt` …  | YOLO26 only              |
-| [Classify](../tasks/classify.md) | `yolo11n-cls.pt` …  | `yolo26n-cls.pt` …  | not applicable           |
-| [Pose](../tasks/pose.md)         | `yolo11n-pose.pt` … | `yolo26n-pose.pt` … | YOLO26 only              |
-| [OBB](../tasks/obb.md)           | `yolo11n-obb.pt` …  | `yolo26n-obb.pt` …  | YOLO26 only              |
+RDK export supports detection, instance segmentation, classification, pose estimation and oriented bounding boxes:
 
-The validated matrix is the standard YOLO11/YOLO26 heads above; other head protocols (YOLOE, YOLOWorld, RT-DETR) and the semantic-segmentation and depth tasks have not been validated for RDK export.
+| Task                             | Example model     |
+| -------------------------------- | ----------------- |
+| [Detect](../tasks/detect.md)     | `yolo26n.pt`      |
+| [Segment](../tasks/segment.md)   | `yolo26n-seg.pt`  |
+| [Classify](../tasks/classify.md) | `yolo26n-cls.pt`  |
+| [Pose](../tasks/pose.md)         | `yolo26n-pose.pt` |
+| [OBB](../tasks/obb.md)           | `yolo26n-obb.pt`  |
+
+Models with an NMS-free one-to-one head, such as YOLO26, also support export with `nms=False`.
 
 ## How the Pipeline Works
 
@@ -73,7 +75,7 @@ Export arguments:
 - `data` and `fraction` select the INT8 calibration images. Calibration quality drives quantization accuracy — use images representative of your deployment domain, not just any small set. RDK export is always INT8 (`quantize=8`); FP32/FP16 are not supported for this format.
 - `imgsz` is the static deployment size (even dimensions; the NV12 input needs even height and width). Detection-family models are typically exported at 640, classifiers at 224.
 - `batch` is fixed to 1 and `dynamic` is not supported — the compiled model is a static single-image deployment, and Ultralytics serializes larger batches automatically.
-- `nms` — `None` (default) exports the one-to-many branch for host-side NMS; `nms=False` selects the YOLO26 NMS-free one-to-one head with its built-in top-k using your export-time `max_det`/`agnostic_nms`; `nms=True` is not supported for RDK and falls back to `nms=None` with a warning.
+- `nms` — `None` (default) exports the one-to-many branch for host-side NMS; `nms=False` selects the model's NMS-free one-to-one head when available with its built-in top-k using your export-time `max_det`/`agnostic_nms`; `nms=True` is not supported for RDK and falls back to `nms=None` with a warning.
 - Paths containing spaces are supported. Paths containing literal apostrophes are not — relocate the model, data or workspace instead of quoting them.
 
 The export leaves the deployment in `{model}_rdk_model/`. Copy that whole directory (the `.bin`, `tail.onnx` and `metadata.yaml` are all required) to the board or another machine.

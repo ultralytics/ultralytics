@@ -60,14 +60,20 @@ def split_rdk_graph(onnx_file, head, body_file, tail_file):
             "have none); standard YOLO detect, segment, classify, pose and obb graphs are supported."
         )
     graph = onnx.load(str(onnx_file)).graph
+    weight_prefix = head.strip("/") + "."  # weight names retain module paths across PyTorch versions
     ends = {x for n in graph.node if n.op_type in {"Reshape", "Concat"} for x in n.input}
     ends -= {x for n in graph.node if n.op_type not in {"Reshape", "Concat"} for x in n.input}
     boundary = [  # head convs feed only these per-level ops, e.g. Concat in WorldDetect
         n.output[0]
         for n in graph.node
-        if n.op_type == "Conv" and head in n.name and "/dfl/" not in n.name and n.output[0] in ends
+        if n.op_type == "Conv"
+        and n.input[1].startswith(weight_prefix)
+        and ".dfl." not in n.input[1]
+        and n.output[0] in ends
     ]
-    boundary += [n.output[0] for n in graph.node if n.op_type == "Gemm" and head in n.name]  # classifier logits
+    boundary += [
+        n.output[0] for n in graph.node if n.op_type == "Gemm" and n.input[1].startswith(weight_prefix)
+    ]  # classifier logits
     if not boundary:
         raise ValueError(
             f"D-Robotics RDK export found no head Conv/Gemm boundary under '{head}'; standard YOLO detect, "

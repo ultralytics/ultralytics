@@ -69,7 +69,7 @@ visualize: False # (bool) save class activation heatmaps (predict) or visualize 
 augment: False # (bool) apply test-time augmentation during prediction
 agnostic_nms: False # (bool) class-agnostic NMS
 classes: # (int | list[int], optional) filter by class id(s), e.g. 0 or [0,2,3]
-retina_masks: False # (bool) use high-resolution segmentation masks (segment)
+retina_masks: True # (bool) return segmentation masks at the original image size, False for the inference size
 embed: # (list[int], optional) return feature embeddings from given layer indices
 
 # Visualize settings ---------------------------------------------------------------------------------------------------

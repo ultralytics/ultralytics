@@ -528,31 +528,39 @@ class Annotator:
         """Plot masks on image.
 
         Args:
-            masks (torch.Tensor | np.ndarray): Predicted masks with shape [n, h, w].
+            masks (torch.Tensor | np.ndarray | tuple): Predicted masks with shape [n, h, w], or the box-local (rois,
+                masks, shape) of `ops.process_mask_local` at the image size.
             colors (list[list[int]]): BGR colors for predicted masks, [[b, g, r] * n], matching `self.im`.
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
         """
+        local = isinstance(masks, tuple)  # box-local (rois, masks, shape) of `ops.process_mask_local` at the image size
         if isinstance(masks, np.ndarray):
             self._to_numpy()
             overlay = self.im.copy()
             for i, mask in enumerate(masks):
                 overlay[mask.astype(bool)] = colors[i]
             self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
-        elif len(masks):
-            # Use scale_masks to properly remove padding and upsample, convert bool to float first
+        elif len(masks[0] if local else masks):
             tensor_image = isinstance(self.im, torch.Tensor)
-            device = self.im.device if tensor_image else masks.device
-            masks = ops.scale_masks(masks[None].to(device).float(), self.im.shape[:2])[0] > 0.5
+            device = self.im.device if tensor_image else (masks[0] if local else masks).device
             colors = torch.tensor(colors, device=device, dtype=torch.float32) / 255.0  # shape(n,3)
             colors = colors[:, None, None] * alpha  # shape(n,1,1,3), premultiplied by alpha
-            masks = masks.unsqueeze(3)  # shape(n,h,w,1)
-            mcs = torch.empty((*masks.shape[1:3], 3), device=device, dtype=torch.float32)  # shape(h,w,3)
-            inv_alpha_masks = torch.empty((*masks.shape[1:3], 1), device=device, dtype=torch.float32)  # shape(h,w,1)
-            # Reduce in row bands so the (n,h,w,*) intermediates never span the full height
-            bands = max(1, masks.numel() * 12 // 2**23)  # 12 bytes per mask element downstream, 8 MB per band
-            for m, mcs_band, inv_band in zip(masks.chunk(bands, 1), mcs.chunk(bands), inv_alpha_masks.chunk(bands)):
-                torch.amax(m * colors, 0, out=mcs_band)
-                torch.prod(1 - m * alpha, 0, out=inv_band)
+            mcs = torch.zeros((*self.im.shape[:2], 3), device=device, dtype=torch.float32)  # shape(h,w,3)
+            inv_alpha_masks = torch.ones((*self.im.shape[:2], 1), device=device, dtype=torch.float32)  # shape(h,w,1)
+            if local:  # blend each mask inside its box, costing the boxes' pixels rather than n * h * w
+                for (x1, y1, x2, y2, b, r), color in zip(masks[0].tolist(), colors):
+                    m = masks[1][b][r, : y2 - y1, : x2 - x1, None].to(device)
+                    mcs[y1:y2, x1:x2] = torch.maximum(mcs[y1:y2, x1:x2], m * color)
+                    inv_alpha_masks[y1:y2, x1:x2] *= 1 - m * alpha
+            else:
+                # Use scale_masks to properly remove padding and upsample, convert bool to float first
+                masks = ops.scale_masks(masks[None].to(device).float(), self.im.shape[:2])[0] > 0.5
+                masks = masks.unsqueeze(3)  # shape(n,h,w,1)
+                # Reduce in row bands so the (n,h,w,*) intermediates never span the full height
+                bands = max(1, masks.numel() * 12 // 2**23)  # 12 bytes per mask element downstream, 8 MB per band
+                for m, mcs_band, inv_band in zip(masks.chunk(bands, 1), mcs.chunk(bands), inv_alpha_masks.chunk(bands)):
+                    torch.amax(m * colors, 0, out=mcs_band)
+                    torch.prod(1 - m * alpha, 0, out=inv_band)
             im = (self.im if tensor_image else torch.from_numpy(self.im)).to(device).float() / 255.0
             im = ((im * inv_alpha_masks + mcs) * 255).byte()
             self.im[:] = im if tensor_image else im.cpu().numpy()

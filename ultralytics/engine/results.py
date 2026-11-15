@@ -592,7 +592,9 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Segment results
         if pred_masks and show_masks:
-            pred_mask_data = torch.as_tensor(pred_masks.data)  # no-op for torch, converts a numpy() result
+            local = getattr(pred_masks, "local", None)  # box-local masks at the image size blend inside their boxes
+            native = local is not None and tuple(local[2]) == annotator.im.shape[:2]
+            pred_mask_data = local if native else torch.as_tensor(pred_masks.data)  # as_tensor converts numpy()
             idx = (
                 pred_boxes.id
                 if pred_boxes and pred_boxes.is_track and color_mode == "instance"

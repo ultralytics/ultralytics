@@ -2226,6 +2226,7 @@ def test_process_mask_local():
     rois, masks, keep = ops.process_mask_local(protos, coeffs, bboxes, (640, 640))
     local = Masks((rois, masks, (640, 640)), (1280, 1280))
     assert len(local) == 40 and not keep[0] and torch.equal(keep, dense.amax((-2, -1)) > 0)
+    assert local.shape == dense.shape and "data" not in vars(local)  # shape must not expand the dense mask stack
     assert (local.data != dense).float().mean() < 1e-4  # float rounding may flip a pixel on the mask edge
     assert (local[keep][::3].data != dense[keep][::3]).float().mean() < 1e-4
     assert len(local[5].xy) == 1 and local[5].xy[0][:, 0].min() >= bboxes[5, 0] * 2

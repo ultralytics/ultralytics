@@ -1459,6 +1459,27 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
+def test_coco_class_mappings():
+    """Test 80-to-91 and 91-to-80 COCO class ID conversions and bidirectional consistency."""
+    from ultralytics.data.converter import coco80_to_coco91_class, coco91_to_coco80_class
+
+    coco80 = coco80_to_coco91_class()
+    coco91 = coco91_to_coco80_class()
+
+    assert len(coco80) == 80
+    assert len(coco91) == 91
+    assert len(set(coco80)) == 80
+
+    for idx80, cat_id in enumerate(coco80):
+        assert 1 <= cat_id <= 90
+        assert coco91[cat_id - 1] == idx80
+
+    unused_cat_ids = set(range(1, 92)) - set(coco80)
+    assert len(unused_cat_ids) == 11
+    for unused_id in unused_cat_ids:
+        assert coco91[unused_id - 1] is None
+
+
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

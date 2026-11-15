@@ -1023,9 +1023,9 @@ def check_amp(model):
 
     An untrained YOLO26n built from its YAML runs one FP32 forward pass in train mode on a random batch, and every
     Conv2d and Attention layer is recomputed under AMP from its own FP32 input. Comparing layer by layer keeps the
-    tolerance independent of model depth and weights, so no pretrained weights are downloaded. If the checks fail, it
-    means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be
-    disabled during training.
+    tolerance independent of model depth and weights, so no pretrained weights are downloaded. Numerical
+    mismatches disable AMP; probe exceptions also disable AMP as a precaution, without establishing that the GPU
+    backend can execute FP32 training successfully.
 
     Args:
         model (torch.nn.Module): A YOLO model instance, whose device is checked.
@@ -1078,9 +1078,8 @@ def check_amp(model):
                 layer.register_forward_hook(compare_amp)
         with torch.no_grad():
             m(torch.rand(8, 3, 256, 256, device=device))  # batch 8, as GTX 16xx AMP faults appeared only at batch >= 7
-    # probe-time backend errors are heterogeneous across HIP/CUDA/MPS (e.g. kernel-load failures, OOM) — degrade to
-    # FP32, never crash training. The error is not necessarily AMP-specific: a backend that fails here usually fails
-    # for FP32 too, so report the truth instead of implying the backend is otherwise healthy.
+    # Probe exceptions are not necessarily AMP-specific; disabling AMP may not repair a broken GPU runtime.
+    # Keep the original exception visible so an FP32 failure can be diagnosed correctly.
     except Exception as e:
         LOGGER.error(
             f"{prefix}checks failed with an exception ({type(e).__name__}: {e}). AMP will be disabled during training "

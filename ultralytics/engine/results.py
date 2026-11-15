@@ -1186,8 +1186,8 @@ class Masks(BaseTensor):
 
     @property
     def shape(self) -> tuple[int, ...]:
-        """Return the mask stack shape without expanding box-local masks."""
-        return self.data.shape if "data" in self.__dict__ else torch.Size((len(self), *self.local[2]))
+        """Return the (num_masks, height, width) shape without pasting box-local masks into their frame."""
+        return torch.Size((len(self), *self.local[2])) if hasattr(self, "local") else super().shape
 
     @cached_property
     def data(self) -> torch.Tensor:

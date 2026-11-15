@@ -24,11 +24,11 @@ _RE_EXPORT = (
     "Re-export with YOLO(model).export(format='rdk') so the deployment carries tail.onnx and a 'format: rdk' marker."
 )
 _DESCRIBE_TIMEOUT = 600  # seconds for one rdkx5-sim --describe call
-_RUN_TIMEOUT = 600  # seconds for one rdkx5-sim run call (the native timeout stays the CLI's own)
+_RUN_TIMEOUT = 600  # seconds per simulator inference
 
 
 def _check(condition, message):
-    """Raise a ValueError with an actionable RDK message when the condition fails."""
+    """Raise a ValueError with the RDK prefix when the condition fails."""
     if not condition:
         raise ValueError(f"D-Robotics RDK: {message}")
 
@@ -66,7 +66,7 @@ class RDKBackend(BaseBackend):
         """
         w = Path(weight).resolve()
         if w.is_dir():
-            bins = sorted(w.glob("*.bin"))  # top level only; never a recursive first-match
+            bins = sorted(w.glob("*.bin"))
             _check(
                 len(bins) == 1,
                 f"'{w}' contains {len(bins)} top-level .bin files {sorted(p.name for p in bins)}; point at the exact "
@@ -77,10 +77,10 @@ class RDKBackend(BaseBackend):
             raise FileNotFoundError(f"D-Robotics RDK model file not found: '{w}'.")
         self._bin = w
         sidecar = w.parent / "metadata.yaml"
-        _check(sidecar.is_file(), f"'{w}' has no metadata.yaml; a bare .bin is not routable.")
+        _check(sidecar.is_file(), f"'{w}' requires metadata.yaml in the same directory.")
         try:
             metadata = YAML.load(sidecar)
-        except ValueError as error:  # a valid-YAML non-mapping sidecar gets the actionable RDK error at load
+        except ValueError as error:
             raise ValueError(f"D-Robotics RDK: {error}. {_RE_EXPORT}") from None
         _check(
             isinstance(metadata, dict) and metadata.get("format") == "rdk",
@@ -93,7 +93,7 @@ class RDKBackend(BaseBackend):
         import onnxruntime as ort
 
         self._tail = ort.InferenceSession(str(tail_file), providers=["CPUExecutionProvider"])
-        # the tail's own inputs name and shape the compiled outputs this backend must feed it
+        # Tail inputs define the compiled output names and shapes.
         self._inputs = {i.name: list(i.shape) for i in self._tail.get_inputs()}
         self.dynamic = False  # static deployments; AutoBackend serializes larger batches
         if LINUX and not ARM64:
@@ -134,7 +134,6 @@ class RDKBackend(BaseBackend):
                 "D-Robotics RDK: 'rdkx5-sim' not found on PATH. Use an rdkx5-yolo-mapper build with simulation "
                 "support (Python 3.10) and put its bin directory on PATH, or run on an RDK X5 board. "
                 f"See {TOOLCHAIN_DOC}. "
-                "Dependencies are never installed automatically."
             )
         self._sim = sim
         try:
@@ -187,7 +186,7 @@ class RDKBackend(BaseBackend):
         except ImportError as e:
             raise RuntimeError(
                 "D-Robotics RDK: hbm_runtime is required on RDK boards but not importable. Use the board's matching "
-                f"Python environment (it is never auto-installed). See {TOOLCHAIN_DOC}."
+                f"Python environment with the X5 runtime SDK installed. See {TOOLCHAIN_DOC}."
             ) from e
         dt, qt = hbm_runtime.hbDNNDataType, hbm_runtime.hbDNNQuantiType
         self._runtime = hbm_runtime.HB_HBMRuntime(str(self._bin))
@@ -258,7 +257,7 @@ class RDKBackend(BaseBackend):
         feeds = {}
         for name, dims in self._inputs.items():
             value = np.array(raw[name], dtype=np.float32)  # one owned copy: SDK arrays are borrowed memory
-            shape = _normalized_shape(value.shape, dims) or value.shape  # any real mismatch is ORT's to report
+            shape = _normalized_shape(value.shape, dims) or value.shape
             feeds[name] = value.reshape(shape)
         return self._tail.run(None, feeds)
 

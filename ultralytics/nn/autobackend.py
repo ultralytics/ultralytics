@@ -418,7 +418,7 @@ class AutoBackend(nn.Module):
         from ultralytics.engine.exporter import export_formats
 
         sf = export_formats()["Suffix"]
-        if not is_url(p) and Path(p).suffix == ".bin":  # an RDK .bin is identified by its sidecar, never the suffix
+        if not is_url(p) and Path(p).suffix == ".bin":  # Identify RDK binaries by their metadata.
             meta = BaseBackend.read_metadata(p)
             if isinstance(meta, dict) and meta.get("format") == "rdk":
                 return "rdk"

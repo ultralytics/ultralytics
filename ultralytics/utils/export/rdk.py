@@ -91,7 +91,7 @@ def _write_calibration_files(dataset, cal_dir, prefix=""):
     """
     cal_dir.mkdir(parents=True, exist_ok=True)
     count = 0
-    for batch in dataset:  # one epoch of the calibration loader; no sampling or count cap
+    for batch in dataset:
         for image in batch["img"]:
             image.numpy()[None].astype(np.float32).tofile(cal_dir / f"calibration_{count:05d}.rgbchw")
             count += 1
@@ -119,7 +119,7 @@ def _describe_compiled(bin_file, prefix=""):
 
 
 def _verify_compiled(spec, expected, prefix=""):
-    """Fail on any compiled-model I/O mismatch with the exported body/tail boundary."""
+    """Validate compiled-model inputs and outputs against the exported body/tail boundary."""
     inputs = spec["inputs"]
     if len(inputs) != 1 or inputs[0].get("pixel_format") != "nv12":
         raise ValueError(
@@ -130,7 +130,7 @@ def _verify_compiled(spec, expected, prefix=""):
     if names != list(expected):
         raise ValueError(
             f"{prefix} compiled .bin outputs {names} do not match the exported boundary {list(expected)}; "
-            "refusing to guess the binding. Re-export or file an issue with the logs."
+            "Re-export the model or file an issue with the logs."
         )
     for output in spec["outputs"]:
         if output.get("dtype") != "float32" or output.get("quanti_type") != "NONE":
@@ -173,7 +173,6 @@ def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
             f"{prefix} 'hb_mapper' not found on PATH. Install the D-Robotics OpenExplore X5 toolchain (Python 3.10) "
             "and put that Python environment's bin directory on PATH. "
             f"See {TOOLCHAIN_DOC}, selecting the OpenExplore X5 algorithm toolchain manual. "
-            "Dependencies are never installed automatically."
         )
 
     # The workspace lives beside output_dir so the final os.replace stays on one filesystem.
@@ -184,7 +183,7 @@ def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
         workspace = Path(workspace).resolve()  # absolute: hb_mapper resolves --config against its own cwd
         body_file, tail_file = workspace / "body.onnx", workspace / "tail.onnx"
         boundary = split_rdk_graph(onnx_file, head, body_file, tail_file)
-        # the tail's own inputs are the runtime contract for the compiled outputs
+        # Tail inputs define the compiled output shapes.
         expected = {
             i.name: [d.dim_value for d in i.type.tensor_type.shape.dim] for i in onnx.load(str(tail_file)).graph.input
         }
@@ -193,7 +192,7 @@ def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
         bpu_dir.mkdir(parents=True)
         _write_calibration_files(dataset, cal_dir, prefix)
         config = workspace / "hb_mapper_config.yaml"
-        YAML.save(  # safe YAML quoting for paths with spaces or apostrophes
+        YAML.save(
             config,
             {
                 "model_parameters": {
@@ -260,7 +259,6 @@ def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
                 f"{failure_log}."
             )
 
-        # verify the exact bytes that will be published
         spec = _describe_compiled(compiled_bin, prefix)
         if spec is not None:
             _verify_compiled(spec, expected, prefix)
@@ -275,8 +273,7 @@ def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
         metadata["format"] = "rdk"  # routes an ambiguous .bin through the RDK backend
         YAML.save(staging / "metadata.yaml", metadata)
 
-        # staged publish: move any previous deployment aside, swap in the new one, and
-        # roll back to the old bytes if the swap itself fails
+        # Restore the previous deployment if replacement fails.
         backup = None
         if output_dir.exists():
             backup = workspace / "previous_deployment"

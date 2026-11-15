@@ -1679,7 +1679,7 @@ class Exporter:
 
         # 'channels' is not an export arg, so the 3-channel check lives here
         assert self.im.shape[1] == 3, "D-Robotics RDK export only supports 3-channel models."
-        self.args.opset = 11  # the X5 hb_mapper ONNX parser is validated on opset 11
+        self.args.opset = 11  # X5 hb_mapper ONNX opset
         f_onnx = self.export_onnx()
         return onnx2rdk(
             onnx_file=f_onnx,

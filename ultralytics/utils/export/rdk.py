@@ -34,12 +34,10 @@ def _apply_names(model, mapping):
 def split_rdk_graph(onnx_file, head, body_file, tail_file):
     """Split a standard ONNX export into its RDK X5 BPU body and its host decode ``tail.onnx``.
 
-    The cut follows ``onnx2rknn``: the head's terminal ``Conv`` outputs (one per feature level) plus
-    any further graph outputs such as segment prototypes end the BPU body, and everything after
-    them — DFL, anchors, sigmoid, keypoint/angle math, one-to-one top-k and the classifier softmax —
-    stays in the tail. The classifier instead ends at its ``Gemm`` logits, keeping the learned
-    fully-connected layer on the BPU. Boundary tensor names containing "/" (all Torch export names
-    do) are renamed to ``outN`` in both graphs: the X5 runtime rejects "/" in output names.
+    The cut follows ``onnx2rknn``: the head's terminal ``Conv`` outputs plus any further graph outputs (e.g. segment
+    prototypes) end the BPU body, except the classifier which ends at its ``Gemm`` logits so the fully-connected layer
+    stays on the BPU; everything after the cut is the decode tail. Boundary names containing "/" (all Torch export
+    names do) are renamed to ``outN`` in both graphs: the X5 runtime rejects "/" in output names.
 
     Args:
         onnx_file (str | Path): Standard ONNX export from `Exporter.export_onnx`.
@@ -101,7 +99,6 @@ def _write_calibration_files(dataset, cal_dir, prefix=""):
     if not count:
         raise ValueError(f"{prefix} INT8 calibration produced no images from 'data'.")
     LOGGER.info(f"{prefix} wrote {count} calibration images (RGB float32, 0-255) to {cal_dir}")
-    return count
 
 
 def _describe_compiled(bin_file, prefix=""):
@@ -154,11 +151,10 @@ def _verify_compiled(spec, expected, prefix=""):
 
 
 def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
-    """Compile the BPU body of a standard ONNX export for the D-Robotics RDK X5 with `hb_mapper`.
+    """Compile the BPU body of a standard ONNX export to an INT8 `.bin` with `hb_mapper`.
 
-    Splits the graph (`split_rdk_graph`), compiles the body as an INT8 NV12-input `.bin` (Bayes-E
-    architecture, O3) calibrated on `dataset`, verifies the compiled model's actual I/O against the
-    tail graph when `rdkx5-sim` is available, and publishes `{stem}.bin` + `tail.onnx` +
+    Splits the graph (`split_rdk_graph`), compiles the body (Bayes-E, O3, NV12 input) calibrated on `dataset`, verifies
+    the compiled I/O against the tail when `rdkx5-sim` is available, and publishes `{stem}.bin` + `tail.onnx` +
     `metadata.yaml` in a staged replacement that never destroys the previous deployment on failure.
 
     Args:
@@ -184,8 +180,7 @@ def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
             f"See {TOOLCHAIN_DOC}. Dependencies are never installed automatically."
         )
 
-    # The previous deployment stays untouched until the new one is complete and verified;
-    # a failed export must destroy nothing (staged publish with rollback below).
+    # The workspace lives beside output_dir so the final os.replace stays on one filesystem.
     stem = onnx_file.stem
     h, w = metadata["imgsz"]
     model_prefix = f"{stem}_bayese_{h}x{w}_nv12"
@@ -296,5 +291,4 @@ def onnx2rdk(onnx_file, output_dir, dataset, metadata, head, prefix=""):
             if backup is not None:
                 shutil.move(str(backup), str(output_dir))
             raise
-        LOGGER.info(f"{prefix} export success: {output_dir}")
-        return str(output_dir)
+        return str(output_dir)  # @try_export owns the success log

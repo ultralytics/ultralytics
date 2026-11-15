@@ -1663,12 +1663,8 @@ class Exporter:
         # dynamic/batch>1 are rejected by validate_args (only 'data'/'fraction' are valid rdk args); channels is not
         # an export arg, so it is checked here
         assert self.im.shape[1] == 3, "D-Robotics RDK export only supports 3-channel models."
-        opset = self.args.opset
         self.args.opset = 11  # the X5 hb_mapper ONNX parser is validated on opset 11
-        try:
-            f_onnx = self.export_onnx()
-        finally:
-            self.args.opset = opset  # restore the original opset
+        f_onnx = self.export_onnx()
         return onnx2rdk(
             onnx_file=f_onnx,
             output_dir=self.file.parent / f"{self.file.stem}_rdk_model",

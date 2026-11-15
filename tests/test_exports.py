@@ -235,7 +235,7 @@ def test_rdk_deployment_requires_tail(tmp_path):
 
 
 @pytest.mark.parametrize(("model_name", "imgsz"), [("yolo11n.pt", 64), ("yolo11n-cls.pt", 224)])
-def test_rdk_split_matches_onnx(model_name, imgsz, tmp_path):
+def test_export_onnx_rdk_split(model_name, imgsz, tmp_path):
     """Test that the RDK body/tail split of a standard ONNX export reproduces the complete graph."""
     import onnxruntime as ort
 

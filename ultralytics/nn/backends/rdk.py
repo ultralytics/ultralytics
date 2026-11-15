@@ -7,7 +7,7 @@ the standard predictions of the exported graph:
 
 - On Linux x86_64 the body runs through the external `rdkx5-sim` CLI from `rdkx5-yolo-mapper`
   (one isolated subprocess per call; never installed automatically).
-- On RDK X5 (Linux aarch64) the preinstalled board `hbm_runtime.HB_HBMRuntime` SDK is used.
+- On RDK X5 (Linux aarch64) the board `hbm_runtime.HB_HBMRuntime` SDK is used.
 """
 
 from __future__ import annotations
@@ -56,14 +56,8 @@ def _normalized_shape(shape, expected):
 
 
 def _rgb_to_nv12(image):
-    """Convert one RGB uint8 image to the packed NV12 layout the compiled X5 model consumes."""
-    if image.ndim != 3 or image.shape[2] != 3 or image.dtype != np.uint8:
-        raise ValueError(
-            f"RDK X5 input conversion needs an RGB uint8 (H, W, 3) image, got {image.shape} {image.dtype}."
-        )
-    h, w = image.shape[:2]
-    if h % 2 or w % 2:
-        raise ValueError(f"RDK X5 NV12 input needs even image dimensions, got {h}x{w}.")
+    """Convert one RGB uint8 (H, W, 3) image to the packed NV12 layout the compiled X5 model consumes."""
+    h, w = image.shape[:2]  # even dims required by I420, guaranteed by the load-time NV12 input checks
     planar = cv2.cvtColor(image, cv2.COLOR_RGB2YUV_I420).reshape(-1)
     y, u, v = planar[: h * w], planar[h * w : h * w * 5 // 4], planar[h * w * 5 // 4 :]
     nv12 = np.concatenate((y, np.stack((u, v), -1).reshape(-1)))
@@ -71,19 +65,13 @@ def _rgb_to_nv12(image):
 
 
 class RDKBackend(BaseBackend):
-    """D-Robotics RDK X5 inference backend for `.bin` models compiled by `hb_mapper`.
-
-    A deployment is the `{stem}_rdk_model/` directory of a `format="rdk"` export: the compiled
-    `.bin`, its `metadata.yaml` and the `tail.onnx` graph that decodes the body's raw outputs into
-    the standard predictions of the exported model.
-    """
+    """D-Robotics RDK X5 inference backend for `.bin` models compiled by `hb_mapper`."""
 
     def load_model(self, weight: str | Path) -> None:
         """Load an Ultralytics RDK X5 deployment directory or its compiled .bin file.
 
         Args:
-            weight (str | Path): `{stem}_rdk_model/` directory, or the `.bin` inside one. The tail
-                graph's inputs are the runtime contract for the compiled outputs.
+            weight (str | Path): `{stem}_rdk_model/` directory, or the `.bin` inside one.
 
         Raises:
             ValueError: If the deployment is ambiguous, not an RDK export, or its runtime I/O disagrees with the tail.
@@ -207,7 +195,7 @@ class RDKBackend(BaseBackend):
         self._input_name, self._hw = entry["name"], (h, w)
 
     def _load_board_runtime(self):
-        """Construct the preinstalled board SDK session and validate its actual I/O.
+        """Construct the board SDK session and validate its actual I/O.
 
         The SDK exposes names, dtypes, quanti types and logical shapes; anything it does not expose
         is not claimed as verified.

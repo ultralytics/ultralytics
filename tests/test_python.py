@@ -251,10 +251,8 @@ def test_select_idle_gpu_fallback():
     assert gpu_info.select_idle_gpu(count=1, indices=[99999]) == []  # nonexistent devices are never selected
     with pytest.raises(AssertionError):
         gpu_info.select_idle_gpu(count=1, min_util_fraction=1.1)
-    if not gpu_info.nvml_available:  # e.g. CPU CI or AMD HIP hosts: idle statistics cannot be measured
-        assert gpu_info.select_idle_gpu(count=1, min_util_fraction=0.5) == []  # unmeasurable criteria select nothing
     if not gpu_info.nvml_available and torch.cuda.device_count():  # HIP/CUDA host without NVML, e.g. AMD Windows
-        selected = gpu_info.select_idle_gpu(count=1, min_memory_fraction=0.2)  # free memory checked via mem_get_info
+        selected = gpu_info.select_idle_gpu(count=2, min_memory_fraction=0.2)  # free memory checked via mem_get_info
         assert all(0 <= i < torch.cuda.device_count() for i in selected)  # only real, in-range devices
 
 

@@ -154,8 +154,8 @@ class GPUInfo:
         Notes:
             Returns fewer than 'count' if not enough qualify or exist.
             Without NVML stats (e.g. AMD HIP or NVML-less hosts), free-memory criteria are still verified via
-            torch.cuda.mem_get_info, but idle-utilization criteria cannot be measured and yield no selection;
-            qualifying devices are chosen in order rather than by idleness.
+            torch.cuda.mem_get_info, but idle-utilization criteria cannot be measured and are not verified —
+            qualifying devices are chosen in order rather than by idleness, and a warning is logged.
             Returns empty list if no GPUs meet the criteria.
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
@@ -175,9 +175,9 @@ class GPUInfo:
 
             if min_util_fraction > 0:
                 LOGGER.warning(
-                    "Idle-utilization criteria require NVML statistics, which are unavailable — no GPUs selected."
+                    f"The {min_util_fraction * 100:.1f}% free-utilization criterion cannot be measured without NVML "
+                    "stats and is not verified."
                 )
-                return []
             device_count = torch.cuda.device_count()
             if indices is None:
                 indices = list(range(device_count))

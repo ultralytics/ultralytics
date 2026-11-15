@@ -27,6 +27,7 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"yolo26{k}-objv1{suffix}.pt" for k in "nsmlx" for suffix in ("-150", "-seg")]
     + [f"yolo26{k}-{suffix}.pt" for k in "nsmlx" for suffix in ("distill", "sem-ade20k")]
     + [f"yolo26{k}-reid.onnx" for k in "nsmlx"]
+    + [f"yolo26{k}-text.pt" for k in "nsmlx"]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
@@ -51,6 +52,11 @@ GITHUB_ASSETS_NAMES = frozenset(
         "yolo11n-grayscale.pt",
         "yolov8x-pose-p6.pt",
         "calibration_image_sample_data_20x128x128x3_float32.npy.zip",
+        "PP-OCRv6_medium_rec.onnx",
+    ]
+    + [
+        f"{k}_PP-OCRv5_mobile_rec.onnx"
+        for k in ["arabic", "cyrillic", "devanagari", "el", "en", "eslav", "korean", "latin", "ta", "te", "th"]
     ]
 )
 GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAMES)
@@ -567,8 +573,8 @@ def attempt_download_asset(
         # URL specified
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         download_url = f"https://github.com/{repo}/releases/download"
-        if str(file).lower().startswith(("http:/", "https:/")):  # download
-            url = str(file).replace(":/", "://")  # Pathlib turns :// -> :/
+        if file.as_posix().lower().startswith(("http:/", "https:/")):  # download
+            url = file.as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
             file = url2file(name)  # parse authentication query strings
             if Path(file).is_file():
                 LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists

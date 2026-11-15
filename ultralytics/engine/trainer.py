@@ -638,7 +638,7 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
-                if self.stop:
+                if self.stop and RANK == -1:  # DDP ranks finish the epoch and share stop before validation
                     break  # allow external stop (e.g. platform cancellation) between batches
             else:
                 # for/else: this block runs only when the for loop completes without break (no OOM retry)
@@ -657,6 +657,10 @@ class BaseTrainer:
                 self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
 
             # Validation
+            if RANK != -1:  # an external stop (e.g. platform cancellation) is set on rank 0 only
+                broadcast_list = [self.stop if RANK == 0 else None]
+                dist.broadcast_object_list(broadcast_list, 0)  # all ranks must agree on validating below
+                self.stop = broadcast_list[0]
             final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                 self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
@@ -985,8 +989,36 @@ class BaseTrainer:
         """Set or update model parameters before training."""
         self.model.names = self.data["names"]
 
+    def get_class_counts(self):
+        """Return per-class training label counts for cls_pw weighting; empty skips weighting. Override in subclasses."""
+        return np.zeros(0)
+
+    def compute_class_weights(self, class_counts):
+        """Return inverse-frequency weights raised to cls_pw, giving classes without train labels the mean weight."""
+        present = class_counts > 0
+        weights = (1.0 / np.where(present, class_counts, 1.0)) ** self.args.cls_pw
+        return np.where(present, weights, weights[present].mean())
+
     def set_class_weights(self):
-        """Compute and set class weights for handling class imbalance. Override in subclasses."""
+        """Compute and set class weights for handling class imbalance.
+
+        Class weights are computed based on inverse class frequency in the training dataset,
+        raised to the power of cls_pw (0 < cls_pw <= 1 dampens; values are restricted to the range [0, 1]).
+        Final weights are normalized so their mean equals 1.0.
+        """
+        assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"
+        if self.args.cls_pw == 0.0:
+            return
+        class_counts = self.get_class_counts()
+        if not class_counts.any():  # nothing counted (e.g. missing/unreadable masks); keep default weights
+            return
+        weights = self.compute_class_weights(class_counts)
+        weights = weights / weights.mean()  # normalize so mean equals 1.0
+        model = unwrap_model(self.model)
+        if hasattr(model, "student_model"):
+            model = model.student_model  # distillation: the student model builds the loss criterion
+        model.class_weights = torch.from_numpy(weights).to(self.device)
+        LOGGER.info(f"Class weights: {model.class_weights.cpu().numpy().round(3)}")
 
     def progress_string(self):
         """Return a string describing training progress."""

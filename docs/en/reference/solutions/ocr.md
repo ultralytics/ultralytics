@@ -12,6 +12,10 @@ keywords: Ultralytics, ultralytics.solutions.ocr, API reference, YOLO, Python
 
 <br>
 
+## ::: ultralytics.solutions.ocr.TextRecognizer
+
+<br><br><hr><br>
+
 ## ::: ultralytics.solutions.ocr.OCR
 
 <br><br>

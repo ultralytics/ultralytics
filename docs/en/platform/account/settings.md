@@ -80,8 +80,9 @@ or Private; click **Save changes** to apply them. Each workspace has its own def
 owners and admins can change them. Until they are changed, new projects and datasets start Private in Enterprise
 workspaces and Public otherwise. You can still choose the visibility of each new project or dataset when you create it,
 except [On Premise](../integrations/on-premise.md) datasets, which are always private. Clones start private when the
-default is Private and otherwise keep the source's visibility, which you can change in the clone dialog. [Roboflow
-imports](../integrations/roboflow.md) and the projects that remote training creates use the default directly.
+default is Private and otherwise keep the source's visibility, which you can change in the clone dialog.
+[Roboflow](../integrations/roboflow.md) and [Label Studio](../integrations/label-studio.md) imports and the projects
+that remote training creates use the default directly.
 
 ### Social Links
 
@@ -241,9 +242,9 @@ are deleted automatically.
 ## API Keys Tab
 
 The `API Keys` tab lets you create and manage API keys for remote training and inference, and stores provider keys for
-Agents, class-prompted annotation, paid image generation, and Roboflow and W&B imports. Only the workspace owner can
-view Ultralytics API keys or add, replace, or revoke any key — a workspace key acts as the owner. See
-[API Keys](api-keys.md) for full documentation.
+Agents, class-prompted annotation, paid image generation, and Roboflow, Label Studio, and W&B imports. Only the
+workspace owner can view Ultralytics API keys or add, replace, or revoke any key — a workspace key acts as the owner.
+See [API Keys](api-keys.md) for full documentation.
 
 ## Plans Tab
 
@@ -396,7 +397,7 @@ active workspace.
 - **Labelbox** — upload a [Labelbox](../integrations/labelbox.md) NDJSON export directly, with no key to connect.
 - **LabelMe** — upload a zipped folder of LabelMe JSON annotations and their images directly, with no conversion or key. See the [LabelMe guide](../integrations/labelme.md).
 - **CVAT** — marked **Coming Soon**; upload a CVAT Ultralytics YOLO export today. See [CVAT](../integrations/cvat.md).
-- **Label Studio** — marked **Coming Soon**; upload a Label Studio "YOLO with Images" export today. See [Label Studio](../integrations/label-studio.md).
+- **Label Studio** — preview and import projects from hosted [Label Studio](../integrations/label-studio.md) using an access token that the workspace owner connects.
 
 !!! note "Cloud Storage Requires a Paid Plan"
 

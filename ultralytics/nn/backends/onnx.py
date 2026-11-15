@@ -14,7 +14,14 @@ import numpy as np
 import torch
 
 from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, ONNXRUNTIME_BUILDS, check_requirements, rocm_is_available
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_11,
+    ONNXRUNTIME_BUILDS,
+    ONNXRUNTIME_CUDA,
+    check_requirements,
+    check_version,
+    rocm_is_available,
+)
 
 from .base import BaseBackend
 
@@ -163,6 +170,7 @@ class ONNXBackend(BaseBackend):
         fp16: bool = False,
         format: str = "onnx",
         session_options: object | None = None,
+        cuda_options: dict | None = None,
     ):
         """Initialize the ONNX backend.
 
@@ -172,10 +180,11 @@ class ONNXBackend(BaseBackend):
             fp16 (bool): Whether to use FP16 half-precision inference.
             format (str): Inference engine, either "onnx" for ONNX Runtime or "dnn" for OpenCV DNN.
             session_options (object | None): Optional ONNX Runtime session options.
+            cuda_options (dict | None): Optional extra CUDAExecutionProvider options.
         """
         assert format in {"onnx", "dnn"}, f"Unsupported ONNX format: {format}."
         self.format = format
-        self.session_options = session_options
+        self.session_options, self.cuda_options = session_options, cuda_options or {}
         super().__init__(weight, device, fp16)
 
     def load_model(self, weight: str | Path) -> None:
@@ -184,7 +193,7 @@ class ONNXBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .onnx model file, or an AMD Xilinx export directory containing one.
         """
-        if not isinstance(self.device, torch.device):  # 'intel', 'tpu' or 'vulkan' device strings run on CPU
+        if not isinstance(self.device, torch.device):  # 'tpu' or 'vulkan' device strings run on CPU
             self.device = torch.device("cpu")
         cuda = torch.cuda.is_available() and self.device.type != "cpu"
 
@@ -217,7 +226,7 @@ class ONNXBackend(BaseBackend):
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
                 if rocm
-                else [("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
+                else [(ONNXRUNTIME_CUDA, "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
                 if cuda
                 else [(*builds, "onnxruntime-windowsml")]  # keep GPU, QNN, AMD Vitis AI or Windows ML builds
             )
@@ -233,19 +242,29 @@ class ONNXBackend(BaseBackend):
                 if self.session_options is None:
                     self.session_options = onnxruntime.SessionOptions()
                     if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):  # ORT default pool sizes to host cores
-                        self.session_options.intra_op_num_threads = min(
-                            8, len(os.sched_getaffinity(0)) if LINUX else os.cpu_count()
-                        )
+                        import psutil  # scoped as slow import
+
+                        # Physical cores, capped by the affinity mask and a cgroup v2 CPU quota (docker --cpus)
+                        n = min(8, psutil.cpu_count(logical=False) or os.cpu_count())
+                        if LINUX:
+                            n = min(n, len(os.sched_getaffinity(0)))
+                            cpu_max = Path("/sys/fs/cgroup/cpu.max")
+                            if cpu_max.is_file() and (q := cpu_max.read_text().split())[0] != "max":
+                                n = min(n, int(q[0]) // int(q[1]))
+                        self.session_options.intra_op_num_threads = max(1, n)
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider
                 available = onnxruntime.get_available_providers()
                 if cuda and "CUDAExecutionProvider" in available:
-                    providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
+                    options = {**self.cuda_options, "device_id": self.device.index}
+                    providers = [("CUDAExecutionProvider", options), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                     # Dynamic-shape nodes run on CPU: the default NeuralNetwork format returns wrong outputs for them
-                    flags = {"flags": "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"}
-                    providers = [("CoreMLExecutionProvider", flags), "CPUExecutionProvider"]
+                    flags = "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"
+                    if check_version(onnxruntime.__version__, ">=1.20.0"):  # 1.19 aborts the process on ML Program
+                        flags += "|COREML_FLAG_CREATE_MLPROGRAM"  # NeuralNetwork drifts from CPU and fails on semantic
+                    providers = [("CoreMLExecutionProvider", {"flags": flags}), "CPUExecutionProvider"]
                 elif "VitisAIExecutionProvider" in available and (config := w / "vitisai_config.json").exists():
                     # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
                     options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
@@ -272,7 +291,9 @@ class ONNXBackend(BaseBackend):
                     ) from e
                 LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
                 if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
-                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                    fix = f" Try 'pip install \"{ONNXRUNTIME_CUDA}\"'."  # e.g. CUDA 13 build next to CUDA 12 torch
+                    fix *= not check_version(onnxruntime.__version__, ONNXRUNTIME_CUDA.partition("]")[2])
+                    LOGGER.warning(f"CUDA requested but CUDAExecutionProvider not available. Using CPU...{fix}")
                     self.device = torch.device("cpu")
                     cuda = False
             self.output_names = [x.name for x in self.session.get_outputs()]

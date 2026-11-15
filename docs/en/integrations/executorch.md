@@ -27,7 +27,7 @@ ExecuTorch provides several features for deploying Ultralytics YOLO models on ed
 
 - **XNNPACK Backend**: Default integration with XNNPACK provides highly optimized inference on mobile CPUs, delivering strong performance without requiring specialized hardware.
 
-- **Quantization Ready**: The ExecuTorch ecosystem supports [quantization](https://www.ultralytics.com/glossary/model-quantization) techniques to reduce model size and improve inference speed; Ultralytics currently exports FP32 models via the XNNPACK backend.
+- **Quantization Ready**: The ExecuTorch ecosystem supports [quantization](https://www.ultralytics.com/glossary/model-quantization) techniques to reduce model size and improve inference speed; Ultralytics exports FP32 by default and static INT8 with `quantize=8` for the XNNPACK backend.
 
 - **Memory Efficiency**: Optimized memory management reduces runtime memory footprint, making it suitable for devices with limited RAM.
 
@@ -145,13 +145,15 @@ ExecuTorch exports generate a directory that includes a `.pte` file and metadata
 
 When exporting to ExecuTorch format, you can specify the following arguments:
 
-| Argument   | Type             | Default        | Description                                                                                                                             |
-| ---------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
-| `quantize` | `int` or `str`   | `None`         | Fixed FP32 export. ExecuTorch export does not support export-time FP16, INT8, or W8A16 precision conversion.                            |
-| `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
+| Argument   | Type                      | Default        | Description                                                                                                                                                                                                                                           |
+| ---------- | ------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                    |
+| `imgsz`    | `int` or `tuple`          | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                     |
+| `quantize` | `int` or `str`            | `None`         | Quantization precision: `8` (static INT8, int8 weights + int8 activations, with the detect, segment, pose, and OBB head in FP32; needs calibration `data`/`fraction` and `executorch>=1.6.0`) or `32`/unset (FP32). FP16 and W8A16 are not supported. |
+| `batch`    | `int`                     | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                               |
+| `data`     | `str`                     | `None`         | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                            |
+| `fraction` | `float`, `int`, or `list` | `1.0`          | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                              |
+| `device`   | `str`                     | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                       |
 
 ### Output Structure
 
@@ -258,7 +260,7 @@ To reduce model size for deployment:
 
 - **Use Smaller Models**: Start with [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) (nano) for the smallest footprint
 - **Lower Input Resolution**: Use smaller image sizes (e.g., `imgsz=320` or `imgsz=416`)
-- **Quantization**: Apply ExecuTorch quantization techniques outside Ultralytics (Ultralytics ExecuTorch export is FP32 only)
+- **Quantization**: Export with `quantize=8` and a calibration dataset (`data`) for a static INT8 model, about 3x smaller than FP32 for YOLO26n
 
 ### Inference Speed Optimization
 

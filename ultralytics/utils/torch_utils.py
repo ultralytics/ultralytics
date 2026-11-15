@@ -256,8 +256,8 @@ def select_device(device="", newline=False, verbose=True):
         verbose (bool, optional): If True, logs the device information.
 
     Returns:
-        (torch.device | str): Selected device. For multi-GPU requests this is the first GPU. 'tpu', 'intel', and
-            'vulkan' device strings and other non-cpu/cuda/npu/xpu torch.device inputs are returned unchanged.
+        (torch.device | str): Selected device. For multi-GPU requests this is the first GPU. 'tpu' and 'vulkan' device
+            strings and other non-cpu/cuda/npu/xpu torch.device inputs are returned unchanged.
 
     Raises:
         ValueError: If the requested CUDA, NPU, or XPU device(s) are invalid or unavailable.
@@ -279,7 +279,7 @@ def select_device(device="", newline=False, verbose=True):
     if isinstance(device, torch.device):
         if device.type not in {"cpu", "cuda", "npu", "xpu"}:
             return device  # other torch.device inputs pass through; cpu and accelerator inputs canonicalize below
-    elif str(device).startswith(("tpu", "intel", "vulkan")):
+    elif str(device).startswith(("tpu", "vulkan")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
@@ -812,6 +812,29 @@ def unset_deterministic():
         torch.utils.deterministic.fill_uninitialized_memory = True
     os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
     os.environ.pop("PYTHONHASHSEED", None)
+
+
+def interpolate_bilinear(x, size=None, scale_factor=None, align_corners=False):
+    """Bilinearly resize a 4D tensor, as matmuls where deterministic mode makes torch decompose the native kernel.
+
+    Args:
+        x (torch.Tensor): Input tensor of shape (B, C, H, W).
+        size (tuple[int, int], optional): Output (H, W).
+        scale_factor (float, optional): Spatial multiplier, used when size is None.
+        align_corners (bool): Align the corner pixels of input and output.
+
+    Returns:
+        (torch.Tensor): Resized tensor.
+    """
+    decomposed = TORCH_2_9 or (TORCH_2_1 and x.device.type == "cuda") or (TORCH_2_5 and x.device.type == "xpu")
+    if x.device.type == "cpu" or not decomposed or not torch.are_deterministic_algorithms_enabled():
+        return F.interpolate(x, size, scale_factor, "bilinear", align_corners)
+    with autocast(False, x.device.type):  # keep the input dtype, as the native kernel does
+        h, w = (  # per-axis weights from the native 1D linear kernel, which deterministic mode keeps native
+            F.interpolate(torch.eye(n, device=x.device, dtype=x.dtype)[None], s, scale_factor, "linear", align_corners)
+            for n, s in zip(x.shape[-2:], size or (None, None))
+        )
+        return h[0].T @ x @ w[0]
 
 
 class ModelEMA:

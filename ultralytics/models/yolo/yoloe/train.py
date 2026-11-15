@@ -99,7 +99,7 @@ class YOLOETrainer(DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
 
-    set_class_weights = BaseTrainer.set_class_weights  # cls channels are prompt positions, not dataset classes
+    get_class_counts = BaseTrainer.get_class_counts  # cls channels are prompt positions, not dataset classes
 
 
 class YOLOEPETrainer(DetectionTrainer):

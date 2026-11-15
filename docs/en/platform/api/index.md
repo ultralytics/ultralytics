@@ -76,7 +76,7 @@ flowchart TD
 | [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                         |
 | [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup         |
 | [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                                   |
-| [Explore](../explore.md)                   | Public content search           | Search projects, datasets, and images                         |
+| [Explore](../explore.md)                   | Public content search           | Search projects, datasets, models, and images                 |
 
 ## Authentication
 
@@ -813,22 +813,22 @@ GET /api/datasets/{owner}/{dataset}/images
 
 **Query Parameters:**
 
-| Parameter           | Type    | Description                                                                                                                                                         |
-| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `limit`             | int     | Maximum images to return (default: 50, max: 5000)                                                                                                                   |
-| `offset`            | int     | Images to skip (default: 0)                                                                                                                                         |
-| `cursor`            | string  | Last image ID from the previous page, for cursor pagination                                                                                                         |
-| `includeTotal`      | boolean | Include the total matching count (default: `true`)                                                                                                                  |
-| `split`             | string  | Filter by split: `train`, `val`, `test`                                                                                                                             |
-| `hasLabel`          | boolean | Filter by annotation state                                                                                                                                          |
-| `hasError`          | boolean | Filter by processing error state                                                                                                                                    |
-| `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                    |
-| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars)                                                                                        |
-| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                        |
-| `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
-| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                     |
-| `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                              |
-| `includeLabels`     | boolean | Include capped preview annotations (default: `false`)                                                                                                               |
+| Parameter           | Type    | Description                                                                                                                                                            |
+| ------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `limit`             | int     | Maximum images to return (default: 50, max: 5000)                                                                                                                      |
+| `offset`            | int     | Images to skip (default: 0)                                                                                                                                            |
+| `cursor`            | string  | Last image ID from the previous page, for cursor pagination                                                                                                            |
+| `includeTotal`      | boolean | Include the total matching count (default: `true`)                                                                                                                     |
+| `split`             | string  | Filter by split: `train`, `val`, `test`                                                                                                                                |
+| `hasLabel`          | boolean | Filter by annotation state                                                                                                                                             |
+| `hasError`          | boolean | Filter by processing error state                                                                                                                                       |
+| `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                       |
+| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars); a term ending in an image file extension, such as `img_0042.jpg`, matches filenames only |
+| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                           |
+| `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc`    |
+| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                        |
+| `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                                 |
+| `includeLabels`     | boolean | Include capped preview annotations (default: `false`)                                                                                                                  |
 
 **Response:**
 
@@ -1134,15 +1134,16 @@ POST /api/images/{imageId}/predict
 Runs the model on the image and returns predicted annotations. It does not save them — write the results back with
 `PATCH /api/images/{imageId}` when you are happy with them.
 
-| Field           | Type   | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| --------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `modelId`       | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`, or a class-prompted model ID for a detection dataset with 1–200 classes (`yoloe26x` with `visualPrompts` also takes segment and OBB datasets): a hosted model (`qwen`, `gemma`, `nemotron`, `moondream`, `wevisone`, `florence2`, `owlv2`, `yoloe26x`, `sam3`, `sam3.1`, `groundingdino`) or a paid provider model ID from the `modelId` enum in [`openapi.json`](https://platform.ultralytics.com/openapi.json) |
-| `confidence`    | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25); ignored by class-prompted models without `visualPrompts`, which use model-specific thresholds                                                                                                                                                                                                                                                                                                                               |
-| `iou`           | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.5); ignored by class-prompted models without `visualPrompts`                                                                                                                                                                                                                                                                                                                                                |
-| `visualPrompts` | array  | No       | With `modelId` `yoloe26x` on a detect, segment, or OBB dataset, 1–200 annotation objects from this image (`classId` plus `bbox`, `segments`, or `obb`) whose classes the model finds again in the image                                                                                                                                                                                                                                                                       |
-| `classMapping`  | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models and not allowed with `visualPrompts`                                                                                                                                                                                                                            |
+| Field              | Type   | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------ | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`          | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`, or a class-prompted model ID for a detection dataset with 1–200 classes (`yoloe26x` with `visualPrompts` also takes segment and OBB datasets): a hosted model (`qwen`, `gemma`, `nemotron`, `moondream`, `wevisone`, `florence2`, `owlv2`, `yoloe26x`, `sam3`, `sam3.1`, `groundingdino`) or a paid provider model ID from the `modelId` enum in [`openapi.json`](https://platform.ultralytics.com/openapi.json) |
+| `confidence`       | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25); ignored by class-prompted models without `visualPrompts`, which use model-specific thresholds                                                                                                                                                                                                                                                                                                                               |
+| `iou`              | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.5); ignored by class-prompted models without `visualPrompts`                                                                                                                                                                                                                                                                                                                                                |
+| `visualPrompts`    | array  | No       | With `modelId` `yoloe26x` on a detect, segment, or OBB dataset, 1–200 annotation objects (`classId` plus `bbox`, `segments`, or `obb`) from this image, or from the `referenceImageId` image, whose classes the model finds again in the image                                                                                                                                                                                                                                |
+| `referenceImageId` | string | No       | With `visualPrompts`, the ID of the image in the same dataset that the prompts are drawn on, when it is not the image being predicted                                                                                                                                                                                                                                                                                                                                         |
+| `classMapping`     | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models and not allowed with `visualPrompts`                                                                                                                                                                                                                            |
 
-**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models without `visualPrompts`), `modelUsed`, `inferenceTime`, `usage` (`[input tokens, output tokens]`, when a language model reports them), for class-prompted models `partial` (`true` when an output limit was reached or suspected, so returned annotations may omit objects), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes (unless it uses `visualPrompts`), `visualPrompts` with another model or task, an unknown `classId`, a prompt too small or outside the image, or `classMapping`, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `402`, `403`, or `404` (a rejected key, model, or request, or an unpaid provider balance; `code`: `provider_refused` for all but `400`), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`. On Premise datasets, cloud storage datasets whose AI features are off or whose credential is disconnected, and datasets with more than 3 image channels return `409`.
+**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models without `visualPrompts`), `modelUsed`, `inferenceTime`, `usage` (`[input tokens, output tokens]`, when a language model reports them), for class-prompted models `partial` (`true` when an output or time limit cut the reply short, or one is suspected, so returned annotations may omit objects), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes (unless it uses `visualPrompts`), `visualPrompts` with another model or task, an unknown `classId`, a prompt too small or outside the image, or `classMapping`, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A `referenceImageId` that is not an image in this dataset returns `404`. A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `402`, `403`, or `404` (a rejected key, model, or request, or an unpaid provider balance; `code`: `provider_refused` for all but `400`), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`. On Premise datasets, cloud storage datasets whose AI features are off or whose credential is disconnected, and datasets with more than 3 image channels return `409`.
 
 ### Find Similar Images
 
@@ -1171,9 +1172,14 @@ POST /api/datasets/{owner}/{dataset}/predict/batch
 
 Saves a dataset version (cloud storage datasets have none), then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
 The body takes the same `modelId`, `confidence`, `iou`, and `classMapping` fields as the single-image endpoint, plus
-`includeAnnotated` (default `false`) to also annotate images that already have labels. A [class-prompted model](https://platform.ultralytics.com/models) detects
+`includeAnnotated` (default `false`) to also annotate images that already have labels. With `modelId` `yoloe26x`,
+`visualPrompts` and `referenceImageId` (required with them; `422` without it, `404` when that image is no longer in the
+dataset) find objects like the examples in the run's images (unlabeled only, unless `includeAnnotated`), on detect, segment, and
+OBB datasets; the examples are encoded
+once when the run starts. A [class-prompted model](https://platform.ultralytics.com/models) detects
 the dataset classes without confidence scores, and a paid provider model needs a provider key saved in the dataset
-workspace's **Settings > API Keys** (`422`, `code`: `missing_provider_api_key`, before the run is admitted). Existing labels are never changed, and the run is billed for the images it actually
+workspace's **Settings > API Keys** (`422`, `code`: `missing_provider_api_key`, before the run is admitted). Existing labels are never changed, predictions that overlap an existing label of the
+same class by more than `iou` are skipped, and the run is billed for the images it actually
 processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not ready, its storage has AI features off or is On Premise, has no images left to
 annotate, or already has a run in progress, and `422` that the dataset has no classes, or that a class-prompted model
 was given a non-detection dataset or one outside 1–200 classes: create the classes with the
@@ -1377,6 +1383,7 @@ Clones an accessible project and its completed models. The optional body accepts
 `visibility`, `license`, a destination `owner`, and `models`, a list of model names to clone instead of every completed
 model. Without `visibility`, the clone is private when the destination workspace's
 [default visibility](../account/settings.md#default-visibility) is Private and otherwise keeps the source's visibility.
+A clone whose models would exceed the destination workspace's model limit returns `403` and copies nothing.
 
 ---
 
@@ -1586,10 +1593,10 @@ quantization. Requests that exceed the service's input limits return `413`.
 
 **Response:**
 
-Each entry in `images` carries `shape`, `speed`, `results`, and, for dense-prediction tasks, a `semantic_mask` or
-`depth` PNG payload (depth values are `pixel × max / divisor`, with divisor 255 for the default 8-bit map and 65535 when
-`bits` is 12 or 16). The `metadata` object reports image count, function timings, task, and service
-versions. Internal model paths are never returned.
+Each entry in `images` carries `shape`, `speed`, `results` (up to 1,000 per image, 300 for RT-DETR models), and, for
+dense-prediction tasks, a `semantic_mask` or `depth` PNG payload (depth values are `pixel × max / divisor`, with divisor
+255 for the default 8-bit map and 65535 when `bits` is 12 or 16). The `metadata` object reports image count, function
+timings, task, and service versions. Internal model paths are never returned.
 
 ```json
 {
@@ -1674,12 +1681,12 @@ POST /api/training/start
 
 **Python SDK:** `client.training.start(model_id=..., train_args=...)`
 
-| Field                   | Type    | Required | Description                                                         |
-| ----------------------- | ------- | -------- | ------------------------------------------------------------------- |
-| `modelId`               | string  | Yes      | ID of the model to train                                            |
-| `trainArgs`             | object  | Yes      | YOLO training arguments; `model`, `data`, and `epochs` are required |
-| `gpuType`               | string  | No       | Cloud GPU to use (default: `rtx-4090`)                              |
-| `captureDatasetVersion` | boolean | No       | Save an immutable dataset version for this run (default: `false`)   |
+| Field                   | Type    | Required | Description                                                                                                                                                                |
+| ----------------------- | ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`               | string  | Yes      | ID of the model to train                                                                                                                                                   |
+| `trainArgs`             | object  | Yes      | YOLO training arguments; `model`, `data`, and `epochs` are required. `data` is a `ul://username/datasets/slug` dataset URI or a built-in dataset YAML such as `coco8.yaml` |
+| `gpuType`               | string  | No       | Cloud GPU to use (default: `rtx-4090`)                                                                                                                                     |
+| `captureDatasetVersion` | boolean | No       | Save an immutable dataset version for this run (default: `false`)                                                                                                          |
 
 === "cURL"
 
@@ -1734,9 +1741,9 @@ POST /api/training/start
 }
 ```
 
-Training returns `400` when the model task cannot train the dataset task, `402` when your credit balance is too low,
-`409` when the dataset's cloud storage has AI features off or is disconnected, and `503` when no capacity is available
-for the requested GPU.
+Training returns `400` when `data` is a dataset ID or a Platform dataset path without `ul://`, or when the model task
+cannot train the dataset task, `402` when your credit balance is too low, `409` when the dataset's cloud storage has AI
+features off or is disconnected, and `503` when no capacity is available for the requested GPU.
 
 !!! note "GPU Types"
 
@@ -2453,7 +2460,7 @@ unavailable until the same storage account is reconnected. Requires workspace ad
 
 ## Dataset Import API
 
-Import datasets from third-party services. See [Roboflow integration](../integrations/roboflow.md).
+Import datasets from third-party services. See the [Roboflow](../integrations/roboflow.md) and [Label Studio](../integrations/label-studio.md) integrations.
 
 ### Preview a Roboflow Import
 
@@ -2500,6 +2507,47 @@ Queues ingest jobs for up to 500 selected Roboflow project versions, using the i
 
 **Response (`201`):** `imported`, `failed`, and `skipped` arrays. Imports require storage headroom, and each dataset
 must fit your plan's per-import size limit.
+
+### Preview a Label Studio Import
+
+```http
+POST /api/integrations/label-studio/preview
+```
+
+**Python SDK:** `client.datasets.preview_label_studio(api_key=...)`
+
+Lists the projects in the connected hosted Label Studio account as an import plan: `newDatasets` and `importedDatasets`
+(each with `projectId`, `projectName`, the forecast `task`, and `imageCount`), `unsupportedCount` for projects whose
+labeling setup can't be imported, and your `storage`. `apiKey` is an optional Label Studio personal access token or
+legacy token: without it the workspace's saved token is used, and without either the request returns `409`. Only the
+workspace owner can send a token, which is saved for the workspace once it lists projects; anyone else who sends one
+gets `403`.
+
+```json
+{
+    "apiKey": "LABEL_STUDIO_ACCESS_TOKEN"
+}
+```
+
+### Import from Label Studio
+
+```http
+POST /api/integrations/label-studio/import
+```
+
+**Python SDK:** `client.datasets.import_label_studio(project_ids=...)`
+
+Queues one dataset import for each of up to 500 Label Studio project IDs, using the workspace's saved token. The task
+is read again from each project's labeling config, so it can't be chosen in the request.
+
+```json
+{
+    "projectIds": [101, 102]
+}
+```
+
+**Response (`201`):** `imported`, `failed`, and `skipped` arrays. Imports require storage headroom; each project gets
+an equal share of it, capped by your plan's per-import size limit.
 
 ---
 
@@ -2671,7 +2719,7 @@ Each transaction includes `id`, `type` (such as `purchase`, `training`, `monthly
 
 ## Explore API
 
-Search public projects and datasets shared by the community, or search images by what they show or by a photo.
+Search public projects, datasets, and models shared by the community, or search images by what they show or by a photo.
 See [Explore documentation](../explore.md).
 
 ### Search Public Content
@@ -2684,23 +2732,30 @@ GET /api/explore/search
 
 **Query Parameters:**
 
-| Parameter   | Type    | Description                                                                                                                                                                               |
-| ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `q`         | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match                                                                                           |
-| `type`      | string  | `all` (default), `projects`, `datasets`, or `images` (ignores `sort`)                                                                                                                     |
-| `sort`      | string  | `relevance` (default), `newest`, `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`; `relevance` ranks dataset matches for `q` by search score, otherwise newest first |
-| `offset`    | int     | Results to skip (default: 0)                                                                                                                                                              |
-| `limit`     | int     | Maximum results per resource type (default: 20, max: 100)                                                                                                                                 |
-| `task`      | string  | Comma-separated task filters: `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`                                                                                         |
-| `license`   | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license                                                                                         |
-| `author`    | string  | Owner username filter                                                                                                                                                                     |
-| `starred`   | boolean | Return only content starred by the authenticated caller; requires an API key                                                                                                              |
-| `minImages` | int     | Return only datasets with at least this many images; with `type=images`, only images from such datasets                                                                                   |
-| `maxImages` | int     | Return only datasets with at most this many images; with `type=images`, only images from such datasets                                                                                    |
+| Parameter   | Type    | Description                                                                                                                                                                         |
+| ----------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q`         | string  | Search term (max 200 chars); for datasets and models, text matches first, then datasets whose images match (or models trained on them)                                              |
+| `type`      | string  | `all` (default; projects and datasets), `projects`, `datasets`, `models`, or `images` (ignores `sort`)                                                                              |
+| `sort`      | string  | `relevance` (default), `newest`, `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`; `relevance` ranks dataset and model matches for `q`, otherwise newest first |
+| `offset`    | int     | Results to skip (default: 0)                                                                                                                                                        |
+| `limit`     | int     | Maximum results per resource type (default: 20, max: 100)                                                                                                                           |
+| `task`      | string  | Comma-separated task filters: `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`                                                                                   |
+| `license`   | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license                                                                                   |
+| `author`    | string  | Owner username filter                                                                                                                                                               |
+| `starred`   | boolean | Return only content starred by the authenticated caller; requires an API key                                                                                                        |
+| `minImages` | int     | Return only datasets with at least this many images; with `type=images`, only images from such datasets                                                                             |
+| `maxImages` | int     | Return only datasets with at most this many images; with `type=images`, only images from such datasets                                                                              |
 
 **Response:** `projects`, `datasets`, and `hasMore`. `type=images` returns its matches in `images` instead, best match
-first, each with its source `dataset` and a 0–1 similarity `score`; it needs `q` and searches public datasets, plus your
-own and team datasets when you send an API key.
+first, each with its source `dataset` and a 0–1 similarity `score`; with `q` it searches public datasets, plus your own
+and team datasets when you send an API key. Without `q`, it lists one image from each of the newest public datasets,
+unranked with `score` `1`, honoring the filters.
+
+`type=models` returns public models in `models`, one per training dataset (or per project without one) except official
+`@ultralytics` models, which each keep their own entry; clones and models that haven't finished training are left out.
+With `q`, matching official models come first, then models whose name or project matches, then models trained on the
+public datasets whose images best match. Without `q`, it lists models trained on public datasets, newest first. It
+honors `task` and `author`, and sorts by `relevance`, `newest`, or `oldest`; other sorts list the newest first.
 
 ```bash
 curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=detect&sort=stars&limit=20"
@@ -2714,15 +2769,16 @@ POST /api/explore/search
 
 **Python SDK:** `client.explore.search_by_image()` (`ultralytics-platform>=0.1.107`)
 
-Send a photo as base64 `image` (at most 3 MiB, never stored) in a JSON body with `type` `images` (default) or `datasets`
-and any of `sort`, `offset`, `limit`, `task`, `license`, `author`, `starred`, `minImages`, and `maxImages` from [Search
-Public Content](#search-public-content). The response has the same shape, and a request that sends `image` also returns
-a `vector`: send it in place of `image` for more pages, other filters, or the other `type`, so the photo is read only
-once. `type=images` returns scored images as a text search does; `type=datasets` returns public datasets with matching
-images, best matches first under the default `sort=relevance` (other sorts order them as usual), and those images lead
-each dataset's `sampleImages`. Each request that sends `image` also counts against a separate limit of 20 per minute per
-user (per IP address without an API key). `400` means invalid parameters or a photo that cannot be read, and `503` that
-search is busy, so retry shortly.
+Send a photo as base64 `image` (at most 3 MiB, never stored) in a JSON body with `type` `images` (default), `datasets`,
+or `models` and any of `sort`, `offset`, `limit`, `task`, `license`, `author`, `starred`, `minImages`, and `maxImages`
+from [Search Public Content](#search-public-content). The response has the same shape, and a request that sends `image`
+also returns a `vector`: send it in place of `image` for more pages, other filters, or another `type`, so the photo is
+read only once. `type=images` returns scored images as a text search does; `type=datasets` returns public datasets with
+matching images, best matches first under the default `sort=relevance` (other sorts order them as usual), and those
+images lead each dataset's `sampleImages`; `type=models` returns public models trained on those datasets, best first.
+Each request that sends `image` also counts against a separate limit of 20 per minute per user (per IP address without
+an API key). `400` means invalid parameters or a photo that cannot be read, and `503` that search is busy, so retry
+shortly.
 
 ---
 

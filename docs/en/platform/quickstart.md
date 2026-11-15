@@ -95,7 +95,7 @@ The sidebar provides access to all Platform sections:
 | ----------- | ----------- | ------------------------------------------------------------------------------------- |
 | **Top**     | Search      | Quick search across all your resources (Cmd+K)                                        |
 |             | Home        | Dashboard with quick actions and recent activity                                      |
-|             | Explore     | Discover public projects, datasets, and images                                        |
+|             | Explore     | Discover public datasets, images, models, and projects                                |
 |             | Agents      | Build visual [Agents](agents.md) workflows with YOLO, conditions, and VLMs            |
 | **Content** | Annotate    | Your datasets, with a `+` shortcut to create one                                      |
 |             | Train       | Your projects containing trained models                                               |
@@ -137,7 +137,8 @@ Below the welcome card, the dashboard shows three cards:
 - **Storage**: Overview of your storage usage (datasets, models, exports) with plan limits.
 
 A **Recent Activity** table at the bottom shows your latest datasets, projects, and deployments with their status and
-last update time.
+last update time. A dataset still processing an upload shows **Running**, and one whose processing failed shows
+**Failed**.
 
 ### Global Search
 
@@ -294,7 +295,7 @@ After training completes, test your model directly in the browser:
 2. Upload an image, drag and drop, capture one from your webcam, or click an example image (auto-inference on drop)
 3. View task-appropriate prediction overlays, per-stage timings (preprocess, inference, postprocess, network), and the raw JSON response
 
-![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/7f20a14a7e6f05a1c43c42229d0e3745.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/a3f37122dbd08b1e2b7c79722656745d.avif)<!-- screenshot -->
 
 Adjust inference parameters:
 

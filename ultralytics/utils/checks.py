@@ -1078,9 +1078,9 @@ def check_amp(model):
                 layer.register_forward_hook(compare_amp)
         with torch.no_grad():
             m(torch.rand(8, 3, 256, 256, device=device))  # batch 8, as GTX 16xx AMP faults appeared only at batch >= 7
-    # Probe exceptions are not necessarily AMP-specific; disabling AMP may not repair a broken GPU runtime.
-    # Keep the original exception visible so an FP32 failure can be diagnosed correctly.
-    except Exception as e:
+    # Only runtime failures are eligible for precautionary AMP disablement; programming errors must propagate.
+    # An invalid GPU runtime may also fail during subsequent FP32 training.
+    except RuntimeError as e:
         LOGGER.error(
             f"{prefix}checks failed with an exception ({type(e).__name__}: {e}). AMP will be disabled during training "
             f"as a precaution. This error is not necessarily AMP-specific — if FP32 training also fails with the same "

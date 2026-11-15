@@ -1078,11 +1078,14 @@ def check_amp(model):
                 layer.register_forward_hook(compare_amp)
         with torch.no_grad():
             m(torch.rand(8, 3, 256, 256, device=device))  # batch 8, as GTX 16xx AMP faults appeared only at batch >= 7
-    # probe-time backend errors are heterogeneous across HIP/CUDA/MPS — degrade to FP32, never crash training
+    # probe-time backend errors are heterogeneous across HIP/CUDA/MPS (e.g. kernel-load failures, OOM) — degrade to
+    # FP32, never crash training. The error is not necessarily AMP-specific: a backend that fails here usually fails
+    # for FP32 too, so report the truth instead of implying the backend is otherwise healthy.
     except Exception as e:
         LOGGER.error(
-            f"{prefix}checks failed with an exception ({type(e).__name__}: {e}). Anomalies were detected with AMP on "
-            f"your system that may lead to NaN losses or zero-mAP results, so AMP will be disabled during training."
+            f"{prefix}checks failed with an exception ({type(e).__name__}: {e}). AMP will be disabled during training "
+            f"as a precaution. This error is not necessarily AMP-specific — if FP32 training also fails with the same "
+            f"error, the problem is your GPU backend/runtime rather than AMP."
         )
         return False
     if all(close):

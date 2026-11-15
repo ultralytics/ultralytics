@@ -7,10 +7,10 @@ MIOpen install, CUDA kernel-load failures) — must disable AMP with a logged er
 return False, never propagate into trainer setup and crash `train()`.
 `KeyboardInterrupt`/`SystemExit` must still propagate (they are not `Exception` subclasses).
 
-All tests except `test_check_amp_passes_on_healthy_accelerator` are CPU-runnable: they
-inject faults at dependency boundaries (probe-model construction/transfer/forward), so no
-accelerator hardware is required. The healthy-path positive control requires a real
-accelerator and is skipped on CPU-only runners.
+All tests are CPU-runnable: they inject faults at dependency boundaries (probe-model
+construction/transfer/forward), so no accelerator hardware is required. The healthy-accelerator
+positive control is covered by the existing `tests/test_cuda.py::test_amp`, which runs on any
+CUDA-capable device (NVIDIA CI and AMD GPU runners).
 """
 
 import logging
@@ -142,11 +142,3 @@ def test_check_amp_user_interruption_propagates(monkeypatch, accelerator_probe_e
     monkeypatch.setattr(DetectionModel, "__init__", _interrupted_init)
     with pytest.raises(KeyboardInterrupt):
         check_amp(_FakeAcceleratorModel())
-
-
-@pytest.mark.skipif(not torch.cuda.is_available(), reason="healthy-path positive control requires a real accelerator")
-def test_check_amp_passes_on_healthy_accelerator(accelerator_probe_env, capture_amp_logs):
-    """On a healthy accelerator with an unpatched probe, check_amp must return True."""
-    model = torch.nn.Linear(1, 1).cuda()  # only its device is used by check_amp
-    assert check_amp(model) is True, "check_amp must pass on a healthy accelerator with the guard in place"
-    assert not any("checks failed" in m for m in capture_amp_logs), capture_amp_logs

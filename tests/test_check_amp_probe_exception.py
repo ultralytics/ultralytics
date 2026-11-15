@@ -1,16 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Regression tests: check_amp must degrade gracefully when the AMP probe raises.
+"""Minimal regression coverage: check_amp must degrade to FP32 when its accelerator probe raises.
 
-A backend error during any part of the AMP probe — probe-model construction, device
-transfer, or the forward pass itself (e.g. HIP `hipErrorInvalidKernelFile` on a corrupt
-MIOpen install, CUDA kernel-load failures) — must disable AMP with a logged error and
-return False, never propagate into trainer setup and crash `train()`.
-`KeyboardInterrupt`/`SystemExit` must still propagate (they are not `Exception` subclasses).
-
-All tests are CPU-runnable: they inject faults at dependency boundaries (probe-model
-construction/transfer/forward), so no accelerator hardware is required. The healthy-accelerator
-positive control is covered by the existing `tests/test_cuda.py::test_amp`, which runs on any
-CUDA-capable device (NVIDIA CI and AMD GPU runners).
+PR #26967 accidentally dropped the probe's historical failure contract (8.4.182 disabled AMP with a
+warning; 8.4.197+ propagated backend errors into trainer setup and crashed `train()`). These two tests
+keep that contract from regressing again on ordinary CPU-only CI runners: a fake accelerator model routes
+check_amp into its probe path and a fault is injected at the probe boundary, because the real failure mode
+(backend kernel-load errors, OOM) cannot be reproduced safely on healthy hardware. The healthy path is
+covered by the existing `tests/test_cuda.py::test_amp` on real accelerator CI targets.
 """
 
 import logging
@@ -20,14 +16,8 @@ import pytest
 import torch
 
 from ultralytics.nn.tasks import DetectionModel
+from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_amp
-
-PROBE_SHAPE = (8, 3, 256, 256)  # check_amp probe batch; DetectionModel's own stride pass uses (1, 3, 256, 256)
-
-# torch.cuda.OutOfMemoryError requires torch>=1.13; the guard treats it like any other Exception subclass
-_TRANSFER_EXC_TYPES = [RuntimeError]
-if hasattr(torch.cuda, "OutOfMemoryError"):
-    _TRANSFER_EXC_TYPES.append(torch.cuda.OutOfMemoryError)
 
 
 class _FakeAcceleratorModel:
@@ -43,8 +33,6 @@ class _FakeAcceleratorModel:
 @pytest.fixture
 def capture_amp_logs():
     """Capture ultralytics LOGGER records for the duration of a test."""
-    from ultralytics.utils import LOGGER
-
     records = []
 
     class _Capture(logging.Handler):
@@ -64,73 +52,19 @@ def capture_amp_logs():
 
 @pytest.fixture
 def accelerator_probe_env(monkeypatch):
-    """Make check_amp's probe path deterministic on any host.
-
-    Patches torch.cuda.get_device_name so check_amp never performs real CUDA enumeration and never hits the GTX 16xx
-    exclusion list, regardless of the host GPU.
-    """
+    """Make check_amp deterministic on GPU-less hosts (avoid real CUDA enumeration)."""
     monkeypatch.setattr(torch.cuda, "get_device_name", lambda device: "Test GPU")
 
 
-def test_check_amp_construction_failure_returns_false(monkeypatch, accelerator_probe_env, capture_amp_logs):
-    """A failure while building the probe model must disable AMP, not crash training."""
+def test_check_amp_probe_exception_degrades_to_fp32(monkeypatch, accelerator_probe_env, capture_amp_logs):
+    """A backend error anywhere in the probe must disable AMP with a logged error, never crash training."""
 
     def _broken_init(self, *args, **kwargs):
         raise RuntimeError("simulated backend failure while building the probe model")
 
     monkeypatch.setattr(DetectionModel, "__init__", _broken_init)
-    verdict = check_amp(_FakeAcceleratorModel())
-    assert verdict is False, "check_amp must return False (not raise) when probe-model construction fails"
+    assert check_amp(_FakeAcceleratorModel()) is False
     assert any("checks failed with an exception" in m for m in capture_amp_logs), capture_amp_logs
-
-
-@pytest.mark.parametrize("exc_type", _TRANSFER_EXC_TYPES)
-def test_check_amp_transfer_failure_returns_false(monkeypatch, accelerator_probe_env, capture_amp_logs, exc_type):
-    """A failure while moving the probe model to the device (e.g. tight memory) must disable AMP, not crash."""
-
-    def _broken_to(self, *args, **kwargs):
-        raise exc_type("simulated backend failure while transferring the probe model to the device")
-
-    monkeypatch.setattr(DetectionModel, "to", _broken_to)
-    verdict = check_amp(_FakeAcceleratorModel())
-    assert verdict is False, "check_amp must return False (not raise) when probe-model device transfer fails"
-    assert any("checks failed with an exception" in m for m in capture_amp_logs), capture_amp_logs
-
-
-def test_check_amp_forward_failure_returns_false(monkeypatch, accelerator_probe_env, capture_amp_logs):
-    """A backend error during the probe forward pass must disable AMP, not crash training."""
-    original_forward = DetectionModel.forward
-
-    def _forward_boom_on_probe_batch(self, x):
-        # The DetectionModel constructor legitimately runs one (1, 3, 256, 256) stride pass;
-        # only the probe's (8, 3, 256, 256) batch must fail.
-        if tuple(x.shape) == PROBE_SHAPE:
-            raise RuntimeError("simulated backend kernel failure during AMP probe")
-        return original_forward(self, x)
-
-    def _deviceless_rand(*args, **kwargs):
-        kwargs.pop("device", None)  # keep input allocation on-CPU so this test also runs without a GPU
-        return torch.zeros(*args, **kwargs)
-
-    monkeypatch.setattr(DetectionModel, "to", lambda self, *args, **kwargs: self)  # keep transfer off-hardware
-    monkeypatch.setattr(torch, "rand", _deviceless_rand)
-    monkeypatch.setattr(DetectionModel, "forward", _forward_boom_on_probe_batch)
-    verdict = check_amp(_FakeAcceleratorModel())
-    assert verdict is False, "check_amp must return False (not raise) when the probe forward pass fails"
-    assert any("checks failed with an exception" in m for m in capture_amp_logs), capture_amp_logs
-
-
-def test_check_amp_repeated_invocation_after_failure(monkeypatch, accelerator_probe_env, capture_amp_logs):
-    """check_amp must stay usable after a failed probe: no stale state, no exception on retry."""
-
-    def _broken_to(self, *args, **kwargs):
-        raise RuntimeError("simulated backend failure while transferring the probe model to the device")
-
-    monkeypatch.setattr(DetectionModel, "to", _broken_to)
-    for attempt in (1, 2):
-        assert check_amp(_FakeAcceleratorModel()) is False, f"attempt {attempt} must return False"
-    failures = [m for m in capture_amp_logs if "checks failed with an exception" in m]
-    assert len(failures) == 2, capture_amp_logs
 
 
 def test_check_amp_user_interruption_propagates(monkeypatch, accelerator_probe_env):

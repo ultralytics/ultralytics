@@ -38,9 +38,9 @@ Set up two Python environments on an x86_64 Linux machine:
 2. **D-Robotics toolchain environment** — CPython 3.10 with `hb_mapper` from the OpenExplore X5 toolchain or `rdkx5-yolo-mapper` for compilation. Mapper 1.0.1 provides `rdkx5-sim` for x86 simulation. Put the required CLI tools on `PATH` of the shell that runs the export:
 
 ```bash
-export PATH=/opt/rdk-x5-toolchain/bin:$PATH  # your toolchain install location
-hb_mapper --help                          # required for export
-rdkx5-sim --help                          # required for x86 simulation
+export PATH=/opt/rdk-x5-toolchain/bin:$PATH # your toolchain install location
+hb_mapper --help                            # required for export
+rdkx5-sim --help                            # required for x86 simulation
 ```
 
 !!! note "Mapper simulation support"
@@ -65,7 +65,7 @@ rdkx5-sim --help                          # required for x86 simulation
 
     ```bash
     yolo export model=yolo11n.pt format=rdk imgsz=640 data=coco8.yaml
-    yolo export model=yolo26n.pt format=rdk imgsz=640 data=coco8.yaml nms=False  # one-to-one head
+    yolo export model=yolo26n.pt format=rdk imgsz=640 data=coco8.yaml nms=False # one-to-one head
     ```
 
 Export arguments:
@@ -108,7 +108,7 @@ print(model("bus.jpg", imgsz=640)[0].boxes)
 The simulator can also be called directly to inspect a compiled model:
 
 ```bash
-rdkx5-sim yolo11n.bin --describe          # model I/O: names, dtypes, shapes, layouts, strides
+rdkx5-sim yolo11n.bin --describe # model I/O: names, dtypes, shapes, layouts, strides
 rdkx5-sim yolo11n.bin --inputs in.npz --outputs out.npz
 ```
 
@@ -129,7 +129,7 @@ Compare accuracy with `YOLO("yolo11n.pt").val(...)` using the same dataset and s
 The toolchain ships `hb_perf`, which produces static HTML/PNG/JSON reports of estimated per-node cost from a compiled `.bin`:
 
 ```bash
-hb_perf yolo11n.bin  # requires Graphviz: sudo apt-get install graphviz
+hb_perf yolo11n.bin # requires Graphviz: sudo apt-get install graphviz
 ```
 
 Use these estimates to identify expensive nodes, and measure deployment latency on the RDK X5.

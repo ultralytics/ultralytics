@@ -36,8 +36,8 @@ def split_rdk_graph(onnx_file, head, body_file, tail_file):
 
     The cut follows ``onnx2rknn``: the head's terminal ``Conv`` outputs plus any further graph outputs (e.g. segment
     prototypes) end the BPU body, except the classifier which ends at its ``Gemm`` logits so the fully-connected layer
-    stays on the BPU; everything after the cut is the decode tail. Boundary names containing "/" are renamed to
-    ``outN`` in both graphs: the X5 runtime rejects "/" in output names.
+    stays on the BPU; everything after the cut is the decode tail. Boundary names containing "/" are renamed to ``outN``
+    in both graphs: the X5 runtime rejects "/" in output names.
 
     Args:
         onnx_file (str | Path): Standard ONNX export from `Exporter.export_onnx`.
@@ -49,8 +49,8 @@ def split_rdk_graph(onnx_file, head, body_file, tail_file):
         (list[str]): Boundary tensor names, shared by the body outputs and the tail inputs.
 
     Raises:
-        ValueError: If the model type has no supported RDK export head or the graph carries no head
-            `Conv`/`Gemm` boundary.
+        ValueError: If the model type has no supported RDK export head or the graph carries no head `Conv`/`Gemm`
+            boundary.
     """
     import onnx
 

@@ -232,14 +232,13 @@ class RDKBackend(BaseBackend):
         """Run one RGB image batch through the compiled body and its decode tail.
 
         Args:
-            im (torch.Tensor): Input tensor in BHWC format (AutoBackend permutes BCHW for this
-                nhwc backend), RGB, float 0-1. Batch must be 1: the deployment is static
-                batch-1 and `AutoBackend` serializes larger batches through repeated calls.
+            im (torch.Tensor): Input tensor in BHWC format (AutoBackend permutes BCHW for this nhwc backend), RGB, float
+                0-1. Batch must be 1: the deployment is static batch-1 and `AutoBackend` serializes larger batches
+                through repeated calls.
 
         Returns:
-            (list[np.ndarray]): The tail's standard predictions — e.g. detect one2many
-                `(B, 4 + nc, N)`, end-to-end `(B, max_det, 6 + extra)`, segment plus prototypes,
-                classify `(B, nc)` probabilities.
+            (list[np.ndarray]): The tail's standard predictions — e.g. detect one2many `(B, 4 + nc, N)`, end-to-end `(B,
+                max_det, 6 + extra)`, segment plus prototypes, classify `(B, nc)` probabilities.
         """
         if im.ndim != 4 or im.shape[-1] != 3 or im.shape[0] != 1:
             raise ValueError(

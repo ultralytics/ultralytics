@@ -528,28 +528,28 @@ class Annotator:
         """Plot masks on image.
 
         Args:
-            masks (torch.Tensor | np.ndarray | tuple): Predicted masks with shape [n, h, w], or the box-local (rois,
-                masks, shape) of `ops.process_mask_local` at the image size.
+            masks (torch.Tensor | np.ndarray | list): Predicted masks with shape [n, h, w], or a list of box-local
+                ((x1, y1, x2, y2), mask) pairs at the image size.
             colors (list[list[int]]): BGR colors for predicted masks, [[b, g, r] * n], matching `self.im`.
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
         """
-        local = isinstance(masks, tuple)  # box-local (rois, masks, shape) of `ops.process_mask_local` at the image size
+        local = isinstance(masks, list)  # box-local (box, mask) pairs at the image size
         if isinstance(masks, np.ndarray):
             self._to_numpy()
             overlay = self.im.copy()
             for i, mask in enumerate(masks):
                 overlay[mask.astype(bool)] = colors[i]
             self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
-        elif len(masks[0] if local else masks):
+        elif len(masks):
             tensor_image = isinstance(self.im, torch.Tensor)
-            device = self.im.device if tensor_image else (masks[0] if local else masks).device
+            device = self.im.device if tensor_image else (torch.as_tensor(masks[0][1]) if local else masks).device
             colors = torch.tensor(colors, device=device, dtype=torch.float32) / 255.0  # shape(n,3)
             colors = colors[:, None, None] * alpha  # shape(n,1,1,3), premultiplied by alpha
             mcs = torch.zeros((*self.im.shape[:2], 3), device=device, dtype=torch.float32)  # shape(h,w,3)
             inv_alpha_masks = torch.ones((*self.im.shape[:2], 1), device=device, dtype=torch.float32)  # shape(h,w,1)
             if local:  # blend each mask inside its box, costing the boxes' pixels rather than n * h * w
-                for (x1, y1, x2, y2, b, r), color in zip(masks[0].tolist(), colors):
-                    m = masks[1][b][r, : y2 - y1, : x2 - x1, None].to(device)
+                for ((x1, y1, x2, y2), m), color in zip(masks, colors):
+                    m = torch.as_tensor(m, device=device)[..., None]
                     mcs[y1:y2, x1:x2] = torch.maximum(mcs[y1:y2, x1:x2], m * color)
                     inv_alpha_masks[y1:y2, x1:x2] *= 1 - m * alpha
             else:

@@ -72,6 +72,10 @@ class BaseTensor(SimpleClass):
         """
         return self.data.shape
 
+    def _convert(self, fn):
+        """Return a copy of this object with `fn` applied to its data."""
+        return self.__class__(fn(self.data), self.orig_shape)
+
     def cpu(self):
         """Return a copy of the tensor stored in CPU memory.
 
@@ -87,7 +91,7 @@ class BaseTensor(SimpleClass):
             >>> cpu_tensor.data.device
             device(type='cpu')
         """
-        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
+        return self._convert(lambda x: x if isinstance(x, np.ndarray) else x.cpu())
 
     def numpy(self):
         """Return a copy of this object with its data converted to a NumPy array.
@@ -103,7 +107,7 @@ class BaseTensor(SimpleClass):
             >>> print(type(numpy_tensor.data))
             <class 'numpy.ndarray'>
         """
-        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu().numpy(), self.orig_shape)
+        return self._convert(lambda x: x if isinstance(x, np.ndarray) else x.cpu().numpy())
 
     def cuda(self):
         """Move the tensor to GPU memory.
@@ -120,7 +124,7 @@ class BaseTensor(SimpleClass):
             >>> print(gpu_tensor.data.device)
             cuda:0
         """
-        return self.__class__(torch.as_tensor(self.data).cuda(), self.orig_shape)
+        return self._convert(lambda x: torch.as_tensor(x).cuda())
 
     def to(self, *args, **kwargs):
         """Return a copy of the tensor with the specified device and dtype.
@@ -137,7 +141,7 @@ class BaseTensor(SimpleClass):
             >>> cuda_tensor = base_tensor.to("cuda")
             >>> float16_tensor = base_tensor.to(dtype=torch.float16)
         """
-        return self.__class__(torch.as_tensor(self.data).to(*args, **kwargs), self.orig_shape)
+        return self._convert(lambda x: torch.as_tensor(x).to(*args, **kwargs))
 
     def __len__(self) -> int:
         """Return the length of the underlying data tensor.
@@ -594,7 +598,7 @@ class Results(SimpleClass, DataExportMixin):
         if pred_masks and show_masks:
             local = getattr(pred_masks, "local", None)  # box-local masks at the image size blend inside their boxes
             native = local is not None and tuple(local[2]) == annotator.im.shape[:2]
-            pred_mask_data = local if native else torch.as_tensor(pred_masks.data)  # as_tensor converts numpy()
+            pred_mask_data = list(pred_masks.crops()) if native else torch.as_tensor(pred_masks.data)  # or numpy()
             idx = (
                 pred_boxes.id
                 if pred_boxes and pred_boxes.is_track and color_mode == "instance"
@@ -1194,11 +1198,36 @@ class Masks(BaseTensor):
     @cached_property
     def data(self) -> torch.Tensor:
         """Return the dense (num_masks, height, width) masks, pasting box-local masks into their frame on first use."""
-        rois, masks, shape = self.local
-        data = torch.zeros((len(rois), *shape), dtype=torch.uint8, device=rois.device)
-        for d, (x1, y1, x2, y2, b, r) in zip(data, rois.tolist()):
-            d[y1:y2, x1:x2] = masks[b][r, : y2 - y1, : x2 - x1]
+        rois, _, shape = self.local
+        size = len(rois), *shape
+        data = np.zeros(size, np.uint8) if isinstance(rois, np.ndarray) else rois.new_zeros(size, dtype=torch.uint8)
+        for d, ((x1, y1, x2, y2), m) in zip(data, self.crops()):
+            d[y1:y2, x1:x2] = m
         return data
+
+    def _convert(self, fn):
+        """Return a copy of the masks with `fn` applied to their data, keeping box-local masks box-local."""
+        if not hasattr(self, "local"):
+            return super()._convert(fn)
+        rois, masks, shape = self.local
+        rois = fn(rois)
+        rois = rois if isinstance(rois, np.ndarray) else rois.long()  # box pixels stay integers through `to(dtype)`
+        return Masks((rois, [fn(m) for m in masks], shape), self.orig_shape)
+
+    def crops(self):
+        """Yield each mask as its (x1, y1, x2, y2) box and the (y2 - y1, x2 - x1) mask inside it, dense masks whole."""
+        if not hasattr(self, "local"):
+            yield from (((0, 0, *m.shape[::-1]), m) for m in self.data)
+            return
+        rois, masks, _ = self.local
+        for x1, y1, x2, y2, b, r in rois.tolist():
+            yield (x1, y1, x2, y2), masks[b][r, : y2 - y1, : x2 - x1]
+
+    def __str__(self) -> str:
+        """Return a description of the masks, without pasting box-local masks into their frame."""
+        if not hasattr(self, "local") or "data" in self.__dict__:
+            return super().__str__()
+        return f"{self.__module__}.Masks object with {len(self)} box-local masks of shape {tuple(self.shape)}"
 
     def __len__(self) -> int:
         """Return the number of masks."""
@@ -1209,16 +1238,13 @@ class Masks(BaseTensor):
         if not hasattr(self, "local"):
             return super().__getitem__(idx)
         rois, masks, shape = self.local
-        return Masks((rois[idx].view(-1, 6), masks, shape), self.orig_shape)
+        return Masks((rois[idx].reshape(-1, 6), masks, shape), self.orig_shape)
 
     def _segments(self) -> tuple[list[np.ndarray], tuple[int, int]]:
         """Return each mask's outline in mask pixels with the (height, width) of the frame the masks span."""
-        if not hasattr(self, "local"):
-            return ops.masks2segments(self.data), self.data.shape[1:]
-        rois, masks, shape = self.local
-        rois, masks = rois.tolist(), [m.cpu().numpy() for m in masks]
-        crops = [masks[b][r, : y2 - y1, : x2 - x1] for x1, y1, x2, y2, b, r in rois]
-        return [s + np.float32(r[:2]) for s, r in zip(ops.masks2segments(crops), rois)], shape
+        crops = list(self.numpy().crops())  # numpy() moves each batch of masks once
+        segments = ops.masks2segments([m for _, m in crops])
+        return [s + np.float32(box[:2]) for s, (box, _) in zip(segments, crops)], self.shape[1:]
 
     @cached_property
     def xyn(self) -> list[np.ndarray]:

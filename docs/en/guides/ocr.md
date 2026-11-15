@@ -70,7 +70,6 @@ their transcriptions, PDF pages scored against their text layers, and screenshot
 | `model`          | `yolo26x-text` | Best word F1 on photos and documents; `yolo26l-text` is within 0.5 points.                                       |
 | `imgsz`          | `1280`         | 960 loses 6 points of recall on photos; 1920 adds nothing. Smaller images run at their own size, never upscaled. |
 | Recognition unit | Word           | Reading words one by one beats reading whole lines by 4 F1 points on photos.                                     |
-| `max_det`        | `1000`         | A dense document page holds more than the default 300 words.                                                     |
 
 To train your own OBB text detector, use the [Scene Text OBB dataset](../datasets/obb/scene-text.md), which combines
 COCO-Text and HierText word annotations.

@@ -1359,21 +1359,21 @@ def test_data_utils(tmp_path):
     labels_dir.mkdir(parents=True)
     Image.new("RGB", (8, 8)).save(images_dir / "labeled.jpg")
     (labels_dir / "labeled.txt").write_text("0 0.5 0.5 0.2 0.2\n")
-    Image.new("RGB", (8, 8)).save(images_dir / "unlabeled.jpg")
 
+    # Reuse existing test.jpg as the unlabeled image; assert exact splitlines match expected relative paths
     autosplit(tmp_path / "coco8/images", weights=(0.0, 1.0, 0.0), annotated_only=True)
     val_txt = tmp_path / "coco8/autosplit_val.txt"
     assert val_txt.exists()
-    val_content = val_txt.read_text()
-    assert "labeled.jpg" in val_content
-    assert "unlabeled.jpg" not in val_content
+    assert sorted(val_txt.read_text().splitlines()) == ["./images/val/labeled.jpg"]
     assert not (tmp_path / "coco8/autosplit_train.txt").exists()
 
-    # Re-running cleans up stale autosplit files and routes images to new weights
+    # Re-running cleans up stale autosplit files and routes all images to new weights
     autosplit(tmp_path / "coco8/images", weights=(1.0, 0.0, 0.0), annotated_only=False)
     assert not val_txt.exists()
-    train_content = (tmp_path / "coco8/autosplit_train.txt").read_text()
-    assert "labeled.jpg" in train_content and "unlabeled.jpg" in train_content
+    assert sorted((tmp_path / "coco8/autosplit_train.txt").read_text().splitlines()) == [
+        "./images/val/labeled.jpg",
+        "./images/val/test.jpg",
+    ]
     with pytest.raises(ValueError, match="split"):
         check_cls_dataset("imagenet10", split="invalid")
     with pytest.raises(FileNotFoundError, match="'test:' images not found"):

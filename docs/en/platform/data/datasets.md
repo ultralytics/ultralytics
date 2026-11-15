@@ -414,6 +414,7 @@ Click any image to open the fullscreen viewer with:
 - **Class Breakdown**: Per-class label counts with color indicators
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
 - **Blur faces**: Right-click the image or an annotation to [preview and apply face blurring](#blur-faces) to the image when available
+- **Rotate**: With edit access, press `R` or use the rotate button to turn the image and its annotations 90° clockwise. Platform keeps the image as first stored and renders each turn from it, so repeated turns do not degrade the image and turning back to upright restores the original. Rotation is not available for depth datasets, multispectral datasets, images stored as TIFF, or cloud storage and On Premise datasets
 - **Download**: Download the original image file
 - **Delete**: Permanently delete the image from the dataset after you confirm
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out

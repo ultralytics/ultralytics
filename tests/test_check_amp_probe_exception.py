@@ -24,6 +24,11 @@ from ultralytics.utils.checks import check_amp
 
 PROBE_SHAPE = (8, 3, 256, 256)  # check_amp probe batch; DetectionModel's own stride pass uses (1, 3, 256, 256)
 
+# torch.cuda.OutOfMemoryError requires torch>=1.13; the guard treats it like any other Exception subclass
+_TRANSFER_EXC_TYPES = [RuntimeError]
+if hasattr(torch.cuda, "OutOfMemoryError"):
+    _TRANSFER_EXC_TYPES.append(torch.cuda.OutOfMemoryError)
+
 
 class _FakeAcceleratorModel:
     """Stand-in exposing an accelerator device so check_amp takes its probe path without real hardware."""
@@ -79,7 +84,7 @@ def test_check_amp_construction_failure_returns_false(monkeypatch, accelerator_p
     assert any("checks failed with an exception" in m for m in capture_amp_logs), capture_amp_logs
 
 
-@pytest.mark.parametrize("exc_type", [RuntimeError, torch.cuda.OutOfMemoryError])
+@pytest.mark.parametrize("exc_type", _TRANSFER_EXC_TYPES)
 def test_check_amp_transfer_failure_returns_false(monkeypatch, accelerator_probe_env, capture_amp_logs, exc_type):
     """A failure while moving the probe model to the device (e.g. tight memory) must disable AMP, not crash."""
 

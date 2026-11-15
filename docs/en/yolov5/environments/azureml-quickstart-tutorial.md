@@ -1,20 +1,20 @@
 ---
 comments: true
-description: Learn how to set up and run Ultralytics YOLOv5 on AzureML. Follow this quickstart guide for easy configuration and model training on an AzureML compute instance.
+description: Set up Ultralytics YOLOv5 on an AzureML compute instance. Create a Conda environment, train, validate, run inference and export, and add a notebook kernel.
 keywords: YOLOv5, AzureML, machine learning, compute instance, quickstart, model training, virtual environment, Python, AI, deep learning, Ultralytics
 ---
 
 # Ultralytics YOLOv5 🚀 on AzureML Quickstart
 
-Welcome to the Ultralytics [YOLOv5](../../models/yolov5.md) quickstart guide for Microsoft Azure Machine Learning (AzureML)! This guide will walk you through setting up YOLOv5 on an AzureML compute instance, covering everything from creating a virtual environment to training and running inference with the model.
+This guide walks you through setting up Ultralytics [YOLOv5](../../models/yolov5.md) on a Microsoft Azure Machine Learning (AzureML) compute instance, from creating a virtual environment to training and running inference with the model.
 
 ## What is Azure?
 
-[Azure](https://azure.microsoft.com/) is Microsoft's comprehensive [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) platform. It offers a vast array of services, including computing power, databases, analytics tools, [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) capabilities, and networking solutions. Azure enables organizations to build, deploy, and manage applications and services through Microsoft-managed data centers, facilitating the migration of workloads from on-premises infrastructure to the cloud.
+[Azure](https://azure.microsoft.com/) is Microsoft's [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) platform. It offers services including computing power, databases, analytics tools, [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) capabilities, and networking solutions. Azure enables organizations to build, deploy, and manage applications and services through Microsoft-managed data centers, facilitating the migration of workloads from on-premises infrastructure to the cloud.
 
 ## What is Azure Machine Learning (AzureML)?
 
-[Azure Machine Learning](https://azure.microsoft.com/products/machine-learning) (AzureML) is a specialized cloud service designed for developing, training, and deploying machine learning models. It provides a collaborative environment with tools suitable for data scientists and developers of all skill levels. Key features include [automated machine learning (AutoML)](https://www.ultralytics.com/glossary/automated-machine-learning-automl), a drag-and-drop interface for model creation, and a powerful [Python](https://www.python.org/) SDK for more granular control over the ML lifecycle. AzureML simplifies the process of embedding [predictive modeling](https://www.ultralytics.com/glossary/predictive-modeling) into applications.
+[Azure Machine Learning](https://azure.microsoft.com/products/machine-learning) (AzureML) is a specialized cloud service designed for developing, training, and deploying machine learning models. It provides a collaborative environment with tools suitable for data scientists and developers of all skill levels. Key features include [automated machine learning (AutoML)](https://www.ultralytics.com/glossary/automated-machine-learning-automl), a drag-and-drop interface for model creation, and a [Python](https://www.python.org/) SDK for more granular control over the ML lifecycle. AzureML simplifies the process of embedding [predictive modeling](https://www.ultralytics.com/glossary/predictive-modeling) into applications.
 
 ## Prerequisites
 
@@ -43,7 +43,7 @@ Once your compute instance is running, you can access its terminal directly from
 
 ## Setup and Run YOLOv5
 
-Now, let's set up the environment and run Ultralytics YOLOv5.
+Next, set up the environment and run Ultralytics YOLOv5.
 
 ### 1. Create a Virtual Environment
 
@@ -59,7 +59,7 @@ conda install pip -y                         # Ensure pip is installed
 
 ### 2. Clone YOLOv5 Repository
 
-Clone the official Ultralytics YOLOv5 repository from [GitHub](https://github.com/) using [Git](https://git-scm.com/):
+Clone the official [Ultralytics YOLOv5 repository](https://github.com/ultralytics/yolov5) from GitHub using [Git](https://git-scm.com/):
 
 ```bash
 git clone https://github.com/ultralytics/yolov5 # Clone the repository
@@ -79,7 +79,7 @@ pip install "onnx>=1.12.0"      # Install ONNX for exporting
 
 With the setup complete, you can now train, validate, perform inference, and export your YOLOv5 model.
 
-- **Train** the model on a dataset like [COCO128](../../datasets/detect/coco128.md). See the [Train Custom Data](../tutorials/train-custom-data.md) tutorial for more details.
+- **Train** the model on a [dataset](../tutorials/train-custom-data.md) like [COCO128](https://platform.ultralytics.com/ultralytics/datasets/coco128).
 
     ```bash
     # Start training using yolov5s pretrained weights on the COCO128 dataset
@@ -142,7 +142,7 @@ After creating the kernel, refresh your browser. When you open or create a `.ipy
     python val.py --weights yolov5s.pt --data coco128.yaml --img 640
     ```
 
-Congratulations! You've successfully set up and run Ultralytics YOLOv5 on AzureML. For further exploration, consider checking out other [Ultralytics Integrations](../../integrations/index.md) or the detailed [YOLOv5 documentation](../index.md). You might also find the [AzureML documentation](https://learn.microsoft.com/en-us/azure/machine-learning/?view=azureml-api-2) useful for advanced scenarios like distributed training or model deployment as an endpoint.
+You've now set up and run [Ultralytics YOLOv5](../index.md) on AzureML. You might also find the [AzureML documentation](https://learn.microsoft.com/en-us/azure/machine-learning/?view=azureml-api-2) useful for advanced scenarios like distributed training or model deployment as an endpoint.
 
 ## FAQ
 
@@ -160,4 +160,4 @@ Files under the workspace file share mounted at `~/cloudfiles` persist across st
 
 ### Can I use the `ultralytics` package on AzureML instead?
 
-Yes. `pip install ultralytics` gives you YOLO26 training, validation, and export with the `yolo` CLI in the same Conda environment. See the [AzureML Quickstart](../../guides/azureml-quickstart.md) for the package-based walkthrough.
+Yes. [`pip install ultralytics`](../../guides/azureml-quickstart.md) gives you [YOLO26](../../models/yolo26.md) training, validation, and export with the `yolo` CLI in the same Conda environment.

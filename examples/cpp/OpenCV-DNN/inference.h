@@ -16,7 +16,7 @@ namespace yolo {
 struct Config {
     std::string model_path = "yolo26n.onnx";  // default (nms=None) grid export; nms=False exports need OpenCV >= 4.11 (TopK)
     float conf = 0.25f;         // confidence threshold
-    float iou = 0.45f;          // NMS IoU threshold (grid models only)
+    float iou = 0.5f;           // NMS IoU threshold (grid models only)
     int imgsz = 640;            // square input size of the exported model
     bool cuda = false;          // use the OpenCV CUDA DNN backend (requires a CUDA-enabled OpenCV)
     Task task = Task::Unknown;  // optional override; OpenCV cannot read the task from the model

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from ultralytics.utils import LOGGER
+from ultralytics.utils.files import import_execstack
 
 
 def onnx2mnn(
@@ -34,7 +35,7 @@ def onnx2mnn(
     assert Path(onnx_file).exists(), f"failed to export ONNX file: {onnx_file}"
 
     check_requirements("MNN>=2.9.6")
-    import MNN
+    MNN = import_execstack("MNN", "_mnncengine*.so", "_tools*.so")
     from MNN.tools import mnnconvert
 
     LOGGER.info(f"\n{prefix} starting export with MNN {MNN.version()}...")

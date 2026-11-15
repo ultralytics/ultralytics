@@ -39,11 +39,11 @@ The ImageWoof dataset is widely used for training and evaluating [deep learning]
 - Benchmarking classification performance on fine-grained categories
 - Testing model robustness against similar-looking classes
 - Developing algorithms that can distinguish subtle visual differences
-- Evaluating transfer learning from general to specific domains
+- Evaluating [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) from general to specific domains
 
 ## Usage
 
-To train a classification model on the ImageWoof dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 224x224, use the code snippets below. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To [train](../../modes/train.md) a [YOLO26n-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n-cls) classification model on the ImageWoof dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 224x224, use the code snippets below.
 
 !!! example "Train Example"
 
@@ -104,11 +104,11 @@ Note that smaller images will likely yield lower classification [accuracy](https
 
 ## Sample Images and Annotations
 
-The ImageWoof dataset contains colorful images of various dog breeds, providing a challenging dataset for image classification tasks. Here are some examples of images from the dataset:
+The ImageWoof dataset contains color images of various dog breeds, providing a challenging dataset for image classification tasks. Here are some examples of images from the dataset:
 
 ![ImageWoof dog breed classification dataset samples](https://cdn.ul.run/i/37b2839fa206a3e90ad7206a61ccaa48.avif)
 
-The example showcases the subtle differences and similarities among the different dog breeds, highlighting the complexity and difficulty of the classification task.
+The example shows the subtle differences and similarities among the different dog breeds, highlighting the complexity and difficulty of the classification task.
 
 ## Citations and Acknowledgments
 
@@ -155,9 +155,9 @@ The ImageWoof dataset comes in three sizes:
 
 1. **Full Size (`imagewoof`)**: Ideal for final training and benchmarking, containing full-sized images.
 2. **Medium Size (`imagewoof320`)**: Resized images with a maximum edge length of 320 pixels, suited for faster training.
-3. **Small Size (`imagewoof160`)**: Resized images with a maximum edge length of 160 pixels, perfect for rapid prototyping.
+3. **Small Size (`imagewoof160`)**: Resized images with a maximum edge length of 160 pixels, suited for rapid prototyping.
 
-Use these versions by replacing `imagewoof` in the dataset argument accordingly. Note that smaller images may yield lower classification [accuracy](https://www.ultralytics.com/glossary/accuracy) but are useful for quicker iterations.
+Use these versions by replacing `imagewoof` in the dataset argument accordingly. Note that smaller images may yield lower classification accuracy but are useful for quicker iterations.
 
 ### How do noisy labels in the ImageWoof dataset benefit training?
 
@@ -165,4 +165,4 @@ Noisy labels in the ImageWoof dataset simulate real-world conditions where label
 
 ### What are the key challenges of using the ImageWoof dataset?
 
-The primary challenge of ImageWoof lies in the subtle differences among the dog breeds it includes. Because it focuses on 10 closely related breeds, distinguishing between them requires more advanced and fine-tuned image classification models. This makes ImageWoof an excellent benchmark to test the capabilities and improvements of [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models.
+The primary challenge of ImageWoof lies in the subtle differences among the dog breeds it includes. Because it focuses on 10 closely related breeds, distinguishing between them requires more advanced and fine-tuned image classification models. This makes ImageWoof an excellent benchmark to test the capabilities and improvements of deep learning models.

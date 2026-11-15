@@ -89,6 +89,7 @@ class TensorRTBackend(BaseBackend):
                 profile_shape = tuple(engine.get_profile_shape(0, i)[1]) if is_input else None
 
             if is_input:
+                self.input = name  # "images" in YOLO engines
                 if -1 in shape:
                     self.dynamic = True
                     if self.is_trt10:
@@ -135,14 +136,14 @@ class TensorRTBackend(BaseBackend):
         Returns:
             (list[torch.Tensor]): Model predictions as a list of tensors on the CUDA device.
         """
-        if self.dynamic and im.shape != self.bindings["images"].shape:
+        if self.dynamic and im.shape != self.bindings[self.input].shape:
             if self.is_trt10:
-                ok = self.context.set_input_shape("images", im.shape)
+                ok = self.context.set_input_shape(self.input, im.shape)
             else:
-                ok = self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
+                ok = self.context.set_binding_shape(self.model.get_binding_index(self.input), im.shape)
             if not ok:  # the profile refused the shape, so the bindings below would describe the wrong engine state
                 raise ValueError(f"input size {tuple(im.shape)} is outside the TensorRT optimization profile")
-            self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
+            self.bindings[self.input] = self.bindings[self.input]._replace(shape=im.shape)
             for name in self.output_names:
                 shape = (
                     self.context.get_tensor_shape(name)
@@ -151,14 +152,14 @@ class TensorRTBackend(BaseBackend):
                 )
                 self.bindings[name].data.resize_(tuple(shape))
 
-        s = self.bindings["images"].shape
+        s = self.bindings[self.input].shape
         assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
 
         if self.graph is None:
-            self.bindings["images"] = self.bindings["images"]._replace(data=im)
+            self.bindings[self.input] = self.bindings[self.input]._replace(data=im)
             if not self.context.execute_v2([binding.data.data_ptr() for binding in self.bindings.values()]):
                 raise RuntimeError("TensorRT inference execution failed")
         else:
-            self.bindings["images"].data.copy_(im)  # the capture reads this address, so the input must land in it
+            self.bindings[self.input].data.copy_(im)  # the capture reads this address, so the input must land in it
             self.graph.replay()
         return [self.bindings[x].data for x in sorted(self.output_names)]

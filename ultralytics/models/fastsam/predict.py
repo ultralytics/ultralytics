@@ -29,10 +29,12 @@ class FastSAMPredictor(SegmentationPredictor):
         clip (Any, optional): CLIP model used for text-based prompting, loaded on demand.
 
     Methods:
-        postprocess: Apply postprocessing to FastSAM predictions and handle prompts.
+        finalize_results: Select FastSAM prompts in original-image coordinates.
         prompt: Perform image segmentation inference based on various prompt types.
         set_prompts: Set prompts to be used during inference.
     """
+
+    default_iou = 0.7  # nested single-class masks, not the YOLO predict default
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the FastSAMPredictor with configuration and callbacks.
@@ -49,22 +51,12 @@ class FastSAMPredictor(SegmentationPredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
 
-    def postprocess(self, preds, img, orig_imgs):
-        """Apply postprocessing to FastSAM predictions and handle prompts.
-
-        Args:
-            preds (list[torch.Tensor]): Raw predictions from the model.
-            img (torch.Tensor): Input image tensor that was fed to the model.
-            orig_imgs (list[np.ndarray]): Original images before preprocessing.
-
-        Returns:
-            (list[Results]): Processed results with prompts applied.
-        """
-        bboxes = self.prompts.pop("bboxes", None)
-        points = self.prompts.pop("points", None)
-        labels = self.prompts.pop("labels", None)
-        texts = self.prompts.pop("texts", None)
-        results = super().postprocess(preds, img, orig_imgs)
+    def finalize_results(self, results: list) -> list:
+        """Adjust source-space masks and select prompts after any tiles have been merged."""
+        bboxes = self.prompts.get("bboxes")
+        points = self.prompts.get("points")
+        labels = self.prompts.get("labels")
+        texts = self.prompts.get("texts")
         for result in results:
             full_box = torch.tensor(
                 [0, 0, result.orig_shape[1], result.orig_shape[0]], device=result.boxes.data.device, dtype=torch.float32
@@ -112,41 +104,37 @@ class FastSAMPredictor(SegmentationPredictor):
                 full_mask_areas = torch.sum(masks, dim=(1, 2))
 
                 union = bbox_areas[:, None] + full_mask_areas - mask_areas
-                idx[torch.argmax(mask_areas / union, dim=1)] = True
+                idx[torch.argmax(mask_areas / union, dim=1)[mask_areas.any(dim=1)]] = True
             if points is not None:
-                coords = torch.as_tensor(points, dtype=torch.int32, device=self.device).clone()
+                coords = torch.as_tensor(points, dtype=torch.int64, device=self.device).clone()
                 coords = coords[None] if coords.ndim == 1 else coords
                 coords = clip_coords(coords, tuple(x - 1 for x in result.orig_shape))
                 if labels is None:
                     labels = torch.ones(coords.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
                 assert len(labels) == len(coords), "Labels and points must contain the same number of items."
+                point_masks = masks[:, coords[:, 1], coords[:, 0]].bool()
                 point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)
                     if labels.sum() == 0  # all negative points
-                    else torch.zeros(len(result), dtype=torch.bool, device=self.device)
+                    else point_masks[:, labels == 1].any(1)
                 )
-                for point, label in zip(coords, labels):
-                    point_idx[torch.nonzero(masks[:, point[1], point[0]], as_tuple=True)[0]] = bool(label)
+                point_idx &= ~point_masks[:, labels == 0].any(1)
                 idx |= point_idx
             if texts is not None:
                 if isinstance(texts, str):
                     texts = [texts]
-                crop_ims, filter_idx = [], []
+                crop_ims, keep = [], []
                 for i, b in enumerate(result.boxes.xyxy.tolist()):
                     x1, y1, x2, y2 = (int(x) for x in b)
                     if (masks[i].sum() if TORCH_1_10 else masks[i].sum(0).sum()) <= 100:  # torch 1.9 bug workaround
-                        filter_idx.append(i)
                         continue
+                    keep.append(i)
                     crop = result.orig_img[y1:y2, x1:x2] * masks[i, y1:y2, x1:x2, None].cpu().numpy()
                     crop_ims.append(Image.fromarray(crop[:, :, ::-1]))
-                similarity = self._clip_inference(crop_ims, texts)
-                text_idx = torch.argmax(similarity, dim=-1)  # (M, )
-                if len(filter_idx):
-                    # Remap text_idx to its original index before filtering (supports multiple text prompts)
-                    ori_idxs = torch.tensor([i for i in range(len(result)) if i not in filter_idx], device=self.device)
-                    text_idx = ori_idxs[text_idx]
-                idx[text_idx] = True
+                if crop_ims:  # the area filter can leave no masks to score
+                    similarity = self._clip_inference(crop_ims, texts)  # (M, N)
+                    idx[torch.tensor(keep, device=self.device)[similarity.argmax(-1)]] = True  # best mask per text
 
             prompt_results.append(result[idx])
 
@@ -163,10 +151,10 @@ class FastSAMPredictor(SegmentationPredictor):
             (torch.Tensor): Similarity matrix between texts and images with shape (M, N), where M is the number of texts
                 and N is the number of images.
         """
-        from ultralytics.nn.text_model import CLIP
+        from ultralytics.nn.text_model import MobileCLIPTS
 
         if not hasattr(self, "clip"):
-            self.clip = CLIP("ViT-B/32", device=self.device)
+            self.clip = MobileCLIPTS(self.device, "clip_b32_datacomp.ts")
         if self.device.type == "cuda" and NUM_THREADS > 1 and len(images) >= 2 * NUM_THREADS:
             with ThreadPool(NUM_THREADS) as pool:
                 images = pool.map(self.clip.image_preprocess, images)

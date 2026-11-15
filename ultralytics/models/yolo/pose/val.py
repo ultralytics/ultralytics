@@ -69,9 +69,9 @@ class PoseValidator(DetectionValidator):
         self.args.task = "pose"
         self.metrics = PoseMetrics()
 
-    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
+    def preprocess_targets(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch by converting keypoints data to float and moving it to the device."""
-        batch = super().preprocess(batch)
+        batch = super().preprocess_targets(batch)
         batch["keypoints"] = batch["keypoints"].float()
         return batch
 

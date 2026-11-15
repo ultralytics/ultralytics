@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import sys
 from collections import deque
 from functools import wraps
 from typing import Any
 
 import numpy as np
-import torch
 
 from ultralytics.utils.metrics import bbox_ioa
 
@@ -134,7 +134,7 @@ def _track_aware_nms(
 
 
 def attach_raw_preds_hook(predictor) -> None:
-    """Wrap `predictor.postprocess` to capture raw pre-NMS predictions and inputs (idempotent)."""
+    """Attach loose-NMS alternatives to their results so source-level recovery can follow tile merging."""
     if hasattr(predictor, "_orig_postprocess"):
         return
     orig = predictor.postprocess
@@ -144,11 +144,12 @@ def attach_raw_preds_hook(predictor) -> None:
         if predictor.args.mode != "track":  # plain predict() on this predictor needs no capture
             return orig(preds, img, orig_imgs, *args, **kwargs)
         raw = preds[0] if isinstance(preds, (list, tuple)) else preds  # PyTorch models return [inference, extras]
-        # clone() so the in-place NMS xywh->xyxy conversion can't mutate this capture; keep source device for box_iou
-        predictor._raw_preds = raw.detach().clone() if isinstance(raw, torch.Tensor) else raw
-        predictor._postprocess_im = img
-        predictor._postprocess_im0s = orig_imgs
-        return orig(preds, img, orig_imgs, *args, **kwargs)
+        # Both passes own their coordinates: NMS converts xywh to xyxy in place.
+        loose = orig(raw.clone(), img, orig_imgs, iou=_LOOSE_NMS_IOU)
+        results = orig(preds, img, orig_imgs, *args, **kwargs)
+        for tight, alternative in zip(results, loose):
+            tight._loose = (alternative, _LOOSE_NMS_IOU)
+        return results
 
     predictor._orig_postprocess = orig
     predictor.postprocess = _wrapped
@@ -156,19 +157,16 @@ def attach_raw_preds_hook(predictor) -> None:
 
 def compute_dets_del(predictor) -> list | None:
     """Return per-batch `(xywh, conf, cls)` tuples (`xywhr` for OBB) for detections tight NMS dropped, or None."""
-    raw = getattr(predictor, "_raw_preds", None)
-    if raw is None or not isinstance(raw, torch.Tensor):
+    if not hasattr(predictor.results[0], "_loose"):
         return None
     from ultralytics.utils import ops
     from ultralytics.utils.metrics import box_iou
 
-    loose_results = predictor._orig_postprocess(
-        raw, predictor._postprocess_im, predictor._postprocess_im0s, iou=_LOOSE_NMS_IOU
-    )
-
     is_obb = predictor.args.task == "obb"
     out = []
-    for loose, tight in zip(loose_results, predictor.results):
+    for tight in predictor.results:
+        loose, _ = tight._loose
+        del tight._loose
         tight_boxes = tight.obb if is_obb else tight.boxes
         loose_boxes = loose.obb if is_obb else loose.boxes
         if len(loose_boxes) == 0 or len(tight_boxes) == 0:
@@ -186,7 +184,6 @@ def compute_dets_del(predictor) -> list | None:
             xywh = ops.xyxy2xywh(dels[:, :4]).numpy()
             out.append((xywh, dels[:, 4].numpy(), dels[:, 5].numpy()))
 
-    predictor._raw_preds = None
     return out
 
 
@@ -298,7 +295,9 @@ class TTSTrack(BOTrack):
         self.frame_id = frame_id
         if new_id:
             self.track_id = self.next_id()
-        self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
+        self.cls, self.idx = new_track.cls, new_track.idx
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
 
     def update(self, new_track, frame_id: int) -> None:
         """Update a matched track with a new detection; promote to Tracked after min_track_len."""
@@ -326,7 +325,9 @@ class TTSTrack(BOTrack):
         if self.state == TrackState.Tracked or self.tracklet_len + 1 >= self.min_track_len:
             self.state = TrackState.Tracked
             self.is_activated = True
-        self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
+        self.cls, self.idx = new_track.cls, new_track.idx
+        if self.angle is not None:  # keep the half-turn form (θ or θ ± π) nearest the track angle, so it never flips
+            self.angle = new_track.angle - np.pi * round((new_track.angle - self.angle) / np.pi)
 
     def __repr__(self) -> str:
         """Short string representation of the track."""
@@ -382,6 +383,7 @@ class TRACKTRACK:
         self.args = args
         self.max_time_lost = args.track_buffer
         self.kalman_filter = KalmanFilterXYWH()
+        self._ids = iter(range(1, sys.maxsize))
 
         self.match_thr = getattr(args, "match_thresh", 0.7)
         self.lost_match_thr = getattr(args, "lost_match_thr", 0.0)
@@ -478,6 +480,7 @@ class TRACKTRACK:
         def _new_track(box, score, cls, feat=None):
             track = TTSTrack(box, score, cls, feat) if feat is not None else TTSTrack(box, score, cls)
             track.min_track_len = self.min_track_len
+            track.next_id = self._ids.__next__  # IDs are per tracker, so other trackers cannot reissue them
             return track
 
         high_boxes, high_scores, high_cls = boxes[high_mask], scores[high_mask], results.cls[high_mask]
@@ -590,11 +593,11 @@ class TRACKTRACK:
         )
 
     def reset(self) -> None:
-        """Clear all tracker state including GMC warp history and the global ID counter."""
+        """Clear all tracker state including GMC warp history and the track ID counter."""
         self.tracked_stracks = []
         self.lost_stracks = []
         self.removed_stracks = []
         self.frame_id = 0
         self.kalman_filter = KalmanFilterXYWH()
-        TTSTrack.reset_id()
+        self._ids = iter(range(1, sys.maxsize))
         self.gmc.reset_params()

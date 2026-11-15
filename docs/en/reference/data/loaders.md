@@ -36,6 +36,10 @@ keywords: Ultralytics, data loaders, SourceTypes, LoadStreams, LoadScreenshots, 
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.loaders.tile_batches
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.loaders.autocast_list
 
 <br><br><hr><br>

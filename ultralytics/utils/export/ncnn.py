@@ -31,6 +31,9 @@ def torch2ncnn(
 
     Returns:
         (str): Path to the exported ``_ncnn_model`` directory.
+
+    Raises:
+        RuntimeError: If NCNN cannot load the converted model.
     """
     from ultralytics.utils.checks import check_requirements
 
@@ -62,6 +65,11 @@ def torch2ncnn(
 
     for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_args.values()):
         Path(f_debug).unlink(missing_ok=True)
+
+    # PNNX exits cleanly even when NCNN cannot load its output
+    net = ncnn.Net()
+    if net.load_param(ncnn_args["ncnnparam"]) or net.load_model(ncnn_args["ncnnbin"]):
+        raise RuntimeError("NCNN failed to load the exported model, it may contain layers NCNN does not support.")
 
     if metadata:
         YAML.save(output_dir / "metadata.yaml", metadata)  # add metadata.yaml

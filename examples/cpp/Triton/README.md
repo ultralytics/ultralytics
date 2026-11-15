@@ -93,7 +93,7 @@ The shared helpers in [`../common`](../common) are header-only and added to the 
 Start your Triton server with a deployed Ultralytics YOLO model, then run the client. Use the model name as deployed in the repository as `--model`.
 
 ```bash
-# Defaults: --url localhost:8001 --model yolo26n --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
+# Defaults: --url localhost:8001 --model yolo26n --source bus.jpg --conf 0.25 --iou 0.5 --out result.jpg
 ./yolo_triton --model yolo26n --source bus.jpg                                 # detect   (auto)
 ./yolo_triton --model yolo26n-seg --source bus.jpg --out seg.jpg               # segment  (auto)
 ./yolo_triton --model yolo26n-pose --source bus.jpg --out pose.jpg --task pose # pose (grid export: needs --task)
@@ -114,7 +114,7 @@ Start your Triton server with a deployed Ultralytics YOLO model, then run the cl
 | `--version` | _latest_         | Model version (empty selects the latest).                      |
 | `--source`  | `bus.jpg`        | Input image.                                                   |
 | `--conf`    | `0.25`           | Confidence threshold.                                          |
-| `--iou`     | `0.45`           | NMS IoU threshold (grid models only; end2end models skip NMS). |
+| `--iou`     | `0.5`            | NMS IoU threshold (grid models only; end2end models skip NMS). |
 | `--imgsz`   | `640`            | Input size used when the model shape is dynamic.               |
 | `--task`    | _auto_           | Override the inferred task (`detect`, `segment`, `pose`, ...). |
 | `--out`     | `result.jpg`     | Output image path.                                             |

@@ -44,7 +44,7 @@ COCO_SKELETON = [
     [2, 4], [3, 5], [4, 6], [5, 7],
 ]  # fmt: skip
 
-# Pose color palette (RGB) from Ultralytics
+# Pose color palette (RGB), mirrors ultralytics/utils/plotting.py Colors
 POSE_PALETTE = np.array(
     [
         [255, 128, 0],
@@ -71,10 +71,9 @@ POSE_PALETTE = np.array(
     dtype=np.uint8,
 )
 
-# Per-keypoint colors (17 keypoints, palette indices) — RGB for no-tracker, BGR for tracker
-KPT_COLORS = POSE_PALETTE[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
-# Per-limb colors (19 limbs, palette indices)
-LIMB_COLORS = POSE_PALETTE[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
+# COCO keypoint and limb colors (RGB): face green, arms blue, legs orange, torso magenta
+KPT_COLORS = POSE_PALETTE[[16, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0]]
+LIMB_COLORS = POSE_PALETTE[[0, 0, 0, 0, 7, 7, 7, 9, 9, 9, 9, 9, 16, 16, 16, 16, 16, 16, 16]]
 # Golden ratio conjugate for well-distributed track colors
 GOLDEN_RATIO_CONJUGATE = 0.618033988749895
 

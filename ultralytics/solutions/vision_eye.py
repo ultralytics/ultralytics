@@ -33,7 +33,7 @@ class VisionEye(BaseSolution):
         """
         super().__init__(**kwargs)
         # Set the vision point where the system will view objects and draw tracks
-        self.vision_point = self.CFG["vision_point"]
+        self.vision_point = tuple(map(int, self.CFG["vision_point"]))  # cv2 draws at integer pixels
 
     def process(self, im0) -> SolutionResults:
         """Perform object detection, vision mapping, and annotation on the input image.

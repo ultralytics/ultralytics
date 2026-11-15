@@ -19,12 +19,9 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.x"
+      - uses: ultralytics/actions/setup-uv@main
       - name: Install requirements
-        run: |
-          pip install pygithub
+        run: uv pip install pygithub
       - name: Merge default branch into PRs
         shell: python
         env:

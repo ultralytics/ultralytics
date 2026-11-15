@@ -1,7 +1,7 @@
 ---
 title: YOLO26 Live Inference with Streamlit
 comments: true
-description: Learn how to set up a real-time object detection application using Streamlit and Ultralytics YOLO26. Follow this step-by-step guide to implement webcam-based object detection.
+description: Build a live inference web app with Streamlit and Ultralytics YOLO26 to run real-time object detection on webcam, video, or image input in your browser.
 keywords: Streamlit, YOLO26, Real-time Object Detection, Streamlit Application, YOLO26 Streamlit Tutorial, Webcam Object Detection
 ---
 
@@ -9,7 +9,7 @@ keywords: Streamlit, YOLO26, Real-time Object Detection, Streamlit Application, 
 
 ## Introduction
 
-Streamlit makes it simple to build and deploy interactive web applications. Combining this with Ultralytics YOLO26 allows for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and analysis directly in your browser. YOLO26's high accuracy and speed ensure seamless performance for live video streams, making it ideal for applications in security, retail, and beyond.
+[Streamlit](https://streamlit.io/) makes it simple to build and deploy interactive web applications. [Combining it with Ultralytics YOLO26](https://www.ultralytics.com/blog/run-an-interactive-ai-app-with-streamlit-and-ultralytics-yolo11) allows for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and analysis directly in your browser. YOLO26's speed and accuracy make it suitable for live video streams in applications such as security and retail.
 
 <p align="center">
   <br>
@@ -29,7 +29,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
 ## Advantages of Live Inference
 
-- **Seamless Real-Time Object Detection**: Streamlit combined with YOLO26 enables real-time object detection directly from your webcam feed. This allows for immediate analysis and insights, making it ideal for [applications requiring instant feedback](../modes/predict.md).
+- **Real-Time Object Detection**: Streamlit combined with YOLO26 enables real-time object detection directly from your webcam feed. This allows for immediate analysis and insights, making it ideal for [applications requiring instant feedback](../modes/predict.md).
 - **User-Friendly Deployment**: Streamlit's interactive interface makes it easy to deploy and use the application without extensive technical knowledge. Users can start live inference with a simple click, enhancing accessibility and usability.
 - **Efficient Resource Utilization**: YOLO26's optimized algorithms ensure high-speed processing with minimal computational resources. This efficiency allows for smooth and reliable webcam inference even on standard hardware, making advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) accessible to a wider audience.
 
@@ -80,14 +80,14 @@ Under the hood, the Streamlit application uses the [Ultralytics solutions module
 1. Captures frames from your webcam, an uploaded video file, or uploaded images
 2. Processes each frame through the YOLO26 model
 3. Applies object detection with your specified confidence and IoU thresholds
-4. Displays both the original and annotated frames in real-time
+4. Displays both the original and annotated frames in real time
 5. Optionally enables object tracking if selected
 
 The application provides a clean, user-friendly interface with controls to adjust model parameters and start/stop inference at any time.
 
 ## Conclusion
 
-By following this guide, you have successfully created a real-time object detection application using Streamlit and Ultralytics YOLO26. This application allows you to experience the power of YOLO26 in detecting objects through your webcam, with a user-friendly interface and the ability to stop the video stream at any time.
+By following this guide, you have created a real-time object detection application using Streamlit and Ultralytics YOLO26. The application runs YOLO26 on your webcam, video, or image input through a simple interface, and you can stop the stream at any time.
 
 For further enhancements, you can explore adding more features such as recording the video stream, saving the annotated frames, or integrating with other [computer vision libraries](https://www.ultralytics.com/blog/exploring-vision-ai-frameworks-tensorflow-pytorch-and-opencv).
 
@@ -131,7 +131,7 @@ For more details on the practical setup, refer to the [Streamlit Application Cod
 
 Using Ultralytics YOLO26 with Streamlit for real-time object detection offers several advantages:
 
-- **Seamless Real-Time Detection**: Achieve high-[accuracy](https://www.ultralytics.com/glossary/accuracy), real-time object detection directly from webcam feeds.
+- **Real-Time Detection**: Achieve high-[accuracy](https://www.ultralytics.com/glossary/accuracy), real-time object detection directly from webcam feeds.
 - **User-Friendly Interface**: Streamlit's intuitive interface allows easy use and deployment without extensive technical knowledge.
 - **Resource Efficiency**: YOLO26's optimized algorithms ensure high-speed processing with minimal computational resources.
 
@@ -145,7 +145,7 @@ After coding your Streamlit application integrating Ultralytics YOLO26, you can 
 streamlit run path/to/file.py
 ```
 
-This command will launch the application in your default web browser, enabling you to select YOLO26 models, set confidence and NMS thresholds, and start real-time object detection with a simple click. For a detailed guide, refer to the [Streamlit Application Code](#streamlit-application-code) section.
+This command will launch the application in your default web browser, enabling you to select YOLO26 models, set confidence and IoU thresholds, and start real-time object detection with a simple click.
 
 ### What are some use cases for real-time object detection using Streamlit and Ultralytics YOLO26?
 
@@ -159,10 +159,8 @@ For more in-depth use cases and examples, explore [Ultralytics Solutions](../sol
 
 ### How does Ultralytics YOLO26 compare to other object detection models like YOLOv5 and RCNNs?
 
-Ultralytics YOLO26 provides several enhancements over prior models like YOLOv5 and RCNNs:
+[Ultralytics YOLO26](../models/yolo26.md) provides several enhancements over prior models like YOLOv5 and R-CNN-family detectors:
 
 - **Higher Speed and Accuracy**: Improved performance for real-time applications.
 - **Ease of Use**: Simplified interfaces and deployment.
 - **Resource Efficiency**: Optimized for better speed with minimal computational requirements.
-
-For a comprehensive comparison, check [Ultralytics YOLO26 Documentation](../models/yolo26.md) and related blog posts discussing model performance.

@@ -12,6 +12,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br>
 
+## ::: ultralytics.data.utils.tile_windows
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.save_depth_png
 
 <br><br><hr><br>
@@ -40,11 +44,23 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.utils._exif_jpeg
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils._replace_image
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.verify_image
 
 <br><br><hr><br>
 
 ## ::: ultralytics.data.utils.verify_image_depth
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils.read_mask
 
 <br><br><hr><br>
 

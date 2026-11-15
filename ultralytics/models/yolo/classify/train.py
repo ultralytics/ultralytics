@@ -5,6 +5,7 @@ from __future__ import annotations
 from copy import copy
 from typing import Any
 
+import numpy as np
 import torch
 
 from ultralytics.data import ClassificationDataset, build_dataloader
@@ -19,8 +20,8 @@ from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_fi
 class ClassificationTrainer(BaseTrainer):
     """A trainer class extending BaseTrainer for training image classification models.
 
-    This trainer handles the training process for image classification tasks, supporting both YOLO classification models
-    and torchvision models with comprehensive dataset handling and validation.
+    This trainer handles image classification with YOLO models and TorchVision backbones configured in model YAMLs,
+    including dataset handling and validation.
 
     Attributes:
         model (ClassificationModel): The classification model to be trained.
@@ -58,13 +59,19 @@ class ClassificationTrainer(BaseTrainer):
         if overrides is None:
             overrides = {}
         overrides["task"] = "classify"
-        if overrides.get("imgsz") is None:
+        overrides["multi_scale"] = 0.0  # classification batches are never rescaled
+        if overrides.get("imgsz") is None and not overrides.get("resume"):
             overrides["imgsz"] = 224
         super().__init__(cfg, overrides, _callbacks)
 
     def set_model_attributes(self):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data["names"]
+
+    def get_class_counts(self):
+        """Return per-class image counts from the training dataset."""
+        classes = {s[0]: s[1] for s in self.train_loader.dataset.samples}  # count each tiled source once
+        return np.bincount(list(classes.values()), minlength=self.data["nc"]).astype(np.float32)
 
     def get_model(self, cfg: str | dict | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a modified PyTorch model configured for training YOLO classification.
@@ -96,15 +103,7 @@ class ClassificationTrainer(BaseTrainer):
         Returns:
             (Any): Model checkpoint if applicable, otherwise None.
         """
-        import torchvision  # scope for faster 'import ultralytics'
-
-        if str(self.model) in torchvision.models.__dict__:
-            self.model = torchvision.models.__dict__[self.model](
-                weights="IMAGENET1K_V1" if self.args.pretrained else None
-            )
-            ckpt = None
-        else:
-            ckpt = super().setup_model()
+        ckpt = super().setup_model()
         ClassificationModel.reshape_outputs(self.model, self.data["nc"])
         return ckpt
 

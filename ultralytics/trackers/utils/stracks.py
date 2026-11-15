@@ -146,8 +146,9 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
     """Update multiple track positions and covariances using a 2x3 affine homography.
 
     The Kalman state is assumed to be laid out as `(*box, *box_velocity)` with the box center `(x, y)` in the first two
-    dims. `R8x8` rotates all four 2-d pairs block-diagonally; the translation `t` is applied only to the position.
-    This assumes the state layout is four spatial/velocity pairs (e.g. XYWH); XYAH trackers must override this.
+    dims. Centers and their velocities follow the signed rotation, and the translation applies only to the center.
+    Axis-aligned extents follow `abs(R)` (the enclosing box of the rotated box), while oriented extents only scale and
+    the rotation is added to their `angle`. This assumes an XYWH state layout; XYAH trackers must override this.
 
     Args:
         stracks (list[STrack]): Tracks to warp in place; each must expose `mean` (shape (8,)) and `covariance` (shape
@@ -164,16 +165,16 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
     multi_mean = np.asarray([st.mean for st in stracks])
     multi_covariance = np.asarray([st.covariance for st in stracks])
 
-    R = H[:2, :2]
+    R, obb = H[:2, :2], stracks[0].angle is not None
     R8x8 = np.kron(np.eye(4, dtype=np.float32), R)
-    t = H[:2, 2]
+    R8x8[2:4, 2:4] = R8x8[6:8, 6:8] = np.linalg.norm(R[:, 0]) * np.eye(2) if obb else np.abs(R)  # sizes never flip sign
 
     multi_mean = np.matmul(R8x8, multi_mean[..., None])[..., 0]
-    multi_mean[:, :2] += t
+    multi_mean[:, :2] += H[:2, 2]
     # Keep the right operand C-contiguous. An F-contiguous one sends matmul into BLAS's transposed-gemm kernel,
     # which on macOS Accelerate leaves FP-exception flags set even for finite inputs — numpy then reports spurious
     # divide/overflow/invalid RuntimeWarnings — and measures slower here than the untransposed kernel.
     multi_covariance = np.matmul(np.matmul(R8x8, multi_covariance), np.ascontiguousarray(R8x8.T))
-    for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
-        stracks[i].mean = mean
-        stracks[i].covariance = cov
+    for st, mean, cov in zip(stracks, multi_mean, multi_covariance):
+        st.mean, st.covariance = mean, cov
+        st.angle = st.angle + np.arctan2(R[1, 0], R[0, 0]) if obb else None

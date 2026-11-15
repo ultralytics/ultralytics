@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import types
 import zipfile
 from pathlib import Path
@@ -38,11 +40,11 @@ def torch2litert(
 ) -> str:
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.
 
-    Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations) and
-    ``'w8a16'`` applies static INT8 weights with int16 activations, both requiring a ``calibration_dataset``;
-    ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32 activations) and needs no calibration.
-    ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an FP32 model in FP16 at runtime
-    via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
+    Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations, with
+    FP32 head outputs on Detect models) and ``'w8a16'`` applies static INT8 weights with int16 activations, both
+    requiring a ``calibration_dataset``; ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32 activations)
+    and needs no calibration. ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an
+    FP32 model in FP16 at runtime via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.
@@ -60,7 +62,10 @@ def torch2litert(
     """
     from ultralytics.utils.checks import check_requirements
 
-    check_requirements(("litert-torch>=0.9.0", "ai-edge-litert>=2.1.4"))
+    # typer<0.29 on Python 3.14: see the export-litert extra in pyproject.toml
+    check_requirements(
+        ("litert-torch>=0.10.0", "ai-edge-litert>=2.3.0"), constrain=("typer<0.29.0; python_version >= '3.14'",)
+    )
     import litert_torch
 
     static_int8 = quantize == 8
@@ -72,7 +77,7 @@ def torch2litert(
     file = Path(file)
     quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_w8a32" if dynamic_int8 else ""
 
-    # Normalize coordinate channels by input size so INT8 quantization preserves scores (denormalized in LiteRTBackend).
+    # Normalize coordinate channels by input size so static quantization keeps scores (denormalized in LiteRTBackend).
     # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.
     meta = metadata or {}
     task = meta.get("task")
@@ -99,8 +104,8 @@ def torch2litert(
     edge_model.export(tflite_file)
 
     if static_int8 or static_int16 or dynamic_int8:
-        check_requirements("ai-edge-quantizer>=0.6.0")
-        from ai_edge_quantizer import qtyping, quantizer, recipe
+        check_requirements("ai-edge-quantizer>=0.10.0")
+        from ai_edge_quantizer import calibrator, qtyping, quantizer, recipe
 
         qt = quantizer.Quantizer(str(tflite_file))
         if static_int8 or static_int16:  # static schemes calibrate over representative images
@@ -108,12 +113,7 @@ def torch2litert(
             LOGGER.info(f"{prefix} applying static quantization (int8 weights + {act} activations)...")
             calib_samples = []
             for batch in calibration_dataset:
-                imgs = batch["img"].cpu().float() / 255.0
-                # litert-torch traces a fixed batch; tile under-sized batches up to im's batch dim (repeats are
-                # statistics-identical for calibration)
-                if imgs.shape[0] < im.shape[0]:
-                    imgs = imgs.repeat(-(-im.shape[0] // imgs.shape[0]), 1, 1, 1)[: im.shape[0]]
-                calib_samples.append({"args_0": imgs.numpy()})
+                calib_samples.append({"args_0": (batch["img"].cpu().float() / 255.0).numpy()})
             qt.load_quantization_recipe(recipe.static_wi8_ai8() if static_int8 else recipe.static_wi8_ai16())
             # Keep FP32 graph input/output (weights/activations stay int8/int16 internally): matches the historical
             # onnx2tf "fp32 in/out" contract that downstream consumers (LiteRT GPU delegate, on-device runtimes) expect,
@@ -122,7 +122,17 @@ def torch2litert(
                 qt.update_quantization_recipe(
                     regex=".*", operation_name=op, algorithm_key=recipe.AlgorithmName.NO_QUANTIZE
                 )
-            result = qt.calibrate({"serving_default": calib_samples})
+            if static_int8 and any(isinstance(m, Detect) for m in model.modules()):
+                # Keep head output convs and decode float: int8 clips class logits and one output scale coarsens boxes
+                qt.update_quantization_recipe(
+                    regex=r"\.modules\.head\.(?!.*ultralytics\.nn\.modules\.(conv\.|block\.Proto))"
+                    r"|_NormalizeCoords;|serving_default_output_",
+                    operation_name=qtyping.TFLOperationName.ALL_SUPPORTED,
+                    algorithm_key=recipe.AlgorithmName.NO_QUANTIZE,
+                )
+            result = qt.calibrate(
+                {"serving_default": calib_samples}, mode=calibrator.CalibrationMode.CALIBRATION_PROFILER_BASED
+            )
             qt.quantize(calibration_result=result).export_model(str(tflite_file), overwrite=True)
         else:  # dynamic / weight-only INT8: int8 weights, FP32 activations, no calibration needed
             LOGGER.info(f"{prefix} applying dynamic INT8 quantization (int8 weights + FP32 activations)...")
@@ -134,3 +144,37 @@ def torch2litert(
     with zipfile.ZipFile(tflite_file, "a", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("metadata.json", json.dumps(metadata or {}))
     return str(tflite_file)
+
+
+def tflite2nxp(tflite_file: str, output_file: Path, metadata: dict) -> str:
+    """Compile an INT8 LiteRT model for i.MX95 using NXP's Neutron SDK 3.3.0.
+
+    Args:
+        tflite_file (str): Calibrated INT8 LiteRT model.
+        output_file (Path): Destination for the compiled model.
+        metadata (dict): Ultralytics metadata to preserve in the compiled model.
+
+    Returns:
+        (str): Path to the compiled model, requiring the matching Neutron runtime on i.MX95.
+    """
+    from ultralytics.utils.checks import check_requirements
+
+    check_requirements("eiq-neutron-sdk==3.3.0", cmds="--extra-index-url https://eiq.nxp.com/repository")
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "eiq_neutron_sdk.neutron_compiler.compiler",
+            "--input",
+            str(tflite_file),
+            "--output",
+            str(output_file),
+            "--target",
+            "imx95",
+            "--dump-statistics",
+        ],
+        check=True,
+    )
+    with zipfile.ZipFile(output_file, "a", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("metadata.json", json.dumps(metadata))
+    return str(output_file)

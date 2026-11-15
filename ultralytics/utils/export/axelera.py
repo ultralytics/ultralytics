@@ -17,7 +17,7 @@ import torch
 from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_requirements
 
-AXELERA_SDK = "1.8.0"
+AXELERA_SDK = "1.9.0"
 
 # Axelera exports mutate process-global state (the PROTOCOL_BUFFERS and PATH env vars below, plus any working-directory
 # files the compiler emits), so a module-level lock serializes concurrent in-process exports. Cross-process
@@ -52,7 +52,9 @@ def torch2axelera(
     # vars, plus any working-directory files the compiler writes), so concurrent in-process exports must
     # not overlap.
     with _AXELERA_EXPORT_LOCK:
-        prev_env = {key: os.environ.get(key) for key in ("PATH", "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")}
+        prev_env = {
+            key: os.environ.get(key) for key in ("PATH", "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "AXELERA_DEVICE_DIR")
+        }
         try:
             os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
             # The compiler runs `axkernelcc` from PATH, which is missing when the interpreter is launched
@@ -63,8 +65,10 @@ def torch2axelera(
                 cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
             ):
                 raise ModuleNotFoundError(f"Axelera export requires axelera-devkit=={AXELERA_SDK}.")
-            check_requirements("omnimalloc==0.5.0")
             from axelera import compiler
+
+            # axkernelcc only finds its device files next to its own path under site-packages, not Debian dist-packages
+            os.environ.setdefault("AXELERA_DEVICE_DIR", str(Path(compiler.__file__).parents[1]))
             from axelera.compiler import CompilerConfig
             from axelera.compiler.config.model_specific import extract_ultralytics_metadata
 

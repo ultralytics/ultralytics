@@ -37,6 +37,7 @@ Usage - formats:
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
+                         yolo26n_xilinx_model       # AMD Xilinx
 """
 
 from __future__ import annotations
@@ -58,10 +59,10 @@ from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox
 from ultralytics.data.loaders import LoadImagesAndVideos
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, PREDICT_IOU, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.plotting import class_activation_map
-from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import attempt_compile, smart_inference_mode
 
 STREAM_WARNING = """
 Inference results will accumulate in RAM unless `stream=True` is passed, which can cause out-of-memory errors for large
@@ -117,6 +118,8 @@ class BasePredictor:
         callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
+        scale_fill (bool): Whether pre_transform stretches images to imgsz instead of letterboxing them.
+        default_iou (float): NMS IoU threshold used when the `iou` argument is unset.
 
     Methods:
         preprocess: Prepare input image before inference.
@@ -132,6 +135,9 @@ class BasePredictor:
         run_callbacks: Execute registered callbacks for an event.
         add_callback: Register a new callback function.
     """
+
+    scale_fill = False
+    default_iou = PREDICT_IOU
 
     def __init__(
         self,
@@ -150,6 +156,8 @@ class BasePredictor:
         self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
+        if self.args.iou is None:
+            self.args.iou = self.default_iou
         self.done_warmup = False
         if self.args.show:
             self.args.show = check_imshow(warn=True)
@@ -192,14 +200,12 @@ class BasePredictor:
             # For a single image, add a batch dimension without the copy required by np.stack().
             im = torch.from_numpy(im[0]).unsqueeze(0) if len(im) == 1 else torch.from_numpy(np.stack(im))
             im = im.to(self.device)  # transfer as uint8, then reorder on device
-            im = im.permute(0, 3, 1, 2)  # BHWC to BCHW, (n, 3, h, w)
+            im = im.permute(0, 3, 1, 2).contiguous()  # BHWC to BCHW, (n, 3, h, w), dense first for a faster flip
             if im.shape[1] == 3:
                 im = im.flip(1)  # BGR to RGB
-            im = im.contiguous()
             im = (im.half() if self.model.fp16 else im.float()).div_(255)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
         else:
-            im = im.to(self.device)
-            im = im.half() if self.model.fp16 else im.float()  # already 0.0 - 1.0, no division
+            im = im.to(self.device, torch.float16 if self.model.fp16 else torch.float32)  # already 0-1, MPS no fp64
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
@@ -232,7 +238,9 @@ class BasePredictor:
             self.imgsz,
             auto=same_shapes
             and self.args.rect
+            and not self.scale_fill
             and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
+            scale_fill=self.scale_fill,
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -261,7 +269,7 @@ class BasePredictor:
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Results into one
 
-    def predict_cli(self, source=None, model=None):
+    def predict_cli(self, source=None, model=None, cfg=None):
         """Run prediction for the Command Line Interface (CLI).
 
         This function is designed to run predictions using the CLI. It sets up the source and model, then processes the
@@ -272,12 +280,13 @@ class BasePredictor:
             source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor, optional):
                 Source for inference.
             model (str | Path | torch.nn.Module, optional): Model for inference.
+            cfg (SimpleNamespace, optional): Arguments for this run, applied under the inference lock.
 
         Notes:
             Do not modify this function or remove the generator. The generator ensures that no outputs are
             accumulated in memory, which is critical for preventing memory issues during long-running predictions.
         """
-        gen = self.stream_inference(source, model)
+        gen = self.stream_inference(source, model, cfg=cfg)
         for _ in gen:  # sourcery skip: remove-empty-nested-block, noqa
             pass
 
@@ -312,8 +321,34 @@ class BasePredictor:
                 LOGGER.warning(STREAM_WARNING)
         self.vid_writer = {}
 
+    def _batches(self, batches):
+        """Run source callbacks before expanding each loaded batch into native tiles."""
+        for self.batch, self.dataset in batches:
+            self.run_callbacks("on_predict_batch_start")
+            yield from self._batch_tiles(self.batch, self.dataset)
+
+    def _batch_tiles(self, batch, dataset):
+        """Expand one loaded source batch into bounded tiles, retaining the original batch metadata."""
+        from ultralytics.data.loaders import tile_batches
+
+        if not self.args.tile:
+            yield batch, dataset, None
+            return
+        size = self.imgsz if self.args.tile is True else self.args.tile
+        paths, images, info = batch
+        for crops, windows, last in tile_batches(images, size, self.args.batch):
+            yield (
+                ([paths[i] for i, _ in windows], crops, [info[i] for i, _ in windows]),
+                dataset,
+                (batch, windows, last),
+            )
+
+    def finalize_results(self, results: list) -> list:
+        """Apply source-level postprocessing after restoring any tiles to the original image."""
+        return results
+
     @smart_inference_mode()
-    def stream_inference(self, source=None, model=None, *args, **kwargs):
+    def stream_inference(self, source=None, model=None, *args, cfg=None, **kwargs):
         """Stream inference on input source and save results to file.
 
         Args:
@@ -321,25 +356,31 @@ class BasePredictor:
                 Source for inference.
             model (str | Path | torch.nn.Module, optional): Model for inference.
             *args (Any): Additional arguments for the inference method.
+            cfg (SimpleNamespace, optional): Arguments for this run, applied under the inference lock.
             **kwargs (Any): Additional keyword arguments for the inference method.
 
         Yields:
             (ultralytics.engine.results.Results | torch.Tensor): Results objects, or embedding tensors when `embed` is
                 set.
         """
-        if self.args.verbose:
-            LOGGER.info("")
-
-        # Setup model
-        if self.model is None:
-            self.setup_model(model)
-        if not getattr(self.model, "base_model", True) and (
-            unsupported := [k for k in ("augment", "embed", "visualize") if getattr(self.args, k)]
-        ):
-            LOGGER.warning(f"{unsupported} not supported by this model (format='{self.model.format}'), ignoring.")
-            self.args.augment, self.args.embed, self.args.visualize = False, None, False
-
         with self._lock:  # for thread-safe inference
+            if cfg is not None:  # this call's args and save_dir, set under the lock so concurrent calls keep their own
+                keys = ("project", "name", "save_dir", "exist_ok")  # args that set save_dir
+                if any(getattr(cfg, k, None) != getattr(self.args, k, None) for k in keys):
+                    self.save_dir = get_save_dir(cfg)
+                self.args = cfg
+            if self.args.verbose:
+                LOGGER.info("")
+            if self.args.iou is None:  # Model.predict resets a reused predictor's args to the defaults
+                self.args.iou = self.default_iou
+            if self.model is None:
+                self.setup_model(model)
+            if not getattr(self.model, "base_model", True) and (
+                unsupported := [k for k in ("augment", "embed", "visualize") if getattr(self.args, k)]
+            ):
+                LOGGER.warning(f"{unsupported} not supported by this model (format='{self.model.format}'), ignoring.")
+                self.args.augment, self.args.embed, self.args.visualize = False, None, False
+
             if self.model.format == "pt" and self.model.end2end:
                 # Class filtering needs candidates before max_det truncation.
                 self.model.model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
@@ -350,7 +391,8 @@ class BasePredictor:
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-            self.seen, self.speed, self.pixels, self.windows, self.batch = 0, None, None, [], None
+            self.seen, self.speed, self.pixels, self.windows, self.batch, self._bases = 0, None, None, [], None, set()
+            self._sources = {}  # output base of each video path, stream slot, or batch image
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -359,16 +401,22 @@ class BasePredictor:
             )
             dataset = self.dataset
             batches = ((batch, dataset) for batch in dataset)
-            if (  # overlap loading with GPU work; each batch carries a snapshot of the loader's mode, frame and fps
-                self.device.type == "cuda"
+            if (  # overlap loading with inference; each batch carries a snapshot of the loader's mode, frame and fps
+                (self.device.type == "cuda" or getattr(self.model, "prefetch", False))
                 and isinstance(dataset, LoadImagesAndVideos)
                 and (dataset.nf > dataset.ni or len(dataset) > 1)
             ):
                 batches = _prefetch((batch, copy(dataset)) for batch in dataset)
             try:
+                if self.args.tile and (self.source_type.tensor or self.args.embed or self.args.visualize):
+                    raise ValueError("tile requires image/video sources without embed or visualize.")
                 self.run_callbacks("on_predict_start")
-                for self.batch, self.dataset in batches:
-                    self.run_callbacks("on_predict_batch_start")
+                tile_results, tile_windows = [], []
+                for batch, snapshot, tile_context in self._batches(batches):
+                    self.batch, self.dataset = batch, snapshot
+                    if not tile_results:
+                        start_times = [p.t for p in profilers]
+                        pixels = 0
                     paths, im0s, s = self.batch
 
                     # Preprocess
@@ -387,8 +435,32 @@ class BasePredictor:
                             continue
 
                     # Postprocess
+                    pixels += im.shape[0] * im.shape[2] * im.shape[3]
                     with profilers[2]:
                         self.results = self.postprocess(preds, im, im0s)
+                        if tile_context is not None:
+                            from ultralytics.engine.results import Results
+
+                            original, windows, last = tile_context
+                            tile_results.extend(self.results)
+                            tile_windows.extend(windows)
+                            if not last:
+                                continue
+                            self.batch = original
+                            paths, im0s, s = original
+                            groups = [([], []) for _ in im0s]
+                            for result, (i, window) in zip(tile_results, tile_windows):
+                                groups[i][0].append(result)
+                                groups[i][1].append(window)
+                            self.results = [
+                                Results.merge_tiles(
+                                    r, w, image, self.args.iou, self.args.agnostic_nms, self.args.max_det
+                                )
+                                for (r, w), image in zip(groups, im0s)
+                            ]
+                            tile_results.clear()
+                            tile_windows.clear()
+                        self.results = self.finalize_results(self.results)
                     self.run_callbacks("on_predict_postprocess_end")
 
                     # Visualize, save, write results
@@ -396,12 +468,12 @@ class BasePredictor:
                     try:
                         for i in range(n):
                             self.seen += 1
-                            px += im.shape[2] * im.shape[3]
+                            px += pixels / n
                             self.results[i].speed = {
-                                "preprocess": profilers[0].dt * 1e3 / n,
-                                "inference": profilers[1].dt * 1e3 / n,
-                                "postprocess": profilers[2].dt * 1e3 / n,
+                                k: (p.t - t) * 1e3 / n
+                                for k, p, t in zip(("preprocess", "inference", "postprocess"), profilers, start_times)
                             }
+                            self.results[i].colors = getattr(self.model, "colors", None)  # model class colors
                             if (
                                 self.args.verbose
                                 or self.args.save
@@ -439,14 +511,14 @@ class BasePredictor:
                         f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
                     )
 
-        if self.args.show:
-            cv2.destroyAllWindows()  # close any open windows
+            if self.args.show:
+                cv2.destroyAllWindows()  # close any open windows
 
-        if self.args.save or self.args.save_txt or self.args.save_crop:
-            nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
-            s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
-            LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
-        self.run_callbacks("on_predict_end")
+            if self.args.save or self.args.save_txt or self.args.save_crop:
+                nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
+                s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
+                LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
+        self.run_callbacks("on_predict_end")  # outside the lock, so a callback can predict with this model
 
     @smart_inference_mode(False)
     def setup_model(self, model, verbose: bool = True):
@@ -459,7 +531,7 @@ class BasePredictor:
         model = deepcopy(model)
         self.model = AutoBackend(
             model=model or self.args.model,
-            device=select_device(self.args.device, verbose=verbose),
+            device=self.args.device,
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.quantize == 16,
@@ -470,6 +542,8 @@ class BasePredictor:
         )
 
         self.device = self.model.device  # update device
+        if self.device.type == "cpu" and self.model.format in {"onnx", "openvino"}:
+            torch.set_num_threads(min(2, torch.get_num_threads()))  # pre/postprocess only; idle OpenMP threads spin
         self.model.eval()
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
@@ -491,11 +565,22 @@ class BasePredictor:
         if self.source_type.stream or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
             string += f"{i}: "
             frame = self.dataset.count
+        elif self.source_type.screenshot:
+            frame = self.dataset.frame
         else:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # None if frame undetermined
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
+        key = p if self.dataset.mode == "video" else i  # a video keeps one base across its frames, a stream per slot
+        if self.dataset.mode == "image" or key not in self._sources:
+            base, k = p.stem, 1
+            while base in self._bases:  # same-stem sources (bus.jpg + bus.png, a/clip.mp4 + b/clip.mp4) get -2, -3...
+                k += 1
+                base = f"{p.stem}-{k}"
+            self._bases.add(base)
+            self._sources[key] = base
+        base = self._sources[key]
+        self.txt_path = self.save_dir / "labels" / (base + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -512,28 +597,31 @@ class BasePredictor:
 
         # Save results
         if self.args.save_txt:
+            Path(f"{self.txt_path}.txt").unlink(missing_ok=True)  # replace, not append to, a previous run's labels
             result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
         if self.args.save_crop:
-            result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
+            result.save_crop(save_dir=self.save_dir / "crops", file_name=f"{self.txt_path.name}.jpg")
         if self.args.show:
             self.show(str(p))
         if self.args.save:
-            self.save_predicted_images(self.save_dir / p.name, frame)
+            self.save_predicted_images(self.save_dir / (base + p.suffix), frame, i)
 
         return string
 
-    def save_predicted_images(self, save_path: Path, frame: int | None = 0):
+    def save_predicted_images(self, save_path: Path, frame: int | None = 0, i: int = 0):
         """Save video predictions as mp4/avi or images as jpg at specified path.
 
         Args:
             save_path (Path): Path to save the results.
             frame (int | None): Frame number for video mode.
+            i (int): Index of the current image in the batch, selecting its stream FPS.
         """
         im = self.plotted_img
 
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
-            fps = self.dataset.fps if self.dataset.mode == "video" else 30
+            fps = self.dataset.fps[i] if self.source_type.stream else self.dataset.fps
+            fps = max(1, fps / self.args.vid_stride)  # skipped frames must not shorten the saved video
             frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
@@ -542,7 +630,7 @@ class BasePredictor:
                 self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
-                    fps=fps,  # integer required, floats produce error in MP4 codec
+                    fps=fps,  # float keeps fractional rates, e.g. 29.97 or 30 / vid_stride
                     frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 

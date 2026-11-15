@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Manage your Ultralytics Platform account including API keys, billing, and user settings with security and GDPR compliance.
+description: "Manage your Ultralytics Platform account: profile settings, API keys, plans and billing, teams, activity, trash recovery, security, and GDPR export."
 keywords: Ultralytics Platform, account, settings, API keys, billing, security, GDPR
 ---
 
 # Account Management
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive account management for API keys, billing, teams, and user settings. Manage your account securely with GDPR-compliant data handling.
+[Ultralytics Platform](https://platform.ultralytics.com) provides account management for API keys, billing, teams, and user settings, with GDPR-compliant data handling.
 
 <p align="center">
   <br>
@@ -30,15 +30,15 @@ The Account section helps you:
 - **Collaborate** with team members using shared workspaces
 - **Monitor** account activity and audit events
 - **Recover** deleted items from Trash within 30 days
-- **Export** your data for GDPR compliance
+- **Export** your data for [GDPR compliance](settings.md#gdpr-compliance)
 
-![Ultralytics Platform Settings Page Profile Tab With Social Links](https://cdn.ul.run/i/c120c6006049504700c1ad82a6e8b11b.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Page Profile Tab With Social Links](https://cdn.ul.run/i/25a3075d0bce50c69d1524decb80d67c.avif)<!-- screenshot -->
 
 ## Account Features
 
 | Feature      | Description                                                 |
 | ------------ | ----------------------------------------------------------- |
-| **Settings** | Profile, emails, social links, and data region              |
+| **Settings** | Profile, email, social links, and data region               |
 | **API Keys** | Generate AES-256-GCM encrypted keys for programmatic access |
 | **Plans**    | Free, Pro, and Enterprise plan comparison                   |
 | **Billing**  | Credits, payment methods, and transaction history           |
@@ -51,21 +51,21 @@ The Account section helps you:
 
 Account management is organized into nine tabs within `Settings` (in order):
 
-| Tab            | Description                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------- |
-| `Profile`      | Display name, bio, company, use case, emails, social links, data region, connected accounts |
-| `API Keys`     | Create and manage API keys for remote training and programmatic access                      |
-| `Plans`        | Compare Free, Pro, and Enterprise plans                                                     |
-| `Billing`      | Credit balance, top-up, auto top-up, payment methods, billing address, transactions         |
-| `Usage`        | Spend over time, usage events, and storage breakdown for the active workspace               |
-| `Referrals`    | Personal referral link and the $10 credit earned once a referred friend tops up $10         |
-| `Teams`        | Member list, roles, invites, seat allocation, and the permission matrix                     |
-| `Integrations` | Connect cloud or On Premise storage and compute, Slack notifications, and dataset imports   |
-| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                               |
+| Tab            | Description                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| `Profile`      | Display name, bio, company, use case, email, social links, data region, connected accounts |
+| `API Keys`     | Create and manage API keys for remote training and programmatic access                     |
+| `Plans`        | Compare Free, Pro, and Enterprise plans                                                    |
+| `Billing`      | Credit balance, top-ups, promo codes, payment methods, billing address, transactions       |
+| `Usage`        | Spend over time, usage events, and storage breakdown for the active workspace              |
+| `Referrals`    | Personal referral link and the $10 credit earned once a referred friend tops up $10        |
+| `Teams`        | Member list, roles, invites, seat allocation, and the permission matrix                    |
+| `Integrations` | Connect cloud or On Premise storage and compute, Slack notifications, and dataset imports  |
+| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                              |
 
 ## Security
 
-Ultralytics Platform implements multiple security measures:
+Ultralytics Platform implements multiple [security measures](https://www.ultralytics.com/security):
 
 ### Authentication
 
@@ -104,11 +104,8 @@ Usernames cannot be changed after account creation. Your username is set during 
 
 ### How do I change my email?
 
-Manage your email addresses directly on the platform:
-
-1. Go to `Settings > Profile`
-2. Scroll to the **Emails** section
-3. Add a new email, enter the 6-digit code sent to it, then set it as primary
+Change it in the **Email** card of `Settings > Profile` by confirming a 6-digit code sent to the new address. See
+[Settings](settings.md#email).
 
 ### How do I delete my account?
 
@@ -137,5 +134,5 @@ Yes, Ultralytics Platform implements:
 
 ### Can I change my data region?
 
-Your data region is selected during onboarding and can't be changed yourself. Contact support to request a region
+Your [data region](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/regions-and-compliance) is selected during onboarding and can't be changed yourself. Contact support to request a region
 change. Dedicated deployments use the deployment region selected when each endpoint is created.

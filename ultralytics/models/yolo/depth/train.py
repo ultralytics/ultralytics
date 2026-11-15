@@ -132,10 +132,11 @@ class DepthTrainer(DetectionTrainer):
     def final_eval(self) -> None:
         """Run the standard final evaluation, then calibrate the saved checkpoints.
 
-        After training, fits the scale-only log-affine (``cal_a``/``cal_b``) on the validation
-        set and writes it into best.pt/last.pt, so the model outputs metric-scaled depth out of
-        the box. When ``plots`` is set, also writes ``val_batch{ni}_calibrated.jpg``
-        (RGB | GT | raw | calibrated) comparison panels.
+        After training, selects the log-affine calibration (``cal_a``/``cal_b``) on the validation
+        set — identity, the checkpoint's current calibration, or a scale-only refit, see
+        :func:`calibrate_checkpoint` — and writes it into best.pt/last.pt, so the model outputs
+        metric-scaled depth out of the box. When ``plots`` is set, also writes
+        ``val_batch{ni}_calibrated.jpg`` (RGB | GT | raw | calibrated) comparison panels.
         """
         super().final_eval()
         if RANK not in {-1, 0}:

@@ -18,6 +18,7 @@ def torch2openvino(
     quantize: int | str | None = None,
     calibration_dataset: Any | None = None,
     int8_detect: bool = False,
+    device: str | None = None,
     prefix: str = "",
 ) -> Any:
     """Export a PyTorch model to OpenVINO format with optional INT8 quantization.
@@ -30,6 +31,7 @@ def torch2openvino(
         quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8 for INT8.
         calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``quantize=8``).
         int8_detect (bool): Whether to keep the detection head in floating-point precision during INT8 quantization.
+        device (str | None): Inference device; ``npu`` selects symmetric INT8 activations for CNN detection heads.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -51,6 +53,7 @@ def torch2openvino(
 
         from ultralytics.nn.modules import RTDETRDecoder
 
+        transformer = any(isinstance(m, RTDETRDecoder) for m in model.modules())
         ignored_scope = None
         if int8_detect:
             operations = ov_model.get_ordered_ops()
@@ -67,10 +70,11 @@ def torch2openvino(
         ov_model = nncf.quantize(
             model=ov_model,
             calibration_dataset=calibration_dataset,
-            preset=nncf.QuantizationPreset.MIXED,
-            model_type=nncf.ModelType.TRANSFORMER
-            if any(isinstance(m, RTDETRDecoder) for m in model.modules())
-            else None,
+            # NPU runs CNN detection heads about 2x faster with symmetric activations; CPU and GPU gain little
+            preset=nncf.QuantizationPreset.PERFORMANCE
+            if int8_detect and not transformer and str(device).lower().startswith("npu")
+            else nncf.QuantizationPreset.MIXED,
+            model_type=nncf.ModelType.TRANSFORMER if transformer else None,
             # Calibrate on the full dataset like other INT8 backends, not nncf's 300-batch default
             subset_size=calibration_dataset.get_length() or 300,
             ignored_scope=ignored_scope,

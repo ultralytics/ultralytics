@@ -28,7 +28,7 @@ def _load_checkpoint(model, checkpoint):
 
     checkpoint = attempt_download_asset(checkpoint)
     with open(checkpoint, "rb") as f:
-        state_dict = torch_load(f)
+        state_dict = torch_load(f, weights_only=True)
     # Handle nested "model" key
     if "model" in state_dict and isinstance(state_dict["model"], dict):
         state_dict = state_dict["model"]

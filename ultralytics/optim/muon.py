@@ -216,8 +216,7 @@ class MuSGD(optim.Optimizer):
         receive both an orthogonalized Muon update and a standard SGD momentum update.
 
         Args:
-            closure (Callable, optional): A closure that reevaluates the model
-                and returns the loss. Default: None.
+            closure (Callable, optional): A closure that reevaluates the model and returns the loss. Default: None.
 
         Returns:
             (torch.Tensor | None): The loss value if closure is provided, otherwise None.

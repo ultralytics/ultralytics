@@ -93,7 +93,7 @@ def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
             class_ids.append(maxClassIndex)
 
     # Apply NMS (Non-maximum suppression)
-    result_boxes = np.array(cv2.dnn.NMSBoxes(boxes, scores, 0.25, 0.45, 0.5)).flatten()
+    result_boxes = np.array(cv2.dnn.NMSBoxes(boxes, scores, 0.25, 0.5, 0.5)).flatten()
 
     detections = []
 

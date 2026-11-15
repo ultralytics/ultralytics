@@ -14,7 +14,8 @@ from torch import nn
 from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, smart_inference_mode
+from ultralytics.utils.plotting import Colors
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, select_device, smart_inference_mode
 
 from .backends import (
     AscendBackend,
@@ -56,8 +57,8 @@ def check_class_names(names: list | dict) -> dict[int, str]:
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
-        # Convert 1) string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True'
-        names = {int(k): str(v) for k, v in names.items()}
+        # Convert string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True', in id order
+        names = dict(sorted({int(k): str(v) for k, v in names.items()}.items()))
         n = len(names)
         if not n:
             raise KeyError("0-class dataset, at least one class name is required in your dataset YAML.")
@@ -70,7 +71,7 @@ def check_class_names(names: list | dict) -> dict[int, str]:
             from ultralytics.utils import ROOT, YAML
 
             names_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
-            names = {k: names_map[v] for k, v in names.items()}
+            names = {k: names_map.get(v, v) for k, v in names.items()}
     return names
 
 
@@ -128,6 +129,8 @@ class AutoBackend(nn.Module):
             | Qualcomm QNN          | *_qnn.onnx             |
             | Hailo                 | *_hailo_model/         |
             | Huawei Ascend         | *_ascend_model/        |
+            | AMD Xilinx            | *_xilinx_model/        |
+            | NXP                   | *_nxp.tflite           |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -165,6 +168,7 @@ class AutoBackend(nn.Module):
         "pb": TensorFlowBackend,
         "edgetpu": TensorFlowBackend,
         "litert": LiteRTBackend,
+        "nxp": LiteRTBackend,
         "paddle": PaddleBackend,
         "mnn": MNNBackend,
         "ncnn": NCNNBackend,
@@ -177,7 +181,10 @@ class AutoBackend(nn.Module):
         "qnn": QNNBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
+        "xilinx": ONNXBackend,
     }
+    # Runtimes that map PyTorch device names onto their own hardware, 'xpu' and 'npu' onto the Intel GPU and NPU
+    INTEL_FORMATS = frozenset({"openvino", "litert"})
 
     @smart_inference_mode(False)
     def __init__(
@@ -196,8 +203,8 @@ class AutoBackend(nn.Module):
 
         Args:
             model (str | Path | torch.nn.Module): Path to the model weights file or a module instance.
-            device (torch.device | str, optional): Device to run the model on, or a 'tpu', 'intel' or 'vulkan' device
-                string from `select_device`. Defaults to CPU when None.
+            device (torch.device | str, optional): PyTorch device name, e.g. 'cpu', '0', 'mps', 'xpu' or 'npu'. OpenVINO
+                and LiteRT map 'xpu' and 'npu' onto the Intel GPU and NPU. Defaults to the best available device.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
@@ -207,9 +214,10 @@ class AutoBackend(nn.Module):
             end2end (bool, optional): Select the native detection head before fusion; None preserves its current mode.
         """
         super().__init__()
-        device = device or torch.device("cpu")
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
+        if format not in self.INTEL_FORMATS:
+            device = select_device(device, verbose=verbose)
         if (
             isinstance(model, nn.Module)
             and TORCH_1_10
@@ -217,8 +225,8 @@ class AutoBackend(nn.Module):
         ):
             model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
-        # Check if format supports FP16
-        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine"}
+        # Check if format supports FP16; PyTorch CPU FP16 is slow and breaks some models (e.g. RT-DETR returns no boxes)
+        fp16 &= format in {"onnx", "openvino", "engine"} or (format in {"pt", "torchscript"} and str(device) != "cpu")
 
         # Set device
         if (
@@ -244,7 +252,7 @@ class AutoBackend(nn.Module):
             backend_kwargs["fuse"] = fuse
             backend_kwargs["verbose"] = verbose
             backend_kwargs["end2end"] = end2end
-        elif format in {"saved_model", "pb", "edgetpu", "dnn"}:
+        elif format in {"saved_model", "pb", "edgetpu", "dnn", "nxp"}:
             backend_kwargs["format"] = format
         self.backend = self._BACKEND_MAP[format](model, **backend_kwargs)
 
@@ -277,6 +285,7 @@ class AutoBackend(nn.Module):
         empty = [k for k, v in self.backend.names.items() if not v.strip()]
         if empty:
             LOGGER.warning(f"Empty class name string(s) at class indices {empty} will display as blank labels.")
+        self.backend.colors = Colors.parse(getattr(self.backend, "colors", None))  # once per model for Results.plot
 
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to the backend.
@@ -315,10 +324,22 @@ class AutoBackend(nn.Module):
         Returns:
             (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
         """
+        nms = self.metadata.get("args", {}).get("nms")
+        dynamic = self.metadata.get("dynamic")
+        fixed = not dynamic and (nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"})
+        if self.format not in {"coreml", "imx"} and im.shape[0] > self.batch and (nms or (fixed and dynamic is False)):
+            # Static and NMS graphs use the export batch; clone reused outputs and pad short tails below.
+            ys = []
+            for x in im.split(self.batch):
+                y = self.forward(x)
+                ys.append([t.clone() for t in y] if isinstance(y, list) else y.clone())
+            return [torch.cat(t) for t in zip(*ys)] if isinstance(ys[0], list) else torch.cat(ys)
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
         if self.backend.fp16 and im.dtype != torch.float16:
             im = im.half()
+        if (pad := self.batch - im.shape[0] if fixed else 0) > 0:  # static-batch exports reject short batches
+            im = torch.cat((im, im.new_zeros(pad, *im.shape[1:])))
 
         # Build forward kwargs based on backend type
         forward_kwargs = {}
@@ -326,6 +347,8 @@ class AutoBackend(nn.Module):
             forward_kwargs = {"augment": augment, "embed": embed, **kwargs}
 
         y = self.backend.forward(im, **forward_kwargs)
+        if pad > 0:  # drop the zero-padded rows
+            y = [x[:-pad] for x in y] if isinstance(y, (list, tuple)) else y[:-pad]
 
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
@@ -360,7 +383,7 @@ class AutoBackend(nn.Module):
         if not self.end2end:
             import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
         if self.format in {"pt", "torchscript", "onnx", "engine", "saved_model", "pb", "triton"} and (
-            self.device.type != "cpu" or self.format == "triton"
+            self.device.type != "cpu" or self.format in {"triton", "torchscript"}
         ):
             im = (
                 im
@@ -393,19 +416,19 @@ class AutoBackend(nn.Module):
         sf = export_formats()["Suffix"]
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)
-        name = Path(p).name
-        types = [s in name for s in sf]
-        types[5] |= name.endswith(".mlmodel")
-        format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
-        if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
-            format = "qnn"
-        elif name.endswith(".tflite") and not name.endswith("_edgetpu.tflite"):
-            format = "litert"  # bare .tflite files (incl. legacy TFLite exports) load via LiteRT
-        elif format == "-":
+        name = Path(p).name.lower()
+        # The suffix ending last wins, then the longest, i.e. 'best.pt.onnx' -> onnx, 'best_qnn.onnx' -> qnn
+        matches = [
+            (name.rfind(s) + len(s), len(s), f)
+            for s, f in zip([*sf, ".mlmodel"], [*export_formats()["Argument"], "coreml"])
+            if s in name
+        ]
+        format = max(matches)[2] if matches else None
+        if format == "-":
             format = "pt"
         elif format == "onnx" and dnn:
             format = "dnn"
-        elif not any(types):
+        elif format is None:
             from urllib.parse import urlsplit
 
             url = urlsplit(p)
@@ -423,8 +446,7 @@ class AutoBackend(nn.Module):
         """Apply a function to backend.model parameters, buffers, and tensors.
 
         This method extends the functionality of the parent class's _apply method by additionally applying the
-        function to the backend model and updating the backend device. It's typically used for operations like moving
-        the model to a different device or changing its precision.
+        function to the backend model and updating `backend.device` and `backend.fp16` from the converted parameters.
 
         Args:
             fn (Callable): A function to be applied to the model's tensors. This is typically a method like to(), cpu(),
@@ -436,5 +458,7 @@ class AutoBackend(nn.Module):
         super()._apply(fn)
         if hasattr(self.backend, "model") and isinstance(self.backend.model, nn.Module):
             self.backend.model._apply(fn)
-            self.backend.device = next(self.backend.model.parameters()).device  # update device after move
+            parameter = next(self.backend.model.parameters())
+            self.backend.device = parameter.device
+            self.backend.fp16 = parameter.dtype == torch.float16
         return self

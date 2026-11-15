@@ -81,7 +81,7 @@ class Events:
             "CPU": get_cpu_info(),
             "version": __version__,
             "env": ENVIRONMENT,
-            "session_id": round(random.random() * 1e15),
+            "session_id": round(random.Random().random() * 1e15),
             "engagement_time_msec": 1000,
         }
         self.enabled = (

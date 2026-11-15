@@ -1,16 +1,16 @@
 ---
 comments: true
-description: Boost your YOLOv5 performance with Test-Time Augmentation (TTA). Learn setup, testing, and inference techniques to elevate mAP and Recall.
+description: Use test-time augmentation (TTA) with Ultralytics YOLOv5 by adding --augment to val.py, detect.py or PyTorch Hub inference to raise mAP and recall.
 keywords: YOLOv5, Test-Time Augmentation, TTA, machine learning, deep learning, object detection, mAP, Recall, PyTorch
 ---
 
 # Test-Time Augmentation (TTA)
 
-📚 This guide explains how to use Test Time Augmentation (TTA) during testing and inference for improved mAP and [Recall](https://www.ultralytics.com/glossary/recall) with YOLOv5 🚀.
+This guide explains how to use test-time augmentation (TTA) during testing and inference for improved [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and [recall](https://www.ultralytics.com/glossary/recall) with [YOLOv5](../../models/yolov5.md).
 
 ## Before You Start
 
-Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+Clone the repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
 git clone https://github.com/ultralytics/yolov5 # clone
@@ -20,7 +20,7 @@ pip install -r requirements.txt # install
 
 ## Test Normally
 
-Before trying TTA we want to establish a baseline performance to compare to. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5n.pt`, `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset, i.e. `runs/train/exp/weights/best.pt`. For details on all available models please see our [YOLOv5 documentation](../../models/yolov5.md).
+Before trying TTA, establish a baseline performance to compare against. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate P5 model. Other options are the smaller [pretrained checkpoints](https://github.com/ultralytics/yolov5#pretrained-checkpoints) `yolov5n.pt`, `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset, e.g. `runs/train/exp/weights/best.pt`.
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
@@ -37,7 +37,7 @@ Model Summary: 476 layers, 87730285 parameters, 0 gradients
 
 val: Scanning '../datasets/coco/val2017' images and labels...4952 found, 48 missing, 0 empty, 0 corrupted: 100% 5000/5000 [00:01<00:00, 2846.03it/s]
 val: New cache created: ../datasets/coco/val2017.cache
-               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95: 100% 157/157 [02:30<00:00,  1.05it/s]
+               Class     Images  Instances          P          R      mAP50   mAP50-95: 100% 157/157 [02:30<00:00,  1.05it/s]
                  all       5000      36335      0.746      0.626       0.68       0.49
 Speed: 0.1ms pre-process, 22.4ms inference, 1.4ms NMS per image at shape (32, 3, 640, 640)  # <--- baseline speed
 
@@ -77,7 +77,7 @@ Fusing layers...
 Model Summary: 476 layers, 87730285 parameters, 0 gradients
 val: Scanning '../datasets/coco/val2017' images and labels...4952 found, 48 missing, 0 empty, 0 corrupted: 100% 5000/5000 [00:01<00:00, 2885.61it/s]
 val: New cache created: ../datasets/coco/val2017.cache
-               Class     Images     Labels          P          R     mAP@.5 mAP@.5:.95: 100% 157/157 [07:29<00:00,  2.86s/it]
+               Class     Images  Instances          P          R      mAP50   mAP50-95: 100% 157/157 [07:29<00:00,  2.86s/it]
                  all       5000      36335      0.718      0.656      0.695      0.503
 Speed: 0.2ms pre-process, 80.6ms inference, 2.7ms NMS per image at shape (32, 3, 832, 832)  # <--- TTA speed
 
@@ -99,7 +99,7 @@ Evaluating pycocotools mAP... saving runs/val/exp2/yolov5x_predictions.json...
 
 ## Inference with TTA
 
-`detect.py` TTA inference operates identically to `val.py` TTA: simply append `--augment` to any existing `detect.py` command:
+`detect.py` TTA inference operates identically to `val.py` TTA: append `--augment` to any existing `detect.py` command:
 
 ```bash
 python detect.py --weights yolov5s.pt --img 832 --source data/images --augment
@@ -121,7 +121,7 @@ Results saved to runs/detect/exp
 Done. (0.156s)
 ```
 
-<img src="https://cdn.ul.run/i/7081908c42703652cef41b7da3f6e2f3.avif" width="500" alt="YOLOv5 test time augmentations">
+<img src="https://cdn.ul.run/i/7081908c42703652cef41b7da3f6e2f3.avif" width="500" alt="YOLOv5 test-time augmentation inference results">
 
 ### PyTorch Hub TTA
 
@@ -156,11 +156,11 @@ Test-Time Augmentation offers several key advantages for [object detection](http
 - **Increased Robustness**: By testing multiple variations of each image, TTA reduces the impact of viewing angle, lighting, and other environmental factors.
 - **Simple Implementation**: Requires only adding the `--augment` flag to existing commands.
 
-The tradeoff is increased inference time, making TTA more suitable for applications where accuracy is prioritized over speed.
+The trade-off is increased inference time, making TTA more suitable for applications where accuracy is prioritized over speed.
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)

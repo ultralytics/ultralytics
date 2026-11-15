@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, Agents, workflows, YOLO26, VLM, confidence filte
 
 # Agents
 
-[Agents](https://platform.ultralytics.com/agents) connects images, models, conditions, and actions in a visual workflow. Use YOLO to decide which images need a closer look, ask a vision-language model to explain them, or collect selected images in a dataset for review.
+[Agents](https://platform.ultralytics.com/agents) connects images, models, conditions, and actions in a [visual workflow](https://www.ultralytics.com/blog/introducing-ultralytics-agents-build-visual-ai-workflows-faster). Use YOLO to decide which images need a closer look, ask a [vision-language model](https://www.ultralytics.com/glossary/vision-language-model-vlm) to explain them, or collect selected images in a dataset for review.
 
 Open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https://platform.ultralytics.com/agents). Agents appears in the sidebar for every signed-in user, in personal and team workspaces, with no Early access setting to enable.
 
@@ -18,7 +18,7 @@ Open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https:
 
 1. Open **Agents**, click **Add block > Templates**, and choose **YOLO → VLM Monitor**.
 2. Select the **Input image** block, choose an uploaded dataset, and select an image containing a person. Use an image of up to 4 megapixels for the shared trial.
-3. Keep the default YOLO26 nano model. The condition passes when YOLO detects at least one person.
+3. Keep the default [YOLO26 nano](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model. The condition passes when YOLO detects at least one person.
 4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents-and-annotation) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
 5. Keep **Shared trial · 60 seconds** selected for a small run, then click **Run**.
 6. Watch the blocks update and inspect the **Output**. If no person is detected, the condition finishes without running the description branch.
@@ -75,7 +75,7 @@ Select a block to edit its settings. Connect an output to another block to pass 
 
 ### Filter Detections with a Condition
 
-Use the same **Gate** block for detection counts and confidence filters. Choose the upstream result, any class or a specific class, and a comparison. For example:
+Use the same **Gate** block for detection counts and [confidence](https://www.ultralytics.com/glossary/confidence) filters. Choose the upstream result, any class or a specific class, and a comparison. For example:
 
 - **Person count ≥ 1**: continue when at least one person is detected.
 - **Confidence between 0.25 and 0.5**: continue when at least one matching detection falls within that inclusive range.
@@ -112,6 +112,12 @@ Active blocks show a green spinner. Completed blocks show a green check and gree
 Reloading the page restores the run's progress and selected execution deployment. Completed results remain visible for the matching workflow. Click **Stop** to cancel an active run; cancellation waits for the executing block to reach a cancellation point. Stopping or deleting its execution deployment also cancels the workflow.
 
 ![Ultralytics Platform Agents completed image to YOLO to Output workflow with green checks, processed image counts, and detection results](https://cdn.ul.run/i/8146d518bbcc1e9bee36204c7b00e259.avif)
+
+## Manage Agents with the API
+
+The [Agents API](api/index.md#agents-api) lists, saves, and deletes agents from code, and the Python SDK exposes it as
+`client.agents` in `ultralytics-platform>=0.1.74`. A save returns the same block errors the canvas shows. Runs still
+start from the canvas: open a saved agent at `https://platform.ultralytics.com/agents?workflow={id}` and click **Run**.
 
 ## Troubleshooting
 

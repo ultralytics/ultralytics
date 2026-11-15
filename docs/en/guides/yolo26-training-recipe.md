@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how YOLO26 models were trained, from Objects365 pretraining to COCO fine-tuning, including optimizer settings, augmentation pipelines, loss weights, embedded training logs, and fine-tuning guidance for each model size.
+description: See how the official YOLO26 checkpoints were trained, from Objects365 pretraining to COCO fine-tuning, with optimizer, loss, and augmentation settings per size.
 keywords: YOLO26, training recipe, pretraining, fine-tuning, MuSGD, augmentation, loss weights, COCO, Objects365, training logs, reproducibility, model card, hyperparameters, Ultralytics, object detection, deep learning, data augmentation
 ---
 
@@ -8,7 +8,7 @@ keywords: YOLO26, training recipe, pretraining, fine-tuning, MuSGD, augmentation
 
 ## Introduction
 
-This guide documents the exact [training](../modes/train.md) recipe used to produce the official [YOLO26](../models/yolo26.md) pretrained checkpoints on [COCO](../datasets/detect/coco.md). Every [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) shown here is already embedded in the released `.pt` weights, together with the per-epoch training log and the code revision of the run, and all of it can be inspected programmatically.
+This guide documents the exact [training](../modes/train.md) recipe used to produce the official [YOLO26](../models/yolo26.md) pretrained checkpoints on [COCO](https://platform.ultralytics.com/ultralytics/datasets/coco2017). Every [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) shown here is already embedded in the released `.pt` weights, together with the per-epoch training log and the code revision of the run, and all of it can be inspected programmatically.
 
 Knowing what went into the official checkpoints — not just the architecture, but the [learning rate](https://www.ultralytics.com/glossary/learning-rate) schedules, augmentation pipelines, and loss weights that shaped their performance — helps you make better decisions when [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning): which [data augmentations](./yolo-data-augmentation.md) to keep, which [loss function](https://www.ultralytics.com/glossary/loss-function) weights to adjust, and what optimizer settings work best for your dataset size.
 
@@ -296,13 +296,13 @@ For automated hyperparameter optimization, see the [Hyperparameter Tuning guide]
 
 ### Choose a Model Size
 
-| Model   | Best For                               | Batch Size Guidance                     |
-| ------- | -------------------------------------- | --------------------------------------- |
-| YOLO26n | Edge devices, mobile, real-time on CPU | Large batches (64-128) on consumer GPUs |
-| YOLO26s | Balanced speed and accuracy            | Medium batches (32-64)                  |
-| YOLO26m | Higher accuracy with moderate compute  | Smaller batches (16-32)                 |
-| YOLO26l | High accuracy when GPU is available    | Small batches (8-16) or multi-GPU       |
-| YOLO26x | Maximum accuracy, server deployment    | Small batches (4-8) or multi-GPU        |
+| Model                                                                  | Best For                               | Batch Size Guidance                     |
+| ---------------------------------------------------------------------- | -------------------------------------- | --------------------------------------- |
+| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) | Edge devices, mobile, real-time on CPU | Large batches (64-128) on consumer GPUs |
+| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s) | Balanced speed and accuracy            | Medium batches (32-64)                  |
+| [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26/yolo26m) | Higher accuracy with moderate compute  | Smaller batches (16-32)                 |
+| [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l) | High accuracy when GPU is available    | Small batches (8-16) or multi-GPU       |
+| [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x) | Maximum accuracy, server deployment    | Small batches (4-8) or multi-GPU        |
 
 For export and deployment options, see the [Export guide](../modes/export.md) and [Model Deployment Options](./model-deployment-options.md).
 

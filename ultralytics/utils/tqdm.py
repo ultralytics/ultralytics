@@ -187,13 +187,11 @@ class TQDM:
     @staticmethod
     def _format_time(seconds: float) -> str:
         """Format time duration."""
-        if seconds < 60:
+        if seconds < 59.95:  # 59.95s and up would print as '60.0s'
             return f"{seconds:.1f}s"
-        elif seconds < 3600:
-            return f"{int(seconds // 60)}:{seconds % 60:02.0f}"
-        else:
-            h, m = int(seconds // 3600), int((seconds % 3600) // 60)
-            return f"{h}:{m:02d}:{seconds % 60:02.0f}"
+        m, s = divmod(round(seconds), 60)  # round before splitting so seconds never print as ':60'
+        h, m = divmod(m, 60)
+        return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
 
     def _generate_bar(self, width: int = 12) -> str:
         """Generate progress bar."""

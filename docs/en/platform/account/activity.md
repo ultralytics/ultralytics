@@ -2,15 +2,15 @@
 plans: [free, pro, enterprise]
 title: Account Activity Feed
 comments: true
-description: Track all account activity and events on Ultralytics Platform with the activity feed, including training, uploads, and system events.
+description: Track account activity on Ultralytics Platform with the activity feed, including training jobs, uploads, exports, settings changes, and system events.
 keywords: Ultralytics Platform, activity feed, audit log, notifications, event tracking, activity history
 ---
 
 # Activity Feed
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
+[Ultralytics Platform](https://platform.ultralytics.com) provides an activity feed that records events and actions across your account, so you can monitor training progress and system events in one place.
 
-![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.ul.run/i/13a07c40c136229925eb9c2dd08e109b.avif)<!-- screenshot -->
+![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.ul.run/i/4d369a183f4629a4381db26b1c50ed65.avif)<!-- screenshot -->
 
 ## Overview
 
@@ -34,7 +34,7 @@ Navigate to the Activity Feed in any of the following ways:
 
 The dropdown in the top bar shows the most recent events with the same archive and undo actions as the full page.
 
-![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.ul.run/i/25e9aec0b788985d37cc314093ebb1d8.avif)<!-- screenshot -->
+![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.ul.run/i/a134f64884708d614161832aab866305.avif)<!-- screenshot -->
 
 ## Activity Types
 
@@ -115,7 +115,7 @@ Filter by time period using the date range picker:
 - The page defaults to the last 30 days
 - Custom date ranges supported
 
-![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.ul.run/i/f5366025524c00a10e8a1135437f1d89.avif)<!-- screenshot -->
+![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.ul.run/i/5333b2027ed10f52e204388533445951.avif)<!-- screenshot -->
 
 ## Event Details
 
@@ -145,8 +145,7 @@ The Activity feed supports pagination:
 
 - Default page size: 20 events, up to 100 per page
 - Navigate between pages and change the page size using the pagination controls
-- The tab, page, page size, search, and date range are all reflected in the URL, so a filtered view can be bookmarked
-  or shared
+- The tab and search query are reflected in the URL, so a search can be bookmarked or shared
 
 ## Export Activity
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import ARM64, IS_JETSON, LOGGER, YAML
+from ultralytics.utils import IS_JETSON, LOGGER, YAML
 
 
 def torch2paddle(
@@ -29,23 +29,10 @@ def torch2paddle(
         (str): Path to the exported ``_paddle_model`` directory.
     """
     assert not IS_JETSON, "Jetson Paddle exports not supported yet"
-    from ultralytics.utils.checks import check_requirements
+    from ultralytics.utils.checks import check_paddle, check_requirements
 
-    check_requirements(
-        (
-            # Interchangeable candidates so an installed variant is never dual-installed over (both ship 'paddle')
-            (
-                "paddlepaddle-gpu>=3.0.0,<3.3.0"  # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
-                if im.device.type == "cuda"
-                else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
-                if ARM64
-                else "paddlepaddle>=3.0.0,<3.3.0",  # pin <3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
-                "paddlepaddle==3.0.0" if ARM64 else "paddlepaddle>=3.0.0,<3.3.0",
-                "paddlepaddle-gpu>=3.0.0,<3.3.0",
-            ),
-            "x2paddle",
-        )
-    )
+    check_paddle()
+    check_requirements(("x2paddle", "six"))  # x2paddle imports six without declaring it
 
     import x2paddle
     from x2paddle.convert import pytorch2paddle

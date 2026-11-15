@@ -1,0 +1,55 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# The one owner of CI test assets: restores the cross-OS weights and datasets cache that tests/cache_test_assets.py
+# builds, so jobs never download them from GitHub Releases one by one. Workspace-relative paths because actions/cache
+# rejects '..'. The key is the manifest's git blob IDs, which unlike hashFiles match across CRLF Windows checkouts, so
+# only a manifest change rebuilds the cache, from scratch.
+
+name: CI assets
+description: Restore the shared CI weights and datasets cache, or build it in the Assets job
+
+inputs:
+  build:
+    description: Download and save the cache when it is missing (Assets jobs only; they set up uv first)
+    default: "false"
+  configure:
+    description: Point Ultralytics settings at the restored dirs (false when they are mounted into containers)
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - id: key
+      shell: bash
+      run: echo "key=ci-assets-$(git rev-parse HEAD:tests/cache_test_assets.py HEAD:tests/__init__.py | git hash-object --stdin --no-filters)" >> "$GITHUB_OUTPUT"
+    - id: cache
+      uses: actions/cache/restore@v6
+      with:
+        path: |
+          weights
+          datasets
+        key: ${{ steps.key.outputs.key }}
+        enableCrossOsArchive: true
+        lookup-only: ${{ inputs.build }}
+        fail-on-cache-miss: ${{ inputs.build != 'true' }}
+    - if: inputs.build == 'true' && steps.cache.outputs.cache-hit != 'true'
+      uses: ultralytics/actions/retry@main
+      with:
+        retries: 2
+        retry_delay_seconds: 60
+        timeout_minutes: 30
+        run: |
+          uv pip install -e . "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
+          yolo settings weights_dir="${GITHUB_WORKSPACE}/weights" datasets_dir="${GITHUB_WORKSPACE}/datasets"
+          python tests/cache_test_assets.py
+    - if: inputs.build == 'true' && steps.cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: |
+          weights
+          datasets
+        key: ${{ steps.cache.outputs.cache-primary-key }}
+        enableCrossOsArchive: true
+    - if: inputs.build != 'true' && inputs.configure == 'true'
+      shell: bash # for Windows compatibility
+      run: yolo settings weights_dir="${GITHUB_WORKSPACE}/weights" datasets_dir="${GITHUB_WORKSPACE}/datasets"

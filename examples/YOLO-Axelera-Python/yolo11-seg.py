@@ -28,7 +28,7 @@ from axelera.runtime import cv, display, op
 IMAGE_SUFFIXES = {".bmp", ".dng", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"}
 
 
-def build_pipeline(model_path: str, conf: float = 0.25, iou: float = 0.45):
+def build_pipeline(model_path: str, conf: float, iou: float):
     """Build the YOLO11 instance segmentation pipeline.
 
     The seg head emits two outputs (detections, prototypes), so post-processing splits the tuple, runs NMS on the
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, required=True, help="Path to compiled .axm model")
     parser.add_argument("--source", type=str, required=True, help="Image, video path, or camera index")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
-    parser.add_argument("--iou", type=float, default=0.45, help="NMS IoU threshold")
+    parser.add_argument("--iou", type=float, default=0.5, help="NMS IoU threshold")
     parser.add_argument("--no-display", action="store_true", help="Disable GUI window (headless mode)")
     parser.add_argument(
         "--output", type=str, default="", help="Save the rendered video to this path (requires a display, not headless)"

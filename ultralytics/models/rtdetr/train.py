@@ -7,6 +7,7 @@ from copy import copy
 import torch
 
 from ultralytics.data.utils import get_split_fraction
+from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel
 from ultralytics.utils import RANK, colorstr
@@ -44,6 +45,8 @@ class RTDETRTrainer(DetectionTrainer):
         - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
     """
 
+    get_class_counts = BaseTrainer.get_class_counts  # RTDETRDetectionLoss does not consume class weights
+
     def get_model(self, cfg: str | dict | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Initialize and return an RT-DETR model for object detection tasks.
 
@@ -79,6 +82,7 @@ class RTDETRTrainer(DetectionTrainer):
             batch_size=batch,
             augment=mode == "train",
             hyp=self.args,
+            tile=self.args.tile,
             rect=False,
             cache=self.args.cache or None,
             single_cls=self.args.single_cls or False,

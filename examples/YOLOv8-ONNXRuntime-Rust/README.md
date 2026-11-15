@@ -149,7 +149,7 @@ Example Profile Output (yolov8m.onnx, batch=1, 3 runs, trt, fp16, RTX 3060Ti):
 #### Other Options
 
 - `--conf`: Confidence threshold for detections \[default: 0.3].
-- `--iou`: IoU (Intersection over Union) threshold for Non-Maximum Suppression (NMS) \[default: 0.45].
+- `--iou`: IoU (Intersection over Union) threshold for Non-Maximum Suppression (NMS) \[default: 0.5].
 - `--kconf`: Confidence threshold for keypoints (in Pose Estimation) \[default: 0.55].
 - `--plot`: Plot the inference results with random RGB colors and save the output image to the `runs` directory.
 
@@ -183,7 +183,7 @@ Summary:
 > EP: Cpu
 > Dtype: Float32
 > Batch: 1 (Dynamic), Height: 224 (Dynamic), Width: 224 (Dynamic)
-> nc: 1000 nk: 0, nm: 0, conf: 0.3, kconf: 0.55, iou: 0.45
+> nc: 1000 nk: 0, nm: 0, conf: 0.3, kconf: 0.55, iou: 0.5
 
 [Model Preprocess]: 16.363477ms
 [ORT H2D]: 50.722µs

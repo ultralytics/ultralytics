@@ -65,7 +65,7 @@ The shared helpers in [`../common`](../common) are header-only and added to the 
 # If MNN is built as a shared library, add it to the loader path:
 export LD_LIBRARY_PATH=/path/to/MNN/build:$LD_LIBRARY_PATH
 
-# Defaults: --model yolo26n.mnn --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
+# Defaults: --model yolo26n.mnn --source bus.jpg --conf 0.25 --iou 0.5 --out result.jpg
 ./yolo_mnn --model yolo26n.mnn --source bus.jpg
 ./yolo_mnn --model yolo26n-pose.mnn --source bus.jpg --out pose.jpg --show
 ```
@@ -75,7 +75,7 @@ export LD_LIBRARY_PATH=/path/to/MNN/build:$LD_LIBRARY_PATH
 | `--model`   | `yolo26n.mnn` | Path to the exported MNN model.       |
 | `--source`  | `bus.jpg`     | Input image.                          |
 | `--conf`    | `0.25`        | Confidence threshold.                 |
-| `--iou`     | `0.45`        | NMS IoU threshold (grid models only). |
+| `--iou`     | `0.5`         | NMS IoU threshold (grid models only). |
 | `--threads` | `4`           | CPU threads.                          |
 | `--out`     | `result.jpg`  | Output image path.                    |
 | `--show`    | _off_         | Also open a display window.           |

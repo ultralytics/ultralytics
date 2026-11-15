@@ -54,7 +54,7 @@ The shared helpers in [`../common`](../common) are header-only and added to the 
 # If LibTorch is not installed system-wide, add its libraries to the loader path:
 export LD_LIBRARY_PATH=/path/to/libtorch/lib:$LD_LIBRARY_PATH
 
-# Defaults: --model yolo26n.torchscript --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
+# Defaults: --model yolo26n.torchscript --source bus.jpg --conf 0.25 --iou 0.5 --out result.jpg
 ./yolo_libtorch --model yolo26n.torchscript --source bus.jpg
 ./yolo_libtorch --model yolo26n-seg.torchscript --source bus.jpg --out seg.jpg
 ./yolo_libtorch --model yolo26n-pose.torchscript --source bus.jpg --show
@@ -65,7 +65,7 @@ export LD_LIBRARY_PATH=/path/to/libtorch/lib:$LD_LIBRARY_PATH
 | `--model`  | `yolo26n.torchscript` | Path to the exported TorchScript model (any task).      |
 | `--source` | `bus.jpg`             | Input image.                                            |
 | `--conf`   | `0.25`                | Confidence threshold.                                   |
-| `--iou`    | `0.45`                | NMS IoU threshold (grid models only).                   |
+| `--iou`    | `0.5`                 | NMS IoU threshold (grid models only).                   |
 | `--out`    | `result.jpg`          | Output image path.                                      |
 | `--cuda`   | _off_                 | Use CUDA if the LibTorch build and a device support it. |
 | `--show`   | _off_                 | Also open a display window.                             |

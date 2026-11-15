@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Deploy YOLO models to dedicated endpoints in 42 global regions with configurable resources and monitoring on Ultralytics Platform.
+description: Deploy Ultralytics YOLO models to dedicated, single-tenant endpoints in 42 global regions with configurable CPU and memory, scale-to-zero, and monitoring.
 keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling, global regions
 ---
 
 # Dedicated Endpoints
 
-[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 42 global regions. Each endpoint is a single-tenant service with a unique endpoint URL and independent monitoring. The default resource size scales to zero when idle; custom sizes keep a warm instance and are billed for uptime.
+[Ultralytics Platform](https://platform.ultralytics.com) deploys YOLO models to [dedicated endpoints](https://www.ultralytics.com/blog/dedicated-inference-endpoints-vs-shared-inference-for-deployment) in 42 global regions. Each endpoint is a single-tenant service with a unique endpoint URL and independent monitoring. The default resource size scales to zero when idle; custom sizes keep a warm instance and are billed for uptime.
 
 ![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.ul.run/i/6685f2d9d5c34b9d72f61263dcb6ad81.avif)<!-- screenshot -->
 
@@ -15,7 +15,7 @@ keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling
 
 ### From the Deploy Tab
 
-Deploy a model from its `Deploy` tab:
+[Deploy a model](https://academy.ultralytics.com/courses/build-with-ultralytics-platform/deploy-a-model) from its `Deploy` tab:
 
 1. Navigate to your model
 2. Click the **Deploy** tab
@@ -35,34 +35,23 @@ Create a deployment from the **Deployments** tab on your profile or from the sid
 4. Choose CPU and memory, review the pricing, and edit the suggested deployment name if needed
 5. Click **Create Deployment**
 
-![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/822cadbbd00c655ec7ca476fcdedaddd.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/23e5ff097f801f0312437d3be3c6499e.avif)<!-- screenshot -->
 
 ### Deployment Lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Creating: Deploy
-    Creating --> Deploying: Service starting
-    Deploying --> Ready: Service URL published
-    Ready --> Stopping: Stop
-    Ready --> Deploying: Replace model
-    Stopping --> Stopped: Stopped
-    Stopped --> Deploying: Start
-    Deploying --> Stopped: Start failed
-    Ready --> [*]: Delete
-    Stopped --> [*]: Delete
-    Creating --> Failed: Error
-    Deploying --> Failed: Error
-    Failed --> [*]: Delete
-
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
-    classDef extern fill:#607D8B,color:#fff
-    class Creating,Deploying,Stopping proc
-    class Ready out
-    class Failed error
-    class Stopped extern
+    [*] --> Creating: deploy
+    Stopped --> Deploying: start
+    Stopped --> [*]: delete
+    Ready --> Stopping: stop
+    Ready --> Deploying: replace or resize
+    Deploying --> Stopped: start failed
+    Stopping --> Stopped
+    Creating --> Stopped: start failed
+    Creating --> Deploying
+    Deploying --> Ready
+    Ready --> [*]: delete
 ```
 
 Connect [Slack alerts](../integrations/slack.md) to receive a message when a deployment becomes ready or fails to start.
@@ -175,11 +164,11 @@ The `New Deployment` dialog lets you select a model, region, resources, and depl
 | **CPU and Memory**  | Select the resource size and review its displayed pricing         |
 | **Deployment Name** | Auto-generated once model and region are set, and editable        |
 
-![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/6afe9718ada356b06cb87d2b4898c88e.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/d54c42dd60d8d6b725a3b4368a489c44.avif)<!-- screenshot -->
 
-Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. The default size can use an available free deployment allowance; custom sizes use metered pricing. The default size scales to zero when idle. Custom sizes keep one warm instance and are charged from readiness until you stop the endpoint, including idle time. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
+Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. CPU options are 1, 2, 4, 6, or 8 vCPU and memory options are 2 to 32 GiB; larger memory sizes need more vCPU (for example, 16 GiB requires at least 4 vCPU), and the dialog explains any invalid combination. The default size (1 vCPU, 2 GiB) is free and scales to zero when idle. Custom sizes keep one warm instance and are charged at the displayed regional hourly rate from readiness until you stop the endpoint, including idle time. Creating, starting, or resizing to a custom size requires available credits, and custom-size endpoints are stopped automatically when the workspace runs out of credits. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
 
-![Ultralytics Platform New Deployment Dialog Custom CPU Memory Pricing](https://cdn.ul.run/i/cb49ea5bbc304cf9f37a31b163781fc0.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog Custom CPU Memory Pricing](https://cdn.ul.run/i/94fc9e76f51eb307d2ba62037131919b.avif)<!-- screenshot -->
 
 !!! note "Auto-Generated Names"
 
@@ -201,7 +190,7 @@ The deployments list supports three view modes:
 | **Compact** | Grid of smaller cards with key metrics                        |
 | **Table**   | DataTable with sortable columns                               |
 
-![Ultralytics Platform Deploy Tab Active Deployments Cards View](https://cdn.ul.run/i/df8afcdd198830c0324344e0a0769526.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Tab Active Deployments Cards View](https://cdn.ul.run/i/5b23370f41305cd58052cb00f1841c40.avif)<!-- screenshot -->
 
 !!! note "Compact and Table Views"
 
@@ -211,7 +200,7 @@ The deployments list supports three view modes:
 
 Each deployment has its own page at `/{username}/deploy/{deployment}`, which shows:
 
-- **Header**: Region flag, display name (click it to rename; the URL does not change), status badge, location, and CPU and memory size
+- **Header**: Region flag, display name (click it to rename; the page URL and API path change to a slug of the new name, the endpoint URL does not), status badge, location, and CPU and memory size
 - **Actions**: **Update configuration**, **Replace model**, and **Stop deployment** when **Ready**, **Start deployment** when **Stopped**, and a **More actions** (…) menu with **Information**, **Refresh**, and **Delete Deployment**
 - **Metrics**: HTTP Requests, HTTP Error Rate, and HTTP P95 Latency over 24 hours with sparklines, plus a card linking to the deployed model
 - **Tabs**: `Overview`, `Monitoring`, `Predict`, and `Logs`
@@ -232,9 +221,9 @@ edit custom metadata.
 3. Choose **CPU** and **Memory**, and review the displayed hourly cost.
 4. Click **Update Configuration**. The current configuration keeps serving until the new one is ready.
 
-![Ultralytics Platform Deployment Update CPU Memory Configuration](https://cdn.ul.run/i/7143e64cbefe46f24cd5f61c8100f1e1.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Update CPU Memory Configuration](https://cdn.ul.run/i/ae535e3dae4adb3d69c5750272926a40.avif)<!-- screenshot -->
 
-Custom resources use uptime billing and keep an instance warm. Returning to default resources restores scale-to-zero behavior.
+Custom resources use uptime billing and keep an instance warm, which can also keep an IP camera running at no extra charge (see [Background Camera](inference.md#background-camera)). Returning to default resources restores scale-to-zero behavior and removes the background camera.
 
 !!! warning "Temporary Monitoring Data"
 
@@ -270,8 +259,7 @@ Replacement requires all of the following, and is rejected otherwise:
 | **Deploying** | Container is starting                   |
 | **Ready**     | Endpoint is live and accepting requests |
 | **Stopping**  | Endpoint is shutting down               |
-| **Stopped**   | Endpoint is paused and unavailable      |
-| **Failed**    | Deployment failed (see error message)   |
+| **Stopped**   | Paused or failed to start; click Start  |
 
 On a **Ready** deployment, the page's badge reads **Starting** until the endpoint answers its first
 [health check](monitoring.md#health-check), and **Not responding** if the check fails.
@@ -284,7 +272,7 @@ Each endpoint has a unique URL, for example:
 https://predict-<deployment-id>-<hash>-<region>.a.run.app
 ```
 
-![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/7d4ededac16d1c112f1a594fac5db495.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/92ab89459102781c312f7e391b27ed44.avif)<!-- screenshot -->
 
 Click the copy button to copy the URL. Click **API documentation** to open the endpoint's own API reference. The endpoint
 serves these paths:
@@ -301,15 +289,12 @@ serves these paths:
 Control your endpoint state:
 
 ```mermaid
-graph LR
-    R[Ready]:::out -->|Stop| S[Stopped]:::extern
-    S -->|Start| R
-    R -->|Delete| D[Deleted]:::error
-    S -->|Delete| D
-
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
-    classDef extern fill:#607D8B,color:#fff
+stateDiagram-v2
+    Ready --> Stopped: stop
+    Stopped --> Deploying: start
+    Deploying --> Ready
+    Ready --> [*]: delete
+    Stopped --> [*]: delete
 ```
 
 | Action     | Description                 |
@@ -353,7 +338,7 @@ reaches the end of its retention window.
 
 Each deployment is bound to a single API key from the workspace that owns the model. Include it in requests:
 
-```bash
+```http
 Authorization: Bearer YOUR_API_KEY
 ```
 
@@ -377,6 +362,7 @@ capacity ceiling:
 - A single instance serves each endpoint, processing a limited number of requests at once
 - Requests that cannot be served promptly return `429` with a `Retry-After` header
 - A single request may run for up to 1 hour, which allows video inference to complete
+- Request bodies are limited to 32 MB; larger uploads are rejected with `413`
 - Responses larger than 1 KB are gzip-compressed, and cross-origin browser requests are allowed
 
 ### Request Example
@@ -393,7 +379,7 @@ capacity ceiling:
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
 
     # Inference parameters
-    data = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
+    data = {"conf": 0.25, "iou": 0.5, "imgsz": 640}
 
     # Send image for inference
     with open("image.jpg", "rb") as f:
@@ -409,7 +395,7 @@ capacity ceiling:
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
     formData.append("conf", "0.25");
-    formData.append("iou", "0.7");
+    formData.append("iou", "0.5");
     formData.append("imgsz", "640");
 
     // Send image for inference
@@ -434,13 +420,18 @@ capacity ceiling:
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.7" \
+      -F "iou=0.5" \
       -F "imgsz=640"
     ```
 
 ### Request Parameters
 
 {% include "macros/platform-inference-parameters.md" %}
+
+An endpoint keeps the inference runtime from its last rollout, so newer behavior such as the training-size `imgsz`
+default or `vid_stride` above reaches it when a new revision rolls out, for example after you
+[replace its model](#replace-a-model) or [change its CPU or memory](#update-cpu-and-memory). Pass `imgsz` explicitly
+for a fixed input size.
 
 See [Depth responses](inference.md#task-specific-responses) for how `bits` changes the returned depth map and how to
 decode it.
@@ -449,10 +440,10 @@ decode it.
 
     Dedicated endpoints accept both images and videos via the `file` parameter.
 
-    - **Image formats** (up to 100 MB): AVIF, BMP, DNG, HEIC, HEIF, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
-    - **Video formats** (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
+    - **Image formats** (up to 32 MB per request): AVIF, BMP, DNG, HEIC, HEIF, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
+    - **Video formats** (up to 32 MB per request): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
 
-    Each video frame is processed individually and results are returned per frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`. Oversized uploads are rejected with `413`.
+    Results are returned per processed video frame; depth models accept images only. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`. Oversized uploads are rejected with `413`.
 
 ### Response Format
 
@@ -492,9 +483,9 @@ For global coverage:
 
 ### What's the cold start time?
 
-Cold start time depends on the model and whether the endpoint has scaled to zero; Platform allows an idle endpoint
-extra time to start before reporting it unhealthy. Opening the deployment page or re-running its health check warms an
-idle endpoint, so do either before a burst of traffic arrives.
+Cold start time depends on the model and whether the endpoint has scaled to zero; starting from idle can take up to
+about a minute, and Platform allows an idle endpoint extra time to start before reporting it unhealthy. Opening the
+deployment page or re-running its health check warms an idle endpoint, so do either before a burst of traffic arrives.
 
 ### Can I use a custom domain?
 

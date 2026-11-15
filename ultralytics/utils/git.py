@@ -12,14 +12,14 @@ class GitRepo:
 
     This class discovers the repository root by searching for a .git entry from the given path upward, resolves the
     actual .git directory (including worktrees), and reads Git metadata directly from on-disk files. It does not invoke
-    the git binary and therefore works in restricted environments. All metadata properties are resolved lazily and
-    cached; construct a new instance to refresh state.
+    the git binary and therefore works in restricted environments. Construct a new instance to refresh state.
 
     Attributes:
         root (Path | None): Repository root directory containing the .git entry; None if not in a repository.
         gitdir (Path | None): Resolved .git directory path; handles worktrees; None if unresolved.
         refdir (Path | None): Directory containing shared refs, objects, and config; None if unresolved.
         head (str | None): Raw contents of HEAD; a SHA for detached HEAD or "ref: <refname>" for branch heads.
+        ref (str | None): Ref name HEAD points to, such as "refs/heads/main", or None for detached HEAD or non-repo.
         is_repo (bool): Whether the provided path resides inside a Git repository.
         branch (str | None): Current branch name when HEAD points to a branch; None for detached HEAD or non-repo.
         commit (str | None): Current commit SHA for HEAD; None if not determinable.
@@ -35,7 +35,8 @@ class GitRepo:
 
     Notes:
         - Resolves metadata by reading files: HEAD, packed-refs, config, and objects; no subprocess calls are used.
-        - Caches properties on first access using cached_property; recreate the object to reflect repository changes.
+        - Reads HEAD and the commit at construction, so a checkout that moves later, for example during training, does
+          not change the commit recorded in checkpoints.
     """
 
     def __init__(self, path: Path | None = None):
@@ -48,6 +49,9 @@ class GitRepo:
         self.root = self._find_root(path or Path(__file__).resolve())
         self.gitdir = self._gitdir(self.root) if self.root else None
         self.refdir = self._refdir(self.gitdir)
+        self.head = self._read(self.gitdir / "HEAD" if self.gitdir else None)
+        self.ref = self.head[5:].strip() if self.head and self.head.startswith("ref: ") else None
+        self.commit = self._ref_commit(self.ref) if self.ref else self.head
 
     @staticmethod
     def _find_root(p: Path) -> Path | None:
@@ -79,11 +83,6 @@ class GitRepo:
     def _read(p: Path | None) -> str | None:
         """Read and strip file if exists."""
         return p.read_text(errors="ignore").strip() if p and p.exists() else None
-
-    @cached_property
-    def head(self) -> str | None:
-        """HEAD file contents."""
-        return self._read(self.gitdir / "HEAD" if self.gitdir else None)
 
     def _ref_commit(self, ref: str) -> str | None:
         """Commit for ref (handles packed-refs)."""
@@ -123,24 +122,12 @@ class GitRepo:
     @cached_property
     def branch(self) -> str | None:
         """Current branch or None."""
-        if not self.is_repo or not self.head or not self.head.startswith("ref: "):
-            return None
-        ref = self.head[5:].strip()
-        return ref[11:] if ref.startswith("refs/heads/") else ref
-
-    @cached_property
-    def commit(self) -> str | None:
-        """Current commit SHA or None."""
-        if not self.is_repo or not self.head:
-            return None
-        return self._ref_commit(self.head[5:].strip()) if self.head.startswith("ref: ") else self.head
+        return self.ref[11:] if self.ref and self.ref.startswith("refs/heads/") else self.ref
 
     @cached_property
     def message(self) -> str | None:
         """Current commit subject or None."""
-        if not self.is_repo or not self.commit:
-            return None
-        return self._commit_subject(self.commit)
+        return self._commit_subject(self.commit) if self.commit else None
 
     @cached_property
     def origin(self) -> str | None:

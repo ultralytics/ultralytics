@@ -3,14 +3,14 @@
 # Builds ultralytics/ultralytics:latest-python-export image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Full-featured image with export capabilities for YOLO model conversion
 
-# Build from lightweight Ultralytics Python image
-FROM ultralytics/ultralytics:latest-python
+# TensorFlow, CoreML and PaddlePaddle exports require Python 3.13.
+FROM ultralytics/ultralytics:latest-python-3.13
 
 # Install export-specific system packages
-# gnupg required for Edge TPU install
 # Java runtime environment (default-jre-headless) required for Sony IMX export
+# libgomp1 required by PaddlePaddle's OpenMP runtime
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gnupg default-jre-headless && \
+    apt-get install -y --no-install-recommends default-jre-headless libgomp1 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

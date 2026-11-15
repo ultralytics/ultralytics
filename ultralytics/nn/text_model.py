@@ -282,12 +282,18 @@ class MobileCLIPTS(TextModel):
 
         Args:
             device (torch.device): Device to load the model on.
-            weight (str): Path to the TorchScript model weights.
+            weight (str): Path to the TorchScript model weights. Weights that also export `encode_image` (e.g.
+                `clip_b32_datacomp.ts`) enable `encode_image` and run in FP16 on CUDA and FP32 otherwise.
         """
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset
 
         self.encoder = torch.jit.load(attempt_download_asset(weight), map_location=device)
+        if hasattr(self.encoder, "encode_image"):
+            from torchvision import transforms as T
+
+            self.image_preprocess = T.Compose([T.Resize((224, 224)), T.ToTensor()])
+            self.encoder.half() if torch.device(device).type == "cuda" else self.encoder.float()
         self.tokenizer = clip.clip.tokenize
         self.device = device
 
@@ -331,6 +337,19 @@ class MobileCLIPTS(TextModel):
         """
         # NOTE: no need to do normalization here as it's embedded in the torchscript model
         return self.encoder(texts).to(dtype)
+
+    @smart_inference_mode()
+    def encode_image(self, image: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
+        """Encode preprocessed images into normalized feature vectors.
+
+        Args:
+            image (torch.Tensor): Images preprocessed with `image_preprocess`, shape (B, 3, 224, 224).
+            dtype (torch.dtype, optional): Data type for output features.
+
+        Returns:
+            (torch.Tensor): Normalized image feature vectors with L2 normalization applied.
+        """
+        return self.encoder.encode_image(image.to(next(self.encoder.parameters()).dtype)).to(dtype)
 
 
 def build_text_model(variant: str, device: torch.device | str | None = None) -> TextModel:

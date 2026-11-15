@@ -47,7 +47,7 @@ OpenCV is found with `find_package(OpenCV)` and the shared helpers in [`../commo
 ## 🚀 Usage
 
 ```bash
-# Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.45 --imgsz 640 --out result.jpg
+# Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.5 --imgsz 640 --out result.jpg
 ./yolo_opencv_dnn --model yolo26n.onnx --source bus.jpg
 ./yolo_opencv_dnn --model yolo26n-seg.onnx --source bus.jpg --out seg.jpg
 ./yolo_opencv_dnn --model yolo26n-pose.onnx --source bus.jpg --task pose --show
@@ -58,7 +58,7 @@ OpenCV is found with `find_package(OpenCV)` and the shared helpers in [`../commo
 | `--model`  | `yolo26n.onnx` | Path to the exported ONNX model (grid output).                                                       |
 | `--source` | `bus.jpg`      | Input image.                                                                                         |
 | `--conf`   | `0.25`         | Confidence threshold.                                                                                |
-| `--iou`    | `0.45`         | NMS IoU threshold.                                                                                   |
+| `--iou`    | `0.5`          | NMS IoU threshold.                                                                                   |
 | `--imgsz`  | `640`          | Square input size of the exported model.                                                             |
 | `--task`   | _auto_         | Override the task (`detect`/`segment`/`pose`/`obb`/`classify`/`semantic`); needed for grid pose/obb. |
 | `--cuda`   | _off_          | Use the OpenCV CUDA DNN backend (requires a CUDA-enabled OpenCV).                                    |

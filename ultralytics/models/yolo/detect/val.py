@@ -13,10 +13,11 @@ import torch.distributed as dist
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, nms, ops
+from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
 
 class DetectionValidator(BaseValidator):
@@ -50,14 +51,12 @@ class DetectionValidator(BaseValidator):
             args (dict[str, Any], optional): Arguments for the validator.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
-        conf = args.get("conf") if isinstance(args, dict) else getattr(args, "conf", None)
-        self.confusion_matrix_conf = 0.25 if conf is None else conf
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.is_coco = False
         self.is_lvis = False
         self.class_map = None
         self.args.task = "detect"
-        self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
+        self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP50-95
         self.niou = self.iouv.numel()
         self.metrics = DetMetrics()
 
@@ -104,9 +103,8 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Preprocessed batch.
         """
-        for k, v in batch.items():
-            if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
+        batch = self.preprocess_targets(batch)
+        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type not in {"cpu", "mps"})
         batch["img"] = (batch["img"].half() if self.args.quantize == 16 else batch["img"].float()) / 255
         return batch
 
@@ -116,6 +114,12 @@ class DetectionValidator(BaseValidator):
         Args:
             model (torch.nn.Module): Model to validate.
         """
+        if self.args.save_txt:  # labels are appended per image, drop those a previous run or epoch left in save_dir
+            with torch_distributed_zero_first(LOCAL_RANK):
+                if LOCAL_RANK in {-1, 0}:
+                    for f in (self.save_dir / "labels").glob("*.txt"):
+                        f.unlink(missing_ok=True)
+            self.label_root = os.path.commonpath([os.path.dirname(f) for f in self.dataloader.dataset.im_files])
         if not self.training:
             self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path
@@ -132,13 +136,18 @@ class DetectionValidator(BaseValidator):
         self.end2end = getattr(model, "end2end", False)
         native_model = model.model if getattr(model, "format", None) == "pt" else model
         if self.end2end and hasattr(native_model, "set_head_attr"):
-            native_model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
+            # Class filtering needs candidates before max_det truncation.
+            native_model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
         self.seen = 0
         self.jdict = []
         self.is_custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
         self.gdict = getattr(self, "gdict", None) if self.is_custom_json else None
         self.build_gdict = self.is_custom_json and self.gdict is None
         self.eval_ids = list(self.dataloader.sampler) if self.is_custom_json else None
+        if self.is_custom_json and self.args.tile:
+            self.eval_ids = list(
+                dict.fromkeys(self.dataloader.dataset.labels[i]["source_index"] for i in self.eval_ids)
+            )
         self.pred_counts = []
         if self.build_gdict:
             self.gdict = {"images": [], "annotations": [], "categories": [{"id": x} for x in self.class_map]}
@@ -165,6 +174,7 @@ class DetectionValidator(BaseValidator):
             preds,
             self.args.conf,
             self.args.iou,
+            classes=None if self.args.single_cls and self.nc == 1 else self.args.classes,
             nc=0 if self.args.task == "detect" else self.nc,
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
@@ -258,7 +268,7 @@ class DetectionValidator(BaseValidator):
                 }
             )
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, pbatch, conf=self.confusion_matrix_conf)
+                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
                     self.confusion_matrix.plot_matches(
                         batch["img"][si],
@@ -275,12 +285,10 @@ class DetectionValidator(BaseValidator):
                 predn_scaled = self.scale_preds(predn, pbatch)
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
-            if self.args.save_txt:
+            if self.args.save_txt:  # flatten the split-relative path so a/1.jpg and b/1.jpg write a_1.txt and b_1.txt
+                name = "_".join(Path(pbatch["im_file"]).relative_to(self.label_root).with_suffix("").parts)
                 self.save_one_txt(
-                    predn_scaled,
-                    self.args.save_conf,
-                    pbatch["ori_shape"],
-                    self.save_dir / "labels" / f"{Path(pbatch['im_file']).stem}.txt",
+                    predn_scaled, self.args.save_conf, pbatch["ori_shape"], self.save_dir / "labels" / f"{name}.txt"
                 )
 
     def finalize_metrics(self) -> None:
@@ -325,7 +333,7 @@ class DetectionValidator(BaseValidator):
                     self.gdict[key] = [x for _, gdict, _ in gathered_json for x in gdict[key]]
             self.metrics.stats = merged_stats
             self._gather_image_metrics(self.metrics.box)
-            self.seen = len(self.dataloader.dataset)  # total image count from dataset
+            self.seen = self.num_images
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
             dist.gather_object((self.jdict, self.gdict if self.build_gdict else None, self.pred_counts), None, dst=0)
@@ -425,7 +433,6 @@ class DetectionValidator(BaseValidator):
             self.args.workers,
             shuffle=False,
             rank=-1,
-            drop_last=self.args.compile,
             pin_memory=self.training,
             device=self.device,
         )
@@ -442,6 +449,7 @@ class DetectionValidator(BaseValidator):
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,
+            class_colors=self.data.get("colors"),
             on_plot=self.on_plot,
         )
 
@@ -470,6 +478,7 @@ class DetectionValidator(BaseValidator):
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,
+            class_colors=self.data.get("colors"),
             on_plot=self.on_plot,
         )  # pred
 

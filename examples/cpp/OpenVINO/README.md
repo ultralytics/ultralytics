@@ -46,7 +46,7 @@ OpenVINO is found via `find_package(OpenVINO)` and the shared helpers in [`../co
 ## 🚀 Usage
 
 ```bash
-# Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.45 --device AUTO --out result.jpg
+# Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.5 --device AUTO --out result.jpg
 ./yolo_openvino --model yolo26n_openvino_model/yolo26n.xml --source bus.jpg
 ./yolo_openvino --model yolo26n-seg.onnx --source bus.jpg --out seg.jpg
 ./yolo_openvino --model yolo26n-pose.onnx --source bus.jpg --show
@@ -57,7 +57,7 @@ OpenVINO is found via `find_package(OpenVINO)` and the shared helpers in [`../co
 | `--model`  | `yolo26n.onnx` | OpenVINO IR (`.xml`) or ONNX (`.onnx`) model. |
 | `--source` | `bus.jpg`      | Input image.                                  |
 | `--conf`   | `0.25`         | Confidence threshold.                         |
-| `--iou`    | `0.45`         | NMS IoU threshold (grid models only).         |
+| `--iou`    | `0.5`          | NMS IoU threshold (grid models only).         |
 | `--device` | `AUTO`         | OpenVINO device: `AUTO`, `CPU`, or `GPU`.     |
 | `--out`    | `result.jpg`   | Output image path.                            |
 | `--show`   | _off_          | Also open a display window.                   |

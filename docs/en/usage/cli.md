@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore the YOLO command line interface (CLI) for easy execution of detection tasks without needing a Python environment.
+description: Use the Ultralytics YOLO CLI to train, validate, predict, export, and run solutions from the terminal with yolo TASK MODE ARGS syntax, no Python required.
 keywords: YOLO CLI, command line interface, YOLO commands, detection tasks, Ultralytics, model training, model prediction
 ---
 
 # Command Line Interface
 
-The Ultralytics command line interface (CLI) provides a straightforward way to use Ultralytics YOLO models without needing a Python environment. The CLI supports running various tasks directly from the terminal using the `yolo` command, requiring no customization or Python code.
+The Ultralytics [command line interface (CLI)](https://www.ultralytics.com/blog/how-to-run-ultralytics-yolo11-through-the-cli) provides a straightforward way to use Ultralytics YOLO models without writing Python code. The CLI supports running every task and mode directly from the terminal using the `yolo` command.
 
 <p align="center">
   <br>
@@ -37,10 +37,10 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
 
     === "Train"
 
-        Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01:
+        Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch):
 
         ```bash
-        yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo26n.pt epochs=10
         ```
 
     === "Predict"
@@ -98,13 +98,13 @@ Where:
 
 ## Train
 
-Train YOLO on the COCO8 dataset for 100 epochs at image size 640. For a full list of available arguments, see the [Configuration](cfg.md) page.
+[Train](cfg.md#train-settings) YOLO on the [COCO8](https://platform.ultralytics.com/ultralytics/datasets/coco8) dataset for 100 epochs at image size 640.
 
 !!! example
 
     === "Train"
 
-        Start training YOLO26n on COCO8 for 100 epochs at image size 640:
+        Start training [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) on COCO8 for 100 epochs at image size 640:
 
         ```bash
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640
@@ -120,7 +120,7 @@ Train YOLO on the COCO8 dataset for 100 epochs at image size 640. For a full lis
 
 ## Val
 
-Validate the [accuracy](https://www.ultralytics.com/glossary/accuracy) of the trained model on the COCO8 dataset. A custom model reuses its training `data` when `data` is omitted; official weights fall back to the task default `coco8.yaml`.
+Validate the accuracy of the trained model on the COCO8 dataset. A custom model reuses its training `data` when `data` is omitted; official weights fall back to the task default `coco8.yaml`.
 
 !!! example
 
@@ -184,7 +184,7 @@ Export a model to a different format like ONNX or CoreML.
         yolo export model=path/to/best.pt format=onnx
         ```
 
-Available Ultralytics export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`.
+Available Ultralytics export formats are in the table below. You can export to any format using the `format` argument, e.g., `format='onnx'` or `format='engine'`.
 
 {% include "macros/export-table.md" %}
 
@@ -201,7 +201,7 @@ Override default arguments by passing them in the CLI as `arg=value` pairs.
         Train a detection model for 10 epochs with a learning rate of 0.01:
 
         ```bash
-        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 optimizer=SGD lr0=0.01
         ```
 
     === "Predict"
@@ -257,7 +257,7 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
         Crop detected objects and save them to disk:
 
         ```bash
-        yolo solutions crop show=True
+        yolo solutions crop
         yolo solutions crop source="path/to/video.mp4" # specify video file path
         yolo solutions crop classes="[0, 2]"           # crop only selected classes
         ```
@@ -409,10 +409,10 @@ For more information on Ultralytics solutions, visit the [Solutions](../solution
 
 ### How do I use the Ultralytics YOLO command line interface (CLI) for model training?
 
-To train a model using the CLI, execute a single-line command in the terminal. For example, to train a detection model for 10 epochs with a [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01, run:
+To train a model using the CLI, execute a single-line command in the terminal. For example, to train a detection model for 10 epochs, run:
 
 ```bash
-yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolo26n.pt epochs=10
 ```
 
 This command uses the `train` mode with specific arguments. For a full list of available arguments, refer to the [Configuration Guide](cfg.md).
@@ -430,7 +430,7 @@ Customize each task with various arguments. For detailed syntax and examples, se
 
 ### How can I validate the accuracy of a trained YOLO model using the CLI?
 
-To validate a model's [accuracy](https://www.ultralytics.com/glossary/accuracy), use the `val` mode. For example, to validate a pretrained detection model with a [batch size](https://www.ultralytics.com/glossary/batch-size) of 1 and an image size of 640, run:
+To validate a model's [accuracy](https://www.ultralytics.com/glossary/accuracy), use the `val` mode. For example, to validate a pretrained detection model with a batch size of 1 and an image size of 640, run:
 
 ```bash
 yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640

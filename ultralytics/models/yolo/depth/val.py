@@ -8,12 +8,12 @@ from typing import Any
 
 import torch
 import torch.distributed as dist
-import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import DepthMetrics
 from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.torch_utils import interpolate_bilinear
 
 
 class DepthValidator(DetectionValidator):
@@ -38,9 +38,9 @@ class DepthValidator(DetectionValidator):
         self.metrics = DepthMetrics(max_depth=self.data.get("max_depth") or 100.0)
         self.metrics.clear_stats()
 
-    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
-        """Preprocess batch — move to device, normalize images, and keep depth as float32."""
-        batch = super().preprocess(batch)
+    def preprocess_targets(self, batch: dict[str, Any]) -> dict[str, Any]:
+        """Move depth targets to the device as float32."""
+        batch = super().preprocess_targets(batch)
         batch["depth"] = batch["depth"].float()
         return batch
 
@@ -56,7 +56,7 @@ class DepthValidator(DetectionValidator):
         if preds.ndim == 3:
             preds = preds.unsqueeze(1)
         if preds.shape[-2:] != gt_depth.shape[-2:]:
-            preds = F.interpolate(preds.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
+            preds = interpolate_bilinear(preds.float(), gt_depth.shape[-2:], align_corners=True)
         self.metrics.update_stats(preds, gt_depth)
 
     def get_stats(self) -> dict[str, float]:
@@ -96,7 +96,7 @@ class DepthValidator(DetectionValidator):
         Uses "depth_val" as the row label (depth has no classes, where detection prints "all").
         """
         r = self.metrics.results_dict
-        n_images = len(self.dataloader.dataset) if self.dataloader is not None else (self.seen or 0)
+        n_images = self.num_images if self.dataloader is not None else (self.seen or 0)
         pf = "%22s" + "%11i" + "%11.4g" * 4  # label, Images, delta1, abs_rel, rmse, silog
         LOGGER.info(
             pf

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import random
 from typing import Any
 
@@ -146,7 +145,7 @@ class GPUInfo:
             count (int): The number of idle GPUs to select.
             min_memory_fraction (float): Minimum free memory required as a fraction of total memory.
             min_util_fraction (float): Minimum free utilization rate required from 0.0 - 1.0.
-            indices (list[int] | None): Restrict selection to GPU IDs, using physical IDs under an external
+            indices (list[int] | None): Restrict selection to these GPU indices, e.g. the GPUs visible under an external
                 CUDA_VISIBLE_DEVICES restriction. None searches all GPUs.
 
         Returns:
@@ -154,8 +153,7 @@ class GPUInfo:
 
         Notes:
             Returns fewer than 'count' if not enough qualify or exist.
-            Without NVML stats, available devices can be selected using torch.cuda.mem_get_info for free-memory
-            checks; a nonzero idle-utilization requirement cannot be verified and returns no devices.
+            Returns the first 'count' devices unchecked if NVML stats are unavailable, e.g. on AMD GPUs.
             Returns empty list if no GPUs meet the criteria.
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
@@ -170,42 +168,10 @@ class GPUInfo:
 
         self.refresh_stats()
         if not self.gpu_stats:
-            LOGGER.warning("NVML stats unavailable; GPU utilization cannot be measured.")
             import torch
 
-            if min_util_fraction:
-                LOGGER.warning(f"Cannot verify {min_util_fraction * 100:.1f}% free GPU utilization without NVML.")
-                return []
-            n = torch.cuda.device_count()
-            visible = [
-                str(int(x)) if x.isdigit() else x
-                for x in os.getenv("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",")
-                if x
-            ][:n]
-            candidates = (
-                indices if indices is not None else ([int(x) for x in visible if x.isdigit()] if visible else range(n))
-            )
-            selected = []
-            for idx in candidates:
-                logical = visible.index(str(idx)) if visible and str(idx) in visible else (idx if not visible else -1)
-                if not 0 <= logical < n or idx in selected:
-                    continue
-                if min_memory_fraction:
-                    try:
-                        free, total = torch.cuda.mem_get_info(logical)
-                    except Exception as e:
-                        LOGGER.warning(f"Free memory query failed for device {idx}: {e}")
-                        continue
-                    if not total or free / total < min_memory_fraction:
-                        continue
-                selected.append(idx)
-                if len(selected) == count:
-                    break
-            if selected:
-                LOGGER.info(f"Selected CUDA devices {selected} (utilization not measured)")
-            else:
-                LOGGER.warning("No visible CUDA devices meet the verifiable free-memory requirements.")
-            return selected
+            LOGGER.warning("NVML stats unavailable, selecting the first CUDA devices without idle checks.")
+            return list(range(torch.cuda.device_count()) if indices is None else indices)[:count]
 
         # Filter and sort eligible GPUs
         eligible_gpus = [

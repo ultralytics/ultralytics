@@ -27,13 +27,9 @@ if CUDA_IS_AVAILABLE:
         if idle_gpus := gpu_info.select_idle_gpu(
             count=2,
             min_memory_fraction=autodevice_fraction,
-            min_util_fraction=autodevice_fraction if gpu_info.nvml_available else 0,
+            min_util_fraction=autodevice_fraction,
         ):
-            # Without NVML, GPUInfo returns physical IDs but cuda:N expects visible logical IDs.
-            visible = [str(int(x)) for x in os.getenv("CUDA_VISIBLE_DEVICES", "").split(",") if x.isdigit()]
-            DEVICES = (
-                [visible.index(str(i)) for i in idle_gpus] if visible and not gpu_info.nvml_available else idle_gpus
-            )
+            DEVICES = idle_gpus
 
 
 def test_checks():

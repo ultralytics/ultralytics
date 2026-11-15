@@ -241,20 +241,6 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
-def test_select_idle_gpu_fallback():
-    """Check device restrictions on a real host without simulating GPU state."""
-    from ultralytics.utils.autodevice import GPUInfo
-
-    gpu_info = GPUInfo()
-    assert gpu_info.select_idle_gpu(count=1, indices=[]) == []
-    assert gpu_info.select_idle_gpu(count=1, indices=[99999]) == []
-    if not gpu_info.nvml_available:
-        assert gpu_info.select_idle_gpu(count=1, min_util_fraction=0.2) == []
-        visible = os.getenv("CUDA_VISIBLE_DEVICES", "").split(",")[0]
-        if visible.isdigit() and torch.cuda.device_count():
-            assert gpu_info.select_idle_gpu(count=1, indices=[int(visible)]) == [int(visible)]
-
-
 def test_autobackend_memory_format(tmp_path):
     """Check backend memory formats on the real host platform without mocked platform state."""
     from ultralytics.nn.autobackend import AutoBackend

@@ -1142,10 +1142,10 @@ def print_args(args: dict | None = None, show_file=True, show_func=False):
 
 
 def cuda_device_count() -> int:
-    """Get the number of CUDA GPUs (NVIDIA via nvidia-smi, or AMD HIP via PyTorch) available in the environment.
+    """Get the number of NVIDIA or AMD GPUs available in the environment.
 
     Returns:
-        (int): The number of CUDA GPUs available.
+        (int): The number of GPUs available to PyTorch CUDA.
     """
     if IS_JETSON:
         # NVIDIA Jetson does not fully support nvidia-smi and therefore use PyTorch instead
@@ -1157,13 +1157,9 @@ def cuda_device_count() -> int:
                 ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
             )
 
-            # Take the first line and strip any leading/trailing white space
-            first_line = output.strip().split("\n", 1)[0]
-
-            return int(first_line)
+            return int(output.strip().split("\n", 1)[0])  # first line
         except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-            # nvidia-smi absent or unusable (e.g. AMD HIP or CPU-only): fall back to the torch device count, which
-            # reports HIP devices too, and 0 when no accelerator is present
+            # nvidia-smi failed, is not found or returned no integer, so count PyTorch devices, e.g. AMD GPUs or none
             return torch.cuda.device_count()
 
 
@@ -1171,7 +1167,7 @@ def cuda_is_available() -> bool:
     """Check if CUDA is available in the environment.
 
     Returns:
-        (bool): True if one or more CUDA GPUs (NVIDIA or AMD HIP) are available, False otherwise.
+        (bool): True if one or more NVIDIA or AMD GPUs are available, False otherwise.
     """
     return cuda_device_count() > 0
 

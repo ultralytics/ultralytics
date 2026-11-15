@@ -1,4 +1,5 @@
 ---
+title: Object Detection Datasets for YOLO
 comments: true
 description: Learn the Ultralytics YOLO and NDJSON object detection dataset formats, browse supported datasets such as COCO and VisDrone, and convert COCO labels to YOLO.
 keywords: Ultralytics, YOLO, object detection datasets, dataset formats, COCO, dataset conversion, training datasets

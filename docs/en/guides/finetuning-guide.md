@@ -1,5 +1,5 @@
 ---
-title: Fine-Tune YOLO26 on a Custom Dataset
+title: Fine-Tune YOLO on Custom Data
 comments: true
 description: Fine-tune YOLO26 on a custom dataset using pretrained weights. Covers transfer learning, layer freezing, optimizers, two-stage training, and fixing low mAP.
 keywords: fine-tune YOLO, finetune YOLO custom dataset, YOLO transfer learning, YOLO26 fine-tuning, freeze layers YOLO, pretrained YOLO custom data, YOLO training from scratch vs fine-tuning, catastrophic forgetting YOLO, two-stage fine-tuning, YOLO optimizer selection, fine-tune object detection model, custom object detection training, YOLO freeze backbone, how to finetune YOLO26

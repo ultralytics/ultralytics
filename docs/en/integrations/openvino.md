@@ -262,7 +262,7 @@ The tables below compare PyTorch with FP32, FP16, and INT8 OpenVINO models of ev
 
 ### FP32, FP16, and INT8 on a Server CPU
 
-All values in this section were measured on the CPU of one server with two **AMD EPYC 9655** 96-core processors, not on an Intel CPU. PyTorch ran on 8 threads and OpenVINO on 96 threads, the defaults that Ultralytics and OpenVINO chose on that server, so the PyTorch and OpenVINO columns differ in thread count as well as in runtime. PyTorch also validated with rectangular inference, each image padded to the smallest stride-multiple rectangle within 640 pixels, while the static OpenVINO models always ran at 640x640.
+All values in this section were measured on the CPU of one server with two **AMD EPYC 9655** 96-core processors, not on an Intel CPU. PyTorch ran on 8 threads and OpenVINO on 96 threads, the defaults that Ultralytics and OpenVINO chose on that server, so the PyTorch and OpenVINO columns differ in thread count as well as in runtime. PyTorch also validated with rectangular inference, each image padded to a rectangle that follows its aspect ratio (512x672 for a 480x640 image), while the static OpenVINO models always ran at 640x640.
 
 === "Latency"
 

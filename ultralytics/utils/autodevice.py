@@ -170,7 +170,7 @@ class GPUInfo:
         if not self.gpu_stats:
             import torch
 
-            LOGGER.warning("NVML stats unavailable, selecting the first CUDA devices without idle checks.")
+            LOGGER.warning("NVML stats unavailable, idle checks skipped.")
             return list(range(torch.cuda.device_count()) if indices is None else indices)[:count]
 
         # Filter and sort eligible GPUs

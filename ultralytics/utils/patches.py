@@ -51,7 +51,7 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
     if not file_bytes.size:  # empty file, cv2 decoders assert on an empty buffer
         return None
     im = None
-    if flags != cv2.IMREAD_GRAYSCALE and filename.lower().endswith((".tiff", ".tif")):
+    if flags in {cv2.IMREAD_COLOR, cv2.IMREAD_UNCHANGED} and filename.lower().endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         stack = flags == cv2.IMREAD_UNCHANGED and len(frames) > 1 and all(f.shape == frames[0].shape for f in frames)
         if success and (frames[0].ndim == 3 or stack):

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from os.path import commonpath
 from pathlib import Path
 from typing import Any
 
@@ -120,8 +119,10 @@ class DetectionValidator(BaseValidator):
                 if LOCAL_RANK in {-1, 0}:
                     for f in (self.save_dir / "labels").glob("*.txt"):
                         f.unlink(missing_ok=True)
-        prefix = commonpath([os.path.normcase(f) for f in self.dataloader.dataset.im_files])
-        self.label_root = prefix[: prefix.rfind(os.sep) + 1]
+        files = [os.path.normcase(f) for f in self.dataloader.dataset.im_files]
+        lo, hi = min(files), max(files)
+        n = next((i for i, (a, b) in enumerate(zip(lo, hi)) if a != b), len(lo))
+        self.label_root = lo[: lo.rfind(os.sep, 0, n) + 1]
         if not self.training:
             self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path

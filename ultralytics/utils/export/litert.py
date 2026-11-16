@@ -41,9 +41,9 @@ def torch2litert(
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.
 
     Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations, with
-    FP32 head outputs on Detect and Classify models) and ``'w8a16'`` applies static INT8 weights with int16
-    activations, both requiring a ``calibration_dataset``; ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights +
-    FP32 activations) and needs no calibration. ``None``/``32`` exports FP32. FP16 is not exported as a separate model:
+    FP32 head outputs on Detect and Classify models) and ``'w8a16'`` applies static INT8 weights with int16 activations,
+    both requiring a ``calibration_dataset``; ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32
+    activations) and needs no calibration. ``None``/``32`` exports FP32. FP16 is not exported as a separate model:
     LiteRT runs an FP32 model in FP16 at runtime via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16``
     flag on ARM.
 

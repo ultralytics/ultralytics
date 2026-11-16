@@ -710,7 +710,8 @@ def polygons2masks_overlap(
         imgsz (tuple[int, int]): The size of the image as (height, width).
         segments (list[np.ndarray]): A list of polygons, each reshapeable to (-1, 2) as (x, y) point pairs.
         downsample_ratio (int, optional): Factor by which to downsample the mask.
-        owner (np.ndarray, optional): Instance index of each segment; when given, segments of one instance are grouped into one mask.
+        owner (np.ndarray, optional): Instance index of each segment; when given, segments of one instance are grouped
+            into one mask.
 
     Returns:
         masks (np.ndarray): Mask of shape (H // downsample_ratio, W // downsample_ratio) where 0 is background and i + 1

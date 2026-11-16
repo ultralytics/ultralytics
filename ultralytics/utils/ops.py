@@ -573,6 +573,29 @@ def segments2boxes(segments):
     return xyxy2xywh(np.array(boxes).reshape(-1, 4))  # xywh
 
 
+def union_boxes_by_owner(boxes: np.ndarray, owner: np.ndarray, n: int) -> np.ndarray:
+    """Return one union box per owner id from per-contour boxes in xyxy format.
+
+    Args:
+        boxes (np.ndarray): Per-contour boxes with shape (K, 4) in xyxy format.
+        owner (np.ndarray): Instance index of each contour, with shape (K,).
+        n (int): Number of instances.
+
+    Returns:
+        (np.ndarray): Union boxes with shape (n, 4) in xyxy format. Only contours with positive box area
+            contribute; an owner with no surviving contour gets a zero box.
+    """
+    out = np.zeros((n, 4), dtype=boxes.dtype if len(boxes) else np.float32)
+    if not len(boxes):
+        return out
+    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    for o in np.unique(owner):
+        sel = boxes[(owner == o) & (areas > 0)]
+        if len(sel):
+            out[o] = (*sel[:, :2].min(0), *sel[:, 2:].max(0))
+    return out
+
+
 def resample_segments(segments, n: int = 1000):
     """Resample closed segments to n points each using linear interpolation.
 

@@ -9,7 +9,17 @@ from numbers import Number
 import cv2
 import numpy as np
 
-from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, segment2box, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
+from .ops import (
+    ltwh2xywh,
+    ltwh2xyxy,
+    resample_segments,
+    segment2box,
+    union_boxes_by_owner,
+    xywh2ltwh,
+    xywh2xyxy,
+    xyxy2ltwh,
+    xyxy2xywh,
+)
 
 
 def _ntuple(n):
@@ -192,7 +202,8 @@ class Instances:
         _bboxes (Bboxes): Internal object for handling bounding box operations.
         keypoints (np.ndarray | None): Keypoints with shape (N, K, 3) in format (x, y, visible), e.g. K=17 for COCO.
         normalized (bool): Flag indicating whether the coordinates are normalized.
-        segments (np.ndarray): Segments array with shape (N, M, 2) after resampling.
+        segments (np.ndarray): Segments array with shape (K, M, 2) after resampling, one row per contour.
+        segments_owner (np.ndarray): Instance index of each contour, with shape (K,).
 
     Methods:
         convert_bbox: Convert bounding box format.
@@ -225,6 +236,7 @@ class Instances:
         keypoints: np.ndarray | None = None,
         bbox_format: str = "xywh",
         normalized: bool = True,
+        segments_owner: np.ndarray | None = None,
     ) -> None:
         """Initialize the Instances object with bounding boxes, segments, and keypoints.
 
@@ -239,6 +251,17 @@ class Instances:
         self.keypoints = keypoints
         self.normalized = normalized
         self.segments = segments if segments is not None else np.zeros((0, 0, 2), dtype=np.float32)
+        # segments_owner[c] is the instance index that contour c belongs to. Defaults to one contour per
+        # instance (the legacy layout); multipart instances have repeated owner ids.
+        if segments_owner is None:
+            segments_owner = np.arange(len(self.segments), dtype=np.int64)
+        self.segments_owner = np.asarray(segments_owner, dtype=np.int64)
+        assert len(self.segments_owner) == len(self.segments), (
+            f"segments_owner has {len(self.segments_owner)} entries for {len(self.segments)} contours"
+        )
+        assert len(self.segments_owner) == 0 or self.segments_owner.max() < len(self._bboxes), (
+            "segments_owner refers to an instance index beyond the bounding boxes"
+        )
 
     def convert_bbox(self, format: str) -> None:
         """Convert bounding box format.
@@ -252,6 +275,11 @@ class Instances:
     def bbox_areas(self) -> np.ndarray:
         """Return the areas of the bounding boxes."""
         return self._bboxes.areas()
+
+    @property
+    def is_multipart(self) -> bool:
+        """Whether any instance owns more than one contour."""
+        return len(self.segments_owner) != len(np.unique(self.segments_owner))
 
     def scale(self, scale_w: float, scale_h: float, bbox_only: bool = False):
         """Scale coordinates by given factors.
@@ -329,7 +357,27 @@ class Instances:
             (Instances): A new Instances object containing the selected boxes, segments, and keypoints if present.
         """
         index = [index] if isinstance(index, (int, np.integer)) else index
-        segments = self.segments[index] if len(self.segments) else self.segments
+        if isinstance(index, slice):
+            index = np.arange(len(self))[index]
+        index = np.atleast_1d(np.asarray(index))
+        if index.dtype != bool and len(index):
+            index = np.where(index < 0, index + len(self), index)
+        if index.dtype == bool:
+            keep = np.flatnonzero(index)
+            seg_mask = index[self.segments_owner] if len(self.segments) else np.zeros(0, dtype=bool)
+        else:
+            keep = index
+            seg_mask = np.isin(self.segments_owner, index) if len(self.segments) else np.zeros(0, dtype=bool)
+        segments = self.segments[seg_mask] if len(self.segments) else self.segments
+        # Remap contour owners to the new instance positions (first occurrence wins for repeated indices)
+        pos = {}
+        for new, old in enumerate(keep.tolist()):
+            pos.setdefault(old, new)
+        segments_owner = (
+            np.array([pos[o] for o in self.segments_owner[seg_mask]], dtype=np.int64)
+            if len(self.segments)
+            else self.segments_owner
+        )
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format
@@ -339,6 +387,7 @@ class Instances:
             keypoints=keypoints,
             bbox_format=bbox_format,
             normalized=self.normalized,
+            segments_owner=segments_owner,
         )
 
     def flipud(self, h: int) -> None:
@@ -393,7 +442,7 @@ class Instances:
         """
         ori_format = self._bboxes.format
         self.convert_bbox(format="xyxy")
-        if preserve_obb and len(self.segments):
+        if preserve_obb and len(self.segments) and not self.is_multipart:
             segment_mins, segment_maxs = self.segments.min(1), self.segments.max(1)
             inside = ((segment_mins >= 0) & (segment_maxs <= (w, h))).all(1)
             if not inside.all():
@@ -427,6 +476,18 @@ class Instances:
             self.bboxes[:, [1, 3]] = self.bboxes[:, [1, 3]].clip(0, h)
             self.segments[..., 0] = self.segments[..., 0].clip(0, w)
             self.segments[..., 1] = self.segments[..., 1].clip(0, h)
+            if len(self.segments) and self.is_multipart:
+                # A multipart instance survives only through its visible contours: recompute each box as
+                # the union of its contours' visible extents, so an instance whose contours all fell
+                # outside the canvas gets a zero box and is dropped by remove_zero_area_boxes().
+                self._bboxes = Bboxes(
+                    union_boxes_by_owner(
+                        np.stack([segment2box(s, w, h) for s in self.segments], 0),
+                        self.segments_owner,
+                        len(self),
+                    ),
+                    format="xyxy",
+                )
         if ori_format != "xyxy":
             self.convert_bbox(format=ori_format)
         if self.keypoints is not None:
@@ -449,9 +510,25 @@ class Instances:
         self.add_padding(-x1, -y1)
         if len(self.segments) and not preserve_obb:
             outside = ((self.segments < 0) | (self.segments > (w, h))).any((1, 2))
-            for i in np.flatnonzero(outside):
-                self.bboxes[i] = box = segment2box(self.segments[i], w, h)
-                self.segments[i] = self.segments[i].clip(box[:2], box[2:])
+            if self.is_multipart:
+                for c in np.flatnonzero(outside):
+                    # Clip this contour to its own visible extent; the instance box is recomputed
+                    # below from all of its contours, so a contour that fell fully outside cannot
+                    # drag the box (segment2box returns zeros for a fully-outside contour).
+                    box = segment2box(self.segments[c], w, h)
+                    self.segments[c] = self.segments[c].clip(box[:2], box[2:])
+                self._bboxes = Bboxes(
+                    union_boxes_by_owner(
+                        np.stack([segment2box(s, w, h) for s in self.segments], 0),
+                        self.segments_owner,
+                        len(self),
+                    ),
+                    format="xyxy",
+                )
+            else:
+                for i in np.flatnonzero(outside):
+                    self.bboxes[i] = box = segment2box(self.segments[i], w, h)
+                    self.segments[i] = self.segments[i].clip(box[:2], box[2:])
         self.clip(w, h, preserve_obb=preserve_obb)
         return (self.bbox_areas > 0) & (self.bbox_areas >= areas * 0.1)
 
@@ -465,22 +542,41 @@ class Instances:
         if not all(good):
             self._bboxes = self._bboxes[good]
             if self.segments is not None and len(self.segments):
-                self.segments = self.segments[good]
+                # good is per instance; keep the contours whose owner instance survived, then remap
+                # the surviving owners to the new instance positions (boxes were compacted above,
+                # so stale owner ids would point at the wrong instance — or past the end).
+                seg_keep = good[self.segments_owner]
+                self.segments = self.segments[seg_keep]
+                pos = {old: new for new, old in enumerate(np.flatnonzero(good).tolist())}
+                self.segments_owner = np.array([pos[o] for o in self.segments_owner[seg_keep]], dtype=np.int64)
             if self.keypoints is not None:
                 self.keypoints = self.keypoints[good]
         return good
 
-    def update(self, bboxes: np.ndarray, segments: np.ndarray | None = None, keypoints: np.ndarray | None = None):
+    def update(
+        self,
+        bboxes: np.ndarray,
+        segments: np.ndarray | None = None,
+        keypoints: np.ndarray | None = None,
+        segments_owner: np.ndarray | None = None,
+    ):
         """Update instance variables.
 
         Args:
             bboxes (np.ndarray): New bounding boxes.
             segments (np.ndarray, optional): New segments.
             keypoints (np.ndarray, optional): New keypoints.
+            segments_owner (np.ndarray, optional): Instance index of each new segment; defaults to one
+                contour per instance.
         """
         self._bboxes = Bboxes(bboxes, format=self._bboxes.format)
         if segments is not None:
             self.segments = segments
+            self.segments_owner = (
+                np.asarray(segments_owner, dtype=np.int64)
+                if segments_owner is not None
+                else np.arange(len(segments), dtype=np.int64)
+            )
         if keypoints is not None:
             self.keypoints = keypoints
 
@@ -532,7 +628,11 @@ class Instances:
         else:
             cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
+        # Shift each part's owner ids past the instances that came before it, so ids from different
+        # images (mosaic / mixup / cutmix) can never collide; resampling above preserves contour order.
+        offsets = np.cumsum([0, *[len(ins) for ins in instances_list[:-1]]])
+        cat_owner = np.concatenate([ins.segments_owner + o for ins, o in zip(instances_list, offsets)])
+        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized, segments_owner=cat_owner)
 
     @property
     def bboxes(self) -> np.ndarray:

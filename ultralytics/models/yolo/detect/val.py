@@ -119,7 +119,7 @@ class DetectionValidator(BaseValidator):
                 if LOCAL_RANK in {-1, 0}:
                     for f in (self.save_dir / "labels").glob("*.txt"):
                         f.unlink(missing_ok=True)
-        files = [os.path.normcase(f) for f in self.dataloader.dataset.im_files]
+        files = self.dataloader.dataset.im_files
         lo, hi = min(files), max(files)
         n = next((i for i, (a, b) in enumerate(zip(lo, hi)) if a != b), len(lo))
         self.label_root = lo[: lo.rfind(os.sep, 0, n) + 1]  # deepest folder shared by all images

@@ -119,10 +119,7 @@ class DetectionValidator(BaseValidator):
                 if LOCAL_RANK in {-1, 0}:
                     for f in (self.save_dir / "labels").glob("*.txt"):
                         f.unlink(missing_ok=True)
-        files = self.dataloader.dataset.im_files
-        lo, hi = min(files), max(files)
-        n = next((i for i, (a, b) in enumerate(zip(lo, hi)) if a != b), len(lo))
-        self.label_root = lo[: lo.rfind(os.sep, 0, n) + 1]  # deepest folder shared by all images
+        self.label_root = os.path.commonpath([os.path.dirname(f) for f in self.dataloader.dataset.im_files])
         if not self.training:
             self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path
@@ -260,7 +257,6 @@ class DetectionValidator(BaseValidator):
                 self.pred_counts.append(len(predn["cls"]))
 
             no_pred = predn["cls"].shape[0] == 0
-            im_name = pbatch["im_file"][len(self.label_root) :].replace(os.sep, "/")  # split-relative path
             self.metrics.update_stats(
                 {
                     **self._process_batch(predn, pbatch),
@@ -268,7 +264,7 @@ class DetectionValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "im_name": im_name,
+                    "im_name": Path(pbatch["im_file"]).relative_to(self.label_root).as_posix(),
                 }
             )
             if self.args.plots:
@@ -290,9 +286,7 @@ class DetectionValidator(BaseValidator):
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
             if self.args.save_txt:  # flatten the split-relative path so a/1.jpg and b/1.jpg write a_1.txt and b_1.txt
-                # a Windows key keeps its drive when images share no folder, and C:_x.txt would escape save_dir
-                drive, stem = os.path.splitdrive(os.path.splitext(im_name)[0])
-                name = (drive.replace(":", "") + stem).replace("/", "_")
+                name = "_".join(Path(pbatch["im_file"]).relative_to(self.label_root).with_suffix("").parts)
                 self.save_one_txt(
                     predn_scaled, self.args.save_conf, pbatch["ori_shape"], self.save_dir / "labels" / f"{name}.txt"
                 )

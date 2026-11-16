@@ -1631,6 +1631,194 @@ def test_verify_image_label_keeps_polygons_sharing_a_box(tmp_path):
     assert len(labels) == len(segments) == 2
 
 
+def test_verify_image_label_multipart_instance_id(tmp_path):
+    """Rows sharing (class, id=) group into one instance with one union box and nested contours."""
+    from ultralytics.data.utils import verify_image_label
+
+    im, lb = tmp_path / "0.jpg", tmp_path / "0.txt"
+    cv2.imwrite(str(im), np.zeros((32, 32, 3), np.uint8))
+    lb.write_text(
+        "0 id=1 0.10 0.20 0.15 0.22 0.12 0.30\n0 id=1 0.40 0.21 0.45 0.25 0.42 0.32\n0 0.60 0.60 0.70 0.62 0.68 0.72"
+    )
+    _, labels, _, segments, *_ = verify_image_label((str(im), str(lb), "", False, 1, 0, 0, False, True))
+    assert labels.shape == (2, 5)  # one grouped instance + one legacy instance
+    assert len(segments) == 2 and len(segments[0]) == 2 and len(segments[1]) == 1
+    # Union box of the grouped instance covers both contours: x 0.10-0.45, y 0.20-0.32
+    assert labels[0, 0] == 0
+    np.testing.assert_allclose(labels[0, 1:], [0.275, 0.26, 0.35, 0.12], atol=1e-6)
+
+
+def test_verify_image_label_multipart_ids_are_per_class(tmp_path):
+    """Different ids are separate instances; the same id under a different class is also separate."""
+    from ultralytics.data.utils import verify_image_label
+
+    im, lb = tmp_path / "0.jpg", tmp_path / "0.txt"
+    cv2.imwrite(str(im), np.zeros((32, 32, 3), np.uint8))
+    lb.write_text(
+        "0 id=1 0.10 0.10 0.20 0.10 0.20 0.20\n0 id=2 0.50 0.50 0.60 0.50 0.60 0.60\n1 id=1 0.10 0.10 0.20 0.10 0.20 0.20"
+    )
+    _, labels, _, segments, *_ = verify_image_label((str(im), str(lb), "", False, 2, 0, 0, False, True))
+    assert labels.shape == (3, 5)
+    assert len(segments) == 3 and all(len(g) == 1 for g in segments)
+    assert labels[:, 0].tolist() == [0.0, 0.0, 1.0]
+
+
+def test_verify_image_label_multipart_legacy_rows_unchanged(tmp_path):
+    """Legacy rows behave exactly as today, with multipart off (flat) and on (nested, same boxes)."""
+    from ultralytics.data.utils import verify_image_label
+
+    im, lb = tmp_path / "0.jpg", tmp_path / "0.txt"
+    cv2.imwrite(str(im), np.zeros((32, 32, 3), np.uint8))
+    lb.write_text("0 0.10 0.10 0.20 0.10 0.20 0.20\n0 0.50 0.50 0.60 0.50 0.60 0.60\n")
+    _, labels_off, _, segments_off, *_ = verify_image_label((str(im), str(lb), "", False, 1, 0, 0, False))
+    assert labels_off.shape == (2, 5) and len(segments_off) == 2
+    assert isinstance(segments_off[0], np.ndarray)  # flat, as today
+    _, labels_on, _, segments_on, *_ = verify_image_label((str(im), str(lb), "", False, 1, 0, 0, False, True))
+    assert labels_on.shape == (2, 5) and len(segments_on) == 2 and all(len(g) == 1 for g in segments_on)
+    np.testing.assert_array_equal(labels_off, labels_on)
+
+
+def test_verify_image_label_multipart_bad_id_is_corrupt(tmp_path):
+    """A malformed id= marker marks the whole label file corrupt instead of being misread."""
+    from ultralytics.data.utils import verify_image_label
+
+    im = tmp_path / "0.jpg"
+    cv2.imwrite(str(im), np.zeros((32, 32, 3), np.uint8))
+    lb = tmp_path / "0.txt"
+    for bad in (
+        "0 id=abc 0.10 0.20 0.15 0.22 0.12 0.30",
+        "0 id=-1 0.10 0.20 0.15 0.22 0.12 0.30",
+        "0 id=1.5 0.10 0.20 0.15 0.22 0.12 0.30",
+        "0 id= 0.10 0.20 0.15 0.22 0.12 0.30",
+    ):
+        lb.write_text(bad)
+        out = verify_image_label((str(im), str(lb), "", False, 1, 0, 0, False, True))
+        assert out[0] is None and out[8] == 1  # corrupt: first five items None, nc == 1
+
+
+def test_instances_multipart_crop_keeps_surviving_contour():
+    """A crop removing one component keeps the instance with a box recomputed from the survivor."""
+    from ultralytics.utils.instance import Instances
+
+    segments = np.array(
+        [
+            [[10, 10], [30, 10], [30, 30], [10, 30]],
+            [[70, 10], [90, 10], [90, 30], [70, 30]],
+        ],
+        dtype=np.float32,
+    )
+    bboxes = np.array([[10, 10, 90, 30]], dtype=np.float32)  # xyxy union box
+    instances = Instances(bboxes, segments, bbox_format="xyxy", normalized=False, segments_owner=np.array([0, 0]))
+    assert len(instances) == 1 and len(instances.segments) == 2
+    keep = instances.crop((0, 0, 50, 40))  # window covers the left contour only
+    assert keep.tolist() == [True]
+    np.testing.assert_allclose(instances.bboxes, [[10, 10, 30, 30]], atol=1e-6)
+    assert instances[keep].segments_owner.tolist() == [0, 0]  # both contours travel with the kept instance
+    # A crop covering neither contour removes the instance (zero box, keep-mask False)
+    instances2 = Instances(bboxes, segments, bbox_format="xyxy", normalized=False, segments_owner=np.array([0, 0]))
+    assert instances2.crop((100, 100, 140, 140)).tolist() == [False]
+    np.testing.assert_allclose(instances2.bboxes, [[0, 0, 0, 0]])
+
+
+def test_instances_multipart_concatenate_and_index():
+    """Concatenation offsets owners per image; indexing remaps them to the new instance positions."""
+    from ultralytics.utils.instance import Instances
+
+    seg_a = np.array(
+        [
+            [[10, 10], [30, 10], [30, 30], [10, 30]],
+            [[70, 10], [90, 10], [90, 30], [70, 30]],
+        ],
+        dtype=np.float32,
+    )
+    seg_b = np.array([[[0, 0], [20, 0], [20, 20], [0, 20]]], dtype=np.float32)
+    a = Instances(
+        np.array([[10, 10, 90, 30]], dtype=np.float32),
+        seg_a,
+        bbox_format="xyxy",
+        normalized=False,
+        segments_owner=np.array([0, 0]),
+    )
+    b = Instances(np.array([[0, 0, 20, 20]], dtype=np.float32), seg_b, bbox_format="xyxy", normalized=False)
+    cat = Instances.concatenate([a, b])
+    assert len(cat) == 2 and cat.segments.shape == (3, 4, 2)
+    assert cat.segments_owner.tolist() == [0, 0, 1]
+    assert cat[[0]].segments_owner.tolist() == [0, 0]
+    assert cat[[1]].segments_owner.tolist() == [0]
+    assert cat[np.array([True, False])].segments_owner.tolist() == [0, 0]
+
+
+def test_format_segments_multipart_masks():
+    """Two contours of one instance rasterize into a single mask (one per instance, not per contour)."""
+    from ultralytics.data.augment import Format
+    from ultralytics.utils.instance import Instances
+
+    segments = np.array(
+        [
+            [[10, 10], [20, 10], [20, 20], [10, 20]],
+            [[50, 50], [60, 50], [60, 60], [50, 60]],
+        ],
+        dtype=np.float32,
+    )
+    instances = Instances(
+        np.array([[10, 10, 60, 60]], dtype=np.float32),
+        segments,
+        bbox_format="xyxy",
+        normalized=False,
+        segments_owner=np.array([0, 0]),
+    )
+    fmt = Format(bbox_format="xyxy", normalize=False, return_mask=True, mask_ratio=1, mask_overlap=False)
+    masks, _, _ = fmt._format_segments(instances, np.array([[0]]), 100, 100)
+    assert masks.shape == (1, 100, 100)  # one mask for the instance, not two
+    assert masks[0, 15, 15] == 1 and masks[0, 55, 55] == 1  # both components present
+    assert masks[0, 35, 35] == 0  # gap between them stays empty
+    # Overlap path: the larger instance is drawn first (value 1), the multipart one over it (value 2).
+    seg_b = np.array([[[70, 70], [95, 70], [95, 95], [70, 95]]], dtype=np.float32)
+    instances2 = Instances(
+        np.array([[10, 10, 60, 60], [70, 70, 95, 95]], dtype=np.float32),
+        np.concatenate([segments, seg_b], axis=0),
+        bbox_format="xyxy",
+        normalized=False,
+        segments_owner=np.array([0, 0, 1]),
+    )
+    fmt_overlap = Format(bbox_format="xyxy", normalize=False, return_mask=True, mask_ratio=1, mask_overlap=True)
+    masks2, instances_out, cls_out = fmt_overlap._format_segments(instances2, np.array([[0], [1]]), 100, 100)
+    assert masks2.shape == (1, 100, 100)
+    assert masks2[0, 85, 85] == 1 and masks2[0, 15, 15] == 2 and masks2[0, 55, 55] == 2
+    assert cls_out.tolist() == [[1], [0]]  # sorted by area, largest first
+    assert instances_out.bboxes[0].tolist() == [70.0, 70.0, 95.0, 95.0]
+
+
+def test_yolo_dataset_multipart_segments(tmp_path):
+    """End to end: a segment dataset with id= rows loads as grouped Instances with an owner map."""
+    from ultralytics.data.dataset import YOLODataset
+    from ultralytics.utils import DEFAULT_CFG
+
+    images, labels = tmp_path / "images" / "train", tmp_path / "labels" / "train"
+    images.mkdir(parents=True)
+    labels.mkdir(parents=True)
+    cv2.imwrite(str(images / "a.jpg"), np.zeros((64, 64, 3), np.uint8))
+    (labels / "a.txt").write_text(
+        "0 id=1 0.10 0.10 0.20 0.10 0.20 0.20\n0 id=1 0.50 0.50 0.60 0.50 0.60 0.60\n0 0.80 0.80 0.90 0.80 0.90 0.90\n"
+    )
+    ds = YOLODataset(
+        img_path=str(images),
+        imgsz=64,
+        data={"names": {0: "a"}, "nc": 1},
+        task="segment",
+        augment=False,
+        batch_size=1,
+        hyp=copy(DEFAULT_CFG),
+    )
+    assert len(ds) == 1
+    inst = ds.get_image_and_label(0)["instances"]
+    assert len(inst) == 2
+    assert inst.segments_owner.tolist() == [0, 0, 1]
+    assert inst.segments.shape == (3, 1000, 2)  # each contour resampled to 1000 points, as today
+    np.testing.assert_allclose(inst.bboxes[0], [0.35, 0.35, 0.5, 0.5], atol=1e-6)  # union box, xywh
+    np.testing.assert_allclose(inst.bboxes[1], [0.85, 0.85, 0.1, 0.1], atol=1e-6)
+
+
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset

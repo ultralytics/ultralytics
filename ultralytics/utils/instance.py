@@ -246,6 +246,7 @@ class Instances:
             keypoints (np.ndarray, optional): Keypoints with shape (N, K, 3) in format (x, y, visible).
             bbox_format (str): Format of bboxes, one of 'xyxy', 'xywh', or 'ltwh'.
             normalized (bool): Whether the coordinates are normalized.
+            segments_owner (np.ndarray, optional): Instance index of each contour, parallel to `segments`; defaults to one contour per instance.
         """
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints

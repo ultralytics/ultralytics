@@ -505,6 +505,7 @@ Speed up annotation with keyboard shortcuts:
     | `Delete` / `Backspace`            | Delete selected annotation |
     | `Cmd/Ctrl+Delete`                 | Delete image               |
     | `H`                               | Toggle all annotations     |
+    | `R`                               | Rotate image clockwise     |
     | `]`                               | Show or hide class sidebar |
     | `←` / `→`                         | Previous / next image      |
     | `1-9`                             | Select class 1-9           |
@@ -551,7 +552,7 @@ Speed up annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Shift+]` | Bring to front |
     | `Cmd/Ctrl+Shift+[` | Send to back   |
 
-![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/f8c5b332abc267cddf520967ddd39880.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/90be2fbc7f1697eac01adc63727b5f74.avif)<!-- screenshot -->
 
 ??? tip "View All Shortcuts"
 

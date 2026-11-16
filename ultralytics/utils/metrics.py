@@ -904,7 +904,7 @@ class Metric(SimpleClass):
         all_ap (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
         ap_class_index (list): Index of class for each AP score. Shape: (nc,).
         nc (int): Number of classes.
-        image_metrics (dict[str, dict]): Per-image precision, recall, F1, TP, FP, and FN keyed by image name.
+        image_metrics (dict[str, dict]): Per-image precision, recall, F1, TP, FP, and FN keyed by image path.
 
     Methods:
         ap50: AP at IoU threshold of 0.5 for all classes.
@@ -1073,7 +1073,7 @@ class Metric(SimpleClass):
                 >= 0.5) is used.
             target_cls (np.ndarray): Ground truth class labels for the image.
             pred_cls (np.ndarray): Predicted class labels for the image.
-            im_name (str): The image filename used as the per-image key.
+            im_name (str): Image path relative to the common image directory.
         """
         # Use the default IoU=0.5 column to match the validator's image-level matching policy.
         tp = int(tp[:, 0].sum())

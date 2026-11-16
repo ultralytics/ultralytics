@@ -596,9 +596,11 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Segment results
         if pred_masks and show_masks:
-            local = getattr(pred_masks, "local", None)  # box-local masks at the image size blend inside their boxes
-            native = local is not None and tuple(local[2]) == annotator.im.shape[:2]
-            pred_mask_data = list(pred_masks.crops()) if native else torch.as_tensor(pred_masks.data)  # or numpy()
+            pred_mask_data = (  # box-local masks blend inside their boxes
+                list(pred_masks.crops(annotator.im.shape[:2]))
+                if hasattr(pred_masks, "local")
+                else torch.as_tensor(pred_masks.data)  # as_tensor converts a numpy() result
+            )
             idx = (
                 pred_boxes.id
                 if pred_boxes and pred_boxes.is_track and color_mode == "instance"
@@ -1214,14 +1216,36 @@ class Masks(BaseTensor):
         rois = rois if isinstance(rois, np.ndarray) else rois.long()  # box pixels stay integers through `to(dtype)`
         return Masks((rois, [fn(m) for m in masks], shape), self.orig_shape)
 
-    def crops(self):
-        """Yield each mask as its (x1, y1, x2, y2) box and the (y2 - y1, x2 - x1) mask inside it, dense masks whole."""
-        if not hasattr(self, "local"):
-            yield from (((0, 0, *m.shape[::-1]), m) for m in self.data)
+    def crops(self, shape: tuple[int, int] | None = None):
+        """Yield each mask as its (x1, y1, x2, y2) box and the (y2 - y1, x2 - x1) mask inside it, dense masks whole.
+
+        Args:
+            shape (tuple[int, int], optional): (height, width) of the image the masks' frame was letterboxed from.
+                Masks are resized to it as `ops.scale_masks` resizes them, inside their boxes.
+        """
+        if hasattr(self, "local"):
+            rois, masks, _ = self.local
+            crops = (((x1, y1, x2, y2), masks[b][r, : y2 - y1, : x2 - x1]) for x1, y1, x2, y2, b, r in rois.tolist())
+        else:
+            crops = (((0, 0, *m.shape[::-1]), m) for m in self.data)
+        if shape is None or tuple(shape) == tuple(self.shape[1:]):
+            yield from crops
             return
-        rois, masks, _ = self.local
-        for x1, y1, x2, y2, b, r in rois.tolist():
-            yield (x1, y1, x2, y2), masks[b][r, : y2 - y1, : x2 - x1]
+        top, left, ch, cw = ops.letterbox_span(self.shape[1:], shape)
+        lo, hi, frac = [], [], []  # mask pixels and weight bilinear interpolation samples per image column, then row
+        for n, c, pad in ((shape[1], cw, left), (shape[0], ch, top)):
+            f = ((torch.arange(n) + 0.5) * (c / n) - 0.5).clamp_(0, c - 1)
+            lo.append(f.long() + pad)
+            hi.append((f.long() + 1).clamp_(max=c - 1) + pad)
+            frac.append(f - f.long())
+        for (x1, y1, x2, y2), m in crops:
+            m = torch.nn.functional.pad(torch.as_tensor(m)[None].float(), (1, 1, 1, 1))[0]  # zero outside the box
+            X1, Y1 = (int(torch.searchsorted(i, v)) for i, v in zip(hi, (x1, y1)))
+            X2, Y2 = (int(torch.searchsorted(i, v)) for i, v in zip(lo, (x2, y2)))
+            X, Y = slice(X1, max(X1, X2)), slice(Y1, max(Y1, Y2))  # image pixels that sample the box
+            m = torch.lerp(m[:, lo[0][X] - x1 + 1], m[:, hi[0][X] - x1 + 1], frac[0][X].to(m.device))
+            m = torch.lerp(m[lo[1][Y] - y1 + 1], m[hi[1][Y] - y1 + 1], frac[1][Y, None].to(m.device))
+            yield (X.start, Y.start, X.stop, Y.stop), m > 0.5
 
     def __str__(self) -> str:
         """Return a description of the masks, without pasting box-local masks into their frame."""

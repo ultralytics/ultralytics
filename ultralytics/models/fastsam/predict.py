@@ -8,11 +8,10 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.engine.results import Masks
 from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils import DEFAULT_CFG, NUM_THREADS
 from ultralytics.utils.metrics import box_iou
-from ultralytics.utils.ops import clip_boxes, clip_coords, scale_masks
+from ultralytics.utils.ops import clip_boxes, clip_coords
 from ultralytics.utils.torch_utils import TORCH_1_10
 
 from .utils import adjust_bboxes_to_image_border
@@ -92,12 +91,7 @@ class FastSAMPredictor(SegmentationPredictor):
             if len(result) == 0:
                 prompt_results.append(result)
                 continue
-            masks = result.masks
-            if masks.shape[1:] != result.orig_shape:
-                masks = Masks(
-                    (scale_masks(masks.data[None].float(), result.orig_shape)[0] > 0.5).byte(), result.orig_shape
-                )
-            crops = list(masks.crops())  # each mask inside its box, never the dense (N, H, W) stack
+            crops = list(result.masks.crops(result.orig_shape))  # each mask inside its box, at the image size
 
             def window(crop, x1, y1, x2, y2):
                 """Return the part of a mask inside an image window."""

@@ -318,7 +318,7 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
         Validation for the above benchmarks was done using the [COCO128](https://platform.ultralytics.com/ultralytics/datasets/coco128) dataset. Inference time does not include pre/post-processing. The INT8 rows will be refreshed once the current INT8 export path (host-side decode and `auto_hybrid`) is validated on Rockchip hardware.
 
-The table lists the size of the exported directory in MiB, as benchmark mode reports it; the sizes elsewhere on this page are the `.rknn` file in MB (10^6 bytes). The [YOLO26 model page](../models/yolo26.md) lists the accuracy of the PyTorch checkpoints on the full COCO validation set.
+The sizes in the table were recorded with that earlier version; the sizes elsewhere on this page are the `.rknn` file of a current export in MB (10^6 bytes). The [YOLO26 model page](../models/yolo26.md) lists the accuracy of the PyTorch checkpoints on the full COCO validation set.
 
 ## About RKNN
 

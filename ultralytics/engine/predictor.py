@@ -369,6 +369,8 @@ class BasePredictor:
                 if any(getattr(cfg, k, None) != getattr(self.args, k, None) for k in keys):
                     self.save_dir = get_save_dir(cfg)
                 self.args = cfg
+                if prompts := vars(cfg).pop("_prompts", None):
+                    self.set_prompts(prompts)
             if self.args.verbose:
                 LOGGER.info("")
             if self.args.iou is None:  # Model.predict resets a reused predictor's args to the defaults

@@ -36,6 +36,7 @@ class FastSAMPredictor(SegmentationPredictor):
     """
 
     default_iou = 0.7  # nested single-class masks, not the YOLO predict default
+    _defer_prompts = True  # finalize_results reads them for every batch under the inference lock
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the FastSAMPredictor with configuration and callbacks.

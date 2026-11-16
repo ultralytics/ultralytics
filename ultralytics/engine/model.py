@@ -564,7 +564,10 @@ class Model(torch.nn.Module):
             cfg = get_cfg(base_args, {**custom, **kwargs})
             cfg.show = cfg.show and checks.check_imshow(warn=True)
         if prompts and hasattr(current, "set_prompts"):  # for SAM-type models
-            current.set_prompts(prompts)
+            if getattr(current, "_defer_prompts", False):
+                cfg._prompts = prompts
+            else:
+                current.set_prompts(prompts)
         return current.predict_cli(source, cfg=cfg) if is_cli else current(source=source, stream=stream, cfg=cfg)
 
     def track(

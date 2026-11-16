@@ -1221,8 +1221,8 @@ class Masks(BaseTensor):
         """Yield each mask as its (x1, y1, x2, y2) box and the (y2 - y1, x2 - x1) mask inside it, dense masks whole.
 
         Args:
-            shape (tuple[int, int], optional): (height, width) of the image the masks' frame was letterboxed from.
-                Masks are resized to it as `ops.scale_masks` resizes them, inside their boxes.
+            shape (tuple[int, int], optional): (height, width) of the image the masks' frame was letterboxed from. Masks
+                are resized to it as `ops.scale_masks` resizes them, inside their boxes.
         """
         if hasattr(self, "local"):
             rois, masks, _ = self.local

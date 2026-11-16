@@ -2244,6 +2244,11 @@ def test_process_mask_local():
     assert (local.data != dense).float().mean() < 1e-4  # float rounding may flip a pixel on the mask edge
     assert (local[keep][::3].data != dense[keep][::3]).float().mean() < 1e-4
     assert len(local[5].xy) == 1 and local[5].xy[0][:, 0].min() >= bboxes[5, 0] * 2
+    for dtype in (torch.uint8, torch.float32, torch.bool):
+        converted = local[::10].to(dtype=dtype)
+        assert "data" not in vars(converted)
+        assert converted.data.dtype == dtype and torch.equal(converted.data, local.data[::10].to(dtype))
+    assert torch.equal(local[::10].numpy().to(dtype=torch.float32).data, local.data[::10].float())
     native = ops.process_mask_native(protos[:, :96], coeffs, bboxes, (720, 1280))  # letterboxed, 12 rows of padding
     rois, masks, _ = ops.process_mask_local(protos[:, :96], coeffs, bboxes, (720, 1280))
     assert (Masks((rois, masks, (720, 1280)), (720, 1280)).data != native).float().mean() < 1e-4

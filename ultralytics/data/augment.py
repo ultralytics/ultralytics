@@ -1313,12 +1313,12 @@ class RandomPerspective(BaseTransform):
             segments (np.ndarray): Segments with shape (N, K, 2) in pixel coordinates.
             M (np.ndarray): Affine transformation matrix with shape (3, 3).
             size (tuple[int, int]): Output image size (width, height) used to clip the derived boxes.
-            owner (np.ndarray, optional): Instance index of each segment. When given, the returned boxes are
-                one union box per instance instead of one box per segment.
+            owner (np.ndarray, optional): Instance index of each segment. When given, the returned boxes are one union
+                box per instance instead of one box per segment.
 
         Returns:
-            bboxes (np.ndarray): Bounding boxes in xyxy format with shape (N, 4) — one per instance when
-                `owner` is given, else one per segment as today.
+            bboxes (np.ndarray): Bounding boxes in xyxy format with shape (N, 4) — one per instance when `owner` is
+                given, else one per segment as today.
             segments (np.ndarray): Transformed segments with shape (N, K, 2).
         """
         n, num = segments.shape[:2]

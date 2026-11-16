@@ -566,8 +566,8 @@ class Instances:
             bboxes (np.ndarray): New bounding boxes.
             segments (np.ndarray, optional): New segments.
             keypoints (np.ndarray, optional): New keypoints.
-            segments_owner (np.ndarray, optional): Instance index of each new segment; defaults to one
-                contour per instance.
+            segments_owner (np.ndarray, optional): Instance index of each new segment; defaults to one contour per
+                instance.
         """
         self._bboxes = Bboxes(bboxes, format=self._bboxes.format)
         if segments is not None:

@@ -442,9 +442,9 @@ def verify_image_mask(args: tuple) -> tuple:
 def _parse_instance_id(token: str) -> int | None:
     """Return the instance id from an `id=<int>` label token, or None for a plain number.
 
-    Only the exact `id=` marker counts: legacy rows are all numbers, so a malformed legacy row can never
-    be misread as an id row. Raises ValueError for a malformed marker (`id=abc`, `id=-1`, `id=1.5`,
-    `id=`), which marks the whole label file corrupt in `verify_image_label`.
+    Only the exact `id=` marker counts: legacy rows are all numbers, so a malformed legacy row can never be misread as
+    an id row. Raises ValueError for a malformed marker (`id=abc`, `id=-1`, `id=1.5`, `id=`), which marks the whole
+    label file corrupt in `verify_image_label`.
     """
     if token.startswith("id="):
         try:
@@ -466,8 +466,7 @@ def _group_segments_by_instance(lb: np.ndarray, segments: list, ids: list) -> tu
         ids (list): Instance id per row, or None for a legacy row without an `id=` token.
 
     Returns:
-        (np.ndarray): One row per instance with shape (N, 5); the box is the union of the group's
-            contour boxes.
+        (np.ndarray): One row per instance with shape (N, 5); the box is the union of the group's contour boxes.
         (list): One list of contours per instance, in first-appearance order of the groups.
     """
     groups: dict = {}
@@ -492,16 +491,16 @@ def verify_image_label(args: tuple) -> tuple | list:
     """Verify one image-label pair.
 
     Args:
-        args (tuple): Tuple of (im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls,
-            multipart). `multipart` is True for segment tasks: rows may carry an optional `id=` token
-            (`class id=<int> x1 y1 ...`) and rows sharing (class, id) are grouped into one instance.
-            The 9th element is optional and defaults to False, so existing 8-tuple callers keep working.
+        args (tuple): Tuple of (im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls, multipart).
+            `multipart` is True for segment tasks: rows may carry an optional `id=` token (`class id=<int> x1 y1 ...`)
+            and rows sharing (class, id) are grouped into one instance. The 9th element is optional and defaults to
+            False, so existing 8-tuple callers keep working.
 
     Returns:
         (tuple | list): Tuple of (im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg), where lb is an (N, 5)
             array of [cls, x, y, w, h] labels (one row per instance), shape is (H, W), segments is a list of (K, 2)
-            arrays, or — when `multipart` is True — a list of per-instance contour lists, keypoints is an (N,
-            nkpt, 3) array or None, nm, nf, ne, and nc are missing, found, empty, and corrupt counts, and msg is a log
+            arrays, or — when `multipart` is True — a list of per-instance contour lists, keypoints is an (N, nkpt, 3)
+            array or None, nm, nf, ne, and nc are missing, found, empty, and corrupt counts, and msg is a log
             message. For corrupt samples, a list with the first five items set to None is returned.
     """
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args[:8]
@@ -686,8 +685,8 @@ def polygons2masks(
 
     Returns:
         (np.ndarray): Masks of shape (N, H // downsample_ratio, W // downsample_ratio), one per polygon, filled with
-            `color`. When `owner` is given (instance index of each polygon), one mask per instance is returned
-            instead — the union of that instance's polygons, filled in a single fillPoly call.
+            `color`. When `owner` is given (instance index of each polygon), one mask per instance is returned instead —
+            the union of that instance's polygons, filled in a single fillPoly call.
     """
     if owner is None:
         return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])

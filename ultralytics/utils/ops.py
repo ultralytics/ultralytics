@@ -582,8 +582,8 @@ def union_boxes_by_owner(boxes: np.ndarray, owner: np.ndarray, n: int) -> np.nda
         n (int): Number of instances.
 
     Returns:
-        (np.ndarray): Union boxes with shape (n, 4) in xyxy format. Only contours with positive box area
-            contribute; an owner with no surviving contour gets a zero box.
+        (np.ndarray): Union boxes with shape (n, 4) in xyxy format. Only contours with positive box area contribute; an
+            owner with no surviving contour gets a zero box.
     """
     out = np.zeros((n, 4), dtype=boxes.dtype if len(boxes) else np.float32)
     if not len(boxes):

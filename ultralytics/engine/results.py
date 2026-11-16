@@ -7,6 +7,7 @@ Usage: See https://docs.ultralytics.com/modes/predict
 
 from __future__ import annotations
 
+from bisect import bisect_left
 from copy import deepcopy
 from functools import cached_property
 from pathlib import Path
@@ -1238,13 +1239,15 @@ class Masks(BaseTensor):
             lo.append(f.long() + pad)
             hi.append((f.long() + 1).clamp_(max=c - 1) + pad)
             frac.append(f - f.long())
+        edges = [i.tolist() for i in (*hi, *lo)]  # the first image column and row sampling a box, then the last
         for (x1, y1, x2, y2), m in crops:
             m = torch.nn.functional.pad(torch.as_tensor(m)[None].float(), (1, 1, 1, 1))[0]  # zero outside the box
-            X1, Y1 = (int(torch.searchsorted(i, v)) for i, v in zip(hi, (x1, y1)))
-            X2, Y2 = (int(torch.searchsorted(i, v)) for i, v in zip(lo, (x2, y2)))
+            if lo[0].device != m.device:
+                lo, hi, frac = ([i.to(m.device) for i in x] for x in (lo, hi, frac))
+            X1, Y1, X2, Y2 = (bisect_left(e, v) for e, v in zip(edges, (x1, y1, x2, y2)))
             X, Y = slice(X1, max(X1, X2)), slice(Y1, max(Y1, Y2))  # image pixels that sample the box
-            m = torch.lerp(m[:, lo[0][X] - x1 + 1], m[:, hi[0][X] - x1 + 1], frac[0][X].to(m.device))
-            m = torch.lerp(m[lo[1][Y] - y1 + 1], m[hi[1][Y] - y1 + 1], frac[1][Y, None].to(m.device))
+            m = torch.lerp(m[:, lo[0][X] - x1 + 1], m[:, hi[0][X] - x1 + 1], frac[0][X])
+            m = torch.lerp(m[lo[1][Y] - y1 + 1], m[hi[1][Y] - y1 + 1], frac[1][Y, None])
             yield (X.start, Y.start, X.stop, Y.stop), m > 0.5
 
     def __str__(self) -> str:

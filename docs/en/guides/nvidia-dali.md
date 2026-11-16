@@ -393,7 +393,7 @@ Serialize the DALI pipeline for the Triton DALI backend:
     model = YOLO("yolo26n.pt")
     engine_path = model.export(
         format="engine", imgsz=640, quantize=16, batch=8, dynamic=True, nms=False
-    )  # NMS-free (N, 300, 6); TensorRT >= 8.5
+    )  # NMS-free (N, 1000, 6); TensorRT >= 8.5
 
     # Ultralytics prepends a metadata header to .engine files; strip it so Triton can load the raw TensorRT plan
     with open(engine_path, "rb") as f:
@@ -445,7 +445,7 @@ output [
   {
     name: "output0"
     data_type: TYPE_FP32
-    dims: [ 300, 6 ]
+    dims: [ 1000, 6 ]
   }
 ]
 ```
@@ -467,7 +467,7 @@ output [
   {
     name: "OUTPUT"
     data_type: TYPE_FP32
-    dims: [ 300, 6 ]
+    dims: [ 1000, 6 ]
   }
 ]
 ensemble_scheduling {
@@ -528,7 +528,7 @@ ensemble_scheduling {
 
     # Run inference through the ensemble
     result = client.infer(model_name="ensemble_dali_yolo", inputs=[input_tensor])
-    detections = result.as_numpy("OUTPUT")  # Shape: (1, 300, 6) -> [x1, y1, x2, y2, conf, class_id]
+    detections = result.as_numpy("OUTPUT")  # Shape: (1, 1000, 6) -> [x1, y1, x2, y2, conf, class_id]
 
     # Filter by confidence (no NMS needed for the nms=False export)
     detections = detections[0]  # First image

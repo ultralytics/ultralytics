@@ -186,7 +186,7 @@ The export writes one directory with three files:
 
 The model takes one input with shape `(batch, 3, height, width)`, RGB and scaled to 0-1. The input and the outputs are `float32` in FP32, FP16, and INT8 models, except the semantic segmentation output, a `uint8` class map (`int32` for models with more than 256 classes). The tensors do not carry the `images` and `output0` names of the ONNX export, so address the input and the outputs by index in your own code.
 
-The output shapes are the same as for the ONNX export and depend on the task and the `nms` argument: a YOLO26n detection model exported at `imgsz=640` returns `(1, 84, 8400)` with the default `nms=None` and `(1, 300, 6)` with `nms=False` or `nms=True`. See the [ONNX output format](onnx.md#output-format) for the shapes and contents of every task. With `nms=True`, the confidence threshold `conf` (default `0.25`), the IoU threshold `iou`, `agnostic_nms`, and `max_det` are fixed in the graph at export. A lower `conf` at prediction or validation time cannot bring back detections the graph already removed, so export again to change these values.
+The output shapes are the same as for the ONNX export and depend on the task and the `nms` argument: a YOLO26n detection model exported at `imgsz=640` returns `(1, 84, 8400)` with the default `nms=None` and `(1, 1000, 6)` with `nms=False` or `nms=True`. See the [ONNX output format](onnx.md#output-format) for the shapes and contents of every task. With `nms=True`, the confidence threshold `conf` (default `0.25`), the IoU threshold `iou`, `agnostic_nms`, and `max_det` are fixed in the graph at export. A lower `conf` at prediction or validation time cannot bring back detections the graph already removed, so export again to change these values.
 
 ## Deploy
 
@@ -223,7 +223,7 @@ model = core.read_model("yolo26n_openvino_model/yolo26n.xml")
 compiled = core.compile_model(model, "AUTO")  # or "CPU", "GPU", "NPU"
 
 image = np.zeros((1, 3, 640, 640), dtype=np.float32)  # your preprocessed image: RGB, NCHW, 0-1
-detections = compiled(image)[0][0]  # first output, first image: shape (300, 6)
+detections = compiled(image)[0][0]  # first output, first image: shape (1000, 6)
 detections = detections[detections[:, 4] > 0.25]  # keep rows above the confidence threshold
 
 with open("yolo26n_openvino_model/metadata.yaml") as f:

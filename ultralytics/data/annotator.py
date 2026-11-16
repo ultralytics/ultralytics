@@ -15,7 +15,7 @@ def auto_annotate(
     conf: float = 0.25,
     iou: float | None = None,
     imgsz: int = 640,
-    max_det: int = 300,
+    max_det: int = 1000,
     classes: list[int] | None = None,
     output_dir: str | Path | None = None,
 ) -> None:

@@ -244,7 +244,7 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "data", "fraction"],
             "isolated-rknn",
         ],
-        ["RDK", "rdk", "_rdk_model", False, False, ["data", "fraction"], "base"],
+        ["RDK", "rdk", "_rdk_model", False, False, ["quantize", "data", "fraction"], "base"],
         [
             "ExecuTorch",
             "executorch",
@@ -1684,7 +1684,7 @@ class Exporter:
         return onnx2rdk(
             onnx_file=self.export_onnx(),
             output_dir=self.file.parent / f"{self.file.stem}_rdk_model",
-            images=self._int8_calibration_images(prefix),
+            dataset=self.get_int8_calibration_dataloader(prefix),
             head=self._head_scope(),
             metadata=self.metadata,
             prefix=prefix,

@@ -23,7 +23,7 @@ def _check_hb_mapper() -> None:
 def onnx2rdk(
     onnx_file: str | Path,
     output_dir: str | Path,
-    images,
+    dataset,
     head: str | None = None,
     metadata: dict | None = None,
     prefix: str = "",
@@ -33,7 +33,7 @@ def onnx2rdk(
     Args:
         onnx_file (str | Path): Input ONNX model path (opset 11).
         output_dir (str | Path): Directory to write the compiled .bin model into.
-        images (np.ndarray): INT8 calibration images as a BHWC float32 array of 0-255 RGB values.
+        dataset (Iterable): INT8 calibration dataloader yielding batch dicts of uint8 RGB ``img`` tensors, batch 1.
         head (str | None, optional): ONNX node-name scope of the model head, e.g. ``"/model.23/"``. The BPU graph ends
             at the head's per-level output convolutions and the remaining box decode is saved as ``tail.onnx`` to run on
             the host in floating point.
@@ -47,24 +47,21 @@ def onnx2rdk(
 
     from ultralytics.utils.export.onnx import head_outputs
 
-    _check_hb_mapper()
     onnx_file = Path(onnx_file)
     output_dir = Path(output_dir).resolve()
-    shutil.rmtree(output_dir, ignore_errors=True)  # a re-export would keep a stale tail
-    output_dir.mkdir(parents=True)
-
     model = onnx.load(onnx_file)
     graph = model.graph
-    names = {x: f"out{i}" for i, x in enumerate(head_outputs(graph, head) if head else []) if "/" in x}
+    outputs = head_outputs(graph, head) if head else []
+    names = {x: f"out{i}" for i, x in enumerate(outputs) if "/" in x}
     for n in graph.node:  # the X5 runtime rejects "/" in output names
         n.input[:] = [names.get(x, x) for x in n.input]
         n.output[:] = [names.get(x, x) for x in n.output]
-    outputs = [*names.values(), *(x.name for x in graph.output if names and x.name != "output0")]
+    outputs = [names.get(x, x) for x in outputs]
     LOGGER.info(f"\n{prefix} starting export with hb_mapper...")
     with tempfile.TemporaryDirectory() as scratch:  # hb_mapper drops logs and intermediate models in its CWD
         (Path(scratch) / "cal").mkdir()  # hb_mapper reads every file in the calibration directory
-        for i, im in enumerate(images.transpose(0, 3, 1, 2)):  # BHWC to the model's BCHW
-            im.tofile(f"{scratch}/cal/{i}.rgbchw")
+        for i, batch in enumerate(dataset):
+            batch["img"].float().numpy().tofile(f"{scratch}/cal/{i}.rgbchw")
         onnx.save(model, f"{scratch}/model.onnx")
         if outputs:  # the compiled body keeps this output order, which the tail inputs share
             onnx.utils.extract_model(f"{scratch}/model.onnx", f"{scratch}/body.onnx", [graph.input[0].name], outputs)
@@ -91,6 +88,8 @@ def onnx2rdk(
         subprocess.run(
             ["hb_mapper", "makertbin", "--config", "config.yaml", "--model-type", "onnx"], check=True, cwd=scratch
         )
+        shutil.rmtree(output_dir, ignore_errors=True)  # a re-export would keep a stale tail
+        output_dir.mkdir(parents=True)
         shutil.copy(f"{scratch}/{onnx_file.stem}.bin", output_dir)
         if outputs:
             onnx.utils.extract_model(

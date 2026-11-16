@@ -802,7 +802,8 @@ class Model(torch.nn.Module):
             format_name = dict(zip(formats["Argument"], formats["Format"])).get(
                 str(export_format).lower(), export_format
             )
-            LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
+            if export_format != "rdk":  # the one format Ultralytics Platform does not export
+                LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
             raise
 
     def train(

@@ -65,11 +65,12 @@ RDK export works for all seven Ultralytics tasks with [YOLO26](../models/yolo26.
 | ---------- | ------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`   | `str`                     | `'rdk'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                                                              |
 | `imgsz`    | `int` or `tuple`          | `640`   | Image size of the model input: an integer for square images or a tuple `(height, width)`. When not passed, the export uses the size the checkpoint was trained at.                                                                                                                                              |
+| `quantize` | `int`                     | `None`  | RDK models are always INT8: unset and `8` build INT8, and other values raise an error, see [Limitations and Troubleshooting](#limitations-and-troubleshooting).                                                                                                                                                 |
 | `data`     | `str`                     | `None`  | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. Calibration uses the `val` split unless `split` is set. If omitted, Ultralytics uses the small default dataset for the model task, such as `coco8.yaml` for detection.                     |
 | `fraction` | `float`, `int`, or `list` | `1.0`   | Calibration subset: a ratio, an image count (integers above `1`), or a `[train, val, test]` list, from which the entry of the calibration split is used.                                                                                                                                                        |
 | `nms`      | `bool`, optional          | `None`  | `None` (default) returns raw predictions for external NMS. `False` exports the NMS-free head of models that have one, such as YOLO26, and `tail.onnx` then returns up to `max_det` detections. Embedded NMS (`True`) is not available, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). |
 
-RDK models are always INT8 with a batch size of 1 and a fixed input shape, so `batch`, `dynamic`, `opset`, and `simplify` are not accepted, and `quantize` accepts only `8`. For the arguments shared by all formats, see the [Export mode documentation](../modes/export.md).
+RDK models are always INT8 with a batch size of 1 and a fixed input shape, so `batch`, `dynamic`, `opset`, and `simplify` are not accepted. For the arguments shared by all formats, see the [Export mode documentation](../modes/export.md).
 
 ### Calibration
 
@@ -157,9 +158,9 @@ Copy the `yolo26n_rdk_model/` directory to the RDK X5 and run `yolo26n.bin` with
 
 ## Limitations and Troubleshooting
 
-- **Export host**: export on an x86-64 Linux machine. `rdkx5-yolo-mapper` has builds only for x86-64 Linux with Python 3.10 and glibc 2.35 or newer.
+- **Export host**: export on an x86-64 Linux machine. `rdkx5-yolo-mapper` has builds only for x86-64 Linux with Python 3.10, and they need glibc 2.35 or newer.
 - **`hb_mapper` not found**: without the compiler on `PATH`, the export fails with `RDK export requires the D-Robotics 'hb_mapper' compiler, which was not found on PATH.` Add the `bin` directory of the toolchain environment to the end of `PATH`, as in the [Quickstart](#quickstart).
-- **Executable stack error**: on a system with glibc 2.41, such as Debian 13, `hb_mapper` fails with `cannot enable executable stack as shared object requires: Invalid argument`. The export was tested on Debian 12, which has glibc 2.36.
+- **Executable stack error**: on a system with glibc 2.41, such as Debian 13, `hb_mapper` fails with `cannot enable executable stack as shared object requires: Invalid argument`. The export was tested on Debian 12, which has glibc 2.36; versions between that and 2.41 were not tried.
 - **RDK models do not load in Ultralytics**: predicting or validating with `YOLO("yolo26n_rdk_model")` fails with `model='yolo26n_rdk_model' is not a supported model format.` Use the [simulator](#run-with-the-x86-simulator) on a PC or the D-Robotics runtime on the board.
 - **Precision**: an export without `quantize` logs `rdk export requires INT8 quantization, enabling it.` `quantize=16` and `quantize=32` fail with `format='rdk' supports quantize=8 (INT8).`
 - **Unsupported arguments**: `batch`, `dynamic`, `opset`, and `simplify` fail with, for example, `argument 'batch' is not supported for format='rdk'`. The intermediate ONNX graph always uses opset 11, the newest that `hb_mapper` accepts.

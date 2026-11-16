@@ -1,82 +1,48 @@
 ---
-title: YOLO26 RKNN Export for Rockchip NPU
 comments: true
-description: Learn how to export YOLO26 models to RKNN format, including floating-point and INT8 quantized models, for efficient deployment on Rockchip platforms.
-keywords: YOLO26, RKNN, model export, Ultralytics, Rockchip, INT8 quantization, FP16, machine learning, model deployment, computer vision, deep learning, edge AI, NPU, embedded devices
+description: Export Ultralytics YOLO26 models to Rockchip RKNN with format=rknn. Covers the name argument that selects the chip, FP16 and INT8 quantization, output files, tail.onnx, and deployment on Rockchip NPUs.
+keywords: YOLO26, RKNN, Rockchip, RKNN export, rknn-toolkit2, RK3588, RK3566, RV1106, NPU, INT8 quantization, FP16, Radxa, edge AI, embedded devices, model deployment
 ---
 
-# Rockchip RKNN Export for Ultralytics YOLO26 Models
+# Rockchip RKNN Export
 
-When deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on embedded devices, especially those powered by Rockchip processors, having a compatible model format is essential. Exporting [Ultralytics YOLO26](../models/yolo26.md) models to RKNN format provides optimized performance and compatibility with Rockchip's hardware. This guide walks you through converting your YOLO26 models to RKNN format, including floating-point and INT8 quantized exports, for efficient deployment on Rockchip platforms.
+RKNN is the model format of the [NPUs](https://www.ultralytics.com/glossary/neural-processing-unit-npu) in Rockchip processors such as the RK3588 and RK3566. Exporting an [Ultralytics YOLO26](../models/yolo26.md) model with `format="rknn"` creates a `yolo26n_rknn_model/` directory that holds a `.rknn` file built for one Rockchip chip, which you select with the `name` argument, in FP16 or INT8 precision.
 
-<p align="center">
-  <img width="50%" src="https://cdn.ul.run/i/3c3fcbb470dabcabbe1b5c926fee152a.avif" alt="Rockchip RKNN export for NPU deployment">
-</p>
+## At a Glance
 
-!!! note
+| Property          | Details                                                                                                                                                                    |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` argument | `rknn`                                                                                                                                                                     |
+| Output            | `yolo26n_rknn_model/`, a directory with `yolo26n-rk3588.rknn` and `metadata.yaml`; INT8 exports of detect, segment, pose, and OBB models add [`tail.onnx`](#output-format) |
+| Runs on           | The NPU of one Rockchip chip per export: RK3588, RK3576, RK3566, RK3568, RK3562, RK2118, RV1126B, RV1103, RV1106, RV1103B, or RV1106B, see [Target Chips](#target-chips)   |
+| Runtime           | RKNN Toolkit Lite2 (the `rknn-toolkit-lite2` Python package) on the Rockchip device                                                                                        |
+| Precision         | FP16 (default) and INT8; INT8 only on RV1103, RV1106, RV1103B, and RV1106B. There is no FP32 export. YOLO26n for the RK3588 is 7.4 MB in FP16 and 4.3 MB in INT8           |
+| Export host       | Linux x86-64 with Python 3.12 or older. Export on a PC and copy the exported directory to the Rockchip device                                                              |
 
-    This guide has been tested with [Radxa Rock 5B](https://radxa.com/products/rock5/5b/) which is based on Rockchip RK3588 and [Radxa Zero 3W](https://radxa.com/products/zeros/zero3w/) which is based on Rockchip RK3566. It is expected to work across other Rockchip-based devices that support [rknn-toolkit2](https://github.com/airockchip/rknn-toolkit2) such as RK3576, RK3568, RK3562, RK2118, RV1126B, RV1103, RV1106, RV1103B and RV1106B. INT8-only targets such as RV1103 and RV1106 require `quantize=8`.
+!!! tip "Export in the cloud"
 
-## What is Rockchip?
+    [Ultralytics Platform](../platform/train/models.md#rknn-chip-support) can export a trained model to RKNN for the Rockchip chip you select, so you do not need a local export environment.
 
-Rockchip designs power-efficient System-on-Chips (SoCs) used in a wide range of consumer electronics, industrial applications, and AI products. With ARM-based architecture, built-in [Neural Processing Units (NPUs)](https://www.ultralytics.com/glossary/neural-processing-unit-npu), and high-resolution multimedia support, Rockchip SoCs power devices like tablets, smart TVs, IoT systems, and [edge AI applications](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai). Companies like Radxa, ASUS, Pine64, Orange Pi, Odroid, Khadas, and Banana Pi offer a variety of products based on Rockchip SoCs.
+## Quickstart
 
-## RKNN Toolkit
+Install the Ultralytics package in a separate virtual environment on an x86-64 Linux machine, together with the `protobuf` and `numpy` versions that the RKNN toolkit needs:
 
-The [RKNN Toolkit](https://github.com/airockchip/rknn-toolkit2) is a set of tools and libraries provided by Rockchip to facilitate the deployment of deep learning models on their hardware platforms. RKNN, or Rockchip Neural Network, is the proprietary format used by these tools. RKNN models are designed to take full advantage of the hardware acceleration provided by Rockchip's NPU (Neural Processing Unit), ensuring high performance in AI tasks on devices like RK3588, RK3566, RV1103, RV1106, and other Rockchip-powered systems.
+```bash
+pip install ultralytics "protobuf<7" "numpy<2.4"
+```
 
-## Key Features of RKNN Models
+The first export installs `onnx`, `onnxslim`, `onnxruntime`, and [`rknn-toolkit2`](https://github.com/airockchip/rknn-toolkit2) with its dependencies if they are missing. With a plain `pip install ultralytics`, the first export also replaces `numpy`, `protobuf`, and `setuptools` when their versions are outside the ranges below, so use a separate environment. When it has to replace `protobuf`, that export [fails](#limitations-and-troubleshooting) and the second one passes. The export has these version requirements:
 
-RKNN models offer several advantages for deployment on Rockchip platforms:
+| Package         | Required version                                                                     |
+| --------------- | ------------------------------------------------------------------------------------ |
+| Python          | 3.12 or older, the newest version that `rknn-toolkit2` 2.3.2 has builds for          |
+| `rknn-toolkit2` | 2.3.2, the only release on PyPI in the required range (2.3.2 or newer and below 2.5) |
+| `onnx`          | 1.16.1 or newer and below 1.19.0                                                     |
+| `numpy`         | below 2.4                                                                            |
+| `protobuf`      | below 7                                                                              |
+| `setuptools`    | below 82                                                                             |
 
-- **Optimized for NPU**: RKNN models are specifically optimized to run on Rockchip's NPUs, ensuring maximum performance and efficiency.
-- **Low Latency**: The RKNN format minimizes [inference latency](https://www.ultralytics.com/glossary/inference-latency), which is critical for real-time applications on edge devices.
-- **Platform-Specific Customization**: RKNN models can be tailored to specific Rockchip platforms, enabling better utilization of hardware resources.
-- **Power Efficiency**: By leveraging dedicated NPU hardware, RKNN models consume less power than CPU or GPU-based processing, extending battery life for portable devices.
-
-## Flash OS to Rockchip hardware
-
-The first step after getting a Rockchip-based device is to flash an OS so that the hardware can boot into a working environment. The getting started guides for the two tested devices, Radxa Rock 5B and Radxa Zero 3W, are linked below.
-
-- [Radxa Rock 5B Getting Started Guide](https://docs.radxa.com/en/rock5/rock5b)
-- [Radxa Zero 3W Getting Started Guide](https://docs.radxa.com/en/zero/zero3)
-
-## Supported Tasks
-
-RKNN export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
-
-{% include "macros/supported-tasks.md" %}
-
-## Export to RKNN: Converting Your YOLO26 Model
-
-Export an Ultralytics YOLO26 model to RKNN format and run inference with the exported model.
-
-!!! note
-
-    Make sure to use an X86-based Linux PC to export the model to RKNN because exporting on Rockchip-based devices (ARM64) is not supported.
-
-### Installation
-
-To install the required packages, run:
-
-!!! tip "Installation"
-
-    === "CLI"
-
-        ```bash
-        # Install the required package for YOLO26
-        pip install ultralytics
-        ```
-
-For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
-
-### Usage
-
-!!! note
-
-    FP16 and INT8 export are supported for all tasks. INT8 builds for FP16-capable targets keep high-error layers in FP16 (RKNN Toolkit `auto_hybrid`); INT8-only targets such as RV1103 and RV1106 skip this step. For detection, segmentation, pose, and OBB models, the INT8 `.rknn` file ends at the head's output convolutions and outputs raw per-level head tensors, and the box decode runs on the host CPU in floating point from the `tail.onnx` file in the exported directory. Ultralytics runs `tail.onnx` with [ONNX Runtime](https://onnxruntime.ai/) (installed automatically when missing); custom runtimes must run `tail.onnx` or implement the same decode. Re-export INT8 detection, segmentation, pose, and OBB models exported with earlier Ultralytics versions, since their outputs hold input-normalized coordinates that current releases no longer rescale. INT8 accuracy for all tasks has been validated with the rknn-toolkit2 simulator but not yet on Rockchip hardware. Depth INT8 builds calibrate on depth dataset images that have paired depth maps. Choose calibration images that span the near and far depth range of the deployment scene, since depths beyond the calibrated range lose accuracy.
-
-The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the floating-point build path (`quantize=16`) for FP16-capable Rockchip targets. Use `quantize=8` to build an [INT8-quantized](https://www.ultralytics.com/glossary/model-quantization) RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; the FP16 default does not request FP32.
+For other installation methods, see the [installation guide](../quickstart.md). Then export your model on the PC, copy the exported directory to the Rockchip device, and load it there to run inference or validate its accuracy.
 
 !!! example "Export"
 
@@ -85,26 +51,27 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO26 model (replace with any supported task model)
-        model = YOLO("yolo26n-obb.pt")
-
-        # Export the model to RKNN format
-        model.export(format="rknn", name="rk3588")  # creates 'yolo26n-obb_rknn_model'
-
-        # Export an INT8-quantized RKNN model with calibration data
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
-        model.export(format="rknn", name="rk3588", quantize=8, data="coco8.yaml")  # creates 'yolo26n_rknn_model'
+
+        # Export the model to RKNN format for the RK3588 in FP16
+        model.export(format="rknn", name="rk3588")  # creates 'yolo26n_rknn_model/'
+
+        # Or export an INT8-quantized RKNN model with calibration data instead
+        model.export(format="rknn", name="rk3588", quantize=8, data="coco8.yaml")  # creates 'yolo26n_rknn_model/'
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n-obb PyTorch model to RKNN format
-        yolo export model=yolo26n-obb.pt format=rknn name=rk3588 # creates 'yolo26n-obb_rknn_model'
+        # Export a YOLO26n PyTorch model to RKNN format for the RK3588 in FP16
+        yolo export model=yolo26n.pt format=rknn name=rk3588 # creates 'yolo26n_rknn_model/'
 
-        # Export an INT8-quantized RKNN model with calibration data
-        yolo export model=yolo26n.pt format=rknn name=rk3588 quantize=8 data=coco8.yaml # creates 'yolo26n_rknn_model'
+        # Or export an INT8-quantized RKNN model with calibration data instead
+        yolo export model=yolo26n.pt format=rknn name=rk3588 quantize=8 data=coco8.yaml # creates 'yolo26n_rknn_model/'
         ```
+
+Both exports write the same `yolo26n_rknn_model/` directory, so the second one replaces the first. Predict and Validate run only on a Rockchip device:
 
 !!! example "Predict"
 
@@ -113,18 +80,18 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         ```python
         from ultralytics import YOLO
 
-        # Load the exported RKNN model
-        model = YOLO("./yolo26n-obb_rknn_model")
+        # Load the exported RKNN model on the Rockchip device
+        model = YOLO("yolo26n_rknn_model")
 
         # Run inference
-        results = model("https://ultralytics.com/images/boats.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
 
         ```bash
-        # Run inference with the exported RKNN model
-        yolo predict model=./yolo26n-obb_rknn_model source='https://ultralytics.com/images/boats.jpg'
+        # Run inference with the exported RKNN model on the Rockchip device
+        yolo predict model=yolo26n_rknn_model source='https://ultralytics.com/images/bus.jpg'
         ```
 
 !!! example "Validate"
@@ -134,75 +101,197 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         ```python
         from ultralytics import YOLO
 
-        # Load the exported RKNN model
-        model = YOLO("./yolo26n-obb_rknn_model")
+        # Load the exported RKNN model on the Rockchip device
+        model = YOLO("yolo26n_rknn_model")
 
-        # Validate accuracy on the DOTA8 dataset
-        metrics = model.val(data="dota8.yaml")
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        # Validate the exported RKNN model
-        yolo val model=./yolo26n-obb_rknn_model data=dota8.yaml
+        # Validate the exported RKNN model on the Rockchip device
+        yolo val model=yolo26n_rknn_model data=coco8.yaml
         ```
 
-### Export Arguments
+## Supported Tasks
 
-| Argument   | Type                      | Default    | Description                                                                                                                                                                                                                                                 |
-| ---------- | ------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`                     | `'rknn'`   | Target format for the exported model, defining compatibility with Rockchip deployment environments.                                                                                                                                                         |
-| `imgsz`    | `int` or `tuple`          | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                           |
-| `batch`    | `int`                     | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                     |
-| `name`     | `str`                     | `'rk3588'` | Specifies the Rockchip target. `rk3588`, `rk3576`, `rk3566`, `rk3568`, `rk3562`, `rk2118`, and `rv1126b` support FP16 (`quantize=16` or unset) and INT8 (`quantize=8`); `rv1103`, `rv1106`, `rv1103b`, and `rv1106b` are INT8-only (`quantize=8` or unset). |
-| `quantize` | `int` or `str`            | `None`     | Quantization precision: unset or `16` builds FP16 for FP16-capable targets; unset auto-enables INT8 for INT8-only targets; `8` builds INT8. RKNN export has no separate FP32 mode. Replaces the deprecated `half`/`int8` flags.                             |
-| `simplify` | `bool`                    | `True`     | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                                     |
-| `opset`    | `int`                     | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. Defaults to 19 if unset, and values above 19 are reduced to 19.                                                                                                                           |
-| `data`     | `str`                     | `None`     | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics uses the task's default dataset (e.g. `coco8.yaml` for detection, `depth8.yaml` for depth).                                                                               |
-| `fraction` | `float`, `int`, or `list` | `1.0`      | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                    |
-| `device`   | `str`                     | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                   |
+RKNN export supports all seven Ultralytics tasks with [YOLOv8](../models/yolov8.md), [YOLO11](../models/yolo11.md), and [YOLO26](../models/yolo26.md) models: [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [OBB](../tasks/obb.md). Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-!!! tip
+## Export Arguments
 
-    Use an x86 Linux machine when exporting to RKNN.
+| Argument   | Type                      | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------- | ------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'rknn'`   | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                                                                                                                                                               |
+| `name`     | `str`                     | `'rk3588'` | Rockchip chip the model is built for, in upper or lower case. See [Target Chips](#target-chips).                                                                                                                                                                                                                                                                                                                 |
+| `imgsz`    | `int` or `tuple`          | `640`      | Image size of the model input: an integer for square images or a tuple `(height, width)`. When not passed, the export uses the size the checkpoint was trained at. The official YOLO26 checkpoints use `640` for detect, segment, and pose models and for semantic models pretrained on ADE20K, `1024` for OBB models and for semantic models pretrained on Cityscapes, `768` for depth, and `224` for classify. |
+| `quantize` | `int` or `str`            | `None`     | Precision: `16` or unset builds FP16, and `8` builds INT8 calibrated on `data`. For the INT8-only chips, unset builds INT8 and `16` raises an error. `32` raises an error, and a checkpoint trained with `quantize=8` cannot be exported to RKNN, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). Replaces the deprecated `half`/`int8` flags.                                          |
+| `data`     | `str`                     | `None`     | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. Calibration uses the `val` split unless `split` is set. If omitted with `quantize=8`, Ultralytics uses the small default dataset for the model task, such as `coco8.yaml` for detection.                                                                                                    |
+| `fraction` | `float`, `int`, or `list` | `1.0`      | Calibration subset: a ratio, an image count (integers above `1`), or a `[train, val, test]` list, from which the entry of the calibration split is used.                                                                                                                                                                                                                                                         |
+| `batch`    | `int`                     | `1`        | Batch size of the exported model, fixed in the input shape.                                                                                                                                                                                                                                                                                                                                                      |
+| `simplify` | `bool`                    | `True`     | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                                                                                                                                                                                          |
+| `opset`    | `int`                     | `None`     | ONNX opset version of the intermediate ONNX graph. Uses `19` when unset, and reduces higher values to `19`.                                                                                                                                                                                                                                                                                                      |
+| `nms`      | `bool`, optional          | `None`     | RKNN models always return raw predictions for external NMS. The NMS-free head (`False`) and embedded NMS (`True`) are not available, see [Limitations and Troubleshooting](#limitations-and-troubleshooting).                                                                                                                                                                                                    |
+| `device`   | `str`                     | `None`     | Device that traces the intermediate ONNX graph: `cpu` (the default) or `0` for a CUDA GPU.                                                                                                                                                                                                                                                                                                                       |
 
-For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+For the arguments shared by all formats, see the [Export mode documentation](../modes/export.md).
 
-## Deploying Exported YOLO26 RKNN Models
+### Target Chips
 
-Once you've successfully exported your Ultralytics YOLO26 models to RKNN format, the next step is deploying these models on Rockchip-based devices.
+A `.rknn` file is built for one chip, and `name` selects it. The sizes are for a YOLO26n detection model exported at `imgsz=640` with `quantize` unset:
 
-### Installation
+| `name`    | Precisions | Unset `quantize` builds | YOLO26n file           | Size    |
+| --------- | ---------- | ----------------------- | ---------------------- | ------- |
+| `rk3588`  | FP16, INT8 | FP16                    | `yolo26n-rk3588.rknn`  | 7.4 MB  |
+| `rk3576`  | FP16, INT8 | FP16                    | `yolo26n-rk3576.rknn`  | 10.5 MB |
+| `rk3566`  | FP16, INT8 | FP16                    | `yolo26n-rk3566.rknn`  | 6.8 MB  |
+| `rk3568`  | FP16, INT8 | FP16                    | `yolo26n-rk3568.rknn`  | 6.8 MB  |
+| `rk3562`  | FP16, INT8 | FP16                    | `yolo26n-rk3562.rknn`  | 6.8 MB  |
+| `rk2118`  | FP16, INT8 | FP16                    | `yolo26n-rk2118.rknn`  | 6.8 MB  |
+| `rv1126b` | FP16, INT8 | FP16                    | `yolo26n-rv1126b.rknn` | 7.1 MB  |
+| `rv1103`  | INT8       | INT8                    | `yolo26n-rv1103.rknn`  | 4.2 MB  |
+| `rv1106`  | INT8       | INT8                    | `yolo26n-rv1106.rknn`  | 4.2 MB  |
+| `rv1103b` | INT8       | INT8                    | `yolo26n-rv1103b.rknn` | 4.2 MB  |
+| `rv1106b` | INT8       | INT8                    | `yolo26n-rv1106b.rknn` | 4.2 MB  |
 
-To install the required packages, run:
+The four INT8-only chips are calibrated on the default `coco8.yaml` in this table, and their exports also write [`tail.onnx`](#output-format).
 
-!!! tip "Installation"
+### Quantization
+
+`quantize` selects the precision of the `.rknn` file. The sizes are for an export at `imgsz=640` and `batch=1`:
+
+| `quantize`    | Precision | Calibration data | Files for YOLO26n and `rk3588`        | Size              |
+| ------------- | --------- | ---------------- | ------------------------------------- | ----------------- |
+| unset or `16` | FP16      | No               | `yolo26n-rk3588.rknn`                 | 7.4 MB            |
+| `8`           | INT8      | Yes              | `yolo26n-rk3588.rknn` and `tail.onnx` | 4.3 MB and 0.2 MB |
+
+- **FP16**: the default for the seven chips that support it. It needs no calibration data.
+- **INT8**: `quantize=8` runs calibration images through the model and stores weights and activations as 8-bit integers. The export calibrates on the `val` split of `data`, or on the split you set with `split`, and warns below 300 images. Use `fraction` to limit the number of images.
+- **Mixed precision**: on the seven chips that support FP16, an INT8 export lets RKNN Toolkit keep layers in FP16 when quantization changes their output too much (`auto_hybrid`). The four INT8-only chips skip this step.
+- **Detection head**: for detect, segment, pose, and OBB models, the INT8 `.rknn` file ends at the output convolutions of the head. The operations that decode those outputs into boxes are saved as [`tail.onnx`](#output-format) and run on the CPU of the device in floating point, because per-tensor INT8 cannot hold the pixel-range values of the box decoding.
+- **Depth models**: depth INT8 exports calibrate on the images of a depth dataset that have paired depth maps. Choose calibration images that span the near and far depth range of the deployment scene. With the default `depth8.yaml`, which has 4 validation images, a YOLO26n-depth INT8 model in the rknn-toolkit2 simulator returned depths up to 3.9 for a street image on which the FP16 model returned up to 13.9.
+- **On-device status**: INT8 exports of every task were run in the rknn-toolkit2 simulator and compared with the ONNX model on a single image. Their accuracy has not been measured on a dataset or on Rockchip hardware, so validate an INT8 model on your device and your own data before you deploy it.
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+
+        # Calibrate on 10% of the COCO validation images (500 images); replace coco.yaml with your own dataset
+        model.export(format="rknn", name="rk3588", quantize=8, data="coco.yaml", fraction=0.1)
+        ```
 
     === "CLI"
 
         ```bash
-        # Install the required package for YOLO26
-        pip install ultralytics
+        # Calibrate on 10% of the COCO validation images (500 images); replace coco.yaml with your own dataset
+        yolo export model=yolo26n.pt format=rknn name=rk3588 quantize=8 data=coco.yaml fraction=0.1
         ```
 
-Once installed, run inference and validation on your Rockchip device exactly as shown in the [Usage](#usage) section above — the exported `_rknn_model` loads directly with `YOLO(...)`.
+## Output Format
 
-!!! note
+The export writes one directory:
 
-    If you encounter a log message indicating that the RKNN runtime version does not match the RKNN Toolkit version and the inference fails, please replace `/usr/lib/librknnrt.so` with official [librknnrt.so file](https://github.com/airockchip/rknn-toolkit2/blob/master/rknpu2/runtime/Linux/librknn_api/aarch64/librknnrt.so).
+| File                  | Contents                                                                                                                                 |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `yolo26n-rk3588.rknn` | The model, with the chip set by `name` in the file name                                                                                  |
+| `tail.onnx`           | Only for INT8 detect, segment, pose, and OBB models: the operations that decode the head outputs into raw predictions, to run on the CPU |
+| `metadata.yaml`       | Class names, task, image size, batch size, stride, and export arguments, which Ultralytics reads when it loads the model                 |
+
+The intermediate `yolo26n.onnx` file stays next to the directory. The `.rknn` model takes one input with shape `(batch, height, width, 3)`: RGB, channels last (NHWC), `uint8` with values from 0 to 255. The division by 255 is part of the model, so do not scale the image yourself. This differs from the [ONNX export](onnx.md#output-format), which takes channels-first `float32` images scaled to 0-1.
+
+The outputs depend on the task and the precision. The shapes below are for the official YOLO26n checkpoints at their default export size, with the Cityscapes checkpoint `yolo26n-sem.pt` for semantic segmentation:
+
+| Task     | Default `imgsz` | FP16 output, and `tail.onnx` output for INT8            | INT8 `.rknn` output                                            |
+| -------- | --------------- | ------------------------------------------------------- | -------------------------------------------------------------- |
+| Detect   | `640`           | `(1, 84, 8400)`                                         | 6 head tensors, decoded by `tail.onnx`                         |
+| Segment  | `640`           | `(1, 116, 8400)` and `(1, 32, 160, 160)`                | 9 head tensors and `(1, 32, 160, 160)`, decoded by `tail.onnx` |
+| Semantic | `1024`          | `(1, 19, 1024, 1024)`, a score for each class and pixel | Same as FP16                                                   |
+| Depth    | `768`           | `(1, 1, 768, 768)`, depth map                           | Same as FP16                                                   |
+| Classify | `224`           | `(1, 1000)`, class probabilities                        | Same as FP16                                                   |
+| Pose     | `640`           | `(1, 56, 8400)`                                         | 9 head tensors, decoded by `tail.onnx`                         |
+| OBB      | `1024`          | `(1, 20, 21504)`                                        | 9 head tensors, decoded by `tail.onnx`                         |
+
+- **Raw predictions**: FP16 models, and `tail.onnx` for INT8 models, return the same raw predictions as a default ONNX export: for each anchor the box center x, center y, width, and height in input pixels, then the class scores, then the values of the task (32 mask coefficients, 17 x 3 keypoint values, or the OBB angle in radians). Apply NMS yourself. See the [ONNX output format](onnx.md#output-format) for the layout of each task.
+- **INT8 head tensors**: an INT8 detection model returns two tensors for each of the three detection scales, one with box values and one with class scores, and segmentation, pose, and OBB models return one more tensor per scale with their extra values. Feed them to `tail.onnx` in the order the model returns them; a segmentation model also passes its mask prototypes through `tail.onnx` unchanged.
+- **Semantic segmentation**: the output holds a score for each class and pixel, not the class map of the ONNX export, so take the argmax over the class axis in your own code.
+- **NMS**: there is no NMS-free or embedded-NMS output, see [Limitations and Troubleshooting](#limitations-and-troubleshooting).
+
+`YOLO("yolo26n_rknn_model")` reads the layout from `metadata.yaml`, runs `tail.onnx`, and applies NMS, so you only need these details when you run the model in your own code. The keys of `metadata.yaml` include `names`, `task`, `imgsz`, `stride`, `batch`, `end2end`, `args`, and, for pose models, `kpt_shape`.
+
+### Run with RKNN Toolkit Lite2
+
+To run the model on the device outside the Ultralytics package, load it with the `rknn-toolkit-lite2` package and, for an INT8 detect, segment, pose, or OBB model, pass its outputs to `tail.onnx` with [ONNX Runtime](https://onnxruntime.ai/):
+
+```python
+# Export first: yolo export model=yolo26n.pt format=rknn name=rk3588 quantize=8 data=coco8.yaml
+import numpy as np
+import onnxruntime as ort
+from rknnlite.api import RKNNLite
+
+rknn = RKNNLite()
+assert rknn.load_rknn("yolo26n_rknn_model/yolo26n-rk3588.rknn") == 0
+assert rknn.init_runtime() == 0
+
+image = np.zeros((1, 640, 640, 3), dtype=np.uint8)  # your letterboxed image: RGB, NHWC, 0-255
+outputs = rknn.inference(inputs=[image])  # six head tensors for an INT8 detection model
+
+tail = ort.InferenceSession("yolo26n_rknn_model/tail.onnx", providers=["CPUExecutionProvider"])
+feed = {t.name: x.astype(np.float32) for t, x in zip(tail.get_inputs(), outputs)}
+predictions = tail.run(None, feed)[0]  # shape (1, 84, 8400), raw predictions that need NMS
+assert predictions.shape == (1, 84, 8400), "export a detection model at imgsz=640 with quantize=8"
+```
+
+`tail.onnx` has a batch size of 1 whatever the export `batch`, so run it once per image for a model exported with a larger batch. An FP16 model has no `tail.onnx`, and `outputs[0]` already holds the raw predictions.
+
+## Deploy
+
+On the Rockchip device, install the package with `pip install ultralytics` and copy the `yolo26n_rknn_model/` directory to it; the `protobuf` and `numpy` versions from the Quickstart are needed only for the export. `YOLO("yolo26n_rknn_model")` then runs the model on the NPU with the `rknn-toolkit-lite2` Python package, which Ultralytics installs on first use together with `onnxruntime` when the directory holds a `tail.onnx`. The device needs Python 3.12 or older, the newest version that `rknn-toolkit-lite2` has builds for.
+
+- **Rockchip device required**: Ultralytics loads an RKNN model only on 64-bit ARM Linux systems whose device tree `compatible` string ends with one of the [supported chip names](#target-chips). Everywhere else, loading fails, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). `rknn-toolkit-lite2` also has builds for 64-bit ARM Linux only, so on a target that does not meet these conditions, run the `.rknn` file with Rockchip's C API and either run `tail.onnx` or implement the same decoding in your own code.
+- **Matching chip**: export with the `name` of the chip on your board.
+- **Fixed input shape**: the model always runs at its export `imgsz` and `batch`, which Ultralytics reads from `metadata.yaml`. An `imgsz` passed to `predict` or `val` is ignored. Larger batches are split into chunks of the export batch size and smaller ones are padded, so any number of images works.
+- **`device`**: there is no device to select. The `.rknn` model runs through the RKNN runtime, and `tail.onnx` runs with ONNX Runtime on the CPU.
+
+An earlier version of this workflow was tested on a [Radxa Rock 5B](https://radxa.com/products/rock5/5b/) (RK3588) and a [Radxa Zero 3W](https://radxa.com/products/zeros/zero3w/) (RK3566). The current INT8 export has not yet been run on hardware.
+
+### Deployment Guides
+
+- **Board setup**: flash an operating system first, as described in the getting started guides for the [Radxa Rock 5B](https://docs.radxa.com/en/rock5/rock5b) and the [Radxa Zero 3W](https://docs.radxa.com/en/zero/zero3).
+- **[RKNN Toolkit2 on GitHub](https://github.com/airockchip/rknn-toolkit2)**: the conversion toolkit, the RKNN Toolkit Lite2 runtime, and the `librknnrt.so` runtime library with its C API.
+- **[RKNN Model Zoo](https://github.com/airockchip/rknn_model_zoo)**: Rockchip's C and Python deployment examples.
+- **[Deploy Ultralytics YOLO on Rockchip](https://www.ultralytics.com/blog/deploy-ultralytics-yolo11-on-rockship-for-efficient-edge-ai)**: an overview of the workflow on the Ultralytics blog.
+- **[Model deployment options](../guides/model-deployment-options.md)**: compare RKNN with the other export formats.
+
+## Limitations and Troubleshooting
+
+- **Export host**: export on an x86-64 Linux machine. On macOS the export cannot install `rknn-toolkit2` and fails with `No module named 'rknn'`; the package has no macOS or Windows builds. Export on ARM64 Linux, including Rockchip boards, is untested and not supported: Ultralytics tests the RKNN export only on x86-64 Linux.
+- **Python version**: `rknn-toolkit2` 2.3.2 has builds for Python 3.12 and older. On a newer Python, create the environment with Python 3.12.
+- **First export in a new environment**: in an environment without the `protobuf` version from the Quickstart, the first export replaces `protobuf` 7, which pip installs together with `onnx`, with an older version during the run and fails with `AttributeError: 'google._upb._message.FieldDescriptor' object has no attribute 'label'`. Run the export again, or install `"protobuf<7" "numpy<2.4"` before the first export as in the [Quickstart](#quickstart).
+- **RKNN models do not run on a PC**: predicting or validating with `YOLO("yolo26n_rknn_model")` fails with `RKNN inference is only supported on Rockchip devices.` on a PC, and on a board whose `/proc/device-tree/compatible` string does not end with one of the [supported chip names](#target-chips). Print it with `cat /proc/device-tree/compatible`.
+- **FP32**: `quantize=32` fails with `quantize=32 (FP32) is not supported; format='rknn' supports quantize=16 (FP16), 8 (INT8).`
+- **INT8-only chips**: for `rv1103`, `rv1106`, `rv1103b`, and `rv1106b`, an export without `quantize` logs `Rockchip target 'rv1106' requires INT8 quantization, enabling it.` and builds an INT8 model, and `quantize=16` fails with `Rockchip target 'rv1106' only supports INT8, but got quantize=16.`
+- **Missing or wrong `name`**: without `name`, the export logs `Rockchip RKNN export requires a missing 'name' arg for processor type. Using default name='rk3588'.` An unknown value fails with `Invalid processor name 'rk9999' for Rockchip RKNN export.` followed by the valid names.
+- **NMS-free head**: RKNN models always return raw predictions that need NMS. With `nms=False`, the export of a YOLO26 or YOLOv10 model logs `This export format does not support end2end models, disabling the end2end branch.` and uses the one-to-many head; for other detection, segmentation, pose, and OBB models, for example YOLO11, it logs `This model has no one-to-one head; using one-to-many outputs.` Classification, semantic segmentation, and depth models ignore `nms=False`.
+- **Embedded NMS**: `nms=True` logs `format=rknn does not support embedded NMS; exporting native outputs for external NMS.` and writes the raw output.
+- **Checkpoints trained with `quantize=8`**: a checkpoint fine-tuned with [quantization-aware training](../modes/export.md#quantization-aware-training) fails with `format='rknn' cannot export a QAT model: its Q/DQ ranges are only read by the 'onnx' and 'engine' backends`. Export the checkpoint you started the fine-tuning from with `quantize=8` instead.
+- **RT-DETR**: with `rknn-toolkit2` 2.3.2, the export of an [RT-DETR](../models/rtdetr.md) model fails inside the toolkit in FP16 and in INT8, for `rtdetr-l.pt` at `imgsz=640` with `ValueError: operands could not be broadcast together with shapes (256,256) (8400,1)`.
+- **Fixed input shape**: `dynamic=True` fails with `argument 'dynamic' is not supported for format='rknn'`. Export again to change the image size or the batch size.
+- **Calibration without `data`**: a `quantize=8` export of a detection model logs `INT8 export requires a missing 'data' arg for calibration. Using default 'data=coco8.yaml'.` and calibrates on that small dataset; the other tasks name their own default dataset. Pass `data` with images that represent your deployment data.
+- **Calibration size**: the export logs `>300 images recommended for INT8 calibration, found 4 images.` when the calibration split has fewer than 300 images. `coco8.yaml` has only 4 validation images, which is enough to test the export but not to calibrate a model for deployment.
+- **Output directory**: every export of one checkpoint writes the same `yolo26n_rknn_model/` directory, whatever its `name`, `quantize`, `imgsz`, or `batch`, and deletes the previous contents first. Rename the directory before you export for a second chip or precision, and keep `_rknn_model` in its name, for example `yolo26n_rk3566_rknn_model/`, because Ultralytics recognizes the format by it.
+- **ONNX opset**: an `opset` above 19 logs `rknn-toolkit2 requires opset<=19, setting opset=19.`
+- **INT8 models from earlier versions**: re-export INT8 detection, segmentation, pose, and OBB models that were exported before `ultralytics` 8.4.191, the release that added `tail.onnx`. Those models return box and keypoint coordinates relative to the input size, which current releases no longer rescale, so they load without an error and return wrong boxes.
+- **Runtime version mismatch**: if the log on the device reports that the RKNN runtime version does not match the RKNN Toolkit version and inference fails, replace `/usr/lib/librknnrt.so` with the official [`librknnrt.so`](https://github.com/airockchip/rknn-toolkit2/blob/master/rknpu2/runtime/Linux/librknn_api/aarch64/librknnrt.so) file.
 
     ![RKNN log warning that the model toolkit version does not match the librknnrt runtime version](https://cdn.ul.run/i/90077c647a22b3a29612d2701c6f2108.avif)
 
-## Real-World Applications
-
-Rockchip-powered devices with YOLO26 RKNN models can be used in various applications:
-
-- **Smart Surveillance**: Deploy efficient object detection systems for security monitoring with low power consumption.
-- **Industrial Automation**: Implement quality control and defect detection directly on embedded devices.
-- **Retail Analytics**: Track customer behavior and inventory management in real-time without cloud dependency.
-- **Smart Agriculture**: Monitor crop health and detect pests using [computer vision in agriculture](https://www.ultralytics.com/solutions/computer-vision-in-agriculture).
-- **Autonomous Robotics**: Enable vision-based navigation and obstacle detection on resource-constrained platforms.
+For other errors, see the [Common Issues guide](../guides/yolo-common-issues.md).
 
 ## Benchmarks
 
@@ -229,52 +318,30 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
         Validation for the above benchmarks was done using the [COCO128](https://platform.ultralytics.com/ultralytics/datasets/coco128) dataset. Inference time does not include pre/post-processing. The INT8 rows will be refreshed once the current INT8 export path (host-side decode and `auto_hybrid`) is validated on Rockchip hardware.
 
-## Summary
+The table lists the size of the exported directory in MiB, as benchmark mode reports it; the sizes elsewhere on this page are the `.rknn` file in MB (10^6 bytes). The [YOLO26 model page](../models/yolo26.md) lists the accuracy of the PyTorch checkpoints on the full COCO validation set.
 
-In this guide, you've learned how to export Ultralytics YOLO26 models to RKNN format for deployment on Rockchip platforms. You were also introduced to the RKNN Toolkit and the specific advantages of using RKNN models for edge AI applications.
+## About RKNN
 
-The combination of [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) and Rockchip's NPU technology provides an efficient solution for running advanced [computer vision tasks on embedded devices](https://www.ultralytics.com/blog/deploy-ultralytics-yolo11-on-rockship-for-efficient-edge-ai). This approach enables real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and other vision AI applications with low power consumption.
+[Rockchip](https://www.rock-chips.com/) designs ARM-based systems-on-chip with built-in NPUs, used in single-board computers and embedded products from companies such as Radxa, ASUS, Pine64, Orange Pi, Odroid, Khadas, and Banana Pi. RKNN, short for Rockchip Neural Network, is the model format of those NPUs, and the [RKNN Toolkit](https://github.com/airockchip/rknn-toolkit2) converts models to it on a PC and runs them on the device.
 
-For further details on usage, visit the [RKNN official documentation](https://github.com/airockchip/rknn-toolkit2).
+<p align="center">
+  <img width="50%" src="https://cdn.ul.run/i/3c3fcbb470dabcabbe1b5c926fee152a.avif" alt="Rockchip RKNN export for NPU deployment">
+</p>
 
 ## FAQ
 
-### How do I export my Ultralytics YOLO model to RKNN format?
+### Which `name` should I use for my Rockchip board?
 
-You can export your Ultralytics YOLO model to RKNN format using the `export()` method in the Ultralytics Python package or via the command-line interface (CLI). Ensure you are using an x86-based Linux PC for the export process, as ARM64 devices like Rockchip are not supported for this operation. You can specify the target Rockchip platform using the `name` argument, such as `rk3588`, `rk3566`, or others. This process generates an optimized RKNN model ready for deployment on your Rockchip device, taking advantage of its Neural Processing Unit (NPU) for accelerated inference.
+Use the name of the processor on the board, not the name of the board: `rk3588` for a Radxa Rock 5B, for example, or `rk3566` for a Radxa Zero 3W. On the board, `cat /proc/device-tree/compatible` prints the string that Ultralytics reads the chip from. A model exported for one chip is not built for another, so export once per chip. See [Target Chips](#target-chips) for the accepted names.
 
-!!! example
+### Should I export an RKNN model in FP16 or INT8?
 
-    === "Python"
+Start with FP16, the default. It needs no calibration data and returns its raw predictions without a second model on the CPU. Choose INT8 (`quantize=8`) when you need a smaller and faster model or when the chip is INT8-only: YOLO26n for the RK3588 is 4.3 MB in INT8 against 7.4 MB in FP16, and in the [benchmarks](#benchmarks), which were measured with an earlier export, INT8 ran YOLO26n at 41.2 ms per image against 58.5 ms in FP16. INT8 needs representative [calibration data](#quantization), and for detect, segment, pose, and OBB models it runs the box decoding on the CPU with `tail.onnx`. Measure latency and accuracy on your device before you choose.
 
-        ```python
-        from ultralytics import YOLO
+### Can I test an RKNN model on my PC before I copy it to the device?
 
-        # Load your YOLO model
-        model = YOLO("yolo26n.pt")
+Not with `YOLO()`, which loads RKNN models only on Rockchip devices. To check the model itself on the PC, validate the PyTorch checkpoint or the intermediate `yolo26n.onnx` file that the export leaves next to the directory, with [ONNX Runtime](onnx.md): the RKNN model is converted from that graph. This does not replace a validation on the device, in particular for INT8, because quantization changes the outputs.
 
-        # Export to RKNN format for a specific Rockchip platform
-        model.export(format="rknn", name="rk3588")
-        ```
+### Can I run a YOLO26 model on other edge accelerators?
 
-    === "CLI"
-
-        ```bash
-        yolo export model=yolo26n.pt format=rknn name=rk3588
-        ```
-
-### What are the benefits of using RKNN models on Rockchip devices?
-
-RKNN models are specifically designed to leverage the hardware acceleration capabilities of Rockchip's Neural Processing Units (NPUs). This optimization results in faster inference and reduced latency compared to running generic model formats like ONNX or LiteRT on the same hardware. Using RKNN models allows for more efficient use of the device's resources, leading to lower power consumption and better overall performance, especially critical for real-time applications on edge devices. By converting your Ultralytics YOLO models to RKNN, you can achieve optimal performance on devices powered by Rockchip SoCs like the RK3588, RK3566, and others.
-
-### Can I deploy RKNN models on devices from other manufacturers like NVIDIA or Google?
-
-RKNN models are specifically optimized for Rockchip platforms and their integrated NPUs. For optimal performance on other platforms, it's recommended to export your Ultralytics YOLO models to formats specifically designed for those platforms, such as [TensorRT](tensorrt.md) for NVIDIA GPUs or [Edge TPU](edge-tpu.md) for Google's Coral devices. Ultralytics supports exporting to a wide range of formats, ensuring compatibility with various hardware accelerators.
-
-### What Rockchip platforms are supported for RKNN model deployment?
-
-The Ultralytics YOLO export to RKNN format supports Rockchip platforms with floating-point RKNN builds, including RK3588, RK3576, RK3566, RK3568, RK3562, RK2118 and RV1126B. It also supports INT8 quantized RKNN export with `quantize=8`, which is required for INT8-only targets such as RV1103, RV1106, RV1103B and RV1106B. These platforms are commonly found in devices from manufacturers like Radxa, ASUS, Pine64, Orange Pi, Odroid, Khadas, and Banana Pi, allowing you to deploy your optimized RKNN models on a range of Rockchip-powered devices from single-board computers to industrial systems.
-
-### How does the performance of RKNN models compare to other formats on Rockchip devices?
-
-RKNN models generally outperform other formats like ONNX or LiteRT on Rockchip devices due to their optimization for Rockchip's NPUs. For instance, benchmarks on the Radxa Rock 5B (RK3588) show that [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) in RKNN format achieves an inference time of 58.5 ms/image in FP16 and 41.2 ms/image in INT8. Results for all YOLO26 model sizes are listed in the [benchmarks section](#benchmarks). By running on the dedicated NPU hardware, RKNN models minimize latency and maximize throughput for real-time applications on Rockchip-based edge devices.
+Yes, with the export format of each accelerator: an RKNN model runs only on Rockchip NPUs. See [TensorRT](tensorrt.md) for NVIDIA Jetson, [Hailo](hailo.md), [Axelera](axelera.md), [DeepX](deepx.md), and [Coral Edge TPU](edge-tpu.md), or the [model deployment options guide](../guides/model-deployment-options.md) for an overview.

@@ -37,7 +37,7 @@ This installs `litert-torch`, `ai-edge-litert`, and `ai-edge-quantizer`. With a 
 | ------------------- | ------------------------------------------------------------------------------------------------ |
 | Python              | 3.10 or newer                                                                                    |
 | `litert-torch`      | 0.10.0 or newer                                                                                  |
-| `torch`             | 2.4.0 or newer and below 2.15.0, the range that `litert-torch` 0.10.0 accepts                    |
+| `torch`             | The range the installed `litert-torch` accepts: 2.4.0 or newer and below 2.15.0 for 0.10.0       |
 | `ai-edge-litert`    | 2.3.0 or newer to export; 2.1.4 or newer, also on Python 3.10 or newer, to run an exported model |
 | `ai-edge-quantizer` | 0.10.0 or newer, for `quantize="w8a32"`, `quantize=8`, and `"w8a16"`                             |
 
@@ -133,7 +133,7 @@ For the arguments shared by all formats, see the [Export mode documentation](../
 
 !!! note "Image size of the official mobile and web models"
 
-    The official LiteRT, [Core ML](coreml.md), and [QNN](qnn.md) mobile models are exported at `imgsz=640`, and at `imgsz=224` for classification. The OBB, depth, and Cityscapes semantic checkpoints export at a larger size by default, so pass `imgsz=640` to match them.
+    The official LiteRT, [Core ML](coreml.md), and [QNN](qnn.md) mobile models are exported at `imgsz=640`, and at `imgsz=224` for classification. The Cityscapes semantic, depth, and OBB checkpoints export at a larger size by default, so pass `imgsz=640` to match them.
 
 ### Quantization
 
@@ -269,7 +269,7 @@ Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVI
 ## Limitations and Troubleshooting
 
 - **Export host**: on Windows and on Linux ARM64, such as a Raspberry Pi, the export fails with `LiteRT export only supported on Linux x86 and macOS`. Export on a supported host and copy the `.tflite` file to the device.
-- **First export after a plain install**: `litert-torch` 0.10.0 requires a PyTorch version from 2.4.0 to below 2.15.0. When the first export installs it into an environment with another PyTorch version, pip replaces PyTorch, Ultralytics logs `Restart runtime or rerun command for updates to take effect`, and that export can fail, with `RuntimeError: duplicate registrations for aten.miopen_batch_norm.default` on PyTorch 2.15.0. Run the export again.
+- **First export after a plain install**: when the first export installs a `litert-torch` that does not accept the installed PyTorch version (0.10.0 accepts 2.4.0 to below 2.15.0), pip replaces PyTorch, Ultralytics logs `Restart runtime or rerun command for updates to take effect`, and that export can fail, with `RuntimeError: duplicate registrations for aten.miopen_batch_norm.default` on PyTorch 2.15.0. Run the export again.
 - **FP16**: `quantize=16` fails with `quantize=16 (FP16) is not supported; format='litert' supports quantize=8 (INT8), 'w8a16' (INT8 weights + INT16 activations), 'w8a32' (dynamic INT8), 32 or None (FP32).` Export FP32 and let the GPU delegate run it in half precision.
 - **Checkpoints trained with `quantize=8`**: a checkpoint fine-tuned with [quantization-aware training](../modes/export.md#quantization-aware-training) fails with `format='litert' cannot export a QAT model: its Q/DQ ranges are only read by the 'onnx' and 'engine' backends`. Export the checkpoint you started the fine-tuning from with `quantize=8` instead, or export the fine-tuned checkpoint to [ONNX](onnx.md) or [TensorRT](tensorrt.md).
 - **NMS-free head with `quantize=8` or `'w8a16'`**: with `nms=False`, the export logs `LiteRT INT8 export does not support end2end models, disabling end2end branch.` and writes raw predictions that need NMS. Use FP32 or `'w8a32'` to keep the NMS-free head.

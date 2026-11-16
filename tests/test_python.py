@@ -1859,6 +1859,270 @@ def test_yolo_dataset_cache_hash_includes_use_segments(tmp_path):
     assert ds.get_cache_hash() != segments_hash
 
 
+def test_union_boxes_by_owner_empty_and_zero_area():
+    """Empty input gives zero boxes; a zero-area contour contributes nothing to its owner's union box."""
+    from ultralytics.utils.ops import union_boxes_by_owner
+
+    out = union_boxes_by_owner(np.zeros((0, 4), dtype=np.float32), np.zeros(0, dtype=np.int64), 2)
+    assert out.shape == (2, 4) and not out.any()
+    boxes = np.array([[10, 10, 30, 30], [50, 50, 50, 60]], dtype=np.float32)  # second box has zero width
+    out = union_boxes_by_owner(boxes, np.array([0, 1]), 2)
+    assert out[0].tolist() == [10, 10, 30, 30] and out[1].tolist() == [0, 0, 0, 0]
+
+
+def test_polygons2masks_without_owner_keeps_one_mask_per_polygon():
+    """Without an owner map, polygons2masks returns one mask per polygon, exactly as before."""
+    from ultralytics.data.utils import polygons2masks
+
+    p1 = np.array([[10, 10], [30, 10], [30, 30], [10, 30]], dtype=np.float32)
+    p2 = np.array([[60, 60], [80, 60], [80, 80], [60, 80]], dtype=np.float32)
+    masks = polygons2masks((100, 100), [p1, p2], color=1)
+    assert masks.shape == (2, 100, 100)
+    assert masks[0, 20, 20] == 1 and masks[1, 70, 70] == 1 and masks[0, 70, 70] == 0
+
+
+def test_yolo_dataset_update_labels_info_empty_segments(tmp_path):
+    """A label with no segments (background image) loads as an instance set with an empty owner map."""
+    from ultralytics.data.dataset import YOLODataset
+    from ultralytics.utils import DEFAULT_CFG
+
+    images, labels = tmp_path / "images" / "train", tmp_path / "labels" / "train"
+    images.mkdir(parents=True)
+    labels.mkdir(parents=True)
+    cv2.imwrite(str(images / "a.jpg"), np.zeros((64, 64, 3), np.uint8))
+    (labels / "a.txt").write_text("0 id=1 0.10 0.10 0.20 0.10 0.20 0.20\n")
+    ds = YOLODataset(
+        img_path=str(images),
+        imgsz=64,
+        data={"names": {0: "a"}, "nc": 1},
+        task="segment",
+        augment=False,
+        batch_size=1,
+        hyp=copy(DEFAULT_CFG),
+    )
+    out = ds.update_labels_info(
+        {"bboxes": np.zeros((0, 4), dtype=np.float32), "segments": [], "bbox_format": "xyxy", "normalized": False}
+    )
+    assert len(out["instances"]) == 0
+    assert out["instances"].segments.shape == (0, 1000, 2)
+    assert out["instances"].segments_owner.shape == (0,)
+
+
+def test_instances_multipart_slice_index_remaps_owners():
+    """Slicing keeps the contours of the selected instances and remaps their owners to the new positions."""
+    from ultralytics.utils.instance import Instances
+
+    seg_a = np.array(
+        [
+            [[10, 10], [30, 10], [30, 30], [10, 30]],
+            [[70, 10], [90, 10], [90, 30], [70, 30]],
+        ],
+        dtype=np.float32,
+    )
+    seg_b = np.array([[[0, 0], [20, 0], [20, 20], [0, 20]]], dtype=np.float32)
+    a = Instances(
+        np.array([[10, 10, 90, 30]], dtype=np.float32),
+        seg_a,
+        bbox_format="xyxy",
+        normalized=False,
+        segments_owner=np.array([0, 0]),
+    )
+    b = Instances(np.array([[0, 0, 20, 20]], dtype=np.float32), seg_b, bbox_format="xyxy", normalized=False)
+    cat = Instances.concatenate([a, b])
+    assert cat[0:1].segments_owner.tolist() == [0, 0] and cat[0:1].segments.shape == (2, 4, 2)
+    assert cat[1:2].segments_owner.tolist() == [0] and cat[1:2].segments.shape == (1, 4, 2)
+
+
+def test_instances_crop_non_multipart_clips_contour():
+    """A crop cutting a plain (one contour per instance) object clips that contour to its own box."""
+    from ultralytics.utils.instance import Instances
+
+    segments = np.array(
+        [
+            [[10, 10], [30, 10], [30, 30], [10, 30]],
+            [[70, 10], [90, 10], [90, 30], [70, 30]],
+        ],
+        dtype=np.float32,
+    )
+    bboxes = np.array([[10, 10, 30, 30], [70, 10, 90, 30]], dtype=np.float32)
+    instances = Instances(bboxes, segments, bbox_format="xyxy", normalized=False)
+    assert instances.segments_owner.tolist() == [0, 1]
+    keep = instances.crop((0, 0, 50, 40))  # window covers the left contour only
+    assert keep.tolist() == [True, False]
+    np.testing.assert_allclose(instances.bboxes[0], [10, 10, 30, 30])
+    np.testing.assert_allclose(instances.bboxes[1], [0, 0, 0, 0])
+
+
+def test_instances_remove_zero_area_boxes_remaps_owners():
+    """Removing a zero-area instance drops its contours and remaps the surviving owners."""
+    from ultralytics.utils.instance import Instances
+
+    segments = np.array(
+        [
+            [[10, 10], [30, 10], [30, 30], [10, 30]],
+            [[70, 10], [90, 10], [90, 30], [70, 30]],
+        ],
+        dtype=np.float32,
+    )
+    bboxes = np.array([[10, 10, 30, 30], [50, 50, 50, 60]], dtype=np.float32)  # second box has zero width
+    instances = Instances(bboxes, segments, bbox_format="xyxy", normalized=False, segments_owner=np.array([0, 1]))
+    assert instances.remove_zero_area_boxes().tolist() == [True, False]
+    assert len(instances) == 1 and instances.segments.shape == (1, 4, 2)
+    assert instances.segments_owner.tolist() == [0]
+
+
+def test_instances_update_segments_owner():
+    """update() keeps a given owner map and defaults to one contour per instance without one."""
+    from ultralytics.utils.instance import Instances
+
+    segments = np.array([[[10, 10], [30, 10], [30, 30], [10, 30]]], dtype=np.float32)
+    instances = Instances(
+        np.array([[10, 10, 30, 30]], dtype=np.float32),
+        segments,
+        bbox_format="xyxy",
+        normalized=False,
+        segments_owner=np.array([0]),
+    )
+    instances.update(
+        np.array([[0, 0, 20, 20]], dtype=np.float32),
+        segments=np.array([[[0, 0], [20, 0], [20, 20], [0, 20]]], dtype=np.float32),
+        segments_owner=np.array([0]),
+    )
+    assert instances.segments_owner.tolist() == [0]
+    instances.update(
+        np.array([[0, 0, 20, 20], [30, 30, 50, 50]], dtype=np.float32),
+        segments=np.array(
+            [[[0, 0], [20, 0], [20, 20], [0, 20]], [[30, 30], [50, 30], [50, 50], [30, 50]]], dtype=np.float32
+        ),
+    )
+    assert instances.segments_owner.tolist() == [0, 1]
+
+
+def test_random_perspective_multipart_segments():
+    """RandomPerspective carries the owner map through the warp and keeps one union box per instance."""
+    from ultralytics.data.augment import RandomPerspective
+    from ultralytics.utils.instance import Instances
+
+    segments = np.array(
+        [
+            [[0.1, 0.1], [0.3, 0.1], [0.3, 0.3], [0.1, 0.3]],
+            [[0.7, 0.1], [0.9, 0.1], [0.9, 0.3], [0.7, 0.3]],
+        ],
+        dtype=np.float32,
+    )
+    instances = Instances(
+        np.array([[0.5, 0.2, 0.8, 0.2]], dtype=np.float32),
+        segments,
+        bbox_format="xywh",
+        normalized=True,
+        segments_owner=np.array([0, 0]),
+    )
+    labels = {"img": np.zeros((100, 100, 3), np.uint8), "instances": instances, "cls": np.array([[0]])}
+    params = {"M": np.eye(3, dtype=np.float32), "scale": 1.0, "orig_shape": (100, 100), "size": (100, 100)}
+    out = RandomPerspective().apply_instances(labels, params)
+    assert len(out["instances"]) == 1 and out["instances"].segments_owner.tolist() == [0, 0]
+    np.testing.assert_allclose(out["instances"].bboxes, [[10, 10, 90, 30]], atol=1e-4)
+    assert out["cls"].tolist() == [[0]]
+
+
+def test_random_perspective_no_segments():
+    """RandomPerspective with box-only instances takes the no-segments path and keeps the box."""
+    from ultralytics.data.augment import RandomPerspective
+    from ultralytics.utils.instance import Instances
+
+    instances = Instances(
+        np.array([[0.2, 0.2, 0.4, 0.4]], dtype=np.float32),
+        np.zeros((0, 4, 2), dtype=np.float32),
+        bbox_format="xywh",
+        normalized=True,
+    )
+    labels = {"img": np.zeros((100, 100, 3), np.uint8), "instances": instances, "cls": np.array([[0]])}
+    params = {"M": np.eye(3, dtype=np.float32), "scale": 1.0, "orig_shape": (100, 100), "size": (100, 100)}
+    out = RandomPerspective().apply_instances(labels, params)
+    assert len(out["instances"]) == 1
+
+
+def test_random_perspective_apply_segments_owner():
+    """apply_segments returns one union box per instance with an owner, one box per contour without."""
+    from ultralytics.data.augment import RandomPerspective
+
+    segments = np.array(
+        [
+            [[10, 10], [30, 10], [30, 30], [10, 30]],
+            [[70, 10], [90, 10], [90, 30], [70, 30]],
+        ],
+        dtype=np.float32,
+    )
+    rp = RandomPerspective()
+    boxes, _ = rp.apply_segments(segments, np.eye(3, dtype=np.float32), (100, 100), owner=np.array([0, 0]))
+    assert boxes.shape == (1, 4)
+    np.testing.assert_allclose(boxes, [[10, 10, 90, 30]], atol=1e-4)
+    boxes, _ = rp.apply_segments(segments, np.eye(3, dtype=np.float32), (100, 100))
+    assert boxes.shape == (2, 4)
+    np.testing.assert_allclose(boxes[0], [10, 10, 30, 30], atol=1e-4)
+
+
+def test_copypaste_draws_all_contours_of_instance():
+    """CopyPaste draws every contour of the selected instance into the paste mask, not just one."""
+    from ultralytics.data.augment import CopyPaste
+    from ultralytics.utils.instance import Instances
+
+    segments = np.array(
+        [
+            [[10, 10], [30, 10], [30, 30], [10, 30]],
+            [[70, 10], [90, 10], [90, 30], [70, 30]],
+        ],
+        dtype=np.float32,
+    )
+    instances2 = Instances(
+        np.array([[10, 10, 90, 30]], dtype=np.float32),
+        segments,
+        bbox_format="xyxy",
+        normalized=False,
+        segments_owner=np.array([0, 0]),
+    )
+    im_new = np.zeros((100, 100), dtype=np.uint8)
+    out = CopyPaste().apply_image(
+        {"img": np.zeros((100, 100, 3), np.uint8)},
+        {"instances2": instances2, "selected": [0], "im_new": im_new},
+    )
+    assert out["img"].shape == (100, 100, 3)
+    assert im_new[20, 20] == 1 and im_new[20, 80] == 1  # both contours drawn
+
+
+def test_albumentations_multipart_segments():
+    """A spatial Albumentations transform keeps a multipart instance as one instance with both contours."""
+    pytest.importorskip("albumentations")
+    import albumentations as A
+
+    from ultralytics.data.augment import Albumentations
+    from ultralytics.utils.instance import Instances
+
+    segments = np.array(
+        [
+            [[10, 10], [30, 10], [30, 30], [10, 30]],
+            [[70, 10], [90, 10], [90, 30], [70, 30]],
+        ],
+        dtype=np.float32,
+    )
+    instances = Instances(
+        np.array([[10, 10, 90, 30]], dtype=np.float32),
+        segments,
+        bbox_format="xyxy",
+        normalized=False,
+        segments_owner=np.array([0, 0]),
+    )
+    img = np.zeros((100, 100, 3), np.uint8)
+    img[10:30, 10:30] = 255  # white square on the left
+    out = Albumentations(p=1.0, transforms=[A.HorizontalFlip(p=1.0)])(
+        {"img": img, "instances": instances, "cls": np.array([[0]])}
+    )
+    assert len(out["instances"]) == 1 and out["instances"].segments_owner.tolist() == [0, 0]
+    assert out["instances"].segments.shape == (2, 4, 2)
+    assert out["img"][20, 80].tolist() == [255, 255, 255]  # square flipped to the right
+    assert out["cls"].tolist() == [[0]]
+
+
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset

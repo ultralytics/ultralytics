@@ -11,7 +11,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.nn.modules import Detect
+from ultralytics.nn.modules import Classify, Detect
 from ultralytics.utils import LOGGER
 from ultralytics.utils.export.engine import _NormalizeCoords
 
@@ -41,10 +41,11 @@ def torch2litert(
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.
 
     Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations, with
-    FP32 head outputs on Detect models) and ``'w8a16'`` applies static INT8 weights with int16 activations, both
-    requiring a ``calibration_dataset``; ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights + FP32 activations)
-    and needs no calibration. ``None``/``32`` exports FP32. FP16 is not exported as a separate model: LiteRT runs an
-    FP32 model in FP16 at runtime via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16`` flag on ARM.
+    FP32 head outputs on Detect and Classify models) and ``'w8a16'`` applies static INT8 weights with int16
+    activations, both requiring a ``calibration_dataset``; ``'w8a32'`` applies dynamic/weight-only INT8 (int8 weights +
+    FP32 activations) and needs no calibration. ``None``/``32`` exports FP32. FP16 is not exported as a separate model:
+    LiteRT runs an FP32 model in FP16 at runtime via the GPU delegate (FP16 by default) or the XNNPACK ``FORCE_FP16``
+    flag on ARM.
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.
@@ -122,13 +123,18 @@ def torch2litert(
                 qt.update_quantization_recipe(
                     regex=".*", operation_name=op, algorithm_key=recipe.AlgorithmName.NO_QUANTIZE
                 )
-            if static_int8 and any(isinstance(m, Detect) for m in model.modules()):
+            if static_int8 and any(isinstance(m, (Classify, Detect)) for m in model.modules()):
                 # Keep head output convs and decode float: int8 clips class logits and one output scale coarsens boxes
                 qt.update_quantization_recipe(
                     regex=r"\.modules\.head\.(?!.*ultralytics\.nn\.modules\.(conv\.|block\.Proto))"
                     r"|_NormalizeCoords;|serving_default_output_",
                     operation_name=qtyping.TFLOperationName.ALL_SUPPORTED,
                     algorithm_key=recipe.AlgorithmName.NO_QUANTIZE,
+                )
+                qt.add_dynamic_config(  # Classify linear keeps int8 weights with float logits
+                    regex=r"Classify_\d+/torch\.nn\.modules\.linear",
+                    operation_name=qtyping.TFLOperationName.FULLY_CONNECTED,
+                    num_bits=8,
                 )
             result = qt.calibrate(
                 {"serving_default": calib_samples}, mode=calibrator.CalibrationMode.CALIBRATION_PROFILER_BASED

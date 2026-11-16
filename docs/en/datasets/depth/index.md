@@ -1,4 +1,5 @@
 ---
+title: Depth Estimation Datasets for YOLO
 comments: true
 description: Learn how to prepare depth estimation datasets for Ultralytics YOLO, including PNG and NPY depth maps, dataset YAML fields, directory layout, and supported datasets.
 keywords: Ultralytics, YOLO, depth estimation, depth dataset format, PNG depth maps, NPY depth maps, NYU Depth V2, monocular depth, per-pixel depth

@@ -1,4 +1,5 @@
 ---
+title: YOLOv5 Training Tips
 comments: true
 description: Get the best mAP from Ultralytics YOLOv5 with practical advice on dataset size and labeling, model selection, epochs, image size, batch size and hyperparameters.
 keywords: YOLOv5 training, mAP, dataset best practices, model selection, training settings, YOLOv5 guide, YOLOv5 tutorial, machine learning

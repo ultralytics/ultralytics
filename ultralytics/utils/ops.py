@@ -619,6 +619,21 @@ def crop_mask(masks: torch.Tensor, boxes: torch.Tensor) -> torch.Tensor:
     return masks
 
 
+def letterbox_span(shape1: tuple[int, int], shape0: tuple[int, int]) -> tuple[int, int, int, int]:
+    """Return the (top, left, height, width) that an image of `shape0` spans once letterboxed into `shape1`.
+
+    Args:
+        shape1 (tuple[int, int]): Letterboxed (height, width).
+        shape0 (tuple[int, int]): Original image (height, width).
+
+    Returns:
+        (tuple[int, int, int, int]): Top and left padding, then the height and width of the image content.
+    """
+    gain = min(shape1[0] / shape0[0], shape1[1] / shape0[1])
+    h, w = max(round(shape0[0] * gain), 1), max(round(shape0[1] * gain), 1)
+    return round((shape1[0] - h) / 2 - 0.1), round((shape1[1] - w) / 2 - 0.1), h, w
+
+
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     """Generate binary instance masks from mask prototypes and coefficients, cropped to their bounding boxes.
 
@@ -702,9 +717,7 @@ def process_mask_local(protos, masks_in, bboxes, shape):
     c, mh, mw = protos.shape  # CHW
     h, w = shape
     dev = bboxes.device
-    gain = min(4 * mh / h, 4 * mw / w)  # letterbox placement of the frame inside the model input
-    cw, ch = max(round(w * gain), 1), max(round(h * gain), 1)
-    left, top = round((4 * mw - cw) / 2 - 0.1), round((4 * mh - ch) / 2 - 0.1)
+    top, left, ch, cw = letterbox_span((4 * mh, 4 * mw), shape)  # the frame inside the model input
     # Prototype coordinate of every frame column and row, as bilinear interpolation with align_corners=False samples
     # it, clamped to the prototypes centered on the frame so that letterbox padding never bleeds into a mask edge
     fx = ((torch.arange(w, device=dev) + 0.5) * (cw / w) + left).clamp_(left + 2, left + cw - 2) / 4 - 0.5
@@ -773,12 +786,14 @@ def scale_masks(
         return masks.new_zeros((*masks.shape[:2], im0_h, im0_w), dtype=torch.float32)
 
     if ratio_pad is None:  # calculate from im0_shape
-        gain_h = gain_w = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
-        pad_w, pad_h = (im1_w - max(round(im0_w * gain_w), 1)) / 2, (im1_h - max(round(im0_h * gain_h), 1)) / 2
+        top, left, ch, cw = letterbox_span((im1_h, im1_w), (im0_h, im0_w))
     else:
         (gain_h, gain_w), (pad_w, pad_h) = ratio_pad
-    top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
-    bottom, right = top + max(round(im0_h * gain_h), 1), left + max(round(im0_w * gain_w), 1)  # content end
+        top, left = round(pad_h - 0.1), round(pad_w - 0.1)
+        ch, cw = max(round(im0_h * gain_h), 1), max(round(im0_w * gain_w), 1)
+    if not padding:
+        top = left = 0
+    bottom, right = top + ch, left + cw  # content end
     if ratio_pad and not padding and abs(im0_h * gain_h - bottom) + abs(im0_w * gain_w - right) > 1e-3:  # mid-pixel
         sh, sw = im0_h * gain_h / im1_h, im0_w * gain_w / im1_w  # sample the exact content span instead of cropping
         masks = masks.float()

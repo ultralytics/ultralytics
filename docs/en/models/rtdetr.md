@@ -1,5 +1,5 @@
 ---
-title: RT-DETR Real-Time Detection Transformer
+title: Baidu RT-DETR Real-Time Detection Transformer
 comments: true
 description: RT-DETR is Baidu's real-time transformer object detector with NMS-free inference and adjustable decoder speed. Train, validate and export it with Ultralytics.
 keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, decoder layer index, query count, NMS-free detection, computer vision

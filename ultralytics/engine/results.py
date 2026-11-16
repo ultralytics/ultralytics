@@ -7,6 +7,7 @@ Usage: See https://docs.ultralytics.com/modes/predict
 
 from __future__ import annotations
 
+from bisect import bisect_left
 from copy import deepcopy
 from functools import cached_property
 from pathlib import Path
@@ -72,6 +73,10 @@ class BaseTensor(SimpleClass):
         """
         return self.data.shape
 
+    def _convert(self, fn):
+        """Return a copy of this object with `fn` applied to its data."""
+        return self.__class__(fn(self.data), self.orig_shape)
+
     def cpu(self):
         """Return a copy of the tensor stored in CPU memory.
 
@@ -87,7 +92,7 @@ class BaseTensor(SimpleClass):
             >>> cpu_tensor.data.device
             device(type='cpu')
         """
-        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
+        return self._convert(lambda x: x if isinstance(x, np.ndarray) else x.cpu())
 
     def numpy(self):
         """Return a copy of this object with its data converted to a NumPy array.
@@ -103,7 +108,7 @@ class BaseTensor(SimpleClass):
             >>> print(type(numpy_tensor.data))
             <class 'numpy.ndarray'>
         """
-        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu().numpy(), self.orig_shape)
+        return self._convert(lambda x: x if isinstance(x, np.ndarray) else x.cpu().numpy())
 
     def cuda(self):
         """Move the tensor to GPU memory.
@@ -120,7 +125,7 @@ class BaseTensor(SimpleClass):
             >>> print(gpu_tensor.data.device)
             cuda:0
         """
-        return self.__class__(torch.as_tensor(self.data).cuda(), self.orig_shape)
+        return self._convert(lambda x: torch.as_tensor(x).cuda())
 
     def to(self, *args, **kwargs):
         """Return a copy of the tensor with the specified device and dtype.
@@ -137,7 +142,7 @@ class BaseTensor(SimpleClass):
             >>> cuda_tensor = base_tensor.to("cuda")
             >>> float16_tensor = base_tensor.to(dtype=torch.float16)
         """
-        return self.__class__(torch.as_tensor(self.data).to(*args, **kwargs), self.orig_shape)
+        return self._convert(lambda x: torch.as_tensor(x).to(*args, **kwargs))
 
     def __len__(self) -> int:
         """Return the length of the underlying data tensor.
@@ -592,7 +597,11 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Segment results
         if pred_masks and show_masks:
-            pred_mask_data = torch.as_tensor(pred_masks.data)  # no-op for torch, converts a numpy() result
+            pred_mask_data = (  # box-local masks blend inside their boxes
+                list(pred_masks.crops(annotator.im.shape[:2]))
+                if hasattr(pred_masks, "local")
+                else torch.as_tensor(pred_masks.data)  # as_tensor converts a numpy() result
+            )
             idx = (
                 pred_boxes.id
                 if pred_boxes and pred_boxes.is_track and color_mode == "instance"
@@ -1192,11 +1201,63 @@ class Masks(BaseTensor):
     @cached_property
     def data(self) -> torch.Tensor:
         """Return the dense (num_masks, height, width) masks, pasting box-local masks into their frame on first use."""
-        rois, masks, shape = self.local
-        data = torch.zeros((len(rois), *shape), dtype=torch.uint8, device=rois.device)
-        for d, (x1, y1, x2, y2, b, r) in zip(data, rois.tolist()):
-            d[y1:y2, x1:x2] = masks[b][r, : y2 - y1, : x2 - x1]
+        rois, _, shape = self.local
+        size = len(rois), *shape
+        data = np.zeros(size, np.uint8) if isinstance(rois, np.ndarray) else rois.new_zeros(size, dtype=torch.uint8)
+        for d, ((x1, y1, x2, y2), m) in zip(data, self.crops()):
+            d[y1:y2, x1:x2] = m
         return data
+
+    def _convert(self, fn):
+        """Return a copy of the masks with `fn` applied to their data, keeping box-local masks box-local."""
+        if not hasattr(self, "local"):
+            return super()._convert(fn)
+        rois, masks, shape = self.local
+        rois = fn(rois)
+        rois = rois if isinstance(rois, np.ndarray) else rois.long()  # box pixels stay integers through `to(dtype)`
+        return Masks((rois, [fn(m) for m in masks], shape), self.orig_shape)
+
+    def crops(self, shape: tuple[int, int] | None = None):
+        """Yield each mask as its (x1, y1, x2, y2) box and the (y2 - y1, x2 - x1) mask inside it, dense masks whole.
+
+        Args:
+            shape (tuple[int, int], optional): (height, width) of the image the masks' frame was letterboxed from. Masks
+                are resized to it as `ops.scale_masks` resizes them, inside their boxes.
+        """
+        if hasattr(self, "local"):
+            rois, masks, _ = self.local
+            crops = (((x1, y1, x2, y2), masks[b][r, : y2 - y1, : x2 - x1]) for x1, y1, x2, y2, b, r in rois.tolist())
+        else:
+            crops = (((0, 0, *m.shape[::-1]), m) for m in self.data)
+        if shape is None or tuple(shape) == tuple(self.shape[1:]):
+            yield from crops
+            return
+        top, left, ch, cw = ops.letterbox_span(self.shape[1:], shape)
+        lo, hi, frac = [], [], []  # mask pixels and weight bilinear interpolation samples per image column, then row
+        for n, c, pad in ((shape[1], cw, left), (shape[0], ch, top)):
+            f = ((torch.arange(n) + 0.5) * (c / n) - 0.5).clamp_(0, c - 1)
+            lo.append(f.long() + pad)
+            hi.append((f.long() + 1).clamp_(max=c - 1) + pad)
+            frac.append(f - f.long())
+        edges = [i.tolist() for i in (*hi, *lo)]  # the first image column and row sampling a box, then the last
+        for (x1, y1, x2, y2), m in crops:
+            m = torch.nn.functional.pad(torch.as_tensor(m)[None].float(), (1, 1, 1, 1))[0]  # zero outside the box
+            if lo[0].device != m.device:
+                lo, hi, frac = ([i.to(m.device) for i in x] for x in (lo, hi, frac))
+            X1, Y1, X2, Y2 = (bisect_left(e, v) for e, v in zip(edges, (x1, y1, x2, y2)))
+            if X1 >= X2 or Y1 >= Y2:  # no image pixel samples the box, and MPS cannot index with an empty tensor
+                yield (X1, Y1, X1, Y1), m.new_zeros((0, 0), dtype=torch.bool)
+                continue
+            X, Y = slice(X1, X2), slice(Y1, Y2)  # image pixels that sample the box
+            m = torch.lerp(m[:, lo[0][X] - x1 + 1], m[:, hi[0][X] - x1 + 1], frac[0][X])
+            m = torch.lerp(m[lo[1][Y] - y1 + 1], m[hi[1][Y] - y1 + 1], frac[1][Y, None])
+            yield (X1, Y1, X2, Y2), m > 0.5
+
+    def __str__(self) -> str:
+        """Return a description of the masks, without pasting box-local masks into their frame."""
+        if not hasattr(self, "local") or "data" in self.__dict__:
+            return super().__str__()
+        return f"{self.__module__}.Masks object with {len(self)} box-local masks of shape {tuple(self.shape)}"
 
     def __len__(self) -> int:
         """Return the number of masks."""
@@ -1207,16 +1268,13 @@ class Masks(BaseTensor):
         if not hasattr(self, "local"):
             return super().__getitem__(idx)
         rois, masks, shape = self.local
-        return Masks((rois[idx].view(-1, 6), masks, shape), self.orig_shape)
+        return Masks((rois[idx].reshape(-1, 6), masks, shape), self.orig_shape)
 
     def _segments(self) -> tuple[list[np.ndarray], tuple[int, int]]:
         """Return each mask's outline in mask pixels with the (height, width) of the frame the masks span."""
-        if not hasattr(self, "local"):
-            return ops.masks2segments(self.data), self.data.shape[1:]
-        rois, masks, shape = self.local
-        rois, masks = rois.tolist(), [m.cpu().numpy() for m in masks]
-        crops = [masks[b][r, : y2 - y1, : x2 - x1] for x1, y1, x2, y2, b, r in rois]
-        return [s + np.float32(r[:2]) for s, r in zip(ops.masks2segments(crops), rois)], shape
+        crops = list(self.numpy().crops())  # numpy() moves each batch of masks once
+        segments = ops.masks2segments([m for _, m in crops])
+        return [s + np.float32(box[:2]) for s, (box, _) in zip(segments, crops)], self.shape[1:]
 
     @cached_property
     def xyn(self) -> list[np.ndarray]:

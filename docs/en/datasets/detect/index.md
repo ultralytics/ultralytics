@@ -1,4 +1,5 @@
 ---
+title: Object Detection Datasets for YOLO
 comments: true
 description: Learn the Ultralytics YOLO and NDJSON object detection dataset formats, browse supported datasets such as COCO and VisDrone, and convert COCO labels to YOLO.
 keywords: Ultralytics, YOLO, object detection datasets, dataset formats, COCO, dataset conversion, training datasets
@@ -301,7 +302,7 @@ Here is a list of the supported datasets and a brief description for each. Most 
 
 - [African-wildlife](african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebra.
 - [Argoverse](argoverse.md): The Argoverse-HD 2D detection dataset of 54,446 urban autonomous-driving images across 8 road-object classes.
-- [Brain-tumor](brain-tumor.md): A dataset for detecting brain tumors in MRI or CT scan images, labeled for tumor presence and location.
+- [Brain-tumor](brain-tumor.md): A dataset for detecting brain tumors in brain MRI images, labeled with tumor bounding boxes in a single class.
 - [COCO](coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
 - [COCO8](coco8.md): A smaller subset of the first 8 images from COCO train2017, 4 for training and 4 for validation, suitable for quick tests.
 - [COCO8-Grayscale](coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.

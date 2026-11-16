@@ -60,7 +60,6 @@ Inference:
                          yolo26n_ncnn_model         # NCNN
                          yolo26n_imx_model          # IMX
                          yolo26n_rknn_model         # RKNN
-                         yolo26n_rdk_model          # D-Robotics RDK
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
@@ -245,7 +244,7 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "data", "fraction"],
             "isolated-rknn",
         ],
-        ["RDK", "rdk", "_rdk_model", True, False, ["data", "fraction"], "base"],
+        ["RDK", "rdk", "_rdk_model", False, False, ["data", "fraction"], "base"],
         [
             "ExecuTorch",
             "executorch",
@@ -1631,6 +1630,12 @@ class Exporter:
         self._add_tflite_metadata(output_file)
         return output_file
 
+    def _head_scope(self) -> str | None:
+        """Return the ONNX node-name scope of the model head, or None when it has no per-level head convs to cut at."""
+        # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs
+        if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder":
+            return f"/model.{len(self.model.model) - 1}/"
+
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):  # noqa: B008
         """Export YOLO model to RKNN format with optional INT8 quantization."""
@@ -1666,30 +1671,22 @@ class Exporter:
                 dataset=rknn_dataset,
                 metadata=self.metadata,
                 prefix=prefix,
-                # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs to cut at
-                head=f"/model.{len(self.model.model) - 1}/"
-                if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder"
-                else None,
+                head=self._head_scope(),
             )
 
     @try_export
-    def export_rdk(self, prefix=colorstr("D-Robotics:")):  # noqa: B008
-        """Export YOLO model to a D-Robotics RDK X5 BPU *.bin deployment via the hb_mapper toolchain."""
-        from ultralytics.utils.export.rdk import onnx2rdk
+    def export_rdk(self, prefix=colorstr("RDK:")):  # noqa: B008
+        """Export YOLO model to D-Robotics RDK X5 BPU model (.bin) format with INT8 quantization."""
+        from ultralytics.utils.export.rdk import _check_hb_mapper, onnx2rdk
 
-        # 'channels' is not an export arg, so the 3-channel check lives here
-        assert self.im.shape[1] == 3, "D-Robotics RDK export only supports 3-channel models."
-        self.args.opset = 11  # X5 hb_mapper ONNX opset
-        f_onnx = self.export_onnx()
+        _check_hb_mapper()  # before the ONNX trace, so a missing toolchain does not cost a full export first
+        self.args.opset = 11  # the newest opset hb_mapper accepts
         return onnx2rdk(
-            onnx_file=f_onnx,
+            onnx_file=self.export_onnx(),
             output_dir=self.file.parent / f"{self.file.stem}_rdk_model",
-            dataset=self.get_int8_calibration_dataloader(prefix),
+            images=self._int8_calibration_images(prefix),
+            head=self._head_scope(),
             metadata=self.metadata,
-            # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs to cut at
-            head=f"/model.{len(self.model.model) - 1}/"
-            if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder"
-            else None,
             prefix=prefix,
         )
 

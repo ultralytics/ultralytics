@@ -102,18 +102,10 @@ def onnx2rknn(
         if head:
             import onnx
 
+            from ultralytics.utils.export.onnx import head_outputs
+
             graph = onnx.load(onnx_file).graph
-            ops = {"Reshape", "Concat"}  # head convs feed only these per-level ops, e.g. Concat in WorldDetect
-            ends = {x for n in graph.node if n.op_type in ops for x in n.input}
-            ends -= {x for n in graph.node if n.op_type not in ops for x in n.input}
-            # Per-tensor INT8 cannot hold the decode's pixel-range DFL, anchor and stride math, so stop at the head convs
-            outputs = [
-                n.output[0]
-                for n in graph.node
-                if n.op_type == "Conv" and head in n.name and "/dfl/" not in n.name and n.output[0] in ends
-            ]
-            if outputs:
-                outputs += [x.name for x in graph.output if x.name != "output0"]  # e.g. segment prototypes
+            outputs = head_outputs(graph, head)
     _check_rknn_return(rknn.config(**config), "config")
     _check_rknn_return(rknn.load_onnx(model=onnx_file, outputs=outputs or None), "load_onnx")
     build_kwargs = {"do_quantization": use_int8}

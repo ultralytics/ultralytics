@@ -20,7 +20,6 @@ from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, select_device,
 from .backends import (
     AscendBackend,
     AxeleraBackend,
-    BaseBackend,
     CoreAIBackend,
     CoreMLBackend,
     DeepXBackend,
@@ -35,7 +34,6 @@ from .backends import (
     PaddleBackend,
     PyTorchBackend,
     QNNBackend,
-    RDKBackend,
     RKNNBackend,
     TensorFlowBackend,
     TensorRTBackend,
@@ -124,7 +122,6 @@ class AutoBackend(nn.Module):
             | NCNN                  | *_ncnn_model/          |
             | IMX                   | *_imx_model/           |
             | RKNN                  | *_rknn_model/          |
-            | RDK                   | *_rdk_model/           |
             | Triton Inference      | http:// or grpc:// URL |
             | ExecuTorch            | *_executorch_model/    |
             | Axelera AI            | *_axelera_model/       |
@@ -177,7 +174,6 @@ class AutoBackend(nn.Module):
         "ncnn": NCNNBackend,
         "imx": ONNXIMXBackend,
         "rknn": RKNNBackend,
-        "rdk": RDKBackend,
         "triton": TritonBackend,
         "executorch": ExecuTorchBackend,
         "axelera": AxeleraBackend,
@@ -279,7 +275,7 @@ class AutoBackend(nn.Module):
         elif channels_last:
             LOGGER.warning(f"'channels_last=True' applies only to native PyTorch models, ignoring format='{format}'.")
 
-        self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn", "rdk"}
+        self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn"}
         self.format = format
 
         # Ensure backend has names (fallback to default if not set by metadata)
@@ -418,10 +414,6 @@ class AutoBackend(nn.Module):
         from ultralytics.engine.exporter import export_formats
 
         sf = export_formats()["Suffix"]
-        if not is_url(p) and Path(p).suffix == ".bin":  # Identify RDK binaries by their metadata.
-            meta = BaseBackend.read_metadata(p)
-            if isinstance(meta, dict) and meta.get("format") == "rdk":
-                return "rdk"
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)
         name = Path(p).name.lower()

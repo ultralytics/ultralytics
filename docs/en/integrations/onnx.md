@@ -323,7 +323,7 @@ ONNX is a community project that Facebook and Microsoft started, now developed w
   <img width="100%" src="https://cdn.ul.run/i/f669dc67507d4abd9928fcda9dee73b1.avif" alt="ONNX Runtime cross-platform inference acceleration">
 </p>
 
-ONNX is also the intermediate step for other Ultralytics export formats, including [TensorRT](tensorrt.md), and the input for vendor NPU toolchains such as [Huawei Ascend](ascend.md), [Qualcomm QNN](qnn.md), and [Rockchip RKNN](rockchip-rknn.md). For the specification, see the [ONNX documentation](https://onnx.ai/onnx/intro/).
+ONNX is also the intermediate step for other Ultralytics export formats, including [TensorRT](tensorrt.md), and the input for vendor NPU toolchains such as [D-Robotics RDK](rdk.md), [Huawei Ascend](ascend.md), [Qualcomm QNN](qnn.md), and [Rockchip RKNN](rockchip-rknn.md). For the specification, see the [ONNX documentation](https://onnx.ai/onnx/intro/).
 
 ## FAQ
 

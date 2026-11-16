@@ -531,7 +531,6 @@ nav:
           - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
           - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
           - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
-          - D-Robotics RDK X5: guides/rdk-deployment.md
           - DL Streamer on Intel: guides/dlstreamer-intel.md
   - YOLOv5 (Legacy):
       - yolov5/index.md
@@ -568,6 +567,7 @@ nav:
       - Comet ML: integrations/comet.md
       - Core AI: integrations/coreai.md
       - CoreML: integrations/coreml.md
+      - D-Robotics RDK: integrations/rdk.md
       - DEEPX: integrations/deepx.md
       - DVC: integrations/dvc.md
       - ExecuTorch: integrations/executorch.md
@@ -780,7 +780,6 @@ nav:
               - paddle: reference/nn/backends/paddle.md
               - pytorch: reference/nn/backends/pytorch.md
               - qnn: reference/nn/backends/qnn.md
-              - rdk: reference/nn/backends/rdk.md
               - rknn: reference/nn/backends/rknn.md
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md

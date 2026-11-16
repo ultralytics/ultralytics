@@ -18,4 +18,8 @@ keywords: ONNX export, ONNX INT8, onnxruntime quantization, CalibrationDataReade
 
 ## ::: ultralytics.utils.export.onnx.onnx_int8_quantize
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.onnx.head_outputs
+
 <br><br>

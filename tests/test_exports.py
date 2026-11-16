@@ -11,7 +11,6 @@ from itertools import product
 from pathlib import Path
 from types import SimpleNamespace
 
-import numpy as np
 import pytest
 import torch
 
@@ -217,55 +216,6 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
 
     assert not errors, f"Concurrent export errors: {errors}"
     assert max_active == 1, f"Expected max 1 concurrent export, got {max_active}"
-
-
-def test_rdk_deployment_requires_tail(tmp_path):
-    """Test that an RDK deployment directory without its tail.onnx decode graph fails clearly."""
-    from ultralytics.nn.autobackend import AutoBackend
-    from ultralytics.utils import YAML
-
-    d = tmp_path / "yolo11n_rdk_model"
-    d.mkdir()
-    (d / "yolo11n.bin").write_bytes(b"bin")
-    YAML.save(
-        d / "metadata.yaml",
-        {"format": "rdk", "task": "detect", "names": {0: "object"}, "imgsz": [64, 64], "stride": 32},
-    )
-    with pytest.raises(ValueError, match=r"tail\.onnx"):
-        AutoBackend(str(d), device="cpu")
-
-
-@pytest.mark.parametrize(("model_name", "imgsz"), [("yolo11n.pt", 64), ("yolo11n-cls.pt", 224)])
-def test_export_onnx_rdk_split(model_name, imgsz, tmp_path):
-    """Test that the RDK body/tail split of a standard ONNX export reproduces the complete graph."""
-    import onnxruntime as ort
-
-    from ultralytics.utils.export.rdk import split_rdk_graph
-
-    model = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / model_name))
-    head = f"/model.{len(model.model.model) - 1}/"  # the head scope the RDK exporter passes to its converter
-    f = model.export(format="onnx", imgsz=imgsz, opset=11)
-    body_file, tail_file = tmp_path / "body.onnx", tmp_path / "tail.onnx"
-    boundary = split_rdk_graph(f, head, body_file, tail_file)
-    assert boundary, "the split must expose the head boundary tensors shared by body and tail"
-
-    options = ort.SessionOptions()
-    options.intra_op_num_threads = 1  # keep CI CPU use small
-    options.inter_op_num_threads = 1
-
-    def session(path):
-        """Open a single-threaded ONNX Runtime session for the given model file."""
-        return ort.InferenceSession(str(path), options, providers=["CPUExecutionProvider"])
-
-    full, body, tail = session(f), session(body_file), session(tail_file)
-    im = np.random.RandomState(0).uniform(0.0, 1.0, (1, 3, imgsz, imgsz)).astype(np.float32)
-    expected = full.run(None, {full.get_inputs()[0].name: im})
-    raw = body.run(None, {body.get_inputs()[0].name: im})
-    split = tail.run(None, {i.name: v for i, v in zip(body.get_outputs(), raw)})
-    assert len(split) == len(expected)
-    for a, b in zip(split, expected):
-        assert a.shape == b.shape
-        assert np.allclose(a, b, rtol=1e-5, atol=1e-5), f"max diff {np.abs(a - b).max()}"
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")

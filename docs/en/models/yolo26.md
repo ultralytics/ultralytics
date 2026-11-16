@@ -197,7 +197,7 @@ The example below trains a YOLO26 [Detect](../tasks/detect.md) model for [object
     YOLO26 detection models use a **dual-head architecture** that provides flexibility for different deployment scenarios:
 
     - **One-to-Many Head (Default)**: Generates traditional YOLO outputs requiring NMS post-processing, outputting `(N, nc + 4, 8400)` where `nc` is the number of classes. This head typically achieves slightly higher accuracy at the cost of additional processing.
-    - **One-to-One Head (`nms=False`)**: Produces end-to-end predictions without NMS, outputting `(N, 300, 6)` with a maximum of 300 detections per image. This head is optimized for fast inference and simplified deployment.
+    - **One-to-One Head (`nms=False`)**: Produces end-to-end predictions without NMS, outputting `(N, max_det, 6)`: up to 1000 detections per image in `predict`, and `(N, 300, 6)` for exported models unless `max_det` is set at export. This head is optimized for fast inference and simplified deployment.
 
     You can switch between heads during export, prediction, or validation:
 

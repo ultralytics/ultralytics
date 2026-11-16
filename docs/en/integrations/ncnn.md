@@ -36,7 +36,7 @@ The first export installs the `ncnn` and [`pnnx`](https://github.com/pnnx/pnnx) 
 | Package | Required version                                                                                                                       |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `pnnx`  | 20260526 exactly. The export installs this version and replaces any other one                                                          |
-| `ncnn`  | Any version; a new environment got 1.0.20261020 on November 16, 2026, which has builds for Python 3.9 and newer                        |
+| `ncnn`  | Any version                                                                                                                            |
 | `torch` | 2.0 or newer: the export does not check the version, and the Ultralytics tests skip NCNN on older ones because inference crashed there |
 
 For other installation methods, see the [installation guide](../quickstart.md). Then export your model and load the exported directory to run inference or validate its accuracy.

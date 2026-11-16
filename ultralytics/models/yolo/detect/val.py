@@ -122,7 +122,7 @@ class DetectionValidator(BaseValidator):
         files = [os.path.normcase(f) for f in self.dataloader.dataset.im_files]
         lo, hi = min(files), max(files)
         n = next((i for i, (a, b) in enumerate(zip(lo, hi)) if a != b), len(lo))
-        self.label_root = lo[: lo.rfind(os.sep, 0, n) + 1]
+        self.label_root = lo[: lo.rfind(os.sep, 0, n) + 1]  # deepest folder shared by all images
         if not self.training:
             self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path
@@ -260,6 +260,7 @@ class DetectionValidator(BaseValidator):
                 self.pred_counts.append(len(predn["cls"]))
 
             no_pred = predn["cls"].shape[0] == 0
+            im_name = pbatch["im_file"][len(self.label_root) :].replace(os.sep, "/")  # split-relative path
             self.metrics.update_stats(
                 {
                     **self._process_batch(predn, pbatch),
@@ -267,7 +268,7 @@ class DetectionValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "im_name": pbatch["im_file"][len(self.label_root) :].replace(os.sep, "/"),
+                    "im_name": im_name,
                 }
             )
             if self.args.plots:
@@ -289,7 +290,7 @@ class DetectionValidator(BaseValidator):
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
             if self.args.save_txt:  # flatten the split-relative path so a/1.jpg and b/1.jpg write a_1.txt and b_1.txt
-                name = "_".join(Path(pbatch["im_file"]).relative_to(self.label_root).with_suffix("").parts)
+                name = os.path.splitext(im_name)[0].replace("/", "_")
                 self.save_one_txt(
                     predn_scaled, self.args.save_conf, pbatch["ori_shape"], self.save_dir / "labels" / f"{name}.txt"
                 )

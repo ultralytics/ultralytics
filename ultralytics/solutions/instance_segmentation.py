@@ -71,7 +71,8 @@ class InstanceSegmentation(BaseSolution):
             self.LOGGER.warning("No masks detected! Ensure you're using a supported Ultralytics segmentation model.")
             plot_im = im0
         else:
-            results = Results(im0, path=None, names=self.names, boxes=self.track_data.data, masks=self.masks.data)
+            masks = getattr(self.masks, "local", None) or self.masks.data  # box-local masks stay box-local
+            results = Results(im0, path=None, names=self.names, boxes=self.track_data.data, masks=masks)
             plot_im = results.plot(
                 line_width=self.line_width,
                 boxes=self.show_boxes,

@@ -1,4 +1,5 @@
 ---
+title: ImageNet Pseudo-Depth Dataset
 comments: true
 license:
     name: Research-Only

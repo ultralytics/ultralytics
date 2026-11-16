@@ -472,10 +472,6 @@ class LoadImagesAndVideos:
                         paths.append(path)
                         imgs.append(im0)
                         info.append(f"video {self.count + 1}/{self.nf} (frame {self.frame}/{self.frames}) {path}: ")
-                        if self.frame == self.frames:  # end of video, flush so a batch never spans two videos
-                            self.count += 1
-                            self.cap.release()
-                            break
                 else:
                     # Move to the next file if the current video ended or failed to open
                     self.count += 1

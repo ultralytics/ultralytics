@@ -57,7 +57,8 @@ def auto_annotate(
         segments = []
         if class_ids := result.boxes.cls.int().tolist():  # Extract class IDs from detection results
             boxes = result.boxes.xyxy  # Boxes object for bbox outputs
-            segments = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)[0].masks.xyn
+            sam_result = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)[0]
+            segments, class_ids = sam_result.masks.xyn, [class_ids[i] for i in sam_result.boxes.cls.int().tolist()]
 
         with open(f"{Path(output_dir) / det_model.predictor.txt_path.name}.txt", "w", encoding="utf-8") as f:
             for i, s in enumerate(segments):

@@ -1,5 +1,5 @@
 ---
-title: CV Model Monitoring & Maintenance
+title: Vision Model Monitoring & Maintenance
 comments: true
 description: Monitor, maintain, and document deployed computer vision models. Detect data drift and anomalies, set up alerts, retrain on new data, and track changes.
 keywords: Computer Vision Models, AI Model Monitoring, Data Drift Detection, Anomaly Detection in AI, Model Maintenance

@@ -155,6 +155,10 @@ Use a trained YOLO26n-seg model to run predictions on images.
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
+For crowded images with hundreds of objects, raise `max_det` above its default of 300. See
+[YOLO segmentation in dense scenes](https://www.ultralytics.com/blog/yolo-segmentation-dense-scenes) for how
+`ultralytics>=8.4.213` keeps predictions with up to 1,000 masks fast and memory-efficient.
+
 ### Results Output
 
 YOLO instance segmentation returns one `Results` object per image. Each result stores object-level predictions, where

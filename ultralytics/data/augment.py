@@ -18,7 +18,7 @@ from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr, depreca
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
+from ultralytics.utils.ops import segment2box, union_boxes_by_owner, xywh2xyxy, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
@@ -1243,18 +1243,27 @@ class RandomPerspective(BaseTransform):
         w = pts @ M[2, :2] + M[2, 2]  # projective divisor
         # Update bboxes if there are segments.
         if len(segments):
-            bboxes, segments = self.apply_segments(segments, M, params["size"])
+            bboxes, segments = self.apply_segments(segments, M, params["size"], owner=instances.segments_owner)
 
         if keypoints is not None:
             keypoints = self.apply_keypoints(keypoints, M, params["size"])
-        new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+        new_instances = Instances(
+            bboxes, segments, keypoints, bbox_format="xyxy", normalized=False, segments_owner=instances.segments_owner
+        )
         # Clip
         new_instances.clip(*params["size"], preserve_obb=self.preserve_obb)
 
         # Filter instances
         instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
         # Make the bboxes have the same scale with new_bboxes
-        i = (w.min(1) * w.max(1) > 0) & self.box_candidates(
+        # The projection-plane check is per contour; an instance is dropped if ANY of its contours crosses it.
+        if len(segments):
+            plane_bad = np.zeros(len(instances), dtype=bool)
+            np.logical_or.at(plane_bad, instances.segments_owner, (w.min(1) * w.max(1) <= 0))
+            plane_ok = ~plane_bad
+        else:
+            plane_ok = w.min(1) * w.max(1) > 0
+        i = plane_ok & self.box_candidates(
             box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if len(segments) else 0.10
         )
         labels["instances"] = new_instances[i]
@@ -1296,7 +1305,7 @@ class RandomPerspective(BaseTransform):
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
     def apply_segments(
-        self, segments: np.ndarray, M: np.ndarray, size: tuple[int, int]
+        self, segments: np.ndarray, M: np.ndarray, size: tuple[int, int], owner: np.ndarray | None = None
     ) -> tuple[np.ndarray, np.ndarray]:
         """Transform segments and derive their bounding boxes.
 
@@ -1304,26 +1313,32 @@ class RandomPerspective(BaseTransform):
             segments (np.ndarray): Segments with shape (N, K, 2) in pixel coordinates.
             M (np.ndarray): Affine transformation matrix with shape (3, 3).
             size (tuple[int, int]): Output image size (width, height) used to clip the derived boxes.
+            owner (np.ndarray, optional): Instance index of each segment. When given, the returned boxes are
+                one union box per instance instead of one box per segment.
 
         Returns:
-            bboxes (np.ndarray): Bounding boxes in xyxy format with shape (N, 4).
+            bboxes (np.ndarray): Bounding boxes in xyxy format with shape (N, 4) — one per instance when
+                `owner` is given, else one per segment as today.
             segments (np.ndarray): Transformed segments with shape (N, K, 2).
         """
         n, num = segments.shape[:2]
         if n == 0:
             return [], segments
-
         xy = np.ones((n * num, 3), dtype=segments.dtype)
         segments = segments.reshape(-1, 2)
         xy[:, :2] = segments
         xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]
         segments = xy.reshape(n, -1, 2)
-        bboxes = np.stack([segment2box(xy, size[0], size[1]) for xy in segments], 0)
+        contour_boxes = np.stack([segment2box(xy, size[0], size[1]) for xy in segments], 0)
         if not self.preserve_obb:
-            segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
-            segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
-        return bboxes, segments
+            # Clip each contour to its OWN box, not the instance union box: a point of one contour
+            # outside its own visible extent must be trimmed even if it lies inside the union box.
+            segments[..., 0] = segments[..., 0].clip(contour_boxes[:, 0:1], contour_boxes[:, 2:3])
+            segments[..., 1] = segments[..., 1].clip(contour_boxes[:, 1:2], contour_boxes[:, 3:4])
+        if owner is None:
+            return contour_boxes, segments
+        return union_boxes_by_owner(contour_boxes, owner, int(owner.max()) + 1 if len(owner) else 0), segments
 
     def apply_keypoints(self, keypoints: np.ndarray, M: np.ndarray, size: tuple[int, int]) -> np.ndarray:
         """Apply affine transformation to keypoints.
@@ -2051,7 +2066,10 @@ class CopyPaste(BaseMixTransform):
         im_new = params["im_new"]
 
         for j in selected:
-            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, 1, cv2.FILLED)
+            # Draw every contour of the selected instance, not just one row: segments are per contour.
+            cv2.drawContours(
+                im_new, instances2.segments[instances2.segments_owner == j].astype(np.int32), -1, 1, cv2.FILLED
+            )
 
         result = params.get("labels2_img")
         if result is None:
@@ -2253,6 +2271,7 @@ class Albumentations(BaseTransform):
             instances.convert_bbox("xywh")
             instances.normalize(*im.shape[:2][::-1])
             segments, keypoints = instances.segments, instances.keypoints
+            segments_owner = instances.segments_owner
             h, w = im.shape[:2]
             points = segments.reshape(-1, 2)
             if keypoints is not None:
@@ -2284,7 +2303,11 @@ class Albumentations(BaseTransform):
                 if n:
                     segment_lost = lost[:n].reshape(segments.shape[:2])
                     segment_points = moved[:n].reshape(segments.shape)
-                    i = i[~segment_lost.all(1)[i]]
+                    # An instance is lost only when ALL of its contours are fully lost.
+                    contour_lost = segment_lost.all(1)
+                    any_surviving = np.zeros(len(instances), dtype=bool)
+                    np.logical_or.at(any_surviving, segments_owner, ~contour_lost)
+                    i = i[~(~any_surviving)[i]]
                     for segment, missing in zip(segment_points, segment_lost):
                         v = np.flatnonzero(~missing)
                         if len(v) and missing.any():
@@ -2303,11 +2326,20 @@ class Albumentations(BaseTransform):
                     if self.flip_idx and reflected:
                         keypoints = np.ascontiguousarray(keypoints[:, self.flip_idx])
                 if n:
-                    segments = moved[:n].reshape(segments.shape)[i]
-                    bboxes = np.array([segment2box(s, w, h) for s in segments], np.float32).reshape(-1, 4)
-                    segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
-                    segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
-                    instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+                    # Select the contours of the kept instances, then remap their owners.
+                    seg_keep = np.isin(segments_owner, i)
+                    segments = moved[:n].reshape(segments.shape)[seg_keep]
+                    contour_boxes = np.array([segment2box(s, w, h) for s in segments], np.float32).reshape(-1, 4)
+                    pos = {old: new for new, old in enumerate(i.tolist())}
+                    new_owner = np.array([pos[o] for o in segments_owner[seg_keep]], dtype=np.int64)
+                    bboxes = union_boxes_by_owner(contour_boxes, new_owner, len(i))
+                    # Clip each contour to its OWN contour box (clipping to the per-instance union box
+                    # would be a shape error whenever contour count != instance count).
+                    segments[..., 0] = segments[..., 0].clip(contour_boxes[:, 0:1], contour_boxes[:, 2:3])
+                    segments[..., 1] = segments[..., 1].clip(contour_boxes[:, 1:2], contour_boxes[:, 3:4])
+                    instances = Instances(
+                        bboxes, segments, keypoints, bbox_format="xyxy", normalized=False, segments_owner=new_owner
+                    )
                     instances.normalize(w, h)
                 else:
                     if keypoints is not None:
@@ -2549,12 +2581,16 @@ class Format(BaseTransform):
         """
         segments = instances.segments
         if self.mask_overlap:
-            masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)
+            masks, sorted_idx = polygons2masks_overlap(
+                (h, w), segments, downsample_ratio=self.mask_ratio, owner=instances.segments_owner
+            )
             masks = masks[None]  # (640, 640) -> (1, 640, 640)
             instances = instances[sorted_idx]
             cls = cls[sorted_idx]
         else:
-            masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
+            masks = polygons2masks(
+                (h, w), segments, color=1, downsample_ratio=self.mask_ratio, owner=instances.segments_owner
+            )
 
         return masks, instances, cls
 

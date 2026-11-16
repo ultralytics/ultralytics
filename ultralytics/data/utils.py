@@ -31,7 +31,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import FONT, FONT_UNICODE, check_file, check_font, is_ascii, normalize_platform_uri
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.ops import segments2boxes
+from ultralytics.utils.ops import segments2boxes, union_boxes_by_owner, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.patches import imread
 from ultralytics.utils.plotting import Colors
 
@@ -439,21 +439,76 @@ def verify_image_mask(args: tuple) -> tuple:
     return None, None, None, None, nm, nf, nc, msg
 
 
+def _parse_instance_id(token: str) -> int | None:
+    """Return the instance id from an `id=<int>` label token, or None for a plain number.
+
+    Only the exact `id=` marker counts: legacy rows are all numbers, so a malformed legacy row can never
+    be misread as an id row. Raises ValueError for a malformed marker (`id=abc`, `id=-1`, `id=1.5`,
+    `id=`), which marks the whole label file corrupt in `verify_image_label`.
+    """
+    if token.startswith("id="):
+        try:
+            instance_id = int(token[3:])
+        except ValueError:
+            raise ValueError(f"invalid instance id {token!r}: expected 'id=<non-negative integer>'") from None
+        if instance_id < 0:
+            raise ValueError(f"invalid instance id {token!r}: expected 'id=<non-negative integer>'")
+        return instance_id
+    return None
+
+
+def _group_segments_by_instance(lb: np.ndarray, segments: list, ids: list) -> tuple[np.ndarray, list]:
+    """Group segment rows sharing (class, instance id) into one instance per group.
+
+    Args:
+        lb (np.ndarray): Per-row labels with shape (K, 5) as [cls, cx, cy, w, h] (one row per contour).
+        segments (list): Per-row contours, one (P, 2) array per row.
+        ids (list): Instance id per row, or None for a legacy row without an `id=` token.
+
+    Returns:
+        (np.ndarray): One row per instance with shape (N, 5); the box is the union of the group's
+            contour boxes.
+        (list): One list of contours per instance, in first-appearance order of the groups.
+    """
+    groups: dict = {}
+    for i, (row, instance_id) in enumerate(zip(lb, ids)):
+        key = (float(row[0]), instance_id) if instance_id is not None else ("__legacy__", i)
+        groups.setdefault(key, []).append(i)
+    new_lb, new_segments = [], []
+    for idxs in groups.values():  # dict preserves first-appearance order
+        if len(idxs) == 1:
+            # Single-contour group: keep the original row bit-identical, so legacy rows pass through
+            # the multipart path exactly as before (xywh -> xyxy -> xywh round-trips lose float32 ulps).
+            new_lb.append(lb[idxs[0]])
+        else:
+            boxes = xywh2xyxy(lb[idxs, 1:])  # per-contour boxes, xyxy
+            union = union_boxes_by_owner(boxes, np.zeros(len(idxs), dtype=np.int64), 1)[0]
+            new_lb.append([lb[idxs[0], 0], *xyxy2xywh(union.reshape(1, 4))[0]])
+        new_segments.append([segments[i] for i in idxs])
+    return np.array(new_lb, dtype=np.float32), new_segments
+
+
 def verify_image_label(args: tuple) -> tuple | list:
     """Verify one image-label pair.
 
     Args:
-        args (tuple): Tuple of (im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls).
+        args (tuple): Tuple of (im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls,
+            multipart). `multipart` is True for segment tasks: rows may carry an optional `id=` token
+            (`class id=<int> x1 y1 ...`) and rows sharing (class, id) are grouped into one instance.
+            The 9th element is optional and defaults to False, so existing 8-tuple callers keep working.
 
     Returns:
         (tuple | list): Tuple of (im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg), where lb is an (N, 5)
-            array of [cls, x, y, w, h] labels, shape is (H, W), segments is a list of (K, 2) arrays, keypoints is an (N,
+            array of [cls, x, y, w, h] labels (one row per instance), shape is (H, W), segments is a list of (K, 2)
+            arrays, or — when `multipart` is True — a list of per-instance contour lists, keypoints is an (N,
             nkpt, 3) array or None, nm, nf, ne, and nc are missing, found, empty, and corrupt counts, and msg is a log
             message. For corrupt samples, a list with the first five items set to None is returned.
     """
-    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
+    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args[:8]
+    multipart = args[8] if len(args) > 8 else False  # segment task: group rows by instance id
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
+    ids = []  # instance id per segment row, or None for a legacy row; only used when multipart is True
     try:
         # Verify images
         msg, shape = check_image(im_file)
@@ -469,7 +524,17 @@ def verify_image_label(args: tuple) -> tuple | list:
                 if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
                     assert not any(len(x) == 5 for x in lb), "labels mix segment and detection rows"
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
-                    segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
+                    if multipart:
+                        # Optional `id=` marker sits between class and coordinates: `0 id=1 x1 y1 ...`.
+                        # It is stripped here, so every later step (float conversion, coordinate checks,
+                        # dedup) sees exactly the legacy token layout.
+                        ids = [_parse_instance_id(x[1]) for x in lb]
+                        segments = [
+                            np.array(x[2:] if instance_id is not None else x[1:], dtype=np.float32).reshape(-1, 2)
+                            for x, instance_id in zip(lb, ids)
+                        ]  # (cls, [id,] xy1...)
+                    else:
+                        segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
                 lb = np.array(lb, dtype=np.float32)
             if nl := len(lb):
@@ -499,7 +564,14 @@ def verify_image_label(args: tuple) -> tuple | list:
                     lb = lb[i]  # remove duplicates
                     if segments:
                         segments = [segments[x] for x in i]
+                        if ids:
+                            ids = [ids[x] for x in i]
                     msg = f"{prefix}{im_file}: {nl - len(i)} duplicate labels removed"
+                if segments and multipart:
+                    # Group after dedup so an exact duplicate row cannot create a phantom instance.
+                    # lb becomes one row per instance (union box); segments becomes one contour list
+                    # per instance. Legacy rows (no id) each stay their own instance.
+                    lb, segments = _group_segments_by_instance(lb, segments, ids)
             else:
                 ne = 1  # label empty
                 lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
@@ -588,27 +660,43 @@ def polygon2mask(
     return cv2.resize(mask, (nw, nh))
 
 
+def _group_polygons_by_owner(polygons: list, owner: np.ndarray) -> list:
+    """Group polygons by instance index, in instance order; an instance with no polygon gets an empty group."""
+    n = int(owner.max()) + 1 if len(owner) else 0
+    groups: list = [[] for _ in range(n)]
+    for polygon, o in zip(polygons, owner):
+        groups[int(o)].append(polygon)
+    return groups
+
+
 def polygons2masks(
-    imgsz: tuple[int, int], polygons: list[np.ndarray], color: int, downsample_ratio: int = 1
+    imgsz: tuple[int, int],
+    polygons: list[np.ndarray],
+    color: int,
+    downsample_ratio: int = 1,
+    owner: np.ndarray | None = None,
 ) -> np.ndarray:
     """Convert a list of polygons to a set of binary masks of the specified image size.
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array of coordinates that can be reshaped to
-            (-1, 2) as (x, y) point pairs.
+        polygons (list[np.ndarray]): A list of polygons, each reshapeable to (-1, 2) as (x, y) point pairs.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 
     Returns:
         (np.ndarray): Masks of shape (N, H // downsample_ratio, W // downsample_ratio), one per polygon, filled with
-            `color`.
+            `color`. When `owner` is given (instance index of each polygon), one mask per instance is returned
+            instead — the union of that instance's polygons, filled in a single fillPoly call.
     """
-    return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
+    if owner is None:
+        return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
+    groups = _group_polygons_by_owner(polygons, owner)
+    return np.array([polygon2mask(imgsz, [x.reshape(-1) for x in g], color, downsample_ratio) for g in groups])
 
 
 def polygons2masks_overlap(
-    imgsz: tuple[int, int], segments: list[np.ndarray], downsample_ratio: int = 1
+    imgsz: tuple[int, int], segments: list[np.ndarray], downsample_ratio: int = 1, owner: np.ndarray | None = None
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return a downsampled overlap mask and sorted area indices.
 
@@ -622,16 +710,17 @@ def polygons2masks_overlap(
             marks the i-th instance in area-descending order, so smaller instances are drawn over larger ones.
         index (np.ndarray): Indices that sort the segments by area in descending order.
     """
+    groups = _group_polygons_by_owner(segments, owner) if owner is not None else [[s] for s in segments]
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
-        dtype=np.int32 if len(segments) > 255 else np.uint8,
+        dtype=np.int32 if len(groups) > 255 else np.uint8,
     )
     areas = []
     ms = []
-    for segment in segments:
+    for group in groups:
         mask = polygon2mask(
             imgsz,
-            [segment.reshape(-1)],
+            [segment.reshape(-1) for segment in group],
             downsample_ratio=downsample_ratio,
             color=1,
         )
@@ -641,7 +730,7 @@ def polygons2masks_overlap(
     index = np.argsort(-areas)
     ms = np.array(ms)[index]
     # Running max: the old `masks + mask` sum hit 2 * i + 1 and overflowed uint8 past 128 overlapping instances
-    for i in range(len(segments)):
+    for i in range(len(groups)):
         np.maximum(masks, ms[i] * (i + 1), out=masks)
     return masks, index
 

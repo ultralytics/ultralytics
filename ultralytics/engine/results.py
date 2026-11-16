@@ -1245,10 +1245,13 @@ class Masks(BaseTensor):
             if lo[0].device != m.device:
                 lo, hi, frac = ([i.to(m.device) for i in x] for x in (lo, hi, frac))
             X1, Y1, X2, Y2 = (bisect_left(e, v) for e, v in zip(edges, (x1, y1, x2, y2)))
-            X, Y = slice(X1, max(X1, X2)), slice(Y1, max(Y1, Y2))  # image pixels that sample the box
+            if X1 >= X2 or Y1 >= Y2:  # no image pixel samples the box, and MPS cannot index with an empty tensor
+                yield (X1, Y1, X1, Y1), m.new_zeros((0, 0), dtype=torch.bool)
+                continue
+            X, Y = slice(X1, X2), slice(Y1, Y2)  # image pixels that sample the box
             m = torch.lerp(m[:, lo[0][X] - x1 + 1], m[:, hi[0][X] - x1 + 1], frac[0][X])
             m = torch.lerp(m[lo[1][Y] - y1 + 1], m[hi[1][Y] - y1 + 1], frac[1][Y, None])
-            yield (X.start, Y.start, X.stop, Y.stop), m > 0.5
+            yield (X1, Y1, X2, Y2), m > 0.5
 
     def __str__(self) -> str:
         """Return a description of the masks, without pasting box-local masks into their frame."""

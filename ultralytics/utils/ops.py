@@ -786,12 +786,14 @@ def scale_masks(
         return masks.new_zeros((*masks.shape[:2], im0_h, im0_w), dtype=torch.float32)
 
     if ratio_pad is None:  # calculate from im0_shape
-        gain_h = gain_w = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
-        pad_w, pad_h = (im1_w - max(round(im0_w * gain_w), 1)) / 2, (im1_h - max(round(im0_h * gain_h), 1)) / 2
+        top, left, ch, cw = letterbox_span((im1_h, im1_w), (im0_h, im0_w))
     else:
         (gain_h, gain_w), (pad_w, pad_h) = ratio_pad
-    top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
-    bottom, right = top + max(round(im0_h * gain_h), 1), left + max(round(im0_w * gain_w), 1)  # content end
+        top, left = round(pad_h - 0.1), round(pad_w - 0.1)
+        ch, cw = max(round(im0_h * gain_h), 1), max(round(im0_w * gain_w), 1)
+    if not padding:
+        top = left = 0
+    bottom, right = top + ch, left + cw  # content end
     if ratio_pad and not padding and abs(im0_h * gain_h - bottom) + abs(im0_w * gain_w - right) > 1e-3:  # mid-pixel
         sh, sw = im0_h * gain_h / im1_h, im0_w * gain_w / im1_w  # sample the exact content span instead of cropping
         masks = masks.float()

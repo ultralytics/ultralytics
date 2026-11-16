@@ -1663,6 +1663,22 @@ def test_verify_image_label_multipart_ids_are_per_class(tmp_path):
     assert labels[:, 0].tolist() == [0.0, 0.0, 1.0]
 
 
+def test_verify_image_label_multipart_dedup_keeps_different_ids(tmp_path):
+    """Identical contours with different ids stay two instances; an exact duplicate still dedups."""
+    from ultralytics.data.utils import verify_image_label
+
+    im, lb = tmp_path / "0.jpg", tmp_path / "0.txt"
+    cv2.imwrite(str(im), np.zeros((32, 32, 3), np.uint8))
+    lb.write_text("0 id=1 0.10 0.10 0.20 0.10 0.20 0.20\n0 id=2 0.10 0.10 0.20 0.10 0.20 0.20")
+    _, labels, _, segments, *_ = verify_image_label((str(im), str(lb), "", False, 1, 0, 0, False, True))
+    assert labels.shape == (2, 5)
+    assert len(segments) == 2 and all(len(g) == 1 for g in segments)
+    lb.write_text("0 id=1 0.10 0.10 0.20 0.10 0.20 0.20\n0 id=1 0.10 0.10 0.20 0.10 0.20 0.20")
+    _, labels, _, segments, *_ = verify_image_label((str(im), str(lb), "", False, 1, 0, 0, False, True))
+    assert labels.shape == (1, 5)
+    assert len(segments) == 1 and len(segments[0]) == 1
+
+
 def test_verify_image_label_multipart_legacy_rows_unchanged(tmp_path):
     """Legacy rows behave exactly as today, with multipart off (flat) and on (nested, same boxes)."""
     from ultralytics.data.utils import verify_image_label
@@ -1817,6 +1833,30 @@ def test_yolo_dataset_multipart_segments(tmp_path):
     assert inst.segments.shape == (3, 1000, 2)  # each contour resampled to 1000 points, as today
     np.testing.assert_allclose(inst.bboxes[0], [0.35, 0.35, 0.5, 0.5], atol=1e-6)  # union box, xywh
     np.testing.assert_allclose(inst.bboxes[1], [0.85, 0.85, 0.1, 0.1], atol=1e-6)
+
+
+def test_yolo_dataset_cache_hash_includes_use_segments(tmp_path):
+    """A segments cache must not validate for a boxes dataset of the same files, and vice versa."""
+    from ultralytics.data.dataset import YOLODataset
+    from ultralytics.utils import DEFAULT_CFG
+
+    images, labels = tmp_path / "images" / "train", tmp_path / "labels" / "train"
+    images.mkdir(parents=True)
+    labels.mkdir(parents=True)
+    cv2.imwrite(str(images / "a.jpg"), np.zeros((64, 64, 3), np.uint8))
+    (labels / "a.txt").write_text("0 0.10 0.10 0.20 0.10 0.20 0.20\n")
+    ds = YOLODataset(
+        img_path=str(images),
+        imgsz=64,
+        data={"names": {0: "a"}, "nc": 1},
+        task="segment",
+        augment=False,
+        batch_size=1,
+        hyp=copy(DEFAULT_CFG),
+    )
+    segments_hash = ds.get_cache_hash()
+    ds.use_segments = False  # same files, parsed for boxes instead of segments
+    assert ds.get_cache_hash() != segments_hash
 
 
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):

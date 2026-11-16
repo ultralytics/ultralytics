@@ -62,7 +62,10 @@ class DetectionValidator(BaseValidator):
 
     @staticmethod
     def _check_max_det(args, datasets: dict[str, torch.utils.data.Dataset]) -> None:
-        """Warn when dataset object counts exceed max_det and raise the default limit to the observed maximum."""
+        """Validate with 300 detections by default, raised to the dataset's largest object count, and warn if over."""
+        default = args.max_det == DEFAULT_CFG.max_det
+        if default:  # validation fills the limit on nearly every image, so it costs more than it does in predict
+            args.max_det = 300
         maxima = {
             split: max(
                 (
@@ -86,7 +89,7 @@ class DetectionValidator(BaseValidator):
             "This mismatch can cap recall and produce invalid validation metrics."
             " Raising it may increase validation cost but cannot increase model or export capacity, which may cap recall."
         )
-        if args.max_det == DEFAULT_CFG.max_det:
+        if default:
             args.max_det = observed
             message += f" Setting max_det={observed} to match the observed maximum."
         else:

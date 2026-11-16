@@ -187,7 +187,8 @@ class YOLODataset(BaseDataset):
         """
         # add_polygon_background() class is not a label class, so segment and semantic share one cache
         nc = self.data.get("bg_class_idx") or len(self.data["names"])
-        scan_args = (self.use_keypoints, nc, self.data.get("kpt_shape"), self.single_cls)
+        # use_segments: a cache scanned for segments must not be reused for boxes, and vice versa
+        scan_args = (self.use_keypoints, self.use_segments, nc, self.data.get("kpt_shape"), self.single_cls)
         return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:

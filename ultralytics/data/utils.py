@@ -557,7 +557,13 @@ def verify_image_label(args: tuple) -> tuple | list:
                 )
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl and segments:  # distinct polygons can share a class and box
-                    rows = np.array([c.tobytes() + s.tobytes() for c, s in zip(lb[:, 0], segments)], dtype=object)
+                    # Include the instance id so identical contours with different ids stay separate
+                    # instances; legacy rows (id None) keep the plain class+contour key.
+                    id_bytes = [b"" if d is None else str(d).encode() for d in ids] if ids else [b""] * nl
+                    rows = np.array(
+                        [c.tobytes() + s.tobytes() + d for c, s, d in zip(lb[:, 0], segments, id_bytes)],
+                        dtype=object,
+                    )
                     _, i = np.unique(rows, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates

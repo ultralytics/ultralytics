@@ -1,0 +1,3 @@
+numpy
+opencv-python
+onnxruntime # use onnxruntime-gpu for NVIDIA GPUs

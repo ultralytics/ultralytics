@@ -1,5 +1,7 @@
 # Ultralytics YOLO Interactive Object Tracking UI 🚀
 
+<img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
+
 A real-time [object detection](https://docs.ultralytics.com/tasks/detect) and [tracking](https://docs.ultralytics.com/modes/track) UI built with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) and [OpenCV](https://opencv.org/), designed for interactive demos and seamless integration of tracking overlays. Whether you're just getting started with object tracking or looking to enhance it with additional features, this project provides a solid foundation.
 
 https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
@@ -19,8 +21,8 @@ https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 ## 🏗️ Project Structure
 
 ```text
-YOLO-Interactive-Tracking-UI/
-├── interactive_tracker.py   # Main Python tracking UI script
+Interactive-Tracking/
+├── main.py   # Main Python tracking UI script
 └── README.md                # You're here!
 ```
 
@@ -63,7 +65,7 @@ pip install ultralytics
 
 ### Step 2: Configure the Script
 
-Edit the global parameters at the top of `interactive_tracker.py`:
+Edit the global parameters at the top of `main.py`:
 
 ```python
 # --- Configuration ---
@@ -100,7 +102,7 @@ window_name = "Ultralytics YOLO Interactive Tracking"  # Name for the OpenCV dis
 Execute the script from your terminal:
 
 ```bash
-python interactive_tracker.py
+python main.py
 ```
 
 ### Controls

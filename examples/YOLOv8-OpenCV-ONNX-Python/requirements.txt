@@ -1,3 +1,0 @@
-numpy
-opencv-python
-ultralytics

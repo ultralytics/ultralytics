@@ -24,15 +24,15 @@ pipeline = op.seq(
     op.letterbox(640, 640),
     op.to_tensor(),
     op.load("yolo26n-pose.axm"),
-    ConfidenceFilter(threshold=0.25),  # custom operator - see below
+    ConfidenceFilter(threshold=0.25),  # custom operator — see below
     op.to_image_space(keypoint_cols=range(6, 57, 3)),
 ).optimized()  # runtime fuses ops for maximum throughput
 
-poses = pipeline(frame)  # frame in, raw (N, 57) NumPy array out - drops straight into existing post-processing
+poses = pipeline(frame)  # frame in, raw (N, 57) NumPy array out — drops straight into existing post-processing
 ```
 
 Note that this example returns the model's raw NumPy rows rather than typed
-`Results` objects - see the two examples below.
+`Results` objects — see the two examples below.
 
 ## Examples
 
@@ -63,8 +63,8 @@ typed objects, so the tracking path adds `op.ax_pose()` and yields `TrackedObjec
 ### Install
 
 If you followed the
-[Axelera integration guide](../../docs/en/integrations/axelera.md), `axelera-rt`
-is already installed - running `yolo predict` or `yolo val` with an Axelera
+[Axelera integration guide](../../../docs/en/integrations/axelera.md), `axelera-rt`
+is already installed — running `yolo predict` or `yolo val` with an Axelera
 model auto-installs the runtime dependencies. If you need to install manually:
 
 ```bash
@@ -160,7 +160,7 @@ python yolo11-seg.py --model yolo11n-seg.axm --source video.mp4 --no-display    
 
 ### Custom Operators
 
-The pipeline is fully composable - drop in your own operators anywhere in the
+The pipeline is fully composable — drop in your own operators anywhere in the
 sequence. Just subclass `op.Operator` and implement `__call__`:
 
 ```python
@@ -170,7 +170,7 @@ class ConfidenceFilter(op.Operator):
     def __call__(self, x):
         """Filter detections by confidence score."""
         # Each operator receives the output of the previous one in op.seq().
-        # Here x is the output of the pose detection model - an array of
+        # Here x is the output of the pose detection model — an array of
         # shape (batch, num_detections, num_values) where each row holds
         # [bbox, confidence, class_id, keypoints…]. Column 4 is the
         # confidence score. Squeeze the batch dim and filter by score.
@@ -180,7 +180,7 @@ class ConfidenceFilter(op.Operator):
 ```
 
 This means they are fused, scheduled, and optimized alongside built-in ops like
-`op.letterbox` and the model itself - adding a custom filter carries no special
+`op.letterbox` and the model itself — adding a custom filter carries no special
 overhead.
 
 ### Video Sources (`cv.create_source`)
@@ -188,7 +188,7 @@ overhead.
 `cv.create_source(path)` opens a `VideoSource`: an iterable of decoded `Image` frames
 that also exposes metadata (`fps`, `frame_count`) and works as a context manager. The
 path can be a video file, a folder of images, a USB camera (`/dev/video0`), or an
-RTSP/RTP/RTMP/SRT URL - live sources drop frames to stay real-time, while files block
+RTSP/RTP/RTMP/SRT URL — live sources drop frames to stay real-time, while files block
 so none are skipped. Hand the source straight to `pipeline.stream()` to get pipelined
 `(image, result)` pairs in source order:
 
@@ -209,7 +209,7 @@ available when you need to tune decoding. `yolo11-seg.py` uses this for capture.
 `display.App(renderer=...)` runs the built-in renderer as a context manager:
 `"auto"` opens an OpenCV window when a display is available (and falls back to console
 output otherwise), `"none"` disables rendering for headless runs. Create a window with
-`create_window(title, size)` and push frames with `vis(image, result)` - typed
+`create_window(title, size)` and push frames with `vis(image, result)` — typed
 `Results` objects render themselves via their `.draw()` method, so masks, boxes, poses,
 and tracks are drawn with no manual OpenCV code:
 
@@ -253,7 +253,7 @@ pipeline = op.seq(
 | SORT       | Simple, fast IoU-only baseline                       | Bewley et al., ICIP 2016 |
 
 The tracker operates on bounding boxes, but the original detection (with all its
-metadata) is preserved - use `tracked.tracked` on each result to access the
+metadata) is preserved — use `tracked.tracked` on each result to access the
 original keypoints, masks, or other model outputs. You'll see this pattern in
 `yolo26-pose-tracker.py`.
 

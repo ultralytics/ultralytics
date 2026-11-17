@@ -2,9 +2,9 @@
 
 <img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV--DNN-5C3EE8.svg?logo=opencv&logoColor=white">
 
-A single Python script that runs [Ultralytics YOLO](https://docs.ultralytics.com) ONNX models with the [OpenCV DNN module](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html) on every task ([detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [semantic](https://docs.ultralytics.com/tasks/semantic), [depth](https://docs.ultralytics.com/tasks/depth), [classify](https://docs.ultralytics.com/tasks/classify), [pose](https://docs.ultralytics.com/tasks/pose), and [OBB](https://docs.ultralytics.com/tasks/obb)). It supports [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26) **grid** exports. OpenCV DNN cannot run the YOLO26 end-to-end (NMS in graph) operators in every version, so export with the default `nms=None`.
+A single Python script that runs [Ultralytics YOLO](https://docs.ultralytics.com) ONNX models with the [OpenCV DNN module](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html) on every task ([detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [semantic](https://docs.ultralytics.com/tasks/semantic), [depth](https://docs.ultralytics.com/tasks/depth), [classify](https://docs.ultralytics.com/tasks/classify), [pose](https://docs.ultralytics.com/tasks/pose), and [OBB](https://docs.ultralytics.com/tasks/obb)). It supports [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26) grid exports (the default `nms=None`) and, with OpenCV 4.11 or newer, YOLO26 end-to-end exports (`nms=False`).
 
-OpenCV reads no ONNX metadata, so the task is inferred from the output shapes and class names fall back to [COCO](https://docs.ultralytics.com/datasets/detect/coco). Custom grid models show class ids, while end-to-end and RT-DETR models assume COCO names, so use the [ONNXRuntime](../ONNXRuntime) example for those. Custom pose and OBB models need `--task pose` or `--task obb`.
+OpenCV reads no ONNX metadata, so detect, segment, pose, and end-to-end OBB are inferred from the output shapes and class names fall back to [COCO](https://docs.ultralytics.com/datasets/detect/coco). Custom grid models show class ids, while end-to-end and RT-DETR models assume COCO names, so use the [ONNXRuntime](../ONNXRuntime) example for those. Custom grid pose and grid OBB models need `--task pose` or `--task obb`.
 
 ## ⚙️ Installation
 
@@ -27,12 +27,12 @@ python main.py --model yolo26n-cls.onnx --task classify --imgsz 224
 
 | Argument   | Default        | Description                                                              |
 | :--------- | :------------- | :----------------------------------------------------------------------- |
-| `--model`  | `yolo26n.onnx` | Path to the exported grid `.onnx` model.                                 |
+| `--model`  | `yolo26n.onnx` | Path to the exported `.onnx` model.                                      |
 | `--source` | `bus.jpg`      | Input image.                                                             |
 | `--conf`   | `0.25`         | Confidence threshold.                                                    |
 | `--iou`    | `0.5`          | NMS IoU threshold.                                                       |
 | `--imgsz`  | `640`          | Model input size (`768` depth, `224` classify, `1024` OBB and semantic). |
-| `--task`   | _inferred_     | Set for semantic, depth, classify, OBB, and `rtdetr` models.             |
+| `--task`   | _inferred_     | Set for semantic, depth, classify, grid OBB, and `rtdetr` models.        |
 | `--out`    | `result.jpg`   | Output image path.                                                       |
 | `--show`   | _off_          | Also open a display window.                                              |
 

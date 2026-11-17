@@ -1,8 +1,8 @@
 # Shared Helpers for the Inference in Python
 
-Two small modules shared across the [Ultralytics YOLO](https://docs.ultralytics.com) Python inference examples. They depend only on [NumPy](https://numpy.org/) and [OpenCV](https://opencv.org/). A backend only runs the model; everything else is handled here.
+A small module shared across the [Ultralytics YOLO](https://docs.ultralytics.com) Python inference examples. It depends only on [NumPy](https://numpy.org/) and [OpenCV](https://opencv.org/). A backend only runs the model; everything else is handled here.
 
-An example uses them by adding this folder to the import path:
+An example uses it by adding this folder to the import path:
 
 ```python
 sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
@@ -17,4 +17,4 @@ import yolo_common as yolo
 | `draw`        | Annotates the image with boxes, masks, skeletons, rotated boxes, class maps, or top-5 classes.               |
 | `finish`      | Prints the detections, saves the annotated image to `--out`, and optionally shows it with `--show`.          |
 
-`coco_names.py` provides the 80 COCO class names as a fallback for models without baked-in `names` metadata.
+`COCO_NAMES` holds the 80 COCO class names as a fallback for backends that read no model metadata.

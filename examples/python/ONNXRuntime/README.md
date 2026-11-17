@@ -51,7 +51,7 @@ python main.py --model yolo26n-pose.onnx --source bus.jpg --show
 | `--conf`   | `0.25`         | Confidence threshold.                                        |
 | `--iou`    | `0.5`          | NMS IoU threshold (grid models only).                        |
 | `--out`    | `result.jpg`   | Output image path.                                           |
-| `--task`   | _metadata_     | Override the task if the model has no metadata.              |
+| `--task`   | _metadata_     | Override the task read from the model metadata.              |
 | `--show`   | _off_          | Also open a display window.                                  |
 
 The annotated result is written to `--out` and the detections are printed to the console. The shared pre and post-processing lives in [`../common`](../common).

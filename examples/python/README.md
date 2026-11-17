@@ -13,7 +13,7 @@ The inference examples support **every task** ([detect](https://docs.ultralytics
 | Example                                                                                                                                                                                                                       | Backend                                                                   | Notes                                                                |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | [![ONNXRuntime](https://img.shields.io/badge/ONNX%20Runtime-717272.svg?logo=onnx&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/python/ONNXRuntime)                                          | [ONNX Runtime](https://onnxruntime.ai/)                                   | All tasks; grid and end-to-end outputs; ONNX FP32/FP16; CPU or CUDA. |
-| [![OpenCV-DNN](https://img.shields.io/badge/OpenCV--DNN-5C3EE8.svg?logo=opencv&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/python/OpenCV-DNN)                                             | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)          | All tasks on grid models; no model metadata needed.                  |
+| [![OpenCV-DNN](https://img.shields.io/badge/OpenCV--DNN-5C3EE8.svg?logo=opencv&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/python/OpenCV-DNN)                                             | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)          | All tasks; grid and end-to-end outputs; no model metadata needed.    |
 | [![Axelera](https://img.shields.io/badge/Axelera-Voyager%20SDK-0A2540.svg)](https://github.com/ultralytics/ultralytics/tree/main/examples/python/Axelera)                                                                     | [Axelera Voyager SDK](https://docs.ultralytics.com/integrations/axelera)  | YOLO pipelines on Axelera Metis devices.                             |
 | [![Action-Recognition](https://img.shields.io/badge/Action%20Recognition-FFD21E.svg?logo=huggingface&logoColor=black)](https://github.com/ultralytics/ultralytics/tree/main/examples/python/Action-Recognition)               | [Hugging Face Transformers](https://huggingface.co/docs/transformers)     | Zero-shot action recognition on tracked people.                      |
 | [![Interactive-Tracking](https://img.shields.io/badge/Interactive%20Tracking-042AFF.svg?logo=ultralytics&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/python/Interactive-Tracking)         | [Ultralytics](https://docs.ultralytics.com/modes/track)                   | Click to pick a tracked object in a live window.                     |
@@ -43,7 +43,7 @@ python main.py --model yolo26n.onnx --source bus.jpg
 ### OpenCV-DNN
 
 ```bash
-# 1. Export a grid yolo26n.onnx (the default nms=None export)
+# 1. Export yolo26n.onnx (grid by default, end-to-end with nms=False)
 yolo export model=yolo26n.pt format=onnx opset=12
 
 # 2. Install

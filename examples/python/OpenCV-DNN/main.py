@@ -7,7 +7,6 @@ import cv2
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
 import yolo_common as yolo
-from coco_names import COCO_NAMES
 
 args = yolo.parse_args("yolo26n.onnx", imgsz=True)
 net = cv2.dnn.readNetFromONNX(args.model)  # OpenCV DNN reads no model metadata, so imgsz/task come from the CLI
@@ -19,24 +18,20 @@ net.setInput(blob)
 outputs = net.forward(net.getUnconnectedOutLayersNames())
 out = outputs[0]
 task = args.task
-if not task:  # infer the task from the output shapes
-    if any(o.ndim == 4 for o in outputs):
-        task = "semantic" if len(outputs) == 1 else "segment"  # [1, nc, H, W] or (detections, protos)
-    elif out.ndim == 2:
-        task = "classify"
-    elif out.shape[1] > out.shape[2]:  # end-to-end [1, 300, attrs]
+grid = out.ndim == 3 and out.shape[1] < out.shape[2]  # [1, channels, anchors], else end-to-end [1, 300, attrs]
+if not task:  # infer detect, segment, pose or end-to-end OBB from the output shapes; other tasks need --task
+    if len(outputs) == 2:
+        task = "segment"  # (detections, protos)
+    elif grid:
+        task = "pose" if out.shape[1] == 56 else "detect"  # 56 = COCO pose; other layouts are custom detectors
+    else:
         task = {6: "detect", 7: "obb"}.get(out.shape[2], "pose")
-    else:  # grid [1, channels, anchors]: 56 = COCO pose, other layouts are custom detectors
-        task = "pose" if out.shape[1] == 56 else "detect"
-if task in {"pose", "depth"}:  # single-class models
-    names = {0: "person" if task == "pose" else "depth"}
-elif task in {"detect", "segment"} and out.shape[1] < out.shape[2]:  # grid output: class count from the channels
-    nc = out.shape[1] - (36 if task == "segment" else 4)
-    names = COCO_NAMES if nc == len(COCO_NAMES) else {i: str(i) for i in range(nc)}
-elif task in {"detect", "segment", "rtdetr"}:  # end-to-end outputs carry no class count, so COCO is assumed
-    names = COCO_NAMES
-else:  # classify, semantic and OBB have no COCO labels, so classes are shown as ids
-    nc = out.shape[1] - 5 if task == "obb" else out.shape[1] if out.ndim == 4 or task == "classify" else 256
-    names = {i: str(i) for i in range(nc)}
-print(f"Model: {args.model} | task: {task} | classes: {len(names)}")
+if task == "pose":
+    names = {0: "person"}
+elif grid and task in {"detect", "segment", "obb"}:  # grid outputs carry the class count in their channels
+    nc = out.shape[1] - {"detect": 4, "segment": 36, "obb": 5}[task]
+    names = yolo.COCO_NAMES if nc == 80 and task != "obb" else {i: str(i) for i in range(nc)}
+else:  # end-to-end and RT-DETR outputs carry no class count, so COCO is assumed; other tasks show class ids
+    names = yolo.COCO_NAMES if task in {"detect", "segment", "rtdetr"} else {}
+print(f"Model: {args.model} | task: {task}")
 yolo.finish(img, yolo.postprocess(outputs, img, imgsz, task, names, args.conf, args.iou, pad), args)

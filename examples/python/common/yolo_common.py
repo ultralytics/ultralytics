@@ -17,6 +17,16 @@ SKELETON = [  # COCO 17-keypoint limbs
     (1, 2), (0, 1), (0, 2), (1, 3), (2, 4), (3, 5), (4, 6),
 ]  # fmt: skip
 
+_COCO = (  # the 80 COCO class names, a fallback for backends that read no model metadata
+    "person,bicycle,car,motorcycle,airplane,bus,train,truck,boat,traffic light,fire hydrant,stop sign,parking meter,"
+    "bench,bird,cat,dog,horse,sheep,cow,elephant,bear,zebra,giraffe,backpack,umbrella,handbag,tie,suitcase,frisbee,"
+    "skis,snowboard,sports ball,kite,baseball bat,baseball glove,skateboard,surfboard,tennis racket,bottle,wine glass,"
+    "cup,fork,knife,spoon,bowl,banana,apple,sandwich,orange,broccoli,carrot,hot dog,pizza,donut,cake,chair,couch,"
+    "potted plant,bed,dining table,toilet,tv,laptop,mouse,remote,keyboard,cell phone,microwave,oven,toaster,sink,"
+    "refrigerator,book,clock,vase,scissors,teddy bear,hair drier,toothbrush"
+)
+COCO_NAMES = dict(enumerate(_COCO.split(",")))
+
 
 def parse_args(model: str, imgsz: bool = False) -> argparse.Namespace:
     """Parse the command-line arguments shared by every example."""
@@ -73,16 +83,14 @@ def _nms(boxes: np.ndarray, conf: np.ndarray, cls: np.ndarray, iou: float, rotat
 
 
 def _masks(
-    protos: np.ndarray, coefs: np.ndarray, boxes: np.ndarray, shape: tuple, imgsz: tuple, pad: tuple
+    protos: np.ndarray, coefs: np.ndarray, boxes: np.ndarray, shape: tuple, imgsz: tuple, crop: tuple
 ) -> np.ndarray:
     """Decode instance masks at original-image size, cropped to their boxes."""
     h, w = shape
-    left, top = pad
     m = 1 / (1 + np.exp(-coefs @ protos.reshape(len(protos), -1)))
     out = np.zeros((len(coefs), h, w), bool)
     for i, (mask, (x1, y1, x2, y2)) in enumerate(zip(m.reshape(-1, *protos.shape[1:]), boxes.astype(int))):
-        mask = cv2.resize(mask, imgsz[::-1])
-        mask = mask[top : imgsz[0] - top, left : imgsz[1] - left]
+        mask = cv2.resize(mask, imgsz[::-1])[crop]
         out[i, max(y1, 0) : y2, max(x1, 0) : x2] = (cv2.resize(mask, (w, h)) > 0.5)[max(y1, 0) : y2, max(x1, 0) : x2]
     return out
 
@@ -96,11 +104,10 @@ def postprocess(outputs: list[np.ndarray], img: np.ndarray, imgsz: tuple[int, in
         return {**r, "probs": out[0]}
     if task == "depth":  # [1, 1, H, W] or [1, H, W] metric depth, resized straight to the image size
         return {**r, "depth": cv2.resize(out.reshape(out.shape[-2:]), img.shape[1::-1])}
-    if task == "semantic":  # [1, nc, H, W] logits or [1, H, W] class map
-        x = out[0].transpose(1, 2, 0) if out.ndim == 4 else out[0]
-        x = cv2.resize(x, imgsz[::-1], interpolation=cv2.INTER_LINEAR if out.ndim == 4 else cv2.INTER_NEAREST)
-        cls = x.argmax(-1) if x.ndim == 3 else (x > 0 if out.ndim == 4 else x)  # multi-class, binary, or baked map
-        cls = cls[top : imgsz[0] - top, left : imgsz[1] - left].astype(np.uint8)
+    nh, nw = round(img.shape[0] * gain), round(img.shape[1] * gain)  # letterboxed image size
+    crop = slice(top, top + nh), slice(left, left + nw)
+    if task == "semantic":  # [1, H, W] class map at the input size
+        cls = out[0][crop].astype(np.uint8)
         return {**r, "semantic": cv2.resize(cls, img.shape[1::-1], interpolation=cv2.INTER_NEAREST)}
 
     out = out[0]
@@ -133,7 +140,7 @@ def postprocess(outputs: list[np.ndarray], img: np.ndarray, imgsz: tuple[int, in
         boxes = (boxes - [left, top] * 2) / gain
     r.update(boxes=boxes, conf=scores, cls=cls)
     if task == "segment":
-        r["masks"] = _masks(outputs[1][0], extra, boxes, img.shape[:2], imgsz, (left, top))
+        r["masks"] = _masks(outputs[1][0], extra, boxes, img.shape[:2], imgsz, crop)
     elif task == "pose":
         kpts = extra.reshape(len(extra), -1, kpt_dim).copy()  # (x, y[, visibility]) per keypoint
         kpts[..., :2] = (kpts[..., :2] - [left, top]) / gain
@@ -158,7 +165,7 @@ def draw(img: np.ndarray, r: dict) -> np.ndarray:
     img, names = img.copy(), r["names"]
     if "probs" in r:
         for k, i in enumerate(np.argsort(-r["probs"])[:5]):
-            cv2.putText(img, f"{names[i]} {r['probs'][i]:.2f}", (10, 30 + 28 * k), 0, 0.9, _color(int(i)), 2)
+            cv2.putText(img, f"{names.get(i, i)} {r['probs'][i]:.2f}", (10, 30 + 28 * k), 0, 0.9, _color(int(i)), 2)
         return img
     if "depth" in r:
         d = r["depth"]
@@ -193,11 +200,11 @@ def finish(img: np.ndarray, r: dict, args: argparse.Namespace) -> None:
     """Print the detections, save the annotated image to ``--out`` and optionally show it."""
     names = r["names"]
     if "probs" in r:
-        print(", ".join(f"{names[i]} {r['probs'][i]:.2f}" for i in np.argsort(-r["probs"])[:5]))
+        print(", ".join(f"{names.get(i, i)} {r['probs'][i]:.2f}" for i in np.argsort(-r["probs"])[:5]))
     elif "depth" in r:
         print(f"depth {r['depth'].min():.2f}-{r['depth'].max():.2f}m")
     elif "semantic" in r:
-        print("classes:", ", ".join(names[int(i)] for i in np.unique(r["semantic"]) if int(i) in names))
+        print("classes:", ", ".join(str(names.get(i, i)) for i in np.unique(r["semantic"])))
     else:
         for box, c, k in zip(r["boxes"], r["conf"], r["cls"]):
             print(f"{names.get(int(k), int(k))} {c:.2f} {np.round(box[:4]).astype(int).tolist()}")

@@ -366,7 +366,7 @@ def convert_coco(
                         s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
                         segments.append([cls, *s])
 
-            # Write inside fn, absolute and '..' file_names (e.g. Label Studio storage paths) keep only the file name
+            # Write inside fn, absolute and '..' file_names (e.g. Label Studio upload paths) keep only the file name
             label_file = (fn / (f.name if f.anchor or ".." in f.parts else f)).with_suffix(".txt")
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
             with open(label_file, "a" if lvis else "x", encoding="utf-8") as file:  # "x" rejects images sharing a label

@@ -40,7 +40,7 @@ pip install ultralytics
         yolo export model=yolo26n.pt format=litert quantize=w8a32 imgsz=640
         ```
 
-You can check an exported model on the host with `YOLO("yolo26n.tflite")("https://ultralytics.com/images/bus.jpg")`. This runs LiteRT locally and does not select or test a MediaTek NPU. See the [LiteRT guide](litert.md#usage) for prediction, validation, and all export arguments.
+You can check an exported model on the host with `YOLO("yolo26n.tflite")("https://ultralytics.com/images/bus.jpg")`. This runs LiteRT locally and does not select or test a MediaTek NPU. See the [LiteRT guide](litert.md#quickstart) for prediction, validation, and all export arguments.
 
 ## Deploy on Android
 

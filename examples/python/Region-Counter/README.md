@@ -1,19 +1,21 @@
 # Regions Counting Using Ultralytics YOLO26 (Inference on Video)
 
+<img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
+
 > **Note:** Region Counter is now part of **[Ultralytics Solutions](https://docs.ultralytics.com/solutions)**, offering enhanced features and ongoing updates.
 >
 > 🔗 **Explore the official [Region Counting Guide](https://docs.ultralytics.com/guides/region-counting) for the latest implementation.**
 
 > 🔔 **Notice:**
 >
-> This GitHub example (`ultralytics/examples/YOLOv8-Region-Counter/`) will remain available but **is no longer actively maintained**. For the most current features, updates, and support, please refer to the official [Region Counting guide](https://docs.ultralytics.com/guides/region-counting) within the Ultralytics documentation. Thank you!
+> This GitHub example (`ultralytics/examples/python/Region-Counter/`) will remain available but **is no longer actively maintained**. For the most current features, updates, and support, please refer to the official [Region Counting guide](https://docs.ultralytics.com/guides/region-counting) within the Ultralytics documentation. Thank you!
 
 Region counting is a technique used to count objects within predefined areas or zones in a video feed. This allows for more detailed analysis, especially when monitoring multiple distinct areas simultaneously. Users can interactively adjust these regions by clicking and dragging with the left mouse button, enabling real-time counting tailored to specific needs and layouts. This method is valuable in various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, from traffic analysis to retail analytics.
 
 <div>
 <p align="center">
-  <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/5ab3bbd7-fd12-4849-928e-5f294d6c3fcf" width="45%" alt="YOLOv8 region counting visual 1">
-  <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/e7c1aea7-474d-4d78-8d48-b50854ffe1ca" width="45%" alt="YOLOv8 region counting visual 2">
+  <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/5ab3bbd7-fd12-4849-928e-5f294d6c3fcf" width="45%" alt="YOLO region counting visual 1">
+  <img src="https://github.com/RizwanMunawar/ultralytics/assets/62513924/e7c1aea7-474d-4d78-8d48-b50854ffe1ca" width="45%" alt="YOLO region counting visual 2">
 </p>
 </div>
 
@@ -34,7 +36,7 @@ First, clone the Ultralytics repository and navigate to the example directory. E
 git clone https://github.com/ultralytics/ultralytics
 
 # Navigate to the example directory
-cd ultralytics/examples/YOLOv8-Region-Counter
+cd ultralytics/examples/python/Region-Counter
 
 # Install required packages (if not already installed)
 pip install ultralytics shapely
@@ -50,19 +52,19 @@ Once the video starts playing, you can dynamically reposition the counting regio
 
 ```bash
 # Run inference on a video source, saving results and viewing output
-python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --view-img
+python main.py --source "path/to/video.mp4" --save-img --view-img
 
 # Run inference using the CPU
-python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --view-img --device cpu
+python main.py --source "path/to/video.mp4" --save-img --view-img --device cpu
 
 # Use a specific Ultralytics YOLO26 model file
-python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --weights "path/to/yolo26n.pt"
+python main.py --source "path/to/video.mp4" --save-img --weights "path/to/yolo26n.pt"
 
 # Detect only specific classes (e.g., class 0 and class 2)
-python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2 --weights "path/to/yolo26m.pt"
+python main.py --source "path/to/video.mp4" --classes 0 2 --weights "path/to/yolo26m.pt"
 
 # Run inference without saving the output video/images
-python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
+python main.py --source "path/to/video.mp4" --view-img
 ```
 
 Learn more about inference arguments in the Ultralytics [Predict Mode documentation](https://docs.ultralytics.com/modes/predict).

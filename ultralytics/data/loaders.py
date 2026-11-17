@@ -472,10 +472,6 @@ class LoadImagesAndVideos:
                         paths.append(path)
                         imgs.append(im0)
                         info.append(f"video {self.count + 1}/{self.nf} (frame {self.frame}/{self.frames}) {path}: ")
-                        if self.frame == self.frames:  # end of video, flush so a batch never spans two videos
-                            self.count += 1
-                            self.cap.release()
-                            break
                 else:
                     # Move to the next file if the current video ended or failed to open
                     self.count += 1
@@ -586,7 +582,7 @@ class LoadPilAndNumpy:
             raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
         pil = isinstance(im, Image.Image)
         if pil:
-            im = ImageOps.exif_transpose(im)
+            im = ImageOps.exif_transpose(im) if im.getexif().get(274, 1) in range(2, 9) else im  # skip the upright copy
             if im.mode.startswith("I;16"):  # convert() clips 16-bit values at 255, scale them like cv2 does
                 im = Image.fromarray((np.asarray(im) >> 8).astype(np.uint8))
             flag = "L" if channels == 1 else "RGB"

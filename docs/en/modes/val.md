@@ -152,8 +152,7 @@ The examples below run YOLO model validation with custom arguments in Python and
 
 !!! tip "Per-Image Precision, Recall, and F1"
 
-    Validation stores per-image [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), F1, TP, FP, and FN metrics (at IoU threshold 0.5) for all tasks
-    except classification. Access them through `results.box.image_metrics` for detection and OBB, `results.seg.image_metrics`
+    Validation stores per-image [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), F1, TP, FP, and FN metrics (at IoU threshold 0.5). Access them through `results.box.image_metrics` for detection and OBB, `results.seg.image_metrics`
     for segmentation, and `results.pose.image_metrics` for pose after validation completes.
 
     ```python
@@ -165,7 +164,7 @@ The examples below run YOLO model validation with custom arguments in Python and
     # Validate and access per-image metrics
     results = model.val(data="coco8.yaml")
 
-    # image_metrics is a dictionary with image filenames as keys
+    # Keys are paths relative to the common image directory, e.g. 'image1.jpg' or 'a/image1.jpg'
     print(results.box.image_metrics)
     # Output: {'image1.jpg': {'precision': 0.85, 'recall': 0.92, 'f1': 0.88, 'tp': 17, 'fp': 3, 'fn': 1}, ...}
 

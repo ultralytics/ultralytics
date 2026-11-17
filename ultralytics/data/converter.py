@@ -281,7 +281,8 @@ def convert_coco(
     """
     # Create dataset directory
     save_dir = increment_path(save_dir)  # increment if save directory already exists
-    for p in save_dir / "labels", save_dir / "images":
+    labels_root = (save_dir / "labels").resolve()  # fixed root that annotation-provided label paths may not escape
+    for p in labels_root, save_dir / "images":
         p.mkdir(parents=True, exist_ok=True)  # make dir
 
     # Convert classes
@@ -371,7 +372,7 @@ def convert_coco(
             # Write
             label_file = (fn / f).with_suffix(".txt")
             try:  # keep untrusted annotation file names inside the labels directory
-                label_file.resolve().relative_to(fn.resolve())
+                label_file.resolve().relative_to(labels_root)
             except ValueError:
                 raise ValueError(
                     f"{json_file}: invalid image file_name {f!r}, which must stay inside the labels directory"

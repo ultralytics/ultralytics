@@ -582,7 +582,9 @@ class LoadPilAndNumpy:
             raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
         pil = isinstance(im, Image.Image)
         if pil:
-            im = ImageOps.exif_transpose(im)
+            im.load()  # PNG orientation metadata can follow the pixel data.
+            if im.getexif().get(274, 1) in range(2, 9):
+                im = ImageOps.exif_transpose(im)
             if im.mode.startswith("I;16"):  # convert() clips 16-bit values at 255, scale them like cv2 does
                 im = Image.fromarray((np.asarray(im) >> 8).astype(np.uint8))
             flag = "L" if channels == 1 else "RGB"

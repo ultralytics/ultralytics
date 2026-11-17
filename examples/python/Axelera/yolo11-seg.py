@@ -60,7 +60,7 @@ def main(args):
     """Run the YOLO11 segmentation pipeline over the source and render results via the display app."""
     renderer = "none" if args.no_display else "auto"
     # --output saves rendered frames via save_output_video(), which reads the surface
-    # frame sink — only the OpenCV renderer has one, so it can't run headless.
+    # frame sink - only the OpenCV renderer has one, so it can't run headless.
     expose_surface = bool(args.output)
     with display.App(renderer=renderer) as visualizer:
         vis = visualizer.create_window("YOLO11 Segmentation", (800, 500), expose_surface=expose_surface)

@@ -30,11 +30,11 @@ from ultralytics.utils import (
     WINDOWS,
     YAML,
     clean_url,
-    imread,
 )
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
+from ultralytics.utils.patches import imread
 
 
 def coco91_to_coco80_class() -> list[int | None]:
@@ -796,7 +796,7 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     else:
         # Process a single image
         output_path = path.with_suffix(".tiff")
-        img = cv2.cvtColor(imread(str(path)), cv2.COLOR_BGR2RGB)  # patches.imread: upright EXIF + HEIC/AVIF fallback
+        img = cv2.cvtColor(imread(str(path)), cv2.COLOR_BGR2RGB)
 
         # Interpolate all pixels at once with linear interpolation and extrapolation across RGB wavelengths
         rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)

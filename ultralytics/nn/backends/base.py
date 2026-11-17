@@ -5,13 +5,14 @@ from __future__ import annotations
 import ast
 import contextlib
 import json
+import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
 import torch
 
-from ultralytics.utils import YAML
+from ultralytics.utils import LINUX, YAML
 
 
 def _read_proto_map(file: Path, path: tuple[int, ...]) -> dict:
@@ -128,6 +129,17 @@ class BaseBackend(ABC):
     def __call__(self, *args, **kwargs) -> Any:
         """Run inference by forwarding all arguments to `forward`."""
         return self.forward(*args, **kwargs)
+
+    @staticmethod
+    def cpu_threads(n: int) -> int:
+        """Return CPU thread count n capped at 8 and, on Linux, at the affinity mask and a cgroup v2 CPU quota."""
+        n = min(8, n)
+        if LINUX:  # runtimes size their pools to host cores, ignoring taskset, docker --cpuset-cpus and --cpus
+            n = min(n, len(os.sched_getaffinity(0)))
+            cpu_max = Path("/sys/fs/cgroup/cpu.max")
+            if cpu_max.is_file() and (q := cpu_max.read_text().split())[0] != "max":
+                n = min(n, int(q[0]) // int(q[1]))
+        return max(1, n)
 
     @staticmethod
     def engine_header(file: str | Path) -> tuple[int, dict]:

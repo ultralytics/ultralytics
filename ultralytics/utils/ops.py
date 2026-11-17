@@ -135,7 +135,7 @@ def merge_tiles(
         fragment[fragment.clone()] = inside.all(-1).any(1)
     valid = (~fragment).nonzero().squeeze(1)
     output = {k: torch.cat([p[k] for p in predictions]) for k in first if k not in {"bboxes", "masks", "keypoints"}}
-    classes = output["cls"][:, None] * (0 if agnostic else 2 * max(shape) + 1)
+    classes = output["cls"].float()[:, None] * (0 if agnostic else 2 * max(shape) + 1)
     candidates = torch.cat((boxes[:, :2] + classes, boxes[:, 2:]), 1) if rotated else boxes + classes
     keep = valid[nms_boxes(candidates[valid], output["conf"][valid].float(), iou, rotated=rotated)][:max_det]
     if fragment.any():  # restore fragments no kept box of their class covers by half, i.e. the whole view missed them

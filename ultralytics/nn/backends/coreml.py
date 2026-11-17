@@ -31,9 +31,9 @@ class CoreMLBackend(BaseBackend):
         import coremltools as ct
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")
-        # Run on the Neural Engine (CPU_AND_NE): ~3x faster than CPU, and the default ComputeUnit.ALL / CPU_AND_GPU
-        # abort the process via an MPSGraph compiler bug on macOS hosts (coremltools 9.x). CPU_AND_NE needs macOS >= 13,
-        # so fall back to CPU_ONLY below that. CoreML inference is macOS-only, so this applies wherever the backend runs.
+        # Run on the Neural Engine (CPU_AND_NE): ~3x faster than CPU. ComputeUnit.ALL / CPU_AND_GPU aborted the process
+        # via an MPSGraph compiler bug on macOS 26.5 with coremltools 9.0 (#24885), and run on macOS 27.2. CPU_AND_NE
+        # needs macOS >= 13, so fall back to CPU_ONLY below that. CoreML inference is macOS-only.
         # Exception: RT-DETR loses FP16 accuracy and runs slower on the Neural Engine alone, so route it through ALL.
         meta = self.read_metadata(weight)
         default_unit = ct.ComputeUnit.ALL if meta.get("head") == "RTDETRDecoder" else ct.ComputeUnit.CPU_AND_NE

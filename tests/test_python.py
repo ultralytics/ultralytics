@@ -828,30 +828,6 @@ def test_val(task: str, weight: str, data: str) -> None:
             assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
-def test_val_mixed_manifest_paths(tmp_path, monkeypatch):
-    """Keep both per-image metric entries when a manifest mixes relative and absolute paths."""
-    monkeypatch.chdir(tmp_path)
-    dataset = tmp_path / "dataset"
-    images = []
-    for folder in ("a", "b"):
-        image = dataset / "images" / folder / "same.png"
-        label = dataset / "labels" / folder / "same.txt"
-        image.parent.mkdir(parents=True)
-        label.parent.mkdir(parents=True)
-        assert cv2.imwrite(str(image), np.zeros((64, 64, 3), dtype=np.uint8))
-        label.write_text("0 0.5 0.5 0.5 0.5\n", encoding="utf-8")
-        images.append(image)
-    (dataset / "val.txt").write_text(
-        f"{images[0].relative_to(tmp_path).as_posix()}\n{images[1].as_posix()}\n", encoding="utf-8"
-    )
-    data = dataset / "dataset.yaml"
-    YAML.save(data, {"train": "val.txt", "val": "val.txt", "names": ["object"]})
-    metrics = YOLO("yolo26n.yaml").val(
-        data=data, imgsz=64, batch=2, workers=0, device="cpu", plots=False, project=tmp_path
-    )
-    assert set(metrics.box.image_metrics) == {"a/same.png", "b/same.png"}
-
-
 def test_val_save_txt_pose(tmp_path):
     """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")

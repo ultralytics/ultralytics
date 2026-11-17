@@ -154,10 +154,10 @@ For the arguments shared by all formats, see the [Export mode documentation](../
 | `16`             | FP16    | FP16        | iOS 15, macOS 12 | 5.1 MB       |
 | `8` or `'w8a16'` | 8-bit   | FP16        | iOS 16, macOS 13 | 2.7 MB       |
 
-- **FP32**: the default when `nms=True` is not set. On an Apple M4, the FP32 exports of all seven tasks returned the same outputs with the `CPU_AND_NE` compute units, which Ultralytics uses, as with `CPU_ONLY`, and were not faster with them. Export in FP16 or INT8 to use the Neural Engine.
+- **FP32**: the default when `nms=True` is not set. On an Apple M4, the FP32 exports of all seven tasks returned the same outputs with the `CPU_AND_NE` compute units, which Ultralytics uses, as with `CPU_ONLY`, and were not faster with them. Export in FP16 or INT8 to use the Neural Engine. On an iPhone 17 Pro, an FP32 YOLO26n detection model was at most 5% faster with the Neural Engine by the median of three runs, see [Measured Performance](#iphone-17-pro).
 - **FP16**: `quantize=16` stores the weights and computes in [half precision](https://www.ultralytics.com/glossary/half-precision). The image input and the output arrays keep the types of the FP32 export (`float32`, or `int32` for semantic segmentation), so inference code written for the FP32 model runs it unchanged.
 - **INT8**: `quantize=8` and `quantize="w8a16"` are the same export. It groups the weights of each layer into 256 values with k-means and stores an 8-bit index for every weight ([palettization](https://apple.github.io/coremltools/docs-guides/source/opt-palettization-overview.html)), and computes in FP16 like an FP16 export. Weight tensors with 512 values or fewer are not palettized. This is weight compression and not the calibrated activation quantization that `quantize=8` selects for other formats, so it takes no `data` argument. With `scikit-learn` already installed, the export of a YOLO26n detection model took 18 to 26 s on an Apple M4 and 23 to 24 s on an x86-64 server, and the export of YOLO26x took 104 s on that server.
-- **Accuracy**: see [Model Size and Accuracy](#model-size-and-accuracy) for COCO results in each precision. Validate an exported model on your own data before you deploy it.
+- **Accuracy**: see the [Apple M4 tables](#apple-m4) for COCO results in each precision. Validate an exported model on your own data before you deploy it.
 
 ## Output Format
 
@@ -222,7 +222,7 @@ On an iPhone or iPad, add the `.mlpackage` to your Xcode project, or use the [Ul
 
 - **Compute units**: Ultralytics loads a model with the Core ML compute units `CPU_AND_NE`, the CPU and the Neural Engine, and RT-DETR models with `ALL`. If the model does not load with them, it loads with `CPU_ONLY`. There is no argument to choose other compute units; load the package with [`coremltools`](#run-with-coremltools) to do that. On an Apple M4 with macOS 27.2, `ALL` and `CPU_AND_GPU` also ran the FP32, FP16, and INT8 models of all seven YOLO26n tasks; other macOS versions were not tested.
 - **`device`**: the `device` argument does not select the Core ML hardware. With `device="mps"` Ultralytics preprocesses and postprocesses on the Apple GPU while Core ML still uses the same compute units. On an M4 this did not make inference faster: an FP16 YOLO26n model took about 8 ms per image with `device="mps"` against about 6 ms without it, so leave `device` unset.
-- **Precision and the Neural Engine**: on an Apple M4, the inference stage of `YOLO()` took 18 to 20 ms per image for an FP32 YOLO26n model and about 6 ms for the FP16 and INT8 models, for default (`nms=None`) exports on one test image with macOS 27.2. With `coremltools` alone, the same FP16 and INT8 models took about 2 ms with `CPU_AND_NE` against 9 to 10 ms with `CPU_ONLY`.
+- **Precision and the Neural Engine**: on an Apple M4, the inference stage of `YOLO()` took 18 to 20 ms per image in `predict` for an FP32 YOLO26n model (21.0 ms in the COCO validation in [Apple M4](#apple-m4)) and about 6 ms for the FP16 and INT8 models, for default (`nms=None`) exports on one test image with macOS 27.2. With `coremltools` alone, the same FP16 and INT8 models took about 2 ms with `CPU_AND_NE` against 9 to 10 ms with `CPU_ONLY`.
 - **Fixed input shape**: a default export always runs at its export `imgsz`, which Ultralytics reads from the model metadata. An `imgsz` passed to `predict` or `val` is ignored. Ultralytics passes each image of a batch to Core ML as a separate single-image request, so any number of images works, and `val` sets `batch=1`.
 - **Dynamic export (`dynamic=True`)**: the model declares batch sizes from 1 to the export `batch` and image sizes from 32 pixels to twice the export `imgsz`, and Ultralytics passes image sizes in multiples of the model stride. Ultralytics splits larger batches into chunks of the export `batch`. With the NMS-free head the smallest size is larger, 128 pixels for a YOLO26n model exported at `imgsz=640` with `nms=False`. Tested with a detection model at 320, 640, and 1280 pixels and with a segmentation model at 640.
 
@@ -276,7 +276,7 @@ The SDK runs Core ML models through Vision's `VNCoreMLRequest`, which scales eac
 - **Batch size**: a `batch` above 1 without `dynamic=True` fails with `batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'.`
 - **Dynamic shapes**: `dynamic=True` without `batch` logs `'dynamic=True' export requires a maximum batch size, e.g. 'batch=16'.` and exports a model with a maximum batch size of 1. With `nms=True` it fails with `'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them.`, and for classification and RT-DETR models with `'dynamic=True' is not supported for CoreML classification or RT-DETR models.` An image size outside the range fails at prediction with an error such as `Size (1312) of dimension (2) is not in allowed range (32..1280)`.
 - **RT-DETR with `quantize=8`**: the export of `rtdetr-l.pt` fails with `Input X contains infinity or a value too large for dtype('float32').` Export RT-DETR models in FP32 or FP16.
-- **Semantic segmentation on the Neural Engine**: on an Apple M4, a YOLO26n-sem model took longer with `CPU_AND_NE` than with `CPU_ONLY`, with `coremltools` alone on one test image: 59 to 64 ms against 22 ms for the FP16 export at `imgsz=1024`, and about 15 ms against 9 ms for the INT8 export at `imgsz=640`. The FP16 models of the other six tasks, and their INT8 models at `imgsz=640` (224 for classification), ran faster with `CPU_AND_NE`, and on the iPhone 17 Pro in [Measured Performance](#measured-performance) the INT8 semantic model was faster with the Neural Engine too. `YOLO()` always uses `CPU_AND_NE` for these models, so measure a semantic model with both settings in your own code.
+- **Semantic segmentation on the Neural Engine**: on an Apple M4, a YOLO26n-sem model took longer with `CPU_AND_NE` than with `CPU_ONLY`, with `coremltools` alone on one test image: 59 to 64 ms against 22 ms for the FP16 export at `imgsz=1024`, and about 15 ms against 9 ms for the INT8 export at `imgsz=640`. The FP16 models of the other six tasks, and their INT8 models at `imgsz=640` (224 for classification), ran faster with `CPU_AND_NE`, and on the [iPhone 17 Pro](#iphone-17-pro) the INT8 semantic model was faster with the Neural Engine too. `YOLO()` always uses `CPU_AND_NE` for these models, so measure a semantic model with both settings in your own code.
 - **Package name**: every export of one checkpoint writes the same `yolo26n.mlpackage`, whatever its `quantize`, `imgsz`, `nms`, or `dynamic`, so the later export replaces the earlier one. Rename the package to keep both, and keep the `.mlpackage` suffix, for example `yolo26n_fp16.mlpackage`, because Ultralytics recognizes the format by it. A package without the suffix fails with `is not a supported model format`.
 - **PyTorch version warning**: with a recent PyTorch, `coremltools` logs `Torch version 2.15.0 has not been tested with coremltools. You may run into unexpected errors.` when it loads, and with a recent `scikit-learn` it logs `scikit-learn version 1.9.1 is not supported.` The exports and Mac results on this page were made with these versions.
 - **Legacy `.mlmodel` files**: `format="mlmodel"` exports the earlier Core ML neural network format as a single `yolo26n.mlmodel` file for apps that cannot load an ML Program. There, `quantize=8` and `'w8a16'` apply linear 8-bit weight quantization. Use the default `.mlpackage` for new projects.
@@ -285,52 +285,104 @@ For other errors, see the [Common Issues guide](../guides/yolo-common-issues.md)
 
 ## Measured Performance
 
+The tables below were measured on an iPhone 17 Pro and on an Apple M4 Mac. The [YOLO26 model page](../models/yolo26.md) lists the accuracy of the PyTorch checkpoints for every task.
+
 ### iPhone 17 Pro
 
-End-to-end single-image inference for the standardized `v8.3.0` YOLO26n INT8 Core ML assets on an
-[iPhone 17 Pro](https://support.apple.com/en-us/125090) with 12 GB memory and iOS 27.0.1. Its A19 Pro has a 6-core CPU
-(2 Performance and 4 Efficiency cores), 6-core GPU with Neural Accelerators, and 16-core Neural Engine. Each cell
-shows the **total time** (preprocessing + inference + postprocessing, excluding
-annotation) with the per-stage split beneath it. On iOS, Vision performs input scaling inside the inference request,
-so preprocessing is reported as 0 and its cost is included in inference.
+**Hardware:** [iPhone 17 Pro](https://support.apple.com/en-us/125090) with iOS 26.6. Its A19 Pro has a 6-core CPU (2 Performance and 4 Efficiency cores), a 6-core GPU, and a 16-core Neural Engine.
 
-| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>Core ML `.cpuOnly`<br>(ms)</sup> | CPU + ANE preferred<br><sup>Core ML `.cpuAndNeuralEngine`<br>(ms)</sup> |
+The first table gives the latency of one image for the official INT8 model of each task, the `v8.3.0` assets of the [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app), which are exported with `nms=False`. Each cell shows the total time in milliseconds with the preprocess / inference / postprocess split beneath it; the faster compute unit is in bold:
+
+| Model         | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>Core ML `.cpuOnly`<br>(ms)</sup> | CPU + Neural Engine<br><sup>Core ML `.cpuAndNeuralEngine`<br>(ms)</sup> |
 | ------------- | -------- | --------------------------- | -------------------------------------------- | ----------------------------------------------------------------------- |
-| YOLO26n       | Detect   | 640                         | 8.8<br><sup>0.0 / 8.8 / 0.0</sup>            | **3.7**<br><sup>0.0 / 3.7 / 0.0</sup>                                   |
-| YOLO26n-seg   | Segment  | 640                         | 12.3<br><sup>0.0 / 11.7 / 0.6</sup>          | **4.9**<br><sup>0.0 / 4.3 / 0.6</sup>                                   |
-| YOLO26n-sem   | Semantic | 640                         | 9.3<br><sup>0.0 / 9.0 / 0.3</sup>            | **4.4**<br><sup>0.0 / 4.1 / 0.3</sup>                                   |
-| YOLO26n-depth | Depth    | 640                         | 26.0<br><sup>0.0 / 25.1 / 1.0</sup>          | **5.5**<br><sup>0.0 / 4.7 / 0.9</sup>                                   |
-| YOLO26n-cls   | Classify | 224                         | 4.1<br><sup>0.0 / 4.1 / 0.0</sup>            | **2.0**<br><sup>0.0 / 1.9 / 0.0</sup>                                   |
-| YOLO26n-pose  | Pose     | 640                         | 12.0<br><sup>0.0 / 12.0 / 0.0</sup>          | **4.0**<br><sup>0.0 / 4.0 / 0.0</sup>                                   |
-| YOLO26n-obb   | OBB      | 640                         | 10.7<br><sup>0.0 / 10.7 / 0.0</sup>          | **3.9**<br><sup>0.0 / 3.9 / 0.0</sup>                                   |
+| YOLO26n       | Detect   | 640                         | 9.7<br><sup>0.0 / 9.7 / 0.0</sup>            | **4.7**<br><sup>0.0 / 4.7 / 0.0</sup>                                   |
+| YOLO26n-seg   | Segment  | 640                         | 12.8<br><sup>0.0 / 12.2 / 0.6</sup>          | **5.8**<br><sup>0.0 / 5.0 / 0.7</sup>                                   |
+| YOLO26n-sem   | Semantic | 640                         | 9.3<br><sup>0.0 / 8.9 / 0.5</sup>            | **5.3**<br><sup>0.0 / 4.8 / 0.5</sup>                                   |
+| YOLO26n-depth | Depth    | 640                         | 25.8<br><sup>0.0 / 24.8 / 1.0</sup>          | **8.0**<br><sup>0.0 / 6.9 / 1.1</sup>                                   |
+| YOLO26n-cls   | Classify | 224                         | 2.1<br><sup>0.0 / 2.0 / 0.0</sup>            | **1.8**<br><sup>0.0 / 1.8 / 0.0</sup>                                   |
+| YOLO26n-pose  | Pose     | 640                         | 11.9<br><sup>0.0 / 11.9 / 0.0</sup>          | **5.4**<br><sup>0.0 / 5.4 / 0.0</sup>                                   |
+| YOLO26n-obb   | OBB      | 640                         | 10.6<br><sup>0.0 / 10.6 / 0.0</sup>          | **4.9**<br><sup>0.0 / 4.9 / 0.0</sup>                                   |
 
-- The exact `v8.3.0` release assets declare 224×224 inputs for classification and 640×640 for every other task.
-- On iOS 27.0.1, `.cpuOnly` inference of the `l` and `x` depth, pose, and OBB models crashes inside Core ML's CPU kernels
-  (`EXC_BAD_ACCESS` in `libBNNS`); the same models run with `.cpuAndNeuralEngine`, and every other task and size runs
-  on the CPU.
-- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness in profile mode (optimized native code). CPU/accelerator order alternated between tasks in one sequential sweep. CPU rows request Core ML `.cpuOnly`; CPU + ANE preferred rows request `.cpuAndNeuralEngine`, with final operation placement controlled by Core ML. Sustained real-time camera operation runs higher because it includes the capture and scaling pipeline plus thermal settling. A historical pre-standard camera sweep measured 11.3 ms/frame for YOLO26n detect and 16.5 ms/frame for YOLO26n Depth on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
+The same measurement for the five detection models, with the time the SDK takes to load each model:
+
+| Model   | CPU<br><sup>`.cpuOnly`<br>(ms)</sup> | CPU + Neural Engine<br><sup>`.cpuAndNeuralEngine`<br>(ms)</sup> | Model load<br><sup>`.cpuAndNeuralEngine`<br>(s)</sup> |
+| ------- | ------------------------------------ | --------------------------------------------------------------- | ----------------------------------------------------- |
+| YOLO26n | 9.2                                  | **4.5**                                                         | 0.9                                                   |
+| YOLO26s | 19.5                                 | **10.5**                                                        | 1.3                                                   |
+| YOLO26m | 46.7                                 | **11.8**                                                        | 1.8                                                   |
+| YOLO26l | 60.1                                 | **12.0**                                                        | 2.4                                                   |
+| YOLO26x | 125.9                                | **20.5**                                                        | 3.3                                                   |
+
+YOLO26n detection in the three precisions and with two `nms` settings, exported with `ultralytics` 8.4.215 at `imgsz=640`, as the total time in milliseconds:
+
+| Precision | `nms=None`, CPU | `nms=None`, CPU + Neural Engine | `nms=False`, CPU | `nms=False`, CPU + Neural Engine |
+| --------- | --------------- | ------------------------------- | ---------------- | -------------------------------- |
+| FP32      | 15.5            | 14.7                            | 14.5             | 14.4                             |
+| FP16      | 9.2             | 4.9                             | 9.2              | 5.0                              |
+| INT8      | 9.2             | 4.2                             | 9.1              | 5.0                              |
+
+- **Method**: mean of 15 predictions after 3 warmup predictions on `bus.jpg`, through the Swift SDK 8.9.23 in a release build. `.cpuOnly` and `.cpuAndNeuralEngine` are the Core ML compute units the SDK requests, and Core ML decides where each layer runs. Every table was measured in three separate runs and shows the median. The three runs agreed within 15%, except YOLO26n with `.cpuAndNeuralEngine`, which took 2.6 to 4.8 ms in the size table and 3.8 to 4.8 ms as the INT8 `nms=None` export. The task and size tables use the official `v8.3.0` assets, and the precision table uses exports made with `ultralytics` 8.4.215, so their YOLO26n cells differ, by up to 0.5 ms with the Neural Engine and 0.6 ms on the CPU.
+- **Preprocessing**: Vision scales the image inside the inference request, so preprocessing is reported as 0 and its cost is part of inference.
+- **FP32**: by these medians the FP32 export was at most 5% faster with `.cpuAndNeuralEngine` than with `.cpuOnly`, while FP16 and INT8 were about twice as fast. Export in FP16 or INT8 for the Neural Engine.
+- **`nms`**: for YOLO26n detection, the NMS-free head (`nms=False`) and the raw output with NMS in the SDK (`nms=None`) both took 4 to 5 ms with the Neural Engine in FP16 and INT8.
+- **Camera apps**: these are single-image latencies. A real-time camera app adds capture and display time; see the [iOS SDK performance notes](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md).
 - Compare Android CPU/GPU results in the [LiteRT integration](litert.md#measured-performance), [MediaTek Dimensity](mediatek.md#measured-performance) results, and Snapdragon NPU results in the [Qualcomm QNN integration](qnn.md#measured-performance).
 
-### Model Size and Accuracy
+### Apple M4
 
-The sizes of the exported YOLO26 detection models, as the sum of all files in the `.mlpackage` in MB (10^6 bytes) at `imgsz=640`. The export log prints the size in MiB, 9.5 MB, 4.8 MB, and 2.6 MB for YOLO26n:
+The tables below compare PyTorch with FP32, FP16, and INT8 Core ML models of every YOLO26 detection model on an Apple M4 (4 performance and 6 efficiency cores) with macOS 27.2, validated through `YOLO()` on COCO val2017. PyTorch ran on the CPU with 8 threads, `batch=1`, and `rect=False`, so that it sees the same 640x640 input as the Core ML models, which ran with the default compute units of Ultralytics.
 
-| Model   | PyTorch | Core ML FP32 | Core ML FP16 | Core ML INT8 |
-| ------- | ------- | ------------ | ------------ | ------------ |
-| YOLO26n | 5.5     | 9.9          | 5.1          | **2.7**      |
-| YOLO26s | 20.4    | 38.3         | 19.2         | **9.8**      |
-| YOLO26m | 44.3    | 81.9         | 41.1         | **20.8**     |
-| YOLO26l | 53.2    | 99.6         | 50.0         | **25.3**     |
-| YOLO26x | 118.7   | 223.3        | 111.8        | **56.2**     |
+=== "Latency"
 
-Accuracy of YOLO26n on COCO val2017, as mAP<sup>val</sup> 50-95 from the COCO evaluator (`save_json=True`), validated on an Apple M4 with the default compute units of Ultralytics. The Core ML models always run at 640x640, so the PyTorch model was validated with `rect=False` at the same input size:
+    Milliseconds per image, lower is better. The fastest format for each model is in bold.
 
-| Export                      | PyTorch (`rect=False`) | Core ML FP32 | Core ML FP16 | Core ML INT8 |
-| --------------------------- | ---------------------- | ------------ | ------------ | ------------ |
-| Default (`nms=None`)        | 40.9                   | 40.9         | 40.9         | 40.8         |
-| NMS-free head (`nms=False`) | 40.3                   | 40.3         | 40.2         | 40.1         |
+    | Model   | `imgsz` | PyTorch | Core ML FP32 | Core ML FP16 | Core ML INT8 |
+    | ------- | ------- | ------- | ------------ | ------------ | ------------ |
+    | YOLO26n | 640     | 25.6    | 21.0         | **6.0**      | **6.0**      |
+    | YOLO26s | 640     | 60.0    | 50.0         | 7.9          | **7.6**      |
+    | YOLO26m | 640     | 137.2   | 127.6        | 14.3         | **11.3**     |
+    | YOLO26l | 640     | 191.2   | 187.7        | 17.2         | **13.5**     |
+    | YOLO26x | 640     | 341.1   | 334.2        | 28.6         | **24.3**     |
 
-Exported with `ultralytics` 8.4.215 and `coremltools` 9.0 on November 17, 2026. The [YOLO26 model page](../models/yolo26.md) lists the accuracy of the PyTorch checkpoints for every task.
+=== "Accuracy"
+
+    mAP<sup>val</sup> 50-95 on COCO val2017 from the COCO evaluator (`save_json=True`), higher is better.
+
+    | Model   | PyTorch | Core ML FP32 | Core ML FP16 | Core ML INT8 |
+    | ------- | ------- | ------------ | ------------ | ------------ |
+    | YOLO26n | 40.9    | 40.9         | 40.9         | 40.8         |
+    | YOLO26s | 48.5    | 48.5         | 48.5         | 48.3         |
+    | YOLO26m | 53.2    | 53.2         | 53.2         | 53.1         |
+    | YOLO26l | 54.9    | 54.9         | 54.8         | 54.8         |
+    | YOLO26x | 57.5    | 57.5         | 57.4         | 57.3         |
+
+=== "Size"
+
+    Size in MB (10^6 bytes), as the sum of all files in the `.mlpackage`. The smallest export for each model is in bold. The export log prints the size in MiB, 9.5 MB, 4.8 MB, and 2.6 MB for YOLO26n.
+
+    | Model   | PyTorch | Core ML FP32 | Core ML FP16 | Core ML INT8 |
+    | ------- | ------- | ------------ | ------------ | ------------ |
+    | YOLO26n | 5.5     | 9.9          | 5.1          | **2.7**      |
+    | YOLO26s | 20.4    | 38.3         | 19.2         | **9.8**      |
+    | YOLO26m | 44.3    | 81.9         | 41.1         | **20.8**     |
+    | YOLO26l | 53.2    | 99.6         | 50.0         | **25.3**     |
+    | YOLO26x | 118.7   | 223.3        | 111.8        | **56.2**     |
+
+With the NMS-free head (`nms=False`), YOLO26n reached 40.3 mAP<sup>val</sup> 50-95 in PyTorch and in FP32, 40.2 in FP16, and 40.1 in INT8.
+
+The latency of YOLO26n with each Core ML compute unit, measured with `coremltools` alone as the median of 20 predictions on one image, in milliseconds:
+
+| Precision | `CPU_ONLY` | `CPU_AND_NE` | `ALL` | `CPU_AND_GPU` |
+| --------- | ---------- | ------------ | ----- | ------------- |
+| FP32      | 13.7       | 13.6         | 8.3   | 8.0           |
+| FP16      | 9.6        | 1.8          | 2.0   | 7.7           |
+| INT8      | 9.4        | 1.8          | 1.8   | 8.1           |
+
+- **FP16 and INT8** ran 3.5 to 14 times faster than FP32 through `YOLO()`, at an accuracy within 0.1 mAP of FP32 for FP16 and within 0.2 for INT8. INT8 was as fast as FP16 for YOLO26n and up to 1.3 times faster for the larger models.
+- **FP32** gave the same outputs with `CPU_AND_NE` as with `CPU_ONLY`. Only the GPU compute units made it faster.
+- **INT8** made the package 3.7 to 4.0 times smaller than FP32.
+
+Measured with `ultralytics` 8.4.215, `coremltools` 9.0, and PyTorch 2.15.0 at `batch=1` on November 17, 2026. Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing. A second run of the three YOLO26n Core ML cases on the same day differed by up to 2.3 ms, 21.0 against 18.8 ms for FP32.
 
 ## About Core ML
 
@@ -355,11 +407,11 @@ Core ML is built into iOS, iPadOS, macOS, watchOS, tvOS, and visionOS. It loads 
 
 ### Should I export a Core ML model in FP16 or INT8?
 
-Both run on the Neural Engine and compute in FP16, so the choice is about size. FP16 (`quantize=16`) halves the package, 5.1 MB against 9.9 MB for YOLO26n, and INT8 (`quantize=8`) stores 8-bit weights, 2.7 MB for YOLO26n, and is the precision of the official Ultralytics app models. On COCO val2017, a default YOLO26n export reached 40.9 mAP<sup>val</sup> 50-95 in FP16 and 40.8 in INT8 on an Apple M4, and both took about the same time per image there. INT8 needs iOS 16 or macOS 13, while FP16 also runs on iOS 15 and macOS 12, and the INT8 export of `rtdetr-l.pt` failed. Neither needs calibration data. Avoid the default FP32 export for deployment: it is the largest and was not faster with the Neural Engine compute units than on the CPU alone in our tests, see [Precision](#precision). Validate the exported model on your own data and device before you ship it.
+Both run on the Neural Engine and compute in FP16, so the choice is about size. FP16 (`quantize=16`) halves the package, 5.1 MB against 9.9 MB for YOLO26n, and INT8 (`quantize=8`) stores 8-bit weights, 2.7 MB for YOLO26n, and is the precision of the official Ultralytics app models. On COCO val2017, a default YOLO26n export reached 40.9 mAP<sup>val</sup> 50-95 in FP16 and 40.8 in INT8 on an Apple M4, and both took about the same time per image there. On an iPhone 17 Pro both took 4 to 5 ms for YOLO26n with the Neural Engine, within the run-to-run variation. INT8 needs iOS 16 or macOS 13, while FP16 also runs on iOS 15 and macOS 12, and the INT8 export of `rtdetr-l.pt` failed. Neither needs calibration data. Avoid the default FP32 export for deployment: it is the largest and was at most 5% faster with the Neural Engine compute units than on the CPU alone in our tests, see [Precision](#precision). Validate the exported model on your own data and device before you ship it.
 
 ### Which `nms` setting should I use for an iOS app?
 
-It depends on who decodes the output. With the [Ultralytics iOS SDK](#ultralytics-ios-sdk-and-flutter-plugin) or the Flutter plugin, export YOLO26 models with `nms=False`, as the official models are: the SDK then reads the final detections of the NMS-free head and needs no NMS step. On COCO val2017, YOLO26n in INT8 reached 40.1 mAP<sup>val</sup> 50-95 with the NMS-free head against 40.8 with the default output and external NMS. With Apple's Vision framework and your own code, `nms=True` turns a detection model into a Core ML pipeline with Apple's NMS stage, whose thresholds you can change for each prediction. Vision returns its detections as `VNRecognizedObjectObservation` objects, and the score of a box is the `confidence` of the observation. Do not load an `nms=True` model with the SDK: in a test on an iPhone 17 Pro, SDK 8.9.23 returned confidences of about 1.0 for it in place of the box scores. The default `nms=None` returns raw predictions and leaves NMS to your code. See [Output Format](#output-format) for the outputs of each setting.
+It depends on who decodes the output. With the [Ultralytics iOS SDK](#ultralytics-ios-sdk-and-flutter-plugin) or the Flutter plugin, export YOLO26 models with `nms=False`, as the official models are: the SDK then reads the final detections of the NMS-free head and needs no NMS step. On COCO val2017, YOLO26n in INT8 reached 40.1 mAP<sup>val</sup> 50-95 with the NMS-free head against 40.8 with the default output and external NMS. On an iPhone 17 Pro both took 4 to 5 ms per image. With Apple's Vision framework and your own code, `nms=True` turns a detection model into a Core ML pipeline with Apple's NMS stage, whose thresholds you can change for each prediction. Vision returns its detections as `VNRecognizedObjectObservation` objects, and the score of a box is the `confidence` of the observation. Do not load an `nms=True` detection model with the SDK: in a test on an iPhone 17 Pro with iOS 26.6, SDK 8.9.23 reported about 1.0, the confidence of the top label of each box, in place of the box scores. The default `nms=None` returns raw predictions and leaves NMS to your code. See [Output Format](#output-format) for the outputs of each setting.
 
 ### Can I export or test a Core ML model without a Mac?
 

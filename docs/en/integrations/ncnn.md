@@ -252,7 +252,7 @@ Vulkan is not always faster than the CPU. On an Apple M4, YOLO26n took about 31 
 - **[NVIDIA Jetson](../guides/nvidia-jetson.md)**: NCNN on the ARM CPU of Jetson devices, next to TensorRT on their GPU.
 - **[NCNN build instructions](https://github.com/Tencent/ncnn/wiki/how-to-build)**: build the NCNN C++ library for Android, iOS, Linux, macOS, Windows, and other targets.
 - **[NCNN on GitHub](https://github.com/Tencent/ncnn)**: the source code, the Python package, and C++ examples.
-- **[Interactive tracking UI example](https://github.com/ultralytics/ultralytics/tree/main/examples/YOLO-Interactive-Tracking-UI)**: an Ultralytics example that runs NCNN models on CPU-only devices.
+- **[Interactive tracking UI example](https://github.com/ultralytics/ultralytics/tree/main/examples/python/Interactive-Tracking)**: an Ultralytics example that runs NCNN models on CPU-only devices.
 - **[Model deployment options](../guides/model-deployment-options.md)**: compare NCNN with the other export formats.
 
 ## Limitations and Troubleshooting

@@ -803,7 +803,8 @@ class Model(torch.nn.Module):
             format_name = dict(zip(formats["Argument"], formats["Format"])).get(
                 str(export_format).lower(), export_format
             )
-            LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
+            if format_name != "ST Edge AI":  # the one export format Ultralytics Platform does not offer
+                LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
             raise
 
     def train(

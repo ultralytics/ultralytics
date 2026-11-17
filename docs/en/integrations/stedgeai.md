@@ -10,7 +10,7 @@ Export [Ultralytics YOLO](../models/index.md) models with `format="stedgeai"` to
 
 !!! note "Validated on the host"
 
-    Ultralytics validates these models with ONNX Runtime on a computer. Compiling them with ST Edge AI Core and measuring accuracy, latency and memory on an STM32 board are steps you run with the ST tools; see [Deploy to STM32](#deploy-to-stm32).
+    Ultralytics validates these models with ONNX Runtime on a computer, and STMicroelectronics compiled the INT8 exports of all seven tasks for the STM32N6 with ST Edge AI Core. Measuring accuracy, latency and memory on an STM32 board are steps you run with the ST tools; see [Deploy to STM32](#deploy-to-stm32).
 
 ## Why a Dedicated ST Edge AI Format?
 
@@ -125,16 +125,16 @@ Unlike the standard ONNX `quantize=8` export, which leaves the head in float, ev
 
     INT8 accuracy depends on how well the calibration images match the deployment scene. Pass `data=` a dataset with at least 300 representative images; the default calibration datasets hold only a few public samples.
 
-The table below compares YOLO26n at `imgsz=640` on the small default validation datasets, calibrated on the same images. These datasets have 4 to 8 images each, so read the numbers as an indication of which tasks are sensitive to INT8 and measure your own model with `yolo val`.
+The table below compares YOLO26n at each model's default `imgsz` (640, semantic segmentation 1024, depth 768) on the small default validation datasets, calibrated on the same images. These datasets have 4 to 8 images each, so read the numbers as an indication of which tasks are sensitive to INT8 and measure your own model with `yolo val`.
 
 | Task     | Metric              | ONNX float    | ST Edge AI float | ST Edge AI INT8 |
 | :------- | :------------------ | :------------ | :--------------- | :-------------- |
-| Detect   | mAP50-95            | 0.669         | 0.669            | 0.629           |
-| Segment  | box / mask mAP50-95 | 0.638 / 0.541 | 0.638 / 0.541    | 0.356 / 0.365   |
-| Semantic | mIoU                | 0.533         | 0.533            | 0.522           |
-| Depth    | delta1              | 0.892         | 0.892            | 0.911           |
-| Pose     | box / pose mAP50-95 | 0.697 / 0.449 | 0.697 / 0.449    | 0.639 / 0.265   |
-| OBB      | mAP50-95            | 0.898         | 0.898            | 0.866           |
+| Detect   | mAP50-95            | 0.686         | 0.686            | 0.639           |
+| Segment  | box / mask mAP50-95 | 0.638 / 0.540 | 0.638 / 0.540    | 0.356 / 0.401   |
+| Semantic | mIoU                | 0.610         | 0.610            | 0.609           |
+| Depth    | delta1              | 0.852         | 0.852            | 0.840           |
+| Pose     | box / pose mAP50-95 | 0.697 / 0.459 | 0.697 / 0.459    | 0.650 / 0.267   |
+| OBB      | mAP50-95            | 0.894         | 0.894            | 0.806           |
 
 The float export matches the standard ONNX export on every task. Instance segmentation and pose lose the most accuracy under whole-graph INT8, because mask coefficients and keypoints share one output scale with the boxes; validate these two tasks carefully on your own data before deploying.
 

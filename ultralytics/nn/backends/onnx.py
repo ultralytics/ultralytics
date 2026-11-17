@@ -379,18 +379,10 @@ class STEdgeAIBackend(ONNXBackend):
             (list[np.ndarray]): Model predictions with pixel-space coordinates or metric depth.
         """
         y = super().forward(im)
-        x = y[0]  # (B, 4 + nc + extra, anchors), extra are mask coefficients, keypoints or angle
-        h, w = im.shape[2:4]
         if self.task == "depth":
-            np.exp(x, out=x)
+            np.exp(y[0], out=y[0])
         elif self.task in {"detect", "segment", "pose", "obb"}:
-            x[:, [0, 2]] *= w
-            x[:, [1, 3]] *= h
-            if self.task == "pose":
-                nd = self.kpt_shape[1]  # 2 (x, y) or 3 (x, y, visibility) values per keypoint
-                kpt_start = 4 + len(self.names)  # keypoints follow the box (4) and class-score (nc) channels
-                x[:, kpt_start::nd] *= w
-                x[:, kpt_start + 1 :: nd] *= h
+            self.denormalize(y[0], im.shape[3], im.shape[2])
         return y
 
 

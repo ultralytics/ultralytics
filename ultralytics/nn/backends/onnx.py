@@ -380,7 +380,7 @@ class STEdgeAIBackend(ONNXBackend):
         """
         y = super().forward(im)
         if self.task == "depth":
-            np.exp(y[0], out=y[0])
+            torch.as_tensor(y[0]).exp_()  # in place on NumPy outputs and IO-binding tensors
         elif self.task in {"detect", "segment", "pose", "obb"}:
             self.denormalize(y[0], im.shape[3], im.shape[2])
         return y

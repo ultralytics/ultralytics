@@ -132,6 +132,7 @@ class AutoBackend(nn.Module):
             | Huawei Ascend         | *_ascend_model/        |
             | AMD Xilinx            | *_xilinx_model/        |
             | NXP                   | *_nxp.tflite           |
+            | ST Edge AI            | *_stedgeai.onnx        |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.

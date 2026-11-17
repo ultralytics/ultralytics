@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
+from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked, cpu_threads
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_11,
     ONNXRUNTIME_BUILDS,
@@ -244,7 +244,7 @@ class ONNXBackend(BaseBackend):
                         import psutil  # scoped as slow import
 
                         n = psutil.cpu_count(logical=False) or os.cpu_count()  # physical cores
-                        self.session_options.intra_op_num_threads = self.cpu_threads(n)
+                        self.session_options.intra_op_num_threads = cpu_threads(n)
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider

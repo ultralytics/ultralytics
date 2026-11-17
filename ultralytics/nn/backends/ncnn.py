@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LINUX, LOGGER, cpu_threads
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -40,6 +40,8 @@ class NCNNBackend(BaseBackend):
             self.device = torch.device("cpu")
         else:
             self.net.opt.use_vulkan_compute = False
+        if LINUX:  # NCNN sizes its default to host cores
+            self.net.opt.num_threads = cpu_threads(self.net.opt.num_threads)
 
         w = Path(weight)
         if not w.is_file():

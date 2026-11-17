@@ -30,6 +30,7 @@ from ultralytics.utils import (
     WINDOWS,
     YAML,
     clean_url,
+    imread,
 )
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
@@ -795,7 +796,7 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     else:
         # Process a single image
         output_path = path.with_suffix(".tiff")
-        img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
+        img = cv2.cvtColor(imread(str(path)), cv2.COLOR_BGR2RGB)  # patches.imread: upright EXIF + HEIC/AVIF fallback
 
         # Interpolate all pixels at once with linear interpolation and extrapolation across RGB wavelengths
         rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)

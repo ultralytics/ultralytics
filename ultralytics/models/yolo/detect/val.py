@@ -119,7 +119,9 @@ class DetectionValidator(BaseValidator):
                 if LOCAL_RANK in {-1, 0}:
                     for f in (self.save_dir / "labels").glob("*.txt"):
                         f.unlink(missing_ok=True)
-        self.label_root = os.path.commonpath([os.path.dirname(f) for f in self.dataloader.dataset.im_files])
+        self.label_root = os.path.commonpath(
+            [os.path.dirname(os.path.abspath(f)) for f in self.dataloader.dataset.im_files]
+        )
         if not self.training:
             self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path
@@ -256,6 +258,7 @@ class DetectionValidator(BaseValidator):
             if self.is_custom_json:
                 self.pred_counts.append(len(predn["cls"]))
 
+            image_path = Path(os.path.abspath(pbatch["im_file"])).relative_to(self.label_root)
             no_pred = predn["cls"].shape[0] == 0
             self.metrics.update_stats(
                 {
@@ -264,7 +267,7 @@ class DetectionValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "im_name": Path(pbatch["im_file"]).relative_to(self.label_root).as_posix(),
+                    "im_name": image_path.as_posix(),
                 }
             )
             if self.args.plots:
@@ -286,7 +289,7 @@ class DetectionValidator(BaseValidator):
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
             if self.args.save_txt:  # flatten the split-relative path so a/1.jpg and b/1.jpg write a_1.txt and b_1.txt
-                name = "_".join(Path(pbatch["im_file"]).relative_to(self.label_root).with_suffix("").parts)
+                name = "_".join(image_path.with_suffix("").parts)
                 self.save_one_txt(
                     predn_scaled, self.args.save_conf, pbatch["ori_shape"], self.save_dir / "labels" / f"{name}.txt"
                 )

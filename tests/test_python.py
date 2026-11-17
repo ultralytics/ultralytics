@@ -1473,28 +1473,6 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
-@pytest.mark.parametrize(
-    "annotation_name, file_name",
-    [("instances_train2017.json", "../../escaped"), ("instances_...json", "escaped")],
-)
-def test_convert_coco_rejects_unsafe_file_name(tmp_path, annotation_name, file_name):
-    """Test convert_coco() keeps annotation-provided label paths inside the labels directory."""
-    import json
-
-    from ultralytics.data.converter import convert_coco
-
-    annotations = {
-        "images": [{"id": 1, "file_name": file_name, "height": 100, "width": 100}],
-        "annotations": [{"image_id": 1, "category_id": 1, "bbox": [10, 10, 20, 20], "iscrowd": 0}],
-        "categories": [{"id": 1, "name": "person"}],
-    }
-    (tmp_path / "annotations").mkdir()
-    (tmp_path / "annotations" / annotation_name).write_text(json.dumps(annotations))
-    with pytest.raises(ValueError, match="stay inside the labels directory"):
-        convert_coco(labels_dir=tmp_path / "annotations", save_dir=tmp_path / "out")
-    assert not (tmp_path / "out" / "escaped.txt").exists()
-
-
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

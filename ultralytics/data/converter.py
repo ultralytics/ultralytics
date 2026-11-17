@@ -267,8 +267,6 @@ def convert_coco(
     Raises:
         FileExistsError: If two images in a COCO annotation file map to the same label file, e.g. `frame.jpg` and
             `frame.png`, which would mix their labels.
-        ValueError: If an annotation image file name resolves outside the labels directory, e.g. an absolute path or one
-            containing '..' components, which would write labels elsewhere.
 
     Examples:
         >>> from ultralytics.data.converter import convert_coco
@@ -281,8 +279,7 @@ def convert_coco(
     """
     # Create dataset directory
     save_dir = increment_path(save_dir)  # increment if save directory already exists
-    labels_root = (save_dir / "labels").resolve()  # fixed root that annotation-provided label paths may not escape
-    for p in labels_root, save_dir / "images":
+    for p in save_dir / "labels", save_dir / "images":
         p.mkdir(parents=True, exist_ok=True)  # make dir
 
     # Convert classes
@@ -371,12 +368,6 @@ def convert_coco(
 
             # Write
             label_file = (fn / f).with_suffix(".txt")
-            try:  # keep untrusted annotation file names inside the labels directory
-                label_file.resolve().relative_to(labels_root)
-            except ValueError:
-                raise ValueError(
-                    f"{json_file}: invalid image file_name {f!r}, which must stay inside the labels directory"
-                ) from None
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
             with open(label_file, "a" if lvis else "x", encoding="utf-8") as file:  # "x" rejects images sharing a label
                 rows = keypoints if use_keypoints else segments if use_segments else bboxes

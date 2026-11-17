@@ -149,7 +149,7 @@ def postprocess(outputs: list[np.ndarray], img: np.ndarray, imgsz: tuple[int, in
         boxes[:, :4] = (boxes[:, :4] - [left, top, 0, 0]) / gain
     else:
         boxes = (boxes - [left, top] * 2) / gain
-    r |= {"boxes": boxes, "conf": scores, "cls": cls}
+    r.update(boxes=boxes, conf=scores, cls=cls)
     if task == "segment":
         r["masks"] = _masks(outputs[1][0], extra, boxes, img.shape[:2], imgsz, (left, top))
     elif task == "pose":

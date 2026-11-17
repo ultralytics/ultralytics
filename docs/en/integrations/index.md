@@ -111,6 +111,8 @@ This page lists the tools and platforms that Ultralytics integrates with to supp
 
 - [SONY IMX500](sony-imx500.md): Optimize and deploy Ultralytics YOLOv8n and YOLO11n models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
+- [ST Edge AI](stedgeai.md): Export Ultralytics YOLO with `format="stedgeai"` to float or INT8 ONNX models for [STMicroelectronics](https://www.st.com/) STM32 devices, check accuracy on your computer, and compile with ST Edge AI Core.
+
 - [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for speed and efficiency on NVIDIA GPUs.
 
 - [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.

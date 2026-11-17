@@ -35,6 +35,7 @@ from .backends import (
     PyTorchBackend,
     QNNBackend,
     RKNNBackend,
+    STEdgeAIBackend,
     TensorFlowBackend,
     TensorRTBackend,
     TorchScriptBackend,
@@ -131,6 +132,7 @@ class AutoBackend(nn.Module):
             | Huawei Ascend         | *_ascend_model/        |
             | AMD Xilinx            | *_xilinx_model/        |
             | NXP                   | *_nxp.tflite           |
+            | ST Edge AI            | *_stedgeai.onnx        |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -182,6 +184,7 @@ class AutoBackend(nn.Module):
         "hailo": HailoBackend,
         "ascend": AscendBackend,
         "xilinx": ONNXBackend,
+        "stedgeai": STEdgeAIBackend,
     }
     # Runtimes that map PyTorch device names onto their own hardware, 'xpu' and 'npu' onto the Intel GPU and NPU
     INTEL_FORMATS = frozenset({"openvino", "litert"})

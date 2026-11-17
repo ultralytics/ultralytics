@@ -241,11 +241,9 @@ class AutoBackend(nn.Module):
         backend_kwargs = {"device": device, "fp16": fp16}
 
         if format not in self._BACKEND_MAP:
-            from ultralytics.engine.exporter import export_formats
-
             raise TypeError(
                 f"model='{model}' is not a supported model format. "
-                f"Ultralytics supports: {export_formats()['Format']}\n"
+                f"Ultralytics supports: {tuple(self._BACKEND_MAP)}\n"
                 f"See https://docs.ultralytics.com/modes/predict for help."
             )
         if format == "pt":

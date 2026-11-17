@@ -76,3 +76,25 @@ def onnx_int8_quantize(
         per_channel=per_channel,
     )
     return str(output_file)
+
+
+def head_outputs(graph, head):
+    """Return the tensors where an INT8 NPU graph ends: the head's per-level output convs plus extra graph outputs.
+
+    Args:
+        graph (onnx.GraphProto): Graph of the exported ONNX model.
+        head (str): ONNX node-name scope of the model head, e.g. ``"/model.23/"``.
+
+    Returns:
+        (list[str]): Output tensor names, empty when the graph has no per-level head convs (e.g. classification).
+    """
+    ops = {"Reshape", "Concat"}  # head convs feed only these per-level ops, e.g. Concat in WorldDetect
+    ends = {x for n in graph.node if n.op_type in ops for x in n.input}
+    ends -= {x for n in graph.node if n.op_type not in ops for x in n.input}
+    # Per-tensor INT8 cannot hold the decode's pixel-range DFL, anchor and stride math, so stop at the head convs
+    outputs = [
+        n.output[0]
+        for n in graph.node
+        if n.op_type == "Conv" and head in n.name and "/dfl/" not in n.name and n.output[0] in ends
+    ]
+    return outputs + [x.name for x in graph.output if x.name != "output0"] if outputs else []  # e.g. segment protos

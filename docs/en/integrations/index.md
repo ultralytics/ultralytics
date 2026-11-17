@@ -75,6 +75,8 @@ This page lists the tools and platforms that Ultralytics integrates with to supp
 
 - [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure [model deployment](https://www.ultralytics.com/glossary/model-deployment).
 
+- [D-Robotics RDK](rdk.md): Compile Ultralytics YOLO models to INT8 `.bin` models for the BPU of the D-Robotics RDK X5 robotics board with the `hb_mapper` compiler.
+
 - [DEEPX](deepx.md): Export Ultralytics YOLO models to the DEEPX `.dxnn` format for power-efficient INT8 inference on DEEPX NPU hardware, targeting embedded and edge AI applications.
 
 - [ExecuTorch](executorch.md): Developed by [Meta](https://about.meta.com/), ExecuTorch is PyTorch's unified solution for deploying Ultralytics YOLO models on edge devices.

@@ -1816,7 +1816,7 @@ While an export of the same format is in flight for the model, a new request ret
 **Supported Formats:**
 
 Use the `format` argument from the shared export table below. PyTorch is the source format and is not an API export
-target.
+target, and D-Robotics RDK (`rdk`) is not available on the Platform.
 
 {% include "macros/export-table.md" %}
 

@@ -20,6 +20,7 @@ MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
 IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
+RDK                     | `rdk`                     | yolo26n_rdk_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
@@ -243,6 +244,7 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "data", "fraction"],
             "isolated-rknn",
         ],
+        ["RDK", "rdk", "_rdk_model", False, False, ["quantize", "data", "fraction"], "base"],
         [
             "ExecuTorch",
             "executorch",
@@ -490,6 +492,7 @@ INT8_FORMATS = frozenset(
         "mnn",
         "imx",
         "rknn",
+        "rdk",
         "axelera",
         "deepx",
         "hailo",
@@ -500,7 +503,7 @@ INT8_FORMATS = frozenset(
 W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset(
-    {"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx", "nxp"}
+    {"edgetpu", "imx", "rknn", "rdk", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx", "nxp"}
 )
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
@@ -610,6 +613,7 @@ class Exporter:
         export_pb: Export model to TensorFlow GraphDef format.
         export_edgetpu: Export model to Edge TPU format.
         export_rknn: Export model to RKNN format.
+        export_rdk: Export model to D-Robotics RDK format.
         export_imx: Export model to IMX format.
         export_executorch: Export model to ExecuTorch format.
         export_coreai: Export model to Apple Core AI format.
@@ -720,6 +724,7 @@ class Exporter:
             "hailo",
             "xilinx",
             "nxp",
+            "rdk",
         } and self.args.quantize not in {
             8,
             "w8a16",
@@ -1625,6 +1630,12 @@ class Exporter:
         self._add_tflite_metadata(output_file)
         return output_file
 
+    def _head_scope(self) -> str | None:
+        """Return the ONNX node-name scope of the model head, or None when it has no per-level head convs to cut at."""
+        # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs
+        if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder":
+            return f"/model.{len(self.model.model) - 1}/"
+
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):  # noqa: B008
         """Export YOLO model to RKNN format with optional INT8 quantization."""
@@ -1660,11 +1671,24 @@ class Exporter:
                 dataset=rknn_dataset,
                 metadata=self.metadata,
                 prefix=prefix,
-                # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs to cut at
-                head=f"/model.{len(self.model.model) - 1}/"
-                if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder"
-                else None,
+                head=self._head_scope(),
             )
+
+    @try_export
+    def export_rdk(self, prefix=colorstr("RDK:")):  # noqa: B008
+        """Export YOLO model to D-Robotics RDK X5 BPU model (.bin) format with INT8 quantization."""
+        from ultralytics.utils.export.rdk import _check_hb_mapper, onnx2rdk
+
+        _check_hb_mapper()  # before the ONNX trace, so a missing toolchain does not cost a full export first
+        self.args.opset = 11  # the newest opset hb_mapper accepts
+        return onnx2rdk(
+            onnx_file=self.export_onnx(),
+            output_dir=self.file.parent / f"{self.file.stem}_rdk_model",
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            head=self._head_scope(),
+            metadata=self.metadata,
+            prefix=prefix,
+        )
 
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008

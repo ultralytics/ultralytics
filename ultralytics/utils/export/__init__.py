@@ -14,6 +14,7 @@ from .ncnn import torch2ncnn
 from .openvino import torch2openvino
 from .paddle import torch2paddle
 from .qnn import onnx2qnn
+from .rdk import onnx2rdk
 from .rknn import onnx2rknn
 from .tensorflow import keras2pb, onnx2saved_model, tflite2edgetpu
 from .torchscript import torch2torchscript
@@ -26,6 +27,7 @@ __all__ = [
     "onnx2engine",
     "onnx2mnn",
     "onnx2qnn",
+    "onnx2rdk",
     "onnx2rknn",
     "onnx2saved_model",
     "onnx2xilinx",

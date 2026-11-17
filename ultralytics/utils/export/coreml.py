@@ -6,6 +6,7 @@ import types
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
 from torch import nn
 
@@ -256,7 +257,10 @@ def torch2coreml(
             import coremltools.optimize.coreml as cto
 
             op_config = cto.OpPalettizerConfig(mode="kmeans", nbits=bits, weight_threshold=512)
-            config = cto.OptimizationConfig(global_config=op_config)
+            # k-means rejects non-finite weights such as RT-DETR's inf-masked anchors, so leave those unpalettized
+            consts = ct_model._mil_program.find_ops(op_type="const")
+            skip = {op.name: None for op in consts if np.size(op.val.val) > 512 and not np.isfinite(op.val.val).all()}
+            config = cto.OptimizationConfig(global_config=op_config, op_name_configs=skip)
             ct_model = cto.palettize_weights(ct_model, config=config)
 
     m = dict(metadata or {})  # copy to avoid mutating original

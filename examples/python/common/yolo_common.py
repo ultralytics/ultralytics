@@ -47,9 +47,9 @@ def infer_task(shapes: list[tuple], nc: int) -> str:
         return "classify"
     if s[1] > s[2]:  # end-to-end [1, 300, attrs]
         return {6: "detect", 7: "obb"}.get(s[2], "pose")
-    if s[1] == 4 + nc:  # grid [1, channels, anchors]
-        return "detect"
-    return "obb" if s[1] == 5 + nc else "pose"
+    if s[1] == 5 + nc:  # grid [1, channels, anchors]
+        return "obb"
+    return "pose" if s[1] == 56 else "detect"  # 56 = COCO pose; other layouts are custom detectors
 
 
 def preprocess(img: np.ndarray, imgsz: tuple[int, int], task: str, fp16: bool = False):

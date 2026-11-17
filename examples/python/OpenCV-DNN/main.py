@@ -21,7 +21,9 @@ task = args.task or yolo.infer_task([o.shape for o in outputs], len(COCO_NAMES))
 out = outputs[0]
 if task in {"pose", "depth"}:  # single-class models
     names = {0: "person" if task == "pose" else "depth"}
-elif task == "detect" or task == "segment" or task == "rtdetr":
+elif task == "detect" and out.shape[1] < out.shape[2] and out.shape[1] != 4 + len(COCO_NAMES):  # custom grid detector
+    names = {i: str(i) for i in range(out.shape[1] - 4)}
+elif task in {"detect", "segment", "rtdetr"}:
     names = COCO_NAMES
 else:  # classify, semantic and OBB have no COCO labels, so classes are shown as ids
     nc = out.shape[1] - 5 if task == "obb" else out.shape[1] if out.ndim == 4 or task == "classify" else 256

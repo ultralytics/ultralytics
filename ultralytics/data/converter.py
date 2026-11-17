@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.data.utils import get_split_fraction, read_mask
+from ultralytics.data.utils import exif_size, get_split_fraction, read_mask
 from ultralytics.utils import (
     ASSETS_URL,
     DATASETS_DIR,
@@ -563,8 +563,8 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
         for image_path in TQDM(image_paths, desc=f"Processing {phase} images"):
             if image_path.suffix != ".png" or not (orig_label_dir / f"{image_path.stem}.txt").is_file():
                 continue  # skip non-PNG files and unlabeled background images
-            img = cv2.imread(str(image_path))
-            h, w = img.shape[:2]
+            with Image.open(image_path) as im:
+                w, h = exif_size(im)
             convert_label(image_path.stem, w, h, orig_label_dir, save_dir)
 
 

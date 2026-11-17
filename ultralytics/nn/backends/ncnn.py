@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LINUX, LOGGER
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -40,6 +41,12 @@ class NCNNBackend(BaseBackend):
             self.device = torch.device("cpu")
         else:
             self.net.opt.use_vulkan_compute = False
+        if LINUX:  # NCNN sizes its default to host cores, ignoring the affinity mask and a cgroup v2 CPU quota
+            n = min(8, self.net.opt.num_threads, len(os.sched_getaffinity(0)))
+            cpu_max = Path("/sys/fs/cgroup/cpu.max")
+            if cpu_max.is_file() and (q := cpu_max.read_text().split())[0] != "max":
+                n = min(n, int(q[0]) // int(q[1]))
+            self.net.opt.num_threads = max(1, n)
 
         w = Path(weight)
         if not w.is_file():

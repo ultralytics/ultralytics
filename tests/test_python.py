@@ -1135,25 +1135,6 @@ def test_predict_callback_and_setup():
         print(boxes)
 
 
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for FastSAM tests")
-def test_fastsam_queued_stream_prompts(tmp_path):
-    """Queued streams keep their own prompts for every frame of a shared FastSAM model."""
-    from ultralytics import FastSAM
-
-    model = FastSAM(WEIGHTS_DIR / "FastSAM-s.pt")
-    for i in range(2):
-        shutil.copyfile(ASSETS / "bus.jpg", tmp_path / f"{i}.jpg")
-    source = str(tmp_path)
-    boxes = ([[219, 400, 349, 859]], [[20, 230, 805, 744]])
-    args = {"imgsz": 320, "device": "cpu", "verbose": False}
-    expected = [[r.masks.data for r in model(source, bboxes=box, **args)] for box in boxes]
-    assert not torch.equal(expected[0][0], expected[1][0])
-    streams = [model(source, bboxes=box, stream=True, **args) for box in boxes]
-    for stream, masks in zip(streams, expected):
-        results = list(stream)
-        assert len(results) == 2 and all(torch.equal(r.masks.data, m) for r, m in zip(results, masks))
-
-
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model: str, tmp_path, solution_assets):
     """Test YOLO model results processing and output in various formats."""

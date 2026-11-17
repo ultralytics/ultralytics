@@ -53,11 +53,11 @@ Install the Ultralytics package in your usual environment with `pip install ultr
         yolo export model=yolo26n.pt format=rdk data=coco8.yaml # creates 'yolo26n_rdk_model/'
         ```
 
-The export of YOLO26n at `imgsz=640` took about 2.5 minutes with the 4 validation images of `coco8.yaml` and about 6.5 minutes with 40 images, on a server CPU. Most of that time is calibration and compilation inside `hb_mapper`.
+The export of YOLO26n at `imgsz=640` took about 2 minutes on a server CPU, with the 4 validation images of `coco8.yaml` and with 40 calibration images alike. Most of that time is compilation inside `hb_mapper`.
 
 ## Supported Tasks
 
-RDK export works for all seven Ultralytics tasks with [YOLO26](../models/yolo26.md) models: [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [OBB](../tasks/obb.md). A [YOLO11](../models/yolo11.md) detection model was also exported. Accuracy was measured for detection and classification, see [Accuracy](#accuracy); the other tasks were compiled and their outputs checked for shape only.
+RDK export works for all seven Ultralytics tasks with [YOLO26](../models/yolo26.md) models: [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [OBB](../tasks/obb.md). A [YOLO11](../models/yolo11.md) detection model was also exported. Accuracy was measured for detection, classification, and pose estimation, see [Accuracy](#accuracy); the other tasks were compiled and their outputs checked for shape only.
 
 ## Export Arguments
 
@@ -74,7 +74,7 @@ RDK models are always INT8 with a batch size of 1 and a fixed input shape, so `b
 
 ### Calibration
 
-`hb_mapper` reads the calibration images to choose the INT8 ranges of the model, so they should look like the images the model will see in deployment. The export logs `>300 images recommended for INT8 calibration` for a smaller set. `coco8.yaml` has only 4 validation images, which is enough to test the export but not to calibrate a model for deployment. Calibration is the slowest part of the export, and its time grows with the number of images.
+`hb_mapper` reads the calibration images to choose the INT8 ranges of the model, so they should look like the images the model will see in deployment. The export logs `>300 images recommended for INT8 calibration` for a smaller set. `coco8.yaml` has only 4 validation images, which is enough to test the export but not to calibrate a model for deployment. The export sets the `max` calibration method of `hb_mapper` with a percentile of 0.99995. The compiler's own search over methods took three times as long and, on some runs of the same export, chose a method that scored about 3 points of mAP lower for YOLO26n.
 
 ## Output Format
 
@@ -102,7 +102,7 @@ The shapes below are for the official YOLO26n checkpoints at their default expor
 
 - **Head tensors**: a detection model returns two tensors for each of the three detection scales, one with box values and one with class scores, named `out0` to `out5`. Segmentation, pose, and OBB models return one more tensor per scale with their extra values. Feed them to the inputs of `tail.onnx` that have the same names; a segmentation model also passes its mask prototypes through `tail.onnx` unchanged.
 - **Raw predictions**: `tail.onnx` returns the same raw predictions as a default ONNX export: for each anchor the box center x, center y, width, and height in input pixels, then the class scores, then the values of the task. Apply NMS yourself. See the [ONNX output format](onnx.md#output-format) for the layout of each task.
-- **Why `tail.onnx`**: the box decoding works with pixel-range values that a single INT8 scale cannot hold. A YOLO26n model compiled in one piece scored 0.262 mAP<sup>val</sup> 50-95 on the images of the [Accuracy](#accuracy) section, against 0.394 with the decoding in `tail.onnx`.
+- **Why `tail.onnx`**: the box decoding works with pixel-range values that a single INT8 scale cannot hold. A YOLO26n model compiled in one piece scored 0.262 mAP<sup>val</sup> 50-95 on the images of the [Accuracy](#accuracy) section, against 0.418 with the decoding in `tail.onnx`.
 - **NMS-free output**: with `nms=False`, `tail.onnx` of a YOLO26 detection model returns `(1, 300, 6)`: `max_det` rows of `x1, y1, x2, y2, score, class`.
 
 ### Run with the x86 Simulator
@@ -140,13 +140,13 @@ The simulator is for checking accuracy, not speed: it took several seconds per i
 
 INT8 quantization changes the outputs, so validate an exported model on your own data. These results are from the x86 simulator, with the decoding in `tail.onnx` and the standard Ultralytics NMS and metrics:
 
-| Model       | Validation images               | Calibration images | Metric                  | PyTorch FP32  | RDK INT8      |
-| ----------- | ------------------------------- | ------------------ | ----------------------- | ------------- | ------------- |
-| YOLO26n     | 500 from COCO val2017           | 40                 | mAP<sup>val</sup> 50-95 | 0.442         | 0.394         |
-| YOLO26n     | 500 from COCO val2017           | 300                | mAP<sup>val</sup> 50-95 | 0.442         | 0.385         |
-| YOLO26n-cls | 1000 from ImageNet val, 1/class | 200                | top-1 / top-5 accuracy  | 0.702 / 0.885 | 0.680 / 0.878 |
+| Model        | Validation images               | Calibration images | Metric                             | PyTorch FP32  | RDK INT8      |
+| ------------ | ------------------------------- | ------------------ | ---------------------------------- | ------------- | ------------- |
+| YOLO26n      | 500 from COCO val2017           | 40                 | mAP<sup>val</sup> 50-95            | 0.442         | 0.418         |
+| YOLO26n-cls  | 1000 from ImageNet val, 1/class | 200                | top-1 / top-5 accuracy             | 0.702 / 0.885 | 0.680 / 0.878 |
+| YOLO26n-pose | 300 from COCO-Pose val2017      | 40                 | box / pose mAP<sup>val</sup> 50-95 | 0.656 / 0.568 | 0.608 / 0.520 |
 
-The calibration images are other images of the same validation sets; calibrating YOLO26n on 300 images in place of 40 did not improve the result. The models have not been run on RDK X5 hardware.
+The calibration images are other images of the same validation sets. The models have not been run on RDK X5 hardware.
 
 ## Deploy
 

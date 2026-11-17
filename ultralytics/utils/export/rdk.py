@@ -81,7 +81,13 @@ def onnx2rdk(
                     "norm_type": "data_scale",
                     "scale_value": 1 / 255,
                 },
-                "calibration_parameters": {"cal_data_dir": f"{scratch}/cal", "cal_data_type": "float32"},
+                "calibration_parameters": {
+                    "cal_data_dir": f"{scratch}/cal",
+                    "cal_data_type": "float32",
+                    # The default method search is 3x slower and picks KL on some runs, 3 mAP lower on YOLO26n
+                    "calibration_type": "max",
+                    "max_percentile": 0.99995,
+                },
                 "compiler_parameters": {"optimize_level": "O3"},
             },
         )

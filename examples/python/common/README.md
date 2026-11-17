@@ -12,7 +12,6 @@ import yolo_common as yolo
 | Function      | Provides                                                                                                     |
 | ------------- | ------------------------------------------------------------------------------------------------------------ |
 | `parse_args`  | The command-line arguments shared by every example (`--model`, `--source`, `--conf`, `--iou`, `--out`, ...). |
-| `infer_task`  | Task detection from output shapes, for backends that read no model metadata.                                 |
 | `preprocess`  | Letterbox (stretch for RT-DETR, center crop for classify), BGR to RGB, normalize, FP32 or FP16 blob.         |
 | `postprocess` | NMS plus box, mask, keypoint, OBB, RT-DETR, class, and semantic decoding into a result dict.                 |
 | `draw`        | Annotates the image with boxes, masks, skeletons, rotated boxes, class maps, or top-5 classes.               |

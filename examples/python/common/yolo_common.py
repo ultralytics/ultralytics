@@ -33,20 +33,6 @@ def parse_args(model: str, imgsz: bool = False) -> argparse.Namespace:
     return p.parse_args()
 
 
-def infer_task(shapes: list[tuple], nc: int) -> str:
-    """Infer the task from the output shapes and class count for backends without task metadata."""
-    if any(len(s) == 4 for s in shapes):
-        return "semantic" if len(shapes) == 1 else "segment"  # [1, nc, H, W] or (detections, protos)
-    s = shapes[0]
-    if len(s) == 2:
-        return "classify"
-    if s[1] > s[2]:  # end-to-end [1, 300, attrs]
-        return {6: "detect", 7: "obb"}.get(s[2], "pose")
-    if s[1] == 5 + nc:  # grid [1, channels, anchors]
-        return "obb"
-    return "pose" if s[1] == 56 else "detect"  # 56 = COCO pose; other layouts are custom detectors
-
-
 def preprocess(img: np.ndarray, imgsz: tuple[int, int], task: str, fp16: bool = False):
     """Return a normalized RGB [1, 3, H, W] blob and the (gain, left, top) needed to map outputs back.
 

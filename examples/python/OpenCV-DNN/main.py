@@ -17,8 +17,17 @@ img = cv2.imread(args.source)
 blob, pad = yolo.preprocess(img, imgsz, args.task or "detect")
 net.setInput(blob)
 outputs = net.forward(net.getUnconnectedOutLayersNames())
-task = args.task or yolo.infer_task([o.shape for o in outputs], len(COCO_NAMES))
 out = outputs[0]
+task = args.task
+if not task:  # infer the task from the output shapes
+    if any(o.ndim == 4 for o in outputs):
+        task = "semantic" if len(outputs) == 1 else "segment"  # [1, nc, H, W] or (detections, protos)
+    elif out.ndim == 2:
+        task = "classify"
+    elif out.shape[1] > out.shape[2]:  # end-to-end [1, 300, attrs]
+        task = {6: "detect", 7: "obb"}.get(out.shape[2], "pose")
+    else:  # grid [1, channels, anchors]: 56 = COCO pose, other layouts are custom detectors
+        task = "pose" if out.shape[1] == 56 else "detect"
 if task in {"pose", "depth"}:  # single-class models
     names = {0: "person" if task == "pose" else "depth"}
 elif task in {"detect", "segment"} and out.shape[1] < out.shape[2]:  # grid output: class count from the channels

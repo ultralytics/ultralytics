@@ -1727,7 +1727,32 @@ class _SafeLoad:
         try:
             needed = torch.serialization.get_unsafe_globals_in_checkpoint(weight)
         except ValueError:  # Not a torch.save() zip archive; torch.load reports the format error, nothing to register
-            needed = []
+            with open(weight, "rb") as f:
+                if f.read(4) not in {b"", b"PK\x03\x04"}:
+                    raise pickle.UnpicklingError(f"{weight} is not a torch.save() zip checkpoint")
+            return
+        import pickletools
+
+        with torch.serialization._open_zipfile_reader(str(weight)) as zip_file:
+            mark = pickletools.markobject
+            stack, memo, called = [], {}, set()
+            for op, arg, _ in pickletools.genops(zip_file.get_record("data.pkl")):
+                before = op.stack_before
+                if op.name == "REDUCE":
+                    called.add(stack[-2])
+                elif op.name in {"BINPUT", "LONG_BINPUT"}:
+                    memo[arg] = stack[-1]
+                if mark in before:
+                    while stack.pop() is not mark:
+                        pass
+                    before = before[: before.index(mark)]
+                del stack[len(stack) - len(before) :]
+                if op.name in {"BINGET", "LONG_BINGET"}:
+                    stack.append(memo[arg])
+                elif op.name == "GLOBAL":
+                    stack.append(arg.replace(" ", "."))
+                else:
+                    stack += [mark if s is mark else None for s in op.stack_after]
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
@@ -1770,6 +1795,12 @@ class _SafeLoad:
                     clip.clip._convert_image_to_rgb,
                 ):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
+            for name in called:
+                obj = cls._registry.get(name)
+                if name is None or (
+                    isinstance(obj, type) and (issubclass(obj, nn.Module) or obj.__module__ in class_modules)
+                ):
+                    raise pickle.UnpicklingError(f"call to {name} blocked during restricted model load")
             entries = [(cls._registry[name], name) for name in needed if name in cls._registry]
             if "numpy.dtype" in needed:
                 entries.append(type(np.dtype(np.float64)))  # Built dynamically, absent from the checkpoint global scan.

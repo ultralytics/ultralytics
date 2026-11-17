@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
 from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.utils import LOGGER, TORCH_VERSION
@@ -72,7 +72,7 @@ class VisualAISearch:
 
     def extract_image_feature(self, path: Path) -> np.ndarray:
         """Extract CLIP image embedding with shape (1, D) from the given image path."""
-        return self.model.encode_image(Image.open(path)).detach().cpu().numpy()
+        return self.model.encode_image(ImageOps.exif_transpose(Image.open(path))).detach().cpu().numpy()
 
     def extract_text_feature(self, text: str) -> np.ndarray:
         """Extract CLIP text embedding with shape (1, D) from the given text query."""

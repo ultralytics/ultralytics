@@ -19,6 +19,7 @@ session = ort.InferenceSession(args.model, providers=providers)
 meta = session.get_modelmeta().custom_metadata_map
 names = ast.literal_eval(meta["names"])
 imgsz = tuple(ast.literal_eval(meta["imgsz"]))
+kpt_dim = ast.literal_eval(meta["kpt_shape"])[1] if "kpt_shape" in meta else 3
 inp = session.get_inputs()[0]
 task = args.task or (
     "rtdetr" if meta.get("head") == "RTDETRDecoder" else meta["task"]
@@ -28,4 +29,4 @@ print(f"Model: {args.model} | task: {task} | classes: {len(names)}")
 img = cv2.imread(args.source)
 blob, pad = yolo.preprocess(img, imgsz, task, fp16="float16" in inp.type)
 outputs = session.run(None, {inp.name: blob})
-yolo.finish(img, yolo.postprocess(outputs, img, imgsz, task, names, args.conf, args.iou, pad), args)
+yolo.finish(img, yolo.postprocess(outputs, img, imgsz, task, names, args.conf, args.iou, pad, kpt_dim), args)

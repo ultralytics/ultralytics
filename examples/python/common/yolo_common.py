@@ -29,12 +29,7 @@ def parse_args(model: str, imgsz: bool = False) -> argparse.Namespace:
     p.add_argument("--task", help="override the task: detect, segment, semantic, depth, classify, pose, obb or rtdetr")
     p.add_argument("--show", action="store_true", help="also open a display window")
     if imgsz:
-        p.add_argument(
-            "--imgsz",
-            type=int,
-            default=640,
-            help="model input size (768 depth, 224 classify, 1024 DOTA OBB and Cityscapes semantic)",
-        )
+        p.add_argument("--imgsz", type=int, default=640, help="model input size (768 depth, 224 classify, 1024 obb)")
     return p.parse_args()
 
 
@@ -59,8 +54,10 @@ def preprocess(img: np.ndarray, imgsz: tuple[int, int], task: str, fp16: bool = 
     """
     h, w = imgsz
     gain, left, top = 1.0, 0, 0
-    if task == "classify":
-        r = max(h, w) / min(img.shape[:2])
+    if task == "classify" and h != w:  # rectangular classifiers resize to the exact size
+        img = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA)
+    elif task == "classify":  # square classifiers resize the short side, then center-crop
+        r = h / min(img.shape[:2])
         img = cv2.resize(img, (round(img.shape[1] * r), round(img.shape[0] * r)), interpolation=cv2.INTER_AREA)
         y, x = (img.shape[0] - h) // 2, (img.shape[1] - w) // 2
         img = img[y : y + h, x : x + w]
@@ -99,25 +96,24 @@ def _masks(
     out = np.zeros((len(coefs), h, w), bool)
     for i, (mask, (x1, y1, x2, y2)) in enumerate(zip(m.reshape(-1, *protos.shape[1:]), boxes.astype(int))):
         mask = cv2.resize(mask, imgsz[::-1])
-        mask = mask[top : imgsz[0] - top, left : imgsz[1] - left] if top or left else mask
+        mask = mask[top : imgsz[0] - top, left : imgsz[1] - left]
         out[i, max(y1, 0) : y2, max(x1, 0) : x2] = (cv2.resize(mask, (w, h)) > 0.5)[max(y1, 0) : y2, max(x1, 0) : x2]
     return out
 
 
-def postprocess(outputs: list[np.ndarray], img: np.ndarray, imgsz: tuple[int, int], task: str, names: dict, conf: float, iou: float, pad: tuple) -> dict:  # fmt: skip
+def postprocess(outputs: list[np.ndarray], img: np.ndarray, imgsz: tuple[int, int], task: str, names: dict, conf: float, iou: float, pad: tuple, kpt_dim: int = 3) -> dict:  # fmt: skip
     """Decode raw model outputs of any task into a result dict in original-image coordinates."""
     gain, left, top = pad
-    r = {"task": task, "names": names, "shape": img.shape[:2]}
+    r = {"task": task, "names": names}
     out = outputs[0].astype(np.float32)
     if task == "classify":
         return {**r, "probs": out[0]}
     if task == "depth":  # [1, 1, H, W] or [1, H, W] metric depth, resized straight to the image size
         return {**r, "depth": cv2.resize(out.reshape(out.shape[-2:]), img.shape[1::-1])}
     if task == "semantic":  # [1, nc, H, W] logits or [1, H, W] class map
-        x = out[0].transpose(1, 2, 0) if out.ndim == 4 else out[0][..., None]
+        x = out[0].transpose(1, 2, 0) if out.ndim == 4 else out[0]
         x = cv2.resize(x, imgsz[::-1], interpolation=cv2.INTER_LINEAR if out.ndim == 4 else cv2.INTER_NEAREST)
-        x = x[..., None] if x.ndim == 2 else x
-        cls = x.argmax(-1) if x.shape[-1] > 1 else (x[..., 0] if out.ndim == 3 else x[..., 0] > 0)
+        cls = x.argmax(-1) if x.ndim == 3 else (x > 0 if out.ndim == 4 else x)  # multi-class, binary, or baked map
         cls = cls[top : imgsz[0] - top, left : imgsz[1] - left].astype(np.uint8)
         return {**r, "semantic": cv2.resize(cls, img.shape[1::-1], interpolation=cv2.INTER_NEAREST)}
 
@@ -153,7 +149,7 @@ def postprocess(outputs: list[np.ndarray], img: np.ndarray, imgsz: tuple[int, in
     if task == "segment":
         r["masks"] = _masks(outputs[1][0], extra, boxes, img.shape[:2], imgsz, (left, top))
     elif task == "pose":
-        kpts = extra.reshape(len(extra), -1, 3).copy()
+        kpts = extra.reshape(len(extra), -1, kpt_dim).copy()  # (x, y[, visibility]) per keypoint
         kpts[..., :2] = (kpts[..., :2] - [left, top]) / gain
         r["kpts"] = kpts
     return r
@@ -202,7 +198,7 @@ def draw(img: np.ndarray, r: dict) -> np.ndarray:
             if len(kp) == 17:
                 for a, b in SKELETON:
                     cv2.line(img, tuple(kp[a, :2].astype(int)), tuple(kp[b, :2].astype(int)), color, 2)
-            for px, py, _ in kp:
+            for px, py in kp[:, :2]:
                 cv2.circle(img, (int(px), int(py)), 3, (0, 255, 255), -1)
     return img
 

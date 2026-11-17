@@ -159,9 +159,16 @@ def postprocess(outputs: list[np.ndarray], img: np.ndarray, imgsz: tuple[int, in
     return r
 
 
+PALETTE = [  # Ultralytics class colors (hex RGB), the same palette used by `yolo predict`
+    "042AFF", "0BDBEB", "F3F3F3", "00DFB7", "111F68", "FF6FDD", "FF444F", "CCED00", "00F344", "BD00FF",
+    "00B4FF", "DD00BA", "00FFFF", "26C000", "01FFB3", "7D24FF", "7B0068", "FF1B6C", "FC6D2F", "A2FF0B",
+]  # fmt: skip
+
+
 def _color(i: int) -> tuple:
-    """Deterministic BGR color for class ``i``."""
-    return tuple(int(c) for c in cv2.cvtColor(np.uint8([[[(i * 47) % 180, 200, 255]]]), cv2.COLOR_HSV2BGR)[0, 0])
+    """BGR color for class ``i``."""
+    h = PALETTE[i % len(PALETTE)]
+    return int(h[4:], 16), int(h[2:4], 16), int(h[:2], 16)
 
 
 def draw(img: np.ndarray, r: dict) -> np.ndarray:

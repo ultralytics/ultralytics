@@ -89,6 +89,8 @@ When validating YOLO models, several arguments can be adjusted to tailor the eva
 
 {% include "macros/validation-args.md" %}
 
+When `save_txt=True`, prediction files under `labels/` preserve paths relative to the common image directory. For example, `cam_1.jpg` and `cam/1.jpg` produce `labels/cam_1.txt` and `labels/cam/1.txt`.
+
 Adjusting these settings to your specific needs and resources helps you strike the right balance between evaluation accuracy and speed.
 
 ### Rectangular validation geometry (`rect`)

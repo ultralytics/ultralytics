@@ -20,6 +20,8 @@ YOLOv5u is an updated version of Ultralytics YOLOv5 for [object detection](https
 
     Explore and run YOLOv5 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolov5).
 
+<platform-predict src="/ultralytics/yolov5/yolov5nu"></platform-predict>
+
 ## Key Features
 
 - **Anchor-free Split Ultralytics Head:** Traditional object detection models rely on predefined [anchor boxes](https://www.ultralytics.com/glossary/anchor-boxes) to predict object locations. YOLOv5u instead uses an anchor-free split Ultralytics head, which provides a more flexible detection mechanism and improves performance across diverse scenarios.

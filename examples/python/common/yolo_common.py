@@ -186,7 +186,7 @@ def draw(img: np.ndarray, r: dict) -> np.ndarray:
         palette = np.array([_color(i) for i in range(256)], np.uint8)
         return cv2.addWeighted(img, 0.5, palette[r["semantic"]], 0.5, 0)
     for i, (box, c, k) in enumerate(zip(r["boxes"], r["conf"], r["cls"])):
-        color, label = _color(int(k)), f"{names[int(k)]} {c:.2f}"
+        color, label = _color(int(k)), f"{names.get(int(k), int(k))} {c:.2f}"
         if "masks" in r:
             img[r["masks"][i]] = (0.5 * img[r["masks"][i]] + 0.5 * np.array(color)).astype(np.uint8)
         if r["task"] == "obb":
@@ -218,7 +218,7 @@ def finish(img: np.ndarray, r: dict, args: argparse.Namespace) -> None:
         print("classes:", ", ".join(names[int(i)] for i in np.unique(r["semantic"]) if int(i) in names))
     else:
         for box, c, k in zip(r["boxes"], r["conf"], r["cls"]):
-            print(f"{names[int(k)]} {c:.2f} {np.round(box[:4]).astype(int).tolist()}")
+            print(f"{names.get(int(k), int(k))} {c:.2f} {np.round(box[:4]).astype(int).tolist()}")
         print(f"{len(r['boxes'])} detections")
     out = draw(img, r)
     cv2.imwrite(args.out, out)

@@ -4,7 +4,7 @@
 
 A single Python script that runs [Ultralytics YOLO](https://docs.ultralytics.com) ONNX models with the [OpenCV DNN module](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html) on every task ([detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [semantic](https://docs.ultralytics.com/tasks/semantic), [depth](https://docs.ultralytics.com/tasks/depth), [classify](https://docs.ultralytics.com/tasks/classify), [pose](https://docs.ultralytics.com/tasks/pose), and [OBB](https://docs.ultralytics.com/tasks/obb)). It supports [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26) **grid** exports. OpenCV DNN cannot run the YOLO26 end-to-end (NMS in graph) operators in every version, so export with the default `nms=None`.
 
-OpenCV reads no ONNX metadata, so the task is inferred from the output shapes and class names fall back to [COCO](https://docs.ultralytics.com/datasets/detect/coco). Models with custom classes show class ids, and custom pose and OBB models need `--task pose` or `--task obb`.
+OpenCV reads no ONNX metadata, so the task is inferred from the output shapes and class names fall back to [COCO](https://docs.ultralytics.com/datasets/detect/coco). Custom grid models show class ids, while end-to-end and RT-DETR models assume COCO names, so use the [ONNXRuntime](../ONNXRuntime) example for those. Custom pose and OBB models need `--task pose` or `--task obb`.
 
 ## ⚙️ Installation
 

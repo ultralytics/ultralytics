@@ -349,9 +349,10 @@ class BaseTrainer:
             init_seeds(self.args.seed + 2 + RANK + ckpt.get("epoch", -1), deterministic=self.args.deterministic)
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
-        # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105).
+        # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105), or on
+        # ROCm, where it measured ~90x slower on W7900D (MIOpen naive NHWC kernels) and 1.09x on MI300X (#27257).
         channels_last = self.args.channels_last is True or (
-            self.args.channels_last is None and TORCH_1_11 and not WINDOWS
+            self.args.channels_last is None and TORCH_1_11 and not WINDOWS and not torch.version.hip
         )
         if channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)

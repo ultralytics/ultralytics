@@ -1,5 +1,7 @@
 # High Resolution Tiling
 
+<img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a>
+
 Use the `tile` argument to run Ultralytics YOLO on high-resolution images and videos. The existing prediction pipeline loads frames, batches tiles, merges predictions, and saves annotated output.
 
 ```bash

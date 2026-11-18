@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
+from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked, cpu_threads
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_11,
     ONNXRUNTIME_BUILDS,
@@ -243,14 +243,8 @@ class ONNXBackend(BaseBackend):
                     if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):  # ORT default pool sizes to host cores
                         import psutil  # scoped as slow import
 
-                        # Physical cores, capped by the affinity mask and a cgroup v2 CPU quota (docker --cpus)
-                        n = min(8, psutil.cpu_count(logical=False) or os.cpu_count())
-                        if LINUX:
-                            n = min(n, len(os.sched_getaffinity(0)))
-                            cpu_max = Path("/sys/fs/cgroup/cpu.max")
-                            if cpu_max.is_file() and (q := cpu_max.read_text().split())[0] != "max":
-                                n = min(n, int(q[0]) // int(q[1]))
-                        self.session_options.intra_op_num_threads = max(1, n)
+                        n = psutil.cpu_count(logical=False) or os.cpu_count()  # physical cores
+                        self.session_options.intra_op_num_threads = cpu_threads(n)
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider
@@ -365,6 +359,31 @@ class ONNXBackend(BaseBackend):
             return self.bindings
         else:
             return self.session.run(self.output_names, {self.session.get_inputs()[0].name: im.cpu().numpy()})
+
+
+class STEdgeAIBackend(ONNXBackend):
+    """ONNX Runtime backend for ST Edge AI exports, restoring pixel coordinates and metric depth on the host.
+
+    ST Edge AI exports emit box and pose keypoint coordinates normalized to [0, 1] by the input size and depth as
+    log-depth. Semantic logits and depth maps stay at 1/8 and 1/4 of the input resolution and are upsampled by the
+    predictor and validator, as for PyTorch models.
+    """
+
+    def forward(self, im: torch.Tensor) -> list[np.ndarray]:
+        """Run ONNX Runtime inference and restore pixel-space coordinates and metric depth.
+
+        Args:
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+
+        Returns:
+            (list[np.ndarray]): Model predictions with pixel-space coordinates or metric depth.
+        """
+        y = super().forward(im)
+        if self.task == "depth":
+            torch.as_tensor(y[0]).exp_()  # in place on NumPy outputs and IO-binding tensors
+        elif self.task in {"detect", "segment", "pose", "obb"}:
+            self.denormalize(y[0], im.shape[3], im.shape[2])
+        return y
 
 
 class ONNXIMXBackend(ONNXBackend):

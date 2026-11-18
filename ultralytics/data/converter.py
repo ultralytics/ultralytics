@@ -34,6 +34,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
+from ultralytics.utils.patches import imread
 
 
 def coco91_to_coco80_class() -> list[int | None]:
@@ -308,7 +309,7 @@ def convert_coco(
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
             h, w = img["height"], img["width"]
-            f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
+            f = Path(img["coco_url"]).relative_to("http://images.cocodataset.org") if lvis else Path(img["file_name"])
 
             bboxes = []
             segments = []
@@ -365,8 +366,8 @@ def convert_coco(
                         s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
                         segments.append([cls, *s])
 
-            # Write
-            label_file = (fn / f).with_suffix(".txt")
+            # Write inside fn, absolute and '..' file_names (e.g. Label Studio upload paths) keep only the file name
+            label_file = (fn / (f.name if f.anchor or ".." in f.parts else f)).with_suffix(".txt")
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
             with open(label_file, "a" if lvis else "x", encoding="utf-8") as file:  # "x" rejects images sharing a label
                 rows = keypoints if use_keypoints else segments if use_segments else bboxes
@@ -795,16 +796,13 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     else:
         # Process a single image
         output_path = path.with_suffix(".tiff")
-        img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
+        img = imread(path)  # BGR, so channels are already in ascending wavelength order
 
         # Interpolate all pixels at once with linear interpolation and extrapolation across RGB wavelengths
-        rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)
+        xp = np.array([475, 510, 650])  # B, G, R wavelengths (nm)
         target_wavelengths = np.linspace(450, 700, n_channels)
-        order = np.argsort(rgb_wavelengths)  # ascending wavelengths for segment lookup
-        xp = rgb_wavelengths[order]
         seg = np.clip(np.searchsorted(xp, target_wavelengths) - 1, 0, len(xp) - 2)  # segment per target
         w = (target_wavelengths - xp[seg]) / (xp[seg + 1] - xp[seg])  # weights (<0 or >1 -> extrapolation)
-        img = img[..., order]
         multispectral = img[..., seg] * (1 - w) + img[..., seg + 1] * w
         if not cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1)):
             raise OSError(f"Failed to write {output_path}")

@@ -9,7 +9,7 @@ import torch
 from PIL import Image
 
 from ultralytics.models.yolo.segment import SegmentationPredictor
-from ultralytics.utils import DEFAULT_CFG, NUM_THREADS
+from ultralytics.utils import NUM_THREADS
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import clip_boxes, clip_coords
 from ultralytics.utils.torch_utils import TORCH_1_10
@@ -25,39 +25,18 @@ class FastSAMPredictor(SegmentationPredictor):
     single-class segmentation.
 
     Attributes:
-        prompts (dict): Dictionary containing prompt information for segmentation (bboxes, points, labels, texts).
         device (torch.device): Device on which model and tensors are processed.
         clip (Any, optional): CLIP model used for text-based prompting, loaded on demand.
 
     Methods:
         finalize_results: Select FastSAM prompts in original-image coordinates.
         prompt: Perform image segmentation inference based on various prompt types.
-        set_prompts: Set prompts to be used during inference.
     """
 
     default_iou = 0.7  # nested single-class masks, not the YOLO predict default
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
-        """Initialize the FastSAMPredictor with configuration and callbacks.
-
-        This initializes a predictor specialized for Fast SAM (Segment Anything Model) segmentation tasks. The predictor
-        extends SegmentationPredictor with custom post-processing for mask prediction and non-maximum suppression
-        optimized for single-class segmentation.
-
-        Args:
-            cfg (dict): Configuration for the predictor.
-            overrides (dict, optional): Configuration overrides.
-            _callbacks (dict, optional): Dictionary of callback functions.
-        """
-        super().__init__(cfg, overrides, _callbacks)
-        self.prompts = {}
-
     def finalize_results(self, results: list) -> list:
-        """Adjust source-space masks and select prompts after any tiles have been merged."""
-        bboxes = self.prompts.get("bboxes")
-        points = self.prompts.get("points")
-        labels = self.prompts.get("labels")
-        texts = self.prompts.get("texts")
+        """Adjust source-space masks and select this call's prompts (bboxes, points, labels, texts) after tile merges."""
         for result in results:
             full_box = torch.tensor(
                 [0, 0, result.orig_shape[1], result.orig_shape[0]], device=result.boxes.data.device, dtype=torch.float32
@@ -67,7 +46,7 @@ class FastSAMPredictor(SegmentationPredictor):
             if idx.numel() != 0:
                 result.boxes.xyxy[idx] = full_box
 
-        return self.prompt(results, bboxes=bboxes, points=points, labels=labels, texts=texts)
+        return self.prompt(results, **getattr(self.args, "prompts", {}))  # set per call by Model.predict
 
     def prompt(self, results, bboxes=None, points=None, labels=None, texts=None):
         """Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
@@ -175,7 +154,3 @@ class FastSAMPredictor(SegmentationPredictor):
         image_features = self.clip.encode_image(images)
         text_features = self.clip.encode_text(self.clip.tokenize(texts))
         return text_features @ image_features.T  # (M, N)
-
-    def set_prompts(self, prompts):
-        """Set prompts to be used during inference."""
-        self.prompts = prompts

@@ -1,5 +1,7 @@
 # Ultralytics YOLO on Axelera Voyager SDK
 
+<img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a> <img alt="Axelera" src="https://img.shields.io/badge/Axelera-Voyager%20SDK-0A2540.svg">
+
 This document explains how to build and run complete Ultralytics YOLO inference
 pipelines on Axelera Metis devices using the Axelera runtime.
 
@@ -61,7 +63,7 @@ typed objects, so the tracking path adds `op.ax_pose()` and yields `TrackedObjec
 ### Install
 
 If you followed the
-[Axelera integration guide](../../docs/en/integrations/axelera.md), `axelera-rt`
+[Axelera integration guide](../../../docs/en/integrations/axelera.md), `axelera-rt`
 is already installed — running `yolo predict` or `yolo val` with an Axelera
 model auto-installs the runtime dependencies. If you need to install manually:
 

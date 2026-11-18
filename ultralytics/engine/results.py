@@ -1199,11 +1199,11 @@ class Masks(BaseTensor):
         return torch.Size((len(self), *self.local[2])) if hasattr(self, "local") else super().shape
 
     @cached_property
-    def data(self) -> torch.Tensor:
+    def data(self) -> torch.Tensor | np.ndarray:
         """Return the dense (num_masks, height, width) masks, pasting box-local masks into their frame on first use."""
-        rois, _, shape = self.local
-        size = len(rois), *shape
-        data = np.zeros(size, np.uint8) if isinstance(rois, np.ndarray) else rois.new_zeros(size, dtype=torch.uint8)
+        rois, masks, shape = self.local
+        size, m = (len(rois), *shape), masks[0]
+        data = np.zeros(size, m.dtype) if isinstance(m, np.ndarray) else m.new_zeros(size)  # the masks' converted dtype
         for d, ((x1, y1, x2, y2), m) in zip(data, self.crops()):
             d[y1:y2, x1:x2] = m
         return data
@@ -1213,9 +1213,9 @@ class Masks(BaseTensor):
         if not hasattr(self, "local"):
             return super()._convert(fn)
         rois, masks, shape = self.local
-        rois = fn(rois)
-        rois = rois if isinstance(rois, np.ndarray) else rois.long()  # box pixels stay integers through `to(dtype)`
-        return Masks((rois, [fn(m) for m in masks], shape), self.orig_shape)
+        masks = [fn(m) for m in masks]  # box pixels stay int64 through `to(dtype)`, on the masks' device
+        rois = fn(rois) if isinstance(masks[0], np.ndarray) else torch.as_tensor(rois, device=masks[0].device)
+        return Masks((rois, masks, shape), self.orig_shape)
 
     def crops(self, shape: tuple[int, int] | None = None):
         """Yield each mask as its (x1, y1, x2, y2) box and the (y2 - y1, x2 - x1) mask inside it, dense masks whole.

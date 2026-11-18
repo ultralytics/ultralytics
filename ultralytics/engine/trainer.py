@@ -80,6 +80,37 @@ from ultralytics.utils.torch_utils import (
 )
 
 
+def _copy_windows_dacl(source: Path, target: Path) -> None:
+    """Copy a file's Windows discretionary access control list (DACL) to another file.
+
+    Args:
+        source (Path): File whose DACL is copied.
+        target (Path): File that receives the DACL.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    dacl_security_information = 0x00000004  # DACL_SECURITY_INFORMATION
+    advapi32 = ctypes.WinDLL("advapi32", use_last_error=True)
+    advapi32.GetFileSecurityW.argtypes = [
+        wintypes.LPCWSTR,
+        wintypes.DWORD,
+        wintypes.LPVOID,
+        wintypes.DWORD,
+        ctypes.POINTER(wintypes.DWORD),
+    ]
+    advapi32.GetFileSecurityW.restype = wintypes.BOOL
+    advapi32.SetFileSecurityW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.LPVOID]
+    advapi32.SetFileSecurityW.restype = wintypes.BOOL
+    size = wintypes.DWORD()
+    advapi32.GetFileSecurityW(str(source), dacl_security_information, None, 0, ctypes.byref(size))  # fills the size
+    if not size.value:
+        return  # the checkpoint has no DACL of its own to keep
+    descriptor = ctypes.create_string_buffer(size.value)
+    if advapi32.GetFileSecurityW(str(source), dacl_security_information, descriptor, size, ctypes.byref(size)):
+        advapi32.SetFileSecurityW(str(target), dacl_security_information, descriptor)
+
+
 class BaseTrainer:
     """A base class for creating trainers.
 
@@ -853,8 +884,16 @@ class BaseTrainer:
             try:
                 tmp.write_bytes(serialized_ckpt)
                 if path.exists():
-                    shutil.copystat(path, tmp)  # keep the replaced checkpoint's permissions and ACLs
-                    os.utime(tmp)  # stamp the new content, not the replaced checkpoint's time
+                    stat = path.stat()
+                    if os.name == "nt":
+                        _copy_windows_dacl(path, tmp)  # copystat keeps no access control list
+                    else:
+                        try:
+                            os.chown(tmp, stat.st_uid, stat.st_gid)  # keep the replaced checkpoint's owner and group
+                        except OSError:
+                            pass  # only the owner or root may change ownership
+                    shutil.copystat(path, tmp)  # keep the replaced checkpoint's mode and timestamps
+                    os.utime(tmp)  # stamp the new content, not the replaced checkpoint's timestamps
                 os.replace(tmp, path)
             finally:
                 tmp.unlink(missing_ok=True)

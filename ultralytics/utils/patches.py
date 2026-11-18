@@ -252,27 +252,6 @@ def torch_load(*args, **kwargs):
     return torch.load(*args, **kwargs)
 
 
-def torch_jit_load(*args, **kwargs):
-    """Load a TorchScript archive with `torch.jit.load`, falling back to its private implementation when it is absent.
-
-    PyTorch removed the deprecated public `torch.jit.load` (https://github.com/pytorch/pytorch/pull/203621), but the
-    loader itself still exists as `torch.jit._serialization.load`. The fallback is a private API and may change or be
-    removed in a later PyTorch release.
-
-    Args:
-        *args (Any): Positional arguments to pass to torch.jit.load.
-        **kwargs (Any): Keyword arguments to pass to torch.jit.load.
-
-    Returns:
-        (torch.jit.ScriptModule): The loaded TorchScript module.
-    """
-    if hasattr(torch.jit, "load"):
-        return torch.jit.load(*args, **kwargs)
-    from torch.jit._serialization import load
-
-    return load(*args, **kwargs)
-
-
 def torch_save(*args, **kwargs):
     """Save PyTorch objects with retry mechanism for robustness.
 

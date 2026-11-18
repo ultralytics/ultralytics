@@ -399,7 +399,7 @@ def on_fit_epoch_end(trainer):
     project, name = _get_project_name(trainer)
     metrics = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
     first_epoch = trainer.epoch == 0
-    # Initial training batch plots this run saved (plots=False or a short epoch 0 saves fewer than 3)
+    # Initial training batch plots this run saved (fewer than 3 if plots=False, epoch 0 is short, or a plot failed)
     visual_files = (
         [p for i in range(3) if (p := trainer.save_dir / f"train_batch{i}.jpg") in trainer.plots]
         if first_epoch and ctx["run_id"]

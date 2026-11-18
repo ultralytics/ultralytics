@@ -1028,16 +1028,18 @@ class Model(torch.nn.Module):
 
         if hasattr(self.model, "names"):
             return check_class_names(self.model.names)
+        if self.predictor:  # the predictor may have resolved names from the model outputs during inference
+            return self.predictor.model.names
         names = self._metadata.get("names")  # exported names were read at load, no backend needed
         if isinstance(names, str):
             names = ast.literal_eval(names)
+        if len(names or {}) == 999 and self.task == "segment":  # placeholder, resolved by the backend
+            names = None
         if names:
             return check_class_names(names)
-        if not self.predictor:  # export formats will not have predictor defined until predict() is called
-            predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
-            predictor.setup_model(model=self.model, verbose=False)  # do not mess with self.predictor.model args
-            return predictor.model.names
-        return self.predictor.model.names
+        predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
+        predictor.setup_model(model=self.model, verbose=False)  # do not mess with self.predictor.model args
+        return predictor.model.names
 
     @property
     def device(self) -> torch.device:

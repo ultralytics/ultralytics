@@ -211,6 +211,7 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device([0, 1]) == "0,1"
     assert torch_utils.parse_device("00,01") == "0,1"  # leading zeros stripped for valid torch device strings
     assert torch_utils.parse_device(torch.device("cuda")) == ""  # indexless 'cuda' stays the '' default request
+    assert torch_utils.parse_device("cpu:0") == "cpu"  # indexed 'cpu:0', as torch writes it, is the same cpu
     # Physical GPU ids under an external CUDA_VISIBLE_DEVICES restriction translate to torch indices
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "2,3")
     assert str(torch_utils.select_device("3", verbose=False)) == "cuda:1"

@@ -83,7 +83,7 @@ This page lists the tools and platforms that Ultralytics integrates with to supp
 
 - [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to Hailo HEF; see the integration guide for validated models and targets.
 
-- [Huawei Ascend](ascend.md): Compile Ultralytics YOLO models to the Huawei Ascend `.om` offline format with the CANN ATC compiler for FP16 inference on Atlas and OrangePi AIPro devices.
+- [Huawei Ascend](ascend.md): Compile Ultralytics YOLO models to the Huawei Ascend `.om` offline format with the CANN ATC compiler for FP16 inference on Atlas and Orange Pi AIpro devices.
 
 - [LiteRT](litert.md): Developed by [Google](https://www.google.com/), LiteRT (formerly TensorFlow Lite) is the on-device runtime for the `.tflite` format, deploying a single model across mobile, embedded, edge, and the browser (via LiteRT.js).
 

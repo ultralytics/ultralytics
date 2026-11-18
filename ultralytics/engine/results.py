@@ -311,7 +311,9 @@ class Results(SimpleClass, DataExportMixin):
         predictions = []
         rotated = results[0].obb is not None
         for result in results:
-            pred = {k: getattr(result, k).data for k in result._keys if getattr(result, k) is not None}
+            pred = {
+                k: getattr(v, "local", None) or v.data for k in result._keys if (v := getattr(result, k)) is not None
+            }
             if hasattr(result, "feats"):
                 pred["feats"] = result.feats
             boxes = pred.pop("obb" if rotated else "boxes", None)

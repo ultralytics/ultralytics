@@ -10,9 +10,8 @@ from typing import Any
 
 import cv2
 import numpy as np
-from PIL import Image
 
-from ultralytics.data.utils import exif_size, img2label_paths
+from ultralytics.data.utils import img2label_paths
 from ultralytics.utils import TQDM
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.instance import Instances
@@ -92,12 +91,11 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
     lb_files = img2label_paths(im_files)
     annos = []
     for im_file, lb_file in zip(im_files, lb_files):
-        w, h = exif_size(Image.open(im_file))
         lb = []  # an image without a label file is a background image
         if Path(lb_file).is_file():
             with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if x.strip()]
-        annos.append({"ori_size": (h, w), "label": np.array(lb, dtype=np.float32), "filepath": im_file})
+        annos.append({"label": np.array(lb, dtype=np.float32), "filepath": im_file})
     return annos
 
 
@@ -179,8 +177,8 @@ def get_window_obj(anno: dict[str, Any], windows: np.ndarray, iof_thr: float = 0
 
 def crop_and_save(
     anno: dict[str, Any],
-    windows: np.ndarray,
-    window_objs: list[np.ndarray],
+    crop_sizes: tuple[int, ...] | list[int],
+    gaps: tuple[int, ...] | list[int],
     im_dir: str,
     lb_dir: str,
     allow_background_images: bool = True,
@@ -188,9 +186,9 @@ def crop_and_save(
     """Crop images and save new labels for each window.
 
     Args:
-        anno (dict[str, Any]): Annotation dict, including 'filepath', 'label', 'ori_size' as its keys.
-        windows (np.ndarray): Array of windows coordinates with shape (N, 4).
-        window_objs (list[np.ndarray]): A list of labels inside each window.
+        anno (dict[str, Any]): Annotation dict, including 'filepath' and 'label' as its keys.
+        crop_sizes (tuple[int, ...] | list[int]): Crop sizes of windows.
+        gaps (tuple[int, ...] | list[int]): Gaps between crops.
         im_dir (str): The output directory path of images.
         lb_dir (str): The output directory path of labels.
         allow_background_images (bool, optional): Whether to include background images without labels.
@@ -206,6 +204,9 @@ def crop_and_save(
                     - val
     """
     im = imread(anno["filepath"])
+    anno["ori_size"] = im.shape[:2]
+    windows = get_windows(anno["ori_size"], crop_sizes, gaps)
+    window_objs = get_window_obj(anno, windows)
     name = Path(anno["filepath"]).stem
     for i, window in enumerate(windows):
         x_start, y_start, x_stop, y_stop = window.tolist()
@@ -264,9 +265,7 @@ def split_images_and_labels(
 
     annos = load_yolo_dota(data_root, split=split)
     for anno in TQDM(annos, total=len(annos), desc=split):
-        windows = get_windows(anno["ori_size"], crop_sizes, gaps)
-        window_objs = get_window_obj(anno, windows)
-        crop_and_save(anno, windows, window_objs, str(im_dir), str(lb_dir))
+        crop_and_save(anno, crop_sizes, gaps, str(im_dir), str(lb_dir))
 
 
 def split_trainval(

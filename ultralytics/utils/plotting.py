@@ -886,7 +886,6 @@ def save_one_box(
 
 
 @threaded
-@TryExcept()
 def plot_images(
     labels: dict[str, Any],
     images: torch.Tensor | np.ndarray | None = None,

@@ -96,7 +96,7 @@ def merge_tiles(
     if "bboxes" not in first:
         key = next(iter(first))  # semantic class map or depth
         discrete = key == "semantic_mask"
-        template = first[key]
+        template = max((p[key] for p in predictions), key=torch.Tensor.element_size) if discrete else first[key]
         output = template.new_zeros(shape)
         weights = template.new_zeros(shape, dtype=torch.float32)
         h, w = template.shape

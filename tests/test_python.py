@@ -372,6 +372,18 @@ def test_tiled_merge_drops_seam_fragments():
     assert sorted(out["bboxes"].tolist()) == [[5.0, 5.0, 20.0, 20.0], [70.0, 10.0, 110.0, 30.0]]
 
 
+def test_tiled_merge_preserves_large_semantic_class_ids():
+    """The first tile's dtype must not truncate another tile's class IDs."""
+    from ultralytics.utils.ops import merge_tiles
+
+    predictions = [
+        {"semantic_mask": torch.full((4, 4), 2, dtype=torch.uint8)},
+        {"semantic_mask": torch.full((4, 4), 300, dtype=torch.int16)},
+    ]
+    out = merge_tiles(predictions, [(0, 0, 4, 4), (2, 0, 6, 4)], (4, 6), iou=0.7, agnostic=False, max_det=300)
+    assert out["semantic_mask"][0, [0, 5]].tolist() == [2, 300]
+
+
 def test_tiled_dataset_targets(tmp_path):
     """Crop native pixels and targets before formatting, without retaining full-image backing allocations."""
     from ultralytics.data.dataset import YOLODataset

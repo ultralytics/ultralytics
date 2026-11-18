@@ -267,12 +267,15 @@ class OBBValidator(DetectionValidator):
             pred_txt.mkdir(parents=True, exist_ok=True)
             with open(pred_json) as f:
                 data = json.load(f)
+            names = {i: Path(str(name)).name.replace(" ", "-") for i, name in self.names.items()}  # one path component
+            if len(set(names.values())) != len(names):
+                raise ValueError("DOTA class names must stay distinct after sanitization to write one file per class.")
             # Save split results
             LOGGER.info(f"Saving predictions with DOTA format to {pred_txt}...")
             for d in data:
                 image_id = d["image_id"]
                 score = d["score"]
-                classname = Path(str(self.names[d["category_id"] - 1])).name.replace(" ", "-")  # one path component
+                classname = names[d["category_id"] - 1]
                 p = d["poly"]
 
                 with open(f"{pred_txt / f'Task1_{classname}'}.txt", "a", encoding="utf-8") as f:
@@ -307,7 +310,7 @@ class OBBValidator(DetectionValidator):
 
                 b = ops.xywhr2xyxyxyxy(bbox[:, :5]).view(-1, 8)
                 for x in torch.cat([b, bbox[:, 5:7]], dim=-1).tolist():
-                    classname = Path(str(self.names[int(x[-1])])).name.replace(" ", "-")
+                    classname = names[int(x[-1])]
                     p = [round(i, 3) for i in x[:-2]]  # poly
                     score = round(x[-2], 3)
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import random
 import subprocess
+import threading
 import time
 import zipfile
 from pathlib import Path
@@ -53,6 +54,7 @@ IMG_FORMATS = {
 }
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # videos
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
+_COMPRESS_LOCK = threading.Lock()  # Pillow's decompression-bomb limit is process-global, so serialize overrides
 DATASET_KEY_TYPES = {  # dataset YAML keys and their permitted types
     "path": (str,),
     "train": (str, list),
@@ -970,26 +972,31 @@ def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: 
         >>> for f in Path("path/to/dataset").rglob("*.jpg"):
         ...     compress_one_image(f)
     """
-    max_image_pixels = Image.MAX_IMAGE_PIXELS  # restore the process-wide Pillow guard on every exit
-    try:  # use PIL
-        Image.MAX_IMAGE_PIXELS = None  # Fix DecompressionBombError, allow optimization of image > ~178.9 million pixels
-        im = _exif_jpeg(f)  # JPEG save drops EXIF, so bake the orientation into the pixels
-        if im.mode in {"RGBA", "LA"}:  # Convert to RGB if needed (for JPEG)
-            im = im.convert("RGB")
-        r = max_dim / max(im.height, im.width)  # ratio
-        if r < 1.0:  # image too large
-            im = im.resize((max(1, int(im.width * r)), max(1, int(im.height * r))))
-        _replace_image(f_new or f, lambda tmp: im.save(tmp, "JPEG", quality=quality, optimize=True))
-    except Exception as e:  # use OpenCV
-        LOGGER.warning(f"Image compression PIL failure {f}: {e}")
-        im = cv2.imread(str(f))
-        im_height, im_width = im.shape[:2]
-        r = max_dim / max(im_height, im_width)  # ratio
-        if r < 1.0:  # image too large
-            im = cv2.resize(im, (max(1, int(im_width * r)), max(1, int(im_height * r))), interpolation=cv2.INTER_AREA)
-        _replace_image(f_new or f, lambda tmp: cv2.imwrite(tmp, im))
-    finally:
-        Image.MAX_IMAGE_PIXELS = max_image_pixels
+    with _COMPRESS_LOCK:  # overlap would let one call restore a stale limit captured by the other
+        max_image_pixels = Image.MAX_IMAGE_PIXELS  # restore the process-wide Pillow guard on every exit
+        try:  # use PIL
+            Image.MAX_IMAGE_PIXELS = (
+                None  # Fix DecompressionBombError, allow optimization of image > ~178.9 million pixels
+            )
+            im = _exif_jpeg(f)  # JPEG save drops EXIF, so bake the orientation into the pixels
+            if im.mode in {"RGBA", "LA"}:  # Convert to RGB if needed (for JPEG)
+                im = im.convert("RGB")
+            r = max_dim / max(im.height, im.width)  # ratio
+            if r < 1.0:  # image too large
+                im = im.resize((max(1, int(im.width * r)), max(1, int(im.height * r))))
+            _replace_image(f_new or f, lambda tmp: im.save(tmp, "JPEG", quality=quality, optimize=True))
+        except Exception as e:  # use OpenCV
+            LOGGER.warning(f"Image compression PIL failure {f}: {e}")
+            im = cv2.imread(str(f))
+            im_height, im_width = im.shape[:2]
+            r = max_dim / max(im_height, im_width)  # ratio
+            if r < 1.0:  # image too large
+                im = cv2.resize(
+                    im, (max(1, int(im_width * r)), max(1, int(im_height * r))), interpolation=cv2.INTER_AREA
+                )
+            _replace_image(f_new or f, lambda tmp: cv2.imwrite(tmp, im))
+        finally:
+            Image.MAX_IMAGE_PIXELS = max_image_pixels
 
 
 def load_dataset_cache_file(path: Path) -> dict:

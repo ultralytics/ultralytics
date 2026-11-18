@@ -293,19 +293,19 @@ def test_restricted_load_blocks_constructor_calls(tmp_path, monkeypatch):
     if not _SafeLoad.SUPPORTED:
         pytest.skip("Checkpoint global scanning requires a newer PyTorch version")
     monkeypatch.setattr("ultralytics.models.nas.model.SAFE_LOAD", True)
-    torch.serialization.add_safe_globals([torch.nn.Conv2d])  # direct restricted loads inherit process-wide globals
 
     class ConstructorCall:
         def __reduce__(self):
             return torch.nn.Conv2d, (1, 1, 1)
 
-    for legacy in (False, True):
-        path = tmp_path / f"constructor-{legacy}.pt"
-        torch.save({"model": ConstructorCall()}, path, _use_new_zipfile_serialization=not legacy)
-        with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
-            torch_safe_load(path, safe_only=True)
-        with pytest.raises(pickle.UnpicklingError, match="blocked during restricted model load"):
-            NAS.__new__(NAS)._load(str(path))
+    with torch.serialization.safe_globals([torch.nn.Conv2d]):  # direct restricted loads inherit process-wide globals
+        for legacy in (False, True):
+            path = tmp_path / f"constructor-{legacy}.pt"
+            torch.save({"model": ConstructorCall()}, path, _use_new_zipfile_serialization=not legacy)
+            with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
+                torch_safe_load(path, safe_only=True)
+            with pytest.raises(pickle.UnpicklingError, match="blocked during restricted model load"):
+                NAS.__new__(NAS)._load(str(path))
 
 
 def test_restricted_load_legacy_state_dict(tmp_path):

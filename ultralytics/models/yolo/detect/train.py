@@ -210,6 +210,7 @@ class DetectionTrainer(BaseTrainer):
             names=self.data["names"] if "semantic_mask" in batch else None,  # World/YOLOE remap cls to prompt slots
             class_colors=self.data.get("colors"),
             on_plot=self.on_plot,
+            threaded=False,  # complete before epoch-end callbacks read trainer.plots
         )
 
     def plot_training_labels(self):

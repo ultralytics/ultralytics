@@ -318,6 +318,42 @@ def test_restricted_load_legacy_state_dict(tmp_path):
     assert torch.equal(checkpoint["model"]["weight"], torch.ones(1))
 
 
+def test_restricted_load_blocks_aliased_constructor(tmp_path):
+    """Constructor blocking also resolves aliases in PyTorch's active safe-global registry."""
+    from ultralytics.nn.tasks import _SafeLoad, torch_safe_load
+
+    if not _SafeLoad.SUPPORTED:
+        pytest.skip("Checkpoint global scanning requires a newer PyTorch version")
+
+    class ConstructorCall:
+        def __reduce__(self):
+            return torch.nn.Conv2d, (1, 1, 1)
+
+    source = tmp_path / "canonical.pt"
+    path = tmp_path / "aliased.pt"
+    torch.save({"model": ConstructorCall()}, source)
+    with zipfile.ZipFile(source) as src, zipfile.ZipFile(path, "w") as dst:
+        for item in src.infolist():
+            data = src.read(item.filename)
+            if item.filename.endswith("data.pkl"):
+                data = data.replace(b"torch.nn.modules.conv\nConv2d\n", b"checkpoint_aliases\nConv2d\n")
+            dst.writestr(item, data)
+    with torch.serialization.safe_globals([(torch.nn.Conv2d, "checkpoint_aliases.Conv2d")]):
+        with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
+            torch_safe_load(path, safe_only=True)
+
+
+@pytest.mark.parametrize("data", [b"", b"not a checkpoint", b"\x80\x02"])
+def test_restricted_load_rejects_malformed_legacy(tmp_path, data):
+    """Malformed legacy inputs reach the normal checkpoint error handler."""
+    from ultralytics.nn.tasks import torch_safe_load
+
+    path = tmp_path / "malformed.pt"
+    path.write_bytes(data)
+    with pytest.raises(TypeError):
+        torch_safe_load(path, safe_only=True)
+
+
 def test_temporary_modules_restores_preexisting_alias():
     """Temporary checkpoint aliases restore a module that was already registered."""
     import sys

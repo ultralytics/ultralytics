@@ -11,7 +11,7 @@ import torch
 from ultralytics.data import build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.nn.tasks import WorldModel, YOLOEModel
+from ultralytics.nn.tasks import WorldModel, YOLOEModel, _SafeLoad
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import torch_load
 from ultralytics.utils.torch_utils import unwrap_model
@@ -158,6 +158,8 @@ class WorldTrainer(DetectionTrainer):
         cache_path = cache_dir / f"text_embeddings_{text_model.replace(':', '_').replace('/', '_')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
+            if _SafeLoad.SUPPORTED:
+                _SafeLoad.register(cache_path)
             txt_map = torch_load(cache_path, map_location=self.device, weights_only=True)
             if sorted(txt_map.keys()) == sorted(texts):
                 return txt_map

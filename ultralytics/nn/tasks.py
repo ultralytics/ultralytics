@@ -1740,25 +1740,28 @@ class _SafeLoad:
                 zip_file = exit_stack.enter_context(torch.serialization._open_zipfile_reader(str(weight)))
                 data = zip_file.get_record("data.pkl")
             mark, called = pickletools.markobject, set()
-            for _ in range(streams):
-                stack, memo = [], {}
-                for op, arg, _ in pickletools.genops(data):
-                    before = op.stack_before
-                    if op.name == "REDUCE":
-                        called.add(stack[-2])
-                    elif op.name in {"BINPUT", "LONG_BINPUT"}:
-                        memo[arg] = stack[-1]
-                    if mark in before:
-                        while stack.pop() is not mark:
-                            pass
-                        before = before[: before.index(mark)]
-                    del stack[len(stack) - len(before) :]
-                    if op.name in {"BINGET", "LONG_BINGET"}:
-                        stack.append(memo[arg])
-                    elif op.name == "GLOBAL":
-                        stack.append(arg.replace(" ", "."))
-                    else:
-                        stack += [mark if s is mark else None for s in op.stack_after]
+            try:
+                for _ in range(streams):
+                    stack, memo = [], {}
+                    for op, arg, _ in pickletools.genops(data):
+                        before = op.stack_before
+                        if op.name == "REDUCE":
+                            called.add(stack[-2])
+                        elif op.name in {"BINPUT", "LONG_BINPUT"}:
+                            memo[arg] = stack[-1]
+                        if mark in before:
+                            while stack.pop() is not mark:
+                                pass
+                            before = before[: before.index(mark)]
+                        del stack[len(stack) - len(before) :]
+                        if op.name in {"BINGET", "LONG_BINGET"}:
+                            stack.append(memo[arg])
+                        elif op.name == "GLOBAL":
+                            stack.append(arg.replace(" ", "."))
+                        else:
+                            stack += [mark if s is mark else None for s in op.stack_after]
+            except (ValueError, IndexError, KeyError) as e:
+                raise pickle.UnpicklingError("invalid checkpoint pickle") from e
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
@@ -1802,8 +1805,9 @@ class _SafeLoad:
                     clip.clip._convert_image_to_rgb,
                 ):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
+            allowed = torch.serialization._weights_only_unpickler._get_user_allowed_globals()
             for name in called:
-                obj = cls._registry.get(name)
+                obj = cls._registry.get(name, allowed.get(name))
                 if name is None or (
                     isinstance(obj, type) and (issubclass(obj, nn.Module) or obj.__module__ in class_modules)
                 ):

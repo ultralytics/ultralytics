@@ -213,7 +213,8 @@ def torch2coreml(
     for m in model.modules():  # MIL types int64 gather indices as fp32 and then rejects them
         if isinstance(m, Detect):
             m._gather = types.MethodType(_coreml_gather, m)
-    ts = torch.jit.trace(model.eval(), im, strict=False, check_trace=False)  # skip re-trace check, like other exports
+    # skip re-trace check, like other exports
+    ts = torch.jit._trace.trace(model.eval(), im, strict=False, check_trace=False)
     bits = 8 if quantize in {8, "w8a16"} else 16 if quantize == 16 else 32
 
     # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set

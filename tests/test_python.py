@@ -1194,6 +1194,10 @@ def test_save_crop_class_name(tmp_path):
     with pytest.raises(ValueError):
         Results(orig_img, path="image.jpg", names=names, boxes=boxes).save_crop(tmp_path / "collision")
 
+    names = {0: "Car", 1: "car"}  # Windows and macOS resolve these to the same directory
+    with pytest.raises(ValueError):
+        Results(orig_img, path="image.jpg", names=names, boxes=boxes).save_crop(tmp_path / "case")
+
 
 def test_results_plot_instance_keypoints_track_color():
     """Test that color_mode='instance' colors tracked keypoints by track ID, like boxes and masks."""

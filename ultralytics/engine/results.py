@@ -853,14 +853,15 @@ class Results(SimpleClass, DataExportMixin):
         boxes = self.obb if self.obb is not None else self.boxes
         if boxes is None:
             return
-        class_names = {}  # sanitized per-class directory names, which must stay distinct
+        class_names, used = {}, set()  # sanitized per-class directory names, which must stay distinct
         for i, name in self.names.items():
             class_dir = Path(str(name)).name.rstrip(". ") or "class"  # untrusted names, one Windows-safe component
-            if class_dir in class_names.values():
+            if class_dir.casefold() in used:  # Windows and macOS paths ignore case
                 raise ValueError(
                     "Model class names must stay distinct after sanitization to write one directory per class."
                 )
             class_names[i] = class_dir
+            used.add(class_dir.casefold())
         for d in boxes.cpu():  # one host transfer avoids per-box GPU syncs
             class_dir = class_names[int(d.cls.item())]
             save_one_box(

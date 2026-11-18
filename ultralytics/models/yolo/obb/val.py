@@ -268,7 +268,7 @@ class OBBValidator(DetectionValidator):
             with open(pred_json) as f:
                 data = json.load(f)
             names = {i: Path(str(name)).name.replace(" ", "-") for i, name in self.names.items()}  # one path component
-            if len(set(names.values())) != len(names):
+            if len({name.casefold() for name in names.values()}) != len(names):  # Windows and macOS paths ignore case
                 raise ValueError("DOTA class names must stay distinct after sanitization to write one file per class.")
             # Save split results
             LOGGER.info(f"Saving predictions with DOTA format to {pred_txt}...")

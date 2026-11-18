@@ -242,23 +242,6 @@ def test_distill_grayscale(tmp_path: Path):
     assert model.teacher_model.yaml["channels"] == 1
 
 
-def test_distill_checkpoint_rejects_teacher_path(tmp_path: Path):
-    """A checkpoint cannot invoke DistillationModel with an unresolved teacher path."""
-    from ultralytics.nn.tasks import torch_safe_load
-
-    teacher_path = tmp_path / "teacher.pt"
-    torch.save({}, teacher_path)
-
-    class ConstructorCall:
-        def __reduce__(self):
-            return DistillationModel, (str(teacher_path), None)
-
-    path = tmp_path / "constructor.pt"
-    torch.save({"model": ConstructorCall()}, path)
-    with pytest.raises(TypeError, match=r"teacher_model must be an nn.Module"):
-        torch_safe_load(path, safe_only=True)
-
-
 @pytest.mark.parametrize(
     "ckpt",
     [

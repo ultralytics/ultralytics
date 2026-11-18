@@ -1181,10 +1181,13 @@ def test_save_crop_class_name(tmp_path):
     from ultralytics.engine.results import Results
 
     orig_img = np.zeros((64, 64, 3), dtype=np.uint8)
-    names = {0: "../../evil", 1: "person"}
-    boxes = torch.tensor([[8, 8, 48, 48, 0.9, 0.0], [8, 8, 48, 48, 0.9, 1.0]])
-    Results(orig_img, path="image.jpg", names=names, boxes=boxes).save_crop(tmp_path, file_name="crop.jpg")
-    assert {p.relative_to(tmp_path).parts[0] for p in tmp_path.rglob("*.jpg")} == {"evil", "person"}
+    names = {0: "../../evil", 1: "person", 2: ".. "}  # '.. ' is '..' on Windows
+    boxes = torch.tensor([[8, 8, 48, 48, 0.9, 0.0], [8, 8, 48, 48, 0.9, 1.0], [8, 8, 48, 48, 0.9, 2.0]])
+    save_dir = tmp_path / "crops"
+    Results(orig_img, path="image.jpg", names=names, boxes=boxes).save_crop(save_dir, file_name="crop.jpg")
+    files = list(tmp_path.rglob("*.jpg"))
+    assert all(save_dir in p.parents for p in files)
+    assert {p.relative_to(save_dir).parts[0] for p in files} == {"evil", "person", "class"}
 
 
 def test_results_plot_instance_keypoints_track_color():

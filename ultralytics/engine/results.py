@@ -853,7 +853,7 @@ class Results(SimpleClass, DataExportMixin):
         boxes = self.obb if self.obb is not None else self.boxes
         for d in boxes.cpu() if boxes is not None else []:  # one host transfer avoids per-box GPU syncs
             name = Path(str(self.names[int(d.cls.item())])).name  # untrusted model names, keep one path component
-            class_dir = name if name not in {"", ".", ".."} else "class"
+            class_dir = name.rstrip(". ") or "class"  # Windows strips trailing dots and spaces from path components
             save_one_box(
                 d.xyxyxyxy if self.obb is not None else d.xyxy,
                 self.orig_img,

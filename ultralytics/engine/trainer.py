@@ -845,13 +845,22 @@ class BaseTrainer:
         )
         serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
+        def write_checkpoint(path: Path):
+            """Write a checkpoint atomically, so an interrupted save cannot leave a truncated, unresumable file."""
+            tmp = path.with_name(f".{path.name}.tmp")  # same directory, so os.replace stays on one filesystem
+            try:
+                tmp.write_bytes(serialized_ckpt)
+                os.replace(tmp, path)
+            finally:
+                tmp.unlink(missing_ok=True)
+
         # Save checkpoints
         self.wdir.mkdir(parents=True, exist_ok=True)  # ensure weights directory exists
-        self.last.write_bytes(serialized_ckpt)  # save last.pt
+        write_checkpoint(self.last)  # save last.pt
         if self.best_fitness == self.fitness:
-            self.best.write_bytes(serialized_ckpt)  # save best.pt
+            write_checkpoint(self.best)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
+            write_checkpoint(self.wdir / f"epoch{self.epoch}.pt")  # save epoch, i.e. 'epoch3.pt'
         return True
 
     def get_dataset(self):

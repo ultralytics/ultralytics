@@ -1176,6 +1176,17 @@ def test_results_plot_without_boxes():
         assert r.plot(color_mode=color_mode).shape == orig_img.shape
 
 
+def test_save_crop_class_name(tmp_path):
+    """Test that save_crop keeps model class names inside the output directory."""
+    from ultralytics.engine.results import Results
+
+    orig_img = np.zeros((64, 64, 3), dtype=np.uint8)
+    names = {0: "../../evil", 1: "person"}
+    boxes = torch.tensor([[8, 8, 48, 48, 0.9, 0.0], [8, 8, 48, 48, 0.9, 1.0]])
+    Results(orig_img, path="image.jpg", names=names, boxes=boxes).save_crop(tmp_path, file_name="crop.jpg")
+    assert {p.relative_to(tmp_path).parts[0] for p in tmp_path.rglob("*.jpg")} == {"evil", "person"}
+
+
 def test_results_plot_instance_keypoints_track_color():
     """Test that color_mode='instance' colors tracked keypoints by track ID, like boxes and masks."""
     from ultralytics.engine.results import Results

@@ -852,10 +852,12 @@ class Results(SimpleClass, DataExportMixin):
             return
         boxes = self.obb if self.obb is not None else self.boxes
         for d in boxes.cpu() if boxes is not None else []:  # one host transfer avoids per-box GPU syncs
+            name = Path(str(self.names[int(d.cls.item())])).name  # untrusted model names, keep one path component
+            class_dir = name if name not in {"", ".", ".."} else "class"
             save_one_box(
                 d.xyxyxyxy if self.obb is not None else d.xyxy,
                 self.orig_img,
-                file=Path(save_dir) / self.names[int(d.cls.item())] / Path(file_name).with_suffix(".jpg"),
+                file=Path(save_dir) / class_dir / Path(file_name).with_suffix(".jpg"),
                 BGR=True,
             )
 

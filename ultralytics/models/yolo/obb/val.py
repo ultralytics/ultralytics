@@ -272,7 +272,7 @@ class OBBValidator(DetectionValidator):
             for d in data:
                 image_id = d["image_id"]
                 score = d["score"]
-                classname = self.names[d["category_id"] - 1].replace(" ", "-")
+                classname = Path(str(self.names[d["category_id"] - 1])).name.replace(" ", "-")  # one path component
                 p = d["poly"]
 
                 with open(f"{pred_txt / f'Task1_{classname}'}.txt", "a", encoding="utf-8") as f:
@@ -307,7 +307,7 @@ class OBBValidator(DetectionValidator):
 
                 b = ops.xywhr2xyxyxyxy(bbox[:, :5]).view(-1, 8)
                 for x in torch.cat([b, bbox[:, 5:7]], dim=-1).tolist():
-                    classname = self.names[int(x[-1])].replace(" ", "-")
+                    classname = Path(str(self.names[int(x[-1])])).name.replace(" ", "-")
                     p = [round(i, 3) for i in x[:-2]]  # poly
                     score = round(x[-2], 3)
 

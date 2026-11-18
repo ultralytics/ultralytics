@@ -1189,6 +1189,11 @@ def test_save_crop_class_name(tmp_path):
     assert all(save_dir in p.parents for p in files)
     assert {p.relative_to(save_dir).parts[0] for p in files} == {"evil", "person", "class"}
 
+    names = {0: "person", 1: "../../person"}  # both sanitize to one crop directory, so they cannot be told apart
+    boxes = torch.tensor([[8, 8, 48, 48, 0.9, 0.0], [8, 8, 48, 48, 0.9, 1.0]])
+    with pytest.raises(ValueError):
+        Results(orig_img, path="image.jpg", names=names, boxes=boxes).save_crop(tmp_path / "collision")
+
 
 def test_results_plot_instance_keypoints_track_color():
     """Test that color_mode='instance' colors tracked keypoints by track ID, like boxes and masks."""

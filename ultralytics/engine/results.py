@@ -851,9 +851,18 @@ class Results(SimpleClass, DataExportMixin):
             LOGGER.warning("Depth task does not support `save_crop`.")
             return
         boxes = self.obb if self.obb is not None else self.boxes
-        for d in boxes.cpu() if boxes is not None else []:  # one host transfer avoids per-box GPU syncs
-            name = Path(str(self.names[int(d.cls.item())])).name  # untrusted model names, keep one path component
-            class_dir = name.rstrip(". ") or "class"  # Windows strips trailing dots and spaces from path components
+        if boxes is None:
+            return
+        class_names = {}  # sanitized per-class directory names, which must stay distinct
+        for i, name in self.names.items():
+            class_dir = Path(str(name)).name.rstrip(". ") or "class"  # untrusted names, one Windows-safe component
+            if class_dir in class_names.values():
+                raise ValueError(
+                    "Model class names must stay distinct after sanitization to write one directory per class."
+                )
+            class_names[i] = class_dir
+        for d in boxes.cpu():  # one host transfer avoids per-box GPU syncs
+            class_dir = class_names[int(d.cls.item())]
             save_one_box(
                 d.xyxyxyxy if self.obb is not None else d.xyxy,
                 self.orig_img,

@@ -91,24 +91,15 @@ def _copy_windows_dacl(source: Path, target: Path) -> None:
     from ctypes import wintypes
 
     dacl_security_information = 0x00000004  # DACL_SECURITY_INFORMATION
-    advapi32 = ctypes.WinDLL("advapi32", use_last_error=True)
-    advapi32.GetFileSecurityW.argtypes = [
-        wintypes.LPCWSTR,
-        wintypes.DWORD,
-        wintypes.LPVOID,
-        wintypes.DWORD,
-        ctypes.POINTER(wintypes.DWORD),
-    ]
-    advapi32.GetFileSecurityW.restype = wintypes.BOOL
-    advapi32.SetFileSecurityW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.LPVOID]
-    advapi32.SetFileSecurityW.restype = wintypes.BOOL
+    advapi32 = ctypes.WinDLL("advapi32")
     size = wintypes.DWORD()
-    advapi32.GetFileSecurityW(str(source), dacl_security_information, None, 0, ctypes.byref(size))  # fills the size
+    source_name = ctypes.c_wchar_p(str(source))
+    advapi32.GetFileSecurityW(source_name, dacl_security_information, None, 0, ctypes.byref(size))  # fills the size
     if not size.value:
         return  # the checkpoint has no DACL of its own to keep
     descriptor = ctypes.create_string_buffer(size.value)
-    if advapi32.GetFileSecurityW(str(source), dacl_security_information, descriptor, size, ctypes.byref(size)):
-        advapi32.SetFileSecurityW(str(target), dacl_security_information, descriptor)
+    if advapi32.GetFileSecurityW(source_name, dacl_security_information, descriptor, size, ctypes.byref(size)):
+        advapi32.SetFileSecurityW(ctypes.c_wchar_p(str(target)), dacl_security_information, descriptor)
 
 
 class BaseTrainer:

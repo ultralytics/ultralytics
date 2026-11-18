@@ -442,6 +442,8 @@ class LoadImagesAndVideos:
 
     def __iter__(self):
         """Iterate through image/video files, yielding source paths, images, and metadata."""
+        if self.cap and self.frame:
+            self.close()
         self.count = 0
         return self
 

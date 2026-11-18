@@ -2,16 +2,12 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import torch
 import torch.nn.functional as F
 from torch import nn
 
 from ultralytics.nn.modules.head import Detect
 from ultralytics.utils.torch_utils import copy_attr
-
-from .tasks import load_checkpoint
 
 
 class FeatureHook:
@@ -61,21 +57,23 @@ class DistillationModel(nn.Module):
         >>> model.train(data="coco8.yaml", distill_model="yolo26s.pt")
     """
 
-    def __init__(self, teacher_model: str | Path | nn.Module, student_model: nn.Module):
+    def __init__(self, teacher_model: nn.Module, student_model: nn.Module):
         """Initialize the distillation model with teacher, student, and feature extraction hooks.
 
         Args:
-            teacher_model (str | Path | nn.Module): Teacher model checkpoint path or module.
+            teacher_model (nn.Module): Teacher model module.
             student_model (nn.Module): Student model module to be trained.
         """
         super().__init__()
+        if not isinstance(teacher_model, nn.Module):
+            raise TypeError(
+                "teacher_model must be an nn.Module; load its checkpoint before constructing DistillationModel"
+            )
         ch = student_model.yaml.get("channels", 3)
-        if isinstance(teacher_model, (str, Path)):
-            teacher_model = load_checkpoint(teacher_model)[0]
-            if teacher_model.yaml.get("channels", 3) != ch:
-                weights = teacher_model
-                teacher_model = type(weights)(weights.yaml.copy(), ch=ch, nc=weights.yaml["nc"], verbose=False)
-                teacher_model.load(weights)
+        if teacher_model.yaml.get("channels", 3) != ch:
+            weights = teacher_model
+            teacher_model = type(weights)(weights.yaml.copy(), ch=ch, nc=weights.yaml["nc"], verbose=False)
+            teacher_model.load(weights)
         device = next(student_model.parameters()).device
         self.teacher_model = teacher_model.to(device)
         self._freeze_teacher()

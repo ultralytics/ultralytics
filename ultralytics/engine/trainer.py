@@ -19,6 +19,7 @@ from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from functools import partial
 from pathlib import Path
+from uuid import uuid4
 
 import numpy as np
 import torch
@@ -847,9 +848,11 @@ class BaseTrainer:
 
         def write_checkpoint(path: Path):
             """Write a checkpoint atomically, so an interrupted save cannot leave a truncated, unresumable file."""
-            tmp = path.with_name(f".{path.name}.tmp")  # same directory, so os.replace stays on one filesystem
+            tmp = path.with_name(f".{path.name}.{uuid4().hex}.tmp")  # unique name in the same directory for os.replace
             try:
                 tmp.write_bytes(serialized_ckpt)
+                if path.exists():
+                    tmp.chmod(path.stat().st_mode)  # keep the replaced checkpoint's permissions
                 os.replace(tmp, path)
             finally:
                 tmp.unlink(missing_ok=True)

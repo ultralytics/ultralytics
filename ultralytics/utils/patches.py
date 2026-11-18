@@ -248,6 +248,12 @@ def torch_load(*args, **kwargs):
         kwargs.setdefault("weights_only", False)
     else:
         kwargs.pop("weights_only", None)
+    source = getattr(args[0], "name", args[0]) if args else None
+    if kwargs.get("weights_only") and isinstance(source, (str, Path)):
+        from ultralytics.nn.tasks import _SafeLoad
+
+        if _SafeLoad.SUPPORTED:
+            _SafeLoad.register(source)
 
     return torch.load(*args, **kwargs)
 

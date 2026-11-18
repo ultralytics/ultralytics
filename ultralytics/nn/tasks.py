@@ -1950,7 +1950,6 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                _SafeLoad.register(file)  # weights_only load against the known-class allow-list
                 return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 

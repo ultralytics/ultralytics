@@ -217,6 +217,9 @@ def unzip_file(
             return path
 
         extract_path = Path(extract_path).resolve()
+        extract_path.mkdir(parents=True, exist_ok=True)  # disk_usage() needs an existing path before extraction
+        uncompressed_size = sum(zipObj.getinfo(f).file_size for f in files)
+        check_disk_space(uncompressed_size, path=extract_path)  # declared uncompressed size
         for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress):
             f_path = Path(f)
             target = (extract_path / f_path).resolve()
@@ -465,7 +468,11 @@ def safe_download(
             LOGGER.info(f"Unzipping {f} to {unzip_dir}...")
             top_level_dirs = set()
             with tarfile.open(f, "r:*") as tar:
-                for m in tar:
+                members = tar.getmembers()
+                unzip_dir.mkdir(parents=True, exist_ok=True)  # disk_usage() needs an existing path before extraction
+                uncompressed_size = sum(m.size for m in members if m.isfile())
+                check_disk_space(uncompressed_size, path=unzip_dir)  # declared uncompressed size
+                for m in members:
                     if not (m.isfile() or m.isdir()) or m.issym() or m.islnk():
                         LOGGER.warning(f"Potentially insecure tar member: {m.name}, skipping extraction.")
                         continue

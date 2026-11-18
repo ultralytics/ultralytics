@@ -1,8 +1,8 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Annotate images in Ultralytics Platform by hand or with AI auto-annotation from SAM 3.1, YOLO, and models like Gemini 4 Argon, GPT-6.1 Sol, and Claude Opus 5.5.
-keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, Claude Fable 5.2, Claude Sonnet 5.5, Gemini 4 Carbon, Gemini 4 Hydrogen, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, Hy4, Muse Ember, YOLOE, visual prompts, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
+description: Annotate images in Ultralytics Platform by hand or with AI auto-annotation from SAM 3.1, YOLO, and models like Gemini 4 Argon, GPT-6.2 Sol, and Claude Opus 5.5.
+keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.2 Sol, GPT-6.2 Astra, Claude Opus 5.5, Claude Fable 5.2, Claude Sonnet 5.5, Gemini 4 Carbon, Gemini 4 Hydrogen, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, Hy4, Muse Ember, YOLOE, visual prompts, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
 ---
 
 # Annotation Editor
@@ -175,6 +175,8 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 2. In the default `Draw` mode, choose a skeleton template from the template picker in the toolbar
 3. Click on the image to place all keypoints at once
 4. Drag individual keypoints to adjust their positions
+
+To move several keypoints of one pose together, such as a whole arm, select the pose, then `Shift+Click` each keypoint you want; `Shift+Click` a selected keypoint again to drop it. Dragging any selected keypoint moves them all by the same offset, while dragging an unselected keypoint moves only that keypoint and clears the keypoint selection. Keypoints can be selected in one pose at a time, and the selection clears when the pose selection changes.
 
 ![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/a92463dc86e1e22085894fe3478b27dc.avif)<!-- screenshot -->
 
@@ -353,7 +355,7 @@ Hosted models run on Ultralytics Platform with no provider key:
 | [**SAM 3 Text**](../../models/sam-3.md)                                          | Meta               | 0.86B      |
 | [**SAM 3.1 Text**](../../models/sam-3.md#sam-31)                                 | Meta               | 0.87B      |
 
-Paid vision models from OpenAI (including [GPT-6 Astra](https://platform.ultralytics.com/models/gpt-6-astra) and [GPT-6.1 Sol](https://platform.ultralytics.com/models/gpt-6.1-sol)), Anthropic (including [Claude Fable 5.2](https://platform.ultralytics.com/models/claude-fable-5-2) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon), [Gemini 4 Carbon](https://platform.ultralytics.com/models/gemini-4-carbon), and [Gemini 4 Hydrogen](https://platform.ultralytics.com/models/gemini-4-hydrogen)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, MiniMax, and Tencent (including [Hy4](https://platform.ultralytics.com/models/hy4)) appear under each provider's project in the picker:
+Paid vision models from OpenAI (including [GPT-6.2 Astra](https://platform.ultralytics.com/models/gpt-6.2-astra) and [GPT-6.2 Sol](https://platform.ultralytics.com/models/gpt-6.2-sol)), Anthropic (including [Claude Fable 5.2](https://platform.ultralytics.com/models/claude-fable-5-2) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon), [Gemini 4 Carbon](https://platform.ultralytics.com/models/gemini-4-carbon), and [Gemini 4 Hydrogen](https://platform.ultralytics.com/models/gemini-4-hydrogen)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba (including [Qwen4-Max](https://platform.ultralytics.com/models/qwen4-max)), MiniMax, and Tencent (including [Hy4](https://platform.ultralytics.com/models/hy4)) appear under each provider's project in the picker:
 
 <platform-annotation-models></platform-annotation-models>
 
@@ -537,6 +539,7 @@ Speed up annotation with keyboard shortcuts:
     | `Click inside mask`    | Subtract region from SAM mask (negative point)                                  |
     | `Click outside mask`   | Add to SAM mask (positive point)                                                |
     | `Shift (hold) + Click` | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on) |
+    | `Shift+Click keypoint` | Select or deselect a keypoint of the selected pose to drag with others (pose)   |
     | `Z`                    | Remove the last polygon vertex while drawing / last SAM point (Smart mode)      |
     | `A`                    | Toggle auto-apply (SAM Smart mode)                                              |
     | `P`                    | Run the selected YOLO or class-prompted model (Smart mode)                      |
@@ -637,7 +640,7 @@ Yes. Use [Batch Annotation](#batch-annotation) from **More actions > Batch Annot
 
 ### Can I auto-annotate images with GPT, Claude, or Gemini models?
 
-Yes. On detection datasets with 1–200 classes, Smart annotation and [Batch Annotation](#batch-annotation) can run paid vision models such as Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, and Claude Fable 5.2 with your own provider key from [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation). Select the model under its provider in the model picker and click `Predict`; the provider bills your key for each prediction. The [class-prompted models](#class-prompted-smart-annotation) section lists every model available without Early access.
+Yes. On detection datasets with 1–200 classes, Smart annotation and [Batch Annotation](#batch-annotation) can run paid vision models such as Gemini 4 Argon, GPT-6.2 Sol, GPT-6.2 Astra, Claude Opus 5.5, and Claude Fable 5.2 with your own provider key from [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation). Select the model under its provider in the model picker and click `Predict`; the provider bills your key for each prediction. The [class-prompted models](#class-prompted-smart-annotation) section lists every model available without Early access.
 
 ### Which class-prompted model should I use?
 

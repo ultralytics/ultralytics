@@ -311,7 +311,14 @@ class Results(SimpleClass, DataExportMixin):
         predictions = []
         rotated = results[0].obb is not None
         for result in results:
-            pred = {k: getattr(result, k).data for k in result._keys if getattr(result, k) is not None}
+            pred = {}
+            for k in result._keys:
+                value = getattr(result, k)
+                if value is not None:
+                    if k == "masks" and hasattr(value, "local") and "data" not in vars(value):
+                        pred[k] = value
+                    else:
+                        pred[k] = value.data
             if hasattr(result, "feats"):
                 pred["feats"] = result.feats
             boxes = pred.pop("obb" if rotated else "boxes", None)
@@ -325,6 +332,8 @@ class Results(SimpleClass, DataExportMixin):
                 (pred.pop("bboxes"), pred.pop("conf")[:, None], pred.pop("cls")[:, None]), 1
             )
         feats = pred.pop("feats", None)
+        if isinstance(pred.get("masks"), Masks):  # the full-image, single-window fast path
+            pred["masks"] = pred["masks"].local
         result = cls(orig_img, path=results[0].path, names=results[0].names, **pred)
         if feats is not None:
             result.feats = feats

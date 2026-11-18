@@ -82,9 +82,9 @@ def merge_tiles(
 
     Each payload contains bboxes (xyxy or xywhr), conf and cls, optionally with masks, keypoints or extra columns;
     alternatively it contains one semantic_mask, depth or probs tensor. Masks match their window size or a whole-pixel
-    stride of it, inferred from the larger side; dense maps match their window size. Boxes cut by an interior window
-    edge are dropped when another window sees them clear of its edges and a kept box covers them, then NMS removes
-    duplicates. Only masks surviving box suppression are expanded to the full image.
+    stride of it, inferred from the larger side, and can be dense tensors or box-local Masks. Dense maps match
+    their window size. Boxes cut by an interior window edge are dropped when another window sees them clear of its
+    edges and a kept box covers them, then NMS removes duplicates. Only surviving masks are pasted into the result.
     """
     from bisect import bisect_right
 
@@ -154,16 +154,23 @@ def merge_tiles(
         template = predictions[i]["masks"]
         x1, y1, x2, y2 = windows[i]
         r = round(max(x2 - x1, y2 - y1) / max(template.shape[-2:]))  # mask stride, 1 at source resolution
-        output["masks"] = template.new_zeros((len(keep), -(-shape[0] // r), -(-shape[1] // r)))
-        ends, count = [], 0
+        data = template if isinstance(template, torch.Tensor) else template[:0].data
+        output["masks"] = data.new_zeros((len(keep), -(-shape[0] // r), -(-shape[1] // r)))
+        ends, count, crops = [], 0, []
         for p in predictions:
             count += len(p["bboxes"])
             ends.append(count)
+            masks = p.get("masks")
+            crops.append(list(masks.crops()) if masks is not None and not isinstance(masks, torch.Tensor) else None)
         for j, k in enumerate(keep.tolist()):
             source = bisect_right(ends, k)
             local = k - (ends[source - 1] if source else 0)
             x1, y1 = ((v - r // 2 + r - 1) // r for v in windows[source][:2])  # first sampled pixel, x1 when r=1
-            mask = predictions[source]["masks"][local]
+            if crops[source] is None:
+                mask = predictions[source]["masks"][local]
+            else:
+                (left, top, _, _), mask = crops[source][local]
+                x1, y1 = x1 + left, y1 + top
             target = output["masks"][j, y1 : y1 + mask.shape[0], x1 : x1 + mask.shape[1]]
             target[:] = mask[: target.shape[0], : target.shape[1]]
     return output

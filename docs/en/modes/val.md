@@ -152,8 +152,7 @@ The examples below run YOLO model validation with custom arguments in Python and
 
 !!! tip "Per-Image Precision, Recall, and F1"
 
-    Validation stores per-image [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), F1, TP, FP, and FN metrics (at IoU threshold 0.5) for all tasks
-    except classification. Access them through `results.box.image_metrics` for detection and OBB, `results.seg.image_metrics`
+    Validation stores per-image [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), F1, TP, FP, and FN metrics (at IoU threshold 0.5). Access them through `results.box.image_metrics` for detection and OBB, `results.seg.image_metrics`
     for segmentation, and `results.pose.image_metrics` for pose after validation completes.
 
     ```python
@@ -165,7 +164,7 @@ The examples below run YOLO model validation with custom arguments in Python and
     # Validate and access per-image metrics
     results = model.val(data="coco8.yaml")
 
-    # image_metrics is a dictionary with image filenames as keys
+    # Keys are paths relative to the common image directory, e.g. 'image1.jpg' or 'a/image1.jpg'
     print(results.box.image_metrics)
     # Output: {'image1.jpg': {'precision': 0.85, 'recall': 0.92, 'f1': 0.88, 'tp': 17, 'fp': 3, 'fn': 1}, ...}
 
@@ -190,10 +189,32 @@ The returned metrics object also exposes export helpers from [`DataExportMixin`]
 
 | Method      | Return Type            | Description                                                                |
 | ----------- | ---------------------- | -------------------------------------------------------------------------- |
-| `summary()` | `List[Dict[str, Any]]` | Converts validation results to a summarized dictionary.                    |
+| `summary()` | `List[Dict[str, Any]]` | Returns the validation results as a list of dictionaries, one per row.     |
 | `to_df()`   | `DataFrame`            | Returns the validation results as a structured Polars DataFrame.           |
 | `to_csv()`  | `str`                  | Exports the validation results in CSV format and returns the CSV string.   |
 | `to_json()` | `str`                  | Exports the validation results in JSON format and returns the JSON string. |
+
+Detection, segmentation, semantic segmentation, pose, and OBB results have one row per class in the validation labels,
+so `to_csv()` and `to_json()` export per-class metrics:
+
+| Task     | Columns per class                                                                                   |
+| -------- | --------------------------------------------------------------------------------------------------- |
+| detect   | `Class`, `Images`, `Instances`, `Box-P`, `Box-R`, `Box-F1`, `mAP50`, `mAP75`, `mAP50-95`            |
+| segment  | The detect columns, then `Mask-P`, `Mask-R`, `Mask-F1`, `Mask-mAP50`, `Mask-mAP75`, `Mask-mAP50-95` |
+| semantic | `Class`, `Images`, `Pixels`, `IoU`, `mIoU` and `pixel_acc` (both global), `class_pixel_acc`         |
+| pose     | The detect columns, then `Pose-P`, `Pose-R`, `Pose-F1`, `Pose-mAP50`, `Pose-mAP75`, `Pose-mAP50-95` |
+| obb      | The detect columns                                                                                  |
+
+Depth estimation returns a single row with `delta1`, `delta2`, `delta3`, `abs_rel`, `rmse`, and `silog`, and
+classification a single row with `top1_acc` and `top5_acc`.
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n-seg.pt")
+metrics = model.val(data="coco8-seg.yaml")
+metrics.to_csv()  # one row per class, with box and mask metrics
+```
 
 ## What's Next
 

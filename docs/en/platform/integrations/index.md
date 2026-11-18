@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Platform Integrations
 comments: true
-description: Connect Ultralytics Platform to Slack, import W&B models and existing datasets, and use cloud storage or Enterprise On Premise compute.
+description: Connect Ultralytics Platform to Slack, import W&B models and Roboflow, Label Studio, and other datasets, and use cloud storage or Enterprise On Premise compute.
 keywords: Ultralytics Platform, integrations, Weights & Biases, W&B, model import, Slack, alerts, data import, Roboflow, Labelbox, LabelMe, CVAT, Label Studio, cloud storage, GCS, Amazon S3, Azure Blob Storage, On Premise, dataset migration, YOLO, computer vision
 ---
 
@@ -20,8 +20,8 @@ All integrations are managed from your account settings:
 2. Pick a service from the list on the left — grouped into **Infrastructure**, **Notifications**, and **Imports** — or type its name in the search box
 3. Follow the connection prompts
 
-W&B and Roboflow imports start with a preview so you can select what will be transferred and confirm that you have enough
-[storage](../account/billing.md). Labelbox, LabelMe, CVAT, and Label Studio need no connection at all — upload the
+W&B, Roboflow, and Label Studio imports start with a preview so you can select what will be transferred and check your
+[storage](../account/billing.md). Labelbox, LabelMe, and CVAT need no connection at all — upload the
 exported dataset and Platform reads it directly. Cloud storage connections verify list and read access on every
 selected bucket, and check whether each one can also be written to, before anything is saved.
 
@@ -39,7 +39,7 @@ selected bucket, and check whether each one can also be written to, before anyth
 | [**Labelbox**](labelbox.md)                         | Imports        | Reads Labelbox NDJSON exports as datasets                                                     |
 | [**LabelMe**](labelme.md)                           | Imports        | Reads zipped LabelMe JSON annotations as detection or segmentation datasets                   |
 | [**CVAT**](cvat.md)                                 | Imports        | Imports CVAT Ultralytics YOLO and COCO exports — direct import coming soon                    |
-| [**Label Studio**](label-studio.md)                 | Imports        | Imports Label Studio YOLO and COCO exports — direct import coming soon                        |
+| [**Label Studio**](label-studio.md)                 | Imports        | Imports the projects you select from hosted Label Studio using an access token                |
 
 ## Plans and Permissions
 
@@ -59,7 +59,7 @@ Each cloud storage connection has an **AI features** switch, on by default. Whil
 
 ### Which integrations need a connection and which work from an upload?
 
-On Premise, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Slack are live connections managed from **Settings > Integrations**. W&B and Roboflow imports use an API key, which is saved in [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation) when the workspace owner connects with it. Labelbox, LabelMe, CVAT, and Label Studio need no connection at all: export from the tool and upload the file as a new dataset.
+On Premise, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Slack are live connections managed from **Settings > Integrations**. W&B and Roboflow imports use an API key and Label Studio imports an access token, which is saved in [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation) when the workspace owner connects with it. Labelbox, LabelMe, and CVAT need no connection at all: export from the tool and upload the file as a new dataset, as you can with an export from [self-hosted Label Studio](label-studio.md#import-from-self-hosted-label-studio).
 
 ### Do cloud storage datasets count against my Platform storage?
 

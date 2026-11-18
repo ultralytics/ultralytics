@@ -1,4 +1,5 @@
 ---
+title: Oriented Bounding Box (OBB) Detection
 comments: true
 description: Oriented bounding box (OBB) detection with Ultralytics YOLO26. Explore DOTAv1-pretrained models, then train, validate, predict, and export OBB models.
 keywords: Oriented Bounding Boxes, OBB, Object Detection, YOLO26, Ultralytics, DOTAv1, Model Training, Model Export, AI, Machine Learning

@@ -28,6 +28,7 @@ Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
 NXP                     | `nxp`                     | yolo26n_nxp.tflite
+ST Edge AI              | `stedgeai`                | yolo26n_stedgeai.onnx
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -66,6 +67,7 @@ Inference:
                          yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
                          yolo26n_xilinx_model       # AMD Xilinx
+                         yolo26n_stedgeai.onnx      # ST Edge AI
 """
 
 from __future__ import annotations
@@ -131,6 +133,7 @@ from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_10,
     IS_PYTHON_MINIMUM_3_13,
     ONNXRUNTIME_BUILDS,
+    ONNXRUNTIME_CUDA,
     check_data_portable,
     check_imgsz,
     check_python,
@@ -304,6 +307,15 @@ def export_formats():
             False,
             ["name", "quantize", "data", "fraction", "opset", "simplify"],
             "isolated-xilinx",
+        ],
+        [
+            "ST Edge AI",
+            "stedgeai",
+            "_stedgeai.onnx",
+            True,
+            False,
+            ["quantize", "data", "fraction", "opset", "simplify"],
+            "base",
         ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
@@ -494,6 +506,7 @@ INT8_FORMATS = frozenset(
         "hailo",
         "xilinx",
         "executorch",
+        "stedgeai",
     }
 )
 W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
@@ -618,6 +631,7 @@ class Exporter:
         export_hailo: Export model to Hailo HEF format.
         export_ascend: Export model to Huawei Ascend format.
         export_xilinx: Export model to AMD Xilinx Vitis AI format.
+        export_stedgeai: Export model to ST Edge AI ONNX format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -783,7 +797,7 @@ class Exporter:
                 fmt == "axelera" and self.args.nms is None and getattr(head, "one2one_cv2", None) is not None
             )
         if getattr(model, "end2end", False):
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn", "nxp"}:
+            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn", "nxp", "stedgeai"}:
                 # Disable the end2end branch for formats without top-k support
                 model.end2end = False
                 LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
@@ -928,6 +942,12 @@ class Exporter:
             )
         # INT8 zeroes the pixel-space boxes decoded inside YOLO-NAS; tf_wrapper only normalizes Ultralytics heads
         assert fmt != "edgetpu" or head is not model, "Edge TPU export is not supported for YOLO-NAS models."
+        if fmt == "stedgeai":
+            # tf_wrapper normalizes only Ultralytics YOLO heads; rotated boxes only survive uniform (square) scaling
+            assert head is not model and not isinstance(head, RTDETRDecoder), (
+                "ST Edge AI export is not supported for YOLO-NAS and RT-DETR models."
+            )
+            assert model.task != "obb" or self.imgsz[0] == self.imgsz[1], "ST Edge AI OBB export requires square imgsz."
         self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
         if self.qat:
             assert fmt in {"onnx", "engine"}, (
@@ -976,6 +996,10 @@ class Exporter:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
+        if fmt == "stedgeai":
+            from ultralytics.utils.export.stedgeai import stedgeai_wrapper
+
+            model = stedgeai_wrapper(model)
         if fmt == "executorch":
             from ultralytics.utils.export.executorch import executorch_wrapper
 
@@ -1181,11 +1205,13 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8 and not self.qat):
+        if self.args.simplify or (
+            self.args.format in {"onnx", "stedgeai"} and self.args.quantize == 8 and not self.qat
+        ):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
-            ort = "onnxruntime-gpu[cuda]" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
+            ort = ONNXRUNTIME_CUDA if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
             requirements += [(ort, *ONNXRUNTIME_BUILDS)]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
@@ -1361,8 +1387,8 @@ class Exporter:
     def export_litert(self, prefix=colorstr("LiteRT:")):  # noqa: B008
         """Export YOLO model to LiteRT format using litert_torch with optional INT8 quantization.
 
-        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, FP32 head outputs on Detect models,
-        requires calibration ``data``),
+        Supports ``quantize=8`` (static INT8, int8 weights + int8 activations, FP32 head outputs on Detect and Classify
+        models, requires calibration ``data``),
         ``quantize='w8a16'`` (static, int8 weights + int16 activations, requires calibration ``data``) and
         ``quantize='w8a32'`` (dynamic/weight-only INT8, int8 weights + FP32 activations, no calibration needed).
         """
@@ -1761,6 +1787,19 @@ class Exporter:
             name=self.args.name,
             prefix=prefix,
         )
+
+    @try_export
+    def export_stedgeai(self, prefix=colorstr("ST Edge AI:")):  # noqa: B008
+        """Export YOLO model to float ONNX for ST Edge AI Core, or whole-graph QDQ INT8 ONNX with quantize=8."""
+        int8 = self.args.quantize == 8
+        self.file = self.file.with_name(f"{self.file.stem}{'_int8' if int8 else ''}_stedgeai.onnx")
+        f = self.export_onnx()
+        if int8:  # quantize in place so no float intermediate is left behind
+            from ultralytics.utils.export.onnx import onnx_int8_quantize
+
+            calibration = self.get_int8_calibration_dataloader(prefix)
+            onnx_int8_quantize(f, f, calibration, self._transform_fn, prefix=prefix, whole_graph=True)
+        return f
 
     @try_export
     def export_hailo(self, prefix=colorstr("Hailo:")):  # noqa: B008

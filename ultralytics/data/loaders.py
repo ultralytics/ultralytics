@@ -101,6 +101,7 @@ class LoadStreams:
         - The class uses threading to efficiently load frames from multiple streams simultaneously.
         - It automatically handles YouTube links, converting them to the best available stream URL.
         - The class implements a buffer system to manage frame storage and retrieval.
+        - A streams file such as `list.streams` is read as UTF-8. Re-save a list written in a legacy encoding as UTF-8.
     """
 
     def __init__(self, sources: str = "file.streams", vid_stride: int = 1, buffer: bool = False, channels: int = 3):
@@ -120,7 +121,7 @@ class LoadStreams:
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         if os.path.isfile(sources):
-            with open(sources) as f:
+            with open(sources, encoding="utf-8") as f:
                 sources = f.read().rsplit()
             if not sources:
                 raise FileNotFoundError(f"No streams found in {f.name}. {FORMATS_HELP_MSG}")
@@ -371,6 +372,7 @@ class LoadImagesAndVideos:
         - Supports various image formats including HEIC.
         - Handles both local files and directories.
         - Can read from a *.txt or *.csv file containing paths to images and videos.
+        - A *.txt or *.csv source list is read as UTF-8. Re-save a list written in a legacy encoding as UTF-8.
     """
 
     def __init__(self, path: str | Path | list | tuple, batch: int = 1, vid_stride: int = 1, channels: int = 3):
@@ -386,7 +388,7 @@ class LoadImagesAndVideos:
         source_path = path
         parent = None
         if isinstance(path, (str, Path)) and Path(path).suffix.lower() in {".txt", ".csv"}:  # txt/csv file with sources
-            parent, content = Path(path).parent, Path(path).read_text()
+            parent, content = Path(path).parent, Path(path).read_text(encoding="utf-8")
             if Path(path).suffix.lower() == ".txt":
                 path = content.splitlines()
             else:
@@ -470,10 +472,6 @@ class LoadImagesAndVideos:
                         paths.append(path)
                         imgs.append(im0)
                         info.append(f"video {self.count + 1}/{self.nf} (frame {self.frame}/{self.frames}) {path}: ")
-                        if self.frame == self.frames:  # end of video, flush so a batch never spans two videos
-                            self.count += 1
-                            self.cap.release()
-                            break
                 else:
                     # Move to the next file if the current video ended or failed to open
                     self.count += 1
@@ -584,7 +582,7 @@ class LoadPilAndNumpy:
             raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
         pil = isinstance(im, Image.Image)
         if pil:
-            im = ImageOps.exif_transpose(im)
+            im = ImageOps.exif_transpose(im) if im.getexif().get(274, 1) in range(2, 9) else im  # skip the upright copy
             if im.mode.startswith("I;16"):  # convert() clips 16-bit values at 255, scale them like cv2 does
                 im = Image.fromarray((np.asarray(im) >> 8).astype(np.uint8))
             flag = "L" if channels == 1 else "RGB"

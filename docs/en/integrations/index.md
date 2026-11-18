@@ -73,7 +73,7 @@ Explore the links to learn more about each integration and how to get the most o
 
 - [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to Hailo HEF; YOLO26 segmentation, pose, and OBB are not yet supported, see the integration guide for validated models and targets.
 
-- [Huawei Ascend](ascend.md): Compile Ultralytics YOLO models to the Huawei Ascend `.om` offline format with the CANN ATC compiler for FP16 inference on Atlas and OrangePi AIPro devices.
+- [Huawei Ascend](ascend.md): Compile Ultralytics YOLO models to the Huawei Ascend `.om` offline format with the CANN ATC compiler for FP16 inference on Atlas and Orange Pi AIpro devices.
 
 - [Luxonis OAK](luxonis.md): Convert Ultralytics YOLO models with Luxonis Hub or local Luxonis tooling and run them on-device on Luxonis OAK `RVC2` and `RVC4` cameras.
 
@@ -94,6 +94,8 @@ Explore the links to learn more about each integration and how to get the most o
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an edge AI device for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it runs energy-efficient AI inference, and its modular design and video processing capabilities suit use cases such as safety monitoring, environmental applications, and manufacturing.
 
 - [Sony IMX500](sony-imx500.md): Optimize and deploy Ultralytics YOLOv8n and YOLO11n models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
+
+- [ST Edge AI](stedgeai.md): Export Ultralytics YOLO with `format="stedgeai"` to float or INT8 ONNX models for [STMicroelectronics](https://www.st.com/) STM32 devices, check accuracy on your computer, and compile with ST Edge AI Core.
 
 ## Serving & Pipelines
 

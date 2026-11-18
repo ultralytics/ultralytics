@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Structure and customize Ultralytics model architectures with YAML configuration files, covering module definitions, layer connections, scaling, and custom modules.
-keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural networks, deep learning, backbone, head, modules, custom models
+description: Structure and customize Ultralytics model architectures with YAML configuration files, covering module definitions, layer connections, scaling, custom modules, and training P2 and other custom YAMLs from pretrained weights.
+keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural networks, deep learning, backbone, head, modules, custom models, YOLO P2, yolo26-p2, small object detection, pretrained weights
 ---
 
 # Model YAML Configuration Guide
@@ -364,6 +364,41 @@ head:
 
 `Classify` already performs adaptive average pooling internally.
 
+## Train a YOLO26 P2 Model from Pretrained Weights
+
+[`yolo26-p2.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p2.yaml) adds a P2 output at stride 4 to the standard P3–P5 outputs, so the head sees finer features for very small objects. It ships as a YAML only, with no `yolo26n-p2.pt` weights, so build it from the YAML and load the standard `yolo26n.pt` weights into it before training:
+
+!!! example "Train YOLO26n-P2 from yolo26n.pt weights"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n-p2.yaml").load("yolo26n.pt")  # build the P2 architecture, then load matching weights
+        model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolo26n-p2.yaml pretrained=yolo26n.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
+
+Weights load by layer name and shape, and the log reports how many tensors matched: `Transferred 360/902 items from pretrained weights` for YOLO26n. Layers 0–16, the backbone and the top-down neck down to P3, have the same indices and shapes in both YAMLs, so they load completely. The P2 branch inserted at layer 17 shifts every later layer index, so the bottom-up path and the four-output `Detect` head start mostly from random initialization and learn during training.
+
+Check that the P2 output is really there before a long run:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n-p2.yaml").load("yolo26n.pt")
+print(model.model.stride)  # tensor([ 4.,  8., 16., 32.]): the stride-4 entry is the P2 output
+model.info()  # YOLO26n-p2 summary: 329 layers, 2,662,400 parameters, 2,662,400 gradients, 9.6 GFLOPs
+```
+
+The same check on `yolo26n.yaml` reports strides `[8, 16, 32]` and 6.2 GFLOPs, so the P2 output costs about 1.5x the compute at the same image size. Reach for it when your targets are only a few pixels wide at your training `imgsz`; otherwise the standard model is cheaper to train and run.
+
 ## Best Practices
 
 ### Architecture Design Tips
@@ -493,7 +528,7 @@ Define your module in the source code, import it as shown in [Source Code Modifi
 
 ### Can I use pretrained weights with a custom YAML?
 
-Yes, you can use `model.load("path/to/weights")` to load weights from a pretrained checkpoint. However, only weights for layers that match would load successfully.
+Yes. `YOLO("custom.yaml").load("yolo26n.pt")` loads every layer whose name and shape match the checkpoint, and the log reports how many tensors transferred; layers that differ start from random initialization. [Train a YOLO26 P2 Model from Pretrained Weights](#train-a-yolo26-p2-model-from-pretrained-weights) walks through a worked example.
 
 ### How do I validate my model configuration?
 

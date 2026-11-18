@@ -282,7 +282,7 @@ These are host throughput figures, measured by the [model zoo](https://docs.axel
 2. **Export** to Axelera format using `model.export(format="axelera")`
 3. **Validate** accuracy with `yolo val` to verify minimal quantization loss
 4. **Predict** using `yolo predict` for qualitative validation
-5. **Deploy** to a high-performance end-to-end pipeline without PyTorch dependency — see the [YOLO on Voyager SDK examples](https://github.com/ultralytics/ultralytics/tree/main/examples/YOLO-Axelera-Python) for composable Python pipelines using `axelera-rt`
+5. **Deploy** to a high-performance end-to-end pipeline without PyTorch dependency — see the [YOLO on Voyager SDK examples](https://github.com/ultralytics/ultralytics/tree/main/examples/python/Axelera) for composable Python pipelines using `axelera-rt`
 
 ## Device Health Check
 

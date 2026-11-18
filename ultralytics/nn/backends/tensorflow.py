@@ -134,20 +134,7 @@ class TensorFlowBackend(BaseBackend):
                     scale, zero_point = output["quantization"]
                     x = (x.astype(np.float32) - zero_point) * scale
                 if x.ndim == 3:
-                    # Denormalize xywh by image size
-                    if x.shape[-1] == 6 or self.end2end:
-                        x[:, :, [0, 2]] *= w
-                        x[:, :, [1, 3]] *= h
-                        if self.task == "pose":
-                            x[:, :, 6::3] *= w
-                            x[:, :, 7::3] *= h
-                    else:
-                        x[:, [0, 2]] *= w
-                        x[:, [1, 3]] *= h
-                        if self.task == "pose":  # keypoints follow the box (4) and class-score (nc) channels
-                            kpt_start = 4 + len(self.names)
-                            x[:, kpt_start::3] *= w
-                            x[:, kpt_start + 1 :: 3] *= h
+                    self.denormalize(x, w, h, end2end=x.shape[-1] == 6 or self.end2end)
                 y.append(x)
 
         if self.task == "segment":  # segment with (det, proto) output order reversed

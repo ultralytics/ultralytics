@@ -38,6 +38,7 @@ Usage - formats:
                          yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
                          yolo26n_xilinx_model       # AMD Xilinx
+                         yolo26n_stedgeai.onnx      # ST Edge AI
 """
 
 from __future__ import annotations
@@ -621,7 +622,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps[i] if self.source_type.stream else self.dataset.fps
-            fps = max(1, fps / self.args.vid_stride)  # skipped frames must not shorten the saved video
+            fps = fps / self.args.vid_stride if fps > 0 else 1  # preserve positive rates, including below 1 FPS
             frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:

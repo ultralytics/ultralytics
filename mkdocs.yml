@@ -578,6 +578,7 @@ nav:
           - Rockchip RKNN: integrations/rockchip-rknn.md
           - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
           - Sony IMX500: integrations/sony-imx500.md
+          - ST Edge AI: integrations/stedgeai.md
       - Serving & pipelines:
           - Intel DL Streamer: guides/dlstreamer-intel.md
           - NVIDIA DALI: guides/nvidia-dali.md
@@ -872,6 +873,7 @@ nav:
               - paddle: reference/utils/export/paddle.md
               - qnn: reference/utils/export/qnn.md
               - rknn: reference/utils/export/rknn.md
+              - stedgeai: reference/utils/export/stedgeai.md
               - tensorflow: reference/utils/export/tensorflow.md
               - torchscript: reference/utils/export/torchscript.md
               - xilinx: reference/utils/export/xilinx.md

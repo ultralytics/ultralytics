@@ -1,5 +1,5 @@
 ---
-title: YAML2ModelGraph Architecture Visualization for YOLO Models
+title: YAML2ModelGraph for YOLO Architecture Diagrams
 comments: true
 description: Generate SVG architecture diagrams of Ultralytics YOLO backbones, necks, and heads from model YAML files with the community YAML2ModelGraph tool.
 keywords: YAML2ModelGraph, YOLO, model visualization, architecture diagram, Ultralytics, SVG

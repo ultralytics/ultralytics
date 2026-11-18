@@ -813,22 +813,22 @@ GET /api/datasets/{owner}/{dataset}/images
 
 **Query Parameters:**
 
-| Parameter           | Type    | Description                                                                                                                                                         |
-| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `limit`             | int     | Maximum images to return (default: 50, max: 5000)                                                                                                                   |
-| `offset`            | int     | Images to skip (default: 0)                                                                                                                                         |
-| `cursor`            | string  | Last image ID from the previous page, for cursor pagination                                                                                                         |
-| `includeTotal`      | boolean | Include the total matching count (default: `true`)                                                                                                                  |
-| `split`             | string  | Filter by split: `train`, `val`, `test`                                                                                                                             |
-| `hasLabel`          | boolean | Filter by annotation state                                                                                                                                          |
-| `hasError`          | boolean | Filter by processing error state                                                                                                                                    |
-| `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                    |
-| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars)                                                                                        |
-| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                        |
-| `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
-| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                     |
-| `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                              |
-| `includeLabels`     | boolean | Include capped preview annotations (default: `false`)                                                                                                               |
+| Parameter           | Type    | Description                                                                                                                                                            |
+| ------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `limit`             | int     | Maximum images to return (default: 50, max: 5000)                                                                                                                      |
+| `offset`            | int     | Images to skip (default: 0)                                                                                                                                            |
+| `cursor`            | string  | Last image ID from the previous page, for cursor pagination                                                                                                            |
+| `includeTotal`      | boolean | Include the total matching count (default: `true`)                                                                                                                     |
+| `split`             | string  | Filter by split: `train`, `val`, `test`                                                                                                                                |
+| `hasLabel`          | boolean | Filter by annotation state                                                                                                                                             |
+| `hasError`          | boolean | Filter by processing error state                                                                                                                                       |
+| `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                       |
+| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars); a term ending in an image file extension, such as `img_0042.jpg`, matches filenames only |
+| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                           |
+| `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc`    |
+| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                        |
+| `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                                 |
+| `includeLabels`     | boolean | Include capped preview annotations (default: `false`)                                                                                                                  |
 
 **Response:**
 
@@ -1143,7 +1143,7 @@ Runs the model on the image and returns predicted annotations. It does not save 
 | `referenceImageId` | string | No       | With `visualPrompts`, the ID of the image in the same dataset that the prompts are drawn on, when it is not the image being predicted                                                                                                                                                                                                                                                                                                                                         |
 | `classMapping`     | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models and not allowed with `visualPrompts`                                                                                                                                                                                                                            |
 
-**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models without `visualPrompts`), `modelUsed`, `inferenceTime`, `usage` (`[input tokens, output tokens]`, when a language model reports them), for class-prompted models `partial` (`true` when an output limit was reached or suspected, so returned annotations may omit objects), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes (unless it uses `visualPrompts`), `visualPrompts` with another model or task, an unknown `classId`, a prompt too small or outside the image, or `classMapping`, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A `referenceImageId` that is not an image in this dataset returns `404`. A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `402`, `403`, or `404` (a rejected key, model, or request, or an unpaid provider balance; `code`: `provider_refused` for all but `400`), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`. On Premise datasets, cloud storage datasets whose AI features are off or whose credential is disconnected, and datasets with more than 3 image channels return `409`.
+**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models without `visualPrompts`), `modelUsed`, `inferenceTime`, `usage` (`[input tokens, output tokens]`, when a language model reports them), for class-prompted models `partial` (`true` when an output or time limit cut the reply short, or one is suspected, so returned annotations may omit objects), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes (unless it uses `visualPrompts`), `visualPrompts` with another model or task, an unknown `classId`, a prompt too small or outside the image, or `classMapping`, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A `referenceImageId` that is not an image in this dataset returns `404`. A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `402`, `403`, or `404` (a rejected key, model, or request, or an unpaid provider balance; `code`: `provider_refused` for all but `400`), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`. On Premise datasets, cloud storage datasets whose AI features are off or whose credential is disconnected, and datasets with more than 3 image channels return `409`.
 
 ### Find Similar Images
 
@@ -1593,10 +1593,10 @@ quantization. Requests that exceed the service's input limits return `413`.
 
 **Response:**
 
-Each entry in `images` carries `shape`, `speed`, `results`, and, for dense-prediction tasks, a `semantic_mask` or
-`depth` PNG payload (depth values are `pixel × max / divisor`, with divisor 255 for the default 8-bit map and 65535 when
-`bits` is 12 or 16). The `metadata` object reports image count, function timings, task, and service
-versions. Internal model paths are never returned.
+Each entry in `images` carries `shape`, `speed`, `results` (up to 1,000 per image, 300 for RT-DETR models), and, for
+dense-prediction tasks, a `semantic_mask` or `depth` PNG payload (depth values are `pixel × max / divisor`, with divisor
+255 for the default 8-bit map and 65535 when `bits` is 12 or 16). The `metadata` object reports image count, function
+timings, task, and service versions. Internal model paths are never returned.
 
 ```json
 {
@@ -1681,12 +1681,12 @@ POST /api/training/start
 
 **Python SDK:** `client.training.start(model_id=..., train_args=...)`
 
-| Field                   | Type    | Required | Description                                                         |
-| ----------------------- | ------- | -------- | ------------------------------------------------------------------- |
-| `modelId`               | string  | Yes      | ID of the model to train                                            |
-| `trainArgs`             | object  | Yes      | YOLO training arguments; `model`, `data`, and `epochs` are required |
-| `gpuType`               | string  | No       | Cloud GPU to use (default: `rtx-4090`)                              |
-| `captureDatasetVersion` | boolean | No       | Save an immutable dataset version for this run (default: `false`)   |
+| Field                   | Type    | Required | Description                                                                                                                                                                |
+| ----------------------- | ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`               | string  | Yes      | ID of the model to train                                                                                                                                                   |
+| `trainArgs`             | object  | Yes      | YOLO training arguments; `model`, `data`, and `epochs` are required. `data` is a `ul://username/datasets/slug` dataset URI or a built-in dataset YAML such as `coco8.yaml` |
+| `gpuType`               | string  | No       | Cloud GPU to use (default: `rtx-4090`)                                                                                                                                     |
+| `captureDatasetVersion` | boolean | No       | Save an immutable dataset version for this run (default: `false`)                                                                                                          |
 
 === "cURL"
 
@@ -1741,9 +1741,9 @@ POST /api/training/start
 }
 ```
 
-Training returns `400` when the model task cannot train the dataset task, `402` when your credit balance is too low,
-`409` when the dataset's cloud storage has AI features off or is disconnected, and `503` when no capacity is available
-for the requested GPU.
+Training returns `400` when `data` is a dataset ID or a Platform dataset path without `ul://`, or when the model task
+cannot train the dataset task, `402` when your credit balance is too low, `409` when the dataset's cloud storage has AI
+features off or is disconnected, and `503` when no capacity is available for the requested GPU.
 
 !!! note "GPU Types"
 
@@ -1815,8 +1815,8 @@ While an export of the same format is in flight for the model, a new request ret
 
 **Supported Formats:**
 
-Use the `format` argument from the shared export table below. PyTorch is the source format and is not an API export
-target.
+Use the `format` argument from any row of the shared export table below except ST Edge AI. PyTorch is the source format
+and is not an API export target.
 
 {% include "macros/export-table.md" %}
 
@@ -2460,7 +2460,7 @@ unavailable until the same storage account is reconnected. Requires workspace ad
 
 ## Dataset Import API
 
-Import datasets from third-party services. See [Roboflow integration](../integrations/roboflow.md).
+Import datasets from third-party services. See the [Roboflow](../integrations/roboflow.md) and [Label Studio](../integrations/label-studio.md) integrations.
 
 ### Preview a Roboflow Import
 
@@ -2507,6 +2507,47 @@ Queues ingest jobs for up to 500 selected Roboflow project versions, using the i
 
 **Response (`201`):** `imported`, `failed`, and `skipped` arrays. Imports require storage headroom, and each dataset
 must fit your plan's per-import size limit.
+
+### Preview a Label Studio Import
+
+```http
+POST /api/integrations/label-studio/preview
+```
+
+**Python SDK:** `client.datasets.preview_label_studio(api_key=...)`
+
+Lists the projects in the connected hosted Label Studio account as an import plan: `newDatasets` and `importedDatasets`
+(each with `projectId`, `projectName`, the forecast `task`, and `imageCount`), `unsupportedCount` for projects whose
+labeling setup can't be imported, and your `storage`. `apiKey` is an optional Label Studio personal access token or
+legacy token: without it the workspace's saved token is used, and without either the request returns `409`. Only the
+workspace owner can send a token, which is saved for the workspace once it lists projects; anyone else who sends one
+gets `403`.
+
+```json
+{
+    "apiKey": "LABEL_STUDIO_ACCESS_TOKEN"
+}
+```
+
+### Import from Label Studio
+
+```http
+POST /api/integrations/label-studio/import
+```
+
+**Python SDK:** `client.datasets.import_label_studio(project_ids=...)`
+
+Queues one dataset import for each of up to 500 Label Studio project IDs, using the workspace's saved token. The task
+is read again from each project's labeling config, so it can't be chosen in the request.
+
+```json
+{
+    "projectIds": [101, 102]
+}
+```
+
+**Response (`201`):** `imported`, `failed`, and `skipped` arrays. Imports require storage headroom; each project gets
+an equal share of it, capped by your plan's per-import size limit.
 
 ---
 

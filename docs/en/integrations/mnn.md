@@ -1,5 +1,5 @@
 ---
-title: YOLO26 Alibaba MNN Export for Mobile Deployment
+title: Export YOLO to Alibaba MNN for Mobile
 comments: true
 description: Export Ultralytics YOLO26 models to Alibaba MNN for fast mobile and embedded inference, with FP16 and INT8 quantization and Python and C++ deployment examples.
 keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, inference, quantization

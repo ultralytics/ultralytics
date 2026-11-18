@@ -12,10 +12,11 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked
+from ultralytics.utils import ARM64, LINUX, LOGGER, USER_CONFIG_DIR, WINDOWS, ThreadingLocked, cpu_threads
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_11,
     ONNXRUNTIME_BUILDS,
+    ONNXRUNTIME_CUDA,
     check_requirements,
     check_version,
     rocm_is_available,
@@ -168,6 +169,7 @@ class ONNXBackend(BaseBackend):
         fp16: bool = False,
         format: str = "onnx",
         session_options: object | None = None,
+        cuda_options: dict | None = None,
     ):
         """Initialize the ONNX backend.
 
@@ -177,10 +179,11 @@ class ONNXBackend(BaseBackend):
             fp16 (bool): Whether to use FP16 half-precision inference.
             format (str): Inference engine, either "onnx" for ONNX Runtime or "dnn" for OpenCV DNN.
             session_options (object | None): Optional ONNX Runtime session options.
+            cuda_options (dict | None): Optional extra CUDAExecutionProvider options.
         """
         assert format in {"onnx", "dnn"}, f"Unsupported ONNX format: {format}."
         self.format = format
-        self.session_options = session_options
+        self.session_options, self.cuda_options = session_options, cuda_options or {}
         super().__init__(weight, device, fp16)
 
     def load_model(self, weight: str | Path) -> None:
@@ -222,7 +225,7 @@ class ONNXBackend(BaseBackend):
             check_requirements(
                 [("onnxruntime", "onnxruntime-gpu")]
                 if rocm
-                else [("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
+                else [(ONNXRUNTIME_CUDA, "onnxruntime-gpu", "onnxruntime-windowsml")]  # Jetson lacks [cuda]
                 if cuda
                 else [(*builds, "onnxruntime-windowsml")]  # keep GPU, QNN, AMD Vitis AI or Windows ML builds
             )
@@ -238,15 +241,17 @@ class ONNXBackend(BaseBackend):
                 if self.session_options is None:
                     self.session_options = onnxruntime.SessionOptions()
                     if not os.getenv("ORT_INTRA_OP_NUM_THREADS"):  # ORT default pool sizes to host cores
-                        self.session_options.intra_op_num_threads = min(
-                            8, len(os.sched_getaffinity(0)) if LINUX else os.cpu_count()
-                        )
+                        import psutil  # scoped as slow import
+
+                        n = psutil.cpu_count(logical=False) or os.cpu_count()  # physical cores
+                        self.session_options.intra_op_num_threads = cpu_threads(n)
                 if cuda and LINUX and hasattr(onnxruntime, "preload_dlls"):
                     onnxruntime.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
                 # Select execution provider
                 available = onnxruntime.get_available_providers()
                 if cuda and "CUDAExecutionProvider" in available:
-                    providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
+                    options = {**self.cuda_options, "device_id": self.device.index}
+                    providers = [("CUDAExecutionProvider", options), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                     # Dynamic-shape nodes run on CPU: the default NeuralNetwork format returns wrong outputs for them
                     flags = "COREML_FLAG_ONLY_ALLOW_STATIC_INPUT_SHAPES"
@@ -279,7 +284,9 @@ class ONNXBackend(BaseBackend):
                     ) from e
                 LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
                 if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
-                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                    fix = f" Try 'pip install \"{ONNXRUNTIME_CUDA}\"'."  # e.g. CUDA 13 build next to CUDA 12 torch
+                    fix *= not check_version(onnxruntime.__version__, ONNXRUNTIME_CUDA.partition("]")[2])
+                    LOGGER.warning(f"CUDA requested but CUDAExecutionProvider not available. Using CPU...{fix}")
                     self.device = torch.device("cpu")
                     cuda = False
             self.output_names = [x.name for x in self.session.get_outputs()]
@@ -352,6 +359,31 @@ class ONNXBackend(BaseBackend):
             return self.bindings
         else:
             return self.session.run(self.output_names, {self.session.get_inputs()[0].name: im.cpu().numpy()})
+
+
+class STEdgeAIBackend(ONNXBackend):
+    """ONNX Runtime backend for ST Edge AI exports, restoring pixel coordinates and metric depth on the host.
+
+    ST Edge AI exports emit box and pose keypoint coordinates normalized to [0, 1] by the input size and depth as
+    log-depth. Semantic logits and depth maps stay at 1/8 and 1/4 of the input resolution and are upsampled by the
+    predictor and validator, as for PyTorch models.
+    """
+
+    def forward(self, im: torch.Tensor) -> list[np.ndarray]:
+        """Run ONNX Runtime inference and restore pixel-space coordinates and metric depth.
+
+        Args:
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+
+        Returns:
+            (list[np.ndarray]): Model predictions with pixel-space coordinates or metric depth.
+        """
+        y = super().forward(im)
+        if self.task == "depth":
+            torch.as_tensor(y[0]).exp_()  # in place on NumPy outputs and IO-binding tensors
+        elif self.task in {"detect", "segment", "pose", "obb"}:
+            self.denormalize(y[0], im.shape[3], im.shape[2])
+        return y
 
 
 class ONNXIMXBackend(ONNXBackend):

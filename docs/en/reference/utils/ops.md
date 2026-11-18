@@ -92,11 +92,19 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.ops.letterbox_span
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.ops.process_mask
 
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.ops.process_mask_native
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.ops.process_mask_local
 
 <br><br><hr><br>
 

@@ -2,7 +2,7 @@
 title: Scene Text OCR with YOLO26
 comments: true
 description: Detect, recognize, and order scene and document text at any rotation with Ultralytics YOLO26-Text detectors and PP-OCRv6 recognition.
-keywords: Ultralytics, YOLO26, OCR, scene text, document OCR, text detection, text recognition, PP-OCRv6, ONNX Runtime
+keywords: Ultralytics, YOLO26, OCR, scene text, document OCR, text detection, text recognition, PP-OCRv6, PP-OCRv5, Korean OCR, Cyrillic OCR, Arabic OCR, ONNX Runtime
 ---
 
 # Scene Text OCR using Ultralytics YOLO26
@@ -12,7 +12,8 @@ keywords: Ultralytics, YOLO26, OCR, scene text, document OCR, text detection, te
 Optical character recognition (OCR) detects and reads text in images. The [OCR solution](../reference/solutions/ocr.md)
 combines an Ultralytics YOLO26-Text detector with PaddleOCR's PP-OCRv6 recognizer, run on ONNX Runtime. It reads
 photos, documents, and screenshots at any rotation and returns every word with its line in reading order. See
-[Supported Languages](#supported-languages) for the scripts PP-OCRv6 can read.
+[Supported Languages](#supported-languages) for the scripts PP-OCRv6 can read, and the PaddleOCR language models for
+Korean, Cyrillic, Arabic, Devanagari, Thai, and other scripts.
 
 Detection and recognition remain separate components, so you can pair any text detector with PP-OCRv6 or your own
 recognition model.
@@ -110,18 +111,47 @@ PP-OCRv6 can only output characters in its built-in 18,708-character set. The de
 text in a script outside that set comes back as lookalike characters from the set. For example, Cyrillic `ТЕКСТ` reads
 as `TEKCT`, often with high confidence. Coverage of each language's full alphabet, upper and lower case:
 
-| Script        | Languages                                                                                                                                                                       | Coverage                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Chinese (CJK) | Simplified and Traditional Chinese                                                                                                                                              | ✅ About 15,600 CJK characters                                                |
-| Japanese      | Japanese                                                                                                                                                                        | ✅ Hiragana, katakana, and kanji                                              |
-| Latin         | English, French, German, Spanish, Portuguese, Italian, Dutch, Swedish, Finnish, Danish, Norwegian, Polish, Czech, Hungarian, Romanian, Turkish, Croatian, Indonesian, and Malay | ✅ Every letter and accented letter except German capital `ẞ` and Spanish `¡` |
-| Latin         | Vietnamese                                                                                                                                                                      | ⚠️ Partial: most toned vowels, such as `ạ`, `ế`, `ở`, and `ữ`, are missing    |
-| Greek         | Greek                                                                                                                                                                           | ⚠️ Partial: base letters only; accented letters and final `ς` are missing     |
-| Cyrillic      | Russian, Ukrainian, Belarusian, Bulgarian, Serbian, Kazakh, and others                                                                                                          | ❌ Not supported                                                              |
-| Other         | Korean (Hangul), Arabic, Hebrew, Hindi and other Devanagari, Thai                                                                                                               | ❌ Not supported                                                              |
+| Script        | Languages                                                                                                                                                                       | Coverage                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Chinese (CJK) | Simplified and Traditional Chinese                                                                                                                                              | ✅ About 15,600 CJK characters                                                     |
+| Japanese      | Japanese                                                                                                                                                                        | ✅ Hiragana, katakana, and kanji                                                   |
+| Latin         | English, French, German, Spanish, Portuguese, Italian, Dutch, Swedish, Finnish, Danish, Norwegian, Polish, Czech, Hungarian, Romanian, Turkish, Croatian, Indonesian, and Malay | ✅ Every letter and accented letter except German capital `ẞ` and Spanish `¡`      |
+| Latin         | Vietnamese                                                                                                                                                                      | ⚠️ Partial: most toned vowels, such as `ạ`, `ế`, `ở`, and `ữ`, are missing         |
+| Greek         | Greek                                                                                                                                                                           | ⚠️ Partial: base letters only; accented letters and final `ς` are missing          |
+| Cyrillic      | Russian, Ukrainian, Belarusian, Bulgarian, Serbian, Kazakh, and others                                                                                                          | ❌ Not in PP-OCRv6; use a [language model](#read-other-scripts)                    |
+| Other         | Korean (Hangul), Arabic, Hebrew, Hindi and other Devanagari, Thai                                                                                                               | ❌ Not in PP-OCRv6; use a [language model](#read-other-scripts), except for Hebrew |
 
-Digits, ASCII punctuation, and common symbols such as `€`, `£`, `¥`, and `°` are included. To read an unsupported
-script, pass a recognizer trained for it as a [custom recognizer](#use-a-custom-recognizer).
+Digits, ASCII punctuation, and common symbols such as `€`, `£`, `¥`, and `°` are included.
+
+### Read Other Scripts
+
+Pass a PaddleOCR PP-OCRv5 language model name as `recognizer` to read a script PP-OCRv6 does not cover. Each model runs
+on ONNX Runtime like PP-OCRv6, downloads from the Ultralytics assets release on first use, and needs no PaddlePaddle
+install:
+
+```python
+ocr = solutions.OCR(recognizer="korean_PP-OCRv5_mobile_rec")
+result = ocr(im0)
+```
+
+| `recognizer`                     | Script and example languages                                        |
+| -------------------------------- | ------------------------------------------------------------------- |
+| `korean_PP-OCRv5_mobile_rec`     | Korean (Hangul) and Latin letters                                   |
+| `cyrillic_PP-OCRv5_mobile_rec`   | Cyrillic: Russian, Ukrainian, Bulgarian, Serbian, Kazakh, Mongolian |
+| `eslav_PP-OCRv5_mobile_rec`      | East Slavic Cyrillic: Russian, Ukrainian, Belarusian                |
+| `arabic_PP-OCRv5_mobile_rec`     | Arabic script: Arabic, Persian, Urdu, Uyghur                        |
+| `devanagari_PP-OCRv5_mobile_rec` | Devanagari: Hindi, Marathi, Nepali                                  |
+| `th_PP-OCRv5_mobile_rec`         | Thai                                                                |
+| `el_PP-OCRv5_mobile_rec`         | Greek, including accented letters and final `ς`                     |
+| `ta_PP-OCRv5_mobile_rec`         | Tamil                                                               |
+| `te_PP-OCRv5_mobile_rec`         | Telugu                                                              |
+| `latin_PP-OCRv5_mobile_rec`      | Latin-script languages, in a smaller and faster model than PP-OCRv6 |
+| `en_PP-OCRv5_mobile_rec`         | English, in a smaller and faster model than PP-OCRv6                |
+
+Pick the model for your text; OCR does not detect the language or switch models. No PP-OCRv5 model reads Hebrew, so
+pass a [custom recognizer](#use-a-custom-recognizer) for it. See
+[PaddleOCR's text recognition models](https://www.paddleocr.ai/latest/en/version3.x/module_usage/text_recognition.html)
+for each model's accuracy and speed.
 
 ## Use a Custom Recognizer
 
@@ -145,8 +175,8 @@ ocr = solutions.OCR(model="custom-text.pt", recognizer=recognize)
 result = ocr(im0)
 ```
 
-Unsupported backend names raise a `ValueError`. When no text is detected, `result.texts` is empty and the recognizer
-is not called.
+A `recognizer` that is neither a name nor a callable raises a `TypeError`. When no text is detected, `result.texts` is
+empty and the recognizer is not called.
 
 ## OCR Results
 
@@ -164,16 +194,20 @@ object. Use `result.plot_im` for the annotated image and `result.texts` for reco
 
 ## Dependencies and Licenses
 
-| Component       | Required                           | Role                                                         | License                |
-| --------------- | ---------------------------------- | ------------------------------------------------------------ | ---------------------- |
-| Ultralytics     | Yes                                | YOLO detection, crop geometry, and result orchestration      | AGPL-3.0               |
-| ONNX Runtime    | Only for `recognizer="paddleocr"`  | PP-OCRv6 recognition runtime, 1.26+ on Python 3.11+          | MIT                    |
-| PP-OCRv6 medium | For `"paddleocr"` and `"tensorrt"` | Recognition weights from the Ultralytics assets release      | Apache-2.0             |
-| TensorRT        | Only for `recognizer="tensorrt"`   | FP16 PP-OCRv6 engine on NVIDIA GPUs, instead of ONNX Runtime | NVIDIA proprietary     |
-| Custom callable | No                                 | User-owned recognition integration                           | Defined by the backend |
+| Component       | Required                               | Role                                                         | License                |
+| --------------- | -------------------------------------- | ------------------------------------------------------------ | ---------------------- |
+| Ultralytics     | Yes                                    | YOLO detection, crop geometry, and result orchestration      | AGPL-3.0               |
+| ONNX Runtime    | For all but `"tensorrt"` and callables | Recognition runtime, 1.26+ on Python 3.11+                   | MIT                    |
+| PP-OCRv6 medium | For `"paddleocr"` and `"tensorrt"`     | Recognition weights from the Ultralytics assets release      | Apache-2.0             |
+| PP-OCRv5 mobile | For a PP-OCRv5 language model name     | Language recognition weights from the Ultralytics assets     | Apache-2.0             |
+| TensorRT        | Only for `recognizer="tensorrt"`       | FP16 PP-OCRv6 engine on NVIDIA GPUs, instead of ONNX Runtime | NVIDIA proprietary     |
+| Custom callable | No                                     | User-owned recognition integration                           | Defined by the backend |
 
-PP-OCRv6 weights download on first use. Review the [model card](https://huggingface.co/PaddlePaddle/PP-OCRv6_medium_rec)
-and redistribution terms before packaging or deploying them. Custom checkpoint licenses are separate.
+PP-OCRv6 and PP-OCRv5 weights download on first use. Review the model card, such as
+[PP-OCRv6 medium](https://huggingface.co/PaddlePaddle/PP-OCRv6_medium_rec) or
+[Korean PP-OCRv5 mobile](https://huggingface.co/PaddlePaddle/korean_PP-OCRv5_mobile_rec), and redistribution terms
+before packaging or deploying them. Each ONNX model names its source card in its `source` metadata. Custom checkpoint
+licenses are separate.
 
 ## FAQ
 
@@ -184,9 +218,9 @@ Yes. Pass a callable as `recognizer` and return `(text, confidence)` for each BG
 
 ### Can OCR read Cyrillic, Korean, or Arabic text?
 
-Not with the default PP-OCRv6 recognizer: its character set covers Chinese, Japanese, and Latin-script languages, but
-not Cyrillic, Hangul, Arabic, Hebrew, Devanagari, or Thai. YOLO26-Text still detects those words, so pass a recognizer
-for the script as `recognizer`. See [Supported Languages](#supported-languages).
+Yes, with a language model. The default PP-OCRv6 covers Chinese, Japanese, and Latin-script languages, so pass
+`recognizer="cyrillic_PP-OCRv5_mobile_rec"`, `"korean_PP-OCRv5_mobile_rec"`, or `"arabic_PP-OCRv5_mobile_rec"`.
+YOLO26-Text detects words in any script. See [Read Other Scripts](#read-other-scripts).
 
 ### Does OCR read rotated or upside-down text?
 

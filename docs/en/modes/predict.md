@@ -16,13 +16,13 @@ See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for plan
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YKbBXWBJloY"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/bEkPBwqrIkg"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Extract Results from Ultralytics YOLO26 Tasks for Custom Projects 🚀
+  <strong>Watch:</strong> Extract Bounding Boxes, Masks, Keypoints, OBB, Depth & More with Ultralytics YOLO26 in Python 🚀
 </p>
 
 ## Real-world Applications

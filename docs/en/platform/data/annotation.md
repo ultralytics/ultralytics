@@ -1,8 +1,8 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Annotate images in Ultralytics Platform by hand or with AI auto-annotation from SAM 3.1, YOLO, and models like Gemini 4 Argon, GPT-6.1 Sol, and Claude Opus 5.5.
-keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, Claude Fable 5.2, Claude Sonnet 5.5, Gemini 4 Carbon, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, Hy4, Muse Ember, YOLOE, visual prompts, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
+description: Annotate images in Ultralytics Platform by hand or with AI auto-annotation from SAM 3.1, YOLO, and models like Gemini 4 Argon, GPT-6.2 Sol, and Claude Opus 5.5.
+keywords: Ultralytics Platform, annotation, labeling, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.2 Sol, GPT-6.2 Astra, Claude Opus 5.5, Claude Fable 5.2, Claude Sonnet 5.5, Gemini 4 Carbon, Gemini 4 Hydrogen, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, Hy4, Muse Ember, YOLOE, visual prompts, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
 ---
 
 # Annotation Editor
@@ -176,6 +176,8 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 3. Click on the image to place all keypoints at once
 4. Drag individual keypoints to adjust their positions
 
+To move several keypoints of one pose together, such as a whole arm, select the pose, then `Shift+Click` each keypoint you want; `Shift+Click` a selected keypoint again to drop it. Dragging any selected keypoint moves them all by the same offset, while dragging an unselected keypoint moves only that keypoint and clears the keypoint selection. Keypoints can be selected in one pose at a time, and the selection clears when the pose selection changes.
+
 ![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/a92463dc86e1e22085894fe3478b27dc.avif)<!-- screenshot -->
 
 #### Built-in Skeleton Templates
@@ -331,6 +333,7 @@ With a YOLO model selected, Smart annotation can add predictions from [pretraine
 
     - The model picker lists models that match the current dataset task, so a pose dataset offers pose models. Detect and segment datasets also show each other's models, disabled.
     - If the model's classes differ from the dataset's, a **Map classes** dialog maps each model class to a dataset class or skips it, and on a dataset without classes it creates them.
+    - Each prediction adds up to 1,000 objects (300 for RT-DETR models), and Batch Annotation with a YOLO model uses the same limit.
 
 ### Class-Prompted Smart Annotation
 
@@ -352,7 +355,7 @@ Hosted models run on Ultralytics Platform with no provider key:
 | [**SAM 3 Text**](../../models/sam-3.md)                                          | Meta               | 0.86B      |
 | [**SAM 3.1 Text**](../../models/sam-3.md#sam-31)                                 | Meta               | 0.87B      |
 
-Paid vision models from OpenAI (including [GPT-6 Astra](https://platform.ultralytics.com/models/gpt-6-astra) and [GPT-6.1 Sol](https://platform.ultralytics.com/models/gpt-6.1-sol)), Anthropic (including [Claude Fable 5.2](https://platform.ultralytics.com/models/claude-fable-5-2) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon) and [Gemini 4 Carbon](https://platform.ultralytics.com/models/gemini-4-carbon)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba, MiniMax, and Tencent (including [Hy4](https://platform.ultralytics.com/models/hy4)) appear under each provider's project in the picker:
+Paid vision models from OpenAI (including [GPT-6.2 Astra](https://platform.ultralytics.com/models/gpt-6.2-astra) and [GPT-6.2 Sol](https://platform.ultralytics.com/models/gpt-6.2-sol)), Anthropic (including [Claude Fable 5.2](https://platform.ultralytics.com/models/claude-fable-5-2) and [Claude Opus 5.5](https://platform.ultralytics.com/models/claude-opus-5-5)), Google (including [Gemini 4 Argon](https://platform.ultralytics.com/models/gemini-4-argon), [Gemini 4 Carbon](https://platform.ultralytics.com/models/gemini-4-carbon), and [Gemini 4 Hydrogen](https://platform.ultralytics.com/models/gemini-4-hydrogen)), Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, Xiaomi MiMo, Alibaba (including [Qwen4-Max](https://platform.ultralytics.com/models/qwen4-max)), MiniMax, and Tencent (including [Hy4](https://platform.ultralytics.com/models/hy4)) appear under each provider's project in the picker:
 
 <platform-annotation-models></platform-annotation-models>
 
@@ -504,6 +507,7 @@ Speed up annotation with keyboard shortcuts:
     | `Delete` / `Backspace`            | Delete selected annotation |
     | `Cmd/Ctrl+Delete`                 | Delete image               |
     | `H`                               | Toggle all annotations     |
+    | `R`                               | Rotate image clockwise     |
     | `]`                               | Show or hide class sidebar |
     | `←` / `→`                         | Previous / next image      |
     | `1-9`                             | Select class 1-9           |
@@ -535,6 +539,7 @@ Speed up annotation with keyboard shortcuts:
     | `Click inside mask`    | Subtract region from SAM mask (negative point)                                  |
     | `Click outside mask`   | Add to SAM mask (positive point)                                                |
     | `Shift (hold) + Click` | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on) |
+    | `Shift+Click keypoint` | Select or deselect a keypoint of the selected pose to drag with others (pose)   |
     | `Z`                    | Remove the last polygon vertex while drawing / last SAM point (Smart mode)      |
     | `A`                    | Toggle auto-apply (SAM Smart mode)                                              |
     | `P`                    | Run the selected YOLO or class-prompted model (Smart mode)                      |
@@ -550,7 +555,7 @@ Speed up annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Shift+]` | Bring to front |
     | `Cmd/Ctrl+Shift+[` | Send to back   |
 
-![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/f8c5b332abc267cddf520967ddd39880.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/90be2fbc7f1697eac01adc63727b5f74.avif)<!-- screenshot -->
 
 ??? tip "View All Shortcuts"
 
@@ -635,11 +640,11 @@ Yes. Use [Batch Annotation](#batch-annotation) from **More actions > Batch Annot
 
 ### Can I auto-annotate images with GPT, Claude, or Gemini models?
 
-Yes. On detection datasets with 1–200 classes, Smart annotation and [Batch Annotation](#batch-annotation) can run paid vision models such as Gemini 4 Argon, GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, and Claude Fable 5.2 with your own provider key from [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation). Select the model under its provider in the model picker and click `Predict`; the provider bills your key for each prediction. The [class-prompted models](#class-prompted-smart-annotation) section lists every model available without Early access.
+Yes. On detection datasets with 1–200 classes, Smart annotation and [Batch Annotation](#batch-annotation) can run paid vision models such as Gemini 4 Argon, GPT-6.2 Sol, GPT-6.2 Astra, Claude Opus 5.5, and Claude Fable 5.2 with your own provider key from [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation). Select the model under its provider in the model picker and click `Predict`; the provider bills your key for each prediction. The [class-prompted models](#class-prompted-smart-annotation) section lists every model available without Early access.
 
 ### Which class-prompted model should I use?
 
-The [VLM Leaderboard](https://www.ultralytics.com/benchmarks/vlm) ranks class-prompted models by mAP<sub>50</sub> and compares their cost and speed on 360 images from 36 real-world detection datasets spanning medical, aerial, industrial, retail, and everyday scenes. In its November 2026 results, frontier paid models such as Gemini 4 Carbon (`gemini-4-carbon`), [GPT-6.1 Terra](https://platform.ultralytics.com/models/gpt-6.1-terra), Claude Fable 5.2, and Gemini 4 Argon were the most accurate; [Claude Haiku 5.5](https://platform.ultralytics.com/models/claude-haiku-5-5) (`claude-haiku-5-5`) and [Muse Ember 1.0](https://platform.ultralytics.com/models/muse-ember-1.0) (`muse-ember-1.0`) were the most accurate low-cost models; and Qwen3.8 27B, WeVisOne-VL 4B, and Gemma 4 26B were the most accurate hosted models, with no provider key needed. Accuracy depends heavily on the domain: models that find nearly every object in everyday photos miss many objects in PCB, X-ray, retail, and traffic images and in some medical datasets, so run a few predictions on your own images before starting [Batch Annotation](#batch-annotation).
+The [VLM Leaderboard](https://www.ultralytics.com/benchmarks/vlm) ranks class-prompted models by mAP<sub>50</sub> and compares their cost and speed on 360 images from 36 real-world detection datasets spanning medical, aerial, industrial, retail, and everyday scenes. In its November 2026 results, frontier paid models such as Gemini 4 Carbon (`gemini-4-carbon`), [GPT-6.1 Terra](https://platform.ultralytics.com/models/gpt-6.1-terra), Gemini 4 Hydrogen (`gemini-4-hydrogen`), Claude Fable 5.2, and Gemini 4 Argon were the most accurate; [Claude Haiku 5.5](https://platform.ultralytics.com/models/claude-haiku-5-5) (`claude-haiku-5-5`) and [Muse Ember 1.0](https://platform.ultralytics.com/models/muse-ember-1.0) (`muse-ember-1.0`) were the most accurate low-cost models; and Qwen3.8 27B, WeVisOne-VL 4B, and Gemma 4 26B were the most accurate hosted models, with no provider key needed. Accuracy depends heavily on the domain: models that find nearly every object in everyday photos miss many objects in PCB, X-ray, retail, and traffic images and in some medical datasets, so run a few predictions on your own images before starting [Batch Annotation](#batch-annotation).
 
 ### Can I create custom skeleton templates for pose annotation?
 

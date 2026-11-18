@@ -338,9 +338,10 @@ def test_restricted_load_blocks_aliased_constructor(tmp_path):
             if item.filename.endswith("data.pkl"):
                 data = data.replace(b"torch.nn.modules.conv\nConv2d\n", b"checkpoint_aliases\nConv2d\n")
             dst.writestr(item, data)
-    with torch.serialization.safe_globals([(torch.nn.Conv2d, "checkpoint_aliases.Conv2d")]):
-        with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
-            torch_safe_load(path, safe_only=True)
+    with torch.serialization.safe_globals([(torch.nn.Conv2d, "checkpoint_aliases.Conv2d")]), pytest.raises(
+        TypeError, match="supported Ultralytics checkpoint format"
+    ):
+        torch_safe_load(path, safe_only=True)
 
 
 @pytest.mark.parametrize("data", [b"", b"not a checkpoint", b"\x80\x02"])

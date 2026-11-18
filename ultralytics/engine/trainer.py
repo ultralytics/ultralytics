@@ -438,7 +438,8 @@ class BaseTrainer:
             )
         # resume training would directly load DistillationModel so check here
         if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
-            self.model = DistillationModel(student_model=self.model, teacher_model=self.args.distill_model)
+            teacher_model = load_checkpoint(self.args.distill_model)[0]
+            self.model = DistillationModel(student_model=self.model, teacher_model=teacher_model)
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
@@ -916,7 +917,9 @@ class BaseTrainer:
             student_model = self.get_model(cfg=cfg, weights=weights.student_model, verbose=RANK in {-1, 0})
             student_model.args = self.args
             # teacher is stripped from the checkpoint to save memory/disk; rebuild it from the distill_model path
-            teacher_model = weights.teacher_model if weights.teacher_model is not None else self.args.distill_model
+            teacher_model = weights.teacher_model
+            if teacher_model is None:
+                teacher_model = load_checkpoint(self.args.distill_model)[0]
             model = DistillationModel(student_model=student_model, teacher_model=teacher_model)
             if getattr(weights, "projector", None) is not None:
                 model.projector.load_state_dict(weights.projector.state_dict())  # restore the trained projector

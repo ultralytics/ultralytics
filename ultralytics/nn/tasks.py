@@ -1722,47 +1722,12 @@ class _SafeLoad:
         the load time of a checkpoint that references 20 of them.
 
         Args:
-            weight (IO[bytes]): Binary file for the checkpoint about to be loaded.
+            weight (str | Path): Path to the checkpoint about to be loaded.
         """
-        import pickletools
-
-        with contextlib.ExitStack() as exit_stack:
-            try:
-                needed = torch.serialization.get_unsafe_globals_in_checkpoint(weight)
-            except ValueError:  # Legacy non-ZIP archives contain five pickle streams before their binary storage data
-                needed, streams = [], 5
-                data = weight
-                if data.read(4) == b"PK\x03\x04":  # TorchScript and invalid ZIP archives are handled by torch.load
-                    return
-                data.seek(0)
-            else:
-                streams = 1
-                weight.seek(0)
-                zip_file = exit_stack.enter_context(torch.serialization._open_zipfile_reader(weight))
-                data = zip_file.get_record("data.pkl")
-            mark, called = pickletools.markobject, set()
-            try:
-                for _ in range(streams):
-                    stack, memo = [], {}
-                    for op, arg, _ in pickletools.genops(data):
-                        before = op.stack_before
-                        if op.name == "REDUCE":
-                            called.add(stack[-2])
-                        elif op.name in {"BINPUT", "LONG_BINPUT"}:
-                            memo[arg] = stack[-1]
-                        if mark in before:
-                            while stack.pop() is not mark:
-                                pass
-                            before = before[: before.index(mark)]
-                        del stack[len(stack) - len(before) :]
-                        if op.name in {"BINGET", "LONG_BINGET"}:
-                            stack.append(memo[arg])
-                        elif op.name == "GLOBAL":
-                            stack.append(arg.replace(" ", "."))
-                        else:
-                            stack += [mark if s is mark else None for s in op.stack_after]
-            except (ValueError, IndexError, KeyError) as e:
-                raise pickle.UnpicklingError("invalid checkpoint pickle") from e
+        try:
+            needed = torch.serialization.get_unsafe_globals_in_checkpoint(weight)
+        except ValueError:  # Not a torch.save() zip archive; torch.load reports the format error, nothing to register
+            needed = []
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
@@ -1805,14 +1770,6 @@ class _SafeLoad:
                     clip.clip._convert_image_to_rgb,
                 ):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
-            allowed = torch.serialization._weights_only_unpickler._get_user_allowed_globals()
-            for name in called:
-                obj = allowed.get(name)
-                if name == "ultralytics.nn.distill_model.DistillationModel" or (
-                    getattr(obj, "__module__", None) == "ultralytics.nn.distill_model"
-                    and getattr(obj, "__qualname__", None) == "DistillationModel"
-                ):
-                    raise pickle.UnpicklingError(f"call to {name} blocked during restricted model load")
             entries = [(cls._registry[name], name) for name in needed if name in cls._registry]
             if "numpy.dtype" in needed:
                 entries.append(type(np.dtype(np.float64)))  # Built dynamically, absent from the checkpoint global scan.
@@ -1951,6 +1908,7 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
+                _SafeLoad.register(file)  # weights_only load against the known-class allow-list
                 return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 

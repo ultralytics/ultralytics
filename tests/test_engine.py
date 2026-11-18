@@ -234,11 +234,29 @@ def test_distill_grayscale(tmp_path: Path):
     teacher = DetectionModel("yolo26n.yaml", ch=3, nc=80, verbose=False)
     teacher_path = tmp_path / "teacher.pt"
     torch.save({"model": teacher}, teacher_path)
+    teacher = load_checkpoint(teacher_path)[0]
     student = DetectionModel("yolo26n.yaml", ch=1, nc=80, verbose=False)
     student.args = SimpleNamespace(imgsz=32, dis=1.0)
-    model = DistillationModel(teacher_model=teacher_path, student_model=student)
+    model = DistillationModel(teacher_model=teacher, student_model=student)
     assert isinstance(model, DistillationModel)
     assert model.teacher_model.yaml["channels"] == 1
+
+
+def test_distill_checkpoint_rejects_teacher_path(tmp_path: Path):
+    """A checkpoint cannot invoke DistillationModel with an unresolved teacher path."""
+    from ultralytics.nn.tasks import torch_safe_load
+
+    teacher_path = tmp_path / "teacher.pt"
+    torch.save({}, teacher_path)
+
+    class ConstructorCall:
+        def __reduce__(self):
+            return DistillationModel, (str(teacher_path), None)
+
+    path = tmp_path / "constructor.pt"
+    torch.save({"model": ConstructorCall()}, path)
+    with pytest.raises(TypeError, match=r"teacher_model must be an nn.Module"):
+        torch_safe_load(path, safe_only=True)
 
 
 @pytest.mark.parametrize(

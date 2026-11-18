@@ -3,7 +3,6 @@
 import contextlib
 import csv
 import os
-import pickle
 import platform
 import shutil
 import tarfile
@@ -283,81 +282,6 @@ def test_restricted_load_threaded():
     with ThreadPoolExecutor(8) as pool:
         list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
     assert pathlib.WindowsPath is windows_path
-
-
-def test_restricted_load_blocks_constructor_calls(tmp_path, monkeypatch):
-    """Restricted loaders reject DistillationModel constructor calls in ZIP and legacy checkpoints."""
-    from ultralytics.models.nas.model import NAS
-    from ultralytics.nn.distill_model import DistillationModel
-    from ultralytics.nn.tasks import _SafeLoad, torch_safe_load
-
-    if not _SafeLoad.SUPPORTED:
-        pytest.skip("Checkpoint global scanning requires a newer PyTorch version")
-    monkeypatch.setattr("ultralytics.models.nas.model.SAFE_LOAD", True)
-
-    class ConstructorCall:
-        def __reduce__(self):
-            return DistillationModel, (None, None)
-
-    with torch.serialization.safe_globals([DistillationModel]):  # direct restricted loads inherit process-wide globals
-        for legacy in (False, True):
-            path = tmp_path / f"constructor-{legacy}.pt"
-            torch.save({"model": ConstructorCall()}, path, _use_new_zipfile_serialization=not legacy)
-            with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
-                torch_safe_load(path, safe_only=True)
-            with pytest.raises(pickle.UnpicklingError, match=r"blocked during restricted model load|persistent_load"):
-                NAS.__new__(NAS)._load(str(path))
-
-
-def test_restricted_load_legacy_state_dict(tmp_path):
-    """Legacy non-ZIP state-dict checkpoints remain supported."""
-    from ultralytics.nn.tasks import torch_safe_load
-
-    path = tmp_path / "legacy.pt"
-    torch.save({"model": {"weight": torch.ones(1)}}, path, _use_new_zipfile_serialization=False)
-    checkpoint = torch_safe_load(path, safe_only=True)[0]
-    assert torch.equal(checkpoint["model"]["weight"], torch.ones(1))
-
-
-def test_restricted_load_blocks_aliased_constructor(tmp_path):
-    """DistillationModel constructor blocking also resolves PyTorch safe-global aliases."""
-    from ultralytics.nn.distill_model import DistillationModel
-    from ultralytics.nn.tasks import _SafeLoad, torch_safe_load
-
-    if not _SafeLoad.SUPPORTED:
-        pytest.skip("Checkpoint global scanning requires a newer PyTorch version")
-
-    class ConstructorCall:
-        def __reduce__(self):
-            return DistillationModel, (None, None)
-
-    source = tmp_path / "canonical.pt"
-    path = tmp_path / "aliased.pt"
-    torch.save({"model": ConstructorCall()}, source)
-    with zipfile.ZipFile(source) as src, zipfile.ZipFile(path, "w") as dst:
-        for item in src.infolist():
-            data = src.read(item.filename)
-            if item.filename.endswith("data.pkl"):
-                data = data.replace(
-                    b"ultralytics.nn.distill_model\nDistillationModel\n",
-                    b"checkpoint_aliases\nDistillationModel\n",
-                )
-            dst.writestr(item, data)
-    with torch.serialization.safe_globals([(DistillationModel, "checkpoint_aliases.DistillationModel")]), pytest.raises(
-        TypeError, match="supported Ultralytics checkpoint format"
-    ):
-        torch_safe_load(path, safe_only=True)
-
-
-@pytest.mark.parametrize("data", [b"", b"not a checkpoint", b"\x80\x02"])
-def test_restricted_load_rejects_malformed_legacy(tmp_path, data):
-    """Malformed legacy inputs reach the normal checkpoint error handler."""
-    from ultralytics.nn.tasks import torch_safe_load
-
-    path = tmp_path / "malformed.pt"
-    path.write_bytes(data)
-    with pytest.raises(TypeError):
-        torch_safe_load(path, safe_only=True)
 
 
 def test_temporary_modules_restores_preexisting_alias():

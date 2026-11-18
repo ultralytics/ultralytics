@@ -82,9 +82,9 @@ def merge_tiles(
 
     Each payload contains bboxes (xyxy or xywhr), conf and cls, optionally with masks, keypoints or extra columns;
     alternatively it contains one semantic_mask, depth or probs tensor. Masks match their window size or a whole-pixel
-    stride of it, inferred from the larger side, and can be dense tensors or box-local Masks. Dense maps match
-    their window size. Boxes cut by an interior window edge are dropped when another window sees them clear of its
-    edges and a kept box covers them, then NMS removes duplicates. Only surviving masks are pasted into the result.
+    stride of it, inferred from the larger side, and can be dense tensors or box-local Masks. Dense maps match their
+    window size. Boxes cut by an interior window edge are dropped when another window sees them clear of its edges and a
+    kept box covers them, then NMS removes duplicates. Only surviving masks are pasted into the result.
     """
     from bisect import bisect_right
 

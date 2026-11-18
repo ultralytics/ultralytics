@@ -919,7 +919,9 @@ class BaseTrainer:
             student_model.args = self.args
             # teacher is stripped from the checkpoint to save memory/disk; rebuild it from the distill_model path
             teacher_model = (
-                weights.teacher_model if teacher_model is not None else load_checkpoint(self.args.distill_model)[0]
+                weights.teacher_model
+                if weights.teacher_model is not None
+                else load_checkpoint(self.args.distill_model)[0]
             )
             model = DistillationModel(student_model=student_model, teacher_model=teacher_model)
             if getattr(weights, "projector", None) is not None:

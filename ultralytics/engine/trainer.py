@@ -11,6 +11,7 @@ from __future__ import annotations
 import gc
 import math
 import os
+import shutil
 import subprocess
 import time
 import warnings
@@ -852,7 +853,8 @@ class BaseTrainer:
             try:
                 tmp.write_bytes(serialized_ckpt)
                 if path.exists():
-                    tmp.chmod(path.stat().st_mode)  # keep the replaced checkpoint's permissions
+                    shutil.copystat(path, tmp)  # keep the replaced checkpoint's permissions and ACLs
+                    os.utime(tmp)  # stamp the new content, not the replaced checkpoint's time
                 os.replace(tmp, path)
             finally:
                 tmp.unlink(missing_ok=True)

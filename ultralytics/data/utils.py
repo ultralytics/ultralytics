@@ -970,6 +970,7 @@ def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: 
         >>> for f in Path("path/to/dataset").rglob("*.jpg"):
         ...     compress_one_image(f)
     """
+    max_image_pixels = Image.MAX_IMAGE_PIXELS  # restore the process-wide Pillow guard on every exit
     try:  # use PIL
         Image.MAX_IMAGE_PIXELS = None  # Fix DecompressionBombError, allow optimization of image > ~178.9 million pixels
         im = _exif_jpeg(f)  # JPEG save drops EXIF, so bake the orientation into the pixels
@@ -987,6 +988,8 @@ def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: 
         if r < 1.0:  # image too large
             im = cv2.resize(im, (max(1, int(im_width * r)), max(1, int(im_height * r))), interpolation=cv2.INTER_AREA)
         _replace_image(f_new or f, lambda tmp: cv2.imwrite(tmp, im))
+    finally:
+        Image.MAX_IMAGE_PIXELS = max_image_pixels
 
 
 def load_dataset_cache_file(path: Path) -> dict:

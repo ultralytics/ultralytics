@@ -1485,6 +1485,18 @@ def test_data_annotator(tmp_path):
     )
 
 
+def test_compress_one_image_max_image_pixels(tmp_path):
+    """Test that image compression restores Pillow's process-wide decompression-bomb limit."""
+    from ultralytics.data.utils import compress_one_image
+
+    im_file = tmp_path / "test_compress_one_image.jpg"
+    Image.new("RGB", (320, 240), (120, 80, 40)).save(im_file)
+    max_image_pixels = Image.MAX_IMAGE_PIXELS
+    compress_one_image(im_file)
+    assert Image.MAX_IMAGE_PIXELS == max_image_pixels
+    assert im_file.is_file()
+
+
 def test_events():
     """Test event sending functionality."""
     from ultralytics.utils.events import Events

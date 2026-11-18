@@ -1724,40 +1724,47 @@ class _SafeLoad:
         Args:
             weight (str | Path): Path to the checkpoint about to be loaded.
         """
-        try:
-            needed = torch.serialization.get_unsafe_globals_in_checkpoint(weight)
-        except ValueError:  # Not a torch.save() zip archive; torch.load reports the format error, nothing to register
-            with open(weight, "rb") as f:
-                if f.read(4) not in {b"", b"PK\x03\x04"}:
-                    raise pickle.UnpicklingError(f"{weight} is not a torch.save() zip checkpoint")
-            return
         import pickletools
 
-        with torch.serialization._open_zipfile_reader(str(weight)) as zip_file:
-            mark = pickletools.markobject
-            stack, memo, called = [], {}, set()
-            for op, arg, _ in pickletools.genops(zip_file.get_record("data.pkl")):
-                before = op.stack_before
-                if op.name == "REDUCE":
-                    called.add(stack[-2])
-                elif op.name in {"BINPUT", "LONG_BINPUT"}:
-                    memo[arg] = stack[-1]
-                if mark in before:
-                    while stack.pop() is not mark:
-                        pass
-                    before = before[: before.index(mark)]
-                del stack[len(stack) - len(before) :]
-                if op.name in {"BINGET", "LONG_BINGET"}:
-                    stack.append(memo[arg])
-                elif op.name == "GLOBAL":
-                    stack.append(arg.replace(" ", "."))
-                else:
-                    stack += [mark if s is mark else None for s in op.stack_after]
+        with contextlib.ExitStack() as exit_stack:
+            try:
+                needed = torch.serialization.get_unsafe_globals_in_checkpoint(weight)
+            except ValueError:  # Legacy non-ZIP archives contain five pickle streams before their binary storage data
+                needed, streams = [], 5
+                data = exit_stack.enter_context(open(weight, "rb"))
+                if data.read(4) == b"PK\x03\x04":  # TorchScript and invalid ZIP archives are handled by torch.load
+                    return
+                data.seek(0)
+            else:
+                streams = 1
+                zip_file = exit_stack.enter_context(torch.serialization._open_zipfile_reader(str(weight)))
+                data = zip_file.get_record("data.pkl")
+            mark, called = pickletools.markobject, set()
+            for _ in range(streams):
+                stack, memo = [], {}
+                for op, arg, _ in pickletools.genops(data):
+                    before = op.stack_before
+                    if op.name == "REDUCE":
+                        called.add(stack[-2])
+                    elif op.name in {"BINPUT", "LONG_BINPUT"}:
+                        memo[arg] = stack[-1]
+                    if mark in before:
+                        while stack.pop() is not mark:
+                            pass
+                        before = before[: before.index(mark)]
+                    del stack[len(stack) - len(before) :]
+                    if op.name in {"BINGET", "LONG_BINGET"}:
+                        stack.append(memo[arg])
+                    elif op.name == "GLOBAL":
+                        stack.append(arg.replace(" ", "."))
+                    else:
+                        stack += [mark if s is mark else None for s in op.stack_after]
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
             class_modules = {"ultralytics.nn.distill_model", "ultralytics.utils.loss", "ultralytics.utils.tal"}
-            for name in needed:
+            names = set(needed).union(name for name in called if isinstance(name, str))
+            for name in names:
                 module, _, attr = name.rpartition(".")
                 if name not in cls._registry and (
                     module in {"torch.nn.modules", "ultralytics.nn.modules", "ultralytics.nn.tasks"}

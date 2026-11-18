@@ -10,6 +10,7 @@ from functools import partial
 
 import torch
 
+from ultralytics.nn.tasks import _SafeLoad
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.patches import torch_load
 
@@ -27,8 +28,9 @@ def _load_checkpoint(model, checkpoint):
         return model
 
     checkpoint = attempt_download_asset(checkpoint)
-    with open(checkpoint, "rb") as f:
-        state_dict = torch_load(f, weights_only=True)
+    if _SafeLoad.SUPPORTED:
+        _SafeLoad.register(checkpoint)
+    state_dict = torch_load(checkpoint, weights_only=True)
     # Handle nested "model" key
     if "model" in state_dict and isinstance(state_dict["model"], dict):
         state_dict = state_dict["model"]

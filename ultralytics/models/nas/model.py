@@ -9,6 +9,7 @@ from typing import Any
 import torch
 
 from ultralytics.engine.model import Model
+from ultralytics.nn.tasks import _SafeLoad
 from ultralytics.utils import DEFAULT_CFG_DICT, SAFE_LOAD
 from ultralytics.utils.checks import check_model_file_from_stem
 from ultralytics.utils.downloads import attempt_download_asset
@@ -58,7 +59,10 @@ class NAS(Model):
             weights (str): Path to the model weights file or model name.
             task (str, optional): Task type for the model.
         """
-        self.model = torch_load(attempt_download_asset(check_model_file_from_stem(weights)), weights_only=SAFE_LOAD)
+        weights = attempt_download_asset(check_model_file_from_stem(weights))
+        if SAFE_LOAD and _SafeLoad.SUPPORTED:
+            _SafeLoad.register(weights)
+        self.model = torch_load(weights, weights_only=SAFE_LOAD)
 
         def forward(m, x):
             """Return predictions in the Ultralytics detect layout (B, 4 + nc, N) with xywh boxes."""

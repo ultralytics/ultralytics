@@ -253,7 +253,10 @@ def torch_load(*args, **kwargs):
         from ultralytics.nn.tasks import _SafeLoad
 
         if _SafeLoad.SUPPORTED:
-            _SafeLoad.register(source)
+            with torch.serialization._open_file_like(args[0], "rb") as file:
+                _SafeLoad.register(file)
+                file.seek(0)
+                return torch.load(file, *args[1:], **kwargs)
 
     return torch.load(*args, **kwargs)
 

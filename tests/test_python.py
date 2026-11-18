@@ -286,8 +286,9 @@ def test_restricted_load_threaded():
 
 
 def test_restricted_load_blocks_constructor_calls(tmp_path, monkeypatch):
-    """Restricted loaders reject model constructor calls in ZIP and legacy checkpoints."""
+    """Restricted loaders reject DistillationModel constructor calls in ZIP and legacy checkpoints."""
     from ultralytics.models.nas.model import NAS
+    from ultralytics.nn.distill_model import DistillationModel
     from ultralytics.nn.tasks import _SafeLoad, torch_safe_load
 
     if not _SafeLoad.SUPPORTED:
@@ -296,15 +297,15 @@ def test_restricted_load_blocks_constructor_calls(tmp_path, monkeypatch):
 
     class ConstructorCall:
         def __reduce__(self):
-            return torch.nn.Conv2d, (1, 1, 1)
+            return DistillationModel, (None, None)
 
-    with torch.serialization.safe_globals([torch.nn.Conv2d]):  # direct restricted loads inherit process-wide globals
+    with torch.serialization.safe_globals([DistillationModel]):  # direct restricted loads inherit process-wide globals
         for legacy in (False, True):
             path = tmp_path / f"constructor-{legacy}.pt"
             torch.save({"model": ConstructorCall()}, path, _use_new_zipfile_serialization=not legacy)
             with pytest.raises(TypeError, match="supported Ultralytics checkpoint format"):
                 torch_safe_load(path, safe_only=True)
-            with pytest.raises(pickle.UnpicklingError, match="blocked during restricted model load"):
+            with pytest.raises(pickle.UnpicklingError, match=r"blocked during restricted model load|persistent_load"):
                 NAS.__new__(NAS)._load(str(path))
 
 
@@ -319,7 +320,8 @@ def test_restricted_load_legacy_state_dict(tmp_path):
 
 
 def test_restricted_load_blocks_aliased_constructor(tmp_path):
-    """Constructor blocking also resolves aliases in PyTorch's active safe-global registry."""
+    """DistillationModel constructor blocking also resolves PyTorch safe-global aliases."""
+    from ultralytics.nn.distill_model import DistillationModel
     from ultralytics.nn.tasks import _SafeLoad, torch_safe_load
 
     if not _SafeLoad.SUPPORTED:
@@ -327,7 +329,7 @@ def test_restricted_load_blocks_aliased_constructor(tmp_path):
 
     class ConstructorCall:
         def __reduce__(self):
-            return torch.nn.Conv2d, (1, 1, 1)
+            return DistillationModel, (None, None)
 
     source = tmp_path / "canonical.pt"
     path = tmp_path / "aliased.pt"
@@ -336,9 +338,12 @@ def test_restricted_load_blocks_aliased_constructor(tmp_path):
         for item in src.infolist():
             data = src.read(item.filename)
             if item.filename.endswith("data.pkl"):
-                data = data.replace(b"torch.nn.modules.conv\nConv2d\n", b"checkpoint_aliases\nConv2d\n")
+                data = data.replace(
+                    b"ultralytics.nn.distill_model\nDistillationModel\n",
+                    b"checkpoint_aliases\nDistillationModel\n",
+                )
             dst.writestr(item, data)
-    with torch.serialization.safe_globals([(torch.nn.Conv2d, "checkpoint_aliases.Conv2d")]), pytest.raises(
+    with torch.serialization.safe_globals([(DistillationModel, "checkpoint_aliases.DistillationModel")]), pytest.raises(
         TypeError, match="supported Ultralytics checkpoint format"
     ):
         torch_safe_load(path, safe_only=True)

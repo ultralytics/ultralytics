@@ -446,9 +446,11 @@ class ConfusionMatrix(DataExportMixin):
         counts = self.cells.setdefault(cell, [0, 0, []])
         counts[0] += objects
         counts[1] += images
-        counts[2].extend(examples)
-        if cell[1] == self.nc:
-            counts[2] = heapq.nlargest(10, counts[2])
+        if cell[1] < self.nc:
+            counts[2].extend(examples)
+        else:  # min-heap, so a weaker image is dropped without sorting
+            for example in examples:
+                (heapq.heappush if len(counts[2]) < 10 else heapq.heappushpop)(counts[2], example)
 
     def process_cls_preds(self, preds: list[torch.Tensor], targets: list[torch.Tensor]) -> None:
         """Update confusion matrix for classification task.

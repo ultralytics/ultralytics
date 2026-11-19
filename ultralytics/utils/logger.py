@@ -678,7 +678,7 @@ class SystemLogger:
         return gpus
 
     def _get_amd_metrics(self):
-        """Get AMD GPU metrics including utilization, memory, junction (hotspot) temperature, and power."""
+        """Get AMD GPU metrics including utilization, memory, edge temperature, and power."""
         import amdsmi
 
         gpus = {}
@@ -688,9 +688,11 @@ class SystemLogger:
                 power = amdsmi.amdsmi_get_power_info(handle)  # W, "N/A" where unsupported
                 avg = power["average_socket_power"]
                 power = power["current_socket_power"] if avg == "N/A" else avg  # as torch.cuda.power_draw falls back
-                temp = amdsmi.amdsmi_get_temp_metric(
-                    handle, amdsmi.AmdSmiTemperatureType.HOTSPOT, amdsmi.AmdSmiTemperatureMetric.CURRENT
-                )
+                types, current = amdsmi.AmdSmiTemperatureType, amdsmi.AmdSmiTemperatureMetric.CURRENT
+                try:  # edge matches NVML's GPU temperature; junction (hotspot) reads 10-25 C higher
+                    temp = int(amdsmi.amdsmi_get_temp_metric(handle, types.EDGE, current))
+                except Exception:  # GPUs without an edge sensor
+                    temp = int(amdsmi.amdsmi_get_temp_metric(handle, types.HOTSPOT, current))
                 gpus[str(i)] = {  # int() skips a GPU with an "N/A" reading, since Platform requires all four numbers
                     "usage": int(amdsmi.amdsmi_get_gpu_activity(handle)["gfx_activity"]),
                     "memory": round((vram["vram_used"] / vram["vram_total"]) * 100, 3),

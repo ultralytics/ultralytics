@@ -90,18 +90,20 @@ def _confusion_payload(confusion_matrix, conf, budget):
     ranked = sorted(confusion_matrix.cells.items(), key=rank)
     cells, size = [], len(json.dumps({"conf": conf, "images": [], "cells": []}))
     for (p, t), (objects, count, _) in ranked:
-        size += len(json.dumps([p, t, objects, count, []])) + 2
-        if size > budget:
+        cost = len(json.dumps([p, t, objects, count, []])) + 2
+        if size + cost > budget:
             break
+        size += cost
         cells.append([p, t, objects, count, []])
     images, index = [], {}
     for cell, (_, (_, _, examples)) in zip(cells, ranked):
         for _, name, boxes in sorted(examples, reverse=True):
             image = Path(name).stem.split("_", 1)[0]
             i = index.get(image, len(images))
-            size += len(json.dumps([i, boxes])) + 2 + (len(json.dumps(image)) + 2 if i == len(images) else 0)
-            if size > budget:
-                break
+            cost = len(json.dumps([i, boxes])) + 2 + (len(json.dumps(image)) + 2 if i == len(images) else 0)
+            if size + cost > budget:
+                break  # the cell keeps its top images; later cells may still fit theirs
+            size += cost
             if i == len(images):
                 index[image] = i
                 images.append(image)

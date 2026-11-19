@@ -4,7 +4,7 @@ description: Export Ultralytics YOLO26 models to NVIDIA TensorRT engines with fo
 keywords: YOLO26, TensorRT, TensorRT export, engine file, NVIDIA GPU, FP16, INT8 quantization, INT8 calibration, dynamic batch, NVIDIA Jetson, DLA, TensorRT 11, Triton
 ---
 
-# TensorRT Export for YOLO26 Models
+# NVIDIA TensorRT Export for YOLO26 Models
 
 [TensorRT](https://developer.nvidia.com/tensorrt) is NVIDIA's SDK for high-speed [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference. Exporting an [Ultralytics YOLO26](../models/yolo26.md) model with `format="engine"` builds a `.engine` file that is optimized for the NVIDIA GPU it is built on, in FP32, FP16, or INT8 precision.
 

@@ -24,14 +24,12 @@ Whether you're a beginner or an expert in [deep learning](https://www.ultralytic
 
 ## Guides
 
-Guides are grouped by project stage — from environment setup and data preparation through training, evaluation, deployment, inference optimization, and edge hardware — so you can jump straight to the step you're working on.
+Guides are grouped by project stage — from environment setup and data preparation through training, evaluation, and deployment — so you can jump straight to the step you're working on.
 
 ### Get started & plan
 
 - [Conda Quickstart](conda-quickstart.md): Step-by-step guide to setting up a [Conda](https://anaconda.org/conda-forge/ultralytics) environment for Ultralytics. Learn how to install and start using the Ultralytics package efficiently with Conda.
 - [Docker Quickstart](docker-quickstart.md): Complete guide to setting up and using Ultralytics YOLO models with [Docker](https://hub.docker.com/r/ultralytics/ultralytics). Learn how to install Docker, manage GPU support, and run YOLO models in isolated containers for consistent development and deployment.
-- [AzureML Quickstart](azureml-quickstart.md): Get up and running with Ultralytics YOLO models on Microsoft's Azure [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml) platform. Learn how to train, deploy, and scale your object detection projects in the cloud.
-- [Modal Quickstart](modal-quickstart.md): Run Ultralytics YOLO26 on Modal's serverless cloud platform, covering authentication, GPU inference, and training jobs with persistent storage — no infrastructure to manage.
 - [Defining A Computer Vision Project's Goals](defining-project-goals.md): Walk through how to effectively define clear and measurable goals for your computer vision project. Learn the importance of a well-defined problem statement and how it creates a roadmap for your project.
 - [Steps of a Computer Vision Project](steps-of-a-cv-project.md): Learn about the key steps involved in a computer vision project, including defining goals, selecting models, preparing data, and evaluating results.
 - [YOLO Architecture Explained](yolo-architecture.md): Trace how the YOLO architecture evolved from YOLOv3 to YOLO26 across backbone, neck, and detection head, covering C2f, C3k2, C2PSA attention, anchor-free, and NMS-free design.
@@ -70,26 +68,12 @@ Guides are grouped by project stage — from environment setup and data preparat
 - [Best Practices for Model Deployment](model-deployment-practices.md): Walk through tips and best practices for efficiently deploying models in computer vision projects, with a focus on optimization, troubleshooting, and security.
 - [Export Non-YOLO Models](export-non-yolo-models.md): Use Ultralytics standalone export utilities to convert any `torch.nn.Module` (timm, torchvision, custom) to TorchScript, ONNX, OpenVINO, CoreML, Core AI, TensorFlow SavedModel, PaddlePaddle, MNN, NCNN, and ExecuTorch.
 - [End-to-End Detection](end2end-detection.md): Choose NMS or NMS-free inference and understand output formats and export compatibility.
-- [Triton Inference Server Integration](triton-inference-server.md): Integrate Ultralytics YOLO26 with NVIDIA Triton Inference Server for scalable, efficient deep learning inference deployments.
 - [YOLO Thread-Safe Inference](yolo-thread-safe-inference.md): Guidelines for performing inference with YOLO models in a thread-safe manner. Learn the importance of thread safety and best practices to prevent race conditions and ensure consistent predictions.
-- [ROS Quickstart](ros-quickstart.md): Learn how to integrate YOLO with the Robot Operating System (ROS) for real-time object detection in robotics applications, including point cloud and depth images.
-- [Vertex AI Deployment with Docker](vertex-ai-deployment-with-docker.md): Streamlined guide to containerizing YOLO models with Docker and deploying them on Google Cloud Vertex AI—covering build, push, autoscaling, and monitoring.
-
-### Optimize inference
-
 - [OpenVINO Latency vs Throughput Modes](optimizing-openvino-latency-vs-throughput-modes.md): Learn latency and throughput optimization techniques for peak YOLO inference performance.
-- [NVIDIA DALI GPU Preprocessing](nvidia-dali.md): Eliminate CPU preprocessing bottlenecks by running YOLO letterbox resize, padding, and normalization on the GPU using NVIDIA DALI, with Triton Inference Server integration.
 - [Isolating Segmentation Objects](isolating-segmentation-objects.md): Step-by-step recipe for extracting and isolating objects from images with Ultralytics segmentation models.
 - [View Inference Images in a Terminal](view-results-in-terminal.md): Use VS Code's integrated terminal to view inference results when using Remote Tunnel or SSH sessions.
 
-### Edge & embedded hardware
-
-- [NVIDIA Jetson](nvidia-jetson.md): Quickstart guide for deploying YOLO models on NVIDIA Jetson devices.
-- [Raspberry Pi](raspberry-pi.md): Quickstart tutorial to run YOLO models on the latest Raspberry Pi hardware.
-- [DeepStream on NVIDIA Jetson](deepstream-nvidia-jetson.md): Quickstart guide for deploying YOLO models on NVIDIA Jetson devices using DeepStream and TensorRT.
-- [Edge TPU on Raspberry Pi](coral-edge-tpu-on-raspberry-pi.md): [Google Edge TPU](https://developers.google.com/coral) accelerates YOLO inference on [Raspberry Pi](https://www.raspberrypi.com/).
-- [NVIDIA DGX Spark](nvidia-dgx-spark.md): Quickstart guide for deploying YOLO models on NVIDIA DGX Spark devices.
-- [DL Streamer on Intel](dlstreamer-intel.md): Quickstart guide for deploying YOLO26 models on Intel Core Ultra Series 3 devices using DL Streamer and OpenVINO™.
+Guides for specific hardware, serving stacks, and cloud platforms, such as NVIDIA Jetson, Raspberry Pi, NVIDIA Triton, and Google Vertex AI, are listed under [Integrations](../integrations/index.md).
 
 ## Contribute to Our Guides
 

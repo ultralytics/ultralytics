@@ -1,5 +1,5 @@
 ---
-title: YOLO26 Training Logging with Comet ML
+title: YOLO26 Training Logging with Comet
 comments: true
 description: Log Ultralytics YOLO26 training to Comet, covering installation, API key setup, automatic metrics and checkpoints, custom logging variables, and offline mode.
 keywords: YOLO26, Comet, Comet ML, logging, machine learning, training, model checkpoints, metrics, installation, configuration, real-time insights, custom logging

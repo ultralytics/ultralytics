@@ -696,7 +696,7 @@ class SystemLogger:
                 gpus[str(i)] = {  # int() skips a GPU with an "N/A" reading, since Platform requires all four numbers
                     "usage": int(amdsmi.amdsmi_get_gpu_activity(handle)["gfx_activity"]),
                     "memory": round((vram["vram_used"] / vram["vram_total"]) * 100, 3),
-                    "temp": int(temp),
+                    "temp": temp,
                     "power": int(power),
                 }
             except Exception:

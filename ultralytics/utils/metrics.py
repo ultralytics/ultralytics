@@ -437,37 +437,22 @@ class ConfusionMatrix(DataExportMixin):
             self.matches = {k: defaultdict(list) for k in ("TP", "FP", "FN", "GT")}
             for i in range(gt_cls.shape[0]):
                 self._append_matches("GT", batch, i)  # store GT
-        is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
-        no_pred = detections["cls"].shape[0] == 0
-        if gt_cls.shape[0] == 0:  # Check if labels is empty
-            if not no_pred:
-                detections = {k: detections[k][detections["conf"] > conf] for k in detections}
-                detection_classes = detections["cls"].int().tolist()
-                for i, dc in enumerate(detection_classes):
-                    self.matrix[dc, self.nc] += 1  # FP
-                    self._append_matches("FP", detections, i)
-            return
-        if no_pred:
-            gt_classes = gt_cls.int().tolist()
-            for i, gc in enumerate(gt_classes):
-                self.matrix[self.nc, gc] += 1  # FN
-                self._append_matches("FN", batch, i)
-            return
-
         detections = {k: detections[k][detections["conf"] > conf] for k in detections}
         gt_classes = gt_cls.int().tolist()
         detection_classes = detections["cls"].int().tolist()
-        bboxes = detections["bboxes"]
-        iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
-
-        iou = iou.cpu().numpy()
         gt_match = np.full(len(gt_classes), -1)
-        candidates = np.flatnonzero((iou > iou_thres).any(0))
-        for det_idx in candidates[np.argsort(-detections["conf"].cpu().numpy()[candidates], kind="stable")]:
-            gt_idx = iou[:, det_idx].argmax()
-            if iou[gt_idx, det_idx] > iou_thres:
-                gt_match[gt_idx] = det_idx
-                iou[gt_idx] = 0
+        if gt_classes and detection_classes:
+            is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
+            bboxes = detections["bboxes"]
+            iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
+
+            iou = iou.cpu().numpy()
+            candidates = np.flatnonzero((iou > iou_thres).any(0))
+            for det_idx in candidates[np.argsort(-detections["conf"].cpu().numpy()[candidates], kind="stable")]:
+                gt_idx = iou[:, det_idx].argmax()
+                if iou[gt_idx, det_idx] > iou_thres:
+                    gt_match[gt_idx] = det_idx
+                    iou[gt_idx] = 0
         matched_det = set(gt_match[gt_match >= 0].tolist())
         for i, gc in enumerate(gt_classes):
             if (di := gt_match[i].item()) >= 0:

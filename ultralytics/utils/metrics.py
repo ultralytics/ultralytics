@@ -423,20 +423,21 @@ class ConfusionMatrix(DataExportMixin):
 
         def normalize(boxes):
             boxes = scale_boxes(batch["imgsz"], boxes.clone(), (h, w), ratio_pad=batch["ratio_pad"])
-            return (boxes.cpu().numpy() / [w, h, w, h]).round(4).tolist()
+            return (boxes.cpu().numpy() / [w, h, w, h]).round(4)
 
-        pred, gt = normalize(detections["bboxes"]), normalize(batch["bboxes"])
-        conf = detections["conf"].cpu().numpy().astype(float).round(3).tolist()
+        conf = detections["conf"].cpu().numpy().astype(float)
+        pred = np.column_stack([normalize(detections["bboxes"]), conf.round(3)]).tolist()
+        gt, conf = normalize(batch["bboxes"]).tolist(), conf.tolist()  # rank by the unrounded confidence
         det_cls, gt_cls = detections["cls"].int().tolist(), batch["cls"].int().tolist()
         groups = defaultdict(list)
         for g, d in enumerate(gt_match.tolist()):
             if d >= 0:
-                groups[det_cls[d], gt_cls[g]].append((conf[d], pred[d] + [conf[d]] + gt[g]))
+                groups[det_cls[d], gt_cls[g]].append((conf[d], pred[d] + gt[g]))
             else:
                 x1, y1, x2, y2 = gt[g]
                 groups[self.nc, gt_cls[g]].append(((x2 - x1) * (y2 - y1), gt[g]))
         for d in sorted(set(range(len(det_cls))) - set(gt_match.tolist())):
-            groups[det_cls[d], self.nc].append((conf[d], pred[d] + [conf[d]]))
+            groups[det_cls[d], self.nc].append((conf[d], pred[d]))
         for cell, items in groups.items():
             items.sort(key=lambda x: -x[0])
             self.add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items[:5]])])

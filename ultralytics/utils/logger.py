@@ -463,13 +463,11 @@ class SystemLogger:
         import psutil  # scoped as slow import
 
         from ultralytics.utils.checks import rocm_is_available
-        from ultralytics.utils.torch_utils import TORCH_2_8
 
         rocm = rocm_is_available()  # ROCm builds expose AMD GPUs as CUDA devices, which NVML cannot read
         self.pynvml = None
         self.nvidia_initialized = not rocm and self._init_nvidia()
-        # torch>=2.8 exposes the PCI address that matches torch GPUs to amdsmi GPUs
-        self.amd_gpus = self._init_amd(gpus) if rocm and TORCH_2_8 else {}
+        self.amd_gpus = self._init_amd(gpus) if rocm else {}
         self.nvidia_versions = {}
         if self.nvidia_initialized:
             try:

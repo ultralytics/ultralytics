@@ -1458,7 +1458,7 @@ Creates an untrained model record you can attach weights to or train.
 
     To attach `.pt` weights, request a signed upload URL with `assetType: "models"` and this model's `id` as `assetId`,
     `PUT` the file to the returned URL, then call `POST /api/upload/complete` with the returned `sessionId`. The
-    filename must end in `.pt` (see [Upload Filenames](#upload-filenames)).
+    filename must end in `.pt` (see [Get Signed Upload URL](#get-signed-upload-url)).
 
 ### Update Model
 

@@ -351,8 +351,8 @@ class ConfusionMatrix(DataExportMixin):
         nc (int): The number of classes.
         names (dict[int, str]): The names of the classes, used as labels on the plot.
         matches (dict | None): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
-        cells (dict | None): [objects, images, examples] per (predicted, true) cell, each example a (score, image file,
-            boxes) tuple with up to 5 boxes as normalized xyxy, plus conf and the matched ground truth when present.
+        cells (dict | None): [objects, images, examples] per (predicted, true) cell. Each example is (score, image file,
+            boxes) with the image's boxes in that cell as normalized xyxy: prediction and conf, then any matched truth.
     """
 
     def __init__(
@@ -440,7 +440,7 @@ class ConfusionMatrix(DataExportMixin):
             groups[det_cls[d], self.nc].append((conf[d], pred[d]))
         for cell, items in groups.items():
             items.sort(key=lambda x: -x[0])
-            self.add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items[:5]])])
+            self.add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items])])
 
     def add_cell(self, cell: tuple[int, int], objects: int, images: int, examples: list[tuple]) -> None:
         """Add counts and examples to a cell of `cells`, keeping the 10 top-scoring images of a false-detection cell."""

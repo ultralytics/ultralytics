@@ -48,7 +48,7 @@ See the [unreleased YOLO27 preview](yolo27.md) for planned architecture, tasks, 
 
     Explore and run YOLO26 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
 
-<platform-predict src="/ultralytics/yolo26/yolo26n"></platform-predict>
+<platform-predict src="https://platform.ultralytics.com/ultralytics/yolo26/yolo26n"></platform-predict>
 
 The YOLO26 model family is built around four design areas:
 

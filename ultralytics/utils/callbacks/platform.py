@@ -78,8 +78,9 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
 def _confusion_payload(confusion_matrix, conf, budget):
     """Return confusion matrix cells with example images in at most `budget` JSON bytes, counts before examples.
 
-    Cells are [predicted, true, objects, images, examples], each example [image index, boxes]; a cell with fewer
-    examples than images was cut. Cells and examples go confused, missed, false-detection, then correct, largest first.
+    Cells are [predicted, true, objects, images, examples], each example [image index, boxes]. Background-column cells
+    carry at most their top 10 images; any other cell with fewer examples than images was cut. Cells go confused,
+    missed, false-detection, then correct, largest first, each with its images by confidence (missed: by box area).
     """
     nc = confusion_matrix.nc
 
@@ -595,8 +596,9 @@ def on_train_end(trainer):
         "plots": plots,
         "runId": ctx["run_id"],
     }
-    if getattr(confusion_matrix := trainer.validator.confusion_matrix, "cells", None):  # fill up to 4 of the 4.5 MB
-        room = 4_000_000 - len(json.dumps(_sanitize_json_value(data)))
+    confusion_matrix = trainer.validator.confusion_matrix
+    if getattr(confusion_matrix, "cells", None):
+        room = 4_000_000 - len(json.dumps(_sanitize_json_value(data)))  # fill up to 4 of the 4.5 MB request limit
         if room > 0:
             data["results"]["confusion"] = _confusion_payload(confusion_matrix, trainer.validator.args.conf, room)
     _send("training_complete", data, project, name, ctx["model_id"], retry=4)  # Critical, more retries

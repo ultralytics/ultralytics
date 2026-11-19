@@ -155,7 +155,11 @@ class DetectionValidator(BaseValidator):
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
         self.metrics.area_ap = {}
-        self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
+        self.confusion_matrix = ConfusionMatrix(
+            names=model.names,
+            save_matches=self.args.plots and self.args.visualize,
+            save_cells=self.args.task == "detect",
+        )
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
@@ -346,6 +350,13 @@ class DetectionValidator(BaseValidator):
             dist.reduce(matrix, dst=0, op=dist.ReduceOp.SUM)
             if RANK == 0:
                 self.confusion_matrix.matrix = matrix.cpu().numpy()
+            if self.confusion_matrix.cells is not None:
+                gathered_cells = [None] * dist.get_world_size() if RANK == 0 else None
+                dist.gather_object(self.confusion_matrix.cells, gathered_cells, dst=0)
+                self.confusion_matrix.cells = {}
+                for cells in gathered_cells or []:
+                    for cell, counts in cells.items():
+                        self.confusion_matrix.add_cell(cell, *counts)
 
     def get_stats(self) -> dict[str, Any]:
         """Calculate and return metrics statistics.

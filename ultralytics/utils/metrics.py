@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import heapq
 import math
 import warnings
 from collections import defaultdict
@@ -350,15 +351,24 @@ class ConfusionMatrix(DataExportMixin):
         nc (int): The number of classes.
         names (dict[int, str]): The names of the classes, used as labels on the plot.
         matches (dict | None): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
+        cells (dict | None): [objects, images, examples] per (predicted, true) cell, each example a (score, image file,
+            boxes) tuple with up to 5 boxes as normalized xyxy, plus conf and the matched ground truth when present.
     """
 
-    def __init__(self, names: dict[int, str] | None = None, task: str = "detect", save_matches: bool = False):
+    def __init__(
+        self,
+        names: dict[int, str] | None = None,
+        task: str = "detect",
+        save_matches: bool = False,
+        save_cells: bool = False,
+    ):
         """Initialize a ConfusionMatrix instance.
 
         Args:
             names (dict[int, str], optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, one of 'detect', 'semantic', 'classify', or 'obb'.
             save_matches (bool, optional): Save the indices of GTs, TPs, FPs, FNs for visualization.
+            save_cells (bool, optional): Save the images and boxes behind each cell, see `cells`.
         """
         names = names if names is not None else {}
         self.task = task
@@ -370,6 +380,7 @@ class ConfusionMatrix(DataExportMixin):
         )
         self.names = names  # name of classes
         self.matches = {} if save_matches else None
+        self.cells = {} if save_cells else None
 
     def _append_matches(self, mtype: str, batch: dict[str, Any], idx: int) -> None:
         """Append the matches to TP, FP, FN or GT list for the last batch.
@@ -395,6 +406,49 @@ class ConfusionMatrix(DataExportMixin):
             elif k == "masks":
                 # NOTE: masks.max() > 1.0 means overlap_mask=True with (1, H, W) shape
                 self.matches[mtype][k] += [v[0] == idx + 1] if v.max() > 1.0 else [v[idx]]
+
+    def _save_cells(self, detections: dict[str, torch.Tensor], batch: dict[str, Any], gt_match: np.ndarray) -> None:
+        """Add the image to every cell it has boxes in, ranking boxes by confidence and missed boxes by area.
+
+        Args:
+            detections (dict[str, torch.Tensor]): Detections above the confidence threshold.
+            batch (dict[str, Any]): Ground truth with 'im_file', 'ori_shape', 'imgsz' and 'ratio_pad' keys.
+            gt_match (np.ndarray): Index of the matched detection for each ground truth, -1 when missed.
+        """
+        if self.cells is None:
+            return
+        from .ops import scale_boxes
+
+        h, w = batch["ori_shape"]
+
+        def normalize(boxes):
+            boxes = scale_boxes(batch["imgsz"], boxes.clone(), (h, w), ratio_pad=batch["ratio_pad"])
+            return (boxes.cpu().numpy() / [w, h, w, h]).round(4).tolist()
+
+        pred, gt = normalize(detections["bboxes"]), normalize(batch["bboxes"])
+        conf = detections["conf"].cpu().numpy().astype(float).round(3).tolist()
+        det_cls, gt_cls = detections["cls"].int().tolist(), batch["cls"].int().tolist()
+        groups = defaultdict(list)
+        for g, d in enumerate(gt_match.tolist()):
+            if d >= 0:
+                groups[det_cls[d], gt_cls[g]].append((conf[d], pred[d] + [conf[d]] + gt[g]))
+            else:
+                x1, y1, x2, y2 = gt[g]
+                groups[self.nc, gt_cls[g]].append(((x2 - x1) * (y2 - y1), gt[g]))
+        for d in sorted(set(range(len(det_cls))) - set(gt_match.tolist())):
+            groups[det_cls[d], self.nc].append((conf[d], pred[d] + [conf[d]]))
+        for cell, items in groups.items():
+            items.sort(key=lambda x: -x[0])
+            self.add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items[:5]])])
+
+    def add_cell(self, cell: tuple[int, int], objects: int, images: int, examples: list[tuple]) -> None:
+        """Add counts and examples to a cell of `cells`, keeping the 10 top-scoring images of a false-detection cell."""
+        counts = self.cells.setdefault(cell, [0, 0, []])
+        counts[0] += objects
+        counts[1] += images
+        counts[2].extend(examples)
+        if cell[1] == self.nc:
+            counts[2] = heapq.nlargest(10, counts[2])
 
     def process_cls_preds(self, preds: list[torch.Tensor], targets: list[torch.Tensor]) -> None:
         """Update confusion matrix for classification task.
@@ -471,6 +525,7 @@ class ConfusionMatrix(DataExportMixin):
             if i not in matched_det:
                 self.matrix[dc, self.nc] += 1  # FP
                 self._append_matches("FP", detections, i)
+        self._save_cells(detections, batch, gt_match)
 
     def tp_fp(self) -> tuple[np.ndarray, np.ndarray]:
         """Return true positives and false positives.

@@ -417,12 +417,12 @@ class SystemLogger:
     Attributes:
         pynvml (module | None): NVIDIA pynvml module if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
-        amdsmi (module | None): AMD amdsmi module on ROCm when its only GPU is torch GPU 0, None otherwise.
+        amd_gpus (dict): amdsmi handles of the reported GPUs on ROCm, keyed by torch index and matched by PCI address.
         nvidia_versions (dict): NVIDIA 'driver_version' and 'cuda_version' strings read from NVML, if available.
         net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
         disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
         mounts (list[str]): Mounted drive paths monitored for disk usage.
-        gpus (list[int] | None): NVML indices of the GPUs reported, or None for every GPU (torch indices on ROCm).
+        gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs reported, or None for every GPU.
 
     Examples:
         Basic usage (single drive):
@@ -455,17 +455,18 @@ class SystemLogger:
 
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
-            gpus (list[int] | None): NVML indices of the GPUs to report, such as those a training run uses. None reports
-                every GPU and an empty list reports none. On ROCm, these are torch indices and only torch GPU 0 is
-                reported, when it is the single GPU amdsmi sees, since amdsmi and HIP indices may not match otherwise.
+            gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs to report, such as those a
+                training run uses. None reports every GPU and an empty list reports none.
         """
         import psutil  # scoped as slow import
 
         from ultralytics.utils.checks import rocm_is_available
+        from ultralytics.utils.torch_utils import TORCH_2_8
 
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
-        self.amdsmi = self._init_amd() if gpus != [] and rocm_is_available() else None
+        # torch>=2.8 exposes the PCI address that matches torch GPUs to amdsmi GPUs
+        self.amd_gpus = self._init_amd(gpus) if gpus != [] and TORCH_2_8 and rocm_is_available() else {}
         self.nvidia_versions = {}
         if self.nvidia_initialized:
             try:
@@ -503,26 +504,29 @@ class SystemLogger:
             return False
 
     @staticmethod
-    def _init_amd():
-        """Initialize amdsmi, which ROCm ships but a fresh environment may lack, if its only GPU is torch GPU 0."""
+    def _init_amd(gpus):
+        """Match torch GPUs to amdsmi handles by PCI address, since amdsmi may order GPUs differently from HIP."""
         import torch
 
         try:
-            import amdsmi  # scoped as slow import
+            import amdsmi  # scoped as slow import, ships with ROCm but a fresh environment may lack it
 
             amdsmi.amdsmi_init()
-            handles = amdsmi.amdsmi_get_processor_handles()
-            p = torch.cuda.get_device_properties(0)
-            pci = f"{p.pci_domain_id:04x}:{p.pci_bus_id:02x}:{p.pci_device_id:02x}."  # amdsmi BDF prefix
-            if len(handles) == 1 and amdsmi.amdsmi_get_gpu_device_bdf(handles[0]).lower().startswith(pci):
-                return amdsmi
-            LOGGER.info(  # by design, not an error: amdsmi and HIP indices are only certain to match for one GPU
-                f"SystemLogger AMD GPU metrics unavailable: amdsmi sees {len(handles)} GPUs, "
-                f"expected only torch GPU 0 at PCI {pci[:-1]}"
-            )
+            by_pci = {}
+            for handle in amdsmi.amdsmi_get_processor_handles():
+                pci = amdsmi.amdsmi_get_gpu_device_bdf(handle).lower().rsplit(".", 1)[0]  # HIP reports no PCI function
+                by_pci[pci] = None if pci in by_pci else handle  # an ambiguous address matches no GPU
+            n = torch.cuda.device_count()
+            handles = {}
+            for i in range(n) if gpus is None else [i for i in gpus if i < n]:
+                p = torch.cuda.get_device_properties(i)
+                handle = by_pci.get(f"{p.pci_domain_id:04x}:{p.pci_bus_id:02x}:{p.pci_device_id:02x}")
+                if handle is not None:
+                    handles[i] = handle
+            return handles
         except Exception as e:
             LOGGER.warning(f"SystemLogger AMD GPU metrics unavailable: {e}")
-        return None
+            return {}
 
     def get_metrics(self, rates=False):
         """Get current system metrics including CPU, RAM, disk, network, and GPU usage.
@@ -640,7 +644,7 @@ class SystemLogger:
         # Add GPU metrics
         if self.nvidia_initialized:
             metrics["gpus"].update(self._get_nvidia_metrics())
-        elif self.amdsmi:
+        elif self.amd_gpus:
             metrics["gpus"].update(self._get_amd_metrics())
 
         return metrics
@@ -670,31 +674,34 @@ class SystemLogger:
         return gpus
 
     def _get_amd_metrics(self):
-        """Get metrics of torch GPU 0, the single GPU amdsmi sees as checked at init."""
+        """Get AMD GPU metrics including utilization, memory, junction (hotspot) temperature, and power."""
+        import amdsmi
+
         gpus = {}
-        if self.gpus is not None and 0 not in self.gpus:
-            return gpus
-        smi = self.amdsmi
-        try:
-            handle = smi.amdsmi_get_processor_handles()[0]
-            vram = smi.amdsmi_get_gpu_vram_usage(handle)  # MB
-            power = smi.amdsmi_get_power_info(handle)  # W, "N/A" where unsupported, as torch.cuda.power_draw handles
-            gpus["0"] = {  # int() drops a sample with an "N/A" reading instead of sending a non-numeric value
-                "usage": int(smi.amdsmi_get_gpu_activity(handle)["gfx_activity"]),
-                "memory": round((vram["vram_used"] / vram["vram_total"]) * 100, 3),
-                "temp": int(
-                    smi.amdsmi_get_temp_metric(
-                        handle, smi.AmdSmiTemperatureType.HOTSPOT, smi.AmdSmiTemperatureMetric.CURRENT
-                    )
-                ),
-                "power": int(
+        for i, handle in self.amd_gpus.items():
+            try:
+                vram = amdsmi.amdsmi_get_gpu_vram_usage(handle)  # MB
+                power = amdsmi.amdsmi_get_power_info(
+                    handle
+                )  # W, "N/A" where unsupported, as torch.cuda.power_draw handles
+                power = (
                     power["current_socket_power"]
                     if power["average_socket_power"] == "N/A"
                     else power["average_socket_power"]
-                ),
-            }
-        except Exception:
-            pass
+                )
+                temp = amdsmi.amdsmi_get_temp_metric(
+                    handle, amdsmi.AmdSmiTemperatureType.HOTSPOT, amdsmi.AmdSmiTemperatureMetric.CURRENT
+                )
+                gpu = {  # int() skips a GPU with an "N/A" reading instead of sending a non-numeric value
+                    "usage": int(amdsmi.amdsmi_get_gpu_activity(handle)["gfx_activity"]),
+                    "memory": round((vram["vram_used"] / vram["vram_total"]) * 100, 3),
+                    "temp": int(temp),
+                }
+                if power != "N/A":  # power is optional for Platform
+                    gpu["power"] = int(power)
+                gpus[str(i)] = gpu
+            except Exception:
+                pass
         return gpus
 
 
@@ -730,7 +737,7 @@ if __name__ == "__main__":
                         f"  GPU {gpu_id}: {gpu_data['usage']:3}% | "
                         f"Mem: {gpu_data['memory']:5.1f}% | "
                         f"Temp: {gpu_data['temp']:2}°C | "
-                        f"Power: {gpu_data['power']:3}W"
+                        f"Power: {gpu_data.get('power', '-'):>3}W"
                     )
             else:
                 print("\nGPU: No GPU metrics available")

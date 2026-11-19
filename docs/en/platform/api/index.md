@@ -1074,7 +1074,10 @@ GET /api/images/{imageId}
 **Python SDK:** `client.images.retrieve(image_id)`
 
 Returns `metadata` (custom, user-defined), `properties` (filename, hash, dimensions, split, counts, timestamps),
-`labels`, and the dataset's `classNames`.
+`labels`, and the dataset's `classNames`. For an image added from another dataset or by Generate Similar,
+`properties.source` records its latest import: `method` (`similar`, `copy`, `move`, `clone`, or `generated`), the source
+`dataset` as `owner` and `slug` (omitted when it is deleted or not visible to you), the source `license` at import, the
+generating `model`, and `importedBy` (returned only to members of the dataset's workspace).
 
 ### Update Image
 
@@ -1454,7 +1457,8 @@ Creates an untrained model record you can attach weights to or train.
 !!! note "Model File Upload"
 
     To attach `.pt` weights, request a signed upload URL with `assetType: "models"` and this model's `id` as `assetId`,
-    `PUT` the file to the returned URL, then call `POST /api/upload/complete` with the returned `sessionId`.
+    `PUT` the file to the returned URL, then call `POST /api/upload/complete` with the returned `sessionId`. The
+    filename must end in `.pt`; other files, such as ONNX or TorchScript exports, are rejected with `400`.
 
 ### Update Model
 

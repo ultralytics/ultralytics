@@ -410,7 +410,7 @@ The **Help** page in the sidebar footer collects documentation links, video walk
 
 If you need more help:
 
-- **AI Chat**: Click the floating chat widget on any page for instant help
+- **AI Chat**: Click the floating chat widget on any page for instant help. Attach up to 3 files (3 MB in total), such as a screenshot or training log, from **+ > Add Photos & Files**, by dragging them in, or by pasting an image with `Cmd/Ctrl+V`
 - **Documentation**: Browse these docs for detailed guides on [datasets](data/datasets.md), [annotation](data/annotation.md), [training](train/cloud-training.md), [deployment](deploy/endpoints.md), and [billing](account/billing.md)
 - **Discord**: Join our [Discord community](https://discord.com/invite/ultralytics) for discussions
 - **GitHub**: Report issues on [GitHub](https://github.com/ultralytics/ultralytics/issues)

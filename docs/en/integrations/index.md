@@ -71,7 +71,7 @@ Explore the links to learn more about each integration and how to get the most o
 
 - [Google Coral Edge TPU on Raspberry Pi](../guides/coral-edge-tpu-on-raspberry-pi.md): [Google Edge TPU](https://developers.google.com/coral) accelerates YOLO inference on [Raspberry Pi](https://www.raspberrypi.com/).
 
-- [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to Hailo HEF; YOLO26 segmentation, pose, and OBB are not yet supported, see the integration guide for validated models and targets.
+- [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to Hailo HEF (YOLO26 segmentation, pose, and OBB are not yet supported); see the integration guide for validated models and targets.
 
 - [Huawei Ascend](ascend.md): Compile Ultralytics YOLO models to the Huawei Ascend `.om` offline format with the CANN ATC compiler for FP16 inference on Atlas and Orange Pi AIpro devices.
 

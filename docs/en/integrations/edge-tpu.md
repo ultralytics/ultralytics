@@ -7,7 +7,7 @@ keywords: YOLO26, TFLite Edge TPU, TensorFlow Lite, model export, machine learni
 
 # Export YOLO26 Models to Google Coral Edge TPU (TFLite) Format
 
-Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://developers.google.com/edge/litert) [Edge TPU](https://gweb-coral-full.uc.r.appspot.com/docs/edgetpu/models-intro/) or Edge TPU model format is designed to use minimal power while delivering fast performance for neural networks.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://developers.google.com/edge/litert) [Edge TPU](https://gweb-coral-full.uc.r.appspot.com/docs/edgetpu/models-intro/) model format is designed to use minimal power while delivering fast performance for neural networks.
 
 Exporting to the Edge TPU format lets you optimize your [Ultralytics YOLO26](../models/yolo26.md) models for high-speed, low-power inference. In this guide, we'll walk you through converting your models to the Edge TPU format, making it easier for your models to perform well on various mobile and embedded devices.
 

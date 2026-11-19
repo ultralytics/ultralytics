@@ -411,17 +411,18 @@ class _DriveInfo:
 class SystemLogger:
     """Log dynamic system metrics for training monitoring.
 
-    Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA GPU statistics for training
-    performance monitoring and analysis.
+    Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA or AMD GPU statistics for
+    training performance monitoring and analysis.
 
     Attributes:
         pynvml (module | None): NVIDIA pynvml module if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
+        amdsmi (module | None): AMD amdsmi module if initialized on a ROCm build of PyTorch, None otherwise.
         nvidia_versions (dict): NVIDIA 'driver_version' and 'cuda_version' strings read from NVML, if available.
         net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
         disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
         mounts (list[str]): Mounted drive paths monitored for disk usage.
-        gpus (list[int] | None): NVML indices of the GPUs reported, or None for every GPU.
+        gpus (list[int] | None): NVML or amdsmi indices of the GPUs reported, or None for every GPU.
 
     Examples:
         Basic usage (single drive):
@@ -454,13 +455,14 @@ class SystemLogger:
 
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
-            gpus (list[int] | None): NVML indices of the GPUs to report, such as those a training run uses. None reports
-                every GPU and an empty list reports none.
+            gpus (list[int] | None): NVML or amdsmi indices of the GPUs to report, such as those a training run uses. None
+                reports every GPU and an empty list reports none.
         """
         import psutil  # scoped as slow import
 
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
+        self.amdsmi = None if self.nvidia_initialized else self._init_amd()
         self.nvidia_versions = {}
         if self.nvidia_initialized:
             try:
@@ -493,9 +495,25 @@ class SystemLogger:
         except Exception as e:
             import torch
 
-            if torch.cuda.is_available():
+            if torch.cuda.is_available() and not torch.version.hip:  # ROCm GPUs are read through amdsmi instead
                 LOGGER.warning(f"SystemLogger NVML init failed: {e}")
             return False
+
+    @staticmethod
+    def _init_amd():
+        """Initialize AMD GPU monitoring with amdsmi, the Python bindings that ship with ROCm, on ROCm PyTorch builds."""
+        import torch
+
+        if not torch.version.hip:
+            return None
+        try:
+            import amdsmi  # scoped as slow import
+
+            amdsmi.amdsmi_init()
+            return amdsmi
+        except Exception as e:
+            LOGGER.warning(f"SystemLogger amdsmi init failed: {e}")
+            return None
 
     def get_metrics(self, rates=False):
         """Get current system metrics including CPU, RAM, disk, network, and GPU usage.
@@ -610,9 +628,11 @@ class SystemLogger:
         self._prev_disk = disk_io
         self._prev_time = now
 
-        # Add GPU metrics (NVIDIA only)
+        # Add GPU metrics
         if self.nvidia_initialized:
             metrics["gpus"].update(self._get_nvidia_metrics())
+        elif self.amdsmi:
+            metrics["gpus"].update(self._get_amd_metrics())
 
         return metrics
 
@@ -635,6 +655,27 @@ class SystemLogger:
                     "memory": round((memory.used / memory.total) * 100, 3),
                     "temp": temp,
                     "power": power,
+                }
+        except Exception:
+            pass
+        return gpus
+
+    def _get_amd_metrics(self):
+        """Get AMD GPU metrics including utilization, memory, junction (hotspot) temperature, and power."""
+        gpus = {}
+        smi = self.amdsmi
+        try:
+            handles = smi.amdsmi_get_processor_handles()
+            for i in range(len(handles)) if self.gpus is None else [i for i in self.gpus if i < len(handles)]:
+                handle = handles[i]
+                vram = smi.amdsmi_get_gpu_vram_usage(handle)  # MB
+                gpus[str(i)] = {
+                    "usage": round(smi.amdsmi_get_gpu_activity(handle)["gfx_activity"], 3),
+                    "memory": round((vram["vram_used"] / vram["vram_total"]) * 100, 3),
+                    "temp": smi.amdsmi_get_temp_metric(
+                        handle, smi.AmdSmiTemperatureType.HOTSPOT, smi.AmdSmiTemperatureMetric.CURRENT
+                    ),
+                    "power": smi.amdsmi_get_power_info(handle)["socket_power"],
                 }
         except Exception:
             pass

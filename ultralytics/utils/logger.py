@@ -456,7 +456,8 @@ class SystemLogger:
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
             gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs to report, such as those a
-                training run uses. None reports every GPU and an empty list reports none.
+                training run uses. None reports every GPU (every torch-visible GPU on ROCm) and an empty list reports
+                none.
         """
         import psutil  # scoped as slow import
 
@@ -512,12 +513,17 @@ class SystemLogger:
             import amdsmi  # scoped as slow import, ships with ROCm but a fresh environment may lack it
 
             amdsmi.amdsmi_init()
+            by_pci = {}  # HIP reports no PCI function, so partitions of one GPU share an address and stay unmatched
+            for handle in amdsmi.amdsmi_get_processor_handles():
+                pci = amdsmi.amdsmi_get_gpu_device_bdf(handle).lower().rsplit(".", 1)[0]
+                by_pci[pci] = None if pci in by_pci else handle
             n = torch.cuda.device_count()
             handles = {}
             for i in range(n) if gpus is None else [i for i in gpus if i < n]:
-                p = torch.cuda.get_device_properties(i)  # HIP reports no PCI function, GPUs are function 0
-                bdf = f"{p.pci_domain_id:04x}:{p.pci_bus_id:02x}:{p.pci_device_id:02x}.0"
-                handles[i] = amdsmi.amdsmi_get_processor_handle_from_bdf(bdf)
+                p = torch.cuda.get_device_properties(i)
+                handle = by_pci.get(f"{p.pci_domain_id:04x}:{p.pci_bus_id:02x}:{p.pci_device_id:02x}")
+                if handle is not None:
+                    handles[i] = handle
             return handles
         except Exception as e:
             LOGGER.warning(f"SystemLogger AMD GPU metrics unavailable: {e}")
@@ -679,9 +685,9 @@ class SystemLogger:
                 power = amdsmi.amdsmi_get_power_info(handle)  # W, "N/A" where unsupported
                 avg = power["average_socket_power"]
                 sensor, current = amdsmi.AmdSmiTemperatureType, amdsmi.AmdSmiTemperatureMetric.CURRENT
-                try:  # edge matches NVML's GPU temperature; junction (hotspot) reads 10-25 C higher
+                try:  # edge matches NVML's GPU temperature
                     temp = amdsmi.amdsmi_get_temp_metric(handle, sensor.EDGE, current)
-                except Exception:  # GPUs without an edge sensor
+                except Exception:  # fall back to junction (hotspot) where edge can't be read
                     temp = amdsmi.amdsmi_get_temp_metric(handle, sensor.HOTSPOT, current)
                 gpus[str(i)] = {  # int() rejects an "N/A" reading, since Platform requires numbers
                     "usage": int(amdsmi.amdsmi_get_gpu_activity(handle)["gfx_activity"]),

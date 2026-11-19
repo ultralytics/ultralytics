@@ -16,6 +16,10 @@ keywords: Ultralytics, ONNXBackend, ONNXIMXBackend, Microsoft ONNX Runtime, Sony
 
 <br><br><hr><br>
 
+## ::: ultralytics.nn.backends.onnx.STEdgeAIBackend
+
+<br><br><hr><br>
+
 ## ::: ultralytics.nn.backends.onnx.ONNXIMXBackend
 
 <br><br><hr><br>

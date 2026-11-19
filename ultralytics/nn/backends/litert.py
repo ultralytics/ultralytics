@@ -118,7 +118,6 @@ class LiteRTBackend(BaseBackend):
             self.interpreter.set_tensor(details["index"], im)
             self.interpreter.invoke()
 
-        kpt_start = 4 + len(self.names)  # pose keypoints follow the box (4) and class-score (nc) channels
         y = []
         for i, output in enumerate(self.output_details):
             if self.intel:
@@ -137,19 +136,9 @@ class LiteRTBackend(BaseBackend):
             # pixel coordinates (batch, max_det, 6+), so it is left as-is; legacy onnx2tf TFLite normalizes even the
             # end2end output, so it is denormalized on the last axis.
             if x.ndim == 3 and not self.end2end and getattr(self, "head", None) != "RTDETRDecoder":
-                x[:, [0, 2]] *= w
-                x[:, [1, 3]] *= h
-                if self.task == "pose":
-                    nd = self.kpt_shape[1]  # 2 (x, y) or 3 (x, y, visibility) values per keypoint
-                    x[:, kpt_start::nd] *= w
-                    x[:, kpt_start + 1 :: nd] *= h
+                self.denormalize(x, w, h)
             elif x.ndim == 3 and self.end2end and self.nhwc:
-                x[:, :, [0, 2]] *= w
-                x[:, :, [1, 3]] *= h
-                if self.task == "pose":  # post-NMS [B, N, box(4)+conf+cls+kpts], keypoints start at 6
-                    nd = self.kpt_shape[1]
-                    x[:, :, 6::nd] *= w
-                    x[:, :, 7::nd] *= h
+                self.denormalize(x, w, h, end2end=True)
             y.append(x)
 
         if self.task == "segment" and y[0].ndim == 4:  # order as (detections, protos)

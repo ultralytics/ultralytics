@@ -48,6 +48,8 @@ See the [unreleased YOLO27 preview](yolo27.md) for planned architecture, tasks, 
 
     Explore and run YOLO26 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
 
+<platform-predict src="/ultralytics/yolo26/yolo26n"></platform-predict>
+
 The YOLO26 model family is built around four design areas:
 
 - **Native end-to-end inference:** The optional one-to-one detection head produces predictions without [non-maximum suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), simplifying deployment and reducing post-processing.
@@ -103,7 +105,7 @@ This unified framework covers real-time detection, instance segmentation, semant
 
 !!! note "Architecture-only variants"
 
-    [`yolo26-p2.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p2.yaml) and [`yolo26-p6.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p6.yaml) add a P2 (small-object) or P6 (large-input) detection head and are shipped as YAML architectures only. No scale-specific `yolo26*-p2.pt` or `yolo26*-p6.pt` weights are released. Instantiate a scaled config from YAML (for example, `YOLO("yolo26n-p6.yaml")`) and train or fine-tune it as needed.
+    [`yolo26-p2.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p2.yaml) and [`yolo26-p6.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p6.yaml) add a P2 (small-object) or P6 (large-input) detection head and are shipped as YAML architectures only. No scale-specific `yolo26*-p2.pt` or `yolo26*-p6.pt` weights are released. Instantiate a scaled config from YAML (for example, `YOLO("yolo26n-p6.yaml")`) and train or fine-tune it as needed; [Train a YOLO26 P2 Model from Pretrained Weights](../guides/model-yaml-config.md#train-a-yolo26-p2-model-from-pretrained-weights) shows how to start from `yolo26n.pt` and check that the P2 output is there.
 
 ## Performance Metrics
 

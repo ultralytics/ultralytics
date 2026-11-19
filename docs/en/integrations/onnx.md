@@ -203,7 +203,7 @@ To run the model outside the Ultralytics package, see these resources:
 
 - **[ONNX Runtime Python API](https://onnxruntime.ai/docs/api/python/api_summary.html)**: load and run an ONNX model in Python.
 - **[ONNX Runtime execution providers](https://onnxruntime.ai/docs/execution-providers/)**: hardware backends such as CUDA, TensorRT, OpenVINO, Core ML, and DirectML.
-- **[Ultralytics examples](https://github.com/ultralytics/ultralytics/tree/main/examples)**: ONNX Runtime inference in [Python](https://github.com/ultralytics/ultralytics/tree/main/examples/YOLOv8-ONNXRuntime), [C++](https://github.com/ultralytics/ultralytics/tree/main/examples/cpp/ONNXRuntime), and [Rust](https://github.com/ultralytics/ultralytics/tree/main/examples/YOLO-Series-ONNXRuntime-Rust), and OpenCV DNN inference in [Python](https://github.com/ultralytics/ultralytics/tree/main/examples/YOLOv8-OpenCV-ONNX-Python).
+- **[Ultralytics examples](https://github.com/ultralytics/ultralytics/tree/main/examples)**: ONNX Runtime inference in [Python](https://github.com/ultralytics/ultralytics/tree/main/examples/python/ONNXRuntime), [C++](https://github.com/ultralytics/ultralytics/tree/main/examples/cpp/ONNXRuntime), and [Rust](https://github.com/ultralytics/ultralytics/tree/main/examples/YOLO-Series-ONNXRuntime-Rust), and OpenCV DNN inference in [Python](https://github.com/ultralytics/ultralytics/tree/main/examples/python/OpenCV-DNN).
 - **[Triton Inference Server](../guides/triton-inference-server.md)**: serve the ONNX model over HTTP or gRPC with NVIDIA Triton.
 - **[Deploying on edge devices](https://onnxruntime.ai/docs/tutorials/iot-edge/)**: ONNX Runtime tutorials for IoT and edge hardware.
 

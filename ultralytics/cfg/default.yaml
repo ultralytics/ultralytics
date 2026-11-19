@@ -39,7 +39,7 @@ profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int), or specific layer indices or module names like "23.cv2" (list)
 multi_scale: 0.0 # (float) multi-scale range as a fraction of imgsz; sizes are rounded to stride multiples
 compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
-channels_last: # (bool, optional) auto-enable for non-Windows CUDA training on PyTorch 1.11+ and supported x86 CPU inference
+channels_last: # (bool, optional) auto-enable for non-Windows NVIDIA CUDA training on PyTorch 1.11+ and supported x86 CPU inference
 
 # Segmentation
 overlap_mask: True # (bool) merge instance masks into one mask during training (segment only)
@@ -84,7 +84,7 @@ show_boxes: True # (bool) draw bounding boxes on images
 line_width: # (int, optional) line width of boxes; auto-scales with image size if not set
 
 # Export settings ------------------------------------------------------------------------------------------------------
-format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|coreai|saved_model|pb|edgetpu|litert|paddle|mnn|ncnn|imx|rknn|executorch|axelera|deepx|qnn|hailo|ascend|xilinx
+format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|coreai|saved_model|pb|edgetpu|litert|paddle|mnn|ncnn|imx|rknn|executorch|axelera|deepx|qnn|hailo|ascend|xilinx|stedgeai
 optimize: False # (bool) DEEPX only; higher compiler optimization (slower compile, faster inference)
 dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine, coreml, mnn; enable variable image sizes
 simplify: True # (bool) supported ONNX-based exports (see export table); simplify intermediate ONNX graph

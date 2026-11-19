@@ -230,3 +230,21 @@ class BaseBackend(ABC):
         # Apply all metadata fields as backend attributes
         for k, v in metadata.items():
             setattr(self, k, v)
+
+    def denormalize(self, x, w: int, h: int, end2end: bool = False) -> None:
+        """Scale box and pose keypoint coordinates normalized to [0, 1] by the input size to pixels, in place.
+
+        Args:
+            x (np.ndarray): Raw (B, 4 + nc + extra, N) prediction, or (B, N, 6 + extra) end2end prediction.
+            w (int): Input image width.
+            h (int): Input image height.
+            end2end (bool): Whether `x` is an end2end prediction with channels last.
+        """
+        if end2end:
+            x = x.transpose(0, 2, 1)  # channels-first view, so the scaling below writes through to the output
+        x[:, [0, 2]] *= w
+        x[:, [1, 3]] *= h
+        if self.task == "pose":  # keypoints follow the box and class scores, or the box, score and class if end2end
+            nd, i = self.kpt_shape[1], 6 if end2end else 4 + len(self.names)
+            x[:, i::nd] *= w
+            x[:, i + 1 :: nd] *= h

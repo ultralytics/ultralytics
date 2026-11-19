@@ -563,6 +563,7 @@ class Model(torch.nn.Module):
             }
             cfg = get_cfg(base_args, {**custom, **kwargs})
             cfg.show = cfg.show and checks.check_imshow(warn=True)
+        cfg.prompts = prompts or {}  # FastSAM reads these per-call args, which its predictor applies under its lock
         if prompts and hasattr(current, "set_prompts"):  # for SAM-type models
             current.set_prompts(prompts)
         return current.predict_cli(source, cfg=cfg) if is_cli else current(source=source, stream=stream, cfg=cfg)
@@ -802,7 +803,8 @@ class Model(torch.nn.Module):
             format_name = dict(zip(formats["Argument"], formats["Format"])).get(
                 str(export_format).lower(), export_format
             )
-            LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
+            if format_name != "ST Edge AI":  # the one export format Ultralytics Platform does not offer
+                LOGGER.info(f"Export to {format_name} in the cloud with Ultralytics Platform: {PLATFORM_URL}")
             raise
 
     def train(
@@ -1004,8 +1006,9 @@ class Model(torch.nn.Module):
         """Retrieve the class names associated with the loaded model.
 
         This property returns the class names if they are defined in the model. It checks the class names for validity
-        using the 'check_class_names' function from the ultralytics.nn.autobackend module. If the predictor is not
-        initialized, it sets it up before retrieving the names.
+        using the 'check_class_names' function from the ultralytics.nn.autobackend module. Exported models return the
+        names embedded in their metadata without loading an inference backend, and the predictor is set up only for
+        exports that carry none.
 
         Returns:
             (dict[int, str]): A dictionary of class names associated with the model, where keys are class indices and
@@ -1024,6 +1027,8 @@ class Model(torch.nn.Module):
         if hasattr(self.model, "names"):
             return check_class_names(self.model.names)
         if not self.predictor:  # export formats will not have predictor defined until predict() is called
+            if names := BaseBackend.read_metadata(self.model).get("names"):  # embedded at export, no backend needed
+                return check_class_names(ast.literal_eval(str(names)))
             predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
             predictor.setup_model(model=self.model, verbose=False)  # do not mess with self.predictor.model args
             return predictor.model.names

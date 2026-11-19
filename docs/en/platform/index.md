@@ -440,7 +440,7 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ### What export formats are supported?
 
-The Platform supports the same 23 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
+The Platform supports 23 of the deployment formats in Ultralytics Export mode, every format in the table below except ST Edge AI. PyTorch is the source format; each row with a `format` argument is an export target.
 
 {% include "macros/export-table.md" %}
 

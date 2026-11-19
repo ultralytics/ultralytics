@@ -65,7 +65,7 @@ def _log_tensorboard_graph(trainer) -> None:
     # Try simple method first (YOLO)
     try:
         trainer.model.eval()  # place in .eval() mode to avoid BatchNorm statistics changes
-        WRITER.add_graph(torch.jit.trace(torch_utils.unwrap_model(trainer.model), im, strict=False), [])
+        WRITER.add_graph(torch.jit._trace.trace(torch_utils.unwrap_model(trainer.model), im, strict=False), [])
         LOGGER.info(f"{PREFIX}model graph visualization added ✅")
         return
     except Exception as e1:
@@ -79,7 +79,7 @@ def _log_tensorboard_graph(trainer) -> None:
                     m.export = True
                     m.format = "torchscript"
             model(im)  # dry run
-            WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
+            WRITER.add_graph(torch.jit._trace.trace(model, im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
         except Exception as e2:
             LOGGER.warning(f"{PREFIX}TensorBoard graph visualization failure: {e1} -> {e2}")

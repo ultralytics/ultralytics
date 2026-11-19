@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import os
 import platform
 import re
@@ -74,14 +75,12 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
     }
 
 
-def _confusion_payload(confusion_matrix, conf, budget=3_500_000):
+def _confusion_payload(confusion_matrix, conf, budget):
     """Return confusion matrix cells with example images in at most `budget` JSON bytes, counts before examples.
 
     Cells are [predicted, true, objects, images, examples], each example [image index, boxes]; a cell with fewer
     examples than images was cut. Cells and examples go confused, missed, false-detection, then correct, largest first.
     """
-    import json
-
     nc = confusion_matrix.nc
 
     def rank(item):
@@ -581,32 +580,23 @@ def on_train_end(trainer):
 
     image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
     validation = _validation_payload(image_metrics)
-    confusion_matrix = getattr(getattr(trainer, "validator", None), "confusion_matrix", None)
-    if getattr(confusion_matrix, "cells", None):
-        confusion = _confusion_payload(confusion_matrix, trainer.validator.args.conf)
-    else:
-        confusion = None
-    _send(
-        "training_complete",
-        {
-            "results": {
-                "metrics": {**trainer.metrics, "fitness": trainer.fitness},
-                "bestEpoch": best_epoch,
-                "bestFitness": trainer.best_fitness,
-                **({"calibration": c} if (c := getattr(trainer, "depth_calibration", None)) else {}),
-                **({"validation": validation} if validation["rows"] else {}),
-                **({"confusion": confusion} if confusion else {}),
-                **(artifact or {}),
-            },
-            "classNames": class_names,
-            "plots": plots,
-            "runId": ctx["run_id"],
+    data = {
+        "results": {
+            "metrics": {**trainer.metrics, "fitness": trainer.fitness},
+            "bestEpoch": best_epoch,
+            "bestFitness": trainer.best_fitness,
+            **({"calibration": c} if (c := getattr(trainer, "depth_calibration", None)) else {}),
+            **({"validation": validation} if validation["rows"] else {}),
+            **(artifact or {}),
         },
-        project,
-        name,
-        ctx["model_id"],
-        retry=4,  # Critical, more retries
-    )
+        "classNames": class_names,
+        "plots": plots,
+        "runId": ctx["run_id"],
+    }
+    if getattr(confusion_matrix := trainer.validator.confusion_matrix, "cells", None):  # fill up to 4 of the 4.5 MB
+        room = 4_000_000 - len(json.dumps(_sanitize_json_value(data)))
+        data["results"]["confusion"] = _confusion_payload(confusion_matrix, trainer.validator.args.conf, room)
+    _send("training_complete", data, project, name, ctx["model_id"], retry=4)  # Critical, more retries
     if ctx.get("model_url"):
         LOGGER.info(f"{PREFIX}View results at {ctx['model_url']}")
 

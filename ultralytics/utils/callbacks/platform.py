@@ -264,16 +264,19 @@ def _get_project_name(trainer):
 
 
 def _get_training_gpus(trainer):
-    """Return the NVML indices of the GPUs a run trains on, so a shared host reports no other runs' GPUs.
+    """Return the NVML indices (torch indices on ROCm) of the GPUs a run trains on, so a shared host reports only them.
 
-    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES. Non-CUDA training
-    reports no GPUs, and a CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every GPU.
+    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES on NVIDIA. Non-CUDA
+    training reports no GPUs, and an NVIDIA CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every
+    GPU.
     """
     if trainer.device.type != "cuda":
         return []
+    import torch
+
     indices = [int(x) for x in trainer.args.device.split(",") if x.isdigit()] or [trainer.device.index]
     visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
-    if not visible:
+    if not visible or torch.version.hip:
         return indices
     ids = [visible[i] for i in indices]
     return [int(x) for x in ids] if all(x.isdigit() for x in ids) else None

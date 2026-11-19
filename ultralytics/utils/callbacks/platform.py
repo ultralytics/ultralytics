@@ -74,6 +74,37 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
     }
 
 
+def _confusion_payload(confusion_matrix, conf, budget=3_500_000):
+    """Return every confusion matrix cell with example images, spending at most `budget` JSON bytes on examples.
+
+    Cells are [predicted, true, objects, images, examples], each example [image index, boxes]; a cell with fewer
+    examples than images was cut. Examples fill confused, missed, false-detection, then correct cells, largest first.
+    """
+    import json
+
+    nc = confusion_matrix.nc
+
+    def rank(item):
+        (p, t), (objects, _, _) = item
+        return (3 if p == t else 1 if p == nc else 2 if t == nc else 0), -objects
+
+    images, index, cells, size = [], {}, [], 0
+    for (p, t), (objects, count, examples) in sorted(confusion_matrix.cells.items(), key=rank):
+        kept = []
+        for _, name, boxes in sorted(examples, reverse=True):
+            image = Path(name).stem.split("_", 1)[0]
+            i = index.get(image, len(images))
+            size += len(json.dumps([i, boxes])) + (len(image) + 3) * (i == len(images))
+            if size > budget:
+                break
+            if i == len(images):
+                index[image] = i
+                images.append(image)
+            kept.append([i, boxes])
+        cells.append([p, t, objects, count, kept])
+    return {"conf": conf, "images": images, "cells": cells}
+
+
 def _sanitize_json_value(value):
     """Make payloads JSON-encodable: non-finite floats become None and other non-JSON values become strings."""
     if isinstance(value, dict):
@@ -545,6 +576,11 @@ def on_train_end(trainer):
 
     image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
     validation = _validation_payload(image_metrics)
+    confusion_matrix = getattr(getattr(trainer, "validator", None), "confusion_matrix", None)
+    if getattr(confusion_matrix, "cells", None):
+        confusion = _confusion_payload(confusion_matrix, trainer.validator.args.conf)
+    else:
+        confusion = None
     _send(
         "training_complete",
         {
@@ -554,6 +590,7 @@ def on_train_end(trainer):
                 "bestFitness": trainer.best_fitness,
                 **({"calibration": c} if (c := getattr(trainer, "depth_calibration", None)) else {}),
                 **({"validation": validation} if validation["rows"] else {}),
+                **({"confusion": confusion} if confusion else {}),
                 **(artifact or {}),
             },
             "classNames": class_names,

@@ -408,7 +408,7 @@ Images can be sorted and filtered for efficient browsing:
 Click any image to open the fullscreen viewer with:
 
 - **Navigation**: Arrow keys or thumbnail previews to browse
-- **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF
+- **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF. An image added from another dataset (with [Find Similar](#find-similar-images), [Copy or Move](#copy-and-move-images), or [Clone](#clone-dataset)) or from [Generate Similar](#generate-similar-images) also shows where it came from: **Source method**, **Source dataset** (**Unavailable** when that dataset is deleted or not visible to you), **Source model** for generated images, **Source license** at import, and **Imported by** for members of the dataset's workspace. Platform records only the latest import, and plain uploads and images added before it began recording sources in November 2026 show none
 - **Custom metadata**: Owners and editors can add or replace a JSON object, including nested values up to 500,000 serialized characters and top-level keys up to 128 characters
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
@@ -423,7 +423,7 @@ Click any image to open the fullscreen viewer with:
 - **Pixel view**: Toggle pixelated rendering for close inspection
 - **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 
-![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/fdda4f9080025d94e4fe07f1e45590bf.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/e468cbb1faf97aa8518846788e435894.avif)<!-- screenshot -->
 
 ### Filter by Split
 

@@ -146,7 +146,7 @@ Press `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux) to open the search bar. Search a
 
 ### AI Chat Assistant
 
-Click **Ask AI** to work with an AI agent that automates tasks across Ultralytics Platform. It works directly with your datasets and models to annotate images, run training experiments, compare results, and export or deploy models. See [AutoTrain with Ask AI](train/autotrain.md) for example prompts and setup for your own coding agent.
+Click **Ask AI** to work with an AI agent that automates tasks across Ultralytics Platform. It works directly with your datasets and models to annotate images, run training experiments, compare results, and export or deploy models. See [AutoTrain with Ask AI](train/autotrain.md) for example prompts and setup for your own coding agent. To show it a screenshot or a training log, attach up to 3 files (3 MB in total): click `+` and choose **Add Photos & Files**, drag them into the chat, or paste an image with `Cmd/Ctrl+V`.
 
 ### Onboarding Tours
 

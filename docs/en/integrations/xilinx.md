@@ -1,155 +1,46 @@
 ---
-title: AMD Xilinx Export for Ultralytics YOLO with Vitis AI on Versal, Zynq and Kria
 comments: true
-description: Export Ultralytics YOLO26 to AMD Xilinx Versal AI Edge Gen 2 NPUs with format="xilinx" and AMD Quark. Learn Vitis AI, DPU vs NPU, .rai and operator support.
-keywords: AMD Xilinx, Xilinx YOLO, format="xilinx", YOLO export AMD, Vitis AI, Vitis AI YOLO, Versal YOLO, VEK385 YOLO, AMD Quark VINT8, YOLO on FPGA, FPGA object detection, Zynq UltraScale+ MPSoC, Zynq YOLO, Kria KV260, Kria KR260, K26 system-on-module, Versal AI Edge, Versal AI Edge Gen 2, VEK280, VEK385, ZCU104, ZCU102, DPU, DPUCZDX8G, deep learning processing unit, NPU, AI Engine, AIE-ML, xmodel, rai, VART, XIR, AMD Quark, ONNX Runtime Vitis AI Execution Provider, INT8 quantization, Hard-Swish, SiLU, edge AI, embedded vision, Ultralytics, YOLO26, YOLO11, YOLOv8, ONNX export
+description: Export Ultralytics YOLO26 models to AMD Xilinx Versal AI Edge Series Gen 2 NPUs with format=xilinx. Covers AMD Quark INT8 quantization, target devices, output format, Vitis AI compilation, and Zynq, Kria and VEK280 flows.
+keywords: YOLO26, AMD Xilinx, Xilinx export, format=xilinx, Vitis AI, AMD Quark, VINT8, Versal AI Edge Gen 2, VEK385, NPU, rai, VitisAIExecutionProvider, ONNX Runtime, INT8 quantization, Zynq UltraScale+, Kria KV260, DPU, VEK280, edge AI
 ---
 
-# AMD Xilinx Export for Ultralytics YOLO with Vitis AI
+# AMD Xilinx Export
 
-Exporting [Ultralytics YOLO26](../models/yolo26.md) models with `format="xilinx"` quantizes them with [AMD Quark](https://quark.docs.amd.com/latest/) for the NPU in AMD Versal AI Edge Series Gen 2 adaptive SoCs, ready for AMD's [Vitis AI](https://www.amd.com/en/products/software/vitis-ai.html) compiler to build a `.rai` model. The same export validates INT8 accuracy on any host before you deploy.
+AMD Versal AI Edge Series Gen 2 adaptive SoCs run neural networks on an NPU, which AMD's [Vitis AI](https://vitisai.docs.amd.com/projects/gen2/en/latest/index.html) toolchain compiles from an ONNX model. Exporting an [Ultralytics YOLO26](../models/yolo26.md) model with `format="xilinx"` creates a `yolo26n_xilinx_model/` directory that holds an ONNX model quantized to INT8 with [AMD Quark](https://quark.docs.amd.com/latest/) and a Vitis AI compiler configuration for the device you select with the `name` argument. The Vitis AI compiler turns the two files into a `.rai` model that runs on the NPU.
 
-!!! note "Supported AMD devices"
+## At a Glance
 
-    The export targets the actively maintained Vitis AI NPU flow for Versal AI Edge Series Gen 2 devices such as the VEK385 evaluation kit. Zynq UltraScale+ and Kria DPUs and the first-generation Versal AI Edge NPU (VEK280) use other Vitis AI flows, described in [Deploying on Other AMD Xilinx Targets](#deploying-on-other-amd-xilinx-targets).
+| Property          | Details                                                                                                                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` argument | `xilinx` (aliases: `vitis`, `vitisai`, `versal`)                                                                                                                                 |
+| Output            | `yolo26n_xilinx_model/`, a directory with `yolo26n.onnx` and [`vitisai_config.json`](#output-format)                                                                             |
+| Runs on           | The NPU of an AMD Versal AI Edge Series Gen 2 device, such as the VEK385 evaluation kit, after [compilation to `.rai`](#deploy). The same directory runs with stock ONNX Runtime |
+| Runtime           | ONNX Runtime with AMD's `VitisAIExecutionProvider` on the device, or stock ONNX Runtime elsewhere (CPU or CUDA)                                                                  |
+| Precision         | INT8 only, with the model head kept in floating point. YOLO26n is 3.6 MB                                                                                                         |
+| Export host       | Linux with Python 3.11 to 3.13 and a C++ compiler, tested on x86-64 Ubuntu 24.04. The export needs no AMD hardware, account, or license                                          |
 
-AMD Xilinx devices power many of the world's industrial cameras, automotive vision systems, robots, drones and medical imaging products. They combine Arm processors with programmable logic and, on newer devices, dedicated AI Engines, so a single chip can capture video, preprocess it, run [object detection](https://www.ultralytics.com/glossary/object-detection) and act on the result with low, predictable [inference latency](https://www.ultralytics.com/glossary/inference-latency).
+!!! tip "Export in the cloud"
 
-This guide covers the AMD Xilinx export, how to compile and run it on a Versal board, what each AMD Xilinx device family is, how AI runs on them, and which [Ultralytics YOLO](../models/index.md) operators each accelerator supports.
+    [Ultralytics Platform](../platform/train/models.md#export-model) can export a trained model to AMD Xilinx for the Versal AI Edge Series Gen 2 device you select, so you do not need a local Linux export environment.
 
-## What is AMD Xilinx?
+## Quickstart
 
-Xilinx invented the field-programmable gate array (FPGA) in the 1980s and became a leading supplier of [adaptive SoCs and FPGAs](https://www.amd.com/en/products/adaptive-socs-and-fpgas.html). [AMD completed its acquisition of Xilinx in February 2022](https://www.amd.com/en/newsroom/press-releases/2022-2-14-amd-completes-acquisition-of-xilinx.html), and the product lines are now sold under the AMD brand as AMD Zynq, AMD Kria, AMD Versal and AMD Vitis.
-
-!!! tip "Xilinx or AMD?"
-
-    Both names refer to the same products. AMD markets them as "adaptive SoCs and FPGAs", but engineers still widely say "Xilinx". Part numbers keep the `XC` prefix (for example `xczu7ev`), and the older Vitis AI repository and Docker images still live under the `Xilinx` name on GitHub and Docker Hub. This guide uses "AMD Xilinx" so you can find it with either name.
-
-## Key Terms and Concepts
-
-AMD Xilinx deployment uses its own vocabulary. The table below explains every term used in this guide.
-
-| Term                                  | What it means                                                                                                                                                                                                                                                                                                                                                            |
-| :------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **FPGA**                              | Field-programmable gate array: a chip whose digital logic is configured after manufacturing by loading a design, called a bitstream. It can implement custom hardware such as video pipelines or neural network accelerators.                                                                                                                                            |
-| **Programmable logic (PL)**           | The FPGA fabric inside an AMD Xilinx SoC. On Zynq and Kria devices, the AI accelerator is built in the PL.                                                                                                                                                                                                                                                               |
-| **Processing system (PS)**            | The hard Arm CPU cores, memory controllers and peripherals of the SoC. It runs Linux, your application, and any model layers the accelerator cannot execute.                                                                                                                                                                                                             |
-| **Adaptive SoC / MPSoC**              | A system-on-chip that combines a processing system with programmable logic, plus AI Engines on many Versal devices. MPSoC stands for multiprocessor system-on-chip.                                                                                                                                                                                                      |
-| **AI Engine (AIE, AIE-ML, AIE-MLv2)** | Arrays of hardened vector processors on many Versal devices, including the Versal AI Edge series covered here, designed for machine learning and signal processing.                                                                                                                                                                                                      |
-| **DPU**                               | Deep Learning Processing Unit: AMD's INT8 neural network accelerator, delivered as IP that is built into the PL (for example `DPUCZDX8G` on Zynq UltraScale+ and Kria). Sizes such as B512 to B4096 give the peak operations per clock cycle.                                                                                                                            |
-| **NPU / NPU IP**                      | Neural Processing Unit: AMD's current-generation inference accelerator, which replaces the DPU in recent Vitis AI releases. AMD describes its NPU IP as a soft accelerator that combines AI Engines with programmable logic, so it also needs a matching hardware design. See the [NPU glossary entry](https://www.ultralytics.com/glossary/neural-processing-unit-npu). |
-| **Vitis AI**                          | AMD's toolchain for deploying neural networks on AMD Xilinx devices. It covers quantization, compilation, runtimes, examples and Docker environments.                                                                                                                                                                                                                    |
-| **AMD Quark**                         | AMD's current [model quantization](https://www.ultralytics.com/glossary/model-quantization) library, used by the Versal AI Edge Gen 2 flow to turn an FP32 ONNX model into an INT8 model.                                                                                                                                                                                |
-| **Quantization, PTQ and QAT**         | Converting FP32 weights and activations to INT8. Post-training quantization (PTQ) uses calibration images. [Quantization-aware training (QAT)](https://www.ultralytics.com/glossary/quantization-aware-training-qat) fine-tunes the model to recover accuracy.                                                                                                           |
-| **Calibration images**                | A small, representative set of images run through the model during PTQ to choose the INT8 scale for each tensor.                                                                                                                                                                                                                                                         |
-| **BF16 and mixed precision**          | [BFloat16](https://www.ultralytics.com/glossary/bfloat16-bf16) is a 16-bit floating-point format that keeps FP32's range. [Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) runs most of the network in INT8 and sensitive layers in BF16.                                                                                                         |
-| **XIR**                               | Xilinx Intermediate Representation: the graph format the DPU compiler produces and the runtime reads.                                                                                                                                                                                                                                                                    |
-| **`.xmodel`**                         | A serialized XIR graph. The quantizer writes a quantized `.xmodel`, and the DPU compiler turns it into a compiled `.xmodel` with DPU instructions, quantized weights and any CPU subgraphs. The compiled model requires the matching DPU configuration.                                                                                                                  |
-| **`arch.json` / DPU fingerprint**     | The file that describes a specific DPU configuration. The DPU compiler needs it, and an `.xmodel` compiled for one fingerprint will not run on another.                                                                                                                                                                                                                  |
-| **Snapshot**                          | The compiled model directory produced by the Versal AI Edge (VEK280) NPU flow. It is tied to one NPU IP variant.                                                                                                                                                                                                                                                         |
-| **`.rai`**                            | The compiled model file produced by the Versal AI Edge Gen 2 NPU flow.                                                                                                                                                                                                                                                                                                   |
-| **VART / VART-ML**                    | The Vitis AI Runtime libraries that load compiled models and run them on the board, with C++ and Python APIs.                                                                                                                                                                                                                                                            |
-| **ONNX Runtime Vitis AI EP**          | The `VitisAIExecutionProvider` for [ONNX Runtime](https://onnxruntime.ai/), which compiles and runs ONNX models on AMD NPUs.                                                                                                                                                                                                                                             |
-| **CPU fallback / graph partitioning** | When the accelerator cannot run an operator, the compiler usually splits the model into accelerator and CPU subgraphs, and every split adds a data transfer that can dominate latency. Some operators instead force the entire model onto the CPU or fail compilation.                                                                                                   |
-
-## AMD Xilinx Device Families for Edge AI
-
-AMD Xilinx devices for [edge AI](https://www.ultralytics.com/glossary/edge-ai) fall into three families. Zynq and Kria use the DPU in programmable logic, while the Versal AI Edge devices covered here use the NPU on their AI Engines.
-
-| Family                                                                                                                 | What it is                                                        | Application CPU                   | AI accelerator                      | Example boards                                                                                                                                                                                                                                    |
-| :--------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- | :-------------------------------- | :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Zynq UltraScale+ MPSoC](https://www.amd.com/en/products/adaptive-socs-and-fpgas/soc/zynq-ultrascale-plus-mpsoc.html)  | Arm CPUs and FPGA logic on one chip, in sizes from ZU1 to ZU19    | Dual- or quad-core Arm Cortex-A53 | DPU built in the programmable logic | [ZCU104](https://www.amd.com/en/products/adaptive-socs-and-fpgas/evaluation-boards/zcu104.html), ZCU102, custom boards                                                                                                                            |
-| [Kria K26 system-on-module](https://www.amd.com/en/products/system-on-modules/kria.html)                               | Production-ready module built around a Zynq UltraScale+ MPSoC     | Quad-core Arm Cortex-A53          | DPU built in the programmable logic | [KV260 Vision AI Starter Kit](https://www.amd.com/en/products/system-on-modules/kria/k26/kv260-vision-starter-kit.html), [KR260 Robotics Starter Kit](https://www.amd.com/en/products/system-on-modules/kria/k26/kr260-robotics-starter-kit.html) |
-| [Versal AI Edge Series](https://www.amd.com/en/products/adaptive-socs-and-fpgas/versal/ai-edge-series.html)            | Adaptive SoCs; AIE-ML parts such as VE2302 and VE2802 run the NPU | Dual-core Arm Cortex-A72          | NPU on AIE-ML AI Engines and PL     | [VEK280](https://www.amd.com/en/products/adaptive-socs-and-fpgas/evaluation-boards/vek280.html)                                                                                                                                                   |
-| [Versal AI Edge Series Gen 2](https://www.amd.com/en/products/adaptive-socs-and-fpgas/versal/gen2/ai-edge-series.html) | Next-generation adaptive SoC with AIE-MLv2 AI Engines             | Up to eight Arm Cortex-A78AE      | NPU on AIE-MLv2 AI Engines and PL   | [VEK385](https://www.amd.com/en/products/adaptive-socs-and-fpgas/evaluation-boards/vek385.html)                                                                                                                                                   |
-
-### Zynq UltraScale+ MPSoC
-
-Each Zynq UltraScale+ chip pairs an Arm processing system, with dual-core (CG) or quad-core (EG and EV) Cortex-A53 cores and real-time Cortex-R5F cores, with FPGA logic. EV devices add a hardened H.264/H.265 video codec. To run neural networks, designers build a DPU into the logic next to their camera and video pipelines. On small devices the DPU competes for space with the rest of the design.
-
-### Kria System-on-Modules
-
-The Kria K26 module packages a Zynq UltraScale+ MPSoC, memory and power on a production-ready module, so you avoid designing the processor, memory and power subsystem yourself. The module plugs into a carrier card, either a starter-kit board or your own design. It powers the [KV260 Vision AI Starter Kit](https://www.amd.com/en/products/system-on-modules/kria/k26/kv260-vision-starter-kit.html) for smart cameras and the [KR260 Robotics Starter Kit](https://www.amd.com/en/products/system-on-modules/kria/k26/kr260-robotics-starter-kit.html) for [robotics](https://www.ultralytics.com/glossary/robotics). Because the K26 is built on Zynq UltraScale+, it uses the same DPU flow. The Kria portfolio also includes other modules, so check which processor your module uses before choosing a flow.
-
-### Versal Adaptive SoCs
-
-[Versal](https://www.amd.com/en/products/adaptive-socs-and-fpgas/versal.html) is AMD's adaptive SoC family. Its AI Edge and AI Core series add hardened AI Engines next to the Arm cores and programmable logic, while some other Versal series have no AI Engines. AMD's NPU IP runs on AI Engines and programmable logic together, and Vitis AI targets the AIE-ML parts of the AI Edge series, such as the VE2302 and VE2802. The **Versal AI Edge Series** (VEK280 evaluation kit) and the **Versal AI Edge Series Gen 2** (VEK385 evaluation kit) are AMD's current targets for edge AI and the focus of current Vitis AI releases.
-
-## How AI Runs on AMD Xilinx Devices: DPU vs NPU
-
-Most AMD Xilinx AI deployments follow the same pattern. The accelerator runs the layers it supports, the Arm CPU runs preprocessing, post-processing and any layers the accelerator cannot execute, and a runtime on the board coordinates the two.
-
-```mermaid
-flowchart TD
-    A([Camera or video input]) --> B["Arm CPU: pre/post-processing"]
-    B <-->|supported layers| C[DPU or NPU]
-    B --> D(["Alerts, control, display"])
-```
-
-AMD has shipped two generations of accelerator, each with its own toolchain and compiled model file. This guide follows Vitis AI 3.5 for the DPU and Vitis AI 6.3 for the NPU; check AMD's current documentation for later releases.
-
-| Flow                           | Hardware                              | Toolchain                                                                      | Quantizer                                       | Compiled artifact | Board runtime                       | Status                                |
-| :----------------------------- | :------------------------------------ | :----------------------------------------------------------------------------- | :---------------------------------------------- | :---------------- | :---------------------------------- | :------------------------------------ |
-| **DPU**                        | Zynq UltraScale+, Kria                | [Vitis AI 3.5](https://xilinx.github.io/Vitis-AI/3.5/html/index.html) (Docker) | `vai_q_pytorch`                                 | `.xmodel`         | VART                                | Frozen compiler, model zoo and DPU IP |
-| **NPU (Versal AI Edge)**       | VEK280 and other Versal AI Edge parts | [Vitis AI 6.3](https://vitisai.docs.amd.com/en/latest/index.html) (Docker)     | Built into the snapshot flow                    | Snapshot          | VART-ML                             | Active                                |
-| **NPU (Versal AI Edge Gen 2)** | VEK385 and other Gen 2 parts          | [Vitis AI 6.3](https://vitisai.docs.amd.com/en/latest/index.html) (Docker)     | [AMD Quark](https://quark.docs.amd.com/latest/) | `.rai`            | ONNX Runtime Vitis AI EP or VART-ML | Active                                |
-
-!!! warning "The DPU flow is frozen"
-
-    Vitis AI 3.5 is the last release with DPU compiler and model zoo updates. Later releases in the [Xilinx/Vitis-AI](https://github.com/Xilinx/Vitis-AI) repository keep the compiler, model zoo and Zynq UltraScale+ DPU IP unchanged while updating the runtime and compatibility with newer AMD tool versions (see the [Vitis AI 5.0 release notes](https://github.com/Xilinx/Vitis-AI/releases/tag/v5.0)), and AMD's current Vitis AI documentation describes the NPU as the replacement for the deprecated DPU architecture. Existing Zynq UltraScale+ and Kria products can keep shipping on the DPU, but its operator support will not grow, so newer model architectures need the adaptations described in [YOLO Model Compatibility](#yolo-model-compatibility-and-supported-operators).
-
-!!! info "Ryzen AI laptops use a different stack"
-
-    AMD Ryzen AI processors in PCs also contain an NPU, but they use the separate [Ryzen AI Software](https://ryzenai.docs.amd.com/en/latest/) stack rather than the embedded Vitis AI flows in this guide. For AMD Instinct and Radeon GPUs, see the [AMD GPU integration](amd.md).
-
-## Which Vitis AI Flow Do I Need?
-
-Pick your flow from the device on your board:
-
-```mermaid
-flowchart TD
-    A{Device family?}
-    A -->|Zynq or Kria| B([DPU flow])
-    A -->|VEK280 class| C([NPU snapshot])
-    A -->|VEK385, Gen 2| D([Xilinx export])
-```
-
-## Export to AMD Xilinx: Converting Your YOLO Model
-
-### Supported Tasks
-
-AMD Xilinx export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
-
-{% include "macros/supported-tasks.md" %}
-
-### Installation
-
-AMD Xilinx export runs on Linux (x86-64 or ARM64) with Python 3.11 to 3.13, the versions [AMD Quark](https://quark.docs.amd.com/latest/install.html) supports. The first export also compiles Quark's custom operators, which needs a C++ compiler such as `g++`.
-
-!!! tip "Installation"
-
-    === "CLI"
-
-        ```bash
-        # Install the required package for YOLO
-        pip install ultralytics
-        ```
-
-AMD Quark is installed automatically from [PyPI](https://pypi.org/project/amd-quark/) on the first export. To preinstall the export dependencies:
+Install the Ultralytics package with the AMD Xilinx export dependencies on a Linux machine:
 
 ```bash
 pip install "ultralytics[export-xilinx]"
 ```
 
-For an editable repository install, replace `"ultralytics[export-xilinx]"` with `-e ".[export-base,export-xilinx]"`. To reproduce the Python 3.12 environment and smoke export used by CI, run the existing environment builder from the repository root:
+This installs AMD Quark. With a plain `pip install ultralytics`, the first export installs AMD Quark, `onnx`, `onnxruntime`, and `onnxslim` and continues in the same run. The export has these requirements:
 
-```bash
-ULTRALYTICS_ISOLATED_VENVS="$PWD/.venvs" python .github/scripts/create-export-env.py --env isolated-xilinx
-```
+| Requirement   | Version                                                                                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Python        | 3.11 to 3.13, the versions AMD Quark supports                                                                                                              |
+| `amd-quark`   | 0.13 (`>=0.13.0,<0.14.0`). It installs `onnx` 1.21 or 1.22 with it                                                                                         |
+| `onnxruntime` | Any build, installed by the first export if no ONNX Runtime package is present. Quark uses it to run the calibration images                                |
+| C++ compiler  | `g++` or another `c++` on `PATH`. AMD Quark compiles its custom operators with it on the first export, see [Limitations](#limitations-and-troubleshooting) |
 
-### Usage
-
-The AMD Xilinx format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Without AMD's Vitis AI Execution Provider, predict and validate run the quantized model with ONNX Runtime on the CPU, which measures its INT8 accuracy on any host. When ONNX Runtime provides the `VitisAIExecutionProvider`, as on a Versal AI Edge Series Gen 2 board, Ultralytics selects it automatically.
+For other installation methods, see the [installation guide](../quickstart.md). Then export your model:
 
 !!! example "Export"
 
@@ -161,16 +52,18 @@ The AMD Xilinx format supports the [Export](../modes/export.md), [Predict](../mo
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export to AMD Xilinx format for the VEK385 (quantize=8 is enforced automatically)
+        # Export the model to AMD Xilinx format for the VEK385 (INT8, calibrated on the default dataset of the task)
         model.export(format="xilinx")  # creates 'yolo26n_xilinx_model/'
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to AMD Xilinx format
+        # Export a YOLO26n PyTorch model to AMD Xilinx format for the VEK385
         yolo export model=yolo26n.pt format=xilinx # creates 'yolo26n_xilinx_model/'
         ```
+
+Load the exported directory to run inference or validate its INT8 accuracy. Without AMD's ONNX Runtime build, both run the INT8 model with stock ONNX Runtime; on a host without a GPU, that is the CPU:
 
 !!! example "Predict"
 
@@ -203,7 +96,7 @@ The AMD Xilinx format supports the [Export](../modes/export.md), [Predict](../mo
         # Load the exported AMD Xilinx model
         model = YOLO("yolo26n_xilinx_model")
 
-        # Validate INT8 accuracy on the COCO8 dataset
+        # Validate accuracy on the COCO8 dataset
         metrics = model.val(data="coco8.yaml")
         ```
 
@@ -214,88 +107,105 @@ The AMD Xilinx format supports the [Export](../modes/export.md), [Predict](../mo
         yolo val model=yolo26n_xilinx_model data=coco8.yaml
         ```
 
-The `vitis`, `vitisai` and `versal` format names are aliases for `xilinx`.
+## Supported Tasks
 
-### Export Arguments
+AMD Xilinx export supports all seven Ultralytics tasks: [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [OBB](../tasks/obb.md). Semantic segmentation and depth estimation are available only with [YOLO26](../models/yolo26.md), the only family that ships those heads. The YOLO26n checkpoint of every task exported, predicted, and validated on the CPU of an x86-64 Linux host, and a [YOLO11](../models/yolo11.md) detection model did too. Whether every operator of a model runs on the NPU is decided by the Vitis AI compiler, see [Deploy](#deploy).
 
-| Argument   | Type                      | Default           | Description                                                                                                                                                                                                             |
-| :--------- | :------------------------ | :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`                     | `'xilinx'`        | Target format for the exported model, defining compatibility with AMD Versal AI Edge Series Gen 2 NPUs.                                                                                                                 |
-| `imgsz`    | `int` or `tuple`          | `640`             | Desired image size for the model input, as an integer for square images or a `(height, width)` tuple. The exported model has a fixed batch size of 1.                                                                   |
-| `quantize` | `int` or `str`            | `8`/auto          | Quantization precision. `8` (Vitis AI INT8) is required and auto-enabled if not specified.                                                                                                                              |
-| `data`     | `str`                     | `None`            | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics uses the task's calibration dataset, such as `coco128.yaml` for detection. |
-| `fraction` | `float`, `int`, or `list` | `1.0`             | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                |
-| `name`     | `str`                     | `'ve2-xc2ve3858'` | Vitis AI compiler device: `'ve2-xc2ve3858'` (VEK385 evaluation kit), `'ve2-xc2ve3804'`, `'ve2-xc2ve3558'`, `'ve2-xc2ve3504'`, `'ve2-xc2ve3358'` or `'ve2-xc2ve3304'`.                                                   |
-| `opset`    | `int`                     | `None`            | ONNX opset for the intermediate graph. Defaults to `17`, the opset AMD validates for YOLO on Vitis AI.                                                                                                                  |
-| `simplify` | `bool`                    | `True`            | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                 |
-| `device`   | `str`                     | `None`            | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                             |
+## Export Arguments
 
-Set `nms=False` to export the [YOLO26 NMS-free head](../guides/yolo-architecture.md#yolo26-nms-free-dfl-free). Embedded NMS (`nms=True`) is not supported, because AMD lists NonMaxSuppression among the operators that can force the entire model onto the CPU.
+| Argument   | Type                      | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------- | ------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'xilinx'` | Target format for the exported model, defining compatibility with various deployment environments. The aliases `'vitis'`, `'vitisai'`, and `'versal'` export the same format.                                                                                                                                                                                                                  |
+| `name`     | `str`                     | `None`     | Versal AI Edge Series Gen 2 device the model is compiled for, written to `vitisai_config.json`. Uses `'ve2-xc2ve3858'`, the VEK385 evaluation kit, when unset. See [Target Device](#target-device).                                                                                                                                                                                            |
+| `imgsz`    | `int` or `tuple`          | `640`      | Image size of the model input, fixed in the exported model: an integer for square images or a tuple `(height, width)`. When not passed, the export uses the size the checkpoint was trained at. The official YOLO26 checkpoints use `640` for detect and segment, `640` (ADE20K) or `1024` (Cityscapes) for semantic, `768` for depth, `224` for classify, `640` for pose, and `1024` for OBB. |
+| `quantize` | `int` or `str`            | `None`     | Precision. INT8 is the only precision: unset, `8`, `'int8'`, and `'w8a8'` build INT8; `16`, `32`, `'w8a16'`, and `'w8a32'` raise an error. Replaces the deprecated `half`/`int8` flags.                                                                                                                                                                                                        |
+| `data`     | `str`                     | `None`     | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. Calibration uses the `val` split unless `split` is set. When unset, the export uses the default dataset of the model task, such as `coco128.yaml` for detection.                                                                                                          |
+| `fraction` | `float`, `int`, or `list` | `1.0`      | Calibration subset: a ratio, an image count (integers above `1`), or a `[train, val, test]` list, from which the entry of the calibration split is used.                                                                                                                                                                                                                                       |
+| `nms`      | `bool`, optional          | `None`     | Select raw output (`None`, default) or the NMS-free head (`False`). Embedded NMS (`True`) is not supported: the export logs a warning and writes the raw output.                                                                                                                                                                                                                               |
+| `opset`    | `int`                     | `None`     | ONNX opset version of the exported model. Uses `17` when unset; other values are passed through.                                                                                                                                                                                                                                                                                               |
+| `simplify` | `bool`                    | `True`     | Simplifies the ONNX graph with `onnxslim` before quantization.                                                                                                                                                                                                                                                                                                                                 |
+| `device`   | `str`                     | `None`     | Device that traces the ONNX graph, `cpu` by default. Every export on this page ran on the CPU.                                                                                                                                                                                                                                                                                                 |
 
-!!! tip "Calibrate on your own data"
+For the arguments shared by all formats, see the [Export mode documentation](../modes/export.md).
 
-    INT8 accuracy depends on how well the calibration images represent the deployment scene. Pass `data=` a dataset YAML with at least 300 representative images from your own cameras; the default calibration datasets are small public samples.
+### Target Device
 
-For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+The Vitis AI compiler builds a model for one Versal AI Edge Series Gen 2 device, and `name` selects it. The export writes the device into `vitisai_config.json` and checks it against this list, ignoring upper or lower case:
 
-### Output Structure
+| `name`                    | Device                |
+| ------------------------- | --------------------- |
+| `ve2-xc2ve3858` (default) | VEK385 evaluation kit |
+| `ve2-xc2ve3504`           | `xc2ve3504`           |
+| `ve2-xc2ve3558`           | `xc2ve3558`           |
+| `ve2-xc2ve3804`           | `xc2ve3804`           |
+| `ve2-xc2ve3304`           | `xc2ve3304`           |
+| `ve2-xc2ve3358`           | `xc2ve3358`           |
 
-After a successful export, a model directory is created with the following layout:
+For another board, look up the device part number in the documentation of the board. The device does not change the quantized model, only `vitisai_config.json`.
 
-```text
-yolo26n_xilinx_model/
-├── yolo26n.onnx          # AMD Quark VINT8 model with the Ultralytics metadata
-└── vitisai_config.json   # Vitis AI compiler configuration for the target device
-```
+### INT8 Quantization with AMD Quark
 
-Compiling the model, as described below, adds a `yolo26n/` compiler cache to the same directory, containing the `yolo26n.rai` NPU model and AMD's compile reports such as `final-vaiml-pass-summary.txt`.
+The export always quantizes to INT8 with AMD Quark's `VINT8` configuration, symmetric INT8 with power-of-two scales, and enables Quark's NPU option for convolutional networks. The nodes of the model head, the last layer of the network (79 nodes for YOLO26n detection), stay in floating point. AMD's [YOLOv8m tutorial](https://github.com/amd/Vitis-AI/tree/release/6.3/versal_2ve/examples/tutorials/yolov8m) similarly keeps its detection tail out of INT8 and runs it in BF16 on the NPU.
 
-### How the Export Works
+- **Calibration data**: the export runs the images of `data` through the model to choose the INT8 scales, preprocessed as for inference. It calibrates on the `val` split unless you set `split`, and `fraction` limits the number of images. Without `data`, it uses the small default dataset of the task, such as `coco128.yaml` with 128 images for detection, and warns below 300 images: `AMD Xilinx: >300 images recommended for INT8 calibration, found 128 images.`
+- **No other precision**: `quantize=16` and `quantize=32` fail, see [Limitations and Troubleshooting](#limitations-and-troubleshooting).
 
-The export follows AMD's documented Vitis AI flow for Versal AI Edge Series Gen 2:
+Calibrate on images that represent your deployment data:
 
-```mermaid
-flowchart TD
-    A([yolo26n.pt]) --> B["ONNX export, opset 17"]
-    B --> C["AMD Quark VINT8, float head"]
-    C --> D[("yolo26n_xilinx_model/")]
-    D --> E[Compile to .rai]
-    E --> F([Run on VEK385 NPU])
-    D -.->|host CPU| G[Check with yolo val]
-```
+!!! example "INT8 calibration"
 
-1. **ONNX export** at opset 17 with a static batch size of 1.
-2. **AMD Quark quantization** with the `VINT8` configuration (symmetric INT8 with power-of-two scales) and the options AMD requires for NPU compilation: `Int32Bias=False`, `enable_npu_cnn=True`, `DedicatedQDQPair=True` and `QuantizeAllOpTypes=True`. Calibration uses the standard Ultralytics INT8 calibration loader, with the same letterbox, RGB and 0–1 preprocessing as inference.
-3. **Mixed precision**: the model head stays in floating point, and the Vitis AI compiler runs it in BF16 on the NPU. Quantizing the head to INT8 causes most of the accuracy loss, and AMD's [YOLOv8m tutorial](https://github.com/amd/Vitis-AI/tree/release/6.3/versal_2ve/examples/tutorials/yolov8m) keeps its post-processing tail out of INT8 for the same reason.
-4. **Compiler configuration**: `vitisai_config.json` selects the `VAIML` target and the device from `name`.
+    === "Python"
 
-### Accuracy
+        ```python
+        from ultralytics import YOLO
 
-The table compares the exported INT8 model with the FP32 ONNX model on [COCO](../datasets/detect/coco.md) val2017 (5,000 images) at 640, both run with ONNX Runtime on the host CPU. The INT8 models were calibrated on the default `coco128.yaml` dataset; calibrating on your own deployment images usually narrows the gap.
+        model = YOLO("yolo26n.pt")
 
-| Model                                                                  | FP32 mAP<sub>50-95</sub> | AMD Xilinx INT8 mAP<sub>50-95</sub> |
-| :--------------------------------------------------------------------- | :----------------------- | :---------------------------------- |
-| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) | 40.3                     | 36.7                                |
-| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s) | 47.9                     | 42.5                                |
-| [YOLO11n](https://platform.ultralytics.com/ultralytics/yolo11/yolo11n) | 38.8                     | 35.5                                |
+        # Calibrate on 10% of the COCO validation images (500 images); replace coco.yaml with your own dataset
+        model.export(format="xilinx", data="coco.yaml", fraction=0.1)  # creates 'yolo26n_xilinx_model/'
+        ```
 
-These host results run the quantized model with ONNX Runtime on the CPU, the baseline AMD's [accuracy methodology](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_compilation/accuracy_methodology.html) compares NPU results against. AMD's published YOLOv8m results on the VEK385 show the same mixed-precision approach on the NPU:
+    === "CLI"
 
-| YOLOv8m configuration      | Hardware   | mAP<sub>50-95</sub> (COCO) |
-| :------------------------- | :--------- | :------------------------- |
-| FP32 ONNX                  | Host CPU   | 49.95                      |
-| BF16                       | VEK385 NPU | 50.29                      |
-| VINT8 quantized, FP32 tail | Host CPU   | 48.75                      |
-| VINT8 with BF16 tail       | VEK385 NPU | 48.38                      |
+        ```bash
+        # Calibrate on 10% of the COCO validation images (500 images); replace coco.yaml with your own dataset
+        yolo export model=yolo26n.pt format=xilinx data=coco.yaml fraction=0.1 # creates 'yolo26n_xilinx_model/'
+        ```
 
-Source: AMD [YOLOv8m tutorial for Versal AI Edge Gen 2](https://github.com/amd/Vitis-AI/tree/release/6.3/versal_2ve/examples/tutorials/yolov8m), which also reports a 10.69 ms average inference time over 100 VART runs at `dp_size=1`.
+On first use, `coco.yaml` downloads the full COCO dataset (20.3 GB, including the training images) even though calibration reads only the validation images.
 
-## Compile and Run on Versal AI Edge Gen 2
+## Output Format
 
-The exported directory is ready for AMD's Vitis AI compiler, which builds the `.rai` model that runs on the NPU.
+The export writes one directory:
 
-1. **Prepare the host and board.** Compile on an x86-64 Linux host with AMD's [Vitis AI 6.3 Docker image for Versal AI Edge Gen 2](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/setup_and_installation/docker-setup.html) and an AMD AI Engine compiler license (see [AMD's licensing page](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/additional_information/license.html)). Set up the VEK385 with AMD's [board setup guide](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/setup_and_installation/board_setup.html).
-2. **Compile.** Inside the container, create an ONNX Runtime session with the Vitis AI Execution Provider, the same call AMD's [compilation guide](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_compilation/compiling.html) uses. It writes the `yolo26n/` cache with `yolo26n.rai` into the export directory:
+| File                  | Contents                                                                                                                                                          |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `yolo26n.onnx`        | The INT8 model with `QuantizeLinear` and `DequantizeLinear` nodes, opset 17, with the class names, task, image size, and export arguments stored as ONNX metadata |
+| `vitisai_config.json` | The Vitis AI compiler configuration: the `VAIML` target and the device from `name`                                                                                |
+
+The intermediate FP32 ONNX file is deleted after quantization. The model takes one input named `images` with shape `(1, 3, height, width)`: RGB, channels first, `float32`, scaled to 0-1. The batch size is always 1. Its outputs have the same names, shapes, and `float32` type as an [ONNX export](onnx.md#output-format) of the same model, except for semantic segmentation. The shapes below are for the official YOLO26n checkpoints at their default export size, with the Cityscapes checkpoint `yolo26n-sem.pt` for semantic segmentation:
+
+| Task     | Default `imgsz` | Output with `nms=None`                                | Output with `nms=False`                             |
+| -------- | --------------- | ----------------------------------------------------- | --------------------------------------------------- |
+| Detect   | `640`           | `(1, 84, 8400)`                                       | `(1, 300, 6)`                                       |
+| Segment  | `640`           | `(1, 116, 8400)` and `(1, 32, 160, 160)`              | `(1, 300, 38)` and `(1, 32, 160, 160)`              |
+| Semantic | `1024`          | `(1, 19, 1024, 1024)`, `float32` score for each class | Same as `nms=None`                                  |
+| Depth    | `768`           | `(1, 1, 768, 768)`, depth map                         | Same as `nms=None`                                  |
+| Classify | `224`           | `(1, 1000)`, class probabilities                      | Same as `nms=None`                                  |
+| Pose     | `640`           | `(1, 56, 8400)`                                       | `(1, 300, 57)`: 6 box values, then 17 keypoints x 3 |
+| OBB      | `1024`          | `(1, 20, 21504)`                                      | `(1, 300, 7)`: 4 box values, score, class, angle    |
+
+- **Raw output (`nms=None`)**: for each anchor the box center x, center y, width, and height in input pixels, then the class scores, then the values of the task. Apply NMS yourself. See the [ONNX output format](onnx.md#output-format) for the layout of each task.
+- **NMS-free output (`nms=False`)**: `max_det` rows of `x1, y1, x2, y2, score, class` in input pixels, followed by the mask coefficients or keypoints. OBB rows are `center x, center y, width, height, score, class, angle`. Available for models with an NMS-free head, such as YOLO26.
+- **Semantic segmentation**: unlike the `uint8` class map of an ONNX export, the output holds a `float32` score for each class and pixel. Take the argmax over the class axis to get the class map.
+
+## Deploy
+
+`YOLO("yolo26n_xilinx_model")` loads the ONNX model from the directory with ONNX Runtime. When the installed ONNX Runtime offers the `VitisAIExecutionProvider`, as AMD's build does, and the directory holds `vitisai_config.json`, Ultralytics runs the model with that provider and passes the export directory as its cache directory and `yolo26n` as its cache key: where the Vitis AI compiler is installed, the first load compiles the model for the device in `vitisai_config.json` into that cache, and later loads reuse the compiled model. Otherwise it runs the model with stock ONNX Runtime like any ONNX model: with CUDA on a GPU when one is available, else on the CPU.
+
+The steps to run the model on the NPU, which were not run for this page because they need AMD hardware and a compiler license:
+
+1. **Compile on an x86-64 host.** Run AMD's [Vitis AI 6.3 Docker image for Versal AI Edge Gen 2](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/setup_and_installation/docker-setup.html), `amdih/vitis-ai:versal-2ve-release_v6.3_0924` on Docker Hub, with AMD's AIE-MLv2 Compiler license (`AIEMLv2build`) for the AI Engine compiler ([licensing](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/additional_information/license.html)). Copy the export directory into the container and create an ONNX Runtime session with the `VitisAIExecutionProvider`, as in AMD's [compilation guide](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_compilation/compiling.html), with the same options Ultralytics passes:
 
     ```python
     import onnxruntime as ort
@@ -305,232 +215,118 @@ The exported directory is ready for AMD's Vitis AI compiler, which builds the `.
     ort.InferenceSession(f"{d}/yolo26n.onnx", providers=["VitisAIExecutionProvider"], provider_options=[options])
     ```
 
-    Check `yolo26n_xilinx_model/yolo26n/final-vaiml-pass-summary.txt` for how much of the model runs on the NPU. For YOLO26n at 640, AMD's Vitis AI 6.3 compiler places 99.9% of the operators and of the compute on the VEK385 NPU in a single partition.
+    With these options the compiled model is written into the export directory under the `yolo26n` cache key, as described in AMD's [compiled model output](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_compilation/output.html).
 
-3. **Run on the board.** Copy the export directory to the VEK385. ONNX Runtime with the Vitis AI Execution Provider loads the compiled `yolo26n.rai` and runs it on the NPU, and `YOLO("yolo26n_xilinx_model")` selects this provider automatically when it is available.
+2. **Set up the board** with AMD's [board setup](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/setup_and_installation/board_setup.html) and [OSPI and SD card boot flow](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/setup_and_installation/board_setup_ospi_sd_eou.html), which flash AMD's Linux image to the board.
+3. **Run on the board.** Copy the export directory, with the compiled model from step 1, to the board. AMD's [ONNX Runtime Python inference](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_deployment/setup-hw.html) guide runs it with the board image's ONNX Runtime and the same `InferenceSession` call as in step 1. Loading it on the board with `YOLO("yolo26n_xilinx_model")` was not verified: Ultralytics uses the `VitisAIExecutionProvider` when the installed ONNX Runtime offers it, and keeps an installed `onnxruntime-vitisai` package instead of installing stock `onnxruntime` next to it. According to AMD's [guide to running the compiled model](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_deployment/model-inference.html), the provider does not deploy the model on the NPU when it cannot find the compiled model, and a new export of the checkpoint deletes it, see [Limitations and Troubleshooting](#limitations-and-troubleshooting).
 
-Compilation needs only AMD's ONNX Runtime, so export on any Linux machine and copy the directory into the container rather than installing Ultralytics there, which can change the container's pinned packages. Where Ultralytics is installed alongside AMD's `onnxruntime-vitisai` build, as on the board, it keeps that build instead of replacing it with stock `onnxruntime`.
+### Deployment Guides
 
-!!! note "ONNX Runtime and VART-ML"
+- **[Vitis AI documentation for Versal AI Edge Gen 2](https://vitisai.docs.amd.com/projects/gen2/en/latest/index.html)**: AMD's reference for compilation, the board image, and the runtime.
+- **[Supported operators](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/additional_information/ops_support.html)**: the operators the NPU runs and the CPU fallback, with the [unsupported operators](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/additional_information/ops_unsupported.html) listed separately.
+- **[AMD YOLOv8m tutorial](https://github.com/amd/Vitis-AI/tree/release/6.3/versal_2ve/examples/tutorials/yolov8m)**: AMD's end-to-end example on the VEK385, with accuracy and latency on the NPU.
+- **[Model deployment options](../guides/model-deployment-options.md)**: compare AMD Xilinx with the other export formats.
 
-    The export configures standard compilation for ONNX Runtime, which runs any NPU-incompatible operators, such as YOLO26's top-k selection with `nms=False`, on the Arm CPU itself. AMD's VART-ML runtime runs a model only when every operator is on the NPU, unless you add AMD's [CPU partition passes](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_compilation/cpu_partition.html) to `vitisai_config.json`; those artifacts cannot run through ONNX Runtime.
+## Deploying on Other AMD Xilinx Targets
 
-## YOLO Model Compatibility and Supported Operators
+`format="xilinx"` builds models only for the NPU of Versal AI Edge Series Gen 2 devices. Other AMD Xilinx devices use other Vitis AI flows, which start from an Ultralytics PyTorch checkpoint or an [ONNX export](onnx.md):
 
-An accelerator only speeds up the operators it implements in hardware. When a model contains an unsupported operator, the compiler usually sends that part of the network to the Arm CPU, and each round trip between the accelerator and the CPU adds latency. Some operators cannot be partitioned: on the Versal AI Edge Gen 2 NPU, AMD lists operators such as NonZero and NonMaxSuppression that can force the entire model onto the CPU. Operator support is the most important factor in how well a YOLO model performs on AMD Xilinx hardware.
+- **Zynq UltraScale+ MPSoC and Kria (ZCU102, ZCU104, KV260, KR260)**: these devices run models on the DPU, an accelerator built in the programmable logic, through [Vitis AI 3.5](https://xilinx.github.io/Vitis-AI/3.5/html/index.html). AMD's flow quantizes the PyTorch model, compiles it into an `.xmodel` file for the DPU configuration of the board, and runs it with the VART runtime, see AMD's [model development workflow](https://xilinx.github.io/Vitis-AI/3.5/html/docs/workflow-model-development.html). According to AMD's [list of supported operators](https://docs.amd.com/r/en-US/ug1414-vitis-ai/Currently-Supported-Operators), the DPU accelerates ReLU, ReLU6, LeakyReLU, Hard-Swish, and Hard-Sigmoid activations; SiLU, the default activation of YOLO models, is not in the list.
+- **Versal AI Edge Series (VEK280)**: the first-generation Versal AI Edge NPU compiles a model into a snapshot directory with the Vitis AI 6.3 flow for this series, see AMD's [bring your own model](https://vitisai.docs.amd.com/projects/gen1/en/latest/docs/customization_opportunities/byom.html) guide.
 
-```mermaid
-flowchart TD
-    subgraph stock["Stock YOLO26 on the DPU"]
-        direction TB
-        A1[Conv on DPU] --> A2[SiLU on CPU]:::error
-        A2 -.->|repeats| A1
-    end
-    subgraph hswish["Hard-Swish YOLO26 on the DPU"]
-        direction TB
-        B1[Backbone on DPU] --> B2[C2PSA attention on CPU]:::error
-        B2 --> B3[Neck on DPU]
-        B3 --> B4[C3k2 attention on CPU]:::error
-        B4 --> B5[Detect head on DPU]
-        B5 --> B6[Sigmoid on CPU]:::error
-    end
-    stock ~~~ hswish
-```
-
-The table shows where each operator in a YOLO26 model runs. A stock YOLO26n ONNX export contains 87 [SiLU](https://www.ultralytics.com/glossary/silu-sigmoid-linear-unit) activations, each exported as a Sigmoid and a Mul, plus 4 MatMul and 2 [Softmax](https://www.ultralytics.com/glossary/softmax) operators from its two attention blocks: the [C2PSA](../guides/yolo-architecture.md#spatial-attention-c2psa-yolo11) block at the end of the backbone (layer 10) and the attention-enabled `C3k2` block that produces the P5 output (layer 22).
-
-| Operator                           | Where it appears in YOLO                   | DPU (Zynq UltraScale+, Kria)                     | NPU (Versal AI Edge Gen 2)       |
-| :--------------------------------- | :----------------------------------------- | :----------------------------------------------- | :------------------------------- |
-| Convolution + batch normalization  | Every `Conv` block                         | ✅                                               | ✅                               |
-| SiLU activation                    | Every `Conv` block (default activation)    | ❌ Runs on CPU; replace with Hard-Swish          | ✅                               |
-| Hard-Swish, ReLU, ReLU6, LeakyReLU | Optional activations set in the model YAML | ✅ Fused into the convolution                    | ✅                               |
-| Sigmoid                            | Class scores in the detection head         | ❌ Runs on CPU (usually part of post-processing) | ✅                               |
-| MatMul between two activations     | Attention blocks (C2PSA; YOLO26 `C3k2`)    | ❌ Runs on CPU                                   | ✅                               |
-| Softmax                            | Attention blocks; DFL in YOLOv8 and YOLO11 | ❌ Runs on CPU                                   | ✅                               |
-| Reshape, Transpose                 | Attention blocks                           | ⚠️ Fused when possible, otherwise CPU            | ✅                               |
-| Split, Slice                       | `C3k2` and `C2f` blocks                    | ⚠️ Converted to slices; check compiler report    | ✅                               |
-| Resize (nearest upsample)          | Neck upsampling                            | ✅                                               | ✅                               |
-| MaxPool, Concat, Add               | `SPPF` block and feature fusion            | ✅                                               | ✅                               |
-| TopK, GatherElements               | YOLO26 NMS-free head (`nms=False`)         | ❌ Runs on CPU                                   | ⚠️ CPU partition on the Arm host |
-| NonMaxSuppression                  | Only when exported with `nms=True`         | ❌ Runs on CPU                                   | ❌ Can force the model onto CPU  |
-
-Sources: AMD [UG1414 supported operators](https://docs.amd.com/r/en-US/ug1414-vitis-ai/Currently-Supported-Operators), [PyTorch operator support](https://docs.amd.com/r/en-US/ug1414-vitis-ai/Operators-Supported-by-PyTorch), and the Versal AI Edge Gen 2 [supported](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/additional_information/ops_support.html), [CPU partition](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/additional_information/ops_flexml.html) and [unsupported](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/additional_information/ops_unsupported.html) operator lists. Support also depends on your DPU configuration and graph patterns, so always check the compiler's partition report.
-
-!!! tip "YOLO26 head: no DFL and an optional NMS-free output"
-
-    [YOLO26](../models/yolo26.md) removes Distribution Focal Loss (DFL), so unlike [YOLO11](../models/yolo11.md) and [YOLOv8](../models/yolov8.md) its box outputs need no softmax decoding. It also adds a second attention block compared with YOLO11, so compare target-specific compiler reports and on-device benchmarks before choosing a model. Exports with `nms` unset keep the one-to-many head and need NMS on the CPU like other YOLO models. Export with `nms=False` to use YOLO26's [NMS-free one-to-one head](../guides/yolo-architecture.md#yolo26-nms-free-dfl-free) instead, which replaces NMS with a lightweight top-k selection that runs on the CPU.
-
-### Make YOLO26 DPU-Ready with Hard-Swish
-
-The DPU fuses only ReLU, ReLU6, LeakyReLU, Hard-Swish and Hard-Sigmoid into its convolutions. Hard-Swish is a hardware-friendly approximation of SiLU, which makes it the natural replacement. Ultralytics model YAML files accept an `activation` key that changes the default activation of `Conv` blocks ([Model YAML Configuration Guide](../guides/model-yaml-config.md)).
-
-Copy [`yolo26.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26.yaml) to `yolo26-hswish.yaml` and add one line under the parameters:
+To keep the convolutions of a YOLO26 model on the DPU, train it with Hard-Swish activations. Copy [`yolo26.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26.yaml) to `yolo26-hswish.yaml` and add one line under the parameters, which changes the default activation of every `Conv` block ([Model YAML Configuration Guide](../guides/model-yaml-config.md)):
 
 ```yaml
 # Parameters
 nc: 80 # number of classes
-activation: nn.Hardswish() # default Conv activation, DPU-native
+activation: nn.Hardswish() # default Conv activation, accelerated by the DPU
 end2end: True # whether to use end-to-end mode
 ```
 
-Then build the model, transfer the pretrained YOLO26 weights and [fine-tune](../guides/finetuning-guide.md) on your dataset:
+Then build the model, transfer the pretrained YOLO26 weights, and [fine-tune](../guides/finetuning-guide.md) it on your dataset:
 
-!!! example "Fine-tune a Hard-Swish YOLO26 model"
+```python
+from ultralytics import YOLO
 
-    === "Python"
+# Build YOLO26n with Hard-Swish activations; the 'n' in the name selects the nano scale
+model = YOLO("yolo26n-hswish.yaml").load("yolo26n.pt")  # transfer pretrained weights
 
-        ```python
-        from ultralytics import YOLO
+# Fine-tune so the network adapts to Hard-Swish
+model.train(data="coco8.yaml", epochs=100, imgsz=640)
+```
 
-        # Build YOLO26n with Hard-Swish activations; the 'n' in the name selects the nano scale
-        model = YOLO("yolo26n-hswish.yaml").load("yolo26n.pt")  # transfer pretrained weights
+Activations have no weights, so all 708 pretrained weight tensors transfer, and an ONNX export of the model contains 87 HardSwish operators. Replace `coco8.yaml` with your own [dataset](../datasets/index.md), and compare the accuracy with the SiLU model in [Val mode](../modes/val.md) before you deploy.
 
-        # Fine-tune so the network adapts to Hard-Swish
-        model.train(data="coco8.yaml", epochs=100, imgsz=640)
-        ```
+## Limitations and Troubleshooting
 
-    === "CLI"
+- **Linux only**: on macOS and Windows the export fails with `AMD Xilinx export is only supported on Linux.` before it builds the ONNX graph. Export on Linux or with [Ultralytics Platform](../platform/train/models.md#export-model). The exported directory also runs with stock ONNX Runtime, see [Quickstart](#quickstart).
+- **Python version**: with Python 3.10 or 3.14 the export fails before it builds the ONNX graph, for example with `Python>=3.11,<3.14 is required, but Python==3.14.10 is currently installed`. Exports ran with Python 3.11, 3.12, and 3.13.
+- **C++ compiler**: AMD Quark compiles its custom operators with the `c++` compiler on `PATH` on the first export. On Ubuntu and Debian, when no compiler is found, the export installs the `g++` package with `apt` and continues, which needs root or `sudo`, and logs `apt requirements: Ultralytics requirement ['g++'] not found, attempting AutoUpdate...`. With automatic installation turned off (`YOLO_AUTOINSTALL=False`), or on other distributions, install `g++` yourself; without it the export fails with `Stable-ABI ONNX custom_ops extension could not be loaded and JIT compilation failed.` and leaves an empty `yolo26n_xilinx_model/` directory and the intermediate `yolo26n.onnx` next to the checkpoint.
+- **No other precision**: `quantize=16` fails with `quantize=16 (FP16) is not supported; format='xilinx' supports quantize=8 (INT8).`, and `quantize=32` with the same message for FP32. Without `quantize`, the export logs `xilinx export requires INT8 quantization, enabling it.`
+- **Fixed input shape**: `dynamic=True` fails with `argument 'dynamic' is not supported for format='xilinx'`, and `batch` above `1` with the same message for `batch`. Export again to change the image size.
+- **Embedded NMS**: `nms=True` logs `format=xilinx does not support embedded NMS; exporting native outputs for external NMS.` and writes the raw output, also for classification models. Export YOLO26 models with `nms=False` for final detections from the NMS-free head, or keep the default raw output and apply NMS in your code.
+- **NMS-free head on other models**: `nms=False` needs a model with an NMS-free head, such as YOLO26. For other models, for example YOLO11, the export warns `This model has no one-to-one head; using one-to-many outputs.` and writes the raw output, `(1, 84, 8400)` for YOLO11n detection.
+- **Invalid `name`**: a device that is not in the [list](#target-device) fails with `Invalid AMD Xilinx device 'vek385'. Valid devices are (...)`, which lists the six device names. Use the device name, not the name of the board.
+- **Few calibration images**: the default datasets of the tasks hold 4 to 128 images, and the export warns below 300, for example `AMD Xilinx: >300 images recommended for INT8 calibration, found 128 images.` Pass `data` with images from your deployment, see [INT8 Quantization](#int8-quantization-with-amd-quark).
+- **INT8 accuracy**: the accuracy loss depends on the model and task. On the 458 images of DOTAv1 val at `imgsz=1024`, YOLO26n-obb calibrated on the default `dota128.yaml` scored 38.0 mAP<sup>val</sup> 50-95 against 46.4 for the PyTorch model (on the 4 images of DOTA8 val, 33.7 against 89.4). Validate the exported model on your own data before you deploy it.
+- **Output directory**: every export of one checkpoint writes the same `yolo26n_xilinx_model/` directory, whatever its `name` or `imgsz`, and deletes the previous contents first, including a compiled model. Rename the directory to keep an export, and keep `_xilinx_model` at the end of its name, because Ultralytics recognizes the format by it: a copy named `yolo26n_vek385` failed with `is not a supported model format`, while `yolo26n_vek385_xilinx_model` loaded.
+- **ONNX file next to the checkpoint**: the export writes its intermediate FP32 model as `yolo26n.onnx` next to `yolo26n.pt` and deletes it after a successful quantization. An [ONNX export](onnx.md) of the same checkpoint in that directory is overwritten and deleted, so move it first or export ONNX again afterwards.
+- **Checkpoints trained with `quantize=8`**: a checkpoint fine-tuned with [quantization-aware training](../modes/export.md#quantization-aware-training) fails with `format='xilinx' cannot export a QAT model: its Q/DQ ranges are only read by the 'onnx' and 'engine' backends`. Export a checkpoint trained without `quantize=8`.
+- **ONNX opset**: other `opset` values are passed to the ONNX export unchanged, 13 and 20 exported and quantized, but the Vitis AI compiler was not run on them.
+- **CPU speed**: on a host without the `VitisAIExecutionProvider`, the INT8 model runs on the CPU, where its speed says nothing about the speed on the NPU. Use the CPU only to check the accuracy.
 
-        ```bash
-        # Build from the Hard-Swish YAML, load pretrained weights and fine-tune
-        yolo train model=yolo26n-hswish.yaml pretrained=yolo26n.pt data=coco8.yaml epochs=100 imgsz=640
-        ```
+## Benchmarks
 
-Activations have no weights, so all of the pretrained weights transfer. The exported ONNX graph then contains 87 HardSwish operators and no SiLU. Replace `coco8.yaml` with your own [dataset](../datasets/index.md), and compare accuracy against the SiLU model with [Val mode](../modes/val.md) before deployment.
+No Versal AI Edge Gen 2 device was available for this page, so it lists no latency measured on the NPU, and CPU latency says nothing about the NPU. The tables compare the accuracy of the PyTorch models and of their AMD Xilinx exports, both run on the CPU of an x86-64 Linux server, which shows the accuracy cost of INT8 quantization before you compile for the NPU. The [YOLO26 model page](../models/yolo26.md) lists the accuracy and speed of the PyTorch models.
 
-!!! note "Alternatives to retraining"
+=== "Accuracy"
 
-    - **Swap at quantization time**: set `"convert_silu_to_hswish": true` in the Vitis AI 3.5 PyTorch quantizer's JSON configuration to replace SiLU during quantization. It saves a training run but usually costs more accuracy, which AMD's fast fine-tuning or QAT can partly recover. See the [vai_q_pytorch configuration guide](https://github.com/Xilinx/Vitis-AI/blob/v3.5/src/vai_quantizer/vai_q_pytorch/doc/Quant_Config.md).
-    - **LeakyReLU**: the DPU implements LeakyReLU with a fixed negative slope of 26/256 (about 0.1). If you use LeakyReLU, train with `activation: nn.LeakyReLU(0.1015625)` so the trained and deployed slopes match.
+    mAP<sup>val</sup> 50-95 on COCO val2017 (5,000 images) at `imgsz=640` and `batch=1`, higher is better.
 
-### Handling Attention Blocks on the DPU
+    | Model | PyTorch | AMD Xilinx INT8 |
+    | --- | --- | --- |
+    | YOLO26n | 40.3 | 36.7 |
+    | YOLO26s | 48.0 | 42.5 |
+    | YOLO26m | 52.7 | 47.8 |
+    | YOLO26l | 54.4 | 51.0 |
+    | YOLO26x | 57.0 | 54.4 |
 
-YOLO26 applies [attention](https://www.ultralytics.com/glossary/attention-mechanism) at the lowest resolution (a 20×20 grid at 640 input) in two places: the [C2PSA](../guides/yolo-architecture.md#spatial-attention-c2psa-yolo11) block at layer 10 and the attention-enabled `C3k2` block at layer 22. YOLO11 has one C2PSA block. On a DPU their MatMul and Softmax operators run on the CPU, which splits the model into alternating DPU and CPU subgraphs. You have three options:
+=== "Size"
 
-1. **Accept the CPU blocks.** The compiled `.xmodel` then contains CPU subgraphs, so run it with AMD's [Graph Runner](https://docs.amd.com/r/en-US/ug1354-xilinx-ai-sdk/Developing-with-Vitis-AI-API_3-Graph-Runner), which executes DPU and CPU subgraphs together when a CPU implementation exists for every operator; otherwise you must implement and register the missing operators. At 20×20 the attention computation is small, but each extra transfer between the DPU and the CPU adds latency, so measure it on your board.
-2. **Use an attention-free YAML.** In your Hard-Swish YAML, replace the C2PSA layer with `nn.Identity` so the layer indices used by `Concat` and `Detect` stay valid, and disable attention in layer 22:
+    Size in MB (10^6 bytes): the `.pt` checkpoint and the `.onnx` file of the export directory. The smaller file for each model is in bold. The export log prints the size of the whole directory in MiB, `(3.4 MB)` for YOLO26n.
 
-    ```yaml
-    backbone:
-        # ... layers 0-9 unchanged
-        - [-1, 1, nn.Identity, []] # 10 C2PSA removed; keeps later layer indices valid
+    | Model | PyTorch | AMD Xilinx INT8 |
+    | --- | --- | --- |
+    | YOLO26n | 5.5 | **3.6** |
+    | YOLO26s | 20.4 | **11.7** |
+    | YOLO26m | 44.3 | **25.6** |
+    | YOLO26l | 53.2 | **30.3** |
+    | YOLO26x | 118.7 | **66.5** |
 
-    head:
-        # ... layers 11-21 unchanged
-        - [-1, 1, C3k2, [1024, True, 0.5, False]] # 22 (P5/32-large), attention disabled
-        - [[16, 19, 22], 1, Detect, [nc]] # Detect(P3, P4, P5)
-    ```
+INT8 lowered mAP<sup>val</sup> 50-95 by 2.6 to 5.5 points. Measured with `ultralytics` 8.4.215, AMD Quark 0.13, ONNX Runtime 1.32.0, and PyTorch 2.15.0 on the CPU of an AMD EPYC 9655 server, with `batch=1` and `rect=False` for both, so PyTorch also ran at 640x640. The INT8 models were calibrated on the default `coco128.yaml`; a second export of YOLO26n produced a file of the same size and the same mAP.
 
-    The exported ONNX graph then contains no MatMul or Softmax operators. The attention weights no longer apply (624 of 666 YOLO26n weights transfer), so fine-tune longer and compare accuracy with [Val mode](../modes/val.md).
+## About AMD Xilinx
 
-3. **Use an attention-free model** such as [YOLOv8](../models/yolov8.md), which AMD has used in its own DPU examples.
-
-On Versal AI Edge Gen 2, attention operators are listed as NPU-supported, so these changes are usually unnecessary. Confirm placement in the compiler report, because AMD notes that supported operators can still fall back to the CPU because of configuration or memory constraints.
-
-### Model Compatibility at a Glance
-
-| Model                         | DPU (Zynq UltraScale+, Kria)                                             | NPU (Versal AI Edge Gen 2)                                                                                                                                                                            |
-| :---------------------------- | :----------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [YOLO26](../models/yolo26.md) | Train with Hard-Swish; two attention blocks become CPU subgraphs; no DFL | Native `format="xilinx"` export; head runs in BF16                                                                                                                                                    |
-| [YOLO11](../models/yolo11.md) | Train with Hard-Swish; C2PSA and DFL softmax run on CPU                  | Native `format="xilinx"` export; head runs in BF16                                                                                                                                                    |
-| [YOLOv8](../models/yolov8.md) | Train with Hard-Swish; DFL softmax runs on CPU                           | Native `format="xilinx"` export. AMD's YOLOv8m tutorial (Vitis AI 6.3, VEK385, INT8 with BF16 tail): compiler report shows 1,181 operators (99.915%) and 99.994% of GOPs on the NPU, no model changes |
-
-## Deploying on Other AMD Xilinx Targets
-
-Zynq UltraScale+ and Kria DPUs and the first-generation Versal AI Edge NPU use Vitis AI flows that `format="xilinx"` does not produce. Train with Ultralytics, then build the target's artifact with AMD's tools in their x86-64 Linux Docker images. Choose the tab for your device:
-
-=== "Versal AI Edge (VEK280)"
-
-    1. Start AMD's Vitis AI 6.3 Docker image for Versal AI Edge.
-    2. **Activate the NPU environment** for the NPU IP on your board by sourcing `settings.sh`. Pass your board's NPU IP name as an argument, or `LIST` to see the available IPs.
-    3. **Capture a snapshot** by running an ordinary inference script on representative images with the `VAISW_SNAPSHOT_DIRECTORY` environment variable set. No code changes are needed:
-
-        ```bash
-        # Activate the NPU environment inside the Vitis AI Docker container
-        source $VITIS_AI_REPO/npu_ip/settings.sh
-
-        # Capture a mixed INT8/BF16 snapshot, calibrating on 100 images from your inference script
-        VAISW_SNAPSHOT_DIRECTORY=snapshot.yolo26n VAISW_FE_PRECISION=MIXED VAISW_QUANTIZATION_NBIMAGES=100 python3 my_inference.py
-        ```
-
-    `VAISW_FE_PRECISION` accepts `INT8` (default), `BF16` or `MIXED`, and `VAISW_QUANTIZATION_NBIMAGES` defaults to 4 images, so set a larger, representative number for detection models. The snapshot is tied to the NPU IP variant on your board. YOLO post-processing tails run on the AI Engines only in BF16 or MIXED precision. AMD's documentation differs on Softmax: its samples page says Softmax is not accelerated and maps YOLOv8's Softmax tail to the CPU, while the Vitis AI 6.1 [release notes](https://vitisai.docs.amd.com/projects/gen1/en/latest/docs/release_notes/release_notes.html) report full YOLOv8 acceleration with mixed precision. Inspect the `wrp_network_iriz.onnx` file inside the snapshot to confirm which parts of your model, including YOLO11 and YOLO26 attention, run on the NPU. See [bring your own model](https://vitisai.docs.amd.com/projects/gen1/en/latest/docs/customization_opportunities/byom.html).
-
-=== "Zynq UltraScale+ and Kria (DPU)"
-
-    1. Start the [Vitis AI 3.5](https://xilinx.github.io/Vitis-AI/3.5/html/index.html) Docker image. Its PyTorch environment uses Python 3.8, which Ultralytics supports.
-    2. **Train with DPU-native activations** as described in [Make YOLO26 DPU-Ready with Hard-Swish](#make-yolo26-dpu-ready-with-hard-swish).
-    3. **Quantize** the PyTorch model with [vai_q_pytorch](https://github.com/Xilinx/Vitis-AI/blob/v3.5/src/vai_quantizer/vai_q_pytorch/README.md): calibrate on representative images, test the quantized accuracy on the host, then export a quantized `.xmodel` with batch size 1.
-    4. **Compile** for your DPU with `vai_c_xir` and the `arch.json` that matches your board's DPU configuration:
-
-        ```bash
-        vai_c_xir -x quantized/Model_int.xmodel -a arch.json -o compiled -n yolo26n
-        ```
-
-    The compiled `.xmodel` lists which subgraphs run on the DPU and which run on the CPU. See AMD's [model development workflow](https://xilinx.github.io/Vitis-AI/3.5/html/docs/workflow-model-development.html).
-
-Prepare the board with a hardware design and Linux image that contain the accelerator configuration you compiled for, plus the matching Vitis AI runtime. See AMD's setup guides for [Zynq UltraScale+ and Kria DPU targets](https://xilinx.github.io/Vitis-AI/3.5/html/docs/workflow-model-deployment.html) and [Versal AI Edge (VEK280)](https://vitisai.docs.amd.com/projects/gen1/en/latest/docs/quickstart/hardware.html), then copy the artifacts your runtime needs:
-
-| Flow                         | Artifacts to copy to the board | Board runtime                        |
-| :--------------------------- | :----------------------------- | :----------------------------------- |
-| DPU (Zynq UltraScale+, Kria) | Compiled `.xmodel`             | VART; Graph Runner for CPU subgraphs |
-| NPU (Versal AI Edge, VEK280) | Snapshot directory             | VART-ML                              |
-
-On the DPU, VART buffers hold fixed-point INT8 values: query each tensor's shape and `fix_point` scale, quantize inputs and dequantize outputs before post-processing. The Graph Runner returns the full graph's outputs, while a DPU-only runner returns intermediate DPU subgraph outputs that your code must finish computing. VART-ML on the VEK280 defaults to hardware tensor views whose shape, data type and memory layout can differ from the ONNX layouts, so configure the runner's input and output tensor types as CPU views or convert the hardware format yourself (see AMD's [VART-ML architecture overview](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/appendix/ml-architecture-overview.html)).
-
-!!! question "Licensing for commercial products"
-
-    Shipping Ultralytics YOLO inside a commercial AMD Xilinx product requires either compliance with the [AGPL-3.0 license](https://www.ultralytics.com/legal/agpl-3-0-software-license) or an [Ultralytics Enterprise License](https://www.ultralytics.com/license).
-
-## Real-World Applications
-
-AMD Xilinx devices are common wherever vision AI must run in real time, at low power, close to the sensor:
-
-- **Industrial and construction safety**: Detect people and machines around heavy equipment, and monitor work zones with [object detection](../tasks/detect.md) and [object counting](../guides/object-counting.md).
-- **Automotive and off-highway vision**: Run camera-based perception on qualified automotive-grade parts, supporting [autonomous vehicles](https://www.ultralytics.com/glossary/autonomous-vehicles) and driver assistance.
-- **Smart cameras and video analytics**: Combine video capture, encoding and YOLO inference on one chip for [security systems](../guides/security-alarm-system.md) and [video analytics](../guides/analytics.md).
-- **Machine vision and quality inspection**: Pair FPGA-based high-speed image capture with YOLO [instance segmentation](../tasks/segment.md) or [classification](../tasks/classify.md) for inline [defect detection](https://www.ultralytics.com/solutions/computer-vision-in-manufacturing/defect-detection).
-- **Robotics and drones**: Use Kria KR260 or Versal modules for [pose estimation](../tasks/pose.md), [oriented object detection](../tasks/obb.md) and navigation with deterministic latency.
-
-## Summary
-
-Exporting with `format="xilinx"` quantizes Ultralytics YOLO models with AMD Quark for Versal AI Edge Series Gen 2 NPUs, keeps the head in BF16, and writes the Vitis AI compiler configuration beside the model. Validate the INT8 accuracy on any host, compile the `.rai` model in AMD's Vitis AI Docker image, and run it on the board with ONNX Runtime and the Vitis AI Execution Provider.
-
-Older AMD Xilinx devices use other flows. The DPU on Zynq UltraScale+ and Kria uses the frozen Vitis AI 3.5 toolchain and `.xmodel` files, needs DPU-native activations such as Hard-Swish, and runs attention on the CPU. The first-generation Versal AI Edge NPU uses the snapshot flow, with operator coverage that depends on the Vitis AI version and precision.
+AMD Xilinx adaptive SoCs combine Arm processors, programmable logic, and, on Versal AI Edge devices, AI Engines that run neural networks. Vitis AI is AMD's toolchain that quantizes, compiles, and runs models on them. For the device families and evaluation kits, see AMD's [adaptive SoCs and FPGAs](https://www.amd.com/en/products/adaptive-socs-and-fpgas.html).
 
 ## FAQ
 
-### Is Xilinx part of AMD?
-
-Yes. AMD completed its acquisition of Xilinx in February 2022, and Xilinx products are now sold as AMD adaptive SoCs and FPGAs: AMD Zynq, AMD Kria, AMD Versal and AMD Vitis. Engineers still widely use the Xilinx name, and part numbers keep the `XC` prefix.
-
-### Can I export a YOLO model directly to AMD Xilinx with `model.export()`?
-
-Yes. `model.export(format="xilinx")` quantizes the model with AMD Quark for Versal AI Edge Series Gen 2 NPUs and writes a directory with the quantized ONNX model and its Vitis AI compiler configuration. Compile it to `.rai` with AMD's Vitis AI tools as shown in [Compile and Run on Versal AI Edge Gen 2](#compile-and-run-on-versal-ai-edge-gen-2). Zynq UltraScale+, Kria and VEK280 targets use the flows in [Deploying on Other AMD Xilinx Targets](#deploying-on-other-amd-xilinx-targets).
-
-### What is the difference between a DPU and an NPU on AMD devices?
-
-The DPU (Deep Learning Processing Unit) is AMD's earlier INT8 accelerator. It is built in the programmable logic of Zynq UltraScale+ and Kria devices, compiled with Vitis AI 3.5, and produces `.xmodel` files. The NPU is its replacement in current Vitis AI releases. On Versal AI Edge devices it combines hardened AI Engines with programmable logic, supports INT8, BF16 and mixed precision, and supports more operators, including SiLU and, on Versal AI Edge Gen 2, attention.
-
-### What is an `.xmodel` file?
-
-An `.xmodel` is a serialized XIR graph used by the AMD DPU toolchain. The quantizer writes a quantized `.xmodel`, and the `vai_c_xir` compiler turns it into a compiled `.xmodel` that contains the DPU instruction stream, quantized INT8 weights and any subgraphs that must run on the CPU. The compiled file targets one specific DPU configuration, described by an `arch.json` fingerprint, and runs on the board through the Vitis AI Runtime (VART), or through the [Graph Runner](https://docs.amd.com/r/en-US/ug1354-xilinx-ai-sdk/Developing-with-Vitis-AI-API_3-Graph-Runner) when it contains CPU subgraphs.
-
-### Does the Zynq UltraScale+ DPU support SiLU and attention?
-
-No. The DPU accelerates only ReLU, ReLU6, LeakyReLU, Hard-Swish and Hard-Sigmoid activations, and it runs Sigmoid, Softmax and MatMul between two activations on the CPU. Train YOLO with `activation: nn.Hardswish()` in the model YAML to keep convolutions on the DPU, and see [Handling Attention Blocks on the DPU](#handling-attention-blocks-on-the-dpu) for attention options. Versal AI Edge Gen 2 NPUs support SiLU, Softmax and MatMul natively.
-
-### How do I run YOLO on a Kria KV260?
-
-The KV260 uses a Zynq UltraScale+ MPSoC with a DPU, so follow the DPU flow. Train a Hard-Swish YOLO26 model, quantize it with `vai_q_pytorch` in the Vitis AI 3.5 Docker image, compile it with `vai_c_xir` using the KV260's `arch.json`, and run the resulting `.xmodel` on the board with VART, or with the Graph Runner if it contains CPU subgraphs.
-
 ### Do I need an AMD board or license to export a model?
 
-No. The export runs on any Linux host with Python 3.11 to 3.13 and needs no AMD account, and the exported model runs on the CPU for accuracy checks on any host. Compiling the `.rai` model requires AMD's Vitis AI Docker image and AI Engine compiler license, and running it on the NPU requires a Versal AI Edge Series Gen 2 board.
+No. The export runs on a Linux machine with Python 3.11 to 3.13 and needs no AMD hardware, account, or license, and the exported directory runs with stock ONNX Runtime to check its accuracy. Compiling the `.rai` model needs AMD's Vitis AI Docker image and an AI Engine compiler license, and running it on the NPU needs a Versal AI Edge Series Gen 2 board, see [Deploy](#deploy).
 
-### Why does my exported AMD Xilinx model run on the CPU?
+### Which `name` should I use for my device?
 
-Ultralytics uses the Vitis AI Execution Provider only when ONNX Runtime provides it, as with AMD's `onnxruntime-vitisai` build on a Versal board or in AMD's Docker image. Elsewhere it runs the quantized model with stock ONNX Runtime on the CPU, which is how you measure INT8 accuracy before deployment.
+Use the Vitis AI device name of the Versal AI Edge Series Gen 2 part on your board, such as `ve2-xc2ve3858` for the VEK385 evaluation kit, the default. See [Target Device](#target-device) for the six supported names.
 
-### Which YOLO tasks can run on AMD Xilinx devices?
+### Why does my exported model run on the CPU?
 
-Any task can run if its operators compile for your accelerator. Unsupported operators usually run on the CPU, but some can force the entire model onto the CPU or fail compilation. [Object detection](../tasks/detect.md) is the most common workload and the one AMD's own examples use. For [segmentation](../tasks/segment.md), [pose](../tasks/pose.md) and other tasks, check the compiler's partition report to confirm that the heavy layers run on the accelerator.
+Ultralytics uses the `VitisAIExecutionProvider` only when the installed ONNX Runtime offers it, as AMD's build on a Versal AI Edge Series Gen 2 board does, and the export directory holds `vitisai_config.json`. With stock ONNX Runtime it runs the INT8 model like any ONNX model, on the CPU of a host without a GPU, which is how you check its accuracy before you deploy.
+
+### Can I export YOLO for a Zynq UltraScale+ or Kria KV260 board?
+
+Not with `format="xilinx"`, which builds models only for Versal AI Edge Series Gen 2 NPUs. Zynq UltraScale+ and Kria devices use the DPU flow of Vitis AI 3.5, see [Deploying on Other AMD Xilinx Targets](#deploying-on-other-amd-xilinx-targets).
+
+### Is Xilinx part of AMD?
+
+Yes. [AMD completed its acquisition of Xilinx in February 2022](https://www.amd.com/en/newsroom/press-releases/2022-2-14-amd-completes-acquisition-of-xilinx.html), and the Zynq, Kria, Versal, and Vitis products are sold under the AMD brand. Device part numbers keep the `XC` prefix, as in the Vitis AI device name `ve2-xc2ve3858`.

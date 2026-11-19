@@ -121,7 +121,6 @@ class Model(torch.nn.Module):
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
-        self._metadata = {}  # export metadata, read once at load so `names` needs no backend
         self.metrics = None  # validation/training metrics
         self.task = task  # task type
         self.model_name = None  # model name
@@ -262,8 +261,7 @@ class Model(torch.nn.Module):
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
-            self._metadata = BaseBackend.read_metadata(weights)  # also holds the exported class names
-            if imgsz := self._metadata.get("imgsz"):  # default to export imgsz like .pt train imgsz
+            if imgsz := BaseBackend.read_metadata(weights).get("imgsz"):  # default to export imgsz like .pt train imgsz
                 self.overrides["imgsz"] = max(ast.literal_eval(str(imgsz)))
         self.overrides["model"] = model_uri if str(model_uri).lower().startswith("ul://") else weights
         self.overrides["task"] = self.task
@@ -1008,9 +1006,9 @@ class Model(torch.nn.Module):
         """Retrieve the class names associated with the loaded model.
 
         This property returns the class names if they are defined in the model. It checks the class names for validity
-        using the 'check_class_names' function from the ultralytics.nn.autobackend module. Exported models carry their
-        names in the metadata read at load time, so retrieving them needs no inference backend; other formats set up
-        the predictor instead.
+        using the 'check_class_names' function from the ultralytics.nn.autobackend module. Exported models return the
+        names embedded in their metadata without loading an inference backend, and the predictor is set up only for
+        exports that carry none.
 
         Returns:
             (dict[int, str]): A dictionary of class names associated with the model, where keys are class indices and
@@ -1028,18 +1026,13 @@ class Model(torch.nn.Module):
 
         if hasattr(self.model, "names"):
             return check_class_names(self.model.names)
-        if self.predictor:  # the predictor may have resolved names from the model outputs during inference
-            return self.predictor.model.names
-        names = self._metadata.get("names")  # exported names were read at load, no backend needed
-        if isinstance(names, str):
-            names = ast.literal_eval(names)
-        if len(names or {}) == 999 and self.task == "segment":  # placeholder, resolved by the backend
-            names = None
-        if names:
-            return check_class_names(names)
-        predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
-        predictor.setup_model(model=self.model, verbose=False)  # do not mess with self.predictor.model args
-        return predictor.model.names
+        if not self.predictor:  # export formats will not have predictor defined until predict() is called
+            if names := BaseBackend.read_metadata(self.model).get("names"):  # embedded at export, no backend needed
+                return check_class_names(ast.literal_eval(str(names)))
+            predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
+            predictor.setup_model(model=self.model, verbose=False)  # do not mess with self.predictor.model args
+            return predictor.model.names
+        return self.predictor.model.names
 
     @property
     def device(self) -> torch.device:

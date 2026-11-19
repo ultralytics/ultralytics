@@ -119,8 +119,7 @@ class ParkingPtsSelection:
         self.image = ImageOps.exif_transpose(Image.open(file))
         self.imgw, self.imgh = self.image.size
         gain = min(self.canvas_max_width / self.imgw, self.canvas_max_height / self.imgh, 1)
-        canvas_width = max(1, round(self.imgw * gain))
-        canvas_height = max(1, round(self.imgh * gain))
+        canvas_width, canvas_height = round(self.imgw * gain), round(self.imgh * gain)
 
         self.canvas.config(width=canvas_width, height=canvas_height)
         self.canvas_image = ImageTk.PhotoImage(self.image.resize((canvas_width, canvas_height)))

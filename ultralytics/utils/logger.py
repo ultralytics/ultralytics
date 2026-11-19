@@ -417,12 +417,12 @@ class SystemLogger:
     Attributes:
         pynvml (module | None): NVIDIA pynvml module if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
-        amdsmi (module | None): AMD amdsmi module if initialized on a ROCm build of PyTorch, None otherwise.
+        amd_initialized (bool): Whether AMD GPU monitoring is available, on a ROCm build of PyTorch with amdsmi.
         nvidia_versions (dict): NVIDIA 'driver_version' and 'cuda_version' strings read from NVML, if available.
         net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
         disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
         mounts (list[str]): Mounted drive paths monitored for disk usage.
-        gpus (list[int] | None): NVML or amdsmi indices of the GPUs reported, or None for every GPU.
+        gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs reported, or None for every GPU.
 
     Examples:
         Basic usage (single drive):
@@ -455,14 +455,15 @@ class SystemLogger:
 
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
-            gpus (list[int] | None): NVML or amdsmi indices of the GPUs to report, such as those a training run uses. None
-                reports every GPU and an empty list reports none.
+            gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs to report, such as those a training
+                run uses. None reports every GPU and an empty list reports none.
         """
         import psutil  # scoped as slow import
+        import torch
 
         self.pynvml = None
-        self.nvidia_initialized = self._init_nvidia()
-        self.amdsmi = None if self.nvidia_initialized else self._init_amd()
+        self.nvidia_initialized = not torch.version.hip and self._init_nvidia()
+        self.amd_initialized = bool(torch.version.hip) and self._init_amd()
         self.nvidia_versions = {}
         if self.nvidia_initialized:
             try:
@@ -495,25 +496,20 @@ class SystemLogger:
         except Exception as e:
             import torch
 
-            if torch.cuda.is_available() and not torch.version.hip:  # ROCm GPUs are read through amdsmi instead
+            if torch.cuda.is_available():
                 LOGGER.warning(f"SystemLogger NVML init failed: {e}")
             return False
 
     @staticmethod
     def _init_amd():
-        """Initialize AMD GPU monitoring with amdsmi, the Python bindings that ship with ROCm, on ROCm PyTorch builds."""
-        import torch
-
-        if not torch.version.hip:
-            return None
+        """Check that amdsmi, which torch.cuda reads AMD GPU metrics through on ROCm builds, can be imported."""
         try:
-            import amdsmi  # scoped as slow import
+            import amdsmi  # noqa: F401, scoped as slow import
 
-            amdsmi.amdsmi_init()
-            return amdsmi
+            return True
         except Exception as e:
-            LOGGER.warning(f"SystemLogger amdsmi init failed: {e}")
-            return None
+            LOGGER.warning(f"SystemLogger AMD GPU metrics need amdsmi: {e}")
+            return False
 
     def get_metrics(self, rates=False):
         """Get current system metrics including CPU, RAM, disk, network, and GPU usage.
@@ -631,7 +627,7 @@ class SystemLogger:
         # Add GPU metrics
         if self.nvidia_initialized:
             metrics["gpus"].update(self._get_nvidia_metrics())
-        elif self.amdsmi:
+        elif self.amd_initialized:
             metrics["gpus"].update(self._get_amd_metrics())
 
         return metrics
@@ -661,21 +657,19 @@ class SystemLogger:
         return gpus
 
     def _get_amd_metrics(self):
-        """Get AMD GPU metrics including utilization, memory, junction (hotspot) temperature, and power."""
+        """Get AMD GPU metrics from torch.cuda, which reads amdsmi and maps visible HIP devices to amdsmi devices."""
+        import torch
+
         gpus = {}
-        smi = self.amdsmi
         try:
-            handles = smi.amdsmi_get_processor_handles()
-            for i in range(len(handles)) if self.gpus is None else [i for i in self.gpus if i < len(handles)]:
-                handle = handles[i]
-                vram = smi.amdsmi_get_gpu_vram_usage(handle)  # MB
+            n = torch.cuda.device_count()
+            for i in range(n) if self.gpus is None else [i for i in self.gpus if i < n]:
+                memory = torch.cuda.device_memory_used(i) / torch.cuda.get_device_properties(i).total_memory
                 gpus[str(i)] = {
-                    "usage": round(smi.amdsmi_get_gpu_activity(handle)["gfx_activity"], 3),
-                    "memory": round((vram["vram_used"] / vram["vram_total"]) * 100, 3),
-                    "temp": smi.amdsmi_get_temp_metric(
-                        handle, smi.AmdSmiTemperatureType.HOTSPOT, smi.AmdSmiTemperatureMetric.CURRENT
-                    ),
-                    "power": smi.amdsmi_get_power_info(handle)["socket_power"],
+                    "usage": torch.cuda.utilization(i),
+                    "memory": round(memory * 100, 3),
+                    "temp": torch.cuda.temperature(i),  # junction (hotspot) sensor
+                    "power": torch.cuda.power_draw(i),  # amdsmi socket power, in W on ROCm
                 }
         except Exception:
             pass

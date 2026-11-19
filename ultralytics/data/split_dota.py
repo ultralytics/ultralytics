@@ -72,7 +72,7 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
         split (str, optional): The split data set, could be 'train' or 'val'.
 
     Returns:
-        (list[dict[str, Any]]): List of annotation dictionaries containing image information.
+        (list[dict[str, Any]]): List of annotation dictionaries with 'label' and 'filepath' keys.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -339,14 +339,7 @@ def split_test(
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(im_dir / "*"))
     for im_file in TQDM(im_files, total=len(im_files), desc="test"):
-        im = imread(im_file)
-        windows = get_windows(im.shape[:2], crop_sizes=crop_sizes, gaps=gaps)
-        name = Path(im_file).stem
-        for window in windows:
-            x_start, y_start, x_stop, y_stop = window.tolist()
-            new_name = f"{name}__{x_stop - x_start}__{x_start}___{y_start}"
-            patch_im = im[y_start:y_stop, x_start:x_stop]
-            cv2.imwrite(str(save_dir / f"{new_name}.jpg"), patch_im)
+        crop_and_save({"filepath": im_file, "label": np.zeros((0, 9))}, crop_sizes, gaps, str(save_dir), lb_dir="")
 
 
 if __name__ == "__main__":

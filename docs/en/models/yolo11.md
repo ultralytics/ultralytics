@@ -27,7 +27,7 @@ YOLO11 was released by Ultralytics on September 27, 2024, improving [accuracy](h
 
     Explore and run YOLO11 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo11).
 
-<platform-predict src="/ultralytics/yolo11/yolo11n"></platform-predict>
+<platform-predict src="https://platform.ultralytics.com/ultralytics/yolo11/yolo11n"></platform-predict>
 
 ## Key Features
 

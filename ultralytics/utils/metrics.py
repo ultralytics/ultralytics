@@ -443,7 +443,14 @@ class ConfusionMatrix(DataExportMixin):
             self.add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items])])
 
     def add_cell(self, cell: tuple[int, int], objects: int, images: int, examples: list[tuple]) -> None:
-        """Add counts and examples to a cell of `cells`, keeping the 10 top-scoring images of a false-detection cell."""
+        """Add counts and examples to a cell of `cells`, keeping the 10 top-scoring images of a false-detection cell.
+
+        Args:
+            cell (tuple[int, int]): Predicted and true class index, `nc` for background.
+            objects (int): Number of objects to add.
+            images (int): Number of images to add.
+            examples (list[tuple]): (score, image file, boxes) tuples to add.
+        """
         counts = self.cells.setdefault(cell, [0, 0, []])
         counts[0] += objects
         counts[1] += images

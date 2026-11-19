@@ -151,7 +151,7 @@ The `colormap` argument accepts any [OpenCV colormap](https://docs.opencv.org/4.
 
 ## How Heatmaps Work
 
-The [Heatmap solution](../reference/solutions/heatmap.md) extends the [ObjectCounter](../reference/solutions/object_counter.md) class. On the first processed frame it creates a blank intensity layer matching the frame size. Each frame is then processed in two steps:
+The [Heatmap solution](../reference/solutions/heatmap.md) extends the [ObjectCounter](../reference/solutions/object_counter.md) class. On the first processed frame it creates a blank intensity layer matching the frame size, and it starts a fresh layer whenever the frame size changes rather than rescaling the activity accumulated so far. Each frame is then processed in two steps:
 
 1. YOLO26 tracking detects and follows every object in the frame
 2. For each tracked object, the heatmap intensity increases within a circular region centered in its bounding box

@@ -75,10 +75,10 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
 
 
 def _confusion_payload(confusion_matrix, conf, budget=3_500_000):
-    """Return every confusion matrix cell with example images, spending at most `budget` JSON bytes on examples.
+    """Return confusion matrix cells with example images in at most `budget` JSON bytes, counts before examples.
 
     Cells are [predicted, true, objects, images, examples], each example [image index, boxes]; a cell with fewer
-    examples than images was cut. Examples fill confused, missed, false-detection, then correct cells, largest first.
+    examples than images was cut. Cells and examples go confused, missed, false-detection, then correct, largest first.
     """
     import json
 
@@ -88,20 +88,25 @@ def _confusion_payload(confusion_matrix, conf, budget=3_500_000):
         (p, t), (objects, _, _) = item
         return (3 if p == t else 1 if p == nc else 2 if t == nc else 0), -objects
 
-    images, index, cells, size = [], {}, [], 0
-    for (p, t), (objects, count, examples) in sorted(confusion_matrix.cells.items(), key=rank):
-        kept = []
+    ranked = sorted(confusion_matrix.cells.items(), key=rank)
+    cells, size = [], len(json.dumps({"conf": conf, "images": [], "cells": []}))
+    for (p, t), (objects, count, _) in ranked:
+        size += len(json.dumps([p, t, objects, count, []])) + 2
+        if size > budget:
+            break
+        cells.append([p, t, objects, count, []])
+    images, index = [], {}
+    for cell, (_, (_, _, examples)) in zip(cells, ranked):
         for _, name, boxes in sorted(examples, reverse=True):
             image = Path(name).stem.split("_", 1)[0]
             i = index.get(image, len(images))
-            size += len(json.dumps([i, boxes])) + (len(image) + 3) * (i == len(images))
+            size += len(json.dumps([i, boxes])) + 2 + (len(image) + 4) * (i == len(images))
             if size > budget:
                 break
             if i == len(images):
                 index[image] = i
                 images.append(image)
-            kept.append([i, boxes])
-        cells.append([p, t, objects, count, kept])
+            cell[4].append([i, boxes])
     return {"conf": conf, "images": images, "cells": cells}
 
 

@@ -422,8 +422,8 @@ class SystemLogger:
         net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
         disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
         mounts (list[str]): Mounted drive paths monitored for disk usage.
-        gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs reported, or None for every GPU
-            (every torch-visible GPU on ROCm).
+        gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs reported, or None for every GPU (every
+            torch-visible GPU on ROCm).
 
     Examples:
         Basic usage (single drive):
@@ -457,8 +457,8 @@ class SystemLogger:
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
             gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs to report, such as those a
-                training run uses. None reports every GPU (every torch-visible GPU on ROCm) and an empty list reports
-                none.
+                training run uses. None reports every GPU (every torch-visible GPU on ROCm) and an empty list
+                reports none.
         """
         import psutil  # scoped as slow import
 

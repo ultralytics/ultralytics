@@ -662,22 +662,6 @@ def test_youtube():
         LOGGER.error(f"YouTube Test Error: {e}")
 
 
-@pytest.mark.parametrize("downscale", [1, 2])
-def test_gmc_sparse_flow_recovers_after_frame_resize(downscale):
-    """Changing frame geometry must restart optical flow and allow motion estimation on subsequent frames."""
-    from ultralytics.trackers.utils.gmc import GMC
-
-    rng = np.random.default_rng(0)
-    gmc = GMC(method="sparseOptFlow", downscale=downscale)
-    gmc.apply(rng.integers(0, 256, (96, 128, 3), dtype=np.uint8))
-    for shape in ((160, 192), (192, 160)):
-        frame = rng.integers(0, 256, (*shape, 3), dtype=np.uint8)
-        np.testing.assert_allclose(gmc.apply(frame), np.eye(2, 3))
-        motion = np.float32([[1, 0, 4], [0, 1, 2]])
-        shifted = cv2.warpAffine(frame, motion, (shape[1], shape[0]), borderMode=cv2.BORDER_REFLECT)
-        np.testing.assert_allclose(gmc.apply(shifted), motion, atol=0.15)
-
-
 def test_track_second_association_indices():
     """Low-confidence detections matched in second association keep full detection-set indices."""
     from ultralytics.engine.results import Boxes

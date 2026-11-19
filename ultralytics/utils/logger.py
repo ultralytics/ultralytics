@@ -417,7 +417,7 @@ class SystemLogger:
     Attributes:
         pynvml (module | None): NVIDIA pynvml module if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
-        amd_initialized (bool): Whether AMD GPU monitoring is available, on a ROCm build of PyTorch with amdsmi.
+        amd_initialized (bool): Whether AMD GPU monitoring is available, on a ROCm build of torch>=2.8 with amdsmi.
         nvidia_versions (dict): NVIDIA 'driver_version' and 'cuda_version' strings read from NVML, if available.
         net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
         disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
@@ -463,10 +463,12 @@ class SystemLogger:
         import torch
 
         from ultralytics.utils.checks import rocm_is_available
+        from ultralytics.utils.torch_utils import TORCH_2_8
 
         self.pynvml = None
         self.nvidia_initialized = not torch.version.hip and self._init_nvidia()
-        self.amd_initialized = rocm_is_available() and self._init_amd()
+        # torch<2.8 reads device_memory_used() from the current GPU whatever device is passed
+        self.amd_initialized = rocm_is_available() and TORCH_2_8 and self._init_amd()
         self.nvidia_versions = {}
         if self.nvidia_initialized:
             try:
@@ -505,17 +507,10 @@ class SystemLogger:
 
     @staticmethod
     def _init_amd():
-        """Check that torch.cuda can read the AMD GPU metrics, which it does through amdsmi on ROCm builds."""
-        import torch
-
+        """Check that amdsmi, which torch.cuda reads AMD GPU metrics through on ROCm builds, can be imported."""
         try:
-            for read in (
-                torch.cuda.utilization,
-                torch.cuda.device_memory_used,
-                torch.cuda.temperature,
-                torch.cuda.power_draw,
-            ):
-                read()
+            import amdsmi  # noqa: F401, scoped as slow import
+
             return True
         except Exception as e:
             LOGGER.warning(f"SystemLogger AMD GPU metrics unavailable: {e}")

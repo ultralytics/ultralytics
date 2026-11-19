@@ -85,7 +85,7 @@ Explore the links to learn more about each integration and how to get the most o
 
 - [NXP i.MX95](nxp.md): Compile calibrated INT8 YOLO models for the i.MX95 Neutron NPU with Neutron SDK 3.3.0.
 
-- [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models locally into the QNN (AI Engine Direct) context-binary format with the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider for accelerated inference on Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware in mobile and edge devices.
+- [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models locally into the QNN (AI Engine Direct) context-binary format with the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider for inference on the Hexagon NPU of Snapdragon and Dragonwing devices.
 
 - [Raspberry Pi](../guides/raspberry-pi.md): Quickstart tutorial to run YOLO models on the latest Raspberry Pi hardware.
 

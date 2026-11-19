@@ -146,7 +146,7 @@ Press `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux) to open the search bar. Search a
 
 ### AI Chat Assistant
 
-Click **Ask AI** to work with an AI agent that automates tasks across Ultralytics Platform. It works directly with your datasets and models to annotate images, run training experiments, compare results, and export or deploy models. See [AutoTrain with Ask AI](train/autotrain.md) for example prompts and setup for your own coding agent.
+Click **Ask AI** to work with an AI agent that automates tasks across Ultralytics Platform. It works directly with your datasets and models to annotate images, run training experiments, compare results, and export or deploy models. See [AutoTrain with Ask AI](train/autotrain.md) for example prompts and setup for your own coding agent. To show it a screenshot or a training log, attach up to 3 files (3 MB in total): click `+` and choose **Add Photos & Files**, drag them into the chat, or paste an image with `Cmd/Ctrl+V`.
 
 ### Onboarding Tours
 
@@ -410,7 +410,7 @@ The **Help** page in the sidebar footer collects documentation links, video walk
 
 If you need more help:
 
-- **AI Chat**: Click the floating chat widget on any page for instant help. Attach up to 3 files (3 MB in total), such as a screenshot or training log, from **+ > Add Photos & Files**, by dragging them in, or by pasting an image with `Cmd/Ctrl+V`
+- **AI Chat**: Click the floating chat widget on any page for instant help
 - **Documentation**: Browse these docs for detailed guides on [datasets](data/datasets.md), [annotation](data/annotation.md), [training](train/cloud-training.md), [deployment](deploy/endpoints.md), and [billing](account/billing.md)
 - **Discord**: Join our [Discord community](https://discord.com/invite/ultralytics) for discussions
 - **GitHub**: Report issues on [GitHub](https://github.com/ultralytics/ultralytics/issues)

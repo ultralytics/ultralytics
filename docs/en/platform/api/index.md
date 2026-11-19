@@ -1458,7 +1458,7 @@ Creates an untrained model record you can attach weights to or train.
 
     To attach `.pt` weights, request a signed upload URL with `assetType: "models"` and this model's `id` as `assetId`,
     `PUT` the file to the returned URL, then call `POST /api/upload/complete` with the returned `sessionId`. The
-    filename must end in `.pt`; other files, such as ONNX or TorchScript exports, are rejected with `400`.
+    filename must end in `.pt` (see [Upload Filenames](#upload-filenames)).
 
 ### Update Model
 
@@ -2293,10 +2293,11 @@ POST /api/upload/signed-url
 | `contentType` | string | Yes      | MIME type                         |
 | `totalBytes`  | number | Yes      | File size in bytes                |
 
-!!! note "Dataset Archive Filenames"
+!!! note "Upload Filenames"
 
     When `assetType` is `datasets`, `filename` must end in `.zip`, `.tar`, `.tar.gz`, `.tgz`, or `.ndjson`. Package
-    loose images into an archive before uploading.
+    loose images into an archive before uploading. When `assetType` is `models`, `filename` must end in `.pt`; ONNX,
+    TorchScript, and other files return `400`.
 
 **Response:**
 

@@ -417,7 +417,7 @@ class SystemLogger:
     Attributes:
         pynvml (module | None): NVIDIA pynvml module if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
-        amdsmi (module | None): AMD amdsmi module if initialized on a ROCm build of PyTorch, None otherwise.
+        amdsmi (module | None): AMD amdsmi module on ROCm when its only GPU is torch GPU 0, None otherwise.
         nvidia_versions (dict): NVIDIA 'driver_version' and 'cuda_version' strings read from NVML, if available.
         net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
         disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
@@ -516,10 +516,12 @@ class SystemLogger:
             pci = f"{p.pci_domain_id:04x}:{p.pci_bus_id:02x}:{p.pci_device_id:02x}."  # amdsmi BDF prefix
             if len(handles) == 1 and amdsmi.amdsmi_get_gpu_device_bdf(handles[0]).lower().startswith(pci):
                 return amdsmi
-            e = f"amdsmi sees {len(handles)} GPUs, expected only torch GPU 0 at PCI {pci[:-1]}"
-        except Exception as error:
-            e = error
-        LOGGER.warning(f"SystemLogger AMD GPU metrics unavailable: {e}")
+            LOGGER.info(  # by design, not an error: amdsmi and HIP indices are only certain to match for one GPU
+                f"SystemLogger AMD GPU metrics unavailable: amdsmi sees {len(handles)} GPUs, "
+                f"expected only torch GPU 0 at PCI {pci[:-1]}"
+            )
+        except Exception as e:
+            LOGGER.warning(f"SystemLogger AMD GPU metrics unavailable: {e}")
         return None
 
     def get_metrics(self, rates=False):

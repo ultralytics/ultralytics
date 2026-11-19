@@ -465,10 +465,11 @@ class SystemLogger:
         from ultralytics.utils.checks import rocm_is_available
         from ultralytics.utils.torch_utils import TORCH_2_8
 
+        rocm = rocm_is_available()  # ROCm builds expose AMD GPUs as CUDA devices, which NVML cannot read
         self.pynvml = None
-        self.nvidia_initialized = self._init_nvidia()
+        self.nvidia_initialized = not rocm and self._init_nvidia()
         # torch>=2.8 exposes the PCI address that matches torch GPUs to amdsmi GPUs
-        self.amd_gpus = self._init_amd(gpus) if TORCH_2_8 and rocm_is_available() else {}
+        self.amd_gpus = self._init_amd(gpus) if rocm and TORCH_2_8 else {}
         self.nvidia_versions = {}
         if self.nvidia_initialized:
             try:
@@ -489,9 +490,7 @@ class SystemLogger:
 
     def _init_nvidia(self):
         """Initialize NVIDIA GPU monitoring with pynvml."""
-        import torch
-
-        if MACOS or torch.version.hip:  # ROCm builds expose AMD GPUs as CUDA devices, which NVML cannot read
+        if MACOS:
             return False
 
         try:
@@ -501,6 +500,8 @@ class SystemLogger:
             pynvml.nvmlInit()
             return True
         except Exception as e:
+            import torch
+
             if torch.cuda.is_available():
                 LOGGER.warning(f"SystemLogger NVML init failed: {e}")
             return False

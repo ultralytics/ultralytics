@@ -100,7 +100,7 @@ def _confusion_payload(confusion_matrix, conf, budget=3_500_000):
         for _, name, boxes in sorted(examples, reverse=True):
             image = Path(name).stem.split("_", 1)[0]
             i = index.get(image, len(images))
-            size += len(json.dumps([i, boxes])) + 2 + (len(image) + 4) * (i == len(images))
+            size += len(json.dumps([i, boxes])) + 2 + (len(json.dumps(image)) + 2 if i == len(images) else 0)
             if size > budget:
                 break
             if i == len(images):

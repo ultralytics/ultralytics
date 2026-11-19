@@ -456,7 +456,8 @@ class SystemLogger:
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
             gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs to report, such as those a
-                training run uses. None reports every GPU and an empty list reports none.
+                training run uses. None reports every GPU (on ROCm, each visible GPU matched to amdsmi) and an empty
+                list reports none.
         """
         import psutil  # scoped as slow import
 
@@ -519,7 +520,10 @@ class SystemLogger:
             n = torch.cuda.device_count()
             handles = {}
             for i in range(n) if gpus is None else [i for i in gpus if i < n]:
-                p = torch.cuda.get_device_properties(i)
+                try:
+                    p = torch.cuda.get_device_properties(i)
+                except Exception:  # torch can count a GPU that HIP cannot open, e.g. under GPU_DEVICE_ORDINAL
+                    continue
                 handle = by_pci.get(f"{p.pci_domain_id:04x}:{p.pci_bus_id:02x}:{p.pci_device_id:02x}")
                 if handle is not None:
                     handles[i] = handle
@@ -681,25 +685,18 @@ class SystemLogger:
         for i, handle in self.amd_gpus.items():
             try:
                 vram = amdsmi.amdsmi_get_gpu_vram_usage(handle)  # MB
-                power = amdsmi.amdsmi_get_power_info(
-                    handle
-                )  # W, "N/A" where unsupported, as torch.cuda.power_draw handles
-                power = (
-                    power["current_socket_power"]
-                    if power["average_socket_power"] == "N/A"
-                    else power["average_socket_power"]
-                )
+                power = amdsmi.amdsmi_get_power_info(handle)  # W, "N/A" where unsupported
+                avg = power["average_socket_power"]
+                power = power["current_socket_power"] if avg == "N/A" else avg  # as torch.cuda.power_draw falls back
                 temp = amdsmi.amdsmi_get_temp_metric(
                     handle, amdsmi.AmdSmiTemperatureType.HOTSPOT, amdsmi.AmdSmiTemperatureMetric.CURRENT
                 )
-                gpu = {  # int() skips a GPU with an "N/A" reading instead of sending a non-numeric value
+                gpus[str(i)] = {  # int() skips a GPU with an "N/A" reading, since Platform requires all four numbers
                     "usage": int(amdsmi.amdsmi_get_gpu_activity(handle)["gfx_activity"]),
                     "memory": round((vram["vram_used"] / vram["vram_total"]) * 100, 3),
                     "temp": int(temp),
+                    "power": int(power),
                 }
-                if power != "N/A":  # power is optional for Platform
-                    gpu["power"] = int(power)
-                gpus[str(i)] = gpu
             except Exception:
                 pass
         return gpus
@@ -737,7 +734,7 @@ if __name__ == "__main__":
                         f"  GPU {gpu_id}: {gpu_data['usage']:3}% | "
                         f"Mem: {gpu_data['memory']:5.1f}% | "
                         f"Temp: {gpu_data['temp']:2}°C | "
-                        f"Power: {gpu_data.get('power', '-'):>3}W"
+                        f"Power: {gpu_data['power']:3}W"
                     )
             else:
                 print("\nGPU: No GPU metrics available")

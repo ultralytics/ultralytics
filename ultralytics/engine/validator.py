@@ -194,7 +194,8 @@ class BaseValidator:
             windows.append(window)
             if len(predictions) != dataset.tile_counts[source]:
                 continue
-            sample = dataset.get_image_and_label(dataset.source_offsets[source], full=True)
+            draw = self.args.plots and (source < 3 or self.args.visualize)  # only plots read source pixels
+            sample = dataset.get_image_and_label(dataset.source_offsets[source], full=draw or "targets")
             if self.args.task != "classify":
                 sample = dataset.transforms.transforms[-1](sample)
             full_batch = self.preprocess_targets(dataset.collate_fn([sample]))

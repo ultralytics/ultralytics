@@ -510,12 +510,13 @@ class BaseDataset(Dataset):
         """Return transformed label information for given index."""
         return self.transforms(self.get_image_and_label(index))
 
-    def get_image_and_label(self, index: int, full: bool = False) -> dict[str, Any]:
+    def get_image_and_label(self, index: int, full: bool | str = False) -> dict[str, Any]:
         """Get and return label information from the dataset.
 
         Args:
             index (int): Index of the image to retrieve.
-            full (bool): Return the original source and targets instead of a tile.
+            full (bool | str): Return the original source and targets instead of a tile, or with "targets" on a tiled
+                dataset the original targets and a blank image of the source shape, without decoding the source.
 
         Returns:
             (dict[str, Any]): Label dictionary with image and metadata.
@@ -523,9 +524,12 @@ class BaseDataset(Dataset):
         label = deepcopy(self.labels[index])
         label.pop("shape", None)
         if full:
+            if full == "targets":
+                image = np.broadcast_to(np.uint8(0), (*label["source_shape"], self.channels))
+            else:
+                image = self._load_source(index)
             for key in ("tile", "source_index", "source_shape"):
                 label.pop(key, None)
-            image = self._load_source(index)
             label["img"] = image if image.ndim == 3 else image[..., None]
             label["ori_shape"] = label["resized_shape"] = image.shape[:2]
         else:

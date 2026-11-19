@@ -573,7 +573,7 @@ class DepthDataset(YOLODataset):
             depth = depth[y1:y2, x1:x2].copy()
         return depth
 
-    def get_image_and_label(self, index: int, full: bool = False) -> dict[str, Any]:
+    def get_image_and_label(self, index: int, full: bool | str = False) -> dict[str, Any]:
         """Load image, label, and depth map for the given index."""
         label = super().get_image_and_label(index, full=full)
         h, w = label["resized_shape"]
@@ -1135,14 +1135,14 @@ class SemanticDataset(YOLODataset):
         lut = self.inverse_lut if inverse else self.label_lut
         return cv2.LUT(label, lut) if label.dtype == np.uint8 else lut[label]  # cv2.LUT needs a uint8 input
 
-    def get_image_and_label(self, index: int, full: bool = False) -> dict[str, Any]:
+    def get_image_and_label(self, index: int, full: bool | str = False) -> dict[str, Any]:
         """Get image, label and semantic mask for the given index.
 
         Overrides parent to include the semantic mask, served from RAM for the images Mosaic draws from the buffer.
 
         Args:
             index (int): Dataset index.
-            full (bool): Return the original source target instead of a tile.
+            full (bool | str): Return the original source target instead of a tile; see `BaseDataset`.
 
         Returns:
             (dict): Label dict with 'img', 'semantic_mask', and metadata.

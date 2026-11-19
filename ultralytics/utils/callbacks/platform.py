@@ -597,7 +597,8 @@ def on_train_end(trainer):
     }
     if getattr(confusion_matrix := trainer.validator.confusion_matrix, "cells", None):  # fill up to 4 of the 4.5 MB
         room = 4_000_000 - len(json.dumps(_sanitize_json_value(data)))
-        data["results"]["confusion"] = _confusion_payload(confusion_matrix, trainer.validator.args.conf, room)
+        if room > 0:
+            data["results"]["confusion"] = _confusion_payload(confusion_matrix, trainer.validator.args.conf, room)
     _send("training_complete", data, project, name, ctx["model_id"], retry=4)  # Critical, more retries
     if ctx.get("model_url"):
         LOGGER.info(f"{PREFIX}View results at {ctx['model_url']}")

@@ -283,25 +283,25 @@ No Versal AI Edge Gen 2 device was available for this page, so it lists no laten
 
     mAP<sup>val</sup> 50-95 on COCO val2017 (5,000 images) at `imgsz=640` and `batch=1`, higher is better.
 
-    | Model | PyTorch | AMD Xilinx INT8 |
-    | --- | --- | --- |
-    | YOLO26n | 40.3 | 36.7 |
-    | YOLO26s | 48.0 | 42.5 |
-    | YOLO26m | 52.7 | 47.8 |
-    | YOLO26l | 54.4 | 51.0 |
-    | YOLO26x | 57.0 | 54.4 |
+    | Model   | PyTorch | AMD Xilinx INT8 |
+    | ------- | ------- | --------------- |
+    | YOLO26n | 40.3    | 36.7            |
+    | YOLO26s | 48.0    | 42.5            |
+    | YOLO26m | 52.7    | 47.8            |
+    | YOLO26l | 54.4    | 51.0            |
+    | YOLO26x | 57.0    | 54.4            |
 
 === "Size"
 
     Size in MB (10^6 bytes): the `.pt` checkpoint and the `.onnx` file of the export directory. The smaller file for each model is in bold. The export log prints the size of the whole directory in MiB, `(3.4 MB)` for YOLO26n.
 
-    | Model | PyTorch | AMD Xilinx INT8 |
-    | --- | --- | --- |
-    | YOLO26n | 5.5 | **3.6** |
-    | YOLO26s | 20.4 | **11.7** |
-    | YOLO26m | 44.3 | **25.6** |
-    | YOLO26l | 53.2 | **30.3** |
-    | YOLO26x | 118.7 | **66.5** |
+    | Model   | PyTorch | AMD Xilinx INT8 |
+    | ------- | ------- | --------------- |
+    | YOLO26n | 5.5     | **3.6**         |
+    | YOLO26s | 20.4    | **11.7**        |
+    | YOLO26m | 44.3    | **25.6**        |
+    | YOLO26l | 53.2    | **30.3**        |
+    | YOLO26x | 118.7   | **66.5**        |
 
 INT8 lowered mAP<sup>val</sup> 50-95 by 2.6 to 5.5 points. Measured with `ultralytics` 8.4.215, AMD Quark 0.13, ONNX Runtime 1.32.0, and PyTorch 2.15.0 on the CPU of an AMD EPYC 9655 server, with `batch=1` and `rect=False` for both, so PyTorch also ran at 640x640. The INT8 models were calibrated on the default `coco128.yaml`; a second export of YOLO26n produced a file of the same size and the same mAP.
 

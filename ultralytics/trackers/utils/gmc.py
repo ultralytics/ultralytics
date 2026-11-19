@@ -312,8 +312,8 @@ class GMC:
         # Find good features to track
         keypoints = cv2.goodFeaturesToTrack(frame, mask=None, **self.feature_params)
 
-        # Handle first frame initialization
-        if not self.initializedFirstFrame or self.prevKeyPoints is None:
+        # Start a new optical-flow history when the previous frame or keypoints can't be reused
+        if not self.initializedFirstFrame or self.prevKeyPoints is None or self.prevFrame.shape != frame.shape:
             self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.initializedFirstFrame = True

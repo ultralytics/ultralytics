@@ -479,7 +479,8 @@ class ConfusionMatrix(DataExportMixin):
                 information. Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be Array[N, 4] for
                 regular boxes or Array[N, 5] for OBB with angle.
             batch (dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M,
-                5]) and 'cls' (Array[M]) keys, where M is the number of ground truth objects.
+                5]) and 'cls' (Array[M]) keys, where M is the number of ground truth objects, plus 'im_file',
+                'ori_shape', 'imgsz' and 'ratio_pad' when `cells` is recorded.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth, the same criterion as
                 mAP50. This is a matching threshold, not the NMS `iou` argument.

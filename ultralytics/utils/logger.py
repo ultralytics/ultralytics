@@ -422,7 +422,8 @@ class SystemLogger:
         net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
         disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
         mounts (list[str]): Mounted drive paths monitored for disk usage.
-        gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs reported, or None for every GPU.
+        gpus (list[int] | None): NVML indices of the GPUs reported, or None for every GPU (torch indices and every
+            visible GPU on ROCm).
 
     Examples:
         Basic usage (single drive):
@@ -455,15 +456,17 @@ class SystemLogger:
 
         Args:
             all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
-            gpus (list[int] | None): NVML indices (torch indices on ROCm) of the GPUs to report, such as those a training
-                run uses. None reports every GPU and an empty list reports none.
+            gpus (list[int] | None): NVML indices of the GPUs to report, such as those a training run uses (torch
+                indices on ROCm). None reports every GPU (every visible GPU on ROCm) and an empty list reports none.
         """
         import psutil  # scoped as slow import
         import torch
 
+        from ultralytics.utils.checks import rocm_is_available
+
         self.pynvml = None
         self.nvidia_initialized = not torch.version.hip and self._init_nvidia()
-        self.amd_initialized = bool(torch.version.hip) and self._init_amd()
+        self.amd_initialized = rocm_is_available() and self._init_amd()
         self.nvidia_versions = {}
         if self.nvidia_initialized:
             try:
@@ -502,13 +505,20 @@ class SystemLogger:
 
     @staticmethod
     def _init_amd():
-        """Check that amdsmi, which torch.cuda reads AMD GPU metrics through on ROCm builds, can be imported."""
-        try:
-            import amdsmi  # noqa: F401, scoped as slow import
+        """Check that torch.cuda can read the AMD GPU metrics, which it does through amdsmi on ROCm builds."""
+        import torch
 
+        try:
+            for read in (
+                torch.cuda.utilization,
+                torch.cuda.device_memory_used,
+                torch.cuda.temperature,
+                torch.cuda.power_draw,
+            ):
+                read()
             return True
         except Exception as e:
-            LOGGER.warning(f"SystemLogger AMD GPU metrics need amdsmi: {e}")
+            LOGGER.warning(f"SystemLogger AMD GPU metrics unavailable: {e}")
             return False
 
     def get_metrics(self, rates=False):
@@ -657,7 +667,7 @@ class SystemLogger:
         return gpus
 
     def _get_amd_metrics(self):
-        """Get AMD GPU metrics from torch.cuda, which reads amdsmi and maps visible HIP devices to amdsmi devices."""
+        """Get AMD GPU metrics from torch.cuda, which reads amdsmi per visible HIP device (exact order on ROCm 6.4+)."""
         import torch
 
         gpus = {}

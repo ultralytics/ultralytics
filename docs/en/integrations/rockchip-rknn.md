@@ -344,4 +344,4 @@ Not with `YOLO()`, which loads RKNN models only on Rockchip devices. To check th
 
 ### Can I run a YOLO26 model on other edge accelerators?
 
-Yes, with the export format of each accelerator: an RKNN model runs only on Rockchip NPUs. See [TensorRT](tensorrt.md) for NVIDIA Jetson, [Hailo](hailo.md), [Axelera](axelera.md), [DeepX](deepx.md), and [Coral Edge TPU](edge-tpu.md), or the [model deployment options guide](../guides/model-deployment-options.md) for an overview.
+Yes, with the export format of each accelerator: an RKNN model runs only on Rockchip NPUs. See [TensorRT](tensorrt.md) for NVIDIA Jetson, [Hailo](hailo.md), [Axelera](axelera.md), [DEEPX](deepx.md), and [Coral Edge TPU](edge-tpu.md), or the [model deployment options guide](../guides/model-deployment-options.md) for an overview.

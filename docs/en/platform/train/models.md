@@ -242,7 +242,7 @@ Connect [Slack alerts](../integrations/slack.md) to receive a message when an ex
 
 ### Supported Formats
 
-The Platform supports export to [23 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DeepX, Qualcomm (QNN), Hailo, Huawei Ascend, AMD Xilinx, and [NXP i.MX95](../../integrations/nxp.md).
+The Platform supports export to [23 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DEEPX, Qualcomm (QNN), Hailo, Huawei Ascend, AMD Xilinx, and [NXP i.MX95](../../integrations/nxp.md).
 
 ### Format Selection Guide
 
@@ -344,7 +344,7 @@ Some export formats have architecture or task restrictions:
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IMX500**   | Available only for `YOLOv8n` and `YOLO11n` detect, segment, classify, and pose models; INT8 only                                                                                       |
 | **Axelera**  | INT8 only                                                                                                                                                                              |
-| **DeepX**    | INT8 only; runs on [DX-RT 3.5.0 or newer](../../integrations/deepx.md#runtime-installation)                                                                                            |
+| **DEEPX**    | INT8 only; runs on [DX-RT 3.5.0 or newer](../../integrations/deepx.md#runtime-installation)                                                                                            |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
 | **Xilinx**   | INT8 Vitis AI output; select a [Versal AI Edge Series Gen 2 device](../../integrations/xilinx.md) and compile it to `.rai` with AMD Vitis AI                                           |

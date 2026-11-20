@@ -27,7 +27,7 @@ Please follow the official Rust installation guide: [https://www.rust-lang.org/t
 - #### For detailed setup instructions, refer to the [ORT documentation](https://ort.pyke.io/setup/linking).
 
 - #### For Linux or macOS Users:
-  - Download the ONNX Runtime package from the [Releases page](https://github.com/microsoft/onnxruntime/releases).
+  - Download the ONNX Runtime package from the official [installation guide](https://onnxruntime.ai/docs/install/).
   - Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable:
     ```bash
     export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0 # Adjust version/path as needed

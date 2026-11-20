@@ -1,6 +1,6 @@
 # YOLO-Series ONNXRuntime Rust Demo for Core YOLO Tasks
 
-This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [Ultralytics YOLO](https://docs.ultralytics.com) series tasks such as [Classification](https://docs.ultralytics.com/tasks/classify), [Segmentation](https://docs.ultralytics.com/tasks/segment), [Detection](https://docs.ultralytics.com/tasks/detect), [Pose Estimation](https://docs.ultralytics.com/tasks/pose), and Oriented Bounding Box ([OBB](https://docs.ultralytics.com/tasks/obb)) detection using the [ONNXRuntime](https://github.com/microsoft/onnxruntime). It supports various YOLO models (YOLOv5 through YOLO11) across multiple computer vision tasks.
+This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [Ultralytics YOLO](https://docs.ultralytics.com) series tasks such as [Classification](https://docs.ultralytics.com/tasks/classify), [Segmentation](https://docs.ultralytics.com/tasks/segment), [Detection](https://docs.ultralytics.com/tasks/detect), [Pose Estimation](https://docs.ultralytics.com/tasks/pose), and Oriented Bounding Box ([OBB](https://docs.ultralytics.com/tasks/obb)) detection using the [ONNXRuntime](https://onnxruntime.ai/). It supports various YOLO models (YOLOv5 through YOLO11) across multiple computer vision tasks.
 
 ## ✨ Introduction
 
@@ -28,7 +28,7 @@ This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [U
 - **Option 1: Manual Linking**
   - For detailed setup instructions, consult the [ONNX Runtime linking documentation](https://ort.pyke.io/setup/linking).
   - **Linux or macOS**:
-    1. Download the appropriate ONNX Runtime package from the official [Releases page](https://github.com/microsoft/onnxruntime/releases).
+    1. Download the appropriate ONNX Runtime package from the official [installation guide](https://onnxruntime.ai/docs/install/).
     2. Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable, pointing to the downloaded library file:
        ```bash
        # Example path, replace with your actual path

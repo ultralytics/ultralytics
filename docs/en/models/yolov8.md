@@ -27,7 +27,7 @@ YOLOv8 was released by Ultralytics on January 10, 2023, offering improved accura
 
     Explore and run YOLOv8 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolov8).
 
-<platform-predict src="/ultralytics/yolov8/yolov8n"></platform-predict>
+<platform-predict src="https://platform.ultralytics.com/ultralytics/yolov8/yolov8n"></platform-predict>
 
 ## Key Features of YOLOv8
 

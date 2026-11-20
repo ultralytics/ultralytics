@@ -382,12 +382,12 @@ The Ultralytics team benchmarked YOLO26 models on a Raspberry Pi 5, comparing sp
 
     === "Raspberry Pi 5"
 
-        | Model | Format | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-        | --- | --- | --- | --- | --- | --- |
-        | YOLO26n | PyTorch | ✅ | 5.3 | 0.4790 | 314.80 |
-        | YOLO26n | ExecuTorch | ✅ | 9.4 | 0.4800 | 142 |
-        | YOLO26s | PyTorch | ✅ | 19.5 | 0.5730 | 930.90 |
-        | YOLO26s | ExecuTorch | ✅ | 36.5 | 0.5780 | 376.1 |
+        | Model   | Format     | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | ---------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO26n | PyTorch    | ✅     | 5.3       | 0.4790              | 314.80                 |
+        | YOLO26n | ExecuTorch | ✅     | 9.4       | 0.4800              | 142                    |
+        | YOLO26s | PyTorch    | ✅     | 19.5      | 0.5730              | 930.90                 |
+        | YOLO26s | ExecuTorch | ✅     | 36.5      | 0.5780              | 376.1                  |
 
     Benchmarked with Ultralytics 8.4.9
 
@@ -405,37 +405,37 @@ The tables below compare PyTorch with FP32 and INT8 ExecuTorch models of every Y
 
     Milliseconds per image, lower is better, as the mean of two runs. The fastest format for each model is in bold.
 
-    | Model | `imgsz` | PyTorch | ExecuTorch FP32 | ExecuTorch INT8 |
-    | --- | --- | --- | --- | --- |
-    | YOLO26n | 640 | 9.7 | 10.4 | **8.6** |
-    | YOLO26s | 640 | 22.7 | 24.2 | **16.4** |
-    | YOLO26m | 640 | 53.8 | 61.1 | **33.8** |
-    | YOLO26l | 640 | 63.9 | 73.1 | **38.3** |
-    | YOLO26x | 640 | 117.2 | 150.7 | **68.0** |
+    | Model   | `imgsz` | PyTorch | ExecuTorch FP32 | ExecuTorch INT8 |
+    | ------- | ------- | ------- | --------------- | --------------- |
+    | YOLO26n | 640     | 9.7     | 10.4            | **8.6**         |
+    | YOLO26s | 640     | 22.7    | 24.2            | **16.4**        |
+    | YOLO26m | 640     | 53.8    | 61.1            | **33.8**        |
+    | YOLO26l | 640     | 63.9    | 73.1            | **38.3**        |
+    | YOLO26x | 640     | 117.2   | 150.7           | **68.0**        |
 
 === "Accuracy"
 
     mAP<sup>val</sup> 50-95 on 500 images of COCO val2017, higher is better.
 
-    | Model | PyTorch | ONNX FP32 | ExecuTorch FP32 | ExecuTorch INT8 |
-    | --- | --- | --- | --- | --- |
-    | YOLO26n | 42.1 | 42.0 | 42.0 | 41.3 |
-    | YOLO26s | 48.9 | 49.4 | 49.4 | 48.6 |
-    | YOLO26m | 53.0 | 53.4 | 53.4 | 53.2 |
-    | YOLO26l | 54.9 | 55.4 | 55.4 | 54.9 |
-    | YOLO26x | 55.0 | 55.6 | 55.6 | 55.4 |
+    | Model   | PyTorch | ONNX FP32 | ExecuTorch FP32 | ExecuTorch INT8 |
+    | ------- | ------- | --------- | --------------- | --------------- |
+    | YOLO26n | 42.1    | 42.0      | 42.0            | 41.3            |
+    | YOLO26s | 48.9    | 49.4      | 49.4            | 48.6            |
+    | YOLO26m | 53.0    | 53.4      | 53.4            | 53.2            |
+    | YOLO26l | 54.9    | 55.4      | 55.4            | 54.9            |
+    | YOLO26x | 55.0    | 55.6      | 55.6            | 55.4            |
 
 === "Size"
 
     Size of the `.pt` checkpoint and of `model.pte` in MB (10^6 bytes). The smallest file for each model is in bold.
 
-    | Model | PyTorch | ExecuTorch FP32 | ExecuTorch INT8 |
-    | --- | --- | --- | --- |
-    | YOLO26n | 5.5 | 9.9 | **3.2** |
-    | YOLO26s | 20.4 | 38.2 | **11.4** |
-    | YOLO26m | 44.3 | 81.9 | **25.3** |
-    | YOLO26l | 53.2 | 99.5 | **29.9** |
-    | YOLO26x | 118.7 | 223.2 | **66.2** |
+    | Model   | PyTorch | ExecuTorch FP32 | ExecuTorch INT8 |
+    | ------- | ------- | --------------- | --------------- |
+    | YOLO26n | 5.5     | 9.9             | **3.2**         |
+    | YOLO26s | 20.4    | 38.2            | **11.4**        |
+    | YOLO26m | 44.3    | 81.9            | **25.3**        |
+    | YOLO26l | 53.2    | 99.5            | **29.9**        |
+    | YOLO26x | 118.7   | 223.2           | **66.2**        |
 
 - **INT8** was the fastest format for every model with 8 CPUs, 1.2 to 2.2 times faster than FP32 ExecuTorch, with a file 3.0 to 3.4 times smaller, and lost 0.3 to 0.8 mAP.
 - **FP32** reproduced the accuracy of the ONNX export and was 7% to 29% slower than PyTorch.

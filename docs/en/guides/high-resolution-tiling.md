@@ -21,7 +21,7 @@ Tiling uses the normal training, validation, and prediction pipelines. Predictio
 
 ## Choose Between `imgsz` and `tile`
 
-Raising `imgsz` and tiling both give small objects more pixels. A larger `imgsz` keeps the whole image in one model pass, while `tile=True` keeps every pass at the resolution the model was trained on. The [benchmarks](#benchmarks) below lead to these starting points:
+Raising `imgsz` and tiling both give small objects more pixels. A larger `imgsz` keeps the whole image in one model pass, while `tile=True` keeps every pass at `imgsz`, which matches the training resolution when `imgsz` is the size the model was trained at. The [benchmarks](#benchmarks) below lead to these starting points:
 
 | Your images                                                          | Start with                                      | Measured with YOLO26s and YOLO26s-obb                                                                           |
 | -------------------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -111,7 +111,7 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 - Consecutive tiles reuse the decoded source. With `cache="ram"`, training stores source images once; `cache="disk"` uses the existing image cache. Training shuffles tiles, so caching is especially useful for large compressed source images.
 - Source-sized masks and dense maps still require memory proportional to the original image. `max_det` limits the number of retained instance masks.
 - Tiling removes global context. Validate accuracy on your own data, especially for classification and depth, whose tile outputs may not agree globally.
-- A box cut by an interior window edge is dropped when another window sees the object clear of its edges and a kept box covers it, so seams keep the more complete prediction. A cut box is kept when no kept box of the same class covers more than half of it. Objects larger than the overlap can still be split, because no window sees them whole, and merging does not join separate fragments. With YOLO26n on the 810 × 1080 `bus.jpg` sample, `tile=640` returns 11 boxes, two of them on the one bus, against 5 boxes without tiling, so keep the tile larger than the objects you need whole.
+- A box cut by an interior window edge is dropped when another window sees the object clear of its edges and a kept box covers it, so seams keep the more complete prediction. A cut box is kept when no kept box of the same class, or of any class with `agnostic_nms=True`, covers more than half of it. Objects larger than the overlap can still be split, because no window sees them whole, and merging does not join separate fragments. With YOLO26n on the 810 × 1080 `bus.jpg` sample, `tile=640` returns 11 boxes, two of them on the one bus, against 5 boxes without tiling, so keep the tile larger than the objects you need whole.
 - `max_det` caps each window and then the merged image, so a tiled image never returns more than `max_det` detections. Raise it above the default of 300 for dense scenes.
 - Tensor sources, `embed`, and `visualize` are unsupported. Tracking runs on the merged predictions once per source frame, including ReID features.
 

@@ -1780,9 +1780,9 @@ class Exporter:
 
         self.args.opset = self.args.opset or 17  # opset validated by AMD for YOLO on Vitis AI
         return onnx2xilinx(
+            dataset=self.get_int8_calibration_dataloader(prefix),  # validate data before writing ONNX
             onnx_file=self.export_onnx(),
             output_dir=self.file.parent / f"{self.file.stem}_xilinx_model",
-            dataset=self.get_int8_calibration_dataloader(prefix),
             transform_fn=self._transform_fn,
             name=self.args.name,
             prefix=prefix,

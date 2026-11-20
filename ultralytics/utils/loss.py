@@ -1425,9 +1425,9 @@ class SemanticSegmentationLoss(nn.Module):
             weight = torch.from_numpy(CITYSCAPES_WEIGHT)
         weight = None if weight is None else weight.to(device=self.device, dtype=self.dtype)
         if self.nc == 1:
-            self.ce = nn.BCEWithLogitsLoss(reduction="sum")  # binary: class weighting intentionally unsupported
+            self.ce = nn.BCEWithLogitsLoss(reduction="none")  # binary: class weighting intentionally unsupported
         else:
-            self.ce = nn.CrossEntropyLoss(ignore_index=255, reduction="sum").to(device=self.device, dtype=self.dtype)
+            self.ce = nn.CrossEntropyLoss(ignore_index=255, reduction="none").to(device=self.device, dtype=self.dtype)
             if weight is not None:
                 # Non-persistent: weight is a deterministic constant, no need to serialize into ckpt state_dict.
                 self.ce.register_buffer("weight", weight, persistent=False)
@@ -1441,21 +1441,16 @@ class SemanticSegmentationLoss(nn.Module):
         return masks
 
     def _ce_loss(self, preds, masks, valid):
-        """Compute cross-entropy (BCE when nc == 1) on the native NCHW layout.
-
-        Passing 4D logits routes into the fused nll_loss2d kernel. Flattening to [N, C] instead makes nll_loss reduce
-        every pixel as an independent sample through the generic 1-D path, which is orders of magnitude slower at
-        segmentation resolutions (identical math, identical gradients).
-        """
+        """Sum per-pixel cross-entropy (BCE when nc == 1), as CUDA nll_loss2d sums nondeterministically."""
+        flat = masks.reshape(-1)
         if self.nc == 1:
-            flat = masks.reshape(-1)
-            logits = preds.reshape(-1)[valid]
+            preds = preds.reshape(-1)[valid]
             target = flat[valid].float()
             denominator = valid.sum()
-            return self.ce(logits, target) / (denominator + (denominator == 0))
-        target = masks.long()  # int64 targets for nll_loss2d, and for the weight lookup on older torch
-        denominator = valid.sum() if self.ce.weight is None else self.ce.weight[target.reshape(-1)[valid]].sum()
-        return self.ce(preds, target) / (denominator + (denominator == 0))  # 4-D logits -> nll_loss2d
+        else:
+            target = masks.long()
+            denominator = valid.sum() if self.ce.weight is None else self.ce.weight[flat[valid].long()].sum()
+        return self.ce(preds, target).sum() / (denominator + (denominator == 0))  # weight sums may be <1, guard only 0
 
     def _dice_loss(self, preds, masks, valid):
         """Compute Dice loss excluding ignore pixels."""

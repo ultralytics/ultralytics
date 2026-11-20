@@ -273,7 +273,7 @@ with open("yolo26n_executorch_model/metadata.yaml") as f:
 
 ### Mobile Integration
 
-In an Android or iOS application, add the ExecuTorch runtime library to the project, load `model.pte`, and pass it an image preprocessed as described in [Output Format](#output-format); the application code applies NMS to the raw output. The examples in this section and in [Embedded Linux](#embedded-linux) were not run for this page.
+In an Android or iOS application, add the ExecuTorch runtime library to the project, load `model.pte`, and pass it an image preprocessed as described in [Output Format](#output-format); the application code applies NMS to the raw output of detection, segmentation, pose, and OBB models. The examples in this section and in [Embedded Linux](#embedded-linux) were not run for this page.
 
 #### iOS
 

@@ -61,7 +61,7 @@ Explore the links to learn more about each integration and how to get the most o
 
 - [AMD GPUs](amd.md): Export Ultralytics YOLO to ONNX and run GPU-accelerated inference on AMD Instinct and Radeon GPUs through the ONNX Runtime MIGraphX execution provider on ROCm, with native PyTorch ROCm training also supported.
 
-- [AMD Xilinx](xilinx.md): Export Ultralytics YOLO with `format="xilinx"` for AMD Versal AI Edge Series Gen 2 NPUs using AMD Quark and Vitis AI, with a guide to Zynq, Kria and Versal devices, DPU vs NPU accelerators and YOLO operator support.
+- [AMD Xilinx](xilinx.md): Export Ultralytics YOLO with `format="xilinx"` for AMD Versal AI Edge Series Gen 2 NPUs using AMD Quark INT8 quantization and Vitis AI compilation, with notes on Zynq, Kria and VEK280 targets.
 
 - [Axelera AI](axelera.md): Explore Metis accelerators and the Voyager SDK for running Ultralytics models with efficient edge inference.
 
@@ -85,7 +85,7 @@ Explore the links to learn more about each integration and how to get the most o
 
 - [NXP i.MX95](nxp.md): Compile calibrated INT8 YOLO models for the i.MX95 Neutron NPU with Neutron SDK 3.3.0.
 
-- [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models locally into the QNN (AI Engine Direct) context-binary format with the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider for accelerated inference on Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware in mobile and edge devices.
+- [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models locally into the QNN (AI Engine Direct) context-binary format with the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider for inference on the Hexagon NPU of Snapdragon and Dragonwing devices.
 
 - [Raspberry Pi](../guides/raspberry-pi.md): Quickstart tutorial to run YOLO models on the latest Raspberry Pi hardware.
 

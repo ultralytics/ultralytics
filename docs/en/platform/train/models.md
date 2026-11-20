@@ -360,7 +360,7 @@ Some export formats have architecture or task restrictions:
     - CoreML exports with batch sizes greater than `1` use `dynamic=true`.
     - Unsupported format/model combinations are disabled in the export dialog before you launch.
     - Only one export per format can run at a time for a given model.
-    - INT8 exports that use calibration data (every INT8 format except CoreML and MNN, which quantize weights only) calibrate on Ultralytics' default dataset for the model's task (for example `coco8.yaml` or `coco128.yaml` for detection), not on your dataset. To calibrate on your own images, export with Python or the CLI and pass `data`.
+    - INT8 and W8A16 exports that use calibration data (every INT8 format except CoreML and MNN, which quantize weights only, plus Qualcomm's fixed W8A16) calibrate on Ultralytics' default dataset for the model's task (for example `coco8.yaml` or `coco128.yaml` for detection), not on your dataset. To calibrate on your own images, export with Python or the CLI and pass `data`.
 
 ## Move Models Between Projects
 

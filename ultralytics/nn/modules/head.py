@@ -80,7 +80,7 @@ class Detect(nn.Module):
     dynamic = False  # force grid reconstruction
     export = False  # export mode
     format = None  # export format
-    max_det = 300  # max_det
+    max_det = 1000  # max_det
     agnostic_nms = False
     shape = None
     anchors = torch.empty(0)  # init

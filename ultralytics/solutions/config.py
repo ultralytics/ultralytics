@@ -98,7 +98,7 @@ class SolutionConfig:
     iou: float | None = None
     conf: float = 0.25
     device: str | None = None
-    max_det: int = 300
+    max_det: int = 1000
     quantize: int | str | None = None
     imgsz: int = 640
     tracker: str | None = "tracktrack.yaml"

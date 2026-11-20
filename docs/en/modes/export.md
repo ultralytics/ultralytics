@@ -293,7 +293,7 @@ For deployment on specific hardware platforms, consider using specialized export
 
 When you export a YOLO model to formats like ONNX or TensorRT, the output tensor structure depends on the model task. Understanding these outputs is important for custom inference implementations.
 
-For **YOLO26 detection models** (e.g., `yolo26n.pt`) exported with `nms=False`, supported formats produce NMS-free output shaped like `(batch_size, max_detections, 6)` with `[x1, y1, x2, y2, confidence, class_id]` values. With the default `max_det=300`, this is commonly `(batch_size, 300, 6)`. Some constrained formats automatically fall back to the traditional output layout when end-to-end operators are unsupported.
+For **YOLO26 detection models** (e.g., `yolo26n.pt`) exported with `nms=False`, supported formats produce NMS-free output shaped like `(batch_size, max_detections, 6)` with `[x1, y1, x2, y2, confidence, class_id]` values. With the default `max_det=1000`, this is commonly `(batch_size, 1000, 6)`. Some constrained formats automatically fall back to the traditional output layout when end-to-end operators are unsupported.
 
 By default (`nms=None`), detection models including YOLO26 export raw one-to-many predictions (YOLO26 keeps its NMS-free head on [Axelera](../integrations/axelera.md#supported-tasks)). The output is typically a single tensor shaped like `(batch_size, 4 + num_classes, num_predictions)` where the channels represent box coordinates plus per-class scores, and `num_predictions` depends on the export input resolution (and can be dynamic). The [End-to-End Detection guide](../guides/end2end-detection.md) covers which formats keep the end-to-end output.
 

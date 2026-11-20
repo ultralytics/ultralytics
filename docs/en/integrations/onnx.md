@@ -148,24 +148,24 @@ The exported model takes one input named `images` with shape `(batch, 3, height,
 | `nms`            | `output0` shape | Contents                                                                                                                       |
 | ---------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `None` (default) | `(1, 84, 8400)` | For each of the 8400 anchors: box center x, center y, width, height in input pixels, then 80 class scores. Apply NMS yourself. |
-| `True`           | `(1, 300, 6)`   | NMS runs inside the model. Each row is `x1, y1, x2, y2, score, class`; rows past the last detection are zeros.                 |
-| `False`          | `(1, 300, 6)`   | NMS-free head. Each row is `x1, y1, x2, y2, score, class`, with no NMS step. Filter rows by score yourself.                    |
+| `True`           | `(1, 1000, 6)`  | NMS runs inside the model. Each row is `x1, y1, x2, y2, score, class`; rows past the last detection are zeros.                 |
+| `False`          | `(1, 1000, 6)`  | NMS-free head. Each row is `x1, y1, x2, y2, score, class`, with no NMS step. Filter rows by score yourself.                    |
 
 The other tasks use the same input and these outputs. The shapes are for the official YOLO26n checkpoints at their default export size, with the Cityscapes checkpoint `yolo26n-sem.pt` for semantic segmentation:
 
-| Task     | Default `imgsz` | Output with `nms=None`                                          | Output with `nms=False` or `nms=True`                                                       |
-| -------- | --------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Detect   | `640`           | `output0` `(1, 84, 8400)`                                       | `output0` `(1, 300, 6)`                                                                     |
-| Segment  | `640`           | `output0` `(1, 116, 8400)`, `output1` `(1, 32, 160, 160)`       | `output0` `(1, 300, 38)`, `output1` `(1, 32, 160, 160)`                                     |
-| Semantic | `1024`          | `output0` `(1, 1024, 1024)`, `uint8` class index for each pixel | Same as `nms=None`                                                                          |
-| Depth    | `768`           | `output0` `(1, 1, 768, 768)`, depth map                         | Same as `nms=None`                                                                          |
-| Classify | `224`           | `output0` `(1, 1000)`, class probabilities after softmax        | Same as `nms=None` for `nms=False`; `nms=True` raises an error                              |
-| Pose     | `640`           | `output0` `(1, 56, 8400)`                                       | `output0` `(1, 300, 57)`: 6 box values, then 17 keypoints x 3                               |
-| OBB      | `1024`          | `output0` `(1, 20, 21504)`                                      | `output0` `(1, 300, 7)`: `center x, center y, width, height, score, class, angle` (radians) |
+| Task     | Default `imgsz` | Output with `nms=None`                                          | Output with `nms=False` or `nms=True`                                                        |
+| -------- | --------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Detect   | `640`           | `output0` `(1, 84, 8400)`                                       | `output0` `(1, 1000, 6)`                                                                     |
+| Segment  | `640`           | `output0` `(1, 116, 8400)`, `output1` `(1, 32, 160, 160)`       | `output0` `(1, 1000, 38)`, `output1` `(1, 32, 160, 160)`                                     |
+| Semantic | `1024`          | `output0` `(1, 1024, 1024)`, `uint8` class index for each pixel | Same as `nms=None`                                                                           |
+| Depth    | `768`           | `output0` `(1, 1, 768, 768)`, depth map                         | Same as `nms=None`                                                                           |
+| Classify | `224`           | `output0` `(1, 1000)`, class probabilities after softmax        | Same as `nms=None` for `nms=False`; `nms=True` raises an error                               |
+| Pose     | `640`           | `output0` `(1, 56, 8400)`                                       | `output0` `(1, 1000, 57)`: 6 box values, then 17 keypoints x 3                               |
+| OBB      | `1024`          | `output0` `(1, 20, 21504)`                                      | `output0` `(1, 1000, 7)`: `center x, center y, width, height, score, class, angle` (radians) |
 
 Segmentation rows carry 32 mask coefficients after the box values, and `output1` holds the mask prototypes. In FP32 and INT8 models all outputs are `float32` except the semantic class map.
 
-With `nms=True`, the confidence threshold `conf` (default `0.25`), the IoU threshold `iou` (default `0.5`), `agnostic_nms`, and `max_det` (default `300`) are fixed in the graph at export. A lower `conf` at prediction time cannot bring back detections the graph already removed, so export again to change these values. `max_det` and `agnostic_nms` also apply to `nms=False`: `max_det=100` gives `output0` shape `(1, 100, 6)`.
+With `nms=True`, the confidence threshold `conf` (default `0.25`), the IoU threshold `iou` (default `0.5`), `agnostic_nms`, and `max_det` (default `1000`) are fixed in the graph at export. A lower `conf` at prediction time cannot bring back detections the graph already removed, so export again to change these values. `max_det` and `agnostic_nms` also apply to `nms=False`: `max_det=100` gives `output0` shape `(1, 100, 6)`.
 
 `YOLO("yolo26n.onnx")` reads the layout from the file metadata, so you only need these shapes when you run the model in your own code. The metadata is also available to your code as strings: `names`, `task`, `imgsz`, `stride`, `batch`, `end2end`, and `args`.
 
@@ -333,7 +333,7 @@ Leave `opset` unset unless your runtime needs a specific version. The exporter t
 
 ### How do I read the output of a YOLO26 ONNX model in my own code?
 
-It depends on the `nms` argument you exported with. A default export returns raw predictions that need confidence filtering and NMS. An export with `nms=False` or `nms=True` returns up to `max_det` (default 300) final detections per image as `x1, y1, x2, y2, score, class` in input-image pixels, so you only filter by score and scale the boxes back to the original image. OBB rows hold `center x, center y, width, height` in place of the corners, plus the angle. See [Output Format](#output-format) for the shapes.
+It depends on the `nms` argument you exported with. A default export returns raw predictions that need confidence filtering and NMS. An export with `nms=False` or `nms=True` returns up to `max_det` (default 1000) final detections per image as `x1, y1, x2, y2, score, class` in input-image pixels, so you only filter by score and scale the boxes back to the original image. OBB rows hold `center x, center y, width, height` in place of the corners, plus the angle. See [Output Format](#output-format) for the shapes.
 
 !!! example "Read NMS-free output with ONNX Runtime"
 
@@ -344,7 +344,7 @@ It depends on the `nms` argument you exported with. A default export returns raw
 
     session = ort.InferenceSession("yolo26n.onnx")  # exported with nms=False
     image = np.zeros((1, 3, 640, 640), dtype=np.float32)  # your preprocessed image
-    detections = session.run(None, {"images": image})[0][0]  # shape (300, 6)
+    detections = session.run(None, {"images": image})[0][0]  # shape (1000, 6)
     detections = detections[detections[:, 4] > 0.25]  # keep rows above the confidence threshold
     ```
 

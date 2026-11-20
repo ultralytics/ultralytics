@@ -566,7 +566,7 @@ let options = AnnotateOptions {
 let annotated = annotate_image_with_options(&image, &results[0], &options);
 ```
 
-Segmentation masks are built at the inference size like Python; pass `--retina-masks` (or `InferenceConfig::with_retina_masks(true)`) to build them at the original image size.
+Segmentation masks are built at the inference size; pass `--retina-masks` (or `InferenceConfig::with_retina_masks(true)`) to build them at the original image size, which is the Python default.
 
 ## FAQ
 

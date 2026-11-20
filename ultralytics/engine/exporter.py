@@ -772,6 +772,7 @@ class Exporter:
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
+            self.args.max_det = min(self.args.max_det, 500)  # IMX500 converter limit for NMS output detections
             if model.task not in {"detect", "pose", "classify", "segment"}:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."

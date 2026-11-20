@@ -150,7 +150,6 @@ class OCR(BaseSolution):
         kwargs["tracker"] = None
         kwargs.setdefault("model", "yolo26x-text.pt")
         kwargs.setdefault("imgsz", 1280)  # text is small; smaller images run at their own size, never upscaled
-        kwargs.setdefault("max_det", 1000)  # a document page holds more words than the default 300 detections
         super().__init__(**kwargs)
         recognizer = self.CFG["recognizer"]
         if isinstance(recognizer, str):  # PaddleOCR model name, e.g. 'korean_PP-OCRv5_mobile_rec'

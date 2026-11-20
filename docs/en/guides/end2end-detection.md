@@ -55,16 +55,16 @@ Both heads share the [backbone](https://www.ultralytics.com/glossary/backbone) a
 | Head                  | Detection output before external processing | Processing                               |
 | --------------------- | ------------------------------------------- | ---------------------------------------- |
 | One-to-many (default) | `(N, nc + 4, 8400)`                         | Confidence filtering and NMS             |
-| One-to-one            | `(N, 300, 6)`                               | Confidence filtering; no IoU suppression |
+| One-to-one            | `(N, 1000, 6)`                              | Confidence filtering; no IoU suppression |
 
 Here `N` is batch size, `nc` is the number of classes, and 8400 is the candidate count at `imgsz=640`. The one-to-one detection rows contain `[x1, y1, x2, y2, confidence, class_id]`. Other detection tasks carry additional outputs:
 
-| Task                                         | End-to-end output                      | Extra data                       |
-| -------------------------------------------- | -------------------------------------- | -------------------------------- |
-| [Detection](../tasks/detect.md)              | `(N, 300, 6)`                          | —                                |
-| [Instance segmentation](../tasks/segment.md) | `(N, 300, 6 + nm)` and `(N, nm, H, W)` | Mask coefficients and prototypes |
-| [Pose](../tasks/pose.md)                     | `(N, 300, 57)`                         | 17 keypoints × 3 values          |
-| [OBB](../tasks/obb.md)                       | `(N, 300, 7)`                          | Rotation angle                   |
+| Task                                         | End-to-end output                       | Extra data                       |
+| -------------------------------------------- | --------------------------------------- | -------------------------------- |
+| [Detection](../tasks/detect.md)              | `(N, 1000, 6)`                          | —                                |
+| [Instance segmentation](../tasks/segment.md) | `(N, 1000, 6 + nm)` and `(N, nm, H, W)` | Mask coefficients and prototypes |
+| [Pose](../tasks/pose.md)                     | `(N, 1000, 57)`                         | 17 keypoints × 3 values          |
+| [OBB](../tasks/obb.md)                       | `(N, 1000, 7)`                          | Rotation angle                   |
 
 Fusion removes unused inference branches as well as folding Conv and BatchNorm layers. Keep the original training checkpoint if you need to switch heads: fusion cannot reconstruct a branch that has already been removed. A model with only its one-to-one head remaining keeps that available path.
 
@@ -74,7 +74,7 @@ YOLOv8, YOLO11 and YOLO26 detection models export raw one-to-many predictions by
 
 |                     | `nms=None`                        | `nms=False`                           |
 | ------------------- | --------------------------------- | ------------------------------------- |
-| Detection output    | `(N, nc + 4, 8400)`               | `(N, 300, 6)`                         |
+| Detection output    | `(N, nc + 4, 8400)`               | `(N, 1000, 6)`                        |
 | Box format          | `xywh`                            | `xyxy`                                |
 | Scores              | One score per class per candidate | Confidence and class ID per detection |
 | External processing | Confidence filtering and NMS      | Confidence filtering                  |
@@ -109,7 +109,7 @@ Published NMS-free speed measurements use `nms=False`. Compare accuracy and late
 
 It limits detections returned by prediction and validation. For end-to-end and embedded-NMS exports, the limit is part of the graph, so re-export to change it; CoreML detection embedded NMS is the exception and has no detection cap. End-to-end output can contain fewer candidates when the image supplies fewer than `max_det` anchors.
 
-### My exported ONNX model outputs `(1, 300, 6)` — is that correct?
+### My exported ONNX model outputs `(1, 1000, 6)` — is that correct?
 
 Yes, for `nms=False` or `nms=True` with the default detection limit. The shape alone does not identify which head was exported. A default raw COCO detection export instead normally has shape `(1, 84, 8400)` at `imgsz=640`.
 

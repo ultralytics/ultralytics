@@ -614,6 +614,8 @@ class DetectionValidator(BaseValidator):
                         if self.gdict
                         else [int(Path(x).stem) for x in self.dataloader.dataset.im_files]
                     )
+                    if not self.gdict and self.args.classes is not None and not self.args.single_cls:
+                        val.params.catIds = [self.class_map[c] for c in np.atleast_1d(self.args.classes)]
                     val.evaluate()
                     val.accumulate()
                     val.summarize()

@@ -1321,7 +1321,11 @@ class ClassificationDataset:
             samples, self.samples = self.samples, []
             for source_index, sample in enumerate(samples):
                 with Image.open(sample[0]) as image:
-                    windows = tile_windows(exif_size(image)[::-1], args.imgsz if self.tile is True else self.tile)
+                    windows = tile_windows(
+                        exif_size(image)[::-1],
+                        args.imgsz if self.tile is True else self.tile,
+                        getattr(args, "tile_overlap", 0.2),
+                    )
                 self.tile_counts.append(len(windows))
                 self.samples.extend([*sample, window, source_index] for window in windows)
         if not augment:  # only validation consumes complete source groups

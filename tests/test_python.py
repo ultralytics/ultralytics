@@ -393,6 +393,55 @@ def test_tiled_dataset_targets(tmp_path):
     np.testing.assert_allclose(full["instances"].bboxes, [[0.75, 0.5, 0.25, 0.5]])
 
 
+def test_tile_windows_overlap_and_rectangular():
+    """Configurable overlap and rectangular tiles share one window generator with unchanged defaults."""
+    from ultralytics.data.utils import tile_windows
+
+    assert tile_windows((480, 640), 256, overlap=0.2) == tile_windows((480, 640), 256)  # defaults preserved
+    assert [w[0] for w in tile_windows((480, 640), 256, overlap=0.5) if w[1] == 0] == [0, 128, 256, 384]
+    rect = tile_windows((480, 640), (256, 512), overlap=0.5)
+    assert len(rect) == 6 and all(w[3] - w[1] == 256 and w[2] - w[0] == 512 for w in rect)
+    assert tile_windows((480, 640), 256, overlap=1.5) == tile_windows((480, 640), 256, overlap=0.99)  # clamped
+
+
+def test_tile_cfg_validation():
+    """Rectangular tile sizes pass cfg validation; invalid sizes and overlaps are rejected."""
+    from ultralytics.cfg import check_cfg
+
+    check_cfg({"tile": (768, 1280)})
+    check_cfg({"tile": [768, 1280]})
+    check_cfg({"tile_overlap": 0.25, "tile_bg_scale": 0.5})
+    for bad in ({"tile": (0, 1280)}, {"tile": (768,)}, {"tile": -5}, {"tile_overlap": 1.5}, {"tile_bg_scale": -0.1}):
+        with pytest.raises((ValueError, TypeError)):
+            check_cfg(bad)
+
+
+def test_tile_batches_overlap():
+    """Predict-time batching reuses the shared window generator with the configured overlap."""
+    from ultralytics.data.loaders import tile_batches
+
+    image = np.zeros((480, 640, 3), dtype=np.uint8)
+    default = [w for _, chunk, _ in tile_batches([image], 256, batch=100) for w in chunk]
+    half = [w for _, chunk, _ in tile_batches([image], 256, batch=100, overlap=0.5) for w in chunk]
+    assert len(default) == 9 and len(half) == 12 and half[1] == (0, (128, 0, 384, 256))
+
+
+def test_tiled_dataset_bg_sampling(tmp_path):
+    """Training drops empty tiles per tile_bg_scale; validation keeps every window."""
+    from ultralytics.data.dataset import YOLODataset
+
+    images, labels = tmp_path / "images", tmp_path / "labels"
+    images.mkdir()
+    labels.mkdir()
+    cv2.imwrite(str(images / "image.png"), np.full((192, 256, 3), 128, dtype=np.uint8))
+    (labels / "image.txt").write_text("0 0.1 0.1 0.1 0.1\n")  # one box in the top-left corner
+    kwargs = {"img_path": str(images), "data": {"names": {0: "object"}}, "imgsz": 64, "tile": 64}
+    assert len(YOLODataset(**kwargs, augment=True)) == 20  # 1 foreground + 19 empty tiles
+    train = YOLODataset(**kwargs, augment=True, tile_bg_scale=0.0)
+    assert len(train) == 1 and len(train.get_image_and_label(0)["cls"]) == 1
+    assert len(YOLODataset(**kwargs, augment=False, tile_bg_scale=0.0)) == 20  # validation keeps all windows
+
+
 def test_model_methods():
     """Test various methods and properties of the YOLO model to ensure correct functionality."""
     model = YOLO(MODEL)

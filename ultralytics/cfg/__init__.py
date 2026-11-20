@@ -248,6 +248,8 @@ CFG_FRACTION_KEYS = frozenset(
         "fraction",
         "multi_scale",
         "dlam",
+        "tile_overlap",
+        "tile_bg_scale",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -510,8 +512,22 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 if hard:
                     raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be a str.")
                 cfg[k] = str(v)
-            elif k == "tile" and not isinstance(v, bool) and (not isinstance(v, int) or v <= 0):
-                raise ValueError(f"'{k}={v}' is invalid. Valid '{k}' values are False, True, or a positive int.")
+            elif (
+                k == "tile"
+                and not isinstance(v, bool)
+                and not (
+                    (isinstance(v, int) and v > 0)
+                    or (
+                        isinstance(v, (list, tuple))
+                        and len(v) == 2
+                        and all(isinstance(x, int) and not isinstance(x, bool) and x > 0 for x in v)
+                    )
+                )
+            ):
+                raise ValueError(
+                    f"'{k}={v}' is invalid. Valid '{k}' values are False, True, a positive int, "
+                    "or [h, w] of positive ints."
+                )
             elif k == "compile" and not isinstance(v, (bool, str)):  # False=off, True="default", or a mode string
                 if hard:
                     raise TypeError(

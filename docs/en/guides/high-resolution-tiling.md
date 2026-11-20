@@ -34,7 +34,7 @@ results = model.predict("large-image.tif", tile=640, imgsz=640, batch=8)
 yolo predict model=yolo26n.pt source=large-image.tif tile=640 imgsz=640 batch=8
 ```
 
-`tile=True` uses `imgsz` as the window size. A positive integer, such as `tile=1024`, sets the window size independently of `imgsz`. `tile=False` is the default. Windows overlap by 20%, with the final windows aligned to the image boundary. Smaller images use a single full-image window.
+`tile=True` uses `imgsz` as the window size. A positive integer, such as `tile=1024`, sets the window size independently of `imgsz`, and a `[h, w]` pair, such as `tile=[768, 1280]`, sets a rectangular window. `tile=False` is the default. Windows overlap by 20% by default (`tile_overlap=0.2`, clamped to `[0, 0.99)`), with the final windows aligned to the image boundary. Smaller images use a single full-image window. During training, `tile_bg_scale` (default `1.0`) limits how many empty tiles are kept relative to foreground tiles; validation and prediction always keep every window.
 
 `batch` controls how many tiles the model processes together during prediction. The existing backend handles fixed export batch sizes, including the last partial batch. [Exported models](../modes/export.md) retain their normal input graph; tiling runs in the Python prediction pipeline.
 

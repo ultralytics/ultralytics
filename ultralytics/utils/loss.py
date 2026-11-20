@@ -1441,17 +1441,21 @@ class SemanticSegmentationLoss(nn.Module):
         return masks
 
     def _ce_loss(self, preds, masks, valid):
-        """Compute cross-entropy (BCE when nc == 1) on flattened pixels to avoid the CUDA nll_loss2d path."""
-        flat = masks.reshape(-1)
+        """Compute cross-entropy (BCE when nc == 1) on the native NCHW layout.
+
+        Passing 4D logits routes into the fused nll_loss2d kernel. Flattening to [N, C] instead makes nll_loss reduce
+        every pixel as an independent sample through the generic 1-D path, which is orders of magnitude slower at
+        segmentation resolutions (identical math, identical gradients).
+        """
         if self.nc == 1:
+            flat = masks.reshape(-1)
             logits = preds.reshape(-1)[valid]
             target = flat[valid].float()
             denominator = valid.sum()
-        else:
-            logits = preds.permute(0, 2, 3, 1).reshape(-1, self.nc)
-            target = flat.long()
-            denominator = valid.sum() if self.ce.weight is None else self.ce.weight[target[valid]].sum()
-        return self.ce(logits, target) / (denominator + (denominator == 0))  # weight sums may be <1, guard only 0
+            return self.ce(logits, target) / (denominator + (denominator == 0))
+        target = masks.long()  # int64 targets for nll_loss2d, and for the weight lookup on older torch
+        denominator = valid.sum() if self.ce.weight is None else self.ce.weight[target.reshape(-1)[valid]].sum()
+        return self.ce(preds, target) / (denominator + (denominator == 0))  # 4-D logits -> nll_loss2d
 
     def _dice_loss(self, preds, masks, valid):
         """Compute Dice loss excluding ignore pixels."""

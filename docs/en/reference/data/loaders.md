@@ -32,6 +32,10 @@ keywords: Ultralytics, data loaders, SourceTypes, LoadStreams, LoadScreenshots, 
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.loaders.LoadNumpyFrames
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.loaders.LoadTensor
 
 <br><br><hr><br>

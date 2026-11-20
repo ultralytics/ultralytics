@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Manage trained YOLO models on Ultralytics Platform. Upload weights, review metrics and validation plots, export to 23 formats, clone, move, and deploy.
+description: Manage trained YOLO models on Ultralytics Platform. Upload weights, review metrics and validation plots, export to 24 formats, clone, move, and deploy.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -62,7 +62,7 @@ flowchart TD
     C --> D[Predict]
     C --> E[Export]
     C --> F[Deploy]
-    E --> G[23 formats]
+    E --> G[24 formats]
 ```
 
 ## Model Page Tabs
@@ -120,6 +120,8 @@ Interactive metric charts over epochs. The chart groups follow the metrics the r
 
 Each group collapses, its menu hides or shows individual charts (and, for losses, the train or validation series), and charts can be dragged and resized into a layout that persists across sessions.
 
+Above the charts, a **Visuals** group shows the run's first three training batches as images with their labels and [augmentations](../../guides/yolo-data-augmentation.md#preview-augmentations-on-your-own-images) applied, when the run uploaded them. They are AVIF copies of the `train_batch0.jpg` to `train_batch2.jpg` files a local run saves. Click one to open it full size and check that boxes line up with objects and that augmented images still look like your deployment scene.
+
 ![Ultralytics Platform Model Train Metrics Subtab](https://cdn.ul.run/i/83338b5e71c1c107b68ad69cb0873a2a.avif)<!-- screenshot -->
 
 #### Console Subtab
@@ -164,7 +166,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 23 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 24 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -221,7 +223,7 @@ flowchart TD
     F --> G
 ```
 
-[Export your model](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to 23 deployment formats:
+[Export your model](https://www.ultralytics.com/blog/how-to-export-ultralytics-yolo-models-using-ultralytics-platform) to 24 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -230,9 +232,9 @@ flowchart TD
 5. Click **Start Export**
 6. Download when complete
 
-**TF Edge TPU**, **NXP**, and **Qualcomm** downloads keep the file suffix Ultralytics uses to choose a runtime
-(`yolo26n_edgetpu.tflite`, `_nxp.tflite`, `_qnn.onnx`), so `YOLO()` loads them as downloaded. If an Edge TPU download
-ends in a plain `.tflite`, export again or add `_edgetpu` to the file name before loading it.
+**TF Edge TPU**, **NXP**, **Qualcomm**, and **ST Edge AI** downloads keep the file suffix Ultralytics uses to choose a
+runtime (`yolo26n_edgetpu.tflite`, `_nxp.tflite`, `_qnn.onnx`, `_stedgeai.onnx`), so `YOLO()` loads them as downloaded.
+If an Edge TPU download ends in a plain `.tflite`, export again or add `_edgetpu` to the file name before loading it.
 
 While the model's source dataset exists, each export carries the dataset's current [class colors](../data/annotation.md#class-colors), so a color you change after training also reaches later exports.
 
@@ -242,7 +244,7 @@ Connect [Slack alerts](../integrations/slack.md) to receive a message when an ex
 
 ### Supported Formats
 
-The Platform supports export to [23 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DEEPX, Qualcomm (QNN), Hailo, Huawei Ascend, AMD Xilinx, and [NXP i.MX95](../../integrations/nxp.md).
+The Platform supports export to [24 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DEEPX, Qualcomm (QNN), Hailo, Huawei Ascend, AMD Xilinx, [NXP i.MX95](../../integrations/nxp.md), and [ST Edge AI](../../integrations/stedgeai.md).
 
 ### Format Selection Guide
 
@@ -257,6 +259,7 @@ The Platform supports export to [23 deployment formats](../../modes/export.md#ex
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **AMD Versal**     | AMD Xilinx          | Versal AI Edge Series Gen 2 NPUs, compiled with AMD Vitis AI   |
 | **NXP i.MX95**     | NXP                 | Neutron SDK 3.3.0; requires a compatible board runtime         |
+| **STM32**          | ST Edge AI          | STM32 MCUs and STM32N6 NPU, compiled with ST Edge AI Core      |
 | **General**        | ONNX                | Works with most runtimes                                       |
 
 ### NVIDIA Jetson TensorRT Targets
@@ -340,15 +343,16 @@ QR codes expire after 24 hours; click **Refresh code** to create a new one. Anyo
 
 Some export formats have architecture or task restrictions:
 
-| Format       | Restriction                                                                                                                                                                            |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n` detect, segment, classify, and pose models; INT8 only                                                                                       |
-| **Axelera**  | INT8 only                                                                                                                                                                              |
-| **DEEPX**    | INT8 only; runs on [DX-RT 3.5.0 or newer](../../integrations/deepx.md#runtime-installation)                                                                                            |
-| **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
-| **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
-| **Xilinx**   | INT8 Vitis AI output; select a [Versal AI Edge Series Gen 2 device](../../integrations/xilinx.md) and compile it to `.rai` with AMD Vitis AI                                           |
-| **Qualcomm** | Fixed W8A16 quantization; select a [supported HTP target](../../integrations/qnn.md#supported-htp-targets). Dragonwing IQ-8275 is supported with `name=iq-8275`; IQ-615 is unsupported |
+| Format         | Restriction                                                                                                                                                                            |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IMX500**     | Available only for `YOLOv8n` and `YOLO11n` detect, segment, classify, and pose models; INT8 only                                                                                       |
+| **Axelera**    | INT8 only                                                                                                                                                                              |
+| **DEEPX**      | INT8 only; runs on [DX-RT 3.5.0 or newer](../../integrations/deepx.md#runtime-installation)                                                                                            |
+| **Hailo**      | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
+| **Huawei**     | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
+| **Xilinx**     | INT8 Vitis AI output; select a [Versal AI Edge Series Gen 2 device](../../integrations/xilinx.md) and compile it to `.rai` with AMD Vitis AI                                           |
+| **Qualcomm**   | Fixed W8A16 quantization; select a [supported HTP target](../../integrations/qnn.md#supported-htp-targets). Dragonwing IQ-8275 is supported with `name=iq-8275`; IQ-615 is unsupported |
+| **ST Edge AI** | FP32 (default) or whole-graph INT8 `.onnx` output to [compile with ST Edge AI Core](../../integrations/stedgeai.md#deploy-to-stm32); no batch, dynamic, or NMS options                 |
 
 !!! note "Additional Export Rules"
 
@@ -356,6 +360,7 @@ Some export formats have architecture or task restrictions:
     - CoreML exports with batch sizes greater than `1` use `dynamic=true`.
     - Unsupported format/model combinations are disabled in the export dialog before you launch.
     - Only one export per format can run at a time for a given model.
+    - INT8 and W8A16 exports that use calibration data (every format except CoreML and MNN, which quantize weights only) calibrate on Ultralytics' default dataset for the model's task (for example `coco8.yaml` or `coco128.yaml` for detection), not on your dataset. To calibrate on your own images, export with Python or the CLI and pass `data`.
 
 ## Move Models Between Projects
 

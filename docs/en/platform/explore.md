@@ -147,7 +147,7 @@ and keeps the filters in the dropdown.
 
 Each item displays:
 
-![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/7b5e6ec948e6d55caa8b222e7ff5bd2e.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Projects Tab With Project Cards](https://cdn.ul.run/i/0450abc3fd91047757e209297b8f2107.avif)<!-- screenshot -->
 
 === "Project Cards"
 

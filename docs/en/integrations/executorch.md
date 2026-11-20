@@ -437,7 +437,7 @@ The tables below compare PyTorch with FP32 and INT8 ExecuTorch models of every Y
     | YOLO26l | 53.2    | 99.5            | **29.9**        |
     | YOLO26x | 118.7   | 223.2           | **66.2**        |
 
-- **INT8** was the fastest format for every model with 8 CPUs, 1.2 to 2.2 times faster than FP32 ExecuTorch, with a file 3.0 to 3.4 times smaller, and lost 0.3 to 0.8 mAP.
+- **INT8** was the fastest format for every model with 8 CPUs, 1.2 to 2.2 times faster than FP32 ExecuTorch, with a file 3.0 to 3.4 times smaller, and lost 0.2 to 0.8 mAP.
 - **FP32** reproduced the accuracy of the ONNX export and was 7% to 29% slower than PyTorch.
 - **All CPUs**: without the limit, on all 384 logical CPUs, YOLO26n took 19.2 ms in FP32 and 22.6 ms in INT8, in one run each, and INT8 was slower than FP32 for every model except YOLO26x.
 

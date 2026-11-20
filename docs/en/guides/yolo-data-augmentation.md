@@ -1,7 +1,8 @@
 ---
 comments: true
-description: Tune Ultralytics YOLO data augmentation — HSV, geometric transforms, mosaic, mixup, cutmix, and copy-paste — from Python, the CLI, or a YAML config.
-keywords: YOLO data augmentation, computer vision, deep learning, image transformations, model training, Ultralytics YOLO, HSV adjustments, geometric transformations, mosaic augmentation
+title: YOLO Data Augmentation Guide - Mosaic, MixUp, HSV, and Previews
+description: Tune Ultralytics YOLO data augmentation — HSV, geometric transforms, mosaic, mixup, cutmix, and copy-paste — from Python, the CLI, or a YAML config, and preview augmented images before you train.
+keywords: YOLO data augmentation, computer vision, deep learning, image transformations, model training, Ultralytics YOLO, HSV adjustments, geometric transformations, mosaic augmentation, preview augmentations, visualize augmentations, train_batch images
 ---
 
 # Data Augmentation using Ultralytics YOLO
@@ -127,6 +128,69 @@ Then launch training with the Python API or the CLI:
         # Train the model with custom configuration
         yolo detect train model="yolo26n.pt" cfg=train_custom.yaml
         ```
+
+## Preview Augmentations on Your Own Images
+
+You can run the augmentation transforms on your own images and look at the results before you train. Preview one transform on a single image to tune its strength, or plot a batch from the training pipeline to see exactly what the model receives, labels included.
+
+### Preview Transforms on One Image
+
+For detection, segmentation, pose, and OBB training, each augmentation argument sets a transform class in `ultralytics.data.augment`: `hsv_h`, `hsv_s`, and `hsv_v` are the gains of `RandomHSV`, and `degrees`, `translate`, `scale`, `shear`, and `perspective` configure `RandomPerspective`. The example applies both to one image four times, with new random values each time, and saves the four results in a grid:
+
+!!! example "Preview augmentations on one image"
+
+    === "Python"
+
+        ```python
+        import cv2
+        import numpy as np
+
+        from ultralytics.data.augment import RandomHSV, RandomPerspective
+
+        img = cv2.imread("path/to/image.jpg")  # BGR, as Ultralytics loads images
+        hsv = RandomHSV(hgain=0.015, sgain=0.7, vgain=0.4)  # hsv_h, hsv_s, hsv_v
+        affine = RandomPerspective(degrees=10, translate=0.1, scale=0.5)  # degrees, translate, scale
+
+        previews = []
+        for _ in range(4):
+            labels = hsv({"img": img.copy()})  # new random gains on every call
+            labels = affine.apply_image(labels, affine.get_params(labels))  # warp the image only
+            previews.append(labels["img"])
+        cv2.imwrite("augmented_image.jpg", np.vstack([np.hstack(previews[:2]), np.hstack(previews[2:])]))
+        ```
+
+`RandomHSV` changes only colors, so you can call it on the image directly. `RandomPerspective` also moves labels, so the example calls its `get_params()` and `apply_image()` methods to warp the image alone.
+
+<p align="center"><img width="800" src="https://cdn.ul.run/i/dd3e13334d88acb8528ceb1396cf40bc.avif" alt="Four augmented copies of a pill blister-pack photo, each with a different color shift and a random rotation, shift, and zoom on a gray border"></p>
+
+### Preview the Training Pipeline with Labels
+
+To see mosaic, flips, and the other transforms together, as training applies them, build the training dataset with your augmentation arguments and plot one batch. `get_cfg()` takes the augmentation arguments you pass to `model.train()`, plus the `task`, which `model.train()` reads from the model:
+
+!!! example "Preview a training batch"
+
+    === "Python"
+
+        ```python
+        from ultralytics.cfg import get_cfg
+        from ultralytics.data import build_yolo_dataset
+        from ultralytics.data.utils import check_det_dataset
+        from ultralytics.utils.plotting import plot_images
+
+        cfg = get_cfg(overrides={"task": "detect", "degrees": 10, "hsv_s": 0.9})  # task: segment, pose, or obb as needed
+        data = check_det_dataset("medical-pills.yaml")  # your dataset YAML
+        dataset = build_yolo_dataset(cfg, data["train"], batch=4, data=data, mode="train")
+        batch = dataset.collate_fn([dataset[i] for i in range(4)])
+        plot_images(batch, paths=batch["im_file"], fname="augmented_batch.jpg", names=data["names"]).join()
+        ```
+
+<p align="center"><img width="640" src="https://cdn.ul.run/i/407058e92e4d9f7d31ba9a2d18090a3e.avif" alt="Four mosaic training images from the medical-pills dataset, rotated up to 10 degrees, with a labeled bounding box drawn on every pill after augmentation"></p>
+
+Each run draws new random values, so run it a few times. Check that boxes still cover their objects after rotation and scaling, and that colors stay within what your cameras produce. The example works for detection, segmentation, pose, and OBB datasets when `task` matches the dataset, so masks, keypoints, or rotated boxes are drawn; classification uses its own [augmentations](#classification-specific-augmentations).
+
+!!! tip "Check the batches from a real training run"
+
+    With `plots=True` (the default), every training run saves its first three batches as `train_batch0.jpg`, `train_batch1.jpg`, and `train_batch2.jpg` in the run directory, such as `runs/detect/train/`, and, in runs longer than `close_mosaic` epochs, three more when mosaic turns off for the final epochs. [Ultralytics Platform](../platform/train/models.md#metrics-subtab) shows the first three in the model's **Train** tab.
 
 ## Color Space Augmentations
 

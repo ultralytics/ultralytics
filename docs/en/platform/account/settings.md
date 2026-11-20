@@ -250,7 +250,7 @@ See [API Keys](api-keys.md) for full documentation.
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/35c3ef00fbda8e1c50216c655530a649.avif)<!-- screenshot -->
 
 {% include "macros/platform-plan-comparison.md" %}
 
@@ -270,7 +270,7 @@ See [Billing](billing.md) for detailed plan information, pricing, and upgrade in
 The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits pay for
 metered compute: cloud training, batch annotation, and custom-resource endpoint uptime.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/13a13fe33434819e8a484f49030883a7.avif)<!-- screenshot -->
 
 From this tab you can:
 
@@ -333,7 +333,7 @@ The `Teams` tab lets you manage workspace members, roles, and invitations. Membe
 [Pro and Enterprise plans](billing.md#plans) — on the Free plan the tab shows the roles reference and an
 **Upgrade to Pro** button instead of an invite control.
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/5f238fe52109870671d17728d8f3ca94.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/ea2bf2f23ea18d16f7ca3bd79556572a.avif)<!-- screenshot -->
 
 The member card header shows the workspace name, plan badge, your own role, and a seat summary such as
 `3 of 5 seats used · 2 available (includes 1 pending invite)`.

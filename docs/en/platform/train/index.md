@@ -29,7 +29,7 @@ The Training section helps you:
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
-- **Export** to 23 deployment formats (see [supported formats](models.md#supported-formats))
+- **Export** to 24 deployment formats (see [supported formats](models.md#supported-formats))
 
 ![Ultralytics Platform Train Overview](https://cdn.ul.run/i/19e52629fb54e22f8a73cd7e1bb3ea76.avif)<!-- screenshot -->
 
@@ -49,7 +49,7 @@ flowchart TD
 | **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
-| **Export**    | Convert to 23 deployment formats ([details](models.md#supported-formats))  |
+| **Export**    | Convert to 24 deployment formats ([details](models.md#supported-formats))  |
 
 ## Training Options
 
@@ -85,12 +85,12 @@ Available GPUs for cloud training on Ultralytics Cloud:
 
 On the model's **Train** tab, view live metrics and available validation results:
 
-| Subtab         | Metrics                                                                                                                |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **Metrics**    | Task metrics (mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, recall for detection), train/val losses, learning rate |
-| **Validation** | Recorded validation plots and per-image analysis, when available                                                       |
-| **Console**    | Live training logs with ANSI color and automatic error detection                                                       |
-| **System**     | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                                            |
+| Subtab         | Metrics                                                                                                                                                                                      |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Metrics**    | Task metrics (mAP<sub>50</sub>, mAP<sub>50-95</sub>, precision, recall for detection), train/val losses, learning rate, and the first three training batch images when the run uploaded them |
+| **Validation** | Recorded validation plots and per-image analysis, when available                                                                                                                             |
+| **Console**    | Live training logs with ANSI color and automatic error detection                                                                                                                             |
+| **System**     | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                                                                                                                  |
 
 !!! info "Automatic Checkpoints"
 

@@ -23,7 +23,7 @@ keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Speed Up Ultralytics YOLO26 Inference with MNN Export | ‪PyTorch‬ vs MNN 🚀
+  <strong>Watch:</strong> Speed Up Ultralytics YOLO26 Inference with MNN Export | PyTorch vs MNN 🚀
 </p>
 
 ## Supported Tasks

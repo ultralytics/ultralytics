@@ -130,9 +130,7 @@ class BaseDataset(Dataset):
         classes: list[int] | None = None,
         fraction: float = 1.0,
         channels: int = 3,
-        tile: bool | int | tuple[int, int] = False,
-        tile_overlap: float = 0.2,
-        tile_bg_scale: float = 1.0,
+        tile: bool | int = False,
     ):
         """Initialize BaseDataset with given configuration and options.
 
@@ -150,12 +148,7 @@ class BaseDataset(Dataset):
             single_cls (bool): If True, single class training is used.
             classes (list[int], optional): List of included classes.
             fraction (float | int): Dataset ratio or image count to use.
-            tile (bool | int | tuple[int, int]): Use native image windows; True uses imgsz, a positive integer sets a
-                square window size, and a (height, width) tuple sets a rectangular window size.
-            tile_overlap (float): Overlap fraction between adjacent tiles, clamped to [0, 0.99). Defaults to 0.2.
-            tile_bg_scale (float): Training only: keep up to this multiple of the foreground-tile count of empty tiles,
-                e.g. 0.5 keeps about half as many empty tiles as foreground tiles. Defaults to 1.0, which keeps every
-                empty tile.
+            tile (bool | int): Use native image windows; True uses imgsz, and a positive integer sets the window size.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
         """
@@ -172,17 +165,13 @@ class BaseDataset(Dataset):
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.tile = tile
-        self.tile_overlap = tile_overlap
-        self.tile_bg_scale = min(max(tile_bg_scale, 0.0), 1.0)
         self.tile_counts = []
         self._source_image = (None, None)
         self.source_images = None
         if tile:
             labels, self.labels = self.labels, []
             for source_index, label in enumerate(labels):
-                windows = tile_windows(label["shape"], self.imgsz if tile is True else tile, self.tile_overlap)
-                if augment and self.tile_bg_scale < 1.0:  # training only; validation keeps every window
-                    windows = self._sample_tile_windows(label, windows)
+                windows = tile_windows(label["shape"], self.imgsz if tile is True else tile, hyp.tile_overlap)
                 self.tile_counts.append(len(windows))
                 self.labels.extend(
                     {
@@ -267,51 +256,6 @@ class BaseDataset(Dataset):
         im_files = im_files[:count] if count < len(im_files) else im_files
         check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files
-
-    def _sample_tile_windows(
-        self, label: dict, windows: list[tuple[int, int, int, int]]
-    ) -> list[tuple[int, int, int, int]]:
-        """Keep every tile holding a label plus a deterministic subset of the empty tiles.
-
-        Args:
-            label (dict): Source label with normalized bboxes, their bbox_format, and image shape.
-            windows (list[tuple[int, int, int, int]]): Tile windows in source pixels.
-
-        Returns:
-            (list[tuple[int, int, int, int]]): Windows to keep, in source order.
-        """
-        bboxes = label.get("bboxes")
-        if bboxes is None or len(bboxes) == 0 or label.get("bbox_format") not in {"xywh", "xyxy"}:
-            return windows  # nothing to score against, or a label format this check cannot read
-        h, w = label["shape"]
-        boxes = np.asarray(bboxes, dtype=np.float64)
-        if label["bbox_format"] == "xywh":  # convert normalized xywh to normalized xyxy
-            boxes = np.stack(
-                [
-                    boxes[:, 0] - boxes[:, 2] / 2,
-                    boxes[:, 1] - boxes[:, 3] / 2,
-                    boxes[:, 0] + boxes[:, 2] / 2,
-                    boxes[:, 1] + boxes[:, 3] / 2,
-                ],
-                axis=1,
-            )
-        foreground, background = set(), []
-        for window in windows:  # same intersection test update_labels_info applies per tile
-            x1, y1, x2, y2 = window[0] / w, window[1] / h, window[2] / w, window[3] / h
-            hit = ((boxes[:, 2] > x1) & (boxes[:, 0] < x2) & (boxes[:, 3] > y1) & (boxes[:, 1] < y2)).any()
-            if hit:
-                foreground.add(window)
-            else:
-                background.append(window)
-        if not foreground:  # no foreground tile exists; dropping empties would leave the source with zero samples
-            return windows
-        n_keep = min(len(background), round(self.tile_bg_scale * len(foreground)))
-        if n_keep <= 0:
-            keep = foreground
-        else:  # evenly spaced empty tiles, so the kept subset still covers the whole source
-            idx = np.unique(np.linspace(0, len(background) - 1, n_keep).round().astype(int))
-            keep = foreground | {background[i] for i in idx}
-        return [window for window in windows if window in keep]
 
     def update_labels(self, include_class: list[int] | None) -> None:
         """Update labels to include only specified classes, and set all classes to 0 if single_cls is True.

@@ -67,24 +67,11 @@ DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
 
 
 def tile_windows(
-    shape: tuple[int, int],
-    size: int | tuple[int, int],
-    overlap: float = 0.2,
+    shape: tuple[int, int], size: int | tuple[int, int], overlap: float = 0.2
 ) -> list[tuple[int, int, int, int]]:
-    """Return native-pixel windows covering an image, with configurable overlap and edges aligned to its boundary.
-
-    Args:
-        shape (tuple[int, int]): Image shape as (height, width) in pixels.
-        size (int | tuple[int, int]): Tile size in pixels; an int makes square tiles, a (height, width) tuple makes
-            rectangular tiles.
-        overlap (float): Overlap fraction between adjacent windows, clamped to [0, 0.99). Defaults to 0.2.
-
-    Returns:
-        (list[tuple[int, int, int, int]]): Windows as (x1, y1, x2, y2) in source pixels, row-major.
-    """
+    """Return native-pixel windows covering an image, overlapping by a fraction and edges aligned to its boundary."""
     h, w = shape
     th, tw = (size, size) if isinstance(size, int) else size
-    overlap = min(max(float(overlap), 0.0), 0.99)
     ys = range(0, max(h - th, 0), max(1, round(th * (1 - overlap))))
     xs = range(0, max(w - tw, 0), max(1, round(tw * (1 - overlap))))
     return [(x, y, min(x + tw, w), min(y + th, h)) for y in (*ys, max(h - th, 0)) for x in (*xs, max(w - tw, 0))]

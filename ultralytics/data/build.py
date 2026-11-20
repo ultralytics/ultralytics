@@ -303,8 +303,6 @@ def build_yolo_dataset(
         data=data,
         fraction=fraction,
         tile=cfg.tile,
-        tile_overlap=getattr(cfg, "tile_overlap", 0.2),
-        tile_bg_scale=getattr(cfg, "tile_bg_scale", 1.0),
     )
 
 
@@ -342,8 +340,6 @@ def build_grounding(
         augment=mode == "train",  # augmentation
         hyp=cfg,
         tile=cfg.tile,
-        tile_overlap=getattr(cfg, "tile_overlap", 0.2),
-        tile_bg_scale=getattr(cfg, "tile_bg_scale", 1.0),
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,

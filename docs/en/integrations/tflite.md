@@ -1,43 +1,112 @@
 ---
 title: TFLite Export for Edge (Deprecated)
 comments: true
-description: Legacy guide to YOLO TFLite export and edge deployment, deprecated in Ultralytics 8.4.83. format="tflite" now exports LiteRT; use LiteRT for new exports.
-keywords: YOLO26, TFLite, model export, TensorFlow Lite, edge devices, deployment, Ultralytics, machine learning, on-device inference, model optimization
+description: YOLO TFLite (TensorFlow Lite) export is now LiteRT. See what format="tflite" exports since Ultralytics 8.4.83, how the .tflite file changed, and how to migrate.
+keywords: YOLO26, TFLite, TensorFlow Lite, TFLite export, format=tflite, LiteRT, model export, edge devices, deployment, Ultralytics, machine learning, on-device inference, model optimization
 ---
 
 # TFLite Model Export for Deployment (Deprecated)
 
-!!! warning "Deprecated — replaced by LiteRT"
+TensorFlow Lite (TFLite) is now called [LiteRT](litert.md), and both names refer to the same `.tflite` model file format. Since Ultralytics 8.4.83, `format="tflite"` is a deprecated name for `format="litert"`: the export logs a warning and writes a LiteRT model. To migrate, export with `format="litert"` and update code that reads the file: for YOLO26n it is now `yolo26n.tflite`, takes a channels-first `(1, 3, 640, 640)` input, and returns raw predictions unless you pass `nms=False`. The sections below give the details, and the [LiteRT page](litert.md) documents the current export in full.
 
-    As of **Ultralytics 8.4.83**, the standalone `tflite` export format has been deprecated and replaced by the unified **Google LiteRT** format. LiteRT (_Lite Runtime_) is the next generation and new name for TensorFlow Lite, and it exports the **same `.tflite` model** — now covering mobile, embedded, edge, and browser deployment in one format.
+## What Changed
 
-    `format="tflite"` still works but emits a deprecation warning and exports a LiteRT model instead. **Use `format="litert"`** going forward; for current export instructions and options, see the **[LiteRT export guide](litert.md)**.
+The table compares the export of the official YOLO26n checkpoint in Ultralytics 8.4.82, the last release with the earlier TFLite export, and in Ultralytics 8.4.215. Both exports ran on Linux x86-64 with Python 3.12.
 
-<p align="center">
-  <img width="75%" src="https://cdn.ul.run/i/77f69836dfc1d1e96a7e9c9968fa98fd.avif" alt="TensorFlow Lite edge deployment framework">
-</p>
+| Property                           | Ultralytics 8.4.82: `format="tflite"`                                                                                                                                                       | Ultralytics 8.4.215: `format="tflite"` or `"litert"`                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Converter                          | `onnx2tf`, from an ONNX file through a TensorFlow SavedModel                                                                                                                                | `litert-torch`, directly from the PyTorch model                                                                            |
+| Packages the first export installs | TensorFlow, `onnx2tf`, `tf_keras`, ONNX, ONNX Runtime, and more                                                                                                                             | `litert-torch`, `ai-edge-litert`, `ai-edge-quantizer`, and their dependencies, such as JAX; no TensorFlow                  |
+| Returned file                      | `yolo26n_saved_model/yolo26n_float32.tflite`                                                                                                                                                | `yolo26n.tflite`, next to the checkpoint                                                                                   |
+| Other files written                | The SavedModel and `yolo26n_float16.tflite` in the same directory, and `yolo26n.onnx` next to the checkpoint                                                                                | None                                                                                                                       |
+| `quantize=16`                      | Returns `yolo26n_saved_model/yolo26n_float16.tflite`                                                                                                                                        | Stops with an error                                                                                                        |
+| `quantize=8`                       | Returns `yolo26n_saved_model/yolo26n_int8.tflite`, with INT8 weights and floating-point activations, and also writes `yolo26n_integer_quant.tflite` and `yolo26n_full_integer_quant.tflite` | Returns `yolo26n_int8.tflite`, with INT8 weights and activations                                                           |
+| Input                              | `(1, 640, 640, 3)`, channels last (NHWC)                                                                                                                                                    | `(1, 3, 640, 640)`, channels first (NCHW)                                                                                  |
+| Default output                     | `(1, 300, 6)`: NMS-free rows with box coordinates normalized to 0-1                                                                                                                         | `(1, 84, 8400)`: raw predictions that need NMS                                                                             |
+| Output with `nms=False`            | Same as the default                                                                                                                                                                         | `(1, 300, 6)`: NMS-free rows with box coordinates in input pixels                                                          |
+| Output with `nms=True`             | Same as the default, with the warning `'nms=True' is not available for end2end models. Forcing 'nms=False'.` A YOLO11n export returns `(1, 300, 6)` from NMS embedded in the model          | The raw output, with the warning `format=litert does not support embedded NMS; exporting native outputs for external NMS.` |
 
-Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge or embedded devices requires a format built for efficient on-device inference.
+In both releases the class names, task, and image size are stored inside the `.tflite` file as a `metadata.json` entry.
 
-The former TensorFlow Lite or TFLite export format optimized [Ultralytics YOLO26](../models/yolo26.md) models for tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) and [image classification](https://www.ultralytics.com/glossary/image-classification) in edge applications. This guide preserves the legacy TFLite deployment context; use LiteRT for new exports.
+## Behavior Since 8.4.83
 
-## Why Was TFLite Used for Export?
+A Python or CLI export with `format="tflite"`, such as `yolo export model=yolo26n.pt format=tflite`, first logs this warning:
 
-Introduced by Google in May 2017 as part of their TensorFlow framework, [TensorFlow Lite](https://developers.google.com/edge/litert), or TFLite for short, was an open-source deep learning framework designed for on-device inference, also known as [edge computing](https://www.ultralytics.com/glossary/edge-computing). It gave developers tools to execute trained models on mobile, embedded, and IoT devices, as well as traditional computers.
+```text
+WARNING ⚠️ format='tflite' is deprecated as of 8.4.83 and has been replaced by the unified Google LiteRT format. Exporting format='litert' instead. See https://docs.ultralytics.com/integrations/litert
+```
 
-TensorFlow Lite supported a wide range of platforms, including embedded Linux, Android, iOS, and microcontrollers (MCUs). TFLite exports enabled applications to run models locally and offline.
+It then runs the LiteRT export and writes `yolo26n.tflite` next to the checkpoint.
 
-## Key Features of TFLite Models
+- **Same model**: for FP32 and `quantize="w8a32"`, the model data in the file is byte-identical to the one `format="litert"` writes, and the two files differ only in the export time stored in the metadata. A calibrated `quantize=8` or `"w8a16"` export has the same size with both values, and its bytes can differ from one run to the next: `quantize=8` runs with the same value differed too.
+- **Arguments and errors**: the arguments, checks, and messages are those of [LiteRT](litert.md#export-arguments), and the messages name `litert`: `quantize=16`, for example, stops with `quantize=16 (FP16) is not supported; format='litert' supports quantize=8 (INT8), 'w8a16' (INT8 weights + INT16 activations), 'w8a32' (dynamic INT8), 32 or None (FP32).`
+- **Earlier precision flags**: `int8=True` still selects `quantize=8` and writes `yolo26n_int8.tflite`; `half=True` selects `quantize=16` and stops with the same message.
+- **Export host**: the export runs on Linux x86-64 and on macOS with Apple silicon, with Python 3.10 or newer. On Windows and on Linux ARM64, such as a Raspberry Pi, it stops with `LiteRT export only supported on Linux x86 and macOS`.
+- **Packages**: the first export installs `litert-torch`, `ai-edge-litert`, and `ai-edge-quantizer`. After a plain `pip install ultralytics`, that install can replace PyTorch and [stop the first export](litert.md#limitations-and-troubleshooting); installing `ultralytics[export-litert]` beforehand avoids it.
+- **TF.js**: `format="tfjs"` is deprecated in the same way and writes the same `yolo26n.tflite` instead of a `yolo26n_web_model/` directory. See the [TF.js page](tfjs.md).
 
-TFLite models offer a wide range of key features that enable on-device machine learning by helping developers run their models on mobile, embedded, and edge devices:
+## Migrate to LiteRT
 
-- **On-device Optimization**: TFLite optimizes for on-device ML, reducing [latency](https://www.ultralytics.com/glossary/inference-latency) by processing data locally, enhancing privacy by not transmitting personal data, and minimizing model size to save space.
+Install the LiteRT export packages with `pip install "ultralytics[export-litert]"`, then replace the `format` value:
 
-- **Multiple Platform Support**: TFLite offers extensive platform compatibility, supporting Android, iOS, embedded Linux, and microcontrollers.
+!!! example "Export"
 
-- **Diverse Language Support**: TFLite is compatible with various programming languages, including Java, Swift, Objective-C, C++, and Python.
+    === "Python"
 
-- **High Performance**: Uses hardware acceleration and model optimization for fast inference.
+        ```python
+        from ultralytics import YOLO
+
+        # Load a YOLO26 model
+        model = YOLO("yolo26n.pt")
+
+        # Export the model to LiteRT format
+        model.export(format="litert")  # creates 'yolo26n.tflite'
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Export a YOLO26n PyTorch model to LiteRT format
+        yolo export model=yolo26n.pt format=litert # creates 'yolo26n.tflite'
+        ```
+
+For prediction, validation, and the version requirements, see the [LiteRT quickstart](litert.md#quickstart). Code that reads the `.tflite` file itself needs these changes:
+
+- **File path**: load `yolo26n.tflite` instead of `yolo26n_saved_model/yolo26n_float32.tflite`.
+- **Input**: pass the images as `(batch, 3, height, width)`, channels first, instead of `(batch, height, width, 3)`. The values stay RGB `float32` scaled to 0-1.
+- **Output of YOLO26 detection models**: pass `nms=False` to keep the `(1, 300, 6)` rows of `x1, y1, x2, y2, score, class` in FP32 and `quantize="w8a32"` exports. Their box coordinates are now in input pixels, not normalized to 0-1. Exports without `nms`, and `quantize=8` and `"w8a16"` exports also with `nms=False`, write the raw `(1, 84, 8400)` output, which needs NMS and has box values normalized to 0-1. The other tasks have other shapes, see [Output Format](litert.md#output-format).
+- **Embedded NMS**: `nms=True`, which embedded NMS in the earlier YOLO11 export and returned `(1, 300, 6)`, now writes the raw output. Run NMS in your own code, or load the file with `YOLO()`, which applies it.
+- **`quantize=16`**: export FP32 instead. LiteRT has [no FP16 export](litert.md#quantization).
+- **`quantize=8`**: the `yolo26n_int8.tflite` that the earlier export returned kept INT8 weights with floating-point activations. `quantize="w8a32"` is the scheme of that kind now, and `quantize=8` also quantizes the activations, calibrated on `data`, and writes the raw output. See [Quantization](litert.md#quantization).
+- **Full-integer files**: the earlier `quantize=8` export also wrote `yolo26n_full_integer_quant.tflite` with `int8` input and output. All four current precisions keep `float32` input and output. For a Coral accelerator, use the [Edge TPU export](edge-tpu.md).
+- **Tensor names**: the input and output of the float files were named `images` and `Identity`. Read tensors by index, not by name.
+
+## Load Earlier TFLite Files
+
+`YOLO()` in the current release loads `.tflite` files that the earlier export wrote. It detects the channels-last layout from the input tensor and reads the class names, task, and image size from the `metadata.json` inside the file, so a file also loads after you move it out of `yolo26n_saved_model/`.
+
+```python
+from ultralytics import YOLO
+
+# Load a TFLite model exported with Ultralytics 8.4.82
+model = YOLO("yolo26n_saved_model/yolo26n_float32.tflite")
+
+# Run inference
+results = model("https://ultralytics.com/images/bus.jpg")
+```
+
+The files of the Ultralytics 8.4.82 YOLO26n exports gave these results with `predict` on `bus.jpg` and `val` on [COCO8](../datasets/detect/coco8.md) in Ultralytics 8.4.215:
+
+| File                                    | Written by    | Detections on `bus.jpg`           | mAP<sub>50-95</sub> on COCO8 |
+| --------------------------------------- | ------------- | --------------------------------- | ---------------------------- |
+| `yolo26n_float32.tflite`                | Every export  | The bus and four persons          | 0.687                        |
+| `yolo26n_float16.tflite`                | Every export  | The bus and four persons          | 0.658                        |
+| `yolo26n_int8.tflite`                   | `quantize=8`  | The bus and four persons          | 0.669                        |
+| `yolo26n_integer_quant.tflite`          | `quantize=8`  | Misplaced boxes                   | 0.040                        |
+| `yolo26n_full_integer_quant.tflite`     | `quantize=8`  | Misplaced boxes and wrong classes | 0.006                        |
+| `yolo26n.tflite`, exported with 8.4.215 | For reference | The bus and four persons          | 0.669                        |
+
+In the two `integer_quant` files of this NMS-free YOLO26n export, one quantization scale of 0.306 covers the box coordinates, the scores, and the class ids of the output, so box coordinates normalized to 0-1 take only a few distinct values. Use `yolo26n_int8.tflite` from the same directory, or export again. A YOLO11n file exported with `nms=True` in 8.4.82 also loaded and ran `predict` and `val`.
 
 ## Measured Performance (historical)
 
@@ -80,198 +149,19 @@ In this run, w8a16 fell back to CPU at about 660 ms total versus about 17 ms for
 motivated shipping `w8a32`, but delegate compatibility and performance depend on the device and runtime version.
 Benchmark the target device and confirm accelerator placement in its runtime logs.
 
-## Deployment Options in TFLite
+## Next Steps
 
-Before the LiteRT replacement export example, here is how TFLite models are typically used.
-
-TFLite offers various on-device deployment options for machine learning models, including:
-
-- **Deploying with Android and iOS**: Both Android and iOS applications with TFLite can analyze edge-based camera feeds and sensors to detect and identify objects. TFLite also offers native iOS libraries written in [Swift](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/swift) and [Objective-C](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/objc). The architecture diagram below shows the process of deploying a trained model onto Android and iOS platforms using TensorFlow Lite.
-
- <p align="center">
-  <img width="75%" src="https://cdn.ul.run/i/322c2a4f70b733df7eccc80a9e6ef6d7.avif" alt="TensorFlow Lite deployment architecture for mobile">
-</p>
-
-- **Implementing with Embedded Linux**: If running inference on a [Raspberry Pi](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference. Additionally, it's possible to further improve performance by using a [Coral Edge TPU device](https://developers.google.com/coral).
-
-- **Deploying with Microcontrollers**: TFLite models can also be deployed on microcontrollers and other devices with only a few kilobytes of memory. The core runtime just fits in 16 KB on an Arm Cortex M3 and can run many basic models. It doesn't require operating system support, any standard C or C++ libraries, or dynamic memory allocation.
-
-## Replace TFLite Export with LiteRT
-
-For new exports, convert your model to LiteRT. The resulting model keeps the `.tflite` file extension.
-
-### Installation
-
-To install the required packages, run:
-
-!!! tip "Installation"
-
-    === "CLI"
-
-        ```bash
-        # Install the required package for YOLO26
-        pip install ultralytics
-        ```
-
-For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
-
-### Usage
-
-All [Ultralytics YOLO26 models](https://platform.ultralytics.com/ultralytics/yolo26) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
-
-The replacement LiteRT format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported `.tflite` model to run inference or validate its accuracy.
-
-!!! example "Export"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a YOLO26 model
-        model = YOLO("yolo26n.pt")
-
-        # Export the model to LiteRT format
-        model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Export a YOLO26n PyTorch model to LiteRT format
-        yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
-        ```
-
-!!! example "Predict"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load the exported TFLite model
-        model = YOLO("yolo26n.tflite")
-
-        # Run inference
-        results = model("https://ultralytics.com/images/bus.jpg")
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Run inference with the exported TFLite model
-        yolo predict model=yolo26n.tflite source='https://ultralytics.com/images/bus.jpg'
-        ```
-
-!!! example "Validate"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load the exported TFLite model
-        model = YOLO("yolo26n.tflite")
-
-        # Validate accuracy on the COCO8 dataset
-        metrics = model.val(data="coco8.yaml")
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Validate the exported TFLite model
-        yolo val model=yolo26n.tflite data=coco8.yaml
-        ```
-
-### Export Arguments
-
-See the [LiteRT export arguments](litert.md#export-arguments). For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
-
-## Deploying Exported YOLO26 TFLite Models
-
-After exporting your Ultralytics YOLO26 model to LiteRT format, you can deploy the resulting `.tflite` model. The primary and recommended first step for running a TFLite model is to use the `YOLO("model.tflite")` method, as outlined in the previous usage code snippet. For in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
-
-- **[Android](https://developers.google.com/edge/litert/android)**: A quick start guide for integrating TensorFlow Lite into Android applications, providing easy-to-follow steps for setting up and running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
-
-- **[iOS](https://developers.google.com/edge/litert/ios/quickstart)**: A guide for developers on integrating and deploying TensorFlow Lite models in iOS applications, offering step-by-step instructions and resources.
-
-- **[End-To-End Examples](https://github.com/tensorflow/examples/tree/master/lite/examples)**: This page provides an overview of various TensorFlow Lite examples, showcasing practical applications and tutorials designed to help developers implement TensorFlow Lite in their machine learning projects on mobile and edge devices.
-
-## Summary
-
-This guide preserves the legacy TFLite deployment workflow. For new exports, use LiteRT to create `.tflite` models for edge computing environments.
-
-For further details on usage, visit the [TFLite official documentation](https://developers.google.com/edge/litert).
+- **[LiteRT](litert.md)**: the current export, with its [quantization schemes](litert.md#quantization), [output format](litert.md#output-format), [Android, iOS, and browser deployment guides](litert.md#deployment-guides), [Intel GPU and NPU inference](litert.md#intel-gpu-and-npu-inference), and [current measurements](litert.md#measured-performance).
+- **[TF SavedModel](tf-savedmodel.md)**: `format="saved_model"` still converts through `onnx2tf`. Load its `yolo26n_saved_model/` directory with `YOLO()`, not the channels-last `.tflite` files that the current `format="saved_model"` export writes inside it. Unlike the files of the 8.4.82 `format="tflite"` export above, their raw `(1, 84, 8400)` output has box coordinates in input pixels, and `YOLO()` placed every box in the bottom-right image corner when it loaded such a `yolo26n_float32.tflite`.
+- **[Coral Edge TPU](edge-tpu.md)**: `format="edgetpu"` compiles a full-integer `.tflite` model for Coral accelerators.
+- **[MediaTek Dimensity](mediatek.md)**: Android deployment of LiteRT models on MediaTek phones.
 
 ## FAQ
 
-### How do I replace a TFLite export with LiteRT?
+### Can I run a YOLO26 TFLite model on a Raspberry Pi?
 
-For a new export, use the LiteRT format. First, install the required package using:
+Yes. Load the `.tflite` file with `YOLO("yolo26n.tflite")` on the board; the [Raspberry Pi guide](../guides/raspberry-pi.md#raspberry-pi-5-yolo26-benchmarks) lists LiteRT results on a Raspberry Pi 5. The export itself does not run on the board, because the LiteRT export needs Linux x86-64 or macOS: export on such a machine and copy the file over. For a Coral accelerator on the board, use the separate [Edge TPU export](edge-tpu.md).
 
-```bash
-pip install ultralytics
-```
+### Can I run a YOLO26 TFLite model on a microcontroller?
 
-Then, use the following code snippet to export your model:
-
-```python
-from ultralytics import YOLO
-
-# Load a YOLO26 model
-model = YOLO("yolo26n.pt")
-
-# Export the model to LiteRT format
-model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
-```
-
-For CLI users, you can achieve this with:
-
-```bash
-yolo export model=yolo26n.pt format=litert imgsz=640 # use imgsz=224 for classification
-```
-
-For more details, visit the [Ultralytics export guide](../modes/export.md).
-
-### What are the benefits of using TensorFlow Lite for YOLO26 model deployment?
-
-TensorFlow Lite (TFLite) is an open-source [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework designed for on-device inference, making it ideal for deploying YOLO26 models on mobile, embedded, and IoT devices. Key benefits include:
-
-- **On-device optimization**: Minimize latency and enhance privacy by processing data locally.
-- **Platform compatibility**: Supports Android, iOS, embedded Linux, and MCU.
-- **Performance**: Uses hardware acceleration to optimize model speed and efficiency.
-
-To learn more, check out the [TFLite guide](https://developers.google.com/edge/litert).
-
-### Is it possible to run YOLO26 TFLite models on Raspberry Pi?
-
-Yes, you can run YOLO26 TFLite models on Raspberry Pi to improve inference speeds. First, export your model to LiteRT format as explained above. Then, run the `.tflite` model on your Raspberry Pi with `YOLO("yolo26n.tflite")` or the LiteRT interpreter.
-
-A [Coral Edge TPU](edge-tpu.md) can accelerate inference further.
-
-### Can I use TFLite models on microcontrollers for YOLO26 predictions?
-
-TFLite supports deployment on microcontrollers with limited resources: its core runtime requires only 16 KB of memory on an Arm Cortex M3 and can run many basic models. However, YOLO26 models are generally too large for typical microcontroller memory budgets, so single-board computers, mobile devices, or dedicated accelerators are better targets for YOLO26.
-
-To get started, visit the [TFLite Micro for Microcontrollers guide](https://developers.google.com/edge/litert/microcontrollers/overview).
-
-### What platforms are compatible with TFLite exported YOLO26 models?
-
-TensorFlow Lite provides extensive platform compatibility, allowing you to deploy YOLO26 models on a wide range of devices, including:
-
-- **Android and iOS**: Native support through TFLite Android and iOS libraries.
-- **Embedded Linux**: Ideal for single-board computers such as Raspberry Pi.
-- **Microcontrollers**: Suitable for MCUs with constrained resources.
-
-For more information on deployment options, see our detailed [deployment guide](#deploying-exported-yolo26-tflite-models).
-
-### How do I troubleshoot common issues during YOLO26 model export to LiteRT?
-
-If you encounter errors while exporting YOLO26 models to LiteRT, common solutions include:
-
-- **Check package compatibility**: Ensure you're using compatible versions of Ultralytics, `litert-torch`, and `ai-edge-litert`. Refer to our [installation guide](../quickstart.md).
-- **Model support**: Verify that the specific YOLO26 model supports LiteRT export by checking the Ultralytics [export documentation page](../modes/export.md).
-- **Quantization issues**: When using INT8 quantization, make sure your dataset path is correctly specified in the `data` parameter.
-
-For additional troubleshooting tips, visit our [Common Issues guide](../guides/yolo-common-issues.md).
+Ultralytics does not test LiteRT exports with [LiteRT for Microcontrollers](https://developers.google.com/edge/litert/microcontrollers/overview). The smallest YOLO26n export, `quantize="w8a32"`, is a 2.9 MB file, and every precision keeps `float32` input and output. For STM32 microcontrollers, the [ST Edge AI export](stedgeai.md) writes a fully quantized INT8 model with `quantize=8` for the STMicroelectronics toolchain.

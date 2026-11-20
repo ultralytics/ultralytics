@@ -150,12 +150,12 @@ class BaseDataset(Dataset):
             single_cls (bool): If True, single class training is used.
             classes (list[int], optional): List of included classes.
             fraction (float | int): Dataset ratio or image count to use.
-            tile (bool | int | tuple[int, int]): Use native image windows; True uses imgsz, a positive integer sets
-                a square window size, and a (height, width) tuple sets a rectangular window size.
+            tile (bool | int | tuple[int, int]): Use native image windows; True uses imgsz, a positive integer sets a
+                square window size, and a (height, width) tuple sets a rectangular window size.
             tile_overlap (float): Overlap fraction between adjacent tiles, clamped to [0, 0.99). Defaults to 0.2.
-            tile_bg_scale (float): Training only: keep up to this multiple of the foreground-tile count of empty
-                tiles, e.g. 0.5 keeps about half as many empty tiles as foreground tiles. Defaults to 1.0, which
-                keeps every empty tile.
+            tile_bg_scale (float): Training only: keep up to this multiple of the foreground-tile count of empty tiles,
+                e.g. 0.5 keeps about half as many empty tiles as foreground tiles. Defaults to 1.0, which keeps every
+                empty tile.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
         """

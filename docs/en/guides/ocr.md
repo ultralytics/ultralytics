@@ -79,8 +79,9 @@ save the recognized text; use Python to work with the [results](#ocr-results).
 [YOLO26-Text on Ultralytics Platform](https://platform.ultralytics.com/ultralytics-yolo/yolo26-text)
 
 The YOLO26-Text family provides `n`, `s`, `m`, `l`, and `x` OBB checkpoints, which download automatically, for example
-`solutions.OCR(model="yolo26s-text.pt")`. The defaults come from a benchmark of 80 HierText validation photos with
-their transcriptions, PDF pages scored against their text layers, and screenshots:
+`solutions.OCR(model="yolo26s-text.pt")`. The `model` and `imgsz` rows cite the [benchmarks](#benchmarks) below; the
+recognition-unit and `max_det` rows come from an earlier test on HierText validation photos, PDF pages scored against
+their text layers, and screenshots:
 
 | Setting          | Default        | Benchmark result                                                                                                                                                                                   |
 | ---------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -104,22 +105,22 @@ Additionally, the following visualization settings are supported:
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "show_conf", "show_labels"]) }}
 
-`OCR` also passes [inference arguments](../modes/predict.md#inference-arguments) such as `conf`, `iou`, `classes`,
-`device`, `imgsz`, and `max_det` to the detector. On a CUDA device the built-in recognizers run on the same GPU as the
-detector; on other devices they run on the CPU.
+`OCR` also passes the [inference arguments](../modes/predict.md#inference-arguments) `conf`, `iou`, `classes`, `device`,
+`imgsz`, `max_det`, and `quantize` to the detector; other prediction arguments raise a `ValueError`. On a CUDA device
+the built-in recognizers run on the same GPU as the detector; on other devices they run on the CPU.
 
 ## Choose a Model and Recognizer
 
-The [benchmarks](#benchmarks) cover photos with about 100 words each on one GPU, and their best settings are candidates
-to validate on your own images:
+The [benchmarks](#benchmarks) cover photos with about 100 words each on one GPU and on a 50-photo CPU subset, and their
+best settings are candidates to validate on your own images:
 
-| Tested scenario            | Setting                                                                  | Measured                                                                                                             |
-| -------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Default settings           | Defaults: `yolo26x-text.pt` and `recognizer="paddleocr"` at `imgsz=1280` | 77.4 word F1 in 106.3 ms per image                                                                                   |
-| TensorRT recognizer        | `recognizer="tensorrt"` on an NVIDIA GPU                                 | 106.3 ms to 57.7 ms per image at the same 77.4 word F1, after a 31-second engine build                               |
-| Smallest detector          | `model="yolo26n-text.pt"`                                                | Word F1 from 77.4 to 73.6 and latency from 106.3 ms to 93.6 ms, with a checkpoint of 5.7 MB instead of 126 MB        |
-| English recognizer on CPU  | `recognizer="en_PP-OCRv5_mobile_rec"`                                    | 1540 ms to 835 ms per image and word F1 from 76.4 to 71.4, on the 50-photo CPU subset                                |
-| Higher detector resolution | `imgsz=1920`                                                             | Word F1 from 77.4 to 78.0 and latency from 106.3 ms to 106.7 ms over all 300 photos, 223 of which exceed 1280 pixels |
+| Tested scenario            | Setting                                                                  | Measured                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Default settings           | Defaults: `yolo26x-text.pt` and `recognizer="paddleocr"` at `imgsz=1280` | 77.4 word F1 in 106.3 ms per image                                                                            |
+| TensorRT recognizer        | `recognizer="tensorrt"` on an NVIDIA GPU                                 | 106.3 ms to 57.7 ms per image at the same 77.4 word F1, after a 31-second engine build                        |
+| Smallest detector          | `model="yolo26n-text.pt"`                                                | Word F1 from 77.4 to 73.6 and latency from 106.3 ms to 93.6 ms, with a checkpoint of 5.7 MB instead of 126 MB |
+| English recognizer on CPU  | `recognizer="en_PP-OCRv5_mobile_rec"`                                    | 1540 ms to 835 ms per image on CPU with YOLO26x-Text; on the GPU run, word F1 from 77.4 to 73.1               |
+| Higher detector resolution | `imgsz=1920`                                                             | Word F1 from 77.4 to 78.0 over all 300 photos, 223 of which exceed 1280 pixels                                |
 
 ## How Scene Text OCR Works
 
@@ -191,14 +192,15 @@ for each model's accuracy and speed.
 
 Pass any detection, OBB, or segmentation model as `model` to read the text inside its boxes, such as license plates or
 serial numbers. OCR rectifies each detection and reads it as one line of text, so you do not crop anything yourself.
-Each detection should hold a single line of text that runs along the long side of its box:
+Each detection should hold a single line of text that runs along the long side of its box. OCR's `imgsz=1280` default
+applies to your detector too, so pass the size it was trained at:
 
 ```python
 import cv2
 
 from ultralytics import solutions
 
-ocr = solutions.OCR(model="path/to/license-plate-detector.pt", classes=[0])
+ocr = solutions.OCR(model="path/to/license-plate-detector.pt", classes=[0], imgsz=640)  # the detector's training size
 im0 = cv2.imread("path/to/image.jpg")
 result = ocr(im0)
 print([text["text"] for text in result.texts])
@@ -375,25 +377,20 @@ milliseconds of the full `ocr(im0)` call for one already decoded image, includin
 
 - **Word count** set the latency more than the model did: YOLO26x-Text took 64.7 ms on photos with 50 or fewer words and
   171.6 ms on photos with more than 150, while the detector alone took 6.9 to 16.4 ms.
-- **`recognizer="tensorrt"`** lowered latency from 93.6 ms to 47.7 ms with YOLO26n-Text and from 106.3 ms to 57.7 ms
-  with YOLO26x-Text, at the same word F1 to one decimal for all five models. With YOLO26x-Text it read 322 of 32,022
-  words differently from ONNX Runtime, and 160 of 32,019 differently between two runs with separately built engines;
-  ONNX Runtime repeated all 32,022.
-- **The PP-OCRv5 mobile recognizers** lowered YOLO26x-Text latency from 106.3 ms to 84.0 ms for English and 85.3 ms for
-  Latin, and word F1 from 77.4 to 73.1 and 73.0.
-- **`imgsz=1280`** scored 4.7 to 7.1 points higher than `imgsz=640`, and `imgsz=1920` scored another 0.6 to 1.4 points
-  higher on these photos of up to 1600 pixels.
+- **`recognizer="tensorrt"`** matched ONNX Runtime's word F1 to one decimal for all five models. With YOLO26x-Text it
+  read 322 of 32,022 words differently from ONNX Runtime, and 160 of 32,019 differently between two runs with separately
+  built engines; ONNX Runtime repeated all 32,022.
 
 ## Dependencies and Licenses
 
-| Component       | Required                               | Role                                                         | License                |
-| --------------- | -------------------------------------- | ------------------------------------------------------------ | ---------------------- |
-| Ultralytics     | Yes                                    | YOLO detection, crop geometry, and result orchestration      | AGPL-3.0               |
-| ONNX Runtime    | For all but `"tensorrt"` and callables | Recognition runtime, 1.26+ on Python 3.11+                   | MIT                    |
-| PP-OCRv6 medium | For `"paddleocr"` and `"tensorrt"`     | Recognition weights from the Ultralytics assets release      | Apache-2.0             |
-| PP-OCRv5 mobile | For a PP-OCRv5 language model name     | Language recognition weights from the Ultralytics assets     | Apache-2.0             |
-| TensorRT        | Only for `recognizer="tensorrt"`       | FP16 PP-OCRv6 engine on NVIDIA GPUs, instead of ONNX Runtime | NVIDIA proprietary     |
-| Custom callable | No                                     | User-owned recognition integration                           | Defined by the backend |
+| Component       | Required                                              | Role                                                         | License                |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------------------ | ---------------------- |
+| Ultralytics     | Yes                                                   | YOLO detection, crop geometry, and result orchestration      | AGPL-3.0               |
+| ONNX Runtime    | For all but callables and `"tensorrt"` on NVIDIA GPUs | Recognition runtime, 1.26+ on Python 3.11+                   | MIT                    |
+| PP-OCRv6 medium | For `"paddleocr"` and `"tensorrt"`                    | Recognition weights from the Ultralytics assets release      | Apache-2.0             |
+| PP-OCRv5 mobile | For a PP-OCRv5 language model name                    | Language recognition weights from the Ultralytics assets     | Apache-2.0             |
+| TensorRT        | Only for `recognizer="tensorrt"`                      | FP16 PP-OCRv6 engine on NVIDIA GPUs, instead of ONNX Runtime | NVIDIA proprietary     |
+| Custom callable | No                                                    | User-owned recognition integration                           | Defined by the backend |
 
 PP-OCRv6 and PP-OCRv5 weights download on first use. Review the model card, such as
 [PP-OCRv6 medium](https://huggingface.co/PaddlePaddle/PP-OCRv6_medium_rec) or

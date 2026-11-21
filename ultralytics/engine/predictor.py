@@ -337,7 +337,7 @@ class BasePredictor:
             return
         size = self.imgsz if self.args.tile is True else self.args.tile
         paths, images, info = batch
-        for crops, windows, last in tile_batches(images, size, self.args.batch):
+        for crops, windows, last in tile_batches(images, size, self.args.batch, self.args.tile_overlap):
             yield (
                 ([paths[i] for i, _ in windows], crops, [info[i] for i, _ in windows]),
                 dataset,

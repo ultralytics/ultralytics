@@ -610,6 +610,8 @@ class LoadPilAndNumpy:
                 return cv2.cvtColor(im[..., 0], cv2.COLOR_GRAY2BGR)
             return np.repeat(im, channels, axis=2)
         if channels == 1:
+            if im.dtype not in (np.uint8, np.uint16, np.float32):
+                im = im.astype(np.float32)  # cvtColor supports only uint8, uint16, and float32 image arrays
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
         return cv2.cvtColor(im, cv2.COLOR_BGRA2BGR) if u8 and c == 4 else np.ascontiguousarray(im[..., :3])
 

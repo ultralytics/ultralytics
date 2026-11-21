@@ -139,7 +139,7 @@ class WorldTrainerFromScratch(WorldTrainer):
             )
         data = {k: [check_det_dataset(d) for d in v.get("yolo_data", [])] for k, v in data_yaml.items()}
         assert len(data["val"]) == 1, f"Only support validating on 1 dataset for now, but got {len(data['val'])}."
-        val_split = "minival" if "lvis" in data["val"][0]["val"] else "val"
+        val_split = "minival" if "lvis" in Path(data["val"][0]["val"]).parts else "val"
         for d in data["val"]:
             if d.get("minival") is None:  # for lvis dataset
                 continue
@@ -190,5 +190,5 @@ class WorldTrainerFromScratch(WorldTrainer):
         """
         val = self.args.data["val"]["yolo_data"][0]
         self.validator.args.data = val
-        self.validator.args.split = "minival" if isinstance(val, str) and "lvis" in val else "val"
+        self.validator.args.split = "minival" if "lvis" in Path(self.data["val"]).parts else "val"
         return super().final_eval()

@@ -1017,7 +1017,7 @@ To delete several datasets at once, select their rows in the table view of the *
 
 ## Train on Dataset
 
-Start training directly from your dataset:
+Start from a dataset you can edit. If you are viewing another workspace’s public dataset, [clone it](#clone-dataset) and open the copy first.
 
 1. Click `New Model` on the dataset page
 2. Select a project or create new

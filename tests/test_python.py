@@ -599,9 +599,13 @@ def test_predict_ndarray_channels():
     assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
-        for dtype in (np.uint8, np.float64):  # float64 is a dtype cvtColor rejects
-            im = LoadPilAndNumpy(np.zeros((8, 8, source_channels), dtype=dtype), channels=model_channels).im0[0]
+        for dtype in (np.uint8, np.float64, np.int64):  # cvtColor rejects float64 and int64
+            source = np.arange(8 * 8 * source_channels, dtype=dtype).reshape(8, 8, source_channels)
+            im = LoadPilAndNumpy(source, channels=model_channels).im0[0]
             assert im.shape == (8, 8, model_channels) and im.dtype != np.float64  # MPS has no float64
+            if dtype is np.int64 and source_channels in (3, 4) and model_channels == 1:
+                code = cv2.COLOR_BGRA2GRAY if source_channels == 4 else cv2.COLOR_BGR2GRAY
+                np.testing.assert_allclose(im[..., 0], cv2.cvtColor(source.astype(np.float32), code))
 
 
 def test_single_check_channel_order_and_contiguity():

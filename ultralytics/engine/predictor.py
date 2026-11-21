@@ -576,7 +576,11 @@ class BasePredictor:
         key = p if self.dataset.mode == "video" else i  # a video keeps one base across its frames, a stream per slot
         if self.dataset.mode == "image" or key not in self._sources:
             base, k = p.stem, 1
-            while base in self._bases:  # same-stem sources (bus.jpg + bus.png, a/clip.mp4 + b/clip.mp4) get -2, -3...
+            # same-stem sources (bus.jpg + bus.png, a/clip.mp4 + b/clip.mp4) get -2, -3..., as does a video whose
+            # <base>_<frame> labels would overwrite an earlier image's (clip_1.jpg + clip.mp4; images load first)
+            while base in self._bases or (
+                key == p and any(re.fullmatch(rf"{re.escape(base)}_[1-9]\d*", b) for b in self._bases)
+            ):
                 k += 1
                 base = f"{p.stem}-{k}"
             self._bases.add(base)

@@ -36,7 +36,10 @@ flowchart TD
 
 ## Get Started
 
-You can sign up and log in with a Google or GitHub account, or with your email address.
+You can sign up and log in with a Google or GitHub account, or with your email address. An email sign-up asks for a code
+sent to that address. A Google or GitHub sign-up needs an email address the provider has already verified. If it
+reports yours as unverified, Platform creates no account and asks you to verify the email with that provider, for
+example in your GitHub email settings, then try again.
 
 ![Ultralytics Platform Signup](https://cdn.ul.run/i/1683ea5d0337eeb6e9099ac434afaedb.avif)<!-- screenshot -->
 

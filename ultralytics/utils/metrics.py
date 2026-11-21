@@ -1986,7 +1986,7 @@ class DepthMetrics(SimpleClass, DataExportMixin):
             thresh = torch.maximum(pv / gv, gv / pv)
             log_diff = torch.log(pv) - torch.log(gv)
             # λ=1 variance form (ZoeDepth/KITTI), finalized per image so silog also averages per-sample
-            silog = (log_diff.pow(2).mean() - log_diff.mean().pow(2)).clamp_min(0.0).sqrt() * 100
+            silog = (log_diff - log_diff.mean()).square_().mean().sqrt() * 100
             image_metrics = torch.stack(
                 [
                     (thresh < 1.25).float().mean(),

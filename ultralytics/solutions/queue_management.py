@@ -16,14 +16,11 @@ class QueueManager(BaseSolution):
         counts (int): The current count of objects in the queue.
         rect_color (tuple[int, int, int]): BGR color tuple for drawing the queue region rectangle.
         region_length (int): The number of points defining the queue region.
-        track_line (list[tuple[float, float]]): List of track line center-point coordinates.
-        track_history (dict[int, list[tuple[float, float]]]): Dictionary storing tracking history for each object.
 
     Methods:
         initialize_region: Initialize the queue region.
         process: Process a single frame for queue management.
         extract_tracks: Extract object tracks from the current frame.
-        store_tracking_history: Store the tracking history for an object.
         display_output: Display the processed output.
 
     Examples:

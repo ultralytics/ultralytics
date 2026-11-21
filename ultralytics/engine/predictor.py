@@ -466,7 +466,6 @@ class BasePredictor:
 
                     # Visualize, save, write results
                     n = len(im0s)
-                    save_frames = self.args.save_frames and self.dataset.mode in {"stream", "video"}
                     try:
                         for i in range(n):
                             self.seen += 1
@@ -479,9 +478,9 @@ class BasePredictor:
                             if (
                                 self.args.verbose
                                 or self.args.save
-                                or save_frames
                                 or self.args.save_txt
                                 or self.args.save_crop
+                                or self.args.save_frames
                                 or self.args.show
                             ):
                                 s[i] += self.write_results(i, Path(paths[i]), im, s)
@@ -517,12 +516,7 @@ class BasePredictor:
             if self.args.show:
                 cv2.destroyAllWindows()  # close any open windows
 
-            if (
-                self.args.save
-                or self.args.save_txt
-                or self.args.save_crop
-                or (self.seen and self.args.save_frames and self.dataset.mode in {"stream", "video"})
-            ):
+            if self.args.save or self.args.save_txt or self.args.save_crop or self.args.save_frames:
                 nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
                 s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
@@ -595,8 +589,7 @@ class BasePredictor:
         string += f"{result.verbose()}{result.speed['inference']:.1f}ms"
 
         # Add predictions to image
-        save_frames = self.args.save_frames and self.dataset.mode in {"stream", "video"}
-        if self.args.save or self.args.show or save_frames:
+        if self.args.save or self.args.save_frames or self.args.show:
             self.plotted_img = result.plot(
                 line_width=self.args.line_width,
                 boxes=self.args.show_boxes,
@@ -612,13 +605,13 @@ class BasePredictor:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=f"{self.txt_path.name}.jpg")
         if self.args.show:
             self.show(str(p))
-        if self.args.save or save_frames:
+        if self.args.save or self.args.save_frames:
             self.save_predicted_images(self.save_dir / (base + p.suffix), frame, i)
 
         return string
 
     def save_predicted_images(self, save_path: Path, frame: int | None = 0, i: int = 0):
-        """Save annotated video, individual video frames, or images according to the save flags.
+        """Save video predictions as mp4/avi, video frames as jpg with `save_frames`, or images as jpg.
 
         Args:
             save_path (Path): Path to save the results.
@@ -629,16 +622,13 @@ class BasePredictor:
 
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
-            if self.args.save_frames:
-                frames_path = self.save_dir / f"{save_path.stem}_frames"
-                frames_path.mkdir(parents=True, exist_ok=True)
-                cv2.imwrite(str(frames_path / f"{save_path.stem}_{frame}.jpg"), im)
-            if not self.args.save:
-                return
-
             fps = self.dataset.fps[i] if self.source_type.stream else self.dataset.fps
             fps = fps / self.args.vid_stride if fps > 0 else 1  # preserve positive rates, including below 1 FPS
-            if save_path not in self.vid_writer:  # new video
+            if self.args.save_frames:  # independent of save, which controls the video file
+                frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
+                frames_path.mkdir(parents=True, exist_ok=True)
+                cv2.imwrite(str(frames_path / f"{save_path.stem}_{frame}.jpg"), im)
+            if self.args.save and save_path not in self.vid_writer:  # new video
                 suffix, fourcc = (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
                 self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
@@ -647,11 +637,11 @@ class BasePredictor:
                     frameSize=(im.shape[1], im.shape[0]),  # (width, height)
                 )
 
-            # Save video
-            self.vid_writer[save_path].write(im)
+            if self.args.save:  # save video
+                self.vid_writer[save_path].write(im)
 
         # Save images
-        else:
+        elif self.args.save:
             cv2.imwrite(str(save_path.with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p: str = ""):

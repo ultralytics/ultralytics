@@ -128,18 +128,7 @@ class DetectionValidator(BaseValidator):
             and "coco" in val
             and (val.endswith((f"{os.sep}val2017.txt", f"{os.sep}test-dev2017.txt")))
         )
-        data_root = self.data.get("path")
-        self.is_lvis = (
-            isinstance(val, str)
-            and not self.is_coco
-            and (
-                "lvis" in Path(val).parent.parts
-                or (
-                    data_root is not None
-                    and (Path(data_root) / "annotations" / f"lvis_v1_{self.args.split}.json").is_file()
-                )
-            )
-        )
+        self.is_lvis = isinstance(val, str) and "lvis" in Path(val).parts and not self.is_coco  # is LVIS
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
         self.names = model.names

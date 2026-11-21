@@ -55,7 +55,7 @@ Pass `tile` to [train](../modes/train.md), [val](../modes/val.md), [predict](../
         yolo predict model=yolo26n.pt source=large-image.tif tile=640 imgsz=640 batch=8
         ```
 
-`tile=True` uses `imgsz` as the window size. A positive integer, such as `tile=1024`, sets the window size independently of `imgsz`. `tile=False` is the default. Neighboring windows overlap by about 20% of the tile size or more, and the last row and column are aligned to the image boundary, so they can overlap more. A 1920 × 1080 image at `tile=640` uses a 4 × 2 grid of windows. Smaller images use a single full-image window.
+`tile=True` uses `imgsz` as the window size. A positive integer, such as `tile=1024`, sets the window size independently of `imgsz`, and `tile=[768, 1280]` sets a rectangular `[h, w]` window. `tile=False` is the default. Neighboring windows share the `tile_overlap` fraction of the tile, 20% by default, and the last row and column are aligned to the image boundary, so they can overlap more. A 1920 × 1080 image at `tile=640` uses a 4 × 2 grid of windows. Smaller images use a single full-image window.
 
 `batch` controls how many tiles the model processes together during prediction, and its prediction default is 1. The existing backend handles fixed export batch sizes, including the last partial batch. [Exported models](../modes/export.md) retain their normal input graph; tiling runs in the Python prediction pipeline.
 

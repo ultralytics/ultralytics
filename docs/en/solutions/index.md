@@ -147,7 +147,7 @@ For more details, refer to the [`SolutionResults` class documentation](../refere
         yolo SOLUTIONS SOLUTION_NAME ARGS
 
     - **SOLUTIONS** is a required keyword.
-    - **SOLUTION_NAME** is one of: `['count', 'crop', 'blur', 'workout', 'heatmap', 'isegment', 'queue', 'speed', 'analytics', 'trackzone', 'inference', 'visioneye', 'region', 'security', 'parking']`.
+    - **SOLUTION_NAME** is one of: `['count', 'crop', 'blur', 'workout', 'heatmap', 'isegment', 'queue', 'speed', 'analytics', 'trackzone', 'inference', 'visioneye', 'region', 'security', 'parking', 'ocr']`.
     - **ARGS** (optional) are custom `arg=value` pairs, such as `show_in=True`, to override default settings.
 
 ```bash

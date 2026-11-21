@@ -389,7 +389,7 @@ class BasePredictor:
             self.setup_source(source if source is not None else self.args.source)
 
             # Check if save_dir/ label file exists
-            if self.args.save or self.args.save_txt:
+            if self.args.save or self.args.save_txt or self.args.save_frames:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
             self.seen, self.speed, self.pixels, self.windows, self.batch, self._bases = 0, None, None, [], None, set()
@@ -641,7 +641,7 @@ class BasePredictor:
                 self.vid_writer[save_path].write(im)
 
         # Save images
-        elif self.args.save:
+        else:
             cv2.imwrite(str(save_path.with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p: str = ""):

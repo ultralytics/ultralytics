@@ -394,6 +394,7 @@ class BasePredictor:
 
             self.seen, self.speed, self.pixels, self.windows, self.batch, self._bases = 0, None, None, [], None, set()
             self._sources = {}  # output base of each video path, stream slot, or batch image
+            self._video_label_prefixes = set()  # still images such as clip_1.jpg reserve the clip frame-label prefix
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -573,16 +574,21 @@ class BasePredictor:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # None if frame undetermined
 
-        key = p if self.dataset.mode == "video" else i  # a video keeps one base across its frames, a stream per slot
-        if self.dataset.mode == "image" or key not in self._sources:
+        mode = self.dataset.mode
+        key = p if mode == "video" else i  # a video keeps one base across its frames, a stream per slot
+        if mode == "image" or key not in self._sources:
             base, k = p.stem, 1
-            while base in self._bases:  # same-stem sources (bus.jpg + bus.png, a/clip.mp4 + b/clip.mp4) get -2, -3...
+            while base in self._bases or (mode == "video" and base in self._video_label_prefixes):
                 k += 1
                 base = f"{p.stem}-{k}"
             self._bases.add(base)
+            if mode == "image" and self.args.save_txt:
+                prefix, _, frame_number = base.rpartition("_")
+                if re.fullmatch(r"[1-9][0-9]*", frame_number):
+                    self._video_label_prefixes.add(prefix)
             self._sources[key] = base
         base = self._sources[key]
-        self.txt_path = self.save_dir / "labels" / (base + ("" if self.dataset.mode == "image" else f"_{frame}"))
+        self.txt_path = self.save_dir / "labels" / (base + ("" if mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations

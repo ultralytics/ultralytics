@@ -130,7 +130,7 @@ class BaseDataset(Dataset):
         classes: list[int] | None = None,
         fraction: float = 1.0,
         channels: int = 3,
-        tile: bool | int = False,
+        tile: bool | int | list[int] = False,
     ):
         """Initialize BaseDataset with given configuration and options.
 
@@ -148,7 +148,8 @@ class BaseDataset(Dataset):
             single_cls (bool): If True, single class training is used.
             classes (list[int], optional): List of included classes.
             fraction (float | int): Dataset ratio or image count to use.
-            tile (bool | int): Use native image windows; True uses imgsz, and a positive integer sets the window size.
+            tile (bool | int | list[int]): Use native image windows; True uses imgsz, and a positive int or [h, w] sets
+                the window size.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
         """
@@ -171,7 +172,7 @@ class BaseDataset(Dataset):
         if tile:
             labels, self.labels = self.labels, []
             for source_index, label in enumerate(labels):
-                windows = tile_windows(label["shape"], self.imgsz if tile is True else tile)
+                windows = tile_windows(label["shape"], self.imgsz if tile is True else tile, hyp.tile_overlap)
                 self.tile_counts.append(len(windows))
                 self.labels.extend(
                     {

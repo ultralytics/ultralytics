@@ -23,14 +23,10 @@ Tiling uses the normal training, validation, and prediction pipelines. Predictio
 
 Raising `imgsz` and tiling both give small objects more pixels. A larger `imgsz` keeps the whole image in one model pass, while `tile=True` keeps every pass at `imgsz`, which matches the training resolution when `imgsz` is the size the model was trained at. The [benchmarks](#benchmarks) below cover two workloads, and their best settings are candidates to validate on your own data:
 
-| Workload tested                                           | Setting                                         | Measured with YOLO26s and YOLO26s-obb                                                                                                                |
-| --------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| VisDrone drone images, COCO weights not trained on tiles  | A larger `imgsz`, without `tile`                | `imgsz=1920` reached 23.7 mAP against 21.7 mAP with `tile=640`, at 5.8 ms against 13.5 ms per 1920 × 1080 frame                                      |
-| DOTAv1 aerial images, weights trained on 1024-pixel crops | `tile` equal to the training `imgsz`            | `tile=1024` reached 64.4 mAP in 40.8 ms and 2.2 GB, against 61.1 mAP in 60.9 ms and 9.0 GB with `imgsz=4096`                                         |
-| DOTAv1 aerial images, faster than `tile=1024`             | `tile` at twice `imgsz`, or a larger `imgsz`    | `tile=2048` with `imgsz=1024` reached 61.0 mAP in 16.6 ms and `imgsz=2048` reached 60.2 mAP in 13.2 ms, against 64.4 mAP in 40.8 ms with `tile=1024` |
-| VisDrone drone images, recall over mAP and speed          | `tile` smaller than `imgsz`, such as `tile=320` | `tile=320` raised recall from 36.6% to 40.6% over `tile=640`, lowered mAP from 21.7 to 21.3, and took 58.5 ms against 13.5 ms                        |
-
-The aerial models were trained on 1024-pixel crops of the same dataset, while the drone-image models are COCO weights that were neither fine-tuned nor trained on tiles, so the two workloads differ in more than image size.
+| Workload tested                                           | Setting                              | Measured with YOLO26s and YOLO26s-obb                                                                           |
+| --------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| VisDrone drone images, COCO weights not trained on tiles  | A larger `imgsz`, without `tile`     | `imgsz=1920` reached 23.7 mAP against 21.7 mAP with `tile=640`, at 5.8 ms against 13.5 ms per 1920 × 1080 frame |
+| DOTAv1 aerial images, weights trained on 1024-pixel crops | `tile` equal to the training `imgsz` | `tile=1024` reached 64.4 mAP in 40.8 ms and 2.2 GB, against 61.1 mAP in 60.9 ms and 9.0 GB with `imgsz=4096`    |
 
 ## Usage
 
@@ -57,7 +53,7 @@ Pass `tile` to [train](../modes/train.md), [val](../modes/val.md), [predict](../
 
 `tile=True` uses `imgsz` as the window size. A positive integer, such as `tile=1024`, sets the window size independently of `imgsz`, and `tile=[768, 1280]` sets a rectangular `[h, w]` window. `tile=False` is the default. Neighboring windows share the `tile_overlap` fraction of the tile, 20% by default, and the last row and column are aligned to the image boundary, so they can overlap more. A 1920 × 1080 image at `tile=640` uses a 4 × 2 grid of windows. Smaller images use a single full-image window.
 
-`batch` controls how many tiles the model processes together during prediction, and its prediction default is 1. The existing backend handles fixed export batch sizes, including the last partial batch. [Exported models](../modes/export.md) retain their normal input graph; tiling runs in the Python prediction pipeline.
+`batch` controls how many tiles the model processes together during prediction. The existing backend handles fixed export batch sizes, including the last partial batch. [Exported models](../modes/export.md) retain their normal input graph; tiling runs in the Python prediction pipeline.
 
 For video, stream results to keep memory bounded and use the existing prediction options to save or display them:
 
@@ -97,7 +93,7 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 
 ## Performance and Quality
 
-- Tiling processes more windows than whole-image inference. Choose the largest tile and batch sizes that preserve the detail you need within available memory. The number of windows per image grows quickly as the tile shrinks:
+- Tiling processes more windows than whole-image inference. Choose the largest tile and batch sizes that preserve the detail you need within available memory. The number of windows per image grows quickly as the tile shrinks, here at the default `tile_overlap=0.2`:
 
     | Image size  | `tile=320` | `tile=640` | `tile=1024` | `tile=1280` |
     | ----------- | ---------- | ---------- | ----------- | ----------- |
@@ -111,7 +107,7 @@ During training, boxes and polygons are cropped to their windows, OBB clipping p
 - Consecutive tiles reuse the decoded source. With `cache="ram"`, training stores source images once; `cache="disk"` uses the existing image cache. Training shuffles tiles, so caching is especially useful for large compressed source images.
 - Source-sized masks and dense maps still require memory proportional to the original image. `max_det` limits the number of retained instance masks.
 - Tiling removes global context. Validate accuracy on your own data, especially for classification and depth, whose tile outputs may not agree globally.
-- A box cut by an interior window edge is dropped when another window sees the object clear of its edges and a kept box covers it, so seams keep the more complete prediction. A cut box returns to the final NMS pass when no kept box of the same class, or of any class with `agnostic_nms=True`, covers more than half of it. Objects larger than the overlap can still be split, because no window sees them whole, and merging does not join separate fragments. Keep the tile larger than the objects you need whole.
+- A box cut by an interior window edge is dropped when another window sees the object clear of its edges and a kept box covers it, so seams keep the more complete prediction. A cut box returns to the final NMS pass when no kept box of the same class, or of any class with `agnostic_nms=True`, covers more than half of it. Objects larger than the overlap can still be split, because no window sees them whole, and merging does not join separate fragments. An object smaller than the overlap always fits whole in some window, so raise `tile_overlap` or the tile size for objects you need whole.
 - `max_det` caps each window and then the merged image, so a tiled image never returns more than `max_det` detections. Raise it above the default of 300 for dense scenes.
 - Tensor sources, `embed`, and `visualize` are unsupported. Tracking runs on the merged predictions once per source frame, including ReID features.
 
@@ -201,8 +197,8 @@ The COCO-pretrained YOLO26 detection models, trained at `imgsz=640`, were valida
 
 | SAHI argument                                 | `tile` equivalent                                                                                          |
 | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `slice_height`, `slice_width`                 | `tile=<int>` for a square window, or `tile=True` to use `imgsz`                                            |
-| `overlap_height_ratio`, `overlap_width_ratio` | Fixed at about 20% or more                                                                                 |
+| `slice_height`, `slice_width`                 | `tile=[h, w]`, `tile=<int>` for a square window, or `tile=True` to use `imgsz`                             |
+| `overlap_height_ratio`, `overlap_width_ratio` | `tile_overlap`, one fraction for both axes                                                                 |
 | `postprocess_match_threshold`                 | `iou`: IoU-based NMS that suppresses boxes instead of merging them, prediction default 0.5 for YOLO models |
 | `postprocess_class_agnostic`                  | `agnostic_nms`                                                                                             |
 | `confidence_threshold`, `image_size`          | `conf`, `imgsz`                                                                                            |
@@ -217,7 +213,7 @@ The COCO-pretrained YOLO26 detection models, trained at `imgsz=640`, were valida
 
 ### How do I choose the tile size?
 
-Start with a tile equal to the `imgsz` the model was trained at: `tile=True` uses `imgsz` as the window size, and an integer such as `tile=1024` sets it independently. On DOTAv1 aerial images, `tile=1024` was the most accurate setting for four of the five YOLO26 OBB models, which were trained on 1024-pixel crops. On VisDrone with COCO weights, `tile=480` scored 0.6 to 1.5 mAP higher than `tile=640`. Windows overlap by about 20% or more, so a 1920 × 1080 image at `tile=640` runs eight windows and a 3840 × 2160 image at `tile=1280` also runs eight. A window smaller than `imgsz`, such as `tile=400` with `imgsz=640`, is enlarged to the model input, which helps when objects are only a few pixels wide even at native resolution. Smaller windows keep more detail but add windows to process, remove more global context, and can enlarge background clutter into false positives, so compare a few sizes on your own validation set.
+Start with a tile equal to the `imgsz` the model was trained at: `tile=True` uses `imgsz` as the window size, and an integer such as `tile=1024` sets it independently. On DOTAv1 aerial images, `tile=1024` was the most accurate setting for four of the five YOLO26 OBB models, which were trained on 1024-pixel crops. On VisDrone with COCO weights, `tile=480` scored 0.6 to 1.5 mAP higher than `tile=640`. At the default `tile_overlap=0.2`, a 1920 × 1080 image at `tile=640` runs eight windows and a 3840 × 2160 image at `tile=1280` also runs eight. A window smaller than `imgsz`, such as `tile=400` with `imgsz=640`, is enlarged to the model input, which helps when objects are only a few pixels wide even at native resolution. Smaller windows keep more detail but add windows to process, remove more global context, and can enlarge background clutter into false positives, so compare a few sizes on your own validation set.
 
 ### Should I increase `imgsz` or use `tile` for small objects?
 

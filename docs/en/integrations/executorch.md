@@ -219,7 +219,7 @@ The model takes one input with shape `(batch, 3, height, width)`: RGB, channels 
 
 - **Raw output**: detection, segmentation, pose, and OBB models write shape `(batch, values, anchors)`. For each anchor: the box center x, center y, width, and height in input pixels, then the class scores, then the values of the task (32 mask coefficients, 17 x 3 keypoint values, or the OBB angle in radians). Apply NMS to this output yourself. See the [ONNX output format](onnx.md#output-format) for the layout of each task.
 - **RT-DETR**: the output of RT-DETR-L has shape `(1, 300, 6)` instead.
-- **`nms`**: the output is the same for every value of `nms`. `nms=False` logs `This export format does not support end2end models, disabling the end2end branch.` for models with an NMS-free head, such as YOLO26, and `nms=True` logs `format=executorch does not support embedded NMS; exporting native outputs for external NMS.`
+- **`nms`**: the output is the same for every value of `nms`. `nms=False` logs `This export format does not support end2end models, disabling the end2end branch.` for models with an NMS-free head, such as YOLO26, and `nms=True` logs `format=executorch does not support embedded NMS; using nms=None.`
 - **Segmentation**: the 32 mask coefficients are the last 32 values of each anchor, and the second output holds the mask prototypes.
 - **Semantic segmentation**: the output holds a score for each class and pixel, not the class map of the [ONNX export](onnx.md#output-format), so take the argmax over the class axis in your own code.
 

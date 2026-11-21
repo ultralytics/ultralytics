@@ -246,7 +246,7 @@ Optionally, we saved our records for future reference, which could be particular
 
 Finally, we implemented the actual model training using each split in a loop, saving our training results for further analysis and comparison.
 
-Compare the validation scores across folds to see how much performance depends on the split. Each run reuses the same pool of examples with a different fold held out. After choosing your training settings, evaluate the final model on the untouched test set.
+Compare the validation scores across folds to see how much performance depends on the split. Each run reuses the same pool of examples with a different fold held out. After choosing your training settings, train a fresh model on the full cross-validation pool and evaluate it on the untouched test set.
 
 Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects.
 

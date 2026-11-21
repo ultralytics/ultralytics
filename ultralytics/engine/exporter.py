@@ -724,6 +724,9 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
+        if self.args.nms and "nms" not in fmt_keys:
+            LOGGER.warning(f"format={fmt} does not support embedded NMS; using nms=None.")
+            self.args.nms = None
         if fmt in {
             "deepx",
             "axelera",
@@ -794,7 +797,7 @@ class Exporter:
         model.names = check_class_names(model.names)
         if hasattr(model, "end2end"):  # the Axelera runtime decodes the NMS-free head, so nms=None keeps it there
             model.end2end = self.args.nms is False or (
-                fmt == "axelera" and self.args.nms is None and getattr(head, "one2one_cv2", None) is not None
+                fmt == "axelera" and getattr(head, "one2one_cv2", None) is not None
             )
         if getattr(model, "end2end", False):
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn", "nxp", "stedgeai"}:
@@ -863,9 +866,6 @@ class Exporter:
             assert self.args.name in XILINX_TARGETS, (
                 f"Invalid AMD Xilinx device '{self.args.name}'. Valid devices are {XILINX_TARGETS}."
             )
-        if self.args.nms and "nms" not in fmt_keys:
-            LOGGER.warning(f"format={fmt} does not support embedded NMS; exporting native outputs for external NMS.")
-            self.args.nms = None
         if self.args.nms and model.task in {"semantic", "depth"}:
             LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=None'.")
             self.args.nms = None

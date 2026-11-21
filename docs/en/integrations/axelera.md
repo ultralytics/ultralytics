@@ -123,7 +123,7 @@ Copy the `yolo26n_axelera_model/` directory to the machine with the Metis device
 
 Axelera export supports all seven Ultralytics tasks: [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [OBB](../tasks/obb.md). Semantic segmentation and depth estimation are available only with [YOLO26](../models/yolo26.md), the only family that ships those heads. The YOLO26n checkpoint of every task compiled for this page, and so did the [YOLO11n](../models/yolo11.md) and [YOLOv8n](../models/yolov8.md) detection models.
 
-YOLO26 detection, instance segmentation, pose and OBB models export their [NMS-free](../guides/end2end-detection.md) one-to-one head by default, and the Axelera runtime decodes it on the host. Passing `nms=True` exports the one-to-many head instead, which scores lower on Metis: YOLO26n detection reaches mAP<sub>50-95</sub> 0.212 on [COCO128](../datasets/detect/coco128.md) that way, against 0.453 with the NMS-free head. See [Output Format](#output-format) for what each value of `nms` writes.
+YOLO26 detection, instance segmentation, pose and OBB models export their [NMS-free](../guides/end2end-detection.md) one-to-one head by default, and the Axelera runtime decodes it on the host. Every value of `nms` exports this head, see [Output Format](#output-format).
 
 ## Export Arguments
 
@@ -138,7 +138,7 @@ YOLO26 detection, instance segmentation, pose and OBB models export their [NMS-f
 | `batch`    | `int`                     | `1`         | Keep the default. The compiler builds models for one image, and an export with `batch=2` fails, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). To run several images at once, pass `batch` to `predict` instead, see [Maximum Performance](#maximum-performance).                                                                                                                                                                    |
 | `device`   | `str`                     | `None`      | Device that Ultralytics prepares the model on, `cpu` by default. Every export on this page ran on the CPU.                                                                                                                                                                                                                                                                                                                                                     |
 
-`nms` has no row because it is not among the Axelera export arguments of Ultralytics: it selects the head that is exported, as described in [Output Format](#output-format). For the arguments shared by all formats, see the [Export mode documentation](../modes/export.md).
+`nms` has no row because it is not among the Axelera export arguments of Ultralytics, see [Output Format](#output-format). For the arguments shared by all formats, see the [Export mode documentation](../modes/export.md).
 
 ### Precision
 
@@ -207,20 +207,19 @@ The export writes one directory:
 
 The compiler also leaves an empty `.pkl_memoize_py3` directory in the working directory. The `axmodeltool` command of `axelera-rt` reports the input of the YOLO26n `.axm` file as one quantized tensor of shape `1,640,640,3`, channels last, with scale 0.003922 and zero point -128, and its outputs as the six feature maps of the detection head, `1,80,80,4` to `1,20,20,4` for the boxes and `1,80,80,80` to `1,20,20,80` for the class scores. The Axelera runtime quantizes the input and decodes these outputs on the host.
 
-`nms` selects the head that the export hands to the compiler. The shapes below are the outputs of the PyTorch model that the export logs, for the official YOLO26n checkpoints at their default export size, with the Cityscapes checkpoint `yolo26n-sem.pt` for semantic segmentation:
+The export hands the same head to the compiler for every value of `nms`. The shapes below are the outputs of the PyTorch model that the export logs, for the official YOLO26n checkpoints at their default export size, with the Cityscapes checkpoint `yolo26n-sem.pt` for semantic segmentation:
 
-| Task     | Default `imgsz` | Output by default and with `nms=False` | Output with `nms=True`                   |
-| -------- | --------------- | -------------------------------------- | ---------------------------------------- |
-| Detect   | `640`           | `(1, 300, 6)`                          | `(1, 84, 8400)`                          |
-| Segment  | `640`           | `(1, 300, 38)` and `(1, 32, 160, 160)` | `(1, 116, 8400)` and `(1, 32, 160, 160)` |
-| Semantic | `1024`          | `(1, 19, 1024, 1024)`                  | Same as the default                      |
-| Depth    | `768`           | `(1, 1, 768, 768)`                     | Same as the default                      |
-| Classify | `224`           | `(1, 1000)`                            | Same as the default                      |
-| Pose     | `640`           | `(1, 300, 57)`                         | `(1, 56, 8400)`                          |
-| OBB      | `1024`          | `(1, 300, 7)`                          | `(1, 20, 21504)`                         |
+| Task     | Default `imgsz` | Output                                 |
+| -------- | --------------- | -------------------------------------- |
+| Detect   | `640`           | `(1, 300, 6)`                          |
+| Segment  | `640`           | `(1, 300, 38)` and `(1, 32, 160, 160)` |
+| Semantic | `1024`          | `(1, 19, 1024, 1024)`                  |
+| Depth    | `768`           | `(1, 1, 768, 768)`                     |
+| Classify | `224`           | `(1, 1000)`                            |
+| Pose     | `640`           | `(1, 300, 57)`                         |
+| OBB      | `1024`          | `(1, 300, 7)`                          |
 
-- **Default and `nms=False`**: YOLO26 models keep their NMS-free head, with `max_det` (default 300) rows per image, and `metadata.yaml` records `end2end: true`. Both values wrote the same outputs.
-- **`nms=True`**: the export logs `format=axelera does not support embedded NMS; exporting native outputs for external NMS.` and exports the one-to-many head, which needs NMS, and `metadata.yaml` records `end2end: false`. There is no NMS embedded in the model. The metadata that the compiler stores inside the YOLO26n detection `.axm` file still says `end2end = true` for this export, as it does for the default one. On Metis, prefer the default export: `nms=True` scored lower, see [Supported Tasks](#supported-tasks).
+- **`nms`**: YOLO26 detection, instance segmentation, pose and OBB models keep their NMS-free head with every value of `nms`, with up to `max_det` (default 300) rows per image, and `metadata.yaml` records `end2end: true`. `nms=True` also logs `format=axelera does not support embedded NMS; using nms=None.`
 - **Models without an NMS-free head**: YOLO11 and YOLOv8 models export the one-to-many head with every value of `nms`, `(1, 84, 8400)` for YOLO11n and YOLOv8n detection. With `nms=False` the export warns `This model has no one-to-one head; using one-to-many outputs.`
 - **Segmentation**: the second output holds the mask prototypes.
 

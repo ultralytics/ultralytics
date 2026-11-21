@@ -579,7 +579,7 @@ class BasePredictor:
             # same-stem sources (bus.jpg + bus.png, a/clip.mp4 + b/clip.mp4) get -2, -3..., as does a video whose
             # <base>_<frame> labels would overwrite an earlier image's (clip_1.jpg + clip.mp4; images load first)
             while base in self._bases or (
-                self.dataset.mode == "video" and any(re.fullmatch(rf"{re.escape(base)}_\d+", b) for b in self._bases)
+                self.dataset.mode == "video" and any(re.fullmatch(rf"{re.escape(base)}_[1-9]\d*", b) for b in self._bases)
             ):
                 k += 1
                 base = f"{p.stem}-{k}"

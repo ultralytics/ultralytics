@@ -394,7 +394,6 @@ class BasePredictor:
 
             self.seen, self.speed, self.pixels, self.windows, self.batch, self._bases = 0, None, None, [], None, set()
             self._sources = {}  # output base of each video path, stream slot, or batch image
-            self._image_label_paths = set()
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -600,17 +599,8 @@ class BasePredictor:
 
         # Save results
         if self.args.save_txt:
-            label_path = Path(f"{self.txt_path}.txt")
-            if self.dataset.mode == "image":
-                self._image_label_paths.add(label_path)
-            elif self.dataset.mode == "video":
-                # The loader writes still images first. Keep the shared stem for crops and saved media.
-                suffix = 1
-                while label_path in self._image_label_paths:
-                    suffix += 1
-                    label_path = self.txt_path.with_name(f"{self.txt_path.name}-{suffix}.txt")
-            label_path.unlink(missing_ok=True)  # replace, not append to, a previous run's labels
-            result.save_txt(str(label_path), save_conf=self.args.save_conf)
+            Path(f"{self.txt_path}.txt").unlink(missing_ok=True)  # replace, not append to, a previous run's labels
+            result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=f"{self.txt_path.name}.jpg")
         if self.args.show:

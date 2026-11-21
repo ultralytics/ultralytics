@@ -394,7 +394,7 @@ class BasePredictor:
 
             self.seen, self.speed, self.pixels, self.windows, self.batch, self._bases = 0, None, None, [], None, set()
             self._sources = {}  # output base of each video path, stream slot, or batch image
-            self._video_label_prefixes = set()  # still images such as clip_1.jpg reserve the clip frame-label prefix
+            self._image_label_paths = set()
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -574,21 +574,16 @@ class BasePredictor:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # None if frame undetermined
 
-        mode = self.dataset.mode
-        key = p if mode == "video" else i  # a video keeps one base across its frames, a stream per slot
-        if mode == "image" or key not in self._sources:
+        key = p if self.dataset.mode == "video" else i  # a video keeps one base across its frames, a stream per slot
+        if self.dataset.mode == "image" or key not in self._sources:
             base, k = p.stem, 1
-            while base in self._bases or (mode == "video" and base in self._video_label_prefixes):
+            while base in self._bases:  # same-stem sources (bus.jpg + bus.png, a/clip.mp4 + b/clip.mp4) get -2, -3...
                 k += 1
                 base = f"{p.stem}-{k}"
             self._bases.add(base)
-            if mode == "image" and self.args.save_txt:
-                prefix, _, frame_number = base.rpartition("_")
-                if re.fullmatch(r"[1-9][0-9]*", frame_number):
-                    self._video_label_prefixes.add(prefix)
             self._sources[key] = base
         base = self._sources[key]
-        self.txt_path = self.save_dir / "labels" / (base + ("" if mode == "image" else f"_{frame}"))
+        self.txt_path = self.save_dir / "labels" / (base + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -605,8 +600,17 @@ class BasePredictor:
 
         # Save results
         if self.args.save_txt:
-            Path(f"{self.txt_path}.txt").unlink(missing_ok=True)  # replace, not append to, a previous run's labels
-            result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
+            label_path = Path(f"{self.txt_path}.txt")
+            if self.dataset.mode == "image":
+                self._image_label_paths.add(label_path)
+            elif self.dataset.mode == "video":
+                # The loader writes still images first. Keep the shared stem for crops and saved media.
+                suffix = 1
+                while label_path in self._image_label_paths:
+                    suffix += 1
+                    label_path = self.txt_path.with_name(f"{self.txt_path.name}-{suffix}.txt")
+            label_path.unlink(missing_ok=True)  # replace, not append to, a previous run's labels
+            result.save_txt(str(label_path), save_conf=self.args.save_conf)
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=f"{self.txt_path.name}.jpg")
         if self.args.show:

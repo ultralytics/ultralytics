@@ -416,3 +416,18 @@ def test_ocr_lines():
         ]
     )
     assert solutions.OCR.lines(polygons) == [[1, 2], [0]]
+
+
+def test_queue_counts_new_tracks():
+    """Queue counts include tracks on the first frame and reset when the region excludes them."""
+    from ultralytics.utils import ASSETS
+
+    image = cv2.imread(str(ASSETS / "bus.jpg"))
+    h, w = image.shape[:2]
+    manager = solutions.QueueManager(model=MODEL, region=[(0, 0), (w, 0), (w, h), (0, h)], show=False)
+    first = manager(image.copy())
+    assert first.total_tracks > 0 and first.queue_count == first.total_tracks
+    second = manager(image.copy())
+    assert second.queue_count == second.total_tracks
+    manager.r_s = manager.Polygon([(w + 1, 0), (w + 10, 0), (w + 10, h), (w + 1, h)])
+    assert manager(image.copy()).queue_count == 0

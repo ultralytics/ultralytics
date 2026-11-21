@@ -67,16 +67,8 @@ class QueueManager(BaseSolution):
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and label
             annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))
-            self.store_tracking_history(track_id, box)  # Store track history
-
-            # Cache frequently accessed attributes
-            track_history = self.track_history.get(track_id, [])
-
-            # Store previous position of track and check if the object is inside the counting region
-            prev_position = None
-            if len(track_history) > 1:
-                prev_position = track_history[-2]
-            if self.region_length >= 3 and prev_position and self.r_s.contains(self.Point(self.track_line[-1])):
+            x0, y0, x1, y1 = self.get_enclosing_box(box)
+            if self.region_length >= 3 and self.r_s.contains(self.Point((x0 + x1) / 2, (y0 + y1) / 2)):
                 self.counts += 1
 
         # Display queue counts

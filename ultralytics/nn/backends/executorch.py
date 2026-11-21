@@ -44,4 +44,4 @@ class ExecuTorchBackend(BaseBackend):
         Returns:
             (list): Model predictions as a list of ExecuTorch output values.
         """
-        return self.model.execute([im])
+        return self.model.execute([im.cpu()])

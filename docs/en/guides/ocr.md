@@ -106,7 +106,8 @@ Additionally, the following visualization settings are supported:
 {{ param_table(["show", "show_conf", "show_labels"]) }}
 
 `OCR` also passes the [inference arguments](../modes/predict.md#inference-arguments) `conf`, `iou`, `classes`, `device`,
-`imgsz`, `max_det`, and `quantize` to the detector; other prediction arguments raise a `ValueError`. On a CUDA device
+`imgsz`, `max_det`, and `quantize` to the detector; prediction arguments that are not [solution
+arguments](../solutions/index.md#solutions-arguments), such as `agnostic_nms`, raise a `ValueError`. On a CUDA device
 the built-in recognizers run on the same GPU as the detector; on other devices they run on the CPU.
 
 ## Choose a Model and Recognizer

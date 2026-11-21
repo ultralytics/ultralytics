@@ -1,8 +1,8 @@
 ---
-title: Scene Text OCR with YOLO26
+title: YOLO OCR - Scene Text Detection and Recognition with YOLO26
 comments: true
-description: Detect, recognize, and order scene and document text at any rotation with Ultralytics YOLO26-Text detectors and PP-OCRv6 recognition.
-keywords: Ultralytics, YOLO26, OCR, scene text, document OCR, text detection, text recognition, PP-OCRv6, PP-OCRv5, Korean OCR, Cyrillic OCR, Arabic OCR, ONNX Runtime
+description: Run YOLO OCR to detect, read, and order scene and document text at any rotation with Ultralytics YOLO26-Text detectors and PP-OCRv6, or read pre-cropped text lines in batches.
+keywords: Ultralytics, YOLO OCR, YOLO26, OCR, scene text, document OCR, text detection, text recognition, TextRecognizer, text line recognition, PP-OCRv6, PP-OCRv5, Korean OCR, Cyrillic OCR, Arabic OCR, ONNX Runtime
 ---
 
 # Scene Text OCR using Ultralytics YOLO26
@@ -207,6 +207,34 @@ print([text["text"] for text in result.texts])
 The
 [number plate recognition notebook](https://github.com/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-ocr-for-number-plate-recognition.ipynb)
 runs this setup on a video.
+
+## Read Pre-Cropped Text Lines in Batches
+
+When another system already crops the text, such as label lines, form fields, or serial numbers, call `TextRecognizer`
+to read the crops with PP-OCRv6 and skip detection. It takes a list of BGR `numpy.ndarray` crops, each holding one line
+of text, and returns one `(text, confidence)` tuple per crop, in input order:
+
+```python
+import cv2
+
+from ultralytics.solutions.ocr import TextRecognizer
+
+recognize = TextRecognizer()  # PP-OCRv6 on ONNX Runtime, on a CUDA GPU when available, else CPU
+crops = [cv2.imread(f) for f in ["path/to/line1.png", "path/to/line2.png", "path/to/line3.png"]]
+for text, confidence in recognize(crops, batch=8):
+    print(f"{text} ({confidence:.2f})")
+```
+
+The recognizer resizes each crop to 48 pixels high, sorts the crops by width, and reads them `batch` at a time (8 by
+default), so crops of similar width share a batch. Pass a model from [Read Other Scripts](#read-other-scripts) with its
+`.onnx` ending, such as `TextRecognizer("korean_PP-OCRv5_mobile_rec.onnx")`, to read another script.
+`TextRecognizer(device=0, engine=True)` reads with the same FP16 TensorRT engine as `recognizer="tensorrt"`, and like
+`OCR` it needs Python 3.11 or newer when it reads on ONNX Runtime.
+
+!!! warning "Turn crops upright first"
+
+    `TextRecognizer` does not check orientation as `OCR` does. It reads a crop at least 1.5 times taller than wide turned
+    90° counterclockwise, which suits text that runs top to bottom, and an upside-down crop returns wrong text.
 
 ## Use a Custom Recognizer
 

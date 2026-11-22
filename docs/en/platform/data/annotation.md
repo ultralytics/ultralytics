@@ -220,13 +220,13 @@ Custom templates are saved to the dataset's workspace and available in all of it
 
 #### Add Keypoints to a Labeled Dataset
 
-A pose dataset holds one keypoint count, set by the `kpt_shape` of the uploaded files or by the first pose you save, and every pose in it has that many keypoints. Choosing a template with a different count fails with **This dataset has 4 keypoints; choose a 4-keypoint skeleton**. To grow a skeleton, for example from 4 to 6 keypoints, import a copy of the dataset whose poses already have the new keypoints, marked not labeled (`0`):
+A pose dataset holds one keypoint count, set by the `kpt_shape` of the uploaded files or by the first template you choose or pose you save in the editor, and every pose in it has that many keypoints. Choosing a template with a different count fails with **This dataset has 4 keypoints; choose a 4-keypoint skeleton**. To grow a skeleton, for example from 4 to 6 keypoints, import a copy of the dataset whose poses already have the new keypoints, marked not labeled (`0`):
 
 1. [Export the dataset](datasets.md#export-dataset) as NDJSON.
-2. Run the script below. It builds the YOLO folders, appends the new keypoints to every pose at its box center with visibility `0`, updates `kpt_shape` and `flip_idx`, and zips the result. It expects three values per keypoint (`kpt_shape: [N, 3]`), which is what the editor saves.
-3. [Upload](datasets.md#upload-dataset) the ZIP as a new pose dataset. The original dataset and the models trained on it stay as they are.
-4. Choose **New Template...**, click **Start from...** to load the old template, place the new keypoints after the existing ones, name them, and save. Then select the new template in the template picker.
-5. On each image, right-click a pose and choose **Reset Visibility** to show its hidden keypoints, drag the new ones from the box center into place, and choose **Hide Point** on any keypoint the image doesn't show.
+2. Run the script below. It builds the YOLO folders, appends the new keypoints to every pose at its box center with visibility `0`, updates `kpt_shape` and `flip_idx`, and zips the result. Custom OKS sigmas and image metadata don't carry over. Datasets uploaded with `kpt_shape: [N, 2]` have no visibility values, so the script stops on them.
+3. [Upload](datasets.md#upload-dataset) the ZIP as a new pose dataset.
+4. Choose **New Template...**, click **Start from...** to load the old template, place the new keypoints after the existing ones, name them, and save. Saving assigns the template to the dataset.
+5. On each image, right-click a pose and choose **Reset Visibility** to show its hidden keypoints, drag the new ones from the box center into place, and choose **Hide Point** on any new keypoint the image doesn't show. Reset Visibility also shows keypoints that were already hidden, often in the image's top-left corner, so choose **Hide Point** on each of those again.
 
 ```python
 import asyncio
@@ -251,13 +251,13 @@ for label in Path(yaml_path).parent.glob("labels/*/*.txt"):
 data["kpt_shape"] = [count + NEW, 3]
 if "flip_idx" in data:
     data["flip_idx"] += list(range(count, count + NEW))  # swap the new entries if they are a left/right pair
-for key in ("kpt_oks_sigmas", "kpt_skeleton", "kpt_names"):
-    data.pop(key, None)  # these list one entry per old keypoint
+for key in ("kpt_oks_sigmas", "kpt_skeleton", "complete"):
+    data.pop(key, None)  # per-keypoint lists for the old count; "complete" makes a rerun reconvert, not pad twice
 YAML.save(yaml_path, data)
 shutil.make_archive("my-dataset-padded", "zip", Path(yaml_path).parent)
 ```
 
-!!! warning "Label the new keypoints wherever they are visible"
+!!! warning "Label New Keypoints Where Visible"
 
     Training leaves keypoints with visibility `0` out of the keypoint position loss, but it also teaches the model's keypoint confidence that they are not visible. A new keypoint left hidden on images where it can be seen therefore teaches the model to miss it.
 

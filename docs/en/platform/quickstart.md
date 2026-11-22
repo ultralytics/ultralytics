@@ -248,7 +248,7 @@ Read more about [projects](train/projects.md).
 
 ## Train Your First Model
 
-From your project, click `New Model` to open the **Train New Model** dialog. You can also start from a dataset page, in which case the dataset is locked in and you pick the destination project instead.
+Sign in and click `New Model` in a project you can edit to open the **Train New Model** dialog. If you start from a dataset you can edit, the dataset is locked in and you choose the destination project. For another workspace's public dataset, check the **Official** tab in your project's dataset picker. You can select listed datasets such as COCO8 directly. For other Platform-hosted public datasets, [clone the dataset](data/datasets.md#clone-dataset) into a workspace where you can train and open the copy.
 
 ![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.ul.run/i/6ca4d4aa87bf818d83393422aa9f36dc.avif)<!-- screenshot -->
 

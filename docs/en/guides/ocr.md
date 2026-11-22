@@ -70,9 +70,8 @@ dependencies.
             print(text["line"], text["text"], text["confidence"])
         ```
 
-`ocr()` takes one BGR image as a three-channel `uint8` NumPy array, so convert grayscale or BGRA images with
-`cv2.cvtColor` first. The CLI saves an annotated `ocr.avi` under the Ultralytics `runs` directory and does not print or
-save the recognized text; use Python to work with the [results](#ocr-results).
+The CLI saves an annotated `ocr.avi` under the Ultralytics `runs` directory and does not print or save the recognized
+text; use Python to work with the [results](#ocr-results).
 
 ### YOLO26-Text Checkpoints and Settings
 

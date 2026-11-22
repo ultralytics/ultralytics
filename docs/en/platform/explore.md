@@ -215,6 +215,7 @@ Use a public dataset for your training:
 2. Click `Clone Dataset`
 3. Review the destination workspace, name, visibility, and license
 4. Click `Clone Dataset` to confirm
+5. Open the copy and click **New Model** to [train on it](train/cloud-training.md); **New Model** appears only on datasets you can edit
 
 ![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/61c009c013d2a84cc83418a37d427318.avif)<!-- screenshot -->
 

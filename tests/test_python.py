@@ -2534,3 +2534,11 @@ def test_split_dota_replaces_labels_with_background(tmp_path):
     assert len(list(out_images.glob("*.jpg"))) == 2
     assert len(list(out_labels.glob("changed*.txt"))) == 0
     assert len(list(out_labels.glob("unchanged*.txt"))) == 1
+    # A failed tile write must not remove its old label.
+    (labels / "unchanged.txt").unlink()
+    old_image = next(out_images.glob("unchanged*.jpg"))
+    old_image.unlink()
+    old_image.mkdir()
+    with pytest.raises(OSError, match="Failed to write DOTA tile"):
+        split_images_and_labels(str(root), str(output), "train", (64,), (0,))
+    assert len(list(out_labels.glob("unchanged*.txt"))) == 1

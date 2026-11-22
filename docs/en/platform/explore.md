@@ -212,9 +212,10 @@ flowchart TD
 Use a public dataset for your training:
 
 1. Click on the dataset to open its detail page
-2. Click `Clone Dataset`
+2. Click **Clone Dataset**
 3. Review the destination workspace, name, visibility, and license
-4. Click `Clone Dataset` to confirm
+4. Click **Clone Dataset** to confirm
+5. Open the copy and [train on it](data/datasets.md#train-on-dataset)
 
 ![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/61c009c013d2a84cc83418a37d427318.avif)<!-- screenshot -->
 

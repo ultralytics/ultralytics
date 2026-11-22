@@ -226,6 +226,8 @@ def crop_and_save(
                 for lb in label:
                     formatted_coords = [f"{coord:.6g}" for coord in lb[1:]]
                     f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
+        elif lb_dir and allow_background_images:
+            (Path(lb_dir) / f"{new_name}.txt").unlink(missing_ok=True)
 
 
 def split_images_and_labels(

@@ -2513,3 +2513,24 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
+
+
+def test_split_dota_replaces_labels_with_background(tmp_path):
+    """Re-splitting an edited source must not retain labels for background tiles."""
+    from ultralytics.data.split_dota import split_images_and_labels
+
+    root, output = tmp_path / "dota", tmp_path / "tiles"
+    images, labels = root / "images" / "train", root / "labels" / "train"
+    images.mkdir(parents=True)
+    labels.mkdir(parents=True)
+    for name in ("changed", "unchanged"):
+        assert cv2.imwrite(str(images / f"{name}.jpg"), np.full((64, 64, 3), 127, dtype=np.uint8))
+        (labels / f"{name}.txt").write_text("0 0.25 0.25 0.75 0.25 0.75 0.75 0.25 0.75", encoding="utf-8")
+    split_images_and_labels(str(root), str(output), "train", (64,), (0,))
+    out_labels, out_images = output / "labels" / "train", output / "images" / "train"
+    assert len(list(out_labels.glob("*.txt"))) == 2
+    (labels / "changed.txt").unlink()
+    split_images_and_labels(str(root), str(output), "train", (64,), (0,))
+    assert len(list(out_images.glob("*.jpg"))) == 2
+    assert len(list(out_labels.glob("changed*.txt"))) == 0
+    assert len(list(out_labels.glob("unchanged*.txt"))) == 1

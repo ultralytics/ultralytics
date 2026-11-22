@@ -215,9 +215,8 @@ def crop_and_save(
         ph, pw = patch_im.shape[:2]
 
         label = window_objs[i]
-        if len(label) or allow_background_images:
-            if not cv2.imwrite(str(Path(im_dir) / f"{new_name}.jpg"), patch_im):
-                raise OSError(f"Failed to write DOTA tile {Path(im_dir) / f'{new_name}.jpg'}")
+        if (len(label) or allow_background_images) and not cv2.imwrite(str(Path(im_dir) / f"{new_name}.jpg"), patch_im):
+            raise OSError(f"Failed to write DOTA tile {Path(im_dir) / f'{new_name}.jpg'}")
         if len(label):
             instances = Instances(np.zeros((len(label), 4)), label[:, 1:].reshape(-1, 4, 2) - (x_start, y_start))
             instances.clip(pw, ph, preserve_obb=True)  # objects kept by IoF can extend past the window

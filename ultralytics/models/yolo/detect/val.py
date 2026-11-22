@@ -591,10 +591,6 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Updated stats dictionary containing the computed COCO-format evaluation metrics.
         """
-        if self.args.single_cls and (self.is_coco or self.is_lvis) and self.data["nc"] > 1:
-            # The original annotations retain category IDs that single-class predictions no longer use.
-            return stats
-
         if self.args.save_json and len(self.jdict) and (self.is_coco or self.is_lvis or self.gdict):
             LOGGER.info("\nEvaluating faster-coco-eval mAP...")
             try:
@@ -608,6 +604,8 @@ class DetectionValidator(BaseValidator):
 
                 anno = getattr(self, "_coco_api", None) or COCO(anno_json)
                 self._coco_api = anno
+                if self.args.single_cls and not self.gdict and len(anno.getCatIds()) > 1:
+                    return stats  # annotation category IDs no longer match single-class predictions
                 pred = anno.loadRes(pred_json)
                 for i, iou_type in enumerate(iou_types):
                     val = COCOeval_faster(

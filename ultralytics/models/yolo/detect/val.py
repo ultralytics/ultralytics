@@ -591,6 +591,10 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Updated stats dictionary containing the computed COCO-format evaluation metrics.
         """
+        if self.args.single_cls and (self.is_coco or self.is_lvis) and self.data["nc"] > 1:
+            # The original annotations retain category IDs that single-class predictions no longer use.
+            return stats
+
         if self.args.save_json and len(self.jdict) and (self.is_coco or self.is_lvis or self.gdict):
             LOGGER.info("\nEvaluating faster-coco-eval mAP...")
             try:

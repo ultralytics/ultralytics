@@ -804,8 +804,8 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         seg = np.clip(np.searchsorted(xp, target_wavelengths) - 1, 0, len(xp) - 2)  # segment per target
         w = (target_wavelengths - xp[seg]) / (xp[seg + 1] - xp[seg])  # weights (<0 or >1 -> extrapolation)
         multispectral = img[..., seg] * (1 - w) + img[..., seg + 1] * w
-        if not cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1)):
-            raise OSError(f"Failed to write {output_path}")
+        pages = [Image.fromarray(page) for page in np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1)]
+        pages[0].save(output_path, save_all=True, append_images=pages[1:])
         LOGGER.info(f"Converted {output_path}")
 
 

@@ -226,7 +226,7 @@ A pose dataset holds one keypoint count, set by the `kpt_shape` of the uploaded 
 2. Run the script below. It builds the YOLO folders, appends the new keypoints to every pose at its box center with visibility `0`, updates `kpt_shape` and `flip_idx`, and zips the result. Custom OKS sigmas and image metadata don't carry over. Datasets uploaded with `kpt_shape: [N, 2]` have no visibility values, so the script stops on them.
 3. [Upload](datasets.md#upload-dataset) the ZIP as a new pose dataset.
 4. Choose **New Template...**, click **Start from...** to load the old template, place the new keypoints after the existing ones, name them, and save. Saving assigns the template to the dataset.
-5. On each image, right-click a pose and choose **Reset Visibility** to show its hidden keypoints, drag the new ones from the box center into place, and choose **Hide Point** on any new keypoint the image doesn't show. Reset Visibility also shows keypoints that were already hidden, often in the image's top-left corner, so choose **Hide Point** on each of those again.
+5. On each image, right-click a pose and choose **Reset Visibility** to show its hidden keypoints, drag the new ones from the box center into place, and choose **Hide Point** on any new keypoint the image doesn't show. **Reset Visibility** also shows keypoints that were already hidden, often in the image's top-left corner, so choose **Hide Point** on each of those again.
 
 ```python
 import asyncio

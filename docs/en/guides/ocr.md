@@ -293,9 +293,7 @@ print(json.dumps(words))
 
 On the [benchmark](#benchmarks) photos, keeping words with a recognition confidence of at least 0.8 raised word
 precision from 77.7% to 86.8% and lowered recall from 77.2% to 76.1% with the default settings. Lines are ordered by
-baseline across the whole page, so a multi-column page is returned row by row rather than column by column. `plot_im`
-can be the input array with the annotations drawn on it, so pass `im0.copy()` when you need the unannotated image
-afterward.
+baseline across the whole page, so a multi-column page is returned row by row rather than column by column.
 
 ## Benchmarks
 

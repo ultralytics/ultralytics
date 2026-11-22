@@ -267,7 +267,7 @@ class OCR(BaseSolution):
             for word in self.read_words(im0, polygons.astype(np.float32), self.recognize)
         ]
         annotator = SolutionAnnotator(
-            im0, self.line_width, font_size=max(self.line_width * 6, 12), example="".join(t["text"] for t in texts)
+            im0.copy(), self.line_width, max(self.line_width * 6, 12), example="".join(t["text"] for t in texts)
         )
         for t in texts:
             label = (f"{t['text']} {t['confidence']:.2f}" if self.show_conf else t["text"]) if self.show_labels else ""

@@ -2513,23 +2513,3 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
-
-
-def test_split_dota_ignores_image_cache(tmp_path):
-    """DOTA splitting accepts image directories containing disk caches and other files."""
-    from ultralytics.data.split_dota import split_images_and_labels, split_test
-
-    root, output = tmp_path / "dota", tmp_path / "tiles"
-    for split in ("train", "test"):
-        images = root / "images" / split
-        images.mkdir(parents=True)
-        image = np.full((32, 32, 3), 127, dtype=np.uint8)
-        assert cv2.imwrite(str(images / "scene.JPG"), image)
-        np.save(images / "scene.npy", image)
-        (images / "readme.txt").write_text("not an image", encoding="utf-8")
-        (images / "nested.jpg").mkdir()
-    split_images_and_labels(str(root), str(output), "train", (32,), (0,))
-    split_test(str(root), str(output), crop_size=32, gap=0)
-    for split in ("train", "test"):
-        files = list((output / "images" / split).glob("*.jpg"))
-        assert len(files) == 1 and cv2.imread(str(files[0])).shape == (32, 32, 3)

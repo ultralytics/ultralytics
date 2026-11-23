@@ -396,7 +396,7 @@ Exported with `ultralytics` 8.4.215 and `axelera-devkit` 1.9.0 on an x86-64 Linu
 
 ![Axelera AI edge deployment ecosystem for YOLO](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
-[Axelera AI](https://axelera.ai/) is an [Ultralytics partner](https://www.ultralytics.com/partners/axelera) that builds the Metis AIPU, an accelerator for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices, with up to 856 TOPS on a four-AIPU card. Its Voyager SDK includes the compiler, which quantizes and compiles models into `.axm` files on a PC, and the runtime, which runs them on the AIPU.
+[Axelera AI](https://axelera.ai/) builds the Metis AIPU, an accelerator for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices, with up to 856 TOPS on a four-AIPU card. Its Voyager SDK includes the compiler, which quantizes and compiles models into `.axm` files on a PC, and the runtime, which runs them on the AIPU.
 
 ### Metis Hardware
 

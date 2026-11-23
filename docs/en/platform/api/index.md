@@ -920,7 +920,7 @@ one source:
 | `sourceUrl`      | string | Public HTTP or HTTPS URL of a ZIP, TAR, TAR.GZ, TGZ, or NDJSON file (max 4096 chars)                                                                        |
 | `reference`      | object | A connected source: cloud storage (`provider: "cloud"`, `integrationId`, `target`, `prefix`) or On Premise (`provider: "local"`, `keyId`, `root`, `prefix`) |
 | `targetSplit`    | string | `train`, `val`, or `test`; overrides the archive's split structure                                                                                          |
-| `conflictPolicy` | string | `skip`, `keep_both`, or `replace` for filename or content conflicts                                                                                         |
+| `conflictPolicy` | string | For uploads and URL imports: `skip` (default), `keep_both`, or `replace`; `keep_both` renames filename conflicts and skips same-split identical content     |
 | `classMapping`   | object | Maps incoming class names to a class index, an existing or new class name, or `null` to skip                                                                |
 | `imageMetadata`  | object | Custom metadata keyed by each image's archive-relative path or NDJSON `file` value                                                                          |
 

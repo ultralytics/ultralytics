@@ -107,6 +107,44 @@ Note that `fitness()` is a method and must be called with parentheses, while met
 
 The `results.box.image_metrics` attribute is a per-image dictionary keyed by image path relative to the common image directory, holding `precision`, `recall`, `f1`, `tp`, `fp`, and `fn` at IoU 0.5 for each image. Preprocessing, inference, loss, and postprocessing timings are reported separately in the `results.speed` dictionary. Together, these let you pinpoint which images the model struggles with and fine-tune accordingly.
 
+### Finding Errors Image by Image
+
+Aggregate metrics tell you how much is wrong, not what. To find out, rank validation images by per-image F1 and look at the worst ones. Validation defaults to `conf=0.001` to retain predictions for precision-recall evaluation, and `image_metrics`, the confusion matrix and the overlays include every prediction retained at that threshold. To see how the model behaves in deployment, rerun validation at your operating confidence threshold.
+
+!!! example "Rank images worst-first and save TP/FP/FN overlays"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("path/to/best.pt")
+
+        # Validate at the deployment threshold and save per-image TP/FP/FN overlays
+        results = model.val(data="path/to/data.yaml", conf=0.25, plots=True, visualize=True)
+
+        # Rank images worst-first by F1
+        worst = sorted(results.box.image_metrics.items(), key=lambda kv: kv[1]["f1"])
+        for name, m in worst[:20]:
+            print(f"{name}: F1={m['f1']:.2f} TP={m['tp']} FP={m['fp']} FN={m['fn']}")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo val model=path/to/best.pt data=path/to/data.yaml conf=0.25 plots=True visualize=True
+        ```
+
+With `visualize=True`, each validation image is saved under `visualizations/` in the run directory as a four-panel grid of ground truth, false positives, true positives, and false negatives, so you can open the worst images by name.
+
+The confusion matrix plots true classes on the x-axis and predicted classes on the y-axis, with an extra `background` class:
+
+- **Background column:** predictions with no matching ground truth, which are false positives.
+- **Background row:** ground-truth objects the model missed, which are false negatives.
+- **Off-diagonal class cells:** objects found but given the wrong class.
+
+When you review the worst images, decide whether each one shows a model error or a mistake in the ground truth. A box that is missing, mislabeled, or badly placed in the annotations can make a correct prediction look like an error. Correct a label only when it breaks your annotation guideline, never just because the model disagrees with it. Keep a test split that you do not edit during this review, so you can confirm that changes made after the review really improve the model. On [Ultralytics Platform](https://platform.ultralytics.com), detection runs trained on a saved dataset version get [per-image diagnostics](../platform/train/models.md#per-image-diagnostics), which rank the worst images by F1 in the browser when the run recorded per-image metrics.
+
 ## Fine-Tuning Your Model
 
 [Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) takes a pretrained model and adjusts its parameters to improve performance on a specific task or dataset. Also known as model retraining, it lets the model better understand and predict outcomes for the data it will encounter in real-world applications. Based on your evaluation results, you retrain the model on your own data, adjusting the training arguments covered in the [fine-tuning guide](./finetuning-guide.md).

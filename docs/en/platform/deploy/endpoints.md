@@ -272,7 +272,7 @@ Each endpoint has a unique URL, for example:
 https://predict-<deployment-id>-<hash>-<region>.a.run.app
 ```
 
-![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/92ab89459102781c312f7e391b27ed44.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/53f8cdbd30769b524ba234a1c7efd1f4.avif)<!-- screenshot -->
 
 Click the copy button to copy the URL. Click **API documentation** to open the endpoint's own API reference. The endpoint
 serves these paths:

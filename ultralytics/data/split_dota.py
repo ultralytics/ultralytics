@@ -87,7 +87,7 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
     assert split in {"train", "val"}, f"Split must be 'train' or 'val', not {split}."
     im_dir = Path(data_root) / "images" / split
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
-    im_files = [f for f in glob(str(im_dir / "*")) if Path(f).is_file() and Path(f).suffix[1:].lower() in IMG_FORMATS]
+    im_files = [f for f in glob(str(im_dir / "*")) if Path(f).suffix[1:].lower() in IMG_FORMATS and Path(f).is_file()]
     lb_files = img2label_paths(im_files)
     annos = []
     for im_file, lb_file in zip(im_files, lb_files):
@@ -337,7 +337,7 @@ def split_test(
 
     im_dir = Path(data_root) / "images" / "test"
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
-    im_files = [f for f in glob(str(im_dir / "*")) if Path(f).is_file() and Path(f).suffix[1:].lower() in IMG_FORMATS]
+    im_files = [f for f in glob(str(im_dir / "*")) if Path(f).suffix[1:].lower() in IMG_FORMATS and Path(f).is_file()]
     for im_file in TQDM(im_files, total=len(im_files), desc="test"):
         crop_and_save({"filepath": im_file, "label": np.zeros((0, 9))}, crop_sizes, gaps, str(save_dir), lb_dir="")
 

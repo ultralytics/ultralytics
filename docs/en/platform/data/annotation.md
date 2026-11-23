@@ -3,7 +3,7 @@ plans: [free, pro, enterprise]
 title: YOLO Image Annotation Tool with AI Auto-Annotation
 comments: true
 description: Label images for YOLO in the Ultralytics Platform annotation tool, by hand or with AI auto-annotation from SAM 3.1, YOLO, GPT-6.2 Sol, Gemini 4 Argon, and Claude Opus 5.5.
-keywords: Ultralytics Platform, annotation, labeling, image annotation tool, YOLO annotation tool, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.2 Sol, GPT-6.2 Astra, Claude Opus 5.5, Claude Fable 5.2, Claude Sonnet 5.5, Gemini 4 Carbon, Gemini 4 Neon, Gemini 4 Hydrogen, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, Hy4, Muse Ember, YOLOE, visual prompts, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation
+keywords: Ultralytics Platform, annotation, labeling, image annotation tool, YOLO annotation tool, auto-annotation, AI labeling, SAM 3.1, YOLO, Gemini 4 Argon, GPT-6.2 Sol, GPT-6.2 Astra, Claude Opus 5.5, Claude Fable 5.2, Claude Sonnet 5.5, Gemini 4 Carbon, Gemini 4 Neon, Gemini 4 Hydrogen, Gemini 3.8 Flash, vision language models, Moondream, Gemma 4, Qwen, Nemotron, WeVisOne-VL, Hy4, Muse Ember, YOLOE, visual prompts, Grounding DINO, bounding box, polygon, keypoints, skeleton templates, pose estimation, keypoint visibility, add keypoints, segmentation
 ---
 
 # Image Annotation Editor
@@ -179,7 +179,7 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 
 To move several keypoints of one pose together, such as a whole arm, select the pose, then `Shift+Click` each keypoint you want; `Shift+Click` a selected keypoint again to drop it. Dragging any selected keypoint moves them all by the same offset, while dragging an unselected keypoint moves only that keypoint and clears the keypoint selection. Keypoints can be selected in one pose at a time, and the selection clears when the pose selection changes.
 
-![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/a92463dc86e1e22085894fe3478b27dc.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/5251858d58bab8d5073c46ec98fe1e65.avif)<!-- screenshot -->
 
 #### Built-in Skeleton Templates
 
@@ -217,6 +217,49 @@ Custom templates are saved to the dataset's workspace and available in all of it
 !!! info "Keypoint Visibility"
 
     Each keypoint has a visibility flag: `0` = not labeled, `1` = labeled but occluded, `2` = labeled and visible. Keypoints you place are labeled visible (`2`). Right-click a keypoint and choose **Hide Point** to mark it not labeled (`0`), or right-click the pose and choose **Reset Visibility** to show its hidden keypoints again. Imported labels keep their visibility flags.
+
+#### Add Keypoints to a Labeled Dataset
+
+A pose dataset holds one keypoint count, set by the `kpt_shape` of the uploaded files or by the first template you choose or pose you save in the editor, and every pose in it has that many keypoints. Choosing a template with a different count fails with **This dataset has 4 keypoints; choose a 4-keypoint skeleton**. To grow a skeleton, for example from 4 to 6 keypoints, import a copy of the dataset whose poses already have the new keypoints, marked not labeled (`0`):
+
+1. [Export the dataset](datasets.md#export-dataset) as NDJSON.
+2. Run the script below. It builds the YOLO folders, appends the new keypoints to every pose at its box center with visibility `0`, updates `kpt_shape` and `flip_idx`, and zips the result. Custom OKS sigmas and image metadata don't carry over. Datasets uploaded with `kpt_shape: [N, 2]` have no visibility values, so the script stops on them.
+3. [Upload](datasets.md#upload-dataset) the ZIP as a new pose dataset.
+4. Choose **New Template...**, click **Start from...** to load the old template, place the new keypoints after the existing ones, name them, and save. Saving assigns the template to the dataset.
+5. On each image, right-click a pose and choose **Reset Visibility** to show its hidden keypoints, drag the new ones from the box center into place, and choose **Hide Point** on any new keypoint the image doesn't show. **Reset Visibility** also shows keypoints that were already hidden, often in the image's top-left corner, so choose **Hide Point** on each of those again.
+
+```python
+import asyncio
+import shutil
+from pathlib import Path
+
+from ultralytics.data.converter import convert_ndjson_to_yolo
+from ultralytics.utils import YAML
+
+NEW = 2  # keypoints to add to every pose
+
+yaml_path = asyncio.run(convert_ndjson_to_yolo("my-dataset.ndjson", output_path="datasets"))
+data = YAML.load(yaml_path)
+count, dims = data["kpt_shape"]
+assert dims == 3, "keypoints need a visibility value"
+
+# Append each new keypoint at its box center with visibility 0 (not labeled)
+for label in Path(yaml_path).parent.glob("labels/*/*.txt"):
+    rows = [row.split() for row in label.read_text().splitlines() if row.strip()]
+    label.write_text("".join(" ".join(row + [row[1], row[2], "0"] * NEW) + "\n" for row in rows))
+
+data["kpt_shape"] = [count + NEW, 3]
+if "flip_idx" in data:
+    data["flip_idx"] += list(range(count, count + NEW))  # swap the new entries if they are a left/right pair
+for key in ("kpt_oks_sigmas", "kpt_skeleton", "complete"):
+    data.pop(key, None)  # per-keypoint lists for the old count; "complete" makes a rerun reconvert, not pad twice
+YAML.save(yaml_path, data)
+shutil.make_archive("my-dataset-padded", "zip", Path(yaml_path).parent)
+```
+
+!!! warning "Label New Keypoints Where Visible"
+
+    Training leaves keypoints with visibility `0` out of the keypoint position loss, but it also teaches the model's keypoint confidence that they are not visible. A new keypoint left hidden on images where it can be seen therefore teaches the model to miss it.
 
 ### Oriented Bounding Box (OBB)
 

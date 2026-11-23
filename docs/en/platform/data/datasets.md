@@ -288,7 +288,7 @@ Depth datasets can only be created from **Upload** or **URL**; the **Cloud** and
 
 #### Before the Upload Starts
 
-Platform validates your files in the browser before uploading anything, so common problems surface immediately rather than after a long transfer. Archives are checked for corruption, emptiness, password protection, and YAML syntax errors, and oversized files are listed by name.
+Platform validates your files in the browser before uploading anything, so common problems surface immediately rather than after a long transfer. Archives are checked for corruption, emptiness, password protection, and YAML syntax errors, and oversized files are listed by name. A ZIP cut short by an interrupted download or copy has no end-of-archive record, so it stops with **Unable to read ZIP file** before any bytes upload; download or copy it again. URL imports can't be checked in the browser, so an incomplete ZIP at a link fails during processing with **Unable to read this archive**.
 
 Two dialogs may then appear:
 
@@ -634,20 +634,18 @@ Images that failed processing are listed here with:
 
 - **Error banner**: Total count of failed images and guidance
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
-- Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
+- Common errors include corrupted files and unsupported formats
 
 ![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.ul.run/i/7d3959d9f884e2d14d53ee75e884a74e.avif)<!-- screenshot -->
 
 ??? info "Common Processing Errors"
 
-    | Error                     | Cause                              | Fix                                 |
-    | ------------------------- | ---------------------------------- | ----------------------------------- |
-    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor         |
-    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file       |
-    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP        |
-    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload       |
-    | Image too small           | Minimum dimension below 28px       | Use higher resolution source images |
-    | Unsupported color mode    | CMYK or indexed color mode         | Convert to RGB mode                 |
+    | Error                     | Cause                              | Fix                           |
+    | ------------------------- | ---------------------------------- | ----------------------------- |
+    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor   |
+    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file |
+    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP  |
+    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload |
 
 ### Versions Tab
 
@@ -1017,7 +1015,7 @@ To delete several datasets at once, select their rows in the table view of the *
 
 ## Train on Dataset
 
-Start training directly from your dataset:
+Start from a dataset you can edit. If you are viewing another workspace's public dataset, [clone it](#clone-dataset) and open the copy first.
 
 1. Click `New Model` on the dataset page
 2. Select a project or create new

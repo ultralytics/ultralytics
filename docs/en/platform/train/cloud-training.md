@@ -22,7 +22,7 @@ flowchart TD
 
 ## Training Dialog
 
-Start training from the platform UI by clicking **New Model** on any project or dataset page. The training dialog has two tabs: **Cloud Training** and **Local Training**. When the selected dataset lives on an [On Premise](../integrations/on-premise.md) host, the first tab becomes **On Premise** and the Local Training tab is hidden — that dataset can only be trained on its own host, which requires an Enterprise plan and a connected, online worker.
+Click **New Model** from a project or dataset you can edit. To start from another workspace's public dataset page, [clone the dataset](../data/datasets.md#clone-dataset) and open the copy. The training dialog has two tabs: **Cloud Training** and **Local Training**. When the selected dataset lives on an [On Premise](../integrations/on-premise.md) host, the first tab becomes **On Premise** and the Local Training tab is hidden — that dataset can only be trained on its own host, which requires an Enterprise plan and a connected, online worker.
 
 ![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/6ca4d4aa87bf818d83393422aa9f36dc.avif)<!-- screenshot -->
 
@@ -625,4 +625,4 @@ Yes. A failed model shows an error banner with a **Retry Training** action (Edit
 
 ### Can I train from a dataset page?
 
-Yes, the **New Model** button on dataset pages opens the training dialog with the dataset preselected and locked. You then select a project and model to begin training.
+Yes. On a dataset you can edit, **New Model** opens the training dialog with that dataset preselected and locked. You then select a project and model to begin training.

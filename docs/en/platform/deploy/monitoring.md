@@ -180,7 +180,7 @@ Available charts depend on the task and collected predictions:
 | **Prediction Dimensions** | Prediction width and height relative to the input image, when box dimensions are available                      |
 | **Prediction Locations**  | Spatial heatmap of predictions, when location data is available                                                 |
 
-![Ultralytics Platform Deployment Monitoring Prediction Statistics](https://cdn.ul.run/i/dd749ddde22b94239967d3dce40ad1c1.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Prediction Statistics](https://cdn.ul.run/i/8e9d5dd5c93505e96cbb524694b69cc2.avif)<!-- screenshot -->
 
 ![Ultralytics Platform Deployment Monitoring Confidence And Spatial Statistics](https://cdn.ul.run/i/a0c947af96b544fd7bc478323c12422b.avif)<!-- screenshot -->
 

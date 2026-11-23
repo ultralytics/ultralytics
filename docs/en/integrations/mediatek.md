@@ -62,7 +62,8 @@ To run your exported model, copy `yolo26n_w8a32.tflite` into `assets/models/` in
 dependencies:
     flutter:
         sdk: flutter
-    ultralytics_yolo: ^0.7.1
+    material_ui: ^1.11.1
+    ultralytics_yolo: ^0.8.0
 
 flutter:
     assets:
@@ -72,7 +73,7 @@ flutter:
 Run `flutter pub get`, then use the model for camera inference in `lib/main.dart`:
 
 ```dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:ultralytics_yolo/ultralytics_yolo.dart';
 
 void main() => runApp(

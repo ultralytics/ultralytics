@@ -109,7 +109,7 @@ The `results.box.image_metrics` attribute is a per-image dictionary keyed by ima
 
 ### Finding Errors Image by Image
 
-Aggregate metrics tell you how much is wrong, not what. To find out, rank validation images by per-image F1 and look at the worst ones. Validation defaults to `conf=0.001` to retain predictions for precision-recall evaluation, and `image_metrics`, the confusion matrix and the overlays include every prediction retained at that threshold. To see how the model behaves in deployment, rerun validation at your operating confidence threshold.
+To find what the model gets wrong, rank validation images by per-image F1 and inspect the worst ones. Validation keeps predictions down to a very low [`conf`](../modes/val.md#arguments-for-yolo-model-validation) for precision-recall evaluation, and per-image metrics and overlays count all of them, so pass your deployment `conf` to see the errors your deployed model makes.
 
 !!! example "Rank images worst-first and save TP/FP/FN overlays"
 
@@ -121,7 +121,7 @@ Aggregate metrics tell you how much is wrong, not what. To find out, rank valida
         model = YOLO("path/to/best.pt")
 
         # Validate at the deployment threshold and save per-image TP/FP/FN overlays
-        results = model.val(data="path/to/data.yaml", conf=0.25, plots=True, visualize=True)
+        results = model.val(data="path/to/data.yaml", conf=0.25, visualize=True)
 
         # Rank images worst-first by F1
         worst = sorted(results.box.image_metrics.items(), key=lambda kv: kv[1]["f1"])
@@ -132,18 +132,12 @@ Aggregate metrics tell you how much is wrong, not what. To find out, rank valida
     === "CLI"
 
         ```bash
-        yolo val model=path/to/best.pt data=path/to/data.yaml conf=0.25 plots=True visualize=True
+        yolo val model=path/to/best.pt data=path/to/data.yaml conf=0.25 visualize=True
         ```
 
-With `visualize=True`, each validation image is saved under `visualizations/` in the run directory as a four-panel grid of ground truth, false positives, true positives, and false negatives, so you can open the worst images by name.
+With `visualize=True`, each image's ground truth, true positives, false positives, and false negatives are saved as one grid in the run's `visualizations/` folder under the image's file name.
 
-The confusion matrix plots true classes on the x-axis and predicted classes on the y-axis, with an extra `background` class:
-
-- **Background column:** predictions with no matching ground truth, which are false positives.
-- **Background row:** ground-truth objects the model missed, which are false negatives.
-- **Off-diagonal class cells:** objects found but given the wrong class.
-
-When you review the worst images, decide whether each one shows a model error or a mistake in the ground truth. A box that is missing, mislabeled, or badly placed in the annotations can make a correct prediction look like an error. Correct a label only when it breaks your annotation guideline, never just because the model disagrees with it. Keep a test split that you do not edit during this review, so you can confirm that changes made after the review really improve the model. On [Ultralytics Platform](https://platform.ultralytics.com), detection runs trained on a saved dataset version get [per-image diagnostics](../platform/train/models.md#per-image-diagnostics), which rank the worst images by F1 in the browser when the run recorded per-image metrics.
+When you review the worst images, decide whether each one shows a model error or a mistake in the ground truth: a missing, mislabeled, or badly placed box makes a correct prediction look like an error. Correct a label only when it breaks your [annotation guidelines](./data-collection-and-annotation.md#setting-annotation-guidelines), never just because the model disagrees with it, and keep a test split you do not edit during this review so you can confirm the changes really improve the model. On [Ultralytics Platform](https://platform.ultralytics.com), detection runs trained on a saved dataset version get [per-image diagnostics](../platform/train/models.md#per-image-diagnostics), which rank the worst images by F1 in the browser.
 
 ## Fine-Tuning Your Model
 

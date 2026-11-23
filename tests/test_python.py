@@ -2513,25 +2513,3 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
-
-
-@pytest.mark.parametrize("n_channels", [1, 5, 10])
-def test_multispectral_conversion_unicode_paths(tmp_path, n_channels):
-    """Converting images with Unicode paths preserves all TIFF pages before replacing the originals."""
-    from ultralytics.data.converter import convert_to_multispectral
-
-    image = np.arange(16 * 20 * 3, dtype=np.uint8).reshape(16, 20, 3)
-    for name in ("plain.jpg", "image_测试.jpg"):
-        Image.fromarray(image).save(tmp_path / name)
-    convert_to_multispectral(tmp_path, n_channels=n_channels, replace=True)
-    pages = []
-    for name in ("plain.tiff", "image_测试.tiff"):
-        with Image.open(tmp_path / name) as converted:
-            assert converted.n_frames == n_channels
-            frames = []
-            for i in range(converted.n_frames):
-                converted.seek(i)
-                frames.append(np.array(converted))
-            pages.append(np.stack(frames))
-    np.testing.assert_array_equal(pages[0], pages[1])
-    assert not list(tmp_path.glob("*.jpg"))

@@ -768,7 +768,7 @@ Right-click an image in **Grid** or **Compact** view, or a single selected row i
 Reassign selected images to a different split within the same dataset:
 
 1. Switch to **Table** view
-2. Select images using the row checkboxes; the header checkbox selects the images on the current page only
+2. Select images using checkboxes
 3. Right-click to open the context menu
 4. Choose `Move to split` > **Train**, **Validation**, or **Test**
 

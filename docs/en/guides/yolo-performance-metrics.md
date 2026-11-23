@@ -1,7 +1,7 @@
 ---
 title: YOLO Performance Metrics
 comments: true
-description: Read YOLO26 validation metrics: mAP50, mAP50-95, precision, recall, F1 and the confusion matrix, with measured COCO results for YOLO26n to YOLO26x.
+description: Read YOLO26 validation metrics such as mAP50, mAP50-95, precision, recall, F1 and the confusion matrix, with measured COCO results for YOLO26n to YOLO26x.
 keywords: YOLO26 performance metrics, mAP, IoU, F1 Score, Precision, Recall, object detection, Ultralytics
 ---
 

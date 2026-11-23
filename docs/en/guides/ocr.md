@@ -70,9 +70,8 @@ dependencies.
             print(text["line"], text["text"], text["confidence"])
         ```
 
-`ocr()` takes one BGR image as a three-channel `uint8` NumPy array, so convert grayscale or BGRA images with
-`cv2.cvtColor` first. The CLI saves an annotated `ocr.avi` under the Ultralytics `runs` directory and does not print or
-save the recognized text; use Python to work with the [results](#ocr-results).
+The CLI saves an annotated `ocr.avi` under the Ultralytics `runs` directory and does not print or save the recognized
+text; use Python to work with the [results](#ocr-results).
 
 ### YOLO26-Text Checkpoints and Settings
 
@@ -294,9 +293,7 @@ print(json.dumps(words))
 
 On the [benchmark](#benchmarks) photos, keeping words with a recognition confidence of at least 0.8 raised word
 precision from 77.7% to 86.8% and lowered recall from 77.2% to 76.1% with the default settings. Lines are ordered by
-baseline across the whole page, so a multi-column page is returned row by row rather than column by column. `plot_im`
-can be the input array with the annotations drawn on it, so pass `im0.copy()` when you need the unannotated image
-afterward.
+baseline across the whole page, so a multi-column page is returned row by row rather than column by column.
 
 ## Benchmarks
 

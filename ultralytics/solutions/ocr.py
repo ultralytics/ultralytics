@@ -15,6 +15,7 @@ import cv2
 import numpy as np
 import torch
 
+from ultralytics.data.loaders import LoadPilAndNumpy
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import checks, ops
 from ultralytics.utils.checks import check_python, check_requirements, check_tensorrt, rocm_is_available
@@ -249,6 +250,7 @@ class OCR(BaseSolution):
         if isinstance(self.CFG["imgsz"], int):  # never upscale: smaller images run at their own size
             self.track_add_args["imgsz"] = min(self.CFG["imgsz"], -(-max(im0.shape[:2]) // 32) * 32)
         self.extract_tracks(im0)
+        im0 = LoadPilAndNumpy._single_check(im0)  # three-channel BGR to read and draw, whatever the detector took
         if self.tracks.masks is not None:  # segmentation: each mask's minimum-area rectangle
             polygons = np.array([ops.xywhr2xyxyxyxy(ops.xyxyxyxy2xywhr(p[None]))[0] for p in self.tracks.masks.xy])
         elif len(self.boxes) and self.boxes.ndim == 3:  # OBB corners
@@ -265,7 +267,7 @@ class OCR(BaseSolution):
             for word in self.read_words(im0, polygons.astype(np.float32), self.recognize)
         ]
         annotator = SolutionAnnotator(
-            im0, self.line_width, font_size=max(self.line_width * 6, 12), example="".join(t["text"] for t in texts)
+            im0.copy(), self.line_width, max(self.line_width * 6, 12), example="".join(t["text"] for t in texts)
         )
         for t in texts:
             label = (f"{t['text']} {t['confidence']:.2f}" if self.show_conf else t["text"]) if self.show_labels else ""

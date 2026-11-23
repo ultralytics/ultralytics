@@ -645,7 +645,7 @@ class BasePredictor:
                 self.vid_writer[save_path].write(im)
 
         # Save images
-        else:
+        elif self.args.save:
             cv2.imwrite(str(save_path.with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p: str = ""):

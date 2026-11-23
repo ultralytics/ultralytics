@@ -2517,7 +2517,7 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
 
 def test_split_dota_replaces_labels_with_background(tmp_path):
     """Re-splitting an edited source must not retain labels for background tiles."""
-    from ultralytics.data.split_dota import split_images_and_labels
+    from ultralytics.data.split_dota import crop_and_save, split_images_and_labels
 
     root, output = tmp_path / "dota", tmp_path / "tiles"
     images, labels = root / "images" / "train", root / "labels" / "train"
@@ -2539,6 +2539,9 @@ def test_split_dota_replaces_labels_with_background(tmp_path):
     old_image = next(out_images.glob("unchanged*.jpg"))
     old_image.unlink()
     old_image.mkdir()
+    anno = {"filepath": str(images / "unchanged.jpg"), "label": np.zeros((0, 9))}
+    crop_and_save(anno, (64,), (0,), str(out_images), str(out_labels), allow_background_images=False)
+    assert len(list(out_labels.glob("unchanged*.txt"))) == 1
     with pytest.raises(OSError, match="Failed to write DOTA tile"):
         split_images_and_labels(str(root), str(output), "train", (64,), (0,))
     assert len(list(out_labels.glob("unchanged*.txt"))) == 1

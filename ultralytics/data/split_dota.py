@@ -215,7 +215,9 @@ def crop_and_save(
         ph, pw = patch_im.shape[:2]
 
         label = window_objs[i]
-        if (len(label) or allow_background_images) and not cv2.imwrite(str(Path(im_dir) / f"{new_name}.jpg"), patch_im):
+        if not len(label) and not allow_background_images:
+            continue
+        if not cv2.imwrite(str(Path(im_dir) / f"{new_name}.jpg"), patch_im):
             raise OSError(f"Failed to write DOTA tile {Path(im_dir) / f'{new_name}.jpg'}")
         if len(label):
             instances = Instances(np.zeros((len(label), 4)), label[:, 1:].reshape(-1, 4, 2) - (x_start, y_start))
@@ -226,7 +228,7 @@ def crop_and_save(
                 for lb in label:
                     formatted_coords = [f"{coord:.6g}" for coord in lb[1:]]
                     f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
-        elif lb_dir and allow_background_images:
+        elif lb_dir:
             (Path(lb_dir) / f"{new_name}.txt").unlink(missing_ok=True)
 
 

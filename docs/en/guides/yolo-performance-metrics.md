@@ -65,7 +65,7 @@ One of the sections of the output is the class-wise breakdown of performance met
 
     - **mAP<sub>50-95</sub>**: The average of the mean average precision calculated at varying IoU thresholds, ranging from 0.50 to 0.95 in steps of 0.05. It gives a comprehensive view of the model's performance across different levels of detection difficulty.
 
-P and R are reported at one confidence threshold: the one that maximizes the F1 curve averaged over classes and smoothed, with detections matched at an IoU of 0.50. They are not measured at the `conf` value passed to `model.val()`, although a `conf` close to or above that threshold shifts them. In class rows, the mAP<sub>50</sub> and mAP<sub>50-95</sub> columns hold the AP of that class, and the `all` row is the mean over the classes that have labels.
+P and R are reported at one confidence threshold: the one that maximizes the F1 curve averaged over classes and smoothed (about 0.20 for YOLO26n on COCO val2017), with detections matched at an IoU of 0.50. They are not measured at the `conf` value passed to `model.val()`, although a `conf` close to or above that threshold shifts them. In class rows, the mAP<sub>50</sub> and mAP<sub>50-95</sub> columns hold the AP of that class, and the `all` row is the mean over the classes that have labels.
 
 #### Speed Metrics
 
@@ -73,7 +73,7 @@ The speed of inference can be as critical as accuracy, especially in real-time o
 
 #### COCO Metrics Evaluation
 
-For users validating on the [COCO dataset](../datasets/detect/coco.md) with `coco.yaml`, the predictions are also saved to `predictions.json` and additional metrics are calculated with [`faster-coco-eval`](https://github.com/MiXaiLL76/faster_coco_eval). These metrics give insights into precision and recall at different IoU thresholds and for objects of different sizes. On other detection datasets, pass `save_json=True` to get them. The object that `model.val()` returns keeps the values Ultralytics computes itself, so `metrics.box.map` can differ slightly from the printed COCO-style AP.
+For users validating on the [COCO dataset](../datasets/detect/coco.md) with `coco.yaml`, the predictions are also saved to `predictions.json` and additional metrics are calculated with [`faster-coco-eval`](https://github.com/MiXaiLL76/faster_coco_eval). These metrics give insights into precision and recall at different IoU thresholds and for objects of different sizes. On other detection datasets, pass `save_json=True` to get them. The object that `model.val()` returns keeps the values Ultralytics computes itself, so `metrics.box.map` can differ slightly from the printed COCO-style AP (0.402 against 0.408 for YOLO26n on COCO val2017).
 
 #### Visual Outputs
 
@@ -183,18 +183,10 @@ The YOLO26 and Ultralytics community is also a useful resource: engaging with ot
 
 Mean Average Precision (mAP) is crucial for evaluating YOLO26 models as it provides a single metric encapsulating precision and recall across multiple classes. mAP<sub>50</sub> measures average precision at an IoU threshold of 0.50, focusing on the model's ability to detect objects correctly. mAP<sub>50-95</sub> averages it across a range of IoU thresholds, offering a comprehensive assessment of detection performance. High mAP scores indicate that the model effectively balances precision and recall, essential for applications like [autonomous driving](https://www.ultralytics.com/solutions/computer-vision-in-automotive) and surveillance systems where both accurate detection and minimal false alarms are critical.
 
-### At what confidence threshold are precision and recall calculated in YOLO validation?
-
-Ultralytics YOLO validation reports precision and recall at the confidence that maximizes the smoothed F1 curve averaged over classes, not at the `conf` argument. A detection counts as correct at that point when it matches a label of the same class with an IoU of at least 0.50. For YOLO26n on COCO val2017, that confidence is about 0.20.
-
 ### Why do precision and recall from the confusion matrix differ from the validation results?
 
-Precision and recall in the Ultralytics results table and in the confusion matrix are computed differently. The results table averages per-class values at the confidence selected from the smoothed mean F1 curve, while the confusion matrix counts the postprocessed detections above `conf`, which defaults to 0.001, matches boxes regardless of class, and pools the counts over classes. For YOLO26n on COCO, the table reported a precision of 0.658 and the matrix gave 0.039 at the default `conf`; at `conf=0.25` the table reported 0.698 and the matrix gave 0.733.
+Precision and recall in the Ultralytics results table and in the confusion matrix are computed differently. The results table averages per-class values at the confidence selected from the smoothed mean F1 curve, while the confusion matrix counts the postprocessed detections above `conf`, which defaults to 0.001, and matches boxes regardless of class. Pooling its counts over classes for YOLO26n on COCO gives a precision of 0.039 at the default `conf`, against 0.66 in the table; at `conf=0.25` the table reports 0.698 and the pooled matrix 0.733.
 
 ### Why does mAP drop when I raise `conf` in validation?
 
 mAP averages the area under the precision-recall curve of each class, and a higher `conf` removes the low-confidence predictions that form the high-recall end of those curves. For YOLO26n on COCO, mAP<sub>50-95</sub> went from 0.402 at the default `conf=0.001` to 0.336 at `conf=0.25`. The `conf` used for [prediction](../modes/predict.md) is a separate setting.
-
-### Why is `metrics.box.map` different from the published COCO mAP?
-
-The published values are COCO-style AP, which validation computes with `faster-coco-eval` and prints for `coco.yaml`, while `metrics.box.map` keeps the value Ultralytics computes itself. For YOLO26n on COCO val2017, `metrics.box.map` is 0.402 and the printed COCO-style AP is 0.408.

@@ -592,7 +592,7 @@ class DetectionValidator(BaseValidator):
             (dict[str, Any]): Updated stats dictionary containing the computed COCO-format evaluation metrics.
         """
         # single_cls predictions all carry one category, which COCO/LVIS annotations cannot score
-        if len(self.jdict) and (self.gdict or (self.is_coco or self.is_lvis) and not self.args.single_cls):
+        if len(self.jdict) and (self.gdict or ((self.is_coco or self.is_lvis) and not self.args.single_cls)):
             LOGGER.info("\nEvaluating faster-coco-eval mAP...")
             try:
                 for x in pred_json, anno_json:

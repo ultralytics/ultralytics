@@ -8,7 +8,7 @@ keywords: YOLO data augmentation, computer vision, deep learning, image transfor
 # Data Augmentation using Ultralytics YOLO
 
 <p align="center">
-  <img width="100%" src="https://cdn.ul.run/i/d7b5907c9df57a0806398431ef5bb4f3.avif" alt="YOLO data augmentation examples showing original and augmented images for training">
+  <img width="100%" src="https://cdn.ul.run/i/d7b5907c9df57a0806398431ef5bb4f3.avif" alt="Macaw photo with horizontal flip, crop, median blur, contrast, hue-saturation-value, and gamma augmentations">
 </p>
 
 ## Introduction
@@ -46,8 +46,6 @@ You can customize each parameter using the Python API, the command line interfac
     === "Python"
 
         ```python
-        import albumentations as A
-
         from ultralytics import YOLO
 
         # Load a model
@@ -56,7 +54,7 @@ You can customize each parameter using the Python API, the command line interfac
         # Training with custom augmentation parameters
         model.train(data="coco8.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
 
-        # Training with every configurable augmentation disabled (disabled values omitted for clarity)
+        # Training with augmentation off: non-zero defaults set to 0.0 and the built-in Albumentations set removed
         model.train(
             data="coco8.yaml",
             epochs=100,
@@ -69,14 +67,8 @@ You can customize each parameter using the Python API, the command line interfac
             mosaic=0.0,
             erasing=0.0,
             auto_augment=None,
+            augmentations=[],
         )
-
-        # Training with custom Albumentations transforms (Python API only)
-        custom_transforms = [
-            A.Blur(blur_limit=7, p=0.5),
-            A.CLAHE(clip_limit=4.0, p=0.5),
-        ]
-        model.train(data="coco8.yaml", epochs=100, augmentations=custom_transforms)
         ```
 
     === "CLI"
@@ -88,7 +80,7 @@ You can customize each parameter using the Python API, the command line interfac
 
 !!! note "Zeroing the augmentation arguments does not disable Albumentations"
 
-    The transforms listed on this page are the ones you control through training arguments. Ultralytics also applies a small [Albumentations](../integrations/albumentations.md) set — blur, median blur, grayscale, and CLAHE, each at `p=0.01` — whenever the `albumentations` package is installed, and no argument in `default.yaml` switches it off. Uninstall the package to remove it, or pass your own list to [`augmentations`](#custom-albumentations-transforms-augmentations) to replace it.
+    The transforms listed on this page are the ones you control through training arguments. Ultralytics also applies a small [Albumentations](../integrations/albumentations.md) set — blur, median blur, grayscale, and CLAHE, each at `p=0.01` — whenever the `albumentations` package is installed, and no argument in `default.yaml` switches it off. Pass `augmentations=[]` to remove it (quoted on the CLI, as `'augmentations=[]'`), or your own list to [`augmentations`](#custom-albumentations-transforms-augmentations) to replace it.
 
 #### Using a configuration file
 
@@ -196,7 +188,7 @@ Each run draws new random values, so run it a few times. Check that boxes still 
 
 ### Hue Adjustment (`hsv_h`)
 
-- **Range**: `0.0` - `1.0`
+- **Range**: `0.0` - `1.0` (`0.0` - `0.5` for classification)
 - **Default**: `{{ hsv_h }}`
 - **Usage**: Shifts image colors while preserving their relationships. The `hsv_h` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_h` and `hsv_h`. For example, with `hsv_h=0.3`, the shift is randomly selected within `-0.3` to `0.3`. For values above `0.5`, the hue shift wraps around the color wheel, which is why the augmentations look the same at `0.5` and `-0.5`.
 - **Purpose**: Particularly useful for outdoor scenarios where lighting conditions can dramatically affect object appearance. For example, a banana might look more yellow under bright sunlight but more greenish indoors.
@@ -346,8 +338,9 @@ Each run draws new random values, so run it a few times. Check that boxes still 
 - **Ultralytics' implementation**: [Mosaic](../reference/data/augment.md#ultralytics.data.augment.Mosaic)
 - **Note**:
     - Although the `mosaic` augmentation makes the model more robust, it can also make the training process more challenging.
-    - The `mosaic` augmentation can be disabled near the end of training by setting `close_mosaic` to the number of epochs before completion when it should be turned off. For example, if `epochs` is set to `200` and `close_mosaic` is set to `20`, the `mosaic` augmentation will be disabled after `180` epochs. If `close_mosaic` is set to `0`, the `mosaic` augmentation will be enabled for the entire training process.
+    - The `mosaic` augmentation can be disabled near the end of training by setting `close_mosaic` to the number of epochs before completion when it should be turned off. For example, if `epochs` is set to `200` and `close_mosaic` is set to `20`, the `mosaic` augmentation will be disabled after `180` epochs. If `close_mosaic` is set to `0`, the `mosaic` augmentation is not disabled at the end and keeps its configured value for the entire training process. The default is `{{ close_mosaic }}`, so a run with `epochs` at or below `close_mosaic` trains without mosaic from the first epoch.
     - Closing the mosaic also disables `copy_paste`, `mixup`, and `cutmix` at the same epoch. The four are switched off together, so the final epochs train without them while every other augmentation — the geometric transforms, HSV, flips, and Albumentations — keeps running. Note that `copy_paste` in its default `flip` mode works within a single image rather than combining several.
+    - With rectangular batches (`rect=True`), training sets `mosaic`, `mixup`, and `cutmix` to `0.0`.
     - The center of the generated mosaic is determined using random values, and can either be inside the image or outside of it.
     - The current implementation of the `mosaic` augmentation combines the current image with 3 others, drawn from a buffer of recently loaded images, or from anywhere in the dataset when `cache='ram'`. Either way they are sampled with replacement, so the same image can appear more than once in a single mosaic.
 
@@ -373,7 +366,7 @@ Each run draws new random values, so run it a few times. Check that boxes still 
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ cutmix }}`
-- **Usage**: Applies [CutMix](https://www.ultralytics.com/glossary/cutmix), which cuts a rectangular region from one image and pastes it onto another image with a given probability. The `cutmix` hyperparameter defines the probability of applying the transformation, with `cutmix=1.0` ensuring that all images undergo this transformation and `cutmix=0.0` disabling it completely. For example, with `cutmix=0.5`, each image has a 50% chance of having a region replaced with a patch from another image.
+- **Usage**: Applies [CutMix](https://www.ultralytics.com/glossary/cutmix), which cuts a rectangular region from one image and pastes it onto another image with a given probability. The `cutmix` hyperparameter defines the probability of applying the transformation, with `cutmix=1.0` attempting it on every image and `cutmix=0.0` disabling it completely. For example, with `cutmix=0.5`, each image has a 50% chance of an attempt to replace a region with a patch from another image.
 - **Purpose**: Enhances model performance by creating realistic occlusion scenarios while maintaining local feature integrity. For example, in autonomous driving systems, cutmix helps the model learn to recognize vehicles or pedestrians even when they're partially occluded by other objects, improving detection accuracy in complex real-world environments with overlapping objects.
 - **Ultralytics' implementation**: [CutMix](../reference/data/augment.md#ultralytics.data.augment.CutMix)
 - **Note**:
@@ -392,7 +385,7 @@ Each run draws new random values, so run it a few times. Check that boxes still 
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ copy_paste }}`
-- **Usage**: Requires polygon labels, so it applies to segment and OBB tasks; this augmentation copies objects within or between images, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). In `flip` mode, `copy_paste` is the fraction of eligible objects copied: an image with six eligible objects gains three copies at `copy_paste=0.5`. In `mixup` mode, the same value also controls the probability that copy-paste runs. `copy_paste=0.0` disables the transformation.
+- **Usage**: Requires polygon labels, so it applies to segment and OBB datasets, and to semantic or detect training on a polygon-labeled dataset; on box-only, pose, mask-image semantic, and depth datasets it does nothing. This augmentation copies objects within or between images, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). In `flip` mode, `copy_paste` is the fraction of eligible objects copied: an image with six eligible objects gains three copies at `copy_paste=0.5`. The count is rounded, so `copy_paste=0.1` adds a copy only when at least six objects are eligible, counted on the mosaic of four images when `mosaic` applies. In `mixup` mode, the same value also controls the probability that copy-paste runs. `copy_paste=0.0` disables the transformation.
 - **Purpose**: Particularly useful for instance segmentation tasks and rare object classes. For example, in industrial defect detection where certain types of defects appear infrequently, copy-paste augmentation can artificially increase the occurrence of these rare defects by copying them from one image to another, helping the model better learn these underrepresented cases without requiring additional defective samples.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:
@@ -400,9 +393,9 @@ Each run draws new random values, so run it a few times. Check that boxes still 
     - Once an object is selected for copying, its IoA is computed against all objects already present in the target image, regardless of `copy_paste_mode`. The object is pasted only if all IoA values are below `0.3` (30%); it is not pasted if any IoA value is `0.3` or higher.
     - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
 
-|                                               **`copy_paste` off**                                                |                                **`copy_paste` on with `copy_paste_mode=flip`**                                |                                                               **Visualize the `copy_paste` process**                                                               |
-| :---------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.ul.run/i/9fbbd723bae594447ebecb1ca2be49f7.avif" alt="Original image without augmentation"/> | <img src="https://cdn.ul.run/i/8206af761dc359036f46085558ae50c0.avif" alt="Copy-paste augmentation enabled"/> | <video src="https://cdn.ul.run/v/b8ef0d0f394eb89c1deed2ec17fe54a2.mp4" autoplay loop muted playsinline aria-label="Copy-paste augmentation animated demo"></video> |
+|                                                   **`copy_paste` off**                                                   |                                **`copy_paste` on with `copy_paste_mode=flip`**                                |                                                               **Visualize the `copy_paste` process**                                                               |
+| :----------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.ul.run/i/9fbbd723bae594447ebecb1ca2be49f7.avif" alt="Image with one butterfly before copy-paste"/> | <img src="https://cdn.ul.run/i/8206af761dc359036f46085558ae50c0.avif" alt="Copy-paste augmentation enabled"/> | <video src="https://cdn.ul.run/v/b8ef0d0f394eb89c1deed2ec17fe54a2.mp4" autoplay loop muted playsinline aria-label="Copy-paste augmentation animated demo"></video> |
 
 ### Copy-Paste Mode (`copy_paste_mode`)
 
@@ -416,9 +409,9 @@ Each run draws new random values, so run it a few times. Check that boxes still 
     - Depending on the image size, objects may sometimes be copied partially or entirely outside the frame.
     - Depending on the quality of polygon annotations, copied objects may have slight shape variations compared to the originals.
 
-|                                              **Reference image**                                              |                                         **Chosen image for `copy_paste`**                                         |                             **`copy_paste` on with `copy_paste_mode=mixup`**                             |
-| :-----------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------: |
-| <img src="https://cdn.ul.run/i/306040505880e6ea261470faf700ff63.avif" alt="Second image for MixUp blending"/> | <img src="https://cdn.ul.run/i/9fbbd723bae594447ebecb1ca2be49f7.avif" alt="Original image without augmentation"/> | <img src="https://cdn.ul.run/i/0fffa641272ae757fc03cb3141aeed88.avif" alt="Copy-paste with MixUp mode"/> |
+|                                                      **Reference image**                                                      |                                        **Chosen image for `copy_paste`**                                        |                             **`copy_paste` on with `copy_paste_mode=mixup`**                             |
+| :---------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------: |
+| <img src="https://cdn.ul.run/i/306040505880e6ea261470faf700ff63.avif" alt="Reference image that receives the pasted object"/> | <img src="https://cdn.ul.run/i/9fbbd723bae594447ebecb1ca2be49f7.avif" alt="Source image of the pasted object"/> | <img src="https://cdn.ul.run/i/0fffa641272ae757fc03cb3141aeed88.avif" alt="Copy-paste with MixUp mode"/> |
 
 ## Classification-Specific Augmentations
 
@@ -433,6 +426,7 @@ Each run draws new random values, so run it a few times. Check that boxes still 
     - **AugMix**: AugMix is a data augmentation method that enhances model robustness by creating diverse image variations through random combinations of simple transformations.
 - **Ultralytics' implementation**: [classify_augmentations()](../reference/data/augment.md#ultralytics.data.augment.classify_augmentations)
 - **Note**:
+    - While `auto_augment` is set, classification training ignores `hsv_h`, `hsv_s`, and `hsv_v`. They apply only with the policy disabled (`auto_augment=None`).
     - Essentially, the main [difference between the three methods](https://sebastianraschka.com/blog/2023/data-augmentation-pytorch.html) is the way the augmentation policies are defined and applied.
 
 ### Random Erasing (`erasing`)
@@ -459,7 +453,7 @@ Each run draws new random values, so run it a few times. Check that boxes still 
 - **Purpose**: Provides fine-grained control over data augmentation strategies by leveraging the extensive library of Albumentations transforms. This is particularly useful when you need specialized augmentations beyond the built-in YOLO options, such as elastic deformations and grid distortions for medical imaging, transforms tuned for overhead aerial and satellite perspectives, noise and brightness shifts that simulate low-light conditions, or defect-like texture variations for industrial inspection.
 - **Ultralytics' implementation**: [Albumentations](../reference/data/augment.md#ultralytics.data.augment.Albumentations)
 - **Note**:
-    - Building the transform objects requires the Python API. Ultralytics serializes them with `A.to_dict()` when saving a checkpoint, so an already-serialized list round-trips through a YAML configuration file or the CLI, which is what lets `resume` restore them.
+    - Building the transform objects requires the Python API. Ultralytics serializes them with `A.to_dict()` when training starts, so an already-serialized list round-trips through a YAML configuration file or the CLI, which is what lets `resume` restore them.
     - Custom transforms completely replace the default Albumentations set. Every augmentation configured elsewhere on this page — `mosaic`, `hsv_h`, `degrees`, and the rest — stays active and is applied independently.
     - Spatial transforms that change image geometry, including ones nested in `A.OneOf` or `A.Compose`, move bounding boxes, polygons, keypoints, and depth or semantic masks together with the image; `A.RandomGridShuffle` cannot preserve polygon or keypoint topology and raises on segmentation, pose, and OBB samples.
     - Albumentations offers 70+ transforms; the [Albumentations documentation](https://albumentations.ai/docs/) lists them all. Adding many transforms, or computationally expensive ones, slows training down, so start with a small set and watch the epoch time.
@@ -539,6 +533,10 @@ The examples below need Albumentations 1.4.22 or newer, and therefore Python 3.9
         )
         ```
 
+## Pipeline Order
+
+For detect, segment, semantic, pose, and OBB training, the transforms run in this order: `mosaic`, `copy_paste`, one warp for `degrees`, `translate`, `scale`, `shear`, and `perspective`, then `mixup`, `cutmix`, Albumentations, `hsv_h`, `hsv_s`, and `hsv_v`, `flipud`, `fliplr`, and `bgr`. With `copy_paste_mode='mixup'`, `copy_paste` runs after the warp. Depth training uses the same order without `mosaic`, `mixup`, `cutmix`, and `copy_paste`. Classification crops with `scale`, applies `fliplr` and `flipud`, then `auto_augment` or the `hsv_*` color jitter, and `erasing` last.
+
 ## FAQ
 
 ### There are too many augmentations to choose from. How do I know which ones to use?
@@ -551,24 +549,18 @@ Choosing the right augmentations depends on your specific use case and dataset. 
 
 In short: keep it simple. Start with a small set of augmentations and gradually add more as needed. The goal is to improve the model's generalization and robustness, not to overcomplicate the training process. Also, make sure the augmentations you apply reflect the same data distribution your model will encounter in production.
 
-### When starting a training, I see an `albumentations: Blur[...]` reference. Does that mean Ultralytics YOLO runs additional augmentation like blurring?
+### Why does training log an `albumentations:` line, or none at all?
 
-If the `albumentations` package is installed, Ultralytics automatically applies a set of extra image augmentations using it. These augmentations are handled internally and require no additional configuration.
-
-You can find the full list of applied transformations in our [technical documentation](../reference/data/augment.md#ultralytics.data.augment.Albumentations), as well as in our [Albumentations integration guide](../integrations/albumentations.md). Note that only the augmentations with a probability `p` greater than `0` are active. These are purposefully applied at low frequencies to mimic real-world visual artifacts, such as blur or grayscale effects.
-
-You can also provide your own custom Albumentations transforms using the Python API. See the [Advanced Augmentation Features](#advanced-augmentation-features) section for more details.
-
-### When starting a training, I don't see any reference to albumentations. Why?
-
-Check if the `albumentations` package is installed. If not, install it:
-
-```bash
-pip install albumentations
-```
-
-Once installed, the package should be automatically detected and used by Ultralytics.
+For every task except classification, Ultralytics YOLO applies a built-in [Albumentations](../integrations/albumentations.md) set (blur, median blur, grayscale, and CLAHE, each at `p=0.01`) whenever the `albumentations` package is installed, and logs it when training starts as `albumentations: Blur(p=0.01, blur_limit=(3, 7)), ...`. If no line appears, the usual cause is a missing package: install it with `pip install albumentations`. Pass `augmentations=[]` to remove the set, which leaves the line empty, or your own list to [`augmentations`](#custom-albumentations-transforms-augmentations) to replace it.
 
 ### How do I customize my augmentations?
 
-You can customize augmentations by creating a custom dataset class and trainer. For example, you can replace the default Ultralytics classification augmentations with PyTorch's [torchvision.transforms.Resize](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) or other transforms. See the [custom training example](../tasks/classify.md#train) in the classification documentation for implementation details.
+In Ultralytics YOLO, set the transforms on this page with training arguments, and pass other compatible Albumentations transforms, such as noise or elastic distortion, to the [`augmentations`](#custom-albumentations-transforms-augmentations) argument from the Python API for detect, segment, semantic, depth, pose, and OBB training. Other transforms, such as torchvision transforms for classification, need a custom dataset class and trainer, as in the [classification custom transforms example](../tasks/classify.md#custom-transforms).
+
+### Does data augmentation add images to my dataset?
+
+No. Ultralytics YOLO augments each image in memory when the training loader reads it, with new random values on every read. No image files are written, and the dataset length and the number of batches per epoch stay the same. To look at the augmented samples, [preview a training batch](#preview-the-training-pipeline-with-labels).
+
+### Does `augment=True` turn on training augmentation, and are validation images augmented?
+
+No. `augment` belongs to predict and val modes, where it requests test-time augmentation, and training datasets do not read it. Training augmentation is on by default and is set only through the arguments on this page. Validation images are only resized to the input size, without any augmentation.

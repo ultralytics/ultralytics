@@ -197,7 +197,9 @@ class OCR(BaseSolution):
         """Read word polygons (N, 4, 2) one by one at any page rotation, returning the words in reading order.
 
         The page's text direction (mod 180°) is the words' long-side angle weighted by elongation; words under 2:1 abstain
-        (single characters are taller than wide), so a page of only those stays unrotated. The page is rotated so that
+        (single characters are taller than wide), so a page of only those stays unrotated. When a sideways vote weighs
+        at most 30% of the total long-side length, voters must also span at least twice the median short side, as an
+        upright narrow glyph such as `1` votes sideways too. The page is rotated so that
         direction runs left to right, where words are cropped upright and grouped into lines. Of that turn and its
         opposite, the one whose 8 widest words `recognize` reads more confidently wins, as upside-down text reads as
         low-confidence noise. Each word keeps its `detection_index` and `polygon` and gains its `line` number; words that
@@ -207,6 +209,8 @@ class OCR(BaseSolution):
             return []
         _, _, w, h, angle = ops.xyxyxyxy2xywhr(polygons).T  # w is the long side
         weight = np.where(w >= 2 * h, w - h, 0)
+        if (weight * np.cos(2 * angle)).sum() < 0 and weight.sum() <= 0.3 * w.sum():
+            weight *= w >= 2 * np.median(h)
         angle = 0.5 * np.arctan2((weight * np.sin(2 * angle)).sum(), (weight * np.cos(2 * angle)).sum())
         turns = []
         for turn in (0, np.pi):

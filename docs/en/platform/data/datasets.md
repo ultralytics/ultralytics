@@ -640,12 +640,12 @@ Images that failed processing are listed here with:
 
 ??? info "Common Processing Errors"
 
-    | Error                     | Cause                              | Fix                                 |
-    | ------------------------- | ---------------------------------- | ----------------------------------- |
-    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor         |
-    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file       |
-    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP        |
-    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload       |
+    | Error                     | Cause                              | Fix                           |
+    | ------------------------- | ---------------------------------- | ----------------------------- |
+    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor   |
+    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file |
+    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP  |
+    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload |
 
 ### Versions Tab
 

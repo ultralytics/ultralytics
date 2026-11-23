@@ -136,7 +136,7 @@ The `model.val()` function, apart from producing numeric metrics, also yields vi
 
 - **Recall Curve (`BoxR_curve.png`)**: Correspondingly, this graph illustrates how the recall values change across different thresholds.
 
-- **[Confusion Matrix](https://www.ultralytics.com/glossary/confusion-matrix) (`confusion_matrix.png`)**: The confusion matrix provides a detailed view of the outcomes, showcasing correct detections on the diagonal and confusions between classes off the diagonal. The `background` column counts detections that match no object and the `background` row counts missed objects; object detection has no true negatives. The matrix counts every detection above the validation `conf`, which defaults to 0.001.
+- **[Confusion Matrix](https://www.ultralytics.com/glossary/confusion-matrix) (`confusion_matrix.png`)**: The confusion matrix provides a detailed view of the outcomes, showcasing correct detections on the diagonal and confusions between classes off the diagonal. The `background` column counts detections that match no object and the `background` row counts missed objects; object detection has no true negatives. The matrix counts postprocessed detections above the validation `conf`, subject to the `max_det` limit (default 300).
 
 - **Normalized Confusion Matrix (`confusion_matrix_normalized.png`)**: This visualization is a normalized version of the confusion matrix. It represents the data in proportions rather than raw counts, with each column (true class) divided by its total. This format makes it simpler to compare the performance across classes.
 
@@ -437,7 +437,7 @@ Ultralytics YOLO validation reports precision and recall at the confidence that 
 
 ### Why do precision and recall from the confusion matrix differ from the validation results?
 
-Precision and recall in the Ultralytics results table and in the confusion matrix are computed differently. The results table averages per-class values at the confidence selected from the smoothed mean F1 curve, while the confusion matrix counts every prediction above `conf`, which defaults to 0.001, matches boxes regardless of class, and pools the counts over classes. For YOLO26n on COCO, the table reported a precision of 0.658 and the matrix gave 0.039 at the default `conf`; at `conf=0.25` the table reported 0.698 and the matrix gave 0.733. See [Confusion Matrix](#confusion-matrix).
+Precision and recall in the Ultralytics results table and in the confusion matrix are computed differently. The results table averages per-class values at the confidence selected from the smoothed mean F1 curve, while the confusion matrix counts the postprocessed detections above `conf`, which defaults to 0.001, matches boxes regardless of class, and pools the counts over classes. For YOLO26n on COCO, the table reported a precision of 0.658 and the matrix gave 0.039 at the default `conf`; at `conf=0.25` the table reported 0.698 and the matrix gave 0.733. See [Confusion Matrix](#confusion-matrix).
 
 ### Why does mAP drop when I raise `conf` in validation?
 

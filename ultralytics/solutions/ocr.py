@@ -208,7 +208,6 @@ class OCR(BaseSolution):
             return []
         _, _, w, h, angle = ops.xyxyxyxy2xywhr(polygons).T  # w is the long side
         weight = np.where(w >= 2 * h, w - h, 0)
-        # An isolated upright "1" can cast the only sideways vote on a digit grid
         if (weight * np.cos(2 * angle)).sum() < 0 and weight.sum() <= 0.3 * w.sum():
             weight *= w >= 2 * np.median(h)
         angle = 0.5 * np.arctan2((weight * np.sin(2 * angle)).sum(), (weight * np.cos(2 * angle)).sum())

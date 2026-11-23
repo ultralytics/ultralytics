@@ -1,5 +1,5 @@
 ---
-title: COCO Detection Dataset
+title: "COCO Detection Dataset: 80 Classes, Download and YOLO Training"
 comments: true
 creator:
     name: COCO Consortium
@@ -7,8 +7,8 @@ creator:
 license:
     name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
-description: COCO is the standard object detection benchmark, with 118K training and 5K validation images across 80 classes. Explore its structure, YOLO26 models, and usage.
-keywords: COCO dataset, object detection, segmentation, benchmarking, computer vision, pose estimation, YOLO models, COCO annotations
+description: COCO is the standard object detection benchmark, with 118K training and 5K validation images across 80 classes. Download it automatically and train YOLO26 on every class or only the ones you need.
+keywords: COCO dataset, COCO dataset download, COCO classes, object detection, train on specific classes, COCO subset, segmentation, benchmarking, computer vision, pose estimation, YOLO models, COCO annotations
 ---
 
 # COCO Dataset
@@ -63,7 +63,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-The COCO2017 training and validation data (20.3 GB) downloads automatically the first time you start training. To [train](../../modes/train.md) a YOLO26n model on COCO for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. You can also run COCO training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco2017).
+The COCO2017 training and validation data (20.3 GB) downloads automatically into the `coco` folder of your [`datasets_dir`](../../usage/settings.md) the first time you train or validate with `data=coco.yaml`. To [train](../../modes/train.md) a YOLO26n model on COCO for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. You can also run COCO training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco2017).
 
 !!! example "Train Example"
 
@@ -85,6 +85,81 @@ The COCO2017 training and validation data (20.3 GB) downloads automatically the 
         # Start training from a pretrained *.pt model
         yolo detect train data=coco.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
+
+## Train on Selected COCO Classes
+
+To train on only some of the 80 COCO classes, pass their IDs with the `classes` [train argument](../../modes/train.md#train-settings). Class IDs come from the `names` list in the [dataset YAML](#dataset-yaml) above; for example, `67` is `cell phone`.
+
+!!! example "Train on One COCO Class"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+        results = model.train(data="coco.yaml", classes=[67], epochs=100, imgsz=640)  # 67 = cell phone
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo detect train data=coco.yaml model=yolo26n.pt classes=[67] epochs=100 imgsz=640
+        ```
+
+`classes` filters labels, not images:
+
+- The full 20.3 GB still downloads, and every training image is still used. Only 4,803 of the 118,287 `train2017` images contain a cell phone; the rest lose their labels and train as background images.
+- The model keeps all 80 class outputs, so `67` stays the class ID in predictions, the same as in COCO-pretrained models.
+- Validation filters labels and predictions the same way, so mAP is reported for the selected classes only.
+
+### Download Only the Images for Selected Classes
+
+To skip the 20.3 GB download, build a smaller dataset from the COCO2017 labels in YOLO format (49 MB). This script finds the images that contain the selected class, downloads only those from the COCO image server, and writes a dataset YAML that lists them:
+
+!!! example "Build a COCO Subset for One Class"
+
+    === "Python"
+
+        ```python
+        from pathlib import Path
+
+        from ultralytics import YOLO
+        from ultralytics.utils import ASSETS_URL, YAML
+        from ultralytics.utils.checks import check_yaml
+        from ultralytics.utils.downloads import download
+
+        class_id = 67  # cell phone, from the names list in coco.yaml
+        root = Path("datasets/coco-cell-phone/coco").resolve()
+
+        # YOLO-format labels only
+        download(f"{ASSETS_URL}/coco2017labels.zip", dir=root.parent, delete=True)
+
+        for split in ("train2017", "val2017"):
+            # Download only the images that contain the selected class
+            stems = [
+                f.stem
+                for f in sorted((root / "labels" / split).glob("*.txt"))
+                if any(line.split()[0] == str(class_id) for line in f.read_text().splitlines())
+            ]
+            download([f"http://images.cocodataset.org/{split}/{s}.jpg" for s in stems], dir=root / "images" / split, threads=8)
+            (root / f"{split}-subset.txt").write_text("".join(f"./images/{split}/{s}.jpg\n" for s in stems))
+
+        # Keep all 80 COCO names so class IDs match coco.yaml and COCO-pretrained models
+        names = YAML.load(check_yaml("coco.yaml"))["names"]
+        data = {"path": str(root), "train": "train2017-subset.txt", "val": "val2017-subset.txt", "names": names}
+        YAML.save(root / "coco-cell-phone.yaml", data)
+
+        # Train on the subset, dropping labels of the other classes in these images
+        model = YOLO("yolo26n.pt")
+        results = model.train(data=root / "coco-cell-phone.yaml", classes=[class_id], epochs=100, imgsz=640)
+        ```
+
+For `cell phone`, the subset is 4,803 training and 214 validation images, about 720 MB, and the script downloads it in a few minutes. Every image in it contains the class, so the model never trains or validates on scenes without one; expect more false positives on such images than after training with `data=coco.yaml`.
+
+!!! warning "Use a separate folder"
+
+    Keep the subset out of your full `coco` folder. The labels archive also contains `train2017.txt` and `val2017.txt`, so if it is unpacked there, `data=coco.yaml` finds those lists, skips its image download, and trains only on the subset images, logging every missing image as corrupt.
 
 ## Sample Images and Annotations
 

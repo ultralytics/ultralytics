@@ -179,7 +179,7 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 
 To move several keypoints of one pose together, such as a whole arm, select the pose, then `Shift+Click` each keypoint you want; `Shift+Click` a selected keypoint again to drop it. Dragging any selected keypoint moves them all by the same offset, while dragging an unselected keypoint moves only that keypoint and clears the keypoint selection. Keypoints can be selected in one pose at a time, and the selection clears when the pose selection changes.
 
-![Ultralytics Platform annotation toolbar template picker listing the Person, Hand, Dog, Face, and Box default templates and two custom templates](https://cdn.ul.run/i/5251858d58bab8d5073c46ec98fe1e65.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/5251858d58bab8d5073c46ec98fe1e65.avif)<!-- screenshot -->
 
 #### Built-in Skeleton Templates
 

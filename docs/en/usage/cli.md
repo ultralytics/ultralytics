@@ -395,6 +395,14 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
         yolo solutions parking source="path/to/video.mp4" json_file="bounding_boxes.json" model="yolo26n.pt"
         ```
 
+    === "OCR"
+
+        Read text in a video and save it annotated with the recognized words:
+
+        ```bash
+        yolo solutions ocr source="path/to/video.mp4" # specify video file path
+        ```
+
     === "Help"
 
         View available solutions and their options:

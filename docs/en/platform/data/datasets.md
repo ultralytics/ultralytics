@@ -634,20 +634,18 @@ Images that failed processing are listed here with:
 
 - **Error banner**: Total count of failed images and guidance
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
-- Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
+- Common errors include corrupted files and unsupported formats
 
 ![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.ul.run/i/7d3959d9f884e2d14d53ee75e884a74e.avif)<!-- screenshot -->
 
 ??? info "Common Processing Errors"
 
-    | Error                     | Cause                              | Fix                                 |
-    | ------------------------- | ---------------------------------- | ----------------------------------- |
-    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor         |
-    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file       |
-    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP        |
-    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload       |
-    | Image too small           | Minimum dimension below 28px       | Use higher resolution source images |
-    | Unsupported color mode    | CMYK or indexed color mode         | Convert to RGB mode                 |
+    | Error                     | Cause                              | Fix                           |
+    | ------------------------- | ---------------------------------- | ----------------------------- |
+    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor   |
+    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file |
+    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP  |
+    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload |
 
 ### Versions Tab
 

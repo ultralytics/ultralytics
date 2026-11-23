@@ -128,7 +128,9 @@ best settings are candidates to validate on your own images:
 1. **Detect text:** YOLO26 produces axis-aligned boxes, oriented boxes, or segmentation polygons. A mask is read from
    the minimum-area rectangle around its outline.
 2. **Find the page rotation:** The text direction is the mean long-side angle of the detected words, weighted by how
-   elongated they are. Words under 2:1, such as single characters, abstain, so a page of only those stays unrotated.
+   elongated they are. Words under 2:1, such as single characters, abstain, so a page of only those stays unrotated. On
+   a weak sideways vote, boxes shorter than twice the median short side are discounted, so an isolated upright `1` or
+   `I` does not turn the page.
 3. **Crop words upright:** The page is rotated so its text runs left to right, and each word is cropped and rectified
    there. Words are grouped into lines: same baseline within half the smaller text height, split at gaps wider than 1.5
    text heights.

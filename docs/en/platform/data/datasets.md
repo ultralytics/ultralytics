@@ -309,7 +309,7 @@ flowchart TD
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, [LabelMe](../integrations/labelme.md), and [Ultralytics](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
-File uploads and URL imports skip conflicts without prompting: an image is not added again when its content was already in the dataset before the import, under any filename or split, or when an image in the same split has the same content or filename. If any were skipped, the completion message gives the count without listing filenames. To keep both versions of a filename or replace a conflicting image, set `conflictPolicy` through the [ingest API](../api/index.md#ingest-dataset-data).
+File uploads and URL imports skip conflicts without prompting: an image is not added when its content was already in the dataset before the import, under any filename or split, or when an image in the same split has the same content or filename. If any were skipped, the completion message gives the count without listing filenames. To keep both versions of a filename or replace a conflicting image, set `conflictPolicy` through the [ingest API](../api/index.md#ingest-dataset-data).
 
 !!! info "Stored Image Encoding"
 

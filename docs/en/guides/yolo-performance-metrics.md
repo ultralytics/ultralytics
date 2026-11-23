@@ -431,36 +431,6 @@ The YOLO26 and Ultralytics community is also a useful resource: engaging with ot
 
 Mean Average Precision (mAP) is crucial for evaluating YOLO26 models as it provides a single metric encapsulating precision and recall across multiple classes. mAP<sub>50</sub> measures average precision at an IoU threshold of 0.50, focusing on the model's ability to detect objects correctly. mAP<sub>50-95</sub> averages it across a range of IoU thresholds, offering a comprehensive assessment of detection performance. High mAP scores indicate that the model effectively balances precision and recall, essential for applications like [autonomous driving](https://www.ultralytics.com/solutions/computer-vision-in-automotive) and surveillance systems where both accurate detection and minimal false alarms are critical.
 
-### How do I interpret the Intersection over Union (IoU) value for YOLO26 object detection?
-
-Intersection over Union (IoU) measures the overlap between the predicted and ground truth bounding boxes. IoU values range from 0 to 1, where higher values indicate better localization accuracy. An IoU of 1.0 means perfect alignment. Typically, an IoU threshold of 0.50 is used to define true positives in metrics like mAP. Validation does not print an IoU score: lower IoU can show up as mAP<sub>50-95</sub> falling well below mAP<sub>50</sub>, and suggests that the model struggles with precise object localization, which can be improved by refining bounding box regression or increasing annotation accuracy in your [training dataset](../datasets/index.md).
-
-### Why is the F1 Score important for evaluating YOLO26 models in object detection?
-
-The F1 Score is important for evaluating YOLO26 models because it provides a harmonic mean of precision and recall, balancing both false positives and false negatives. It is particularly valuable when dealing with imbalanced datasets or applications where either precision or recall alone is insufficient. A high F1 Score indicates that the model effectively detects objects while minimizing both missed detections and false alarms, making it suitable for critical applications like [security systems](security-alarm-system.md) and [medical imaging](https://www.ultralytics.com/solutions/computer-vision-in-healthcare).
-
-### What are the key advantages of using Ultralytics YOLO26 for real-time object detection?
-
-Ultralytics YOLO26 offers multiple advantages for real-time object detection:
-
-- **Speed and Efficiency**: Optimized for high-speed inference, suitable for applications requiring low latency.
-- **High Accuracy**: Achieves high mAP across model sizes while balancing precision and recall.
-- **Flexibility**: Supports various tasks including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md).
-- **Ease of Use**: User-friendly interfaces, extensive documentation, and integration with tools like [Ultralytics Platform](../platform/quickstart.md).
-
-This makes YOLO26 well suited to diverse applications, from autonomous vehicles to [smart city solutions](queue-management.md).
-
-### How can validation metrics from YOLO26 help improve model performance?
-
-Validation metrics from YOLO26 like precision, recall, and mAP help diagnose and improve model performance by providing insights into different aspects of detection:
-
-- **Precision**: Helps identify and minimize false positives.
-- **Recall**: Ensures all relevant objects are detected.
-- **mAP**: Offers an overall performance snapshot, guiding general improvements.
-- **mAP<sub>50-95</sub>**: Helps fine-tune object localization accuracy, because it includes tighter IoU thresholds than mAP<sub>50</sub>.
-
-By analyzing these metrics, specific weaknesses can be targeted, such as adjusting the confidence threshold used for prediction to improve precision or gathering more diverse data to enhance recall. For detailed explanations of these metrics and how to interpret them, check [Object Detection Metrics](#object-detection-metrics) and consider implementing [hyperparameter tuning](hyperparameter-tuning.md) to optimize your model.
-
 ### At what confidence threshold are precision and recall calculated in YOLO validation?
 
 Ultralytics YOLO validation reports precision and recall at the confidence that maximizes the smoothed F1 curve averaged over classes, not at the `conf` argument. A detection counts as correct at that point when it matches a label of the same class with an IoU of at least 0.50. For the pretrained YOLO26 models on COCO, that confidence was 0.201 to 0.300. See [Confidence Threshold](#confidence-threshold).
@@ -476,7 +446,3 @@ mAP averages the area under the precision-recall curve of each class, and a high
 ### Why is `metrics.box.map` different from the published COCO mAP?
 
 The published values are COCO-style AP, which validation computes with `faster-coco-eval` and prints for `coco.yaml`, while `metrics.box.map` keeps the value Ultralytics computes itself. On COCO val2017, the five YOLO26 models returned 0.402 to 0.568 in `metrics.box.map` against a printed COCO-style AP of 0.408 to 0.575. See [Validation Results](#validation-results).
-
-### How is `best.pt` chosen during training?
-
-Ultralytics saves `best.pt` at the epoch with the highest validation fitness; for detection, fitness is mAP<sub>50-95</sub>, also available as `metrics.fitness`. To save the best model by another metric, see [Saving the Best Model by Custom Metric](custom-trainer.md#saving-the-best-model-by-custom-metric).

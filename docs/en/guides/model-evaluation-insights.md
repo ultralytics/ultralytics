@@ -137,7 +137,7 @@ To find what the model gets wrong, rank validation images by per-image F1 and in
 
 With `visualize=True`, each image's ground truth, true positives, false positives, and false negatives are saved as one grid in the run's `visualizations/` folder under the image's file name.
 
-When you review the worst images, decide whether each one shows a model error or a mistake in the ground truth: a missing, mislabeled, or badly placed box makes a correct prediction look like an error. Correct a label only when it breaks your [annotation guidelines](./data-collection-and-annotation.md#setting-annotation-guidelines), never just because the model disagrees with it, and keep a test split you do not edit during this review so you can confirm the changes really improve the model. On [Ultralytics Platform](https://platform.ultralytics.com), detection runs trained on a saved dataset version get [per-image diagnostics](../platform/train/models.md#per-image-diagnostics), which rank the worst images by F1 in the browser.
+When you review the worst images, decide whether each one shows a model error or a mistake in the ground truth: a missing, mislabeled, or badly placed box makes a correct prediction look like an error. Correct a label only when it breaks your [annotation guidelines](./data-collection-and-annotation.md#setting-annotation-guidelines), never just because the model disagrees with it, and keep a test split you do not edit during this review so you can confirm the changes really improve the model.
 
 ## Fine-Tuning Your Model
 

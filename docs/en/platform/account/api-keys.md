@@ -112,7 +112,7 @@ Validate and save the key using the YOLO CLI on Python>=3.11. The same command w
 yolo login YOUR_API_KEY
 ```
 
-Training, `ul://` dataset downloads, and the Python SDK then use the saved key whenever `ULTRALYTICS_API_KEY` is not set; the environment variable takes precedence. Remove the saved key with `yolo logout`.
+Training and `ul://` dataset downloads then use the saved key whenever `ULTRALYTICS_API_KEY` is not set; the environment variable takes precedence. Remove the saved key with `yolo logout`.
 
 ### HTTP Headers
 

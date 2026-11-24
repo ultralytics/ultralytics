@@ -388,7 +388,7 @@ Read more about [endpoints](deploy/endpoints.md).
 
 If you prefer to train on your own hardware, you can use your API key to train anywhere and stream metrics to Ultralytics Platform.
 
-The fastest route is the **Local Training** tab in the training dialog: it builds the full command for your selected model, dataset, and parameters, and fills in an API key (creating one if you don't have one yet). Copy it and run it in your terminal. Its first line is the Linux/macOS `export` command; on Windows, set the key with [`yolo login` or your shell's command](train/cloud-training.md#set-up-api-key) instead.
+The fastest route is the **Local Training** tab in the training dialog: it builds the full command for your selected model, dataset, and parameters, and fills in an API key (creating one if you don't have one yet). Copy it and run it in your terminal. On Windows, see [Set Up API Key](train/cloud-training.md#set-up-api-key) first.
 
 To assemble the command yourself:
 

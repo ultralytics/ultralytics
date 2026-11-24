@@ -260,27 +260,9 @@ Train on your own hardware while streaming metrics to the platform.
 yolo login YOUR_API_KEY
 ```
 
-Or set the `ULTRALYTICS_API_KEY` environment variable for the current terminal session, with the command for your shell:
+Or set the `ULTRALYTICS_API_KEY` environment variable for the current terminal session, with the [command for your shell](../account/api-keys.md#environment-variable) (`export` on Linux and macOS, `$env:` in PowerShell, `set` in Command Prompt).
 
-=== "Linux/macOS"
-
-    ```bash
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    $env:ULTRALYTICS_API_KEY = "YOUR_API_KEY"
-    ```
-
-=== "Windows Command Prompt"
-
-    ```bat
-    set ULTRALYTICS_API_KEY=YOUR_API_KEY
-    ```
-
-The **Local Training** tab's command starts with the Linux/macOS `export` line, which PowerShell and Command Prompt don't recognize; on Windows, run `yolo login` or the line for your shell instead, then the `yolo train` command. See [API Keys](../account/api-keys.md#using-api-keys) for how the saved key and the environment variable interact.
+The **Local Training** tab's command starts with the Linux/macOS `export` line, which PowerShell and Command Prompt don't recognize. On Windows, run `yolo login` first, then paste only the `yolo train` line into PowerShell; Command Prompt doesn't understand the single quotes the command puts around values with spaces or brackets.
 
 ### Train with Streaming
 

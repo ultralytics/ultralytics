@@ -178,8 +178,7 @@ This approach is particularly useful when the target domain differs significantl
     model = YOLO("yolo26n.pt")
     model.train(data="custom.yaml", epochs=20, freeze=10, name="stage1")
 
-    # Stage 2: unfreeze all layers
-    model = YOLO(model.trainer.best)
+    # Stage 2: unfreeze all layers (model now holds stage 1's best.pt)
     model.train(data="custom.yaml", epochs=30, optimizer="AdamW", lr0=0.001, name="stage2")
     ```
 

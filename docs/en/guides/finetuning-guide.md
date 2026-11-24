@@ -91,7 +91,7 @@ Larger models have more capacity but also more parameters to update, which can i
 
 ## Optimizer and Learning Rate Selection
 
-The default `optimizer=auto` setting selects the optimizer and learning rate based on the number of training iterations, counted as ⌈images / max(`batch`, 64)⌉ × epochs:
+The default `optimizer=auto` setting selects the optimizer and learning rate based on the number of training iterations, counted as ⌈images / max(`batch`, `nbs`)⌉ × epochs (`nbs` is 64 by default):
 
 - **10,000 iterations or fewer** (small datasets or few epochs): AdamW with lr=0.01/(4 + number of classes)
 - **More than 10,000 iterations** (large datasets): [MuSGD](../reference/optim/muon.md) (a [hybrid Muon+SGD optimizer](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd)) with lr=0.01

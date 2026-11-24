@@ -14,8 +14,7 @@ from .base import BaseBackend
 class AxeraBackend(BaseBackend):
     """AXERA NPU inference backend for Pulsar2 models.
 
-    Loads a compiled .axmodel and runs it on an AXERA board or M.2 card through the ``axengine`` runtime
-    (pyaxengine).
+    Loads a compiled .axmodel and runs it on an AXERA board or M.2 card through the ``axengine`` runtime (pyaxengine).
     """
 
     def load_model(self, weight: str | Path) -> None:

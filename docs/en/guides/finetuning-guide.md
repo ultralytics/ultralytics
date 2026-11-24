@@ -195,7 +195,7 @@ This approach is particularly useful when the target domain differs significantl
     ```
 
 - **Lower confidence threshold**: if predictions exist but are filtered out, try `conf=0.1` during inference.
-- **Verify class ids**: label ids must be below the number of `names` in `custom.yaml`; images with larger ids are skipped as corrupt.
+- **Verify class ids**: label ids must be below the number of `names` in `custom.yaml`; images with an id at or above that number are skipped as corrupt.
 
 ### Validation mAP plateaus early
 

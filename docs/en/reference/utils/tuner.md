@@ -12,10 +12,6 @@ keywords: Ultralytics, tuner, hyperparameter tuning, Ray Tune, YOLO, machine lea
 
 <br>
 
-## ::: ultralytics.utils.tuner._sanitize_tune_value
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.tuner._get_ray_search_alg_kind
 
 <br><br><hr><br>

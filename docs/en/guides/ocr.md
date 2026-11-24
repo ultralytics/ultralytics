@@ -70,9 +70,8 @@ dependencies.
             print(text["line"], text["text"], text["confidence"])
         ```
 
-`ocr()` takes one BGR image as a three-channel `uint8` NumPy array, so convert grayscale or BGRA images with
-`cv2.cvtColor` first. The CLI saves an annotated `ocr.avi` under the Ultralytics `runs` directory and does not print or
-save the recognized text; use Python to work with the [results](#ocr-results).
+The CLI saves an annotated `ocr.avi` under the Ultralytics `runs` directory and does not print or save the recognized
+text; use Python to work with the [results](#ocr-results).
 
 ### YOLO26-Text Checkpoints and Settings
 
@@ -128,7 +127,9 @@ best settings are candidates to validate on your own images:
 1. **Detect text:** YOLO26 produces axis-aligned boxes, oriented boxes, or segmentation polygons. A mask is read from
    the minimum-area rectangle around its outline.
 2. **Find the page rotation:** The text direction is the mean long-side angle of the detected words, weighted by how
-   elongated they are. Words under 2:1, such as single characters, abstain, so a page of only those stays unrotated.
+   elongated they are. Words under 2:1, such as single characters, abstain, so a page of only those stays unrotated. On
+   a weak sideways vote, boxes shorter than twice the median short side do not vote, so an isolated upright `1` or `I`
+   does not turn the page.
 3. **Crop words upright:** The page is rotated so its text runs left to right, and each word is cropped and rectified
    there. Words are grouped into lines: same baseline within half the smaller text height, split at gaps wider than 1.5
    text heights.
@@ -294,9 +295,7 @@ print(json.dumps(words))
 
 On the [benchmark](#benchmarks) photos, keeping words with a recognition confidence of at least 0.8 raised word
 precision from 77.7% to 86.8% and lowered recall from 77.2% to 76.1% with the default settings. Lines are ordered by
-baseline across the whole page, so a multi-column page is returned row by row rather than column by column. `plot_im`
-can be the input array with the annotations drawn on it, so pass `im0.copy()` when you need the unannotated image
-afterward.
+baseline across the whole page, so a multi-column page is returned row by row rather than column by column.
 
 ## Benchmarks
 

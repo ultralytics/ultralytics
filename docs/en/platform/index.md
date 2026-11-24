@@ -120,8 +120,8 @@ You can train models either through the web UI (cloud training) or from your own
     # Install ultralytics
     pip install "ultralytics>=8.4.120"
 
-    # Set your API key
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    # Save your API key once (works on Linux, macOS, and Windows)
+    yolo login YOUR_API_KEY
 
     # Train and stream metrics to the platform
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -376,8 +376,8 @@ You can train models on your own hardware and stream real-time metrics to Ultral
 === "CLI"
 
     ```bash
-    # Set your API key
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    # Save your API key once (works on Linux, macOS, and Windows)
+    yolo login YOUR_API_KEY
 
     # Train with project/name to stream metrics
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -404,9 +404,7 @@ You can train models on your own hardware and stream real-time metrics to Ultral
 === "Platform Dataset (ul:// URI)"
 
     ```bash
-    # Train using a Platform dataset directly
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
-
+    # Train using a Platform dataset directly (after yolo login YOUR_API_KEY)
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```
 

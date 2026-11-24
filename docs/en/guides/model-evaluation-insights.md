@@ -107,6 +107,38 @@ Note that `fitness()` is a method and must be called with parentheses, while met
 
 The `results.box.image_metrics` attribute is a per-image dictionary keyed by image path relative to the common image directory, holding `precision`, `recall`, `f1`, `tp`, `fp`, and `fn` at IoU 0.5 for each image. Preprocessing, inference, loss, and postprocessing timings are reported separately in the `results.speed` dictionary. Together, these let you pinpoint which images the model struggles with and fine-tune accordingly.
 
+### Finding Errors Image by Image
+
+To find what the model gets wrong, rank validation images by per-image F1 and inspect the worst ones. Validation keeps predictions down to a very low [`conf`](../modes/val.md#arguments-for-yolo-model-validation) for precision-recall evaluation, and per-image metrics and overlays count all of them, so pass your deployment `conf` to see the errors your deployed model makes.
+
+!!! example "Rank images worst-first and save TP/FP/FN overlays"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("path/to/best.pt")
+
+        # Validate at the deployment threshold and save per-image TP/FP/FN overlays
+        results = model.val(data="path/to/data.yaml", conf=0.25, visualize=True)
+
+        # Rank images worst-first by F1
+        worst = sorted(results.box.image_metrics.items(), key=lambda kv: kv[1]["f1"])
+        for name, m in worst[:20]:
+            print(f"{name}: F1={m['f1']:.2f} TP={m['tp']} FP={m['fp']} FN={m['fn']}")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo val model=path/to/best.pt data=path/to/data.yaml conf=0.25 visualize=True
+        ```
+
+With `visualize=True`, each image's ground truth, true positives, false positives, and false negatives are saved as one grid in the run's `visualizations/` folder under the image's file name.
+
+When you review the worst images, decide whether each one shows a model error or a mistake in the ground truth: a missing, mislabeled, or badly placed box makes a correct prediction look like an error. Correct a label only when it breaks your [annotation guidelines](./data-collection-and-annotation.md#setting-annotation-guidelines), never just because the model disagrees with it, and keep a test split you do not edit during this review so you can confirm the changes really improve the model.
+
 ## Fine-Tuning Your Model
 
 [Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) takes a pretrained model and adjusts its parameters to improve performance on a specific task or dataset. Also known as model retraining, it lets the model better understand and predict outcomes for the data it will encounter in real-world applications. Based on your evaluation results, you retrain the model on your own data, adjusting the training arguments covered in the [fine-tuning guide](./finetuning-guide.md).

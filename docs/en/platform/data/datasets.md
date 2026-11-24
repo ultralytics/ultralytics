@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 [Ultralytics Platform](https://platform.ultralytics.com) datasets hold the images, labels, and splits that make up your [training data](https://www.ultralytics.com/glossary/training-data). After upload, the platform processes images, labels, and statistics automatically.
 
-A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
+A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing. The badge counts images per split, so when you open the training dialog Platform also runs the checks **Start Training** does: a dataset other than depth needs class names (and a pose dataset a keypoint shape), the `train` and `val` or `test` splits each need an image that processed without errors, a classification dataset needs labeled images in both, and a depth dataset needs depth-paired images (1 in `train`, 2 in `val`). If a check fails, the dialog shows the reason and keeps **Start Training** disabled, even when the badge reads `Ready`.
 
 ## Collect Images with Agents
 
@@ -290,21 +290,7 @@ Depth datasets can only be created from **Upload** or **URL**; the **Cloud** and
 
 Platform validates your files in the browser before uploading anything, so common problems surface immediately rather than after a long transfer. Archives are checked for corruption, emptiness, password protection, and YAML syntax errors, and oversized files are listed by name. A ZIP cut short by an interrupted download or copy has no end-of-archive record, so it stops with **Unable to read ZIP file** before any bytes upload; download or copy it again. URL imports can't be checked in the browser, so an incomplete ZIP at a link fails during processing with **Unable to read this archive**.
 
-Two dialogs may then appear:
-
-=== "Map Classes"
-
-    When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case, except for one- and two-character names) are preselected, and the annotations of skipped classes are not imported.
-
-=== "Handle Conflicts"
-
-    When you upload an archive, multiple files, or anything into a dataset that already has images, Platform asks how to handle filename or content conflicts:
-
-    | Choice        | Behavior                                    |
-    | ------------- | ------------------------------------------- |
-    | **Skip**      | Keep the existing images, drop the incoming |
-    | **Keep Both** | Import the incoming alongside the existing  |
-    | **Replace**   | Overwrite the existing images               |
+When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case, except for one- and two-character names) are preselected, and the annotations of skipped classes are not imported.
 
 After upload, the platform processes your data automatically:
 
@@ -322,6 +308,8 @@ flowchart TD
 3. **Thumbnails**: 256px WebP previews generated
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, [LabelMe](../integrations/labelme.md), and [Ultralytics](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
+
+File uploads and URL imports skip conflicts without prompting: an image is not added when its content was already in the dataset before the import, under any filename or split, or when an image in the same split has the same content or filename. If any were skipped, the completion message gives the count without listing filenames. To keep both versions of a filename or replace a conflicting image, set `conflictPolicy` through the [ingest API](../api/index.md#ingest-dataset-data).
 
 !!! info "Stored Image Encoding"
 
@@ -889,7 +877,7 @@ Use this URI to train models from anywhere:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    yolo login YOUR_API_KEY # once, on any OS
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 

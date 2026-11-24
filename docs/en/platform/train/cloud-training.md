@@ -254,11 +254,15 @@ Train on your own hardware while streaming metrics to the platform.
 
 1. Go to [`Settings > API Keys`](../account/api-keys.md)
 2. Create a new key (or the platform auto-creates one when you open the Local Training tab)
-3. Set the environment variable:
+3. Save the key once with `yolo login`, which works in any terminal on Linux, macOS, and Windows:
 
 ```bash
-export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+yolo login YOUR_API_KEY
 ```
+
+Or set the `ULTRALYTICS_API_KEY` environment variable for the current terminal session, with the [command for your shell](../account/api-keys.md#environment-variable) (`export` on Linux and macOS, `$env:` in PowerShell, `set` in Command Prompt).
+
+The **Local Training** tab's command starts with the Linux/macOS `export` line, which PowerShell and Command Prompt don't recognize. On Windows, run `yolo login` first, then paste only the `yolo train` line into PowerShell; Command Prompt doesn't understand the single quotes the command puts around values with spaces or brackets.
 
 ### Train with Streaming
 
@@ -267,8 +271,7 @@ Use the `project` and `name` parameters to stream metrics:
 === "CLI"
 
     ```bash
-    yolo train model=yolo26n.pt data=coco.yaml epochs=100 \
-      project=username/my-project name=experiment-1
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=experiment-1
     ```
 
 === "Python"
@@ -309,8 +312,7 @@ Train with datasets stored on the platform using the [`ul://` URI format](../dat
 === "CLI"
 
     ```bash
-    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 \
-      project=username/my-project name=exp1
+    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```
 
 === "Python"

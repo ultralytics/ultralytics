@@ -186,13 +186,13 @@ Across its five model sizes (n/s/m/l/x), Ultralytics YOLO26 reaches 40.1-56.9 [m
 
 ## Version-by-Version Summary
 
-| Version    | Backbone block            | Spatial pooling     | Attention | Detection head                                   | DFL                       |
-| ---------- | ------------------------- | ------------------- | --------- | ------------------------------------------------ | ------------------------- |
-| **YOLOv3** | Darknet-53 (`Bottleneck`) | none in base config | none      | Original: anchor-based; `u` variant: anchor-free | no / yes (`u`)            |
-| **YOLOv5** | `C3` (CSP)                | `SPPF`              | none      | Original: anchor-based; `u` variant: anchor-free | no / yes (`u`)            |
-| **YOLOv8** | `C2f`                     | `SPPF`              | none      | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
-| **YOLO11** | `C3k2`                    | `SPPF`              | `C2PSA`   | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
-| **YOLO26** | `C3k2`                    | `SPPF` + shortcut   | `C2PSA`   | Anchor-free, dual heads; optional NMS-free       | **removed** (`reg_max=1`) |
+| Version    | Backbone block            | Spatial pooling     | Attention                 | Detection head                                   | DFL                       |
+| ---------- | ------------------------- | ------------------- | ------------------------- | ------------------------------------------------ | ------------------------- |
+| **YOLOv3** | Darknet-53 (`Bottleneck`) | none in base config | none                      | Original: anchor-based; `u` variant: anchor-free | no / yes (`u`)            |
+| **YOLOv5** | `C3` (CSP)                | `SPPF`              | none                      | Original: anchor-based; `u` variant: anchor-free | no / yes (`u`)            |
+| **YOLOv8** | `C2f`                     | `SPPF`              | none                      | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
+| **YOLO11** | `C3k2`                    | `SPPF`              | `C2PSA`                   | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
+| **YOLO26** | `C3k2`                    | `SPPF` + shortcut   | `C2PSA` + neck `PSABlock` | Anchor-free, dual heads; optional NMS-free       | **removed** (`reg_max=1`) |
 
 For per-model details, performance tables, and usage examples, see the individual pages for [YOLOv3](../models/yolov3.md), [YOLOv5](../models/yolov5.md), [YOLOv8](../models/yolov8.md), [YOLO11](../models/yolo11.md), and [YOLO26](../models/yolo26.md).
 

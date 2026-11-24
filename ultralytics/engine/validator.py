@@ -158,6 +158,7 @@ class BaseValidator:
 
     def merge_tiles(self, preds: list | torch.Tensor, batch: dict, pending: dict):
         """Restore completed sources using existing task scaling, then evaluate their original targets."""
+        from ultralytics.engine.results import Masks
         from ultralytics.utils import ops
 
         dataset = self.dataloader.dataset
@@ -205,6 +206,8 @@ class BaseValidator:
                 self.args.single_cls or self.args.agnostic_nms,
                 self.args.max_det,
             )
+            if "masks" in output:  # metrics read the dense stack
+                output["masks"] = Masks(output["masks"], full_batch["img"].shape[2:]).data
             if "bboxes" in output:
                 output = [output]
             elif "depth" in output:

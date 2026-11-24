@@ -1,11 +1,11 @@
 ---
-title: Export YOLO to MNN for Mobile
+title: Export YOLO to Alibaba MNN for Mobile
 comments: true
 description: Export Ultralytics YOLO26 models to Alibaba MNN for fast mobile and embedded inference, with FP16 and INT8 quantization and Python and C++ deployment examples.
 keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, inference, quantization
 ---
 
-# MNN Export for YOLO26 Models and Deployment
+# Alibaba MNN Export for YOLO26 Models and Deployment
 
 ## MNN
 
@@ -17,13 +17,13 @@ keywords: Ultralytics, YOLO26, MNN, model export, machine learning, deployment, 
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/i34PacLIlq8"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/_fsABGtSbqo"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Export Ultralytics YOLO to MNN Format | Speed up Inference on Mobile Devices📱
+  <strong>Watch:</strong> Speed Up Ultralytics YOLO26 Inference with MNN Export | PyTorch vs MNN 🚀
 </p>
 
 ## Supported Tasks

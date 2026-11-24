@@ -1,9 +1,9 @@
 ---
 plans: [free, pro, enterprise]
-title: API Key Management
+title: Ultralytics API Keys and yolo login
 comments: true
-description: Create and manage API keys for Ultralytics Platform with secure AES-256-GCM encryption for remote training and programmatic access.
-keywords: Ultralytics Platform, API keys, authentication, remote training, security, access control
+description: Create Ultralytics Platform API keys, save one with yolo login, or set ULTRALYTICS_API_KEY on Linux, macOS, or Windows for remote training, ul:// datasets, and the REST API.
+keywords: Ultralytics Platform, API keys, ULTRALYTICS_API_KEY, yolo login, set environment variable Windows, PowerShell, authentication, remote training, security, access control
 ---
 
 # API Keys
@@ -90,21 +90,29 @@ Set your key as an environment variable:
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     ```
 
-=== "Windows"
+=== "Windows PowerShell"
 
     ```powershell
     $env:ULTRALYTICS_API_KEY = "YOUR_API_KEY"
     ```
 
+=== "Windows Command Prompt"
+
+    ```bat
+    set ULTRALYTICS_API_KEY=YOUR_API_KEY
+    ```
+
+These lines set the key for the current terminal session only. To keep it across sessions, save it with [`yolo login`](#yolo-cli) instead.
+
 ### YOLO CLI
 
-Validate and save the key using the YOLO CLI on Python>=3.11:
+Validate and save the key using the YOLO CLI on Python>=3.11. The same command works on Linux, macOS, and Windows:
 
 ```bash
 yolo login YOUR_API_KEY
 ```
 
-Remove the saved key with `yolo logout`.
+Training and `ul://` dataset downloads then use the saved key whenever `ULTRALYTICS_API_KEY` is not set; the environment variable takes precedence. Remove the saved key with `yolo logout`.
 
 ### HTTP Headers
 
@@ -135,8 +143,9 @@ Install or update the Ultralytics package on Python>=3.11 before starting:
 pip install -U ultralytics
 ```
 
+With the key saved by `yolo login` or set as an [environment variable](#environment-variable), pass a Platform `project`:
+
 ```bash
-export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 yolo train model=yolo26n.pt data=coco.yaml project=username/project name=exp1
 ```
 

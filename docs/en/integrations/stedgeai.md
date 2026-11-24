@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Export Ultralytics YOLO models with format="stedgeai" to float or INT8 ONNX for STMicroelectronics STM32 devices, check accuracy on your computer, and compile with ST Edge AI Core.
-keywords: ST Edge AI, STEdgeAI, format="stedgeai", STMicroelectronics, STM32, STM32N6, Neural-ART, STM32 AI Model Zoo, ST Edge AI Core, ONNX QDQ, INT8 quantization, microcontroller, MCU, edge AI, Ultralytics, YOLO26, YOLO11, ONNX export
+keywords: ST Edge AI, STEdgeAI, format="stedgeai", STMicroelectronics, STM32, STM32N6, Neural-ART, STM32 AI Model Zoo, ST Edge AI Core, ONNX QDQ, INT8 quantization, microcontroller, MCU, edge AI, Ultralytics, Ultralytics Platform, YOLO26, YOLO11, ONNX export
 ---
 
 # ST Edge AI Export for Ultralytics YOLO Models
@@ -95,6 +95,10 @@ RT-DETR and YOLO-NAS models are not supported.
         ```
 
 Each export writes one file. Ultralytics recognizes ST Edge AI models by the `_stedgeai.onnx` ending and then scales the coordinates back to pixels, upsamples semantic and depth maps, and converts log-depth to metric depth. Keep that ending when you rename a file; a plain `.onnx` name loads as a standard ONNX model and returns boxes in `[0, 1]`.
+
+!!! tip "Export on Ultralytics Platform"
+
+    [Ultralytics Platform](../platform/train/models.md#export-model) exports a trained model to ST Edge AI from the model's **Export** tab, in FP32 or INT8, and the download keeps the `_stedgeai.onnx` ending. Platform calibrates INT8 on the task's default dataset (see [Format Restrictions](../platform/train/models.md#format-restrictions)), so pass `data` in a local export to calibrate on your own images.
 
 ### Export Arguments
 

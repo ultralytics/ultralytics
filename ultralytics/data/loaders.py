@@ -54,9 +54,9 @@ class SourceTypes:
     tensor: bool = False
 
 
-def tile_batches(images: list[np.ndarray], size: int | tuple[int, int], batch: int):
+def tile_batches(images: list[np.ndarray], size: int | tuple[int, int], batch: int, overlap: float):
     """Yield bounded crop batches and their (source index, window) metadata without copying source images."""
-    windows = [(i, w) for i, image in enumerate(images) for w in tile_windows(image.shape[:2], size)]
+    windows = [(i, w) for i, image in enumerate(images) for w in tile_windows(image.shape[:2], size, overlap)]
     for start in range(0, len(windows), batch):
         chunk = windows[start : start + batch]
         yield [images[i][y1:y2, x1:x2] for i, (x1, y1, x2, y2) in chunk], chunk, start + batch >= len(windows)

@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 [Ultralytics Platform](https://platform.ultralytics.com) datasets hold the images, labels, and splits that make up your [training data](https://www.ultralytics.com/glossary/training-data). After upload, the platform processes images, labels, and statistics automatically.
 
-A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
+A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing. The badge counts images per split, so when you open the training dialog Platform also runs the checks **Start Training** does: a dataset other than depth needs class names (and a pose dataset a keypoint shape), the `train` and `val` or `test` splits each need an image that processed without errors, a classification dataset needs labeled images in both, and a depth dataset needs depth-paired images (1 in `train`, 2 in `val`). If a check fails, the dialog shows the reason and keeps **Start Training** disabled, even when the badge reads `Ready`.
 
 ## Collect Images with Agents
 
@@ -288,23 +288,9 @@ Depth datasets can only be created from **Upload** or **URL**; the **Cloud** and
 
 #### Before the Upload Starts
 
-Platform validates your files in the browser before uploading anything, so common problems surface immediately rather than after a long transfer. Archives are checked for corruption, emptiness, password protection, and YAML syntax errors, and oversized files are listed by name.
+Platform validates your files in the browser before uploading anything, so common problems surface immediately rather than after a long transfer. Archives are checked for corruption, emptiness, password protection, and YAML syntax errors, and oversized files are listed by name. A ZIP cut short by an interrupted download or copy has no end-of-archive record, so it stops with **Unable to read ZIP file** before any bytes upload; download or copy it again. URL imports can't be checked in the browser, so an incomplete ZIP at a link fails during processing with **Unable to read this archive**.
 
-Two dialogs may then appear:
-
-=== "Map Classes"
-
-    When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case, except for one- and two-character names) are preselected, and the annotations of skipped classes are not imported.
-
-=== "Handle Conflicts"
-
-    When you upload an archive, multiple files, or anything into a dataset that already has images, Platform asks how to handle filename or content conflicts:
-
-    | Choice        | Behavior                                    |
-    | ------------- | ------------------------------------------- |
-    | **Skip**      | Keep the existing images, drop the incoming |
-    | **Keep Both** | Import the incoming alongside the existing  |
-    | **Replace**   | Overwrite the existing images               |
+When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case, except for one- and two-character names) are preselected, and the annotations of skipped classes are not imported.
 
 After upload, the platform processes your data automatically:
 
@@ -322,6 +308,8 @@ flowchart TD
 3. **Thumbnails**: 256px WebP previews generated
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, [LabelMe](../integrations/labelme.md), and [Ultralytics](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
+
+File uploads and URL imports skip conflicts without prompting: an image is not added when its content was already in the dataset before the import, under any filename or split, or when an image in the same split has the same content or filename. If any were skipped, the completion message gives the count without listing filenames. To keep both versions of a filename or replace a conflicting image, set `conflictPolicy` through the [ingest API](../api/index.md#ingest-dataset-data).
 
 !!! info "Stored Image Encoding"
 
@@ -408,7 +396,7 @@ Images can be sorted and filtered for efficient browsing:
 Click any image to open the fullscreen viewer with:
 
 - **Navigation**: Arrow keys or thumbnail previews to browse
-- **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF
+- **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF. An image added from another dataset (with [Find Similar](#find-similar-images), [Copy or Move](#copy-and-move-images), or [Clone](#clone-dataset)) or from [Generate Similar](#generate-similar-images) also shows where it came from: **Source method**, **Source dataset** (**Unavailable** when that dataset is deleted or not visible to you), **Source model** for generated images, **Source license** at import, and **Imported by** for members of the dataset's workspace. Platform records only the latest import, and plain uploads and images added before it began recording sources in November 2026 show none
 - **Custom metadata**: Owners and editors can add or replace a JSON object, including nested values up to 500,000 serialized characters and top-level keys up to 128 characters
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
@@ -423,7 +411,7 @@ Click any image to open the fullscreen viewer with:
 - **Pixel view**: Toggle pixelated rendering for close inspection
 - **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 
-![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/fdda4f9080025d94e4fe07f1e45590bf.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/e468cbb1faf97aa8518846788e435894.avif)<!-- screenshot -->
 
 ### Filter by Split
 
@@ -634,20 +622,18 @@ Images that failed processing are listed here with:
 
 - **Error banner**: Total count of failed images and guidance
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
-- Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
+- Common errors include corrupted files and unsupported formats
 
 ![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.ul.run/i/7d3959d9f884e2d14d53ee75e884a74e.avif)<!-- screenshot -->
 
 ??? info "Common Processing Errors"
 
-    | Error                     | Cause                              | Fix                                 |
-    | ------------------------- | ---------------------------------- | ----------------------------------- |
-    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor         |
-    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file       |
-    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP        |
-    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload       |
-    | Image too small           | Minimum dimension below 28px       | Use higher resolution source images |
-    | Unsupported color mode    | CMYK or indexed color mode         | Convert to RGB mode                 |
+    | Error                     | Cause                              | Fix                           |
+    | ------------------------- | ---------------------------------- | ----------------------------- |
+    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor   |
+    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file |
+    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP  |
+    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload |
 
 ### Versions Tab
 
@@ -891,7 +877,7 @@ Use this URI to train models from anywhere:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    yolo login YOUR_API_KEY # once, on any OS
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 
@@ -1017,7 +1003,7 @@ To delete several datasets at once, select their rows in the table view of the *
 
 ## Train on Dataset
 
-Start training directly from your dataset:
+Start from a dataset you can edit. If you are viewing another workspace's public dataset, [clone it](#clone-dataset) and open the copy first.
 
 1. Click `New Model` on the dataset page
 2. Select a project or create new

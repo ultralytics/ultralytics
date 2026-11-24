@@ -201,8 +201,6 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     if isinstance(device, torch.device):
         if device.type == "cuda" and device.index is None:
             return ""  # indexless torch.device('cuda') means the current CUDA device, i.e. the '' default request
-        if device.type == "cpu":
-            return "cpu"  # an indexed torch.device('cpu', 0) is the same cpu
         if device.type in {"npu", "xpu"}:
             return device.type if device.index is None else f"{device.type}:{device.index}"
     device = str(device).lower()
@@ -210,6 +208,8 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     if device == "cuda":
         device = "0"
+    elif device.startswith("cpu:") and device[4:].isdigit():
+        device = "cpu"  # an indexed 'cpu:0' or torch.device('cpu', 0) is the same cpu
     for backend in ("npu", "xpu"):
         if device.startswith(backend):
             indices = device[len(backend) :].lstrip(":").replace(f"{backend}:", "")

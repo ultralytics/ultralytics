@@ -128,7 +128,7 @@ class DetectionValidator(BaseValidator):
             and "coco" in val
             and (val.endswith((f"{os.sep}val2017.txt", f"{os.sep}test-dev2017.txt")))
         )
-        self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
+        self.is_lvis = isinstance(val, str) and "lvis" in Path(val).parts and not self.is_coco  # is LVIS
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
         self.names = model.names
@@ -424,7 +424,8 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
-        if self.names and len(self.names) < self.data["nc"]:  # standalone val of a model with fewer classes
+        # standalone val of a model with fewer classes; single_cls already maps every label to class 0
+        if self.names and len(self.names) < self.data["nc"] and not self.args.single_cls:
             LOGGER.warning(f"Skipping labels of classes the model (nc={len(self.names)}) cannot predict.")
             dataset.update_labels(list(range(len(self.names))))
         return build_dataloader(
@@ -590,7 +591,8 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Updated stats dictionary containing the computed COCO-format evaluation metrics.
         """
-        if self.args.save_json and len(self.jdict) and (self.is_coco or self.is_lvis or self.gdict):
+        # single_cls predictions all carry one category, which COCO/LVIS annotations cannot score
+        if len(self.jdict) and (self.gdict or ((self.is_coco or self.is_lvis) and not self.args.single_cls)):
             LOGGER.info("\nEvaluating faster-coco-eval mAP...")
             try:
                 for x in pred_json, anno_json:
@@ -613,6 +615,8 @@ class DetectionValidator(BaseValidator):
                         if self.gdict
                         else [int(Path(x).stem) for x in self.dataloader.dataset.im_files]
                     )
+                    if not self.gdict and self.args.classes is not None:
+                        val.params.catIds = [self.class_map[c] for c in np.atleast_1d(self.args.classes)]
                     val.evaluate()
                     val.accumulate()
                     val.summarize()

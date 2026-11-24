@@ -193,4 +193,4 @@ class ClassificationTrainer(BaseTrainer):
             labels=batch,
             fname=self.save_dir / f"train_batch{ni}.jpg",
             on_plot=self.on_plot,
-        )
+        ).join()  # complete before epoch-end callbacks read trainer.plots

@@ -4,7 +4,7 @@ description: Export Ultralytics YOLO26 models to NVIDIA TensorRT engines with fo
 keywords: YOLO26, TensorRT, TensorRT export, engine file, NVIDIA GPU, FP16, INT8 quantization, INT8 calibration, dynamic batch, NVIDIA Jetson, DLA, TensorRT 11, Triton
 ---
 
-# TensorRT Export for YOLO26 Models
+# NVIDIA TensorRT Export for YOLO26 Models
 
 [TensorRT](https://developer.nvidia.com/tensorrt) is NVIDIA's SDK for high-speed [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference. Exporting an [Ultralytics YOLO26](../models/yolo26.md) model with `format="engine"` builds a `.engine` file that is optimized for the NVIDIA GPU it is built on, in FP32, FP16, or INT8 precision.
 
@@ -142,7 +142,7 @@ The `quantize` and `data` arguments are the same on every TensorRT version, but 
 |                                  | TensorRT 7-10                                                | TensorRT 11                                                                                                                |
 | -------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | INT8 method                      | Implicit quantization with the `IInt8Calibrator` interface   | Explicit quantization: [NVIDIA ModelOpt](https://github.com/NVIDIA/Model-Optimizer) inserts Q/DQ nodes into the ONNX graph |
-| Calibration algorithm            | `MINMAX_CALIBRATION` on GPU, `ENTROPY_CALIBRATION_2` for DLA | ModelOpt `max`, run on the CPU                                                                                             |
+| Calibration algorithm            | `MINMAX_CALIBRATION` on GPU, `ENTROPY_CALIBRATION_2` for DLA | ModelOpt `entropy`, run on the CPU                                                                                         |
 | Calibration images used          | Every full batch of the split                                | About 512 images in shuffled order, or every full batch of a smaller split                                                 |
 | `dynamic=True` with `quantize=8` | Not covered by tests; export without `dynamic=True`          | Supported                                                                                                                  |
 | FP16 (`quantize=16`)             | TensorRT builder flag                                        | ModelOpt AutoCast [mixed-precision](https://www.ultralytics.com/glossary/mixed-precision) conversion                       |

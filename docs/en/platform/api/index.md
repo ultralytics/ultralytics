@@ -813,22 +813,22 @@ GET /api/datasets/{owner}/{dataset}/images
 
 **Query Parameters:**
 
-| Parameter           | Type    | Description                                                                                                                                                            |
-| ------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `limit`             | int     | Maximum images to return (default: 50, max: 5000)                                                                                                                      |
-| `offset`            | int     | Images to skip (default: 0)                                                                                                                                            |
-| `cursor`            | string  | Last image ID from the previous page, for cursor pagination                                                                                                            |
-| `includeTotal`      | boolean | Include the total matching count (default: `true`)                                                                                                                     |
-| `split`             | string  | Filter by split: `train`, `val`, `test`                                                                                                                                |
-| `hasLabel`          | boolean | Filter by annotation state                                                                                                                                             |
-| `hasError`          | boolean | Filter by processing error state                                                                                                                                       |
-| `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                       |
-| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars); a term ending in an image file extension, such as `img_0042.jpg`, matches filenames only |
-| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                           |
-| `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc`    |
-| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                        |
-| `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                                 |
-| `includeLabels`     | boolean | Include capped preview annotations (default: `false`)                                                                                                                  |
+| Parameter           | Type    | Description                                                                                                                                                                                                                    |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `limit`             | int     | Maximum images to return (default: 50, max: 5000)                                                                                                                                                                              |
+| `offset`            | int     | Images to skip (default: 0)                                                                                                                                                                                                    |
+| `cursor`            | string  | Last image ID from the previous page, for cursor pagination                                                                                                                                                                    |
+| `includeTotal`      | boolean | Include the total matching count (default: `true`)                                                                                                                                                                             |
+| `split`             | string  | Filter by split: `train`, `val`, `test`                                                                                                                                                                                        |
+| `hasLabel`          | boolean | Filter by annotation state                                                                                                                                                                                                     |
+| `hasError`          | boolean | Filter by processing error state                                                                                                                                                                                               |
+| `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                                                                               |
+| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars); a term ending in an image file extension, such as `img_0042.jpg`, matches filenames only                                                         |
+| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                                                                                   |
+| `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc`, or `random` (a stable shuffle, the same on every request) |
+| `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                                                                                |
+| `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                                                                                         |
+| `includeLabels`     | boolean | Include capped preview annotations (default: `false`)                                                                                                                                                                          |
 
 **Response:**
 
@@ -920,7 +920,7 @@ one source:
 | `sourceUrl`      | string | Public HTTP or HTTPS URL of a ZIP, TAR, TAR.GZ, TGZ, or NDJSON file (max 4096 chars)                                                                        |
 | `reference`      | object | A connected source: cloud storage (`provider: "cloud"`, `integrationId`, `target`, `prefix`) or On Premise (`provider: "local"`, `keyId`, `root`, `prefix`) |
 | `targetSplit`    | string | `train`, `val`, or `test`; overrides the archive's split structure                                                                                          |
-| `conflictPolicy` | string | `skip`, `keep_both`, or `replace` for filename or content conflicts                                                                                         |
+| `conflictPolicy` | string | For uploads and URL imports: `skip` (default), `keep_both`, or `replace`; `keep_both` renames filename conflicts and skips same-split identical content     |
 | `classMapping`   | object | Maps incoming class names to a class index, an existing or new class name, or `null` to skip                                                                |
 | `imageMetadata`  | object | Custom metadata keyed by each image's archive-relative path or NDJSON `file` value                                                                          |
 
@@ -1074,7 +1074,10 @@ GET /api/images/{imageId}
 **Python SDK:** `client.images.retrieve(image_id)`
 
 Returns `metadata` (custom, user-defined), `properties` (filename, hash, dimensions, split, counts, timestamps),
-`labels`, and the dataset's `classNames`.
+`labels`, and the dataset's `classNames`. For an image added from another dataset or by Generate Similar,
+`properties.source` records its latest import: `method` (`similar`, `copy`, `move`, `clone`, or `generated`), the source
+`dataset` as `owner` and `slug` (omitted when it is deleted or not visible to you), the source `license` at import, the
+generating `model`, and `importedBy` (returned only to members of the dataset's workspace).
 
 ### Update Image
 
@@ -1454,7 +1457,8 @@ Creates an untrained model record you can attach weights to or train.
 !!! note "Model File Upload"
 
     To attach `.pt` weights, request a signed upload URL with `assetType: "models"` and this model's `id` as `assetId`,
-    `PUT` the file to the returned URL, then call `POST /api/upload/complete` with the returned `sessionId`.
+    `PUT` the file to the returned URL, then call `POST /api/upload/complete` with the returned `sessionId`. The
+    filename must end in `.pt` (see [Get Signed Upload URL](#get-signed-upload-url)).
 
 ### Update Model
 
@@ -1815,7 +1819,7 @@ While an export of the same format is in flight for the model, a new request ret
 
 **Supported Formats:**
 
-Use the `format` argument from any row of the shared export table below except ST Edge AI. PyTorch is the source format
+Use the `format` argument from any row of the shared export table below. PyTorch is the source format
 and is not an API export target.
 
 {% include "macros/export-table.md" %}
@@ -2289,10 +2293,11 @@ POST /api/upload/signed-url
 | `contentType` | string | Yes      | MIME type                         |
 | `totalBytes`  | number | Yes      | File size in bytes                |
 
-!!! note "Dataset Archive Filenames"
+!!! note "Upload Filenames"
 
     When `assetType` is `datasets`, `filename` must end in `.zip`, `.tar`, `.tar.gz`, `.tgz`, or `.ndjson`. Package
-    loose images into an archive before uploading.
+    loose images into an archive before uploading. When `assetType` is `models`, `filename` must end in `.pt`; ONNX,
+    TorchScript, and other files return `400`.
 
 **Response:**
 
@@ -2737,7 +2742,7 @@ GET /api/explore/search
 | `q`         | string  | Search term (max 200 chars); for datasets and models, text matches first, then datasets whose images match (or models trained on them)                                              |
 | `type`      | string  | `all` (default; projects and datasets), `projects`, `datasets`, `models`, or `images` (ignores `sort`)                                                                              |
 | `sort`      | string  | `relevance` (default), `newest`, `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`; `relevance` ranks dataset and model matches for `q`, otherwise newest first |
-| `offset`    | int     | Results to skip (default: 0)                                                                                                                                                        |
+| `offset`    | int     | Results to skip (default: 0, max: 1,000); each list ends after its first 1,000 results                                                                                              |
 | `limit`     | int     | Maximum results per resource type (default: 20, max: 100)                                                                                                                           |
 | `task`      | string  | Comma-separated task filters: `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`                                                                                   |
 | `license`   | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license                                                                                   |

@@ -15,6 +15,7 @@ import cv2
 import numpy as np
 import torch
 
+from ultralytics.data.loaders import LoadPilAndNumpy
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import checks, ops
 from ultralytics.utils.checks import check_python, check_requirements, check_tensorrt, rocm_is_available
@@ -196,7 +197,9 @@ class OCR(BaseSolution):
         """Read word polygons (N, 4, 2) one by one at any page rotation, returning the words in reading order.
 
         The page's text direction (mod 180°) is the words' long-side angle weighted by elongation; words under 2:1 abstain
-        (single characters are taller than wide), so a page of only those stays unrotated. The page is rotated so that
+        (single characters are taller than wide), so a page of only those stays unrotated. When a sideways vote weighs
+        at most 30% of the total long-side length, voters must also span at least twice the median short side, as an
+        upright narrow glyph such as `1` votes sideways too. The page is rotated so that
         direction runs left to right, where words are cropped upright and grouped into lines. Of that turn and its
         opposite, the one whose 8 widest words `recognize` reads more confidently wins, as upside-down text reads as
         low-confidence noise. Each word keeps its `detection_index` and `polygon` and gains its `line` number; words that
@@ -206,6 +209,8 @@ class OCR(BaseSolution):
             return []
         _, _, w, h, angle = ops.xyxyxyxy2xywhr(polygons).T  # w is the long side
         weight = np.where(w >= 2 * h, w - h, 0)
+        if (weight * np.cos(2 * angle)).sum() < 0 and weight.sum() <= 0.3 * w.sum():
+            weight *= w >= 2 * np.median(h)
         angle = 0.5 * np.arctan2((weight * np.sin(2 * angle)).sum(), (weight * np.cos(2 * angle)).sum())
         turns = []
         for turn in (0, np.pi):
@@ -249,6 +254,7 @@ class OCR(BaseSolution):
         if isinstance(self.CFG["imgsz"], int):  # never upscale: smaller images run at their own size
             self.track_add_args["imgsz"] = min(self.CFG["imgsz"], -(-max(im0.shape[:2]) // 32) * 32)
         self.extract_tracks(im0)
+        im0 = LoadPilAndNumpy._single_check(im0)  # three-channel BGR to read and draw, whatever the detector took
         if self.tracks.masks is not None:  # segmentation: each mask's minimum-area rectangle
             polygons = np.array([ops.xywhr2xyxyxyxy(ops.xyxyxyxy2xywhr(p[None]))[0] for p in self.tracks.masks.xy])
         elif len(self.boxes) and self.boxes.ndim == 3:  # OBB corners
@@ -265,7 +271,7 @@ class OCR(BaseSolution):
             for word in self.read_words(im0, polygons.astype(np.float32), self.recognize)
         ]
         annotator = SolutionAnnotator(
-            im0, self.line_width, font_size=max(self.line_width * 6, 12), example="".join(t["text"] for t in texts)
+            im0.copy(), self.line_width, max(self.line_width * 6, 12), example="".join(t["text"] for t in texts)
         )
         for t in texts:
             label = (f"{t['text']} {t['confidence']:.2f}" if self.show_conf else t["text"]) if self.show_labels else ""

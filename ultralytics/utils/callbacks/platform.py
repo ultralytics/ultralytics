@@ -264,16 +264,19 @@ def _get_project_name(trainer):
 
 
 def _get_training_gpus(trainer):
-    """Return the NVML indices of the GPUs a run trains on, so a shared host reports no other runs' GPUs.
+    """Return the NVML indices (torch indices on ROCm) of the GPUs a run trains on, so a shared host reports only them.
 
-    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES. Non-CUDA training
-    reports no GPUs, and a CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every GPU.
+    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES on NVIDIA. Non-CUDA
+    training reports no GPUs, and an NVIDIA CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every
+    GPU.
     """
     if trainer.device.type != "cuda":
         return []
+    import torch
+
     indices = [int(x) for x in trainer.args.device.split(",") if x.isdigit()] or [trainer.device.index]
     visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
-    if not visible:
+    if not visible or torch.version.hip:
         return indices
     ids = [visible[i] for i in indices]
     return [int(x) for x in ids] if all(x.isdigit() for x in ids) else None
@@ -399,7 +402,7 @@ def on_fit_epoch_end(trainer):
     project, name = _get_project_name(trainer)
     metrics = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
     first_epoch = trainer.epoch == 0
-    # Initial training batch plots, listed here because plotting threads may still be adding to trainer.plots
+    # Initial training batch plots this run saved (fewer than 3 if plots=False, epoch 0 is short, or a plot failed)
     visual_files = (
         [p for i in range(3) if (p := trainer.save_dir / f"train_batch{i}.jpg") in trainer.plots]
         if first_epoch and ctx["run_id"]

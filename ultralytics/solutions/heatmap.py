@@ -19,7 +19,6 @@ class Heatmap(ObjectCounter):
     streams. It uses tracked object positions to create a cumulative heatmap effect over time.
 
     Attributes:
-        initialized (bool): Flag indicating whether the heatmap has been initialized.
         colormap (int): OpenCV colormap used for heatmap visualization.
         heatmap (np.ndarray): Array storing the cumulative heatmap data.
         annotator (SolutionAnnotator): Object for drawing annotations on the image.
@@ -44,7 +43,6 @@ class Heatmap(ObjectCounter):
         """
         super().__init__(**kwargs)
 
-        self.initialized = False  # Flag for heatmap initialization
         if self.region is not None:  # Check if user provided the region coordinates
             self.initialize_region()
 
@@ -87,9 +85,8 @@ class Heatmap(ObjectCounter):
             {"IN": int, "OUT": int} counts), and 'total_tracks' (int, total number of tracked objects). Counts are only
                 updated when a `region` is provided.
         """
-        if not self.initialized:
+        if self.heatmap is None or self.heatmap.shape != im0.shape[:2]:
             self.heatmap = np.zeros(im0.shape[:2], dtype=np.float32)
-            self.initialized = True  # Initialize heatmap only once
 
         self.extract_tracks(im0)  # Extract tracks
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator

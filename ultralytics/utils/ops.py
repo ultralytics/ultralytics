@@ -84,10 +84,8 @@ def merge_tiles(
     alternatively it contains one semantic_mask, depth or probs tensor. Masks match their window size or a whole-pixel
     stride of it, inferred from the larger side; dense maps match their window size. Boxes cut by an interior window
     edge are dropped when another window sees them clear of its edges and a kept box covers them, then NMS removes
-    duplicates. Only masks surviving box suppression are expanded to the full image.
+    duplicates. Masks, dense or box-local `(rois, masks, shape)`, return box-local in the full image frame.
     """
-    from bisect import bisect_right
-
     from ultralytics.utils.nms import nms_boxes
 
     first = predictions[0]
@@ -149,23 +147,19 @@ def merge_tiles(
         keypoints = torch.cat([p["keypoints"] for p in predictions])[keep].clone()
         keypoints[..., :2] += offsets[keep, None]
         output["keypoints"] = keypoints
-    if any("masks" in p for p in predictions):
-        i = next(i for i, p in enumerate(predictions) if "masks" in p)
-        template = predictions[i]["masks"]
-        x1, y1, x2, y2 = windows[i]
-        r = round(max(x2 - x1, y2 - y1) / max(template.shape[-2:]))  # mask stride, 1 at source resolution
-        output["masks"] = template.new_zeros((len(keep), -(-shape[0] // r), -(-shape[1] // r)))
-        ends, count = [], 0
-        for p in predictions:
-            count += len(p["bboxes"])
-            ends.append(count)
-        for j, k in enumerate(keep.tolist()):
-            source = bisect_right(ends, k)
-            local = k - (ends[source - 1] if source else 0)
-            x1, y1 = ((v - r // 2 + r - 1) // r for v in windows[source][:2])  # first sampled pixel, x1 when r=1
-            mask = predictions[source]["masks"][local]
-            target = output["masks"][j, y1 : y1 + mask.shape[0], x1 : x1 + mask.shape[1]]
-            target[:] = mask[: target.shape[0], : target.shape[1]]
+    if tiles := [(p["masks"], window) for p, window in zip(predictions, windows) if "masks" in p]:
+        template, (x1, y1, x2, y2) = tiles[0]
+        r = round(max(x2 - x1, y2 - y1) / max(template[2] if isinstance(template, tuple) else template.shape[-2:]))
+        h, w = -(-shape[0] // r), -(-shape[1] // r)
+        rois, masks = [], []
+        for m, window in tiles:
+            if not isinstance(m, tuple):  # a dense stack is box-local with every box spanning its window
+                rows = [[0, 0, m.shape[2], m.shape[1], 0, j] for j in range(len(m))]
+                m = torch.tensor(rows, dtype=torch.long, device=m.device).view(-1, 6), [m]
+            x1, y1 = ((v - r // 2 + r - 1) // r for v in window[:2])  # first sampled pixel, x1 when r=1
+            rois.append(m[0] + m[0].new_tensor([x1, y1, x1, y1, len(masks), 0]))
+            masks += m[1]
+        output["masks"] = clip_boxes(torch.cat(rois)[keep], (h, w)), masks, (h, w)
     return output
 
 

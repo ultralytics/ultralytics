@@ -273,7 +273,7 @@ Exported `.tflite` models run on Intel hardware through the [LiteRT Intel OpenVI
 - **FP16**: `quantize=16` fails with `quantize=16 (FP16) is not supported; format='litert' supports quantize=8 (INT8), 'w8a16' (INT8 weights + INT16 activations), 'w8a32' (dynamic INT8), 32 or None (FP32).` Export FP32 and let the GPU delegate run it in half precision.
 - **Checkpoints trained with `quantize=8`**: a checkpoint fine-tuned with [quantization-aware training](../modes/export.md#quantization-aware-training) fails with `format='litert' cannot export a QAT model: its Q/DQ ranges are only read by the 'onnx' and 'engine' backends`. Export the checkpoint you started the fine-tuning from with `quantize=8` instead, or export the fine-tuned checkpoint to [ONNX](onnx.md) or [TensorRT](tensorrt.md).
 - **NMS-free head with `quantize=8` or `'w8a16'`**: with `nms=False`, the export logs `LiteRT INT8 export does not support end2end models, disabling end2end branch.` and writes raw predictions that need NMS. Use FP32 or `'w8a32'` to keep the NMS-free head.
-- **Embedded NMS**: `nms=True` logs `format=litert does not support embedded NMS; exporting native outputs for external NMS.` and writes the raw output.
+- **Embedded NMS**: `nms=True` logs `format=litert does not support embedded NMS; using nms=None.` and writes the raw output.
 - **NMS-free head on other models**: `nms=False` needs a model with an NMS-free head, such as YOLO26 or YOLOv10. For other models, for example YOLO11, the export warns `This model has no one-to-one head; using one-to-many outputs.` and writes the raw `(1, 84, 8400)` output.
 - **Fixed input shape**: `dynamic=True` fails with `argument 'dynamic' is not supported for format='litert'`. Export again to change the image size or the batch size.
 - **Calibration without `data`**: a `quantize=8` or `'w8a16'` export logs `INT8 export requires a missing 'data' arg for calibration. Using default 'data=coco8.yaml'.` and calibrates on the small default dataset for the task. Pass `data` with images that represent your deployment data.
@@ -441,7 +441,7 @@ No. The export runs only on Linux x86-64 and on macOS with Apple silicon. Export
 
 ### Can I run a YOLO26 LiteRT model in a web browser?
 
-Yes. [LiteRT.js](https://developers.google.com/edge/litert/web) runs the exported `.tflite` file in a browser or in Node.js with WebGPU or WASM, so there is no separate browser export. The [@ultralytics/yolo npm package](https://www.npmjs.com/package/@ultralytics/yolo) wraps it with webcam and single-image inference for the detect, segment, semantic, classify, pose, and OBB tasks.
+Yes. [LiteRT.js](https://developers.google.com/edge/litert/web) runs the exported `.tflite` file in a browser or in Node.js with WebGPU or WASM, so there is no separate browser export. The [@ultralytics/yolo npm package](https://www.npmjs.com/package/@ultralytics/yolo) wraps it with webcam and single-image inference for the detect, segment, semantic, depth, classify, pose, and OBB tasks.
 
 ### How do I run a YOLO26 LiteRT model in an Android app?
 

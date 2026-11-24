@@ -312,8 +312,7 @@ Train with datasets stored on the platform using the [`ul://` URI format](../dat
 === "CLI"
 
     ```bash
-    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 \
-      project=username/my-project name=exp1
+    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```
 
 === "Python"

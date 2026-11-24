@@ -56,6 +56,12 @@ from ultralytics.utils import (
 )
 
 REMOTE_FILE_PREFIXES = ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://", "gs://")
+OPENVINO_ARM64_FP16_MIN_VERSION = "2026.4.1"
+OPENVINO_REQUIREMENT = (
+    f"openvino>={OPENVINO_ARM64_FP16_MIN_VERSION}"
+    if LINUX and ARM64 and sys.version_info >= (3, 10)
+    else "openvino>=2024.0.0"
+)
 
 
 def normalize_platform_uri(uri):

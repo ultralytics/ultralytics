@@ -9,8 +9,13 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LINUX, LOGGER, WINDOWS
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
+from ultralytics.utils.checks import (
+    OPENVINO_ARM64_FP16_MIN_VERSION,
+    OPENVINO_REQUIREMENT,
+    check_requirements,
+    check_version,
+)
 
 from .base import BaseBackend
 
@@ -29,7 +34,7 @@ class OpenVINOBackend(BaseBackend):
             weight (str | Path): Path to the .xml file or directory containing OpenVINO model files.
         """
         LOGGER.info(f"Loading {weight} for OpenVINO inference...")
-        check_requirements("openvino>=2024.0.0")
+        check_requirements(OPENVINO_REQUIREMENT)
         import openvino as ov
 
         core = ov.Core()
@@ -76,6 +81,15 @@ class OpenVINOBackend(BaseBackend):
         # Force sync inference because AsyncInferQueue can hang indefinitely on Intel and AMD CPUs, see
         # https://github.com/ultralytics/ultralytics/issues/25923.
         config = {"PERFORMANCE_HINT": "LATENCY"}
+        if (
+            LINUX
+            and ARM64
+            and device_name == "CPU"
+            and not check_version(ov.__version__, OPENVINO_ARM64_FP16_MIN_VERSION)
+        ):
+            # OpenVINO 2026.1.0 can fail to compile FP16 MatMul on ARM64. Keep the workaround for older runtimes.
+            config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
+            config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
         if device_name.startswith("NPU"):  # NPU is wrong at batch>1, so compile batch 1 and AutoBackend splits batches
             shape = list(ov_model.input().partial_shape)
             if self.metadata.get("dynamic"):  # NPU needs static shapes, so pin dynamic exports to imgsz

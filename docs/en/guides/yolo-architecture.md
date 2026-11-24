@@ -82,7 +82,7 @@ Each version keeps the same **backbone → neck → head** skeleton and changes 
         BB --> SP[SPPF + shortcut]
         SP --> PSA[C2PSA attention]
         PSA --> FPN["FPN neck, top-down"]
-        FPN --> PAN["PAN neck, bottom-up"]
+        FPN --> PAN["PAN neck, bottom-up, PSABlock in last C3k2"]
         PAN --> HD["Dual heads, DFL-free"]
         HD --> Q{"Set nms=False?"}
         Q -->|no| O1([Predictions with NMS])

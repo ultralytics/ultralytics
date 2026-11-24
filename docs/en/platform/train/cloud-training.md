@@ -271,8 +271,7 @@ Use the `project` and `name` parameters to stream metrics:
 === "CLI"
 
     ```bash
-    yolo train model=yolo26n.pt data=coco.yaml epochs=100 \
-      project=username/my-project name=experiment-1
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=experiment-1
     ```
 
 === "Python"

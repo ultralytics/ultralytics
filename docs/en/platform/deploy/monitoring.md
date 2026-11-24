@@ -127,7 +127,7 @@ Open the deployment page of a **Ready** dedicated endpoint and select the **Moni
 
     Monitoring is available on every **Ready** dedicated endpoint, including default-size endpoints on the Free plan. Existing endpoints are not automatically updated with every runtime release, so an older endpoint may show **Monitoring unavailable** until its runtime is updated.
 
-![Ultralytics Platform Deployment Monitoring Temporary Examples And Statistics](https://cdn.ul.run/i/b6aa1fec9719cf98283fb0d95d513c05.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Temporary Examples And Statistics](https://cdn.ul.run/i/b0d35e30ba6add4ad53218a36c7529e9.avif)<!-- screenshot -->
 
 !!! warning "Temporary Data"
 

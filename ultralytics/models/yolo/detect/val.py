@@ -154,6 +154,7 @@ class DetectionValidator(BaseValidator):
         self.metrics.names = model.names
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
+        self.metrics.area_ap = {}
         self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
 
     def get_desc(self) -> str:
@@ -627,7 +628,8 @@ class DetectionValidator(BaseValidator):
                         stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
                     for x in "small", "medium", "large":
                         if f"AP_{x}" in val.stats_as_dict:  # COCO keypoint evaluation has no small area range
-                            stats[f"metrics/mAP_{x}({suffix[i][0]})"] = val.stats_as_dict[f"AP_{x}"]
+                            key = f"metrics/mAP_{x}({suffix[i][0]})"
+                            stats[key] = self.metrics.area_ap[key] = val.stats_as_dict[f"AP_{x}"]
                     if not self.training and self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
                         stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]

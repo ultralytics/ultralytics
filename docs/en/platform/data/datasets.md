@@ -877,7 +877,7 @@ Use this URI to train models from anywhere:
 === "CLI"
 
     ```bash
-    yolo login YOUR_API_KEY  # once, on any OS
+    yolo login YOUR_API_KEY # once, on any OS
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 

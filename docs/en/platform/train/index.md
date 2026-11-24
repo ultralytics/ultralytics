@@ -112,7 +112,7 @@ Get started with cloud training in under a minute:
 === "Remote (CLI)"
 
     ```bash
-    yolo login YOUR_API_KEY  # once, on any OS
+    yolo login YOUR_API_KEY # once, on any OS
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```
 

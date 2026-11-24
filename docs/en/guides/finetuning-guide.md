@@ -91,19 +91,19 @@ Larger models have more capacity but also more parameters to update, which can i
 
 ## Optimizer and Learning Rate Selection
 
-The default `optimizer=auto` setting selects the optimizer and learning rate based on the total number of training iterations:
+The default `optimizer=auto` setting selects the optimizer and learning rate based on the number of training iterations, counted as ⌈images / max(`batch`, `nbs`)⌉ × epochs (`nbs` is 64 by default):
 
-- **10,000 iterations or fewer** (small datasets or few epochs): AdamW with a low, auto-calculated learning rate
+- **10,000 iterations or fewer** (small datasets or few epochs): AdamW with lr=0.01/(4 + number of classes)
 - **More than 10,000 iterations** (large datasets): [MuSGD](../reference/optim/muon.md) (a [hybrid Muon+SGD optimizer](https://www.ultralytics.com/blog/how-ultralytics-yolo26-trains-smarter-with-progloss-stal-and-musgd)) with lr=0.01
 
 For most fine-tuning tasks, the default setting works well without any manual tuning. Consider setting the optimizer explicitly when:
 
-- **Training is unstable** (loss spikes or diverges): try `optimizer=AdamW, lr0=0.001` for more stable convergence
-- **Fine-tuning a large model on a small dataset**: an explicit optimizer with a lower learning rate, such as `optimizer=AdamW, lr0=0.001`, can help preserve pretrained features
+- **Training is unstable** (loss spikes or diverges): set the optimizer explicitly with a lower `lr0`
+- **Fine-tuning a large model on a small dataset**: an explicit optimizer with a lower learning rate can help preserve pretrained features
 
 !!! warning "Auto optimizer overrides manual lr0"
 
-    When `optimizer=auto`, the `lr0` value is ignored. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD, lr0=0.005`.
+    When `optimizer=auto`, the `lr0` value is ignored. To control the learning rate manually, set the optimizer explicitly: `optimizer=SGD lr0=0.005`.
 
 ## Freezing Layers
 
@@ -165,7 +165,7 @@ For the full list of training parameters, see the [training configuration refere
 
 ## Two-Stage Fine-Tuning
 
-Two-stage fine-tuning splits training into two phases. The first stage freezes the backbone and trains only the neck and head, allowing the detection layers to adapt to the new classes without disrupting pretrained features. The second stage unfreezes all layers and trains the full model with a lower learning rate to refine the backbone for the target domain.
+Two-stage fine-tuning splits training into two phases. The first stage freezes most of the backbone and trains the rest, allowing the detection layers to adapt to the new classes without disrupting pretrained features. The second stage unfreezes all layers and trains the full model to refine the backbone for the target domain.
 
 This approach is particularly useful when the target domain differs significantly from COCO (medical images, aerial imagery, microscopy), where the backbone may need adaptation but training everything at once causes instability. For automatic unfreezing with a callback-based approach, see [Freezing and Unfreezing the Backbone](custom-trainer.md#freezing-and-unfreezing-the-backbone).
 
@@ -174,13 +174,12 @@ This approach is particularly useful when the target domain differs significantl
     ```python
     from ultralytics import YOLO
 
-    # Stage 1: freeze backbone, train head and neck
+    # Stage 1: freeze most of the backbone
     model = YOLO("yolo26n.pt")
-    model.train(data="custom.yaml", epochs=20, freeze=10, name="stage1", exist_ok=True)
+    model.train(data="custom.yaml", epochs=20, freeze=10, name="stage1")
 
-    # Stage 2: unfreeze all, fine-tune with lower lr
-    model = YOLO("runs/detect/stage1/weights/best.pt")
-    model.train(data="custom.yaml", epochs=30, optimizer="AdamW", lr0=0.001, name="stage2", exist_ok=True)
+    # Stage 2: unfreeze all layers (model now holds stage 1's best.pt)
+    model.train(data="custom.yaml", epochs=30, optimizer="AdamW", lr0=0.001, name="stage2")
     ```
 
 ## Common Pitfalls
@@ -188,14 +187,14 @@ This approach is particularly useful when the target domain differs significantl
 ### Model produces no predictions
 
 - **Insufficient training data**: training with very few samples is the most common cause - the model cannot learn or generalize from too little data. Ensure enough diverse examples per class before investigating other causes.
-- **Check dataset paths**: invalid image paths raise a dataset error. Individual missing or empty label files are treated as background images and reported during scanning; a training split with no labels raises an error. Validate the dataset before training:
+- **Check dataset paths**: invalid image paths raise a dataset error. Individual missing or empty label files are treated as background images and reported during scanning; a training split with no labels raises an error. Check the validation split before training:
 
     ```bash
     yolo detect val model=yolo26n.pt data=custom.yaml
     ```
 
 - **Lower confidence threshold**: if predictions exist but are filtered out, try `conf=0.1` during inference.
-- **Verify class count**: ensure `nc` in `data.yaml` matches the actual number of classes in the label files.
+- **Verify class ids**: label ids must be below the number of `names` in `custom.yaml`; images with an id at or above that number are skipped as corrupt.
 
 ### Validation mAP plateaus early
 
@@ -224,11 +223,11 @@ Load a pretrained `.pt` file and call `.train()` with the path to a custom `data
 
 ### Why is my fine-tuned YOLO model not detecting anything?
 
-The most common causes are invalid image paths, missing or empty label files, a mismatch between `nc` in the YAML and the actual label files, or a confidence threshold that is too high. See [Common Pitfalls](#model-produces-no-predictions) for a full troubleshooting checklist.
+Check the amount of training data, image paths, label class ids, and the confidence threshold. See [Common Pitfalls](#model-produces-no-predictions) for a full troubleshooting checklist.
 
 ### Which YOLO layers should I freeze for fine-tuning?
 
-It depends on the dataset size and domain similarity. For small datasets with a domain similar to COCO, freezing the backbone (`freeze=10`) prevents overfitting. For domains very different from COCO, leaving all layers unfrozen (`freeze=None`) allows the backbone to adapt. See [Freezing Layers](#freezing-layers) for detailed recommendations.
+It depends on the dataset size and domain similarity. For small datasets with a domain similar to COCO, freezing most of the backbone (`freeze=10`) can reduce overfitting. For domains very different from COCO, leaving all layers unfrozen (`freeze=None`) allows the backbone to adapt. See [Freezing Layers](#freezing-layers) for detailed recommendations.
 
 ### How do I prevent catastrophic forgetting when fine-tuning YOLO on new classes?
 

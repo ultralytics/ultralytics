@@ -134,7 +134,6 @@ from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_13,
     ONNXRUNTIME_BUILDS,
     ONNXRUNTIME_CUDA,
-    OPENVINO_REQUIREMENT,
     check_data_portable,
     check_imgsz,
     check_python,
@@ -1325,7 +1324,7 @@ class Exporter:
         from ultralytics.utils.export.openvino import torch2openvino
 
         # OpenVINO <= 2025.1.0 error on macOS 15.4+: https://github.com/openvinotoolkit/openvino/issues/30023
-        check_requirements("openvino>=2025.2.0" if MACOS and MACOS_VERSION >= "15.4" else OPENVINO_REQUIREMENT)
+        check_requirements("openvino>=2025.2.0" if MACOS and MACOS_VERSION >= "15.4" else "openvino>=2024.0.0")
         import openvino as ov
 
         assert TORCH_2_1, f"OpenVINO export requires torch>=2.1 but torch=={TORCH_VERSION} is installed"

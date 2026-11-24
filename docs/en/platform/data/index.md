@@ -177,7 +177,7 @@ Yes. Use the dataset URI format to train locally:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    yolo login YOUR_API_KEY # once, on any OS
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 

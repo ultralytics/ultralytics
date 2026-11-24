@@ -109,7 +109,8 @@ class DeepOCSortTrack(OCSortTrack):
         The standard `multi_gmc` helper from `utils.stracks` would rotate `(a, h)` along with
         `(x, y)`, which is wrong for an aspect-ratio dim. This variant only rotates the
         position `(x, y)` and the velocity `(vx, vy)` blocks, leaves `(a, h)` and `(va, vh)`
-        untouched, and also rotates the stored `last_observation` so OCR/ORU stay consistent.
+        untouched, and also warps the stored observations and the state ORU restores so OCM, OCR and ORU stay in
+        the current frame.
 
         Args:
             stracks (list[DeepOCSortTrack]): Tracks to warp in place.
@@ -117,8 +118,8 @@ class DeepOCSortTrack(OCSortTrack):
         """
         if not stracks:
             return
-        multi_mean = np.asarray([st.mean for st in stracks])
-        multi_covariance = np.asarray([st.covariance for st in stracks])
+        multi_mean = np.asarray([m for st in stracks for m in (st.mean, st._saved_mean)])
+        multi_covariance = np.asarray([c for st in stracks for c in (st.covariance, st._saved_covariance)])
 
         R = H[:2, :2]
         t = H[:2, 2]
@@ -135,26 +136,14 @@ class DeepOCSortTrack(OCSortTrack):
         # into BLAS's transposed-gemm kernel, which on macOS Accelerate leaves FP-exception flags set even for finite
         # inputs, and numpy then reports spurious divide-by-zero RuntimeWarnings.
         multi_covariance = np.matmul(np.matmul(R8x8, multi_covariance), np.ascontiguousarray(R8x8.T))
-        for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
-            stracks[i].mean = mean
-            stracks[i].covariance = cov
-
-            # Also transform stored observations for OCR/ORU consistency
-            if stracks[i].last_observation[0] >= 0:
-                obs = stracks[i].last_observation
-                # Transform xyxy observation centers
-                cx, cy = DeepOCSortTrack._xyxy_center(obs)
-                w, h = obs[2] - obs[0], obs[3] - obs[1]
-                new_c = R @ np.array([cx, cy]) + t
-                stracks[i].last_observation = np.array(
-                    [
-                        new_c[0] - w / 2,
-                        new_c[1] - h / 2,
-                        new_c[0] + w / 2,
-                        new_c[1] + h / 2,
-                    ],
-                    dtype=np.float32,
-                )
+        for i, st in enumerate(stracks):
+            st.mean, st._saved_mean = multi_mean[2 * i], multi_mean[2 * i + 1]
+            st.covariance, st._saved_covariance = multi_covariance[2 * i], multi_covariance[2 * i + 1]
+            boxes = np.asarray(list(st.observations.values()))  # xyxy, moved by their centers to keep their sizes
+            centers, half = (boxes[:, :2] + boxes[:, 2:]) / 2 @ R.T + t, (boxes[:, 2:] - boxes[:, :2]) / 2
+            boxes = np.concatenate((centers - half, centers + half), 1).astype(np.float32)
+            st.observations = dict(zip(st.observations, boxes))
+            st.last_observation = st.observations[max(st.observations)]
 
 
 class DeepOCSORT(OCSORT):

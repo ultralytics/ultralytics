@@ -1819,8 +1819,8 @@ While an export of the same format is in flight for the model, a new request ret
 
 **Supported Formats:**
 
-Use the `format` argument from any row of the shared export table below. PyTorch is the source format
-and is not an API export target.
+Use the `format` argument from any row of the shared export table below except AXERA, which the Platform does not
+export. PyTorch is the source format and is not an API export target.
 
 {% include "macros/export-table.md" %}
 

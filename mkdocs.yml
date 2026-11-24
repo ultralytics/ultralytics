@@ -771,6 +771,7 @@ nav:
           - backends:
               - ascend: reference/nn/backends/ascend.md
               - axelera: reference/nn/backends/axelera.md
+              - axera: reference/nn/backends/axera.md
               - base: reference/nn/backends/base.md
               - coreai: reference/nn/backends/coreai.md
               - coreml: reference/nn/backends/coreml.md
@@ -860,6 +861,7 @@ nav:
           - export:
               - ascend: reference/utils/export/ascend.md
               - axelera: reference/utils/export/axelera.md
+              - axera: reference/utils/export/axera.md
               - coreai: reference/utils/export/coreai.md
               - coreml: reference/utils/export/coreml.md
               - deepx: reference/utils/export/deepx.md

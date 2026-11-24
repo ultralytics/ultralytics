@@ -65,7 +65,7 @@ Explore the links to learn more about each integration and how to get the most o
 
 - [Axelera AI](axelera.md): Explore Metis accelerators and the Voyager SDK for running Ultralytics models with efficient edge inference.
 
-- [AXERA](axera.md): Developed by [AXERA](https://axera-tech.com/), this integration exports Ultralytics YOLO models for efficient inference on AX650 and AX8860 NPUs, targeting embedded and edge AI applications.
+- [AXERA](axera.md): Compile Ultralytics YOLO models to the AXERA `.axmodel` format with the Pulsar2 compiler for INT8 inference on AXERA NPUs such as the AX650, or BF16 on the AX8860.
 
 - [DEEPX](deepx.md): Export Ultralytics YOLO models to the DEEPX `.dxnn` format for power-efficient INT8 inference on DEEPX NPU hardware, targeting embedded and edge AI applications.
 

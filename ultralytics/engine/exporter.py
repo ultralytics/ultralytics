@@ -68,6 +68,7 @@ Inference:
                          yolo26n_ascend_model       # Huawei Ascend
                          yolo26n_xilinx_model       # AMD Xilinx
                          yolo26n_stedgeai.onnx      # ST Edge AI
+                         yolo26n_axera_model        # AXERA
 """
 
 from __future__ import annotations
@@ -323,7 +324,7 @@ def export_formats():
             "_axera_model",
             False,
             False,
-            ["batch", "name", "quantize", "opset", "simplify", "data", "fraction"],
+            ["name", "quantize", "opset", "simplify", "data", "fraction"],
             "base",
         ],
     ]
@@ -519,9 +520,7 @@ INT8_FORMATS = frozenset(
         "axera",
     }
 )
-W8A16_FORMATS = frozenset(
-    {"coreml", "litert", "qnn", "axera"}
-)  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT/AXERA)
+W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset(
     {"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx", "nxp", "axera"}
@@ -757,26 +756,12 @@ class Exporter:
         if fmt in {"axelera", "hailo", "xilinx", "nxp", "axera"} and not self.args.data:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "axera":
-            from ultralytics.utils.export.axera import AXERA_CHIPS
-
-            axera_tasks = {"detect", "segment", "semantic", "depth", "classify", "pose", "obb"}
-            assert model.task in axera_tasks, (
-                f"AXERA export supports {sorted(axera_tasks)} tasks; got task='{model.task}'."
-            )
-            assert self.args.nms is None, "AXERA export currently supports nms=None only."
-            assert not self.args.dynamic, "AXERA export does not support dynamic shapes."
-            assert self.args.batch == 1, "AXERA export requires batch=1."
-            assert LINUX, "AXERA export requires Linux."
-            self.args.opset = self.args.opset or 13
-            self.args.name = str(self.args.name or "AX650").upper()
-            assert self.args.name in AXERA_CHIPS, (
-                f"Invalid AXERA target '{self.args.name}'. Valid targets are {sorted(AXERA_CHIPS)}."
-            )
-            assert not (self.args.name == "AX650" and self.args.quantize == 16), (
-                "AX650 exports INT8 or 'w8a16'; use name=AX8860 for 16-bit float."
-            )
-            if self.args.quantize is None:
-                self.args.quantize = 16 if self.args.name == "AX8860" else 8  # per-chip default precision
+            if not self.args.name:
+                LOGGER.warning(
+                    "AXERA export requires a missing 'name' arg for the target chip. Using default name='AX650'."
+                )
+                self.args.name = "AX650"
+            self.args.quantize = self.args.quantize or 8
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
             blocks = {str(x[2]) for x in model.yaml.get("backbone", []) + model.yaml.get("head", [])}
@@ -1220,6 +1205,20 @@ class Exporter:
                 torch.nn.functional.interpolate(batch["img"].float(), size=self.imgsz).permute(0, 2, 3, 1).numpy()
             )
         return images
+
+    def _int8_calibration_files(self, prefix=""):
+        """Return the image files of the INT8 calibration dataset, for compilers that read images from disk."""
+        dataset = self.get_int8_calibration_dataloader(prefix).dataset
+        files = getattr(dataset, "im_files", None) or [x[0] for x in getattr(dataset, "samples", [])]
+        if not files:
+            raise ValueError(f"{prefix} INT8 export requires a calibration dataset with image file paths.")
+        return files
+
+    def _head_scope(self):
+        """Return the ONNX node-name scope of the model head, or None when it has no per-level head convs to cut at."""
+        # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs
+        if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder":
+            return f"/model.{len(self.model.model) - 1}/"
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):  # noqa: B008
@@ -1697,12 +1696,7 @@ class Exporter:
         rknn_dataset = None
         with tempfile.TemporaryDirectory() as tmp:
             if self.args.quantize == 8:
-                dataloader = self.get_int8_calibration_dataloader(prefix)
-                image_paths = getattr(dataloader.dataset, "im_files", None)
-                if image_paths is None and hasattr(dataloader.dataset, "samples"):
-                    image_paths = [x[0] for x in dataloader.dataset.samples]
-                if not image_paths:
-                    raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
+                image_paths = self._int8_calibration_files(prefix)
                 # RKNN Toolkit splits dataset.txt lines on spaces, so link images under space-free names
                 links = [Path(tmp) / f"{i}{Path(x).suffix}" for i, x in enumerate(image_paths)]
                 for link, x in zip(links, image_paths):
@@ -1718,39 +1712,22 @@ class Exporter:
                 dataset=rknn_dataset,
                 metadata=self.metadata,
                 prefix=prefix,
-                # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs to cut at
-                head=f"/model.{len(self.model.model) - 1}/"
-                if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder"
-                else None,
+                head=self._head_scope(),
             )
 
     @try_export
     def export_axera(self, prefix=colorstr("AXERA:")):  # noqa: B008
-        """Export YOLO model to AXERA format through Pulsar2."""
+        """Export YOLO model to AXERA .axmodel format with the Pulsar2 compiler."""
         from ultralytics.utils.export.axera import onnx2axera
 
-        self.im = self.im[:1]  # AXERA export is static batch=1
-        fraction = self.args.fraction
-        if not isinstance(fraction, list) and fraction in (None, 1.0):
-            self.args.fraction = 64  # calibrate on 64 images by default, not the whole split
-            self.metadata["args"]["fraction"] = self.args.fraction
-        output_dir = self.file.parent / f"{self.file.stem}_axera_model"
         return onnx2axera(
             onnx_file=self.export_onnx(),
-            output_dir=output_dir,
-            dataset=self.get_int8_calibration_dataloader(prefix),
-            metadata=self.metadata,
-            target=self.args.name,
+            output_dir=self.file.parent / f"{self.file.stem}_axera_model",
+            name=self.args.name,
             quantize=self.args.quantize,
-            # Quantized detect and segment stop the NPU graph at the head convs and decode in FP32 inside tail.onnx.
-            # Other tasks keep the full graph until their own split is validated.
-            head=(
-                f"/model.{len(self.model.model) - 1}/"
-                if self.model.task in {"detect", "segment", "pose", "obb"}
-                and hasattr(self.model, "model")
-                and self.metadata["head"] != "RTDETRDecoder"
-                else None
-            ),
+            images=self._int8_calibration_files(prefix),
+            head=self._head_scope(),
+            metadata=self.metadata,
             prefix=prefix,
         )
 

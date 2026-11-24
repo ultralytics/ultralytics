@@ -9,9 +9,11 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
 
 from ultralytics.utils import YAML
+from ultralytics.utils.checks import ONNXRUNTIME_BUILDS, check_requirements
 
 
 def _read_proto_map(file: Path, path: tuple[int, ...]) -> dict:
@@ -200,6 +202,36 @@ class BaseBackend(ABC):
             return YAML.load(sidecar) if sidecar.exists() else {}
         except Exception:  # a third-party, truncated or metadata-less artifact
             return {}
+
+    def load_tail(self, file: Path) -> None:
+        """Load the ``tail.onnx`` beside an INT8 NPU model, which decodes its head outputs on the host in FP32.
+
+        Args:
+            file (Path): Path to the NPU model file.
+        """
+        self.tail = None
+        if (file.parent / "tail.onnx").is_file():
+            check_requirements([ONNXRUNTIME_BUILDS])
+            import onnxruntime
+
+            self.tail = onnxruntime.InferenceSession(str(file.parent / "tail.onnx"), providers=["CPUExecutionProvider"])
+
+    def run_tail(self, y: list) -> list:
+        """Decode NPU head outputs with ``tail.onnx`` one image at a time, since the tail graph has batch size 1.
+
+        Args:
+            y (list): NPU outputs, in the order of the ``tail.onnx`` inputs.
+
+        Returns:
+            (list): Decoded outputs, or ``y`` unchanged when the model has no ``tail.onnx``.
+        """
+        if not self.tail:
+            return y
+        feeds = [
+            {t.name: v[i : i + 1].astype(np.float32) for t, v in zip(self.tail.get_inputs(), y)}
+            for i in range(len(y[0]))
+        ]
+        return [np.concatenate(x) for x in zip(*(self.tail.run(None, f) for f in feeds))]
 
     def apply_metadata(self, metadata: dict | None) -> None:
         """Process and apply model metadata to backend attributes.

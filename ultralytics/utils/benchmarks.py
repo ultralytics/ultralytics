@@ -214,10 +214,6 @@ def benchmark(
                 assert not (MACOS and is_github_action_running()), (
                     "LiteRT not benchmarked on macOS CI (ai-edge-litert/TF abseil mutex deadlock)"
                 )
-            if export_format == "axera":
-                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 AXERA exports not supported"
-                assert LINUX, "AXERA export requires Linux"
-                raise AssertionError("AXERA benchmark is not supported; measure accuracy with val()")
             if "cpu" in str(device):
                 assert cpu, "inference not supported on CPU"
             if "cuda" in str(device):

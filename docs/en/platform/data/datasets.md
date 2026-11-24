@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 [Ultralytics Platform](https://platform.ultralytics.com) datasets hold the images, labels, and splits that make up your [training data](https://www.ultralytics.com/glossary/training-data). After upload, the platform processes images, labels, and statistics automatically.
 
-A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
+A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing. The badge counts images per split, so when you open the training dialog Platform also runs the checks **Start Training** does: a dataset other than depth needs class names (and a pose dataset a keypoint shape), the `train` and `val` or `test` splits each need an image that processed without errors, a classification dataset needs labeled images in both, and a depth dataset needs depth-paired images (1 in `train`, 2 in `val`). If a check fails, the dialog shows the reason and keeps **Start Training** disabled, even when the badge reads `Ready`.
 
 ## Collect Images with Agents
 
@@ -877,7 +877,7 @@ Use this URI to train models from anywhere:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    yolo login YOUR_API_KEY # once, on any OS
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 

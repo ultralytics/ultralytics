@@ -1111,6 +1111,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             target classes, and target images.
         nt_per_class (np.ndarray): Number of targets per class.
         nt_per_image (np.ndarray): Number of images containing each class.
+        area_ap (dict[str, float]): Small, medium and large object mAP from faster-coco-eval when `save_json=True`.
 
     Methods:
         update_stats: Update statistics by appending new values to existing stat collections.
@@ -1140,6 +1141,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.stats = {"tp": [], "conf": [], "pred_cls": [], "target_cls": [], "target_img": []}
         self.nt_per_class = None
         self.nt_per_image = None
+        self.area_ap = {}
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1225,7 +1227,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Return dictionary of computed performance metrics and statistics."""
         keys = [*self.keys, "fitness"]
         values = ((float(x) if hasattr(x, "item") else x) for x in ([*self.mean_results(), self.fitness]))
-        return dict(zip(keys, values))
+        return dict(zip(keys, values), **self.area_ap)
 
     @property
     def curves(self) -> list[str]:

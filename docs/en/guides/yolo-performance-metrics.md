@@ -73,7 +73,7 @@ The speed of inference can be as critical as accuracy, especially in real-time o
 
 #### COCO Metrics Evaluation
 
-For users validating on the [COCO dataset](../datasets/detect/coco.md) with `coco.yaml`, the predictions are also saved to `predictions.json` and additional metrics are calculated with [`faster-coco-eval`](https://github.com/MiXaiLL76/faster_coco_eval). These metrics give insights into precision and recall at different IoU thresholds and for objects of different sizes. On other detection datasets, pass `save_json=True` to get them. The object that `model.val()` returns keeps the values Ultralytics computes itself, so `metrics.box.map` can differ slightly from the printed COCO-style AP (0.402 against 0.408 for YOLO26n on COCO val2017).
+For users validating on the [COCO dataset](../datasets/detect/coco.md) with `coco.yaml`, the predictions are also saved to `predictions.json` and additional metrics are calculated with [`faster-coco-eval`](https://github.com/MiXaiLL76/faster_coco_eval). These metrics give insights into precision and recall at different IoU thresholds and for objects of different sizes. On other detection datasets, pass `save_json=True` to get them. The object that `model.val()` returns keeps the values Ultralytics computes itself, so `metrics.box.map` can differ slightly from the printed COCO-style AP (0.402 against 0.408 for YOLO26n on COCO val2017). The small-, medium-, and large-object mAP are added to `metrics.results_dict` as `metrics/mAP_small(B)`, `metrics/mAP_medium(B)`, and `metrics/mAP_large(B)`.
 
 #### Visual Outputs
 

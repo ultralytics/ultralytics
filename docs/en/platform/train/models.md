@@ -106,7 +106,7 @@ Below it, **Training Configuration** lists every hyperparameter used and **Perfo
 
 ### Train Tab
 
-The Train tab has **Metrics**, **Console**, and **System** subtabs, plus **Validation** when validation results are available:
+The Train tab has **Metrics**, **Console**, and **System** subtabs, plus **Validation** when validation results are available. For signed-in viewers, a button at the right of the subtab row asks [Ask AI](autotrain.md) about the open subtab: **Explain with AI** on **Metrics** explains the per-epoch results in plain words, whether more training would help, and the best next step; **Improve with AI** on **Validation**, once [per-image diagnostics](#per-image-diagnostics) have loaded, names the objects and kinds of images the model gets wrong and the simplest fixes with **Find similar**, [Batch Annotation](../data/annotation.md#batch-annotation), or a new model. **Console** and **System** have no button.
 
 #### Metrics Subtab
 
@@ -122,7 +122,7 @@ Each group collapses, its menu hides or shows individual charts (and, for losses
 
 Above the charts, a **Visuals** group shows the run's first three training batches as images with their labels and [augmentations](../../guides/yolo-data-augmentation.md#preview-augmentations-on-your-own-images) applied, when the run uploaded them. They are AVIF copies of the `train_batch0.jpg` to `train_batch2.jpg` files a local run saves. Click one to open it full size and check that boxes line up with objects and that augmented images still look like your deployment scene.
 
-![Ultralytics Platform Model Train Metrics Subtab](https://cdn.ul.run/i/83338b5e71c1c107b68ad69cb0873a2a.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Metrics Subtab](https://cdn.ul.run/i/597a5e7c01ca5da7251610aeae8909c3.avif)<!-- screenshot -->
 
 #### Console Subtab
 

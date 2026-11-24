@@ -12,6 +12,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
+import numpy as np
+
 from ultralytics import __version__
 from ultralytics.utils import (
     ASSETS,
@@ -434,6 +436,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     """
     typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
+        if isinstance(v, np.generic):  # NumPy scalars (np.arange() sweeps, Ray Tune searchers) as Python values
+            cfg[k] = v = v.item()
         if v is None and (
             k == "amp" or (DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment")
         ):

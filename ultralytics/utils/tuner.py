@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import numpy as np
-
 from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks, colorstr
 
@@ -18,28 +16,6 @@ RAY_SEARCH_ALG_REQUIREMENTS = {
     "optuna": "optuna",
     "zoopt": "zoopt",
 }
-
-
-def _sanitize_tune_value(value):
-    """Convert NumPy-backed Tune values into native Python types for YAML serialization.
-
-    Args:
-        value (Any): The value to convert. Can be a dict, list, tuple, NumPy scalar, NumPy array, or any other value.
-
-    Returns:
-        (Any): The converted value with NumPy types replaced by native Python types.
-    """
-    if isinstance(value, dict):
-        return {k: _sanitize_tune_value(v) for k, v in value.items()}
-    if isinstance(value, list):
-        return [_sanitize_tune_value(v) for v in value]
-    if isinstance(value, tuple):
-        return tuple(_sanitize_tune_value(v) for v in value)
-    if isinstance(value, np.generic):
-        return value.item()
-    if isinstance(value, np.ndarray):
-        return value.tolist()
-    return value
 
 
 def _get_ray_search_alg_kind(search_alg):
@@ -434,8 +410,7 @@ def run_ray_tune(
         model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
         model_to_train.trainer = None
         model_to_train.reset_callbacks()
-        config = _sanitize_tune_value(dict(config))
-        config.update(train_args)
+        config = {**config, **train_args}
 
         # Set trial-specific name for W&B logging
         try:

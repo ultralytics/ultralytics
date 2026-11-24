@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Ultralytics YOLO integrations for training, experiment tracking, dataset management, and deployment to ONNX, TensorRT, OpenVINO, Core ML, and edge NPUs.
-keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLflow, Ultralytics Platform, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, MediaTek, Luxonis, PaddlePaddle, NCNN, Hailo, Hailo HEF, Ambarella, CVflow, Qualcomm QNN, RKNN, edge AI
+keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLflow, Ultralytics Platform, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite Edge TPU, LiteRT, MediaTek, Luxonis, PaddlePaddle, NCNN, Hailo, Hailo HEF, Ambarella, CVflow, Qualcomm QNN, RKNN, AXERA, edge AI
 ---
 
 # Ultralytics Integrations
@@ -64,6 +64,8 @@ Explore the links to learn more about each integration and how to get the most o
 - [AMD Xilinx](xilinx.md): Export Ultralytics YOLO with `format="xilinx"` for AMD Versal AI Edge Series Gen 2 NPUs using AMD Quark INT8 quantization and Vitis AI compilation, with notes on Zynq, Kria and VEK280 targets.
 
 - [Axelera AI](axelera.md): Explore Metis accelerators and the Voyager SDK for running Ultralytics models with efficient edge inference.
+
+- [AXERA](axera.md): Developed by [AXERA](https://axera-tech.com/), this integration exports Ultralytics YOLO models for efficient inference on AX650 and AX8860 NPUs, targeting embedded and edge AI applications.
 
 - [DEEPX](deepx.md): Export Ultralytics YOLO models to the DEEPX `.dxnn` format for power-efficient INT8 inference on DEEPX NPU hardware, targeting embedded and edge AI applications.
 

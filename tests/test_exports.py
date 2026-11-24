@@ -7,6 +7,7 @@ import sys
 import threading
 import time
 from contextlib import redirect_stderr, redirect_stdout
+from importlib.util import find_spec
 from itertools import product
 from pathlib import Path
 from types import SimpleNamespace
@@ -529,6 +530,23 @@ def test_export_rknn(isolated_model, quantize, batch):
     """Test YOLO export to RKNN format."""
     file = YOLO(isolated_model).export(format="rknn", imgsz=64, quantize=quantize, batch=batch, data="coco8.yaml")
     assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
+    shutil.rmtree(file, ignore_errors=True)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX, reason="AXERA export only supported on Linux")
+@pytest.mark.skipif(find_spec("axnn") is None, reason="AXERA export requires the axnn toolchain")
+def test_export_axera(isolated_model):
+    """Test YOLO export to AXERA, the AX650 precision guard and the INT8 FP32 tail split."""
+    model = YOLO(isolated_model)
+    with pytest.raises(AssertionError, match="AX650 exports INT8"):
+        model.export(format="axera", name="AX650", quantize=16, imgsz=64, data="coco8.yaml")
+
+    file = model.export(format="axera", name="AX650", imgsz=64, data="coco8.yaml")
+    out = Path(file)
+    assert (out / "compiled.axmodel").is_file(), f"AXERA export failed, no compiled.axmodel found in: {file}"
+    # Quantized detection stops at the head convolutions and decodes boxes in FP32 on the host
+    assert (out / "tail.onnx").is_file(), f"AXERA INT8 export is missing tail.onnx: {file}"
     shutil.rmtree(file, ignore_errors=True)
 
 

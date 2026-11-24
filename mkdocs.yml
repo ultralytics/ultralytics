@@ -563,6 +563,7 @@ nav:
           - AMD GPUs: integrations/amd.md
           - AMD Xilinx: integrations/xilinx.md
           - Axelera AI: integrations/axelera.md
+          - AXERA: integrations/axera.md
           - DEEPX: integrations/deepx.md
           - Google Coral Edge TPU: integrations/edge-tpu.md
           - Google Coral Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md

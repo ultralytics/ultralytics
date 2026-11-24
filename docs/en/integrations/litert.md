@@ -441,7 +441,7 @@ No. The export runs only on Linux x86-64 and on macOS with Apple silicon. Export
 
 ### Can I run a YOLO26 LiteRT model in a web browser?
 
-Yes. [LiteRT.js](https://developers.google.com/edge/litert/web) runs the exported `.tflite` file in a browser or in Node.js with WebGPU or WASM, so there is no separate browser export. The [@ultralytics/yolo npm package](https://www.npmjs.com/package/@ultralytics/yolo) wraps it with webcam and single-image inference for the detect, segment, semantic, classify, pose, and OBB tasks.
+Yes. [LiteRT.js](https://developers.google.com/edge/litert/web) runs the exported `.tflite` file in a browser or in Node.js with WebGPU or WASM, so there is no separate browser export. The [@ultralytics/yolo npm package](https://www.npmjs.com/package/@ultralytics/yolo) wraps it with webcam and single-image inference for the detect, segment, semantic, depth, classify, pose, and OBB tasks.
 
 ### How do I run a YOLO26 LiteRT model in an Android app?
 

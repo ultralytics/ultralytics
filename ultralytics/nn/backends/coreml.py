@@ -39,6 +39,8 @@ class CoreMLBackend(BaseBackend):
         default_unit = ct.ComputeUnit.ALL if meta.get("head") == "RTDETRDecoder" else ct.ComputeUnit.CPU_AND_NE
         try:
             self.model = ct.models.MLModel(weight, compute_units=default_unit)
+            # Enable prefetch when Core ML is allowed to use an accelerator
+            self.prefetch = True
         except Exception:
             self.model = ct.models.MLModel(weight, compute_units=ct.ComputeUnit.CPU_ONLY)
         spec = self.model.get_spec()

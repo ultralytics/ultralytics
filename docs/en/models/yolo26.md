@@ -10,7 +10,7 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, YOLOE
 
 [Ultralytics](https://www.ultralytics.com) YOLO26 is a unified family of real-time vision models described in the [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748). It introduces native [end-to-end inference](../guides/end2end-detection.md), a lighter detection head, an updated training recipe, and task-specific heads for detection, segmentation, classification, pose estimation, and oriented detection.
 
-Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** at **1.7-11.8 ms T4 TensorRT latency**. The paper also reports **up to 43% faster CPU ONNX inference** for YOLO26n compared with YOLO11n on an Intel Xeon CPU @ 2.00 GHz.
+Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** with NMS, and **40.1-56.9 mAP** with NMS-free inference at **1.7-11.8 ms T4 TensorRT latency**. The paper also reports **up to 43% faster CPU ONNX inference** for YOLO26n compared with YOLO11n on an Intel Xeon CPU @ 2.00 GHz.
 
 See the [unreleased YOLO27 preview](yolo27.md) for planned architecture, tasks, and preliminary benchmarks.
 

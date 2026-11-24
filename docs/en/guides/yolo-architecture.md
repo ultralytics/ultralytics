@@ -1,19 +1,19 @@
 ---
 title: YOLO Architecture Explained
 comments: true
-description: Understand how the YOLO architecture evolved from YOLOv3 to YOLO26 across the backbone, neck, and detection head, including anchor-free and NMS-free design.
+description: See how the Ultralytics YOLO architecture evolved from YOLOv3 to YOLO26 across the backbone, neck, and detection head, including anchor-free and NMS-free design.
 keywords: YOLO architecture, YOLOv3, YOLOv5, YOLOv8, YOLO11, YOLO26, backbone, neck, detection head, anchor-free, NMS-free, C2f, C3k2, DFL, CSP, SPPF, object detection
 ---
 
 # YOLO Architecture Explained: From YOLOv3 to YOLO26
 
-Every Ultralytics YOLO model is built from three stages: a [**backbone**](https://www.ultralytics.com/glossary/backbone) that extracts features, a **neck** that fuses them across scales, and a [**head**](https://www.ultralytics.com/glossary/detection-head) that predicts boxes and classes. This guide documents the modules that make up each stage and how they changed from [YOLOv3](../models/yolov3.md) to [YOLO26](../models/yolo26.md), tracing every component to its definition in the configuration files under `ultralytics/cfg/models/` and the module classes in [`ultralytics/nn/modules/`](../reference/nn/modules/block.md).
+Every Ultralytics YOLO detection model is built from three stages: a [**backbone**](https://www.ultralytics.com/glossary/backbone) that extracts features, a **neck** that fuses them across scales, and a [**head**](https://www.ultralytics.com/glossary/detection-head) that predicts boxes and classes. This guide documents the modules that make up each stage and how they changed from [YOLOv3](../models/yolov3.md) to [YOLO26](../models/yolo26.md), tracing every component to its definition in the configuration files under `ultralytics/cfg/models/` and the module classes in [`ultralytics/nn/modules/`](../reference/nn/modules/block.md).
 
 Each model is defined declaratively in a YAML file as an ordered list of layers, where every layer follows the `[from, repeats, module, args]` format: which layer(s) feed it, how many times the module repeats, the layer class (`Conv`, `C3k2`, `SPPF`, `Detect`, …), and its constructor arguments. The [Model YAML Configuration Guide](model-yaml-config.md) documents this format — including how `repeats` and `args` scale with the variant's depth and width multiples — along with the module-resolution system in full. This guide focuses on the modules themselves and how they changed from version to version.
 
 ## The Three Stages
 
-Every Ultralytics YOLO model routes the image through three sequential stages, each with a distinct job:
+Every Ultralytics YOLO detection model routes the image through three sequential stages, each with a distinct job:
 
 | Stage        | Job                                                                      | Output                                             |
 | ------------ | ------------------------------------------------------------------------ | -------------------------------------------------- |
@@ -25,7 +25,7 @@ The fundamental unit is the **`Conv`** block (defined in [`conv.py`](../referenc
 
 ## Architecture Diagrams
 
-Each version keeps the same **backbone → neck → head** skeleton and changes specific stages. The tabs below show the per-version structure: the backbone and neck stages follow the configs in `ultralytics/cfg/models/`, while the YOLOv3 and YOLOv5 heads are drawn in their original anchor-based form rather than the anchor-free `u`-variant head their package configs actually ship. Stepping through the tabs shows what each generation added. In short, the progression is: YOLOv3 is an FPN-only, anchor-based detector; YOLOv5 adds the bottom-up PAN path and `SPPF`; YOLOv8 switches to the `C2f` block with an anchor-free, [DFL](#distribution-focal-loss-dfl) head; YOLO11 inserts `C2PSA` attention and the `C3k2` block; and YOLO26 adds an `SPPF` residual, removes DFL, and adds an optional NMS-free head.
+Each version keeps the same **backbone → neck → head** skeleton and changes specific stages. The tabs below show the per-version structure: the backbone and neck stages follow the configs in `ultralytics/cfg/models/`, while the YOLOv3 and YOLOv5 heads are drawn in their original anchor-based form rather than the anchor-free `u`-variant head their package configs actually ship. Stepping through the tabs shows what each generation added. In short, the progression is: YOLOv3 is an FPN-only, anchor-based detector; YOLOv5 adds the bottom-up PAN path and `SPPF`; YOLOv8 switches to the `C2f` block with an anchor-free, [DFL](#distribution-focal-loss-dfl) head; YOLO11 inserts `C2PSA` attention and the `C3k2` block; and YOLO26 adds an `SPPF` residual and neck attention, removes DFL, and adds an optional NMS-free head.
 
 === "YOLOv3"
 
@@ -82,18 +82,16 @@ Each version keeps the same **backbone → neck → head** skeleton and changes 
         BB --> SP[SPPF + shortcut]
         SP --> PSA[C2PSA attention]
         PSA --> FPN["FPN neck, top-down"]
-        FPN --> PAN["PAN neck, bottom-up"]
+        FPN --> PAN["PAN neck, bottom-up, PSABlock in last C3k2"]
         PAN --> HD["Dual heads, DFL-free"]
         HD --> Q{"Set nms=False?"}
         Q -->|no| O1([Predictions with NMS])
         Q -->|yes| O2([NMS-free predictions])
     ```
 
-The YOLOv3 and YOLOv5 diagrams show the original anchor-based head. The `ultralytics` package ships the anchor-free **YOLOv3u** and **YOLOv5u** configs — the same Darknet-53 and `C3` backbones with YOLOv8's `Detect` head — described under [Detection Head](#detection-head-anchor-based-anchor-free-nms-free).
-
 ## Backbone Blocks: Bottleneck → C3 → C2f → C3k2
 
-The backbone stacks a repeating CSP (Cross-Stage Partial) block between stride-2 `Conv` downsampling layers. That repeating block is what changed most across versions. All blocks below live in [`block.py`](../reference/nn/modules/block.md); `c1`/`c2` are input/output channels and `c = 0.5 * c2` is the hidden width.
+The backbone stacks a repeating block — a CSP (Cross-Stage Partial) block from YOLOv5 onward — between stride-2 `Conv` downsampling layers. That repeating block is what changed most across versions. All blocks below live in [`block.py`](../reference/nn/modules/block.md); `c1`/`c2` are input/output channels and `c = e * c2` is the hidden width (`e = 0.5` by default).
 
 ### Bottleneck (YOLOv3)
 
@@ -133,17 +131,17 @@ The second YAML arg sets `c3k` unless the scale is `m`, `l` or `x`, which force 
 
 ## Spatial Pooling: SPP → SPPF
 
-At the end of the backbone, a spatial-pyramid-pooling block widens the [receptive field](https://www.ultralytics.com/glossary/receptive-field). YOLOv5 replaced the original multi-kernel `SPP` with **`SPPF`** (Spatial Pyramid Pooling - Fast): a single `MaxPool2d(kernel_size=5, stride=1, padding=2)` applied `n = 3` times in sequence, with the input and all three pooled outputs concatenated and fused by a `1x1` `Conv`. This is mathematically equivalent to `SPP(k=(5, 9, 13))` but cheaper, because the chained `5x5` pools cover the larger kernels' receptive fields.
+At the end of the backbone, a spatial-pyramid-pooling block widens the [receptive field](https://www.ultralytics.com/glossary/receptive-field). YOLOv5 replaced the original multi-kernel `SPP` with **`SPPF`** (Spatial Pyramid Pooling - Fast): a single `MaxPool2d(kernel_size=5, stride=1, padding=2)` applied `n = 3` times in sequence, with the `1x1`-reduced input and all three pooled outputs concatenated and fused by a `1x1` `Conv`. The chained pools are mathematically equivalent to the parallel pools of `SPP(k=(5, 9, 13))` but cheaper, because the chained `5x5` pools cover the larger kernels' receptive fields.
 
 [YOLO26](../models/yolo26.md) passes a shortcut flag (`SPPF, [1024, 5, 3, True]`); since `c1 == c2 == 1024` at the deepest layer, `SPPF` adds a residual connection (`return y + x`).
 
 ## Spatial Attention: C2PSA (YOLO11+)
 
-[YOLO11](../models/yolo11.md) added **`C2PSA`** after `SPPF`. It is a CSP block whose active branch is a stack of `n` `PSABlock` (Position-Sensitive Attention) modules: `cv1 = Conv(c1, 2 * c, 1)` splits the features, one half passes through the `PSABlock` stack, and `cv2 = Conv(2 * c, c1, 1)` fuses the concatenation. Each `PSABlock` applies multi-head [attention](https://www.ultralytics.com/glossary/attention-mechanism) followed by a two-layer feed-forward network (`Conv(c, 2 * c, 1)` → `Conv(2 * c, c, 1)`), each with a residual connection. [YOLO26](../models/yolo26.md) keeps the same `C3k2` + `C2PSA` backbone.
+[YOLO11](../models/yolo11.md) added **`C2PSA`** after `SPPF`. It is a CSP block whose active branch is a stack of `n` `PSABlock` (Position-Sensitive Attention) modules: `cv1 = Conv(c1, 2 * c, 1)` splits the features, one half passes through the `PSABlock` stack, and `cv2 = Conv(2 * c, c1, 1)` fuses the concatenation. Each `PSABlock` applies multi-head [attention](https://www.ultralytics.com/glossary/attention-mechanism) followed by a two-layer feed-forward network (`Conv(c, 2 * c, 1)` → `Conv(2 * c, c, 1)`), each with a residual connection. [Ultralytics YOLO26](../models/yolo26.md) keeps the same `C3k2` + `C2PSA` backbone and adds a `PSABlock` to its last neck `C3k2` (`attn=True`).
 
 ## Neck: FPN + PAN
 
-The neck fuses the backbone's P3/P4/P5 feature maps with a top-down [Feature Pyramid Network](https://www.ultralytics.com/glossary/feature-pyramid-network-fpn) (FPN) followed by a bottom-up Path Aggregation Network (PAN). In the YAML head section, FPN is `nn.Upsample` + `Concat` (carrying semantic information down to higher resolutions) and PAN is stride-2 `Conv` + `Concat` (carrying localization information back up):
+From YOLOv5 onward, the neck fuses the backbone's P3/P4/P5 feature maps with a top-down [Feature Pyramid Network](https://www.ultralytics.com/glossary/feature-pyramid-network-fpn) (FPN) followed by a bottom-up Path Aggregation Network (PAN). In the YAML head section, FPN is `nn.Upsample` + `Concat` (carrying semantic information down to higher resolutions) and PAN is stride-2 `Conv` + `Concat` (carrying localization information back up):
 
 ```yaml
 # YOLO11 head (FPN top-down, then PAN bottom-up)
@@ -179,22 +177,22 @@ YOLOv8 and YOLO11 regress each of the 4 box coordinates as a **distribution** ov
 
 ### YOLO26: NMS-free, DFL-free
 
-[YOLO26](../models/yolo26.md) sets two YAML parameters that the head reads directly:
+[Ultralytics YOLO26](../models/yolo26.md) sets two YAML parameters that the head reads directly:
 
 - **`end2end: True`** — `Detect` deep-copies its branches into a one-to-one head (`one2one_cv2`/`one2one_cv3`) that learns a single prediction per object. This YAML setting creates both training heads; runtime `nms=False` selects the one-to-one head and removes the [Non-Maximum Suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) (NMS) post-processing step. See the [End-to-End Detection guide](end2end-detection.md) for inference and export details.
 - **`reg_max: 1`** — with one bin, `self.dfl` becomes `nn.Identity()` and `no = nc + 4`; the head regresses coordinates directly and no DFL operation appears in the exported [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange) graph.
 
-Across its five model sizes (n/s/m/l/x), YOLO26 reaches 40.9-57.5 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) on COCO at 1.7-11.8 ms T4 [TensorRT](https://www.ultralytics.com/glossary/tensorrt) latency, as reported in the [YOLO26 paper](https://arxiv.org/abs/2606.03748).
+Across its five model sizes (n/s/m/l/x), Ultralytics YOLO26 reaches 40.1-56.9 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) on COCO with NMS-free inference at 1.7-11.8 ms T4 [TensorRT](https://www.ultralytics.com/glossary/tensorrt) latency, as reported in the [YOLO26 paper](https://arxiv.org/abs/2606.03748).
 
 ## Version-by-Version Summary
 
-| Version    | Backbone block            | Spatial pooling     | Attention | Detection head                                   | DFL                       |
-| ---------- | ------------------------- | ------------------- | --------- | ------------------------------------------------ | ------------------------- |
-| **YOLOv3** | Darknet-53 (`Bottleneck`) | none in base config | none      | Original: anchor-based; `u` variant: anchor-free | no / yes (`u`)            |
-| **YOLOv5** | `C3` (CSP)                | `SPPF`              | none      | Original: anchor-based; `u` variant: anchor-free | no / yes (`u`)            |
-| **YOLOv8** | `C2f`                     | `SPPF`              | none      | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
-| **YOLO11** | `C3k2`                    | `SPPF`              | `C2PSA`   | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
-| **YOLO26** | `C3k2`                    | `SPPF` + shortcut   | `C2PSA`   | Anchor-free, dual heads; optional NMS-free       | **removed** (`reg_max=1`) |
+| Version    | Backbone block            | Spatial pooling     | Attention                 | Detection head                                   | DFL                       |
+| ---------- | ------------------------- | ------------------- | ------------------------- | ------------------------------------------------ | ------------------------- |
+| **YOLOv3** | Darknet-53 (`Bottleneck`) | none in base config | none                      | Original: anchor-based; `u` variant: anchor-free | no / yes (`u`)            |
+| **YOLOv5** | `C3` (CSP)                | `SPPF`              | none                      | Original: anchor-based; `u` variant: anchor-free | no / yes (`u`)            |
+| **YOLOv8** | `C2f`                     | `SPPF`              | none                      | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
+| **YOLO11** | `C3k2`                    | `SPPF`              | `C2PSA`                   | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
+| **YOLO26** | `C3k2`                    | `SPPF` + shortcut   | `C2PSA` + neck `PSABlock` | Anchor-free, dual heads; optional NMS-free       | **removed** (`reg_max=1`) |
 
 For per-model details, performance tables, and usage examples, see the individual pages for [YOLOv3](../models/yolov3.md), [YOLOv5](../models/yolov5.md), [YOLOv8](../models/yolov8.md), [YOLO11](../models/yolo11.md), and [YOLO26](../models/yolo26.md).
 
@@ -233,19 +231,19 @@ YOLO26n reports `reg_max=1` and an `Identity` DFL layer. Prediction and validati
 
 !!! note "Fused vs unfused counts"
 
-    Parameter and FLOPs values are reported for the **fused** model (`model.fuse()`), which merges each `Conv` and its batch normalization layer. This matches the published specifications; a freshly loaded checkpoint reports slightly higher counts before fusing.
+    Parameter and FLOPs values are reported for the **fused** model (`model.fuse()`), which merges each `Conv` and its batch normalization layer and, for YOLO26, removes the unused detection branch. This matches the published specifications; a freshly loaded checkpoint reports higher counts before fusing.
 
 ## Conclusion
 
-Across versions, the YOLO architecture changed one stage at a time: the backbone moved from Darknet-53 to CSP-based `C3`, `C2f`, and `C3k2` blocks with `C2PSA` attention; the neck kept its FPN + PAN structure while `SPP` became `SPPF`; and the head moved from anchor-based to anchor-free, then to YOLO26's DFL-free design with an optional NMS-free end-to-end head.
+Across versions, every stage of the Ultralytics YOLO architecture changed: the backbone moved from Darknet-53 to CSP-based `C3`, `C2f`, and `C3k2` blocks and gained `SPPF` pooling and `C2PSA` attention; the neck went from FPN only to FPN + PAN; and the head moved from anchor-based to anchor-free, then to YOLO26's DFL-free design with an optional NMS-free end-to-end head.
 
-To define custom architectures, see the [Model YAML Configuration Guide](model-yaml-config.md), or compare models on the [model pages](../models/index.md). For questions, reach out on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
+For a new project, start with [Ultralytics YOLO26](../models/yolo26.md), the latest Ultralytics YOLO release; compare all models on the [model pages](../models/index.md), and define custom architectures with the [Model YAML Configuration Guide](model-yaml-config.md). For questions, reach out on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
 
 ## FAQ
 
 ### What are the three stages of a YOLO architecture?
 
-A YOLO model has a **backbone** that extracts features from the image at strides 8, 16, and 32, a **neck** that fuses those features across scales with FPN and PAN, and a **head** that predicts bounding boxes and class scores. Every Ultralytics YOLO model from YOLOv3 to YOLO26 follows this three-stage design.
+An Ultralytics YOLO detection model has a **backbone** that extracts features from the image at strides 8, 16, and 32 in the standard configs, a **neck** that fuses those features across scales with FPN (plus PAN from YOLOv5 onward), and a **head** that predicts bounding boxes and class scores.
 
 ### What is the difference between the C2f and C3k2 blocks?
 
@@ -253,7 +251,7 @@ A YOLO model has a **backbone** that extracts features from the image at strides
 
 ### What changed in the architecture between YOLOv8 and YOLO11?
 
-YOLO11 makes three structural changes to YOLOv8: it replaces the `C2f` backbone and neck block with `C3k2`, inserts a `C2PSA` self-attention block after `SPPF`, and switches the head's classification branch to lighter depthwise-separable convolutions. Both keep the same anchor-free, decoupled `Detect` head with `reg_max=16` DFL regression, so the changes lower parameter and FLOPs counts while raising accuracy rather than redesigning the detection interface.
+Ultralytics YOLO11 makes three structural changes to YOLOv8: it replaces the `C2f` backbone and neck block with `C3k2`, inserts a `C2PSA` self-attention block after `SPPF`, and switches the head's classification branch to lighter depthwise-separable convolutions. Both keep the same anchor-free, decoupled detection interface with `reg_max=16` DFL regression, and YOLO11 has fewer parameters and FLOPs and a higher COCO mAP than YOLOv8 at every model size.
 
 ### Is YOLO anchor-free?
 
@@ -261,11 +259,15 @@ Modern Ultralytics YOLO models are anchor-free. YOLOv8, YOLO11, and YOLO26 use a
 
 ### Did YOLO26 remove NMS?
 
-Yes — [YOLO26](../models/yolo26.md) includes a one-to-one head that supports NMS-free inference with `nms=False`. Its default one-to-many inference path uses NMS, and both heads receive supervision during training. See the [End-to-End Detection guide](end2end-detection.md) for details.
+[Ultralytics YOLO26](../models/yolo26.md) makes NMS optional: its one-to-one head runs NMS-free inference with `nms=False`, while the default one-to-many path relies on NMS. Both heads receive supervision during training. See the [End-to-End Detection guide](end2end-detection.md) for details.
 
 ### What is Distribution Focal Loss (DFL) and why did YOLO26 remove it?
 
-DFL regresses each box coordinate as a softmax distribution over `reg_max` bins (16 by default in YOLOv8 and YOLO11) and takes the expected value as the coordinate, rather than predicting a single scalar. YOLO26 sets `reg_max=1`, so the DFL layer becomes an identity operation, the head regresses coordinates directly, and no DFL op appears in exported ONNX or TensorRT graphs.
+DFL regresses each box coordinate as a softmax distribution over `reg_max` bins (16 by default in YOLOv8 and YOLO11) and takes the expected value as the coordinate, rather than predicting a single scalar. Ultralytics YOLO26 sets `reg_max=1` to reduce detection-head complexity and simplify export, so the DFL layer becomes an identity operation, the head regresses coordinates directly, and no DFL op appears in exported ONNX or TensorRT graphs.
+
+### Is there an official paper for YOLOv8, YOLO11, or YOLO26?
+
+Ultralytics YOLO26 is described in the [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748). Ultralytics has not published a formal research paper for YOLOv8 or YOLO11; cite them as software with the BibTeX entries on the [YOLOv8](../models/yolov8.md#citations-and-acknowledgments) and [YOLO11](../models/yolo11.md#citations-and-acknowledgments) model pages.
 
 ### How can I see the architecture of a specific YOLO model?
 

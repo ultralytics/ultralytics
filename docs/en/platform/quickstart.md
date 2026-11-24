@@ -280,7 +280,7 @@ Once training starts, open the model's `Train` tab to monitor progress in real t
 | **Console**    | Live training log output                                |
 | **System**     | GPU utilization, memory usage, hardware metrics         |
 
-![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/13e91f2728627c825f8efcd8fe7916b4.avif)<!-- screenshot -->
+![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/508405c440b56bd4a4c16bd994ccc450.avif)<!-- screenshot -->
 
 Metrics stream in real time via Server-Sent Events (SSE). The **Validation** subtab appears when validation results are available, including the [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), PR curves, and F1 curves produced by the run.
 
@@ -388,15 +388,15 @@ Read more about [endpoints](deploy/endpoints.md).
 
 If you prefer to train on your own hardware, you can use your API key to train anywhere and stream metrics to Ultralytics Platform.
 
-The fastest route is the **Local Training** tab in the training dialog: it builds the full command for your selected model, dataset, and parameters, and fills in an API key (creating one if you don't have one yet). Copy it and run it in your terminal.
+The fastest route is the **Local Training** tab in the training dialog: it builds the full command for your selected model, dataset, and parameters, and fills in an API key (creating one if you don't have one yet). Copy it and run it in your terminal. Its first line is the Linux/macOS `export` command; on Windows, set the key with [`yolo login` or your shell's command](train/cloud-training.md#set-up-api-key) instead.
 
 To assemble the command yourself:
 
 1. Generate an API key in [`Settings > API Keys`](account/api-keys.md)
-2. Set the environment variable and train with a `username/project` value for `project`:
+2. Save the key with `yolo login`, which works on Linux, macOS, and Windows, and train with a `username/project` value for `project`:
 
 ```bash
-export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+yolo login YOUR_API_KEY
 
 yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
 ```

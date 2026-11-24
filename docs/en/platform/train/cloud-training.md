@@ -254,11 +254,33 @@ Train on your own hardware while streaming metrics to the platform.
 
 1. Go to [`Settings > API Keys`](../account/api-keys.md)
 2. Create a new key (or the platform auto-creates one when you open the Local Training tab)
-3. Set the environment variable:
+3. Save the key once with `yolo login`, which works in any terminal on Linux, macOS, and Windows:
 
 ```bash
-export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+yolo login YOUR_API_KEY
 ```
+
+Or set the `ULTRALYTICS_API_KEY` environment variable for the current terminal session, with the command for your shell:
+
+=== "Linux/macOS"
+
+    ```bash
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    ```
+
+=== "Windows PowerShell"
+
+    ```powershell
+    $env:ULTRALYTICS_API_KEY = "YOUR_API_KEY"
+    ```
+
+=== "Windows Command Prompt"
+
+    ```bat
+    set ULTRALYTICS_API_KEY=YOUR_API_KEY
+    ```
+
+The **Local Training** tab's command starts with the Linux/macOS `export` line, which PowerShell and Command Prompt don't recognize; on Windows, run `yolo login` or the line for your shell instead, then the `yolo train` command. See [API Keys](../account/api-keys.md#using-api-keys) for how the saved key and the environment variable interact.
 
 ### Train with Streaming
 

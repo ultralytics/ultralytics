@@ -29,6 +29,7 @@ Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
 NXP                     | `nxp`                     | yolo26n_nxp.tflite
 ST Edge AI              | `stedgeai`                | yolo26n_stedgeai.onnx
+AXERA                   | `axera`                   | yolo26n_axera_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -643,6 +644,7 @@ class Exporter:
         export_ascend: Export model to Huawei Ascend format.
         export_xilinx: Export model to AMD Xilinx Vitis AI format.
         export_stedgeai: Export model to ST Edge AI ONNX format.
+        export_axera: Export model to AXERA format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -1209,10 +1211,7 @@ class Exporter:
     def _int8_calibration_files(self, prefix=""):
         """Return the image files of the INT8 calibration dataset, for compilers that read images from disk."""
         dataset = self.get_int8_calibration_dataloader(prefix).dataset
-        files = getattr(dataset, "im_files", None) or [x[0] for x in getattr(dataset, "samples", [])]
-        if not files:
-            raise ValueError(f"{prefix} INT8 export requires a calibration dataset with image file paths.")
-        return files
+        return getattr(dataset, "im_files", None) or [x[0] for x in getattr(dataset, "samples", [])]
 
     def _head_scope(self):
         """Return the ONNX node-name scope of the model head, or None when it has no per-level head convs to cut at."""

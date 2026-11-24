@@ -38,13 +38,13 @@ pulsar2 version # version: 9.0
         from ultralytics import YOLO
 
         model = YOLO("yolo26n.pt")
-        model.export(format="axera", name="AX650", data="coco8.yaml")  # creates 'yolo26n_axera_model/'
+        model.export(format="axera", name="AX650")  # creates 'yolo26n_axera_model/'
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n.pt format=axera name=AX650 data=coco8.yaml # creates 'yolo26n_axera_model/'
+        yolo export model=yolo26n.pt format=axera name=AX650 # creates 'yolo26n_axera_model/'
         ```
 
 The export of YOLO26n took about 45 seconds on a server CPU.
@@ -55,16 +55,16 @@ All seven Ultralytics tasks export with [YOLO26](../models/yolo26.md) models: [d
 
 ## Export Arguments
 
-| Argument   | Type                      | Default      | Description                                                                                                                                                     |
-| ---------- | ------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`                     | `'axera'`    | Target format for the exported model.                                                                                                                           |
-| `name`     | `str`                     | `'AX650'`    | Target chip, passed to Pulsar2 as `--target_hardware`, such as `'AX650'` or `'AX8860'`.                                                                         |
-| `quantize` | `int`                     | `8`          | `8` for INT8, or `16` for BF16 weights and activations on the AX8860.                                                                                           |
-| `imgsz`    | `int` or `tuple`          | `640`        | Image size of the model input. The compiled model has a fixed input shape and a batch size of 1.                                                                |
-| `data`     | `str`                     | task default | Dataset YAML whose `val` split, or the `split` you set, provides the calibration images. Defaults to the small dataset of the model task, such as `coco8.yaml`. |
-| `fraction` | `float`, `int`, or `list` | `1.0`        | Calibration subset: a ratio, an image count, or a `[train, val, test]` list. Pulsar2 calibrates on every image of the subset.                                   |
-| `opset`    | `int`                     | `None`       | ONNX opset of the intermediate graph.                                                                                                                           |
-| `simplify` | `bool`                    | `True`       | Simplify the intermediate ONNX graph.                                                                                                                           |
+| Argument   | Type                      | Default      | Description                                                                                                                                                                     |
+| ---------- | ------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'axera'`    | Target format for the exported model.                                                                                                                                           |
+| `name`     | `str`                     | `'AX650'`    | Target chip, passed to Pulsar2 as `--target_hardware`, such as `'AX650'` or `'AX8860'`.                                                                                         |
+| `quantize` | `int`                     | `8`          | `8` for INT8, or `16` for BF16 weights and activations on the AX8860.                                                                                                           |
+| `imgsz`    | `int` or `tuple`          | `640`        | Image size of the model input. The compiled model has a fixed input shape and a batch size of 1.                                                                                |
+| `data`     | `str`                     | task default | Dataset YAML whose `val` split, or the `split` you set, provides the calibration images. Defaults to the calibration dataset of the task, such as `coco128.yaml` for detection. |
+| `fraction` | `float`, `int`, or `list` | `1.0`        | Calibration subset: a ratio, an image count, or a `[train, val, test]` list. Pulsar2 calibrates on every image of the subset.                                                   |
+| `opset`    | `int`                     | `None`       | ONNX opset of the intermediate graph.                                                                                                                                           |
+| `simplify` | `bool`                    | `True`       | Simplify the intermediate ONNX graph.                                                                                                                                           |
 
 For the arguments shared by all formats, see the [Export mode documentation](../modes/export.md).
 
@@ -80,7 +80,7 @@ Pulsar2 sets the INT8 range of each layer from the calibration images, so they s
 | `tail.onnx`       | INT8 detect, segment, pose and OBB models only: the decoding of the head outputs into raw predictions, run on the CPU in `float32`. |
 | `metadata.yaml`   | Class names, task, image size, stride and export arguments.                                                                         |
 
-INT8 cannot hold the pixel-range box values and the 0-1 class scores of the decoding in one scale, so an INT8 graph ends at the per-level output convolutions of the head and `tail.onnx` finishes the decoding. BF16 models and the other tasks compile the whole graph. The outputs of `tail.onnx`, or of a whole-graph model, are the same raw predictions as the [ONNX export](onnx.md#output-format); apply NMS to them.
+INT8 cannot hold the pixel-range box values and the 0-1 class scores of the decoding in one scale, so an INT8 graph ends at the per-level output convolutions of the head and `tail.onnx` finishes the decoding. BF16 models and the other tasks compile the whole graph. The outputs of `tail.onnx`, or of a whole-graph model, are the same raw predictions as the [ONNX export](onnx.md#output-format), so apply NMS to them. Semantic segmentation is the exception: it returns per-class logits instead of a class map.
 
 ## Deploy
 

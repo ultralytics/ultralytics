@@ -63,7 +63,7 @@ class ObjectCropper(BaseSolution):
         self.extract_tracks(im0)
         for box in self.boxes:
             self.crop_idx += 1
-            save_one_box(box, im0, file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg", BGR=True)
+            save_one_box(box, self.tracks.orig_img, file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg", BGR=True)
 
         # Return SolutionResults
         return SolutionResults(plot_im=im0, total_crop_objects=self.crop_idx)

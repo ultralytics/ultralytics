@@ -16,7 +16,7 @@ Welcome to Ultralytics Docs, your comprehensive resource for understanding and u
 [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://clickpy.clickhouse.com/dashboard/ultralytics)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)](https://pypi.org/project/ultralytics/)
 
-To install the `ultralytics` package in developer mode, which allows you to modify the source code directly, ensure you have [Git](https://git-scm.com/) and [Python](https://www.python.org/) installed on your system. The package supports Python 3.8 or later; building the docs requires Python 3.10 or later. Then, follow these steps:
+To install the `ultralytics` package in developer mode, which allows you to modify the source code directly, ensure you have [Git](https://git-scm.com/), [Python](https://www.python.org/), and [uv](https://docs.astral.sh/uv/getting-started/installation/) installed on your system. The package supports Python 3.8 or later; building the docs requires Python 3.10 or later. Then, follow these steps:
 
 1.  Clone the `ultralytics` repository to your local machine using Git:
 

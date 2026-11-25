@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, plt_settings
+from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings
 from ultralytics.utils.plotting import colors
 from ultralytics.utils.torch_utils import autocast
 
@@ -768,7 +768,8 @@ def plot_mc_curve(
         on_plot(save_dir, {"type": f"{ylabel.lower()}_curve", "x": px.tolist(), "y": py.tolist()})
 
 
-_AP_X = np.linspace(0, 1, 101)  # 101 recall thresholds (COCO), constant across compute_ap calls
+_AP_X = np.linspace(0, 1, 101)  # 101-point interp (COCO), constant across compute_ap calls
+_TRAPZ = np.trapezoid if checks.check_version(np.__version__, ">=2.0") else np.trapz  # np.trapz deprecated
 
 
 def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.ndarray, np.ndarray]:
@@ -790,8 +791,7 @@ def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.n
     # Compute the precision envelope
     mpre = np.flip(np.maximum.accumulate(np.flip(mpre)))
 
-    # 101-point COCO AP: mean envelope precision at the first point reaching each recall threshold, 0 past max recall
-    ap = mpre[1:][np.searchsorted(mrec[1:], _AP_X, side="left")].mean()
+    ap = _TRAPZ(np.interp(_AP_X, mrec, mpre), _AP_X)  # 101-point interpolation (COCO)
 
     return ap, mpre, mrec
 

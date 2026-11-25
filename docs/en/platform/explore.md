@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, explore, public datasets, public models, pretrai
 
 The [Ultralytics Platform](https://platform.ultralytics.com) Explore page lists public content from the community. Find [datasets](data/datasets.md) to train on, trained [models](train/models.md) by what they detect, and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/0ef70bb4ebae864538173f1176c2e674.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/aa41f16b33033de1894721eacbbdadd5.avif)<!-- screenshot -->
 
 ```mermaid
 flowchart TD
@@ -41,7 +41,7 @@ placeholders never surface in results.
 
 ### Tabs
 
-The Explore page uses a tabbed interface with `Datasets`, `Images`, `Projects`, and `Models` tabs. Each tab has its own search; the Datasets, Models, and Projects tabs also have sort and view mode controls.
+The Explore page uses a tabbed interface with `Datasets`, `Images`, `Projects`, and `Models` tabs. Each tab has its own search; the Datasets, Projects, and Models tabs also have sort and view mode controls.
 
 | Tab          | Description                                       |
 | ------------ | ------------------------------------------------- |
@@ -55,7 +55,7 @@ The Explore page uses a tabbed interface with `Datasets`, `Images`, `Projects`, 
 Each tab has its own search bar. Results update as you type and the query is kept in the URL as `?q=`, so a search is
 easy to bookmark or share.
 
-![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/3dd1531ea3532850784aa8a2f9e12b50.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/105a2c60370c941f1f09cff1e0f576d6.avif)<!-- screenshot -->
 
 | Tab          | Matched Fields                                                                                           |
 | ------------ | -------------------------------------------------------------------------------------------------------- |
@@ -85,7 +85,7 @@ Projects tab.
 On the Models tab, describe what you need to detect, such as `hard hat` or `aerial drones`, to find public trained
 models even when no model or project name contains your words.
 
-![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/c703819d8a01ffbbc0b4454be6bb37c7.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/f148f38b26d70c38e32a94288661468b.avif)<!-- screenshot -->
 
 Results are ranked in three tiers:
 
@@ -104,7 +104,7 @@ Click a card to open the model, then test it from its `Predict` tab, [clone it](
 
 ### Sort and Filter
 
-The dropdown in the toolbar holds sort options on the Datasets, Models, and Projects tabs and filters on all four tabs.
+The dropdown in the toolbar holds sort options on the Datasets, Projects, and Models tabs and filters on all four tabs.
 The Models tab sorts by **Relevance** or **Created** only:
 
 | Sort Option             | Description                                                                               |
@@ -147,7 +147,7 @@ and keeps the filters in the dropdown.
 
 Each item displays:
 
-![Ultralytics Platform Explore Projects Tab With Project Cards](https://cdn.ul.run/i/0450abc3fd91047757e209297b8f2107.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Projects Tab With Project Cards](https://cdn.ul.run/i/800937ab5fd6ef8d07f5e33a9ace6a73.avif)<!-- screenshot -->
 
 === "Project Cards"
 
@@ -217,7 +217,7 @@ Use a public dataset for your training:
 4. Click **Clone Dataset** to confirm
 5. Open the copy and [train on it](data/datasets.md#train-on-dataset)
 
-![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/61c009c013d2a84cc83418a37d427318.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/47c61832cd85e86056b1a58e8c32a8f7.avif)<!-- screenshot -->
 
 !!! note "Cloned Dataset Properties"
 

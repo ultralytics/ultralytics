@@ -1331,7 +1331,11 @@ class Exporter:
 
         def serialize(ov_model, file):
             """Set RT info, serialize, and save metadata YAML."""
-            ov_model.set_rt_info(self.pretty_name, ["model_info", "model_type"])
+            # Raw (no NMS, not end2end) Detect/Segment/OBB outputs use DL Streamer and Model API YOLOv8 decoders
+            head = getattr(self.model, "model", [None])[-1]
+            raw = isinstance(head, Detect) and not (self.args.nms or self.metadata["end2end"])
+            task = {"detect": "", "segment": "-SEG", "obb": "-OBB"}.get(self.model.task) if raw else None
+            ov_model.set_rt_info("YOLO" if task is None else f"YOLOv8{task}", ["model_info", "model_type"])
             ov_model.set_rt_info(True, ["model_info", "reverse_input_channels"])
             ov_model.set_rt_info("LINEAR", ["model_info", "interpolation_mode"])
             ov_model.set_rt_info(114, ["model_info", "pad_value"])

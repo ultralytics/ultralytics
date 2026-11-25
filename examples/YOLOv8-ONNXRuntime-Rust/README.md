@@ -86,13 +86,7 @@ Set `--device-id` to select a specific GPU device. If the CUDA execution provide
 cargo run --release -- --cuda --device-id 0 --model MODEL_PATH.onnx --source SOURCE_IMAGE.jpg
 ```
 
-Set `--batch` to perform inference with a specific batch size. Fixed-shape models must use their exported batch size; dynamic models also need `--height` and `--width`.
-
-```bash
-cargo run --release -- --cuda --batch 2 --height 640 --width 640 --model MODEL_PATH_dynamic.onnx --source SOURCE_IMAGE.jpg
-```
-
-If you're using `--trt` with a model exported with dynamic batch dimensions, you can explicitly specify the minimum, optimal, and maximum batch sizes for TensorRT optimization using `--batch-min`, `--batch`, and `--batch-max`. Refer to the [TensorRT Execution Provider documentation](https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#explicit-shape-range-for-dynamic-shape-input) for details.
+The CLI runs inference on the single `--source` image. `--batch` sets the batch size the model is configured for and must match the batch of a fixed-shape export. With `--trt` and a model exported with dynamic batch dimensions, `--batch-min`, `--batch`, and `--batch-max` set the minimum, optimal, and maximum batch sizes of the TensorRT optimization profile. Refer to the [TensorRT Execution Provider documentation](https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#explicit-shape-range-for-dynamic-shape-input) for details.
 
 #### Dynamic Image Size
 

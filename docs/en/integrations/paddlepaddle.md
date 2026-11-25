@@ -275,13 +275,13 @@ There are no earlier PaddlePaddle benchmarks from Ultralytics. The tables below 
 
     Milliseconds per image, lower is better, as the mean of two runs. The fastest format for each model is in bold.
 
-    | Model   | `imgsz` | PyTorch   | ONNX FP32 | PaddlePaddle FP32 |
-    | ------- | ------- | --------- | --------- | ----------------- |
-    | YOLO26n | 640     | **10.0**  | 16.6      | 33.4              |
-    | YOLO26s | 640     | **25.5**  | 31.3      | 63.0              |
-    | YOLO26m | 640     | 65.1      | **57.9**  | 125.9             |
-    | YOLO26l | 640     | 74.1      | **70.7**  | 166.1             |
-    | YOLO26x | 640     | 144.4     | **130.4** | 280.1             |
+    | Model   | `imgsz` | PyTorch  | ONNX FP32 | PaddlePaddle FP32 |
+    | ------- | ------- | -------- | --------- | ----------------- |
+    | YOLO26n | 640     | **10.0** | 16.6      | 33.4              |
+    | YOLO26s | 640     | **25.5** | 31.3      | 63.0              |
+    | YOLO26m | 640     | 65.1     | **57.9**  | 125.9             |
+    | YOLO26l | 640     | 74.1     | **70.7**  | 166.1             |
+    | YOLO26x | 640     | 144.4    | **130.4** | 280.1             |
 
 === "Accuracy"
 

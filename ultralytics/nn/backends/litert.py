@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, NUM_THREADS
+from ultralytics.utils import LOGGER, NUM_THREADS, cpu_threads
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -76,7 +76,9 @@ class LiteRTBackend(BaseBackend):
                 check_requirements("ai-edge-litert>=2.1.4")
                 from ai_edge_litert.interpreter import Interpreter
 
-            self.interpreter = Interpreter(str(tflite_file), num_threads=NUM_THREADS, experimental_delegates=delegates)
+            self.interpreter = Interpreter(
+                str(tflite_file), num_threads=cpu_threads(NUM_THREADS), experimental_delegates=delegates
+            )
             self.interpreter.allocate_tensors()
             self.input_details = self.interpreter.get_input_details()
             self.output_details = self.interpreter.get_output_details()

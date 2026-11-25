@@ -41,7 +41,7 @@ class NCNNBackend(BaseBackend):
         else:
             self.net.opt.use_vulkan_compute = False
         if LINUX:  # NCNN sizes its default to host cores
-            self.net.opt.num_threads = cpu_threads(self.net.opt.num_threads)
+            self.net.opt.num_threads = min(8, cpu_threads(self.net.opt.num_threads))
 
         w = Path(weight)
         if not w.is_file():

@@ -1004,7 +1004,7 @@ def cpu_threads(n: int) -> int:
         proc = Path("/proc/self/cgroup")
         own = next((s[3:] for s in proc.read_text().splitlines() if s.startswith("0::")), "") if proc.is_file() else ""
         cg = Path("/sys/fs/cgroup" + own)
-        for cpu_max in (d / "cpu.max" for d in (cg, *cg.parents)):  # a quota on any ancestor cgroup applies
+        for cpu_max in (d / "cpu.max" for d in (cg, *cg.parents)):
             if cpu_max.is_file() and (q := cpu_max.read_text().split())[0] != "max":
                 n = min(n, int(q[0]) // int(q[1]))
     return max(1, n)

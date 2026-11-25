@@ -231,7 +231,7 @@ with zipfile.ZipFile("yolo26n.tflite") as z:
 
 ## Deploy
 
-`YOLO("yolo26n.tflite")` runs the model with the `ai-edge-litert` interpreter on the CPU, with up to 8 threads. Other `device` values, such as `0` or `mps`, also run on the CPU; `xpu` and `npu` select [Intel hardware](#intel-gpu-and-npu-inference). The [inference devices table](../modes/predict.md#inference-devices) compares these names across formats.
+`YOLO("yolo26n.tflite")` runs the model with the `ai-edge-litert` interpreter on the CPU, with up to 8 threads. On Linux, the CPU affinity (`taskset`, Docker `--cpuset-cpus`) and a cgroup v2 CPU quota (Docker `--cpus`) can lower that count, down to one thread. Other `device` values, such as `0` or `mps`, also run on the CPU; `xpu` and `npu` select [Intel hardware](#intel-gpu-and-npu-inference). The [inference devices table](../modes/predict.md#inference-devices) compares these names across formats.
 
 The model always runs at its export `imgsz` and `batch`, which Ultralytics reads from the file metadata. An `imgsz` passed to `predict` or `val` is ignored. Larger batches are split into chunks of the export batch size and smaller ones are padded, so any number of images works.
 

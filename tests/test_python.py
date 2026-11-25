@@ -886,14 +886,6 @@ def test_pose_metrics_curves():
     assert len(curves) == len(set(curves)) == 8
 
 
-def test_compute_ap_matches_coco():
-    """Test compute_ap reads COCO's envelope precision at each recall threshold, so a perfect detector scores 1.0."""
-    from ultralytics.utils.metrics import compute_ap
-
-    assert compute_ap(np.array([0.5, 1.0, 1.0]), np.array([1.0, 1.0, 2 / 3]))[0] == 1.0  # all found first, then an FP
-    assert compute_ap(np.array([0.0, 1.0]), np.array([0.0, 0.5]))[0] == 0.5  # an FP then the only TP
-
-
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_multi():

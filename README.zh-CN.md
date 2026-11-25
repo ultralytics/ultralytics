@@ -145,7 +145,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x) | 640                       | 57.5                              | 56.9                                       | 525.8 ± 4.0                           | 11.8 ± 0.2                                 | 55.7                      | 194.4                      |
 
 - **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo detect val data=coco.yaml device=0` 复现结果，添加 `nms=False` 可复现 e2e 列。
-- **速度** 指标是对 COCO val 图像进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。<br>使用 `yolo detect val data=coco.yaml batch=1 device=0|cpu nms=False` 复现结果。
+- **速度** 指标是对 COCO val 图像进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。
 
 </details>
 
@@ -162,7 +162,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg) | 640                       | 56.5                                       | 47.0                                        | 787.0 ± 6.8                           | 16.4 ± 0.1                                 | 62.8                      | 314.0                      |
 
 - **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo segment val data=coco.yaml device=0 nms=False` 复现结果。
-- **速度** 指标是对 COCO val 图像进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。<br>使用 `yolo segment val data=coco.yaml batch=1 device=0|cpu nms=False` 复现结果。
+- **速度** 指标是对 COCO val 图像进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。
 
 </details>
 
@@ -217,7 +217,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26x-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-cls) | 224                       | 79.9                   | 95.0                   | 41.4 ± 0.9                            | 3.8 ± 0.0                                  | 29.6                      | 13.5                             |
 
 - **acc** 值表示模型在 [ImageNet](https://www.image-net.org/) 数据集验证集上的准确率。<br>使用 `yolo classify val data=path/to/ImageNet device=0` 复现结果。
-- **速度** 指标是对 ImageNet val 图像进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。<br>使用 `yolo classify val data=path/to/ImageNet batch=1 device=0|cpu` 复现结果。
+- **速度** 指标是对 ImageNet val 图像进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。
 
 </details>
 
@@ -234,7 +234,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26x-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-pose) | 640                       | 71.6                                        | 91.6                                     | 565.4 ± 3.0                           | 12.2 ± 0.2                                 | 57.6                      | 202.3                      |
 
 - **mAP<sup>val</sup>** 值指的是在 [COCO Keypoints val2017](https://docs.ultralytics.com/datasets/pose/coco) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo pose val data=coco-pose.yaml device=0 nms=False` 复现结果。
-- **速度** 指标是对 COCO val 图像进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。<br>使用 `yolo pose val data=coco-pose.yaml batch=1 device=0|cpu nms=False` 复现结果。
+- **速度** 指标是对 COCO val 图像进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。
 
 </details>
 
@@ -251,7 +251,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26x-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-obb) | 1024                      | 56.7                                        | 81.7                                     | 1485.7 ± 11.5                         | 30.5 ± 0.9                                 | 57.6                      | 520.1                      |
 
 - **mAP<sup>test</sup>** 值指的是在 [DOTAv1 测试集](https://captain-whu.github.io/DOTA/dataset.html)上的单模型多尺度性能。<br>通过 `yolo obb val data=DOTAv1.yaml device=0 split=test nms=False save_json=True` 复现结果，并将合并后的结果提交到 [DOTA 评估服务器](https://captain-whu.github.io/DOTA/evaluation.html)。
-- **速度** 指标是对 [DOTAv1 val 图像](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10)进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。<br>通过 `yolo obb val data=DOTAv1.yaml batch=1 device=0|cpu nms=False` 复现结果。
+- **速度** 指标是对 [DOTAv1 val 图像](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10)进行平均测量的，CPU 使用 [ONNX](https://onnx.ai/)，GPU 使用 NVIDIA T4 上的 [TensorRT10](https://developer.nvidia.com/tensorrt)。
 
 </details>
 

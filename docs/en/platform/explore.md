@@ -31,8 +31,8 @@ The Explore page features four tabs:
 - **Public Datasets**: Community training data with image previews
 - **Search Images**: Images from public datasets, and from your own and team datasets when signed in, found by what
   they show
-- **Public Models**: Trained models found by what they detect, each with its training images and headline metrics
 - **Public Projects**: Complete experiments containing trained models
+- **Public Models**: Trained models found by what they detect, each with its training images and headline metrics
 
 Only datasets that contain at least one image and projects that contain at least one model appear on Explore, so empty
 placeholders never surface in results.
@@ -41,14 +41,14 @@ placeholders never surface in results.
 
 ### Tabs
 
-The Explore page uses a tabbed interface with `Datasets`, `Images`, `Models`, and `Projects` tabs. Each tab has its own search; the Datasets, Models, and Projects tabs also have sort and view mode controls.
+The Explore page uses a tabbed interface with `Datasets`, `Images`, `Projects`, and `Models` tabs. Each tab has its own search; the Datasets, Models, and Projects tabs also have sort and view mode controls.
 
 | Tab          | Description                                       |
 | ------------ | ------------------------------------------------- |
 | **Datasets** | Labeled image collections for training (default)  |
 | **Images**   | Images found by what they show                    |
-| **Models**   | Trained models found by what they detect          |
 | **Projects** | Organized model collections with training results |
+| **Models**   | Trained models found by what they detect          |
 
 ### Search
 
@@ -61,8 +61,8 @@ easy to bookmark or share.
 | ------------ | -------------------------------------------------------------------------------------------------------- |
 | **Datasets** | Name, description, owner username, tags, and class names                                                 |
 | **Images**   | What the image shows                                                                                     |
-| **Models**   | Model name; the project's name, description, owner username, and tags; and what its training images show |
 | **Projects** | Name, description, owner username, and tags                                                              |
+| **Models**   | Model name; the project's name, description, owner username, and tags; and what its training images show |
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
 search, and their cards show the matching images. Searching an official dataset's name or address (such as `HIT-UAV` or

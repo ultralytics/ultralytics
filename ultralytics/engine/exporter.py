@@ -1331,8 +1331,9 @@ class Exporter:
 
         def serialize(ov_model, file):
             """Set RT info, serialize, and save metadata YAML."""
-            ov_model.set_rt_info("YOLO", ["model_info", "model_type"])
+            ov_model.set_rt_info(self.pretty_name, ["model_info", "model_type"])
             ov_model.set_rt_info(True, ["model_info", "reverse_input_channels"])
+            ov_model.set_rt_info("LINEAR", ["model_info", "interpolation_mode"])
             ov_model.set_rt_info(114, ["model_info", "pad_value"])
             ov_model.set_rt_info([255.0], ["model_info", "scale_values"])
             ov_model.set_rt_info(self.args.iou, ["model_info", "iou_threshold"])

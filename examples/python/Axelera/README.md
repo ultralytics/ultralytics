@@ -42,7 +42,8 @@ already work.
 `yolo26-pose-tracker.py` keeps OpenCV for capture, drawing, and post-processing, and
 only runs the model (and, optionally, a tracker) through Axelera. The pose-only
 pipeline returns the model's raw NumPy rows, so it slots into NumPy post-processing
-you already have. Uses the NMS-free head that every YOLO26 Axelera export keeps.
+you already have. Uses the NMS-free head that YOLO26 detect, segment, pose, and OBB
+Axelera exports keep.
 
 `yolo11-seg.py` runs the whole pipeline through the runtime instead: hardware decode
 operators, typed `Results` objects, `cv.create_source()` for capture, and the
@@ -77,8 +78,8 @@ Metis kernel driver `metis-dkms` 1.7.0 or newer on the device host (see
 ### Compile
 
 Export and compile your trained model directly to Axelera format using the
-Ultralytics CLI. The export runs on Linux x86-64 with PyTorch 2.8 or newer, installs
-the `axelera-devkit==1.9.0` compiler if it is missing, and builds an INT8 model
+Ultralytics CLI. The export runs on Linux x86-64 with Python 3.10 to 3.13 and PyTorch
+2.8 to 2.14, installs the `axelera-devkit==1.9.0` compiler if it is missing, and builds an INT8 model
 calibrated on the images in `data`:
 
 ```bash

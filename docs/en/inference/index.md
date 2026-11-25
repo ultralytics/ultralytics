@@ -439,7 +439,7 @@ ultralytics-inference predict --ocr --model yolo26x-text.onnx --source sign.jpg 
 ultralytics-inference predict --ocr korean_PP-OCRv5_mobile_rec --source sign.jpg
 ```
 
-For other scripts, pass `{script}_PP-OCRv5_mobile_rec` to `--ocr` (or its `.onnx` file to `TextRecognizer::new` in place of `DEFAULT_RECOGNIZER`), where `{script}` is one of `arabic`, `cyrillic`, `devanagari`, `el`, `en`, `eslav`, `korean`, `latin`, `ta`, `te`, or `th`. These models download automatically.
+For other scripts, pass any PP-OCRv5 language model from the [OCR guide](../guides/ocr.md#read-other-scripts) to `--ocr` (or its `.onnx` file to `TextRecognizer::new` in place of `DEFAULT_RECOGNIZER`). These models download automatically.
 
 The library example loads the image with the `image` crate, so add it next to the package with `cargo add image`.
 

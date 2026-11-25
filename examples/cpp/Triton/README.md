@@ -86,7 +86,7 @@ See the [Ultralytics Triton guide](https://docs.ultralytics.com/guides/triton-in
    make
    ```
 
-   The `CMakeLists.txt` compiles with `-mavx2 -mf16c -march=native`, so it targets x86-64 hosts; remove those flags to build on ARM.
+   The example is x86-64 only: `CMakeLists.txt` compiles with `-mavx2 -mf16c -march=native`, and `inference.cpp` uses x86 F16C intrinsics for FP16 conversion.
 
 The shared helpers in [`../common`](../common) are header-only and added to the include path automatically.
 

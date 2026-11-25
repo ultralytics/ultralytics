@@ -76,7 +76,7 @@ cargo run --release -- --trt --fp16 --model MODEL_PATH.onnx --source SOURCE_IMAG
 
 #### Specifying Device and Batch Size
 
-Set `--device-id` to select a specific GPU device. If the specified device ID is invalid (e.g., setting `--device-id 1` when only one GPU exists), `ort` will automatically fall back to the `CPU` execution provider without causing a panic.
+Set `--device-id` to select a specific GPU device. If the CUDA execution provider is unavailable, `ort` falls back to the `CPU` execution provider; an invalid device ID on a CUDA system fails instead.
 
 ```bash
 cargo run --release -- --cuda --device-id 0 --model MODEL_PATH.onnx --source SOURCE_IMAGE.jpg

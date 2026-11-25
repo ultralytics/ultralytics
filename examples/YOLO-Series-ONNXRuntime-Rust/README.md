@@ -1,16 +1,18 @@
-# YOLO-Series ONNXRuntime Rust Demo for Core YOLO Tasks
+# Ultralytics YOLO ONNX Runtime Inference in Rust with usls
 
-This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [Ultralytics YOLO](https://docs.ultralytics.com) series tasks such as [Classification](https://docs.ultralytics.com/tasks/classify), [Segmentation](https://docs.ultralytics.com/tasks/segment), [Detection](https://docs.ultralytics.com/tasks/detect), [Pose Estimation](https://docs.ultralytics.com/tasks/pose), and Oriented Bounding Box ([OBB](https://docs.ultralytics.com/tasks/obb)) detection using the [ONNXRuntime](https://onnxruntime.ai/). It supports various YOLO models (YOLOv5 through YOLO11) across multiple computer vision tasks.
+<img alt="Rust" src="https://img.shields.io/badge/Rust-000000.svg?logo=rust&logoColor=white"> <img alt="ONNX Runtime" src="https://img.shields.io/badge/ONNX%20Runtime-717272.svg?logo=onnx&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a>
+
+This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [Ultralytics YOLO](https://docs.ultralytics.com) series tasks such as [Detection](https://docs.ultralytics.com/tasks/detect), [Segmentation](https://docs.ultralytics.com/tasks/segment), [Classification](https://docs.ultralytics.com/tasks/classify), [Pose Estimation](https://docs.ultralytics.com/tasks/pose), and Oriented Bounding Box ([OBB](https://docs.ultralytics.com/tasks/obb)) detection using the [ONNXRuntime](https://onnxruntime.ai/). It supports various YOLO models (YOLOv5 through YOLO11) across multiple computer vision tasks.
 
 ## ✨ Introduction
 
-- This example leverages the latest versions of both the [ONNX Runtime](https://onnxruntime.ai/) and popular YOLO models.
+- This example runs YOLO models from YOLOv5 through YOLO11 with the [ONNX Runtime](https://onnxruntime.ai/).
 - We utilize the [usls crate](https://github.com/jamjamjon/usls/tree/main) to streamline YOLO model inference in Rust, providing efficient data loading, visualization, and optimized inference performance. This allows developers to easily integrate state-of-the-art object detection into their Rust applications.
 
 ## 🚀 Features
 
 - **Extensive Model Compatibility**: Supports a wide range of YOLO versions including [YOLOv5](https://docs.ultralytics.com/models/yolov5), [YOLOv6](https://docs.ultralytics.com/models/yolov6), [YOLOv7](https://docs.ultralytics.com/models/yolov7), [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLOv9](https://docs.ultralytics.com/models/yolov9), [YOLOv10](https://docs.ultralytics.com/models/yolov10), [YOLO11](https://docs.ultralytics.com/models/yolo11), [YOLO-World](https://docs.ultralytics.com/models/yolo-world), [RT-DETR](https://docs.ultralytics.com/models/rtdetr), and others.
-- **Versatile Task Coverage**: Includes examples for `Classification`, `Segmentation`, `Detection`, `Pose`, and `OBB`.
+- **Versatile Task Coverage**: Includes examples for `Detection`, `Segmentation`, `Classification`, `Pose`, and `OBB`.
 - **Precision Flexibility**: Works seamlessly with `FP16` and `FP32` precision [ONNX models](https://docs.ultralytics.com/integrations/onnx).
 - **Execution Providers**: Accelerated support for `CPU`, [CUDA](https://developer.nvidia.com/cuda/toolkit), [CoreML](https://developer.apple.com/documentation/coreml), and [TensorRT](https://docs.ultralytics.com/integrations/tensorrt).
 - **Dynamic Input Shapes**: Dynamically adjusts to variable `batch`, `width`, and `height` dimensions for flexible model input.
@@ -97,4 +99,4 @@ For more detailed information and advanced usage, please refer to the [usls-yolo
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you'd like to improve this demo or add new features, please feel free to submit issues or pull requests on the repository. Your input helps make the Ultralytics ecosystem better for everyone. Check out the [Ultralytics Contribution Guide](https://docs.ultralytics.com/help/contributing) for more details.
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

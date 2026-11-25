@@ -1,46 +1,40 @@
-# YOLOv8-ONNXRuntime-Rust for All Key YOLO Tasks
+# Ultralytics YOLO ONNX Runtime Inference in Rust
 
-This repository provides a Rust demonstration for performing Ultralytics YOLOv8 tasks like [Classification](https://docs.ultralytics.com/tasks/classify), [Segmentation](https://docs.ultralytics.com/tasks/segment), [Detection](https://docs.ultralytics.com/tasks/detect), [Pose Estimation](https://docs.ultralytics.com/tasks/pose), and [Oriented Bounding Box (OBB)](https://docs.ultralytics.com/tasks/obb) detection using the [ONNXRuntime](https://onnxruntime.ai/).
+<img alt="Rust" src="https://img.shields.io/badge/Rust-000000.svg?logo=rust&logoColor=white"> <img alt="ONNX Runtime" src="https://img.shields.io/badge/ONNX%20Runtime-717272.svg?logo=onnx&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a>
+
+This repository provides a Rust demonstration for performing Ultralytics YOLO tasks like [Detection](https://docs.ultralytics.com/tasks/detect), [Segmentation](https://docs.ultralytics.com/tasks/segment), [Classification](https://docs.ultralytics.com/tasks/classify), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose) with [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO26](https://docs.ultralytics.com/models/yolo26) ONNX models using the [ONNXRuntime](https://onnxruntime.ai/).
 
 ## ✨ Recently Updated
 
-- Added YOLOv8-OBB demo.
-- Updated ONNXRuntime dependency to 1.19.x.
+- Runs Ultralytics YOLO26 ONNX exports for detection, segmentation, classification, and pose.
 
 Newly updated YOLOv8 example code is located in [this repository](https://github.com/jamjamjon/usls/tree/main/examples/yolo).
 
 ## 🚀 Features
 
-- Supports `Classification`, `Segmentation`, `Detection`, `Pose(Keypoints)-Detection`, and `OBB` tasks.
+- Supports `Detection`, `Segmentation`, `Classification`, and `Pose(Keypoints)-Detection` tasks.
 - Supports `FP16` & `FP32` [ONNX](https://onnx.ai/) models.
 - Supports `CPU`, `CUDA`, and `TensorRT` execution providers to accelerate computation.
-- Supports dynamic input shapes (`batch`, `width`, `height`).
 
 ## 🛠️ Installation
 
 ### 1. Install Rust
 
-Please follow the official Rust installation guide: [https://www.rust-lang.org/tools/install](https://rust-lang.org/tools/install/).
+Please follow the official Rust installation guide: [https://rust-lang.org/tools/install](https://rust-lang.org/tools/install).
 
 ### 2. ONNXRuntime Linking
 
-- #### For detailed setup instructions, refer to the [ORT documentation](https://ort.pyke.io/setup/linking).
-
-- #### For Linux or macOS Users:
-  - Download the ONNX Runtime package from the official [installation guide](https://onnxruntime.ai/docs/install/).
-  - Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable:
-    ```bash
-    export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0 # Adjust version/path as needed
-    ```
+- The `download-binaries` and `copy-dylibs` features of the `ort` crate (enabled in `Cargo.toml`) download prebuilt ONNX Runtime binaries at build time, so no manual setup is needed on supported platforms.
+- To link your own ONNX Runtime build instead, refer to the [ORT documentation](https://ort.pyke.io/setup/linking).
 
 ### 3. [Optional] Install CUDA & CuDNN & TensorRT
 
-- The CUDA execution provider requires [CUDA](https://developer.nvidia.com/cuda/toolkit) v11.6+.
-- The TensorRT execution provider requires CUDA v11.4+ and [TensorRT](https://developer.nvidia.com/tensorrt) v8.4+. You may also need [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn).
+- The CUDA execution provider requires [CUDA](https://developer.nvidia.com/cuda/toolkit) `12.x` and [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn) `9.x`.
+- The TensorRT execution provider additionally requires [TensorRT](https://developer.nvidia.com/tensorrt) `10.x`.
 
 ## ▶️ Get Started
 
-### 1. Export the Ultralytics YOLOv8 ONNX Models
+### 1. Export Ultralytics YOLO ONNX Models
 
 First, install the Ultralytics package:
 
@@ -48,22 +42,14 @@ First, install the Ultralytics package:
 pip install -U ultralytics
 ```
 
-Then, export the desired [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models to the ONNX format. See the [Export documentation](https://docs.ultralytics.com/modes/export) for more details.
+Then, export the desired [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) (or [YOLOv8](https://docs.ultralytics.com/models/yolov8)) models to the ONNX format. See the [Export documentation](https://docs.ultralytics.com/modes/export) for more details.
 
 ```bash
-# Export ONNX model with dynamic shapes (recommended for flexibility)
-yolo export model=yolov8m.pt format=onnx simplify dynamic
-yolo export model=yolov8m-cls.pt format=onnx simplify dynamic
-yolo export model=yolov8m-pose.pt format=onnx simplify dynamic
-yolo export model=yolov8m-seg.pt format=onnx simplify dynamic
-# yolo export model=yolov8m-obb.pt format=onnx simplify dynamic # Add OBB export if needed
-
-# Export ONNX model with constant shapes (if dynamic shapes are not required)
-# yolo export model=yolov8m.pt format=onnx simplify
-# yolo export model=yolov8m-cls.pt format=onnx simplify
-# yolo export model=yolov8m-pose.pt format=onnx simplify
-# yolo export model=yolov8m-seg.pt format=onnx simplify
-# yolo export model=yolov8m-obb.pt format=onnx simplify
+# Export ONNX models with fixed input shapes (dynamic=True exports are not supported by this example)
+yolo export model=yolo26n.pt format=onnx
+yolo export model=yolo26n-seg.pt format=onnx
+yolo export model=yolo26n-cls.pt format=onnx
+yolo export model=yolo26n-pose.pt format=onnx
 ```
 
 ### 2. Run Inference
@@ -90,26 +76,10 @@ cargo run --release -- --trt --fp16 --model MODEL_PATH.onnx --source SOURCE_IMAG
 
 #### Specifying Device and Batch Size
 
-Set `--device_id` to select a specific GPU device. If the specified device ID is invalid (e.g., setting `device_id 1` when only one GPU exists), `ort` will automatically fall back to the `CPU` execution provider without causing a panic.
+Set `--device-id` to select a specific GPU device. If the specified device ID is invalid (e.g., setting `--device-id 1` when only one GPU exists), `ort` will automatically fall back to the `CPU` execution provider without causing a panic.
 
 ```bash
-cargo run --release -- --cuda --device_id 0 --model MODEL_PATH.onnx --source SOURCE_IMAGE.jpg
-```
-
-Set `--batch` to perform inference with a specific batch size.
-
-```bash
-cargo run --release -- --cuda --batch 2 --model MODEL_PATH.onnx --source SOURCE_IMAGE.jpg
-```
-
-If you're using `--trt` with a model exported with dynamic batch dimensions, you can explicitly specify the minimum, optimal, and maximum batch sizes for TensorRT optimization using `--batch-min`, `--batch`, and `--batch-max`. Refer to the [TensorRT Execution Provider documentation](https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#explicit-shape-range-for-dynamic-shape-input) for details.
-
-#### Dynamic Image Size
-
-Set `--height` and `--width` to perform inference with dynamic image sizes. **Note:** The ONNX model must have been exported with dynamic input shapes (`dynamic=True`).
-
-```bash
-cargo run --release -- --cuda --width 480 --height 640 --model MODEL_PATH_dynamic.onnx --source SOURCE_IMAGE.jpg
+cargo run --release -- --cuda --device-id 0 --model MODEL_PATH.onnx --source SOURCE_IMAGE.jpg
 ```
 
 #### Profiling Performance
@@ -152,6 +122,7 @@ Example Profile Output (yolov8m.onnx, batch=1, 3 runs, trt, fp16, RTX 3060Ti):
 - `--iou`: IoU (Intersection over Union) threshold for Non-Maximum Suppression (NMS) \[default: 0.5].
 - `--kconf`: Confidence threshold for keypoints (in Pose Estimation) \[default: 0.55].
 - `--plot`: Plot the inference results with random RGB colors and save the output image to the `runs` directory.
+- `--task`, `--nc`, `--nk`, `--nm`: Task, number of classes, keypoints, and mask coefficients. These are read from the ONNX metadata of Ultralytics exports; set them only for models without it.
 
 You can view all available command-line arguments by running:
 
@@ -169,44 +140,38 @@ cargo run --release -- --help
 
 ### Classification
 
-Running a dynamic shape ONNX classification model on the `CPU` with a specific image size (`--height 224 --width 224`). The plotted result image will be saved in the `runs` directory.
+Running an ONNX classification model on the `CPU`. The plotted result image will be saved in the `runs` directory.
 
 ```bash
-cargo run --release -- --model ../assets/weights/yolov8m-cls-dyn.onnx --source ../assets/images/dog.jpg --height 224 --width 224 --plot --profile
+cargo run --release -- --model yolo26n-cls.onnx --source ../../ultralytics/assets/bus.jpg --plot --profile
 ```
 
 Example output:
 
 ```text
 Summary:
-> Task: Classify (Ultralytics 8.0.217) # Version might differ
-> EP: Cpu
+> Task: Classify (Ultralytics 8.4.218) # Version might differ
+> EP: CPU
 > Dtype: Float32
-> Batch: 1 (Dynamic), Height: 224 (Dynamic), Width: 224 (Dynamic)
+> Batch: 1 (Const), Height: 224 (Const), Width: 224 (Const)
 > nc: 1000 nk: 0, nm: 0, conf: 0.3, kconf: 0.55, iou: 0.5
 
-[Model Preprocess]: 16.363477ms
-[ORT H2D]: 50.722µs
-[ORT Inference]: 16.295808ms
-[ORT D2H]: 8.37µs
-[Model Inference]: 16.367046ms
-[Model Postprocess]: 3.527µs
-[
-    YOLOResult {
-        Probs(top5): Some([(208, 0.6950566), (209, 0.13823675), (178, 0.04849795), (215, 0.019029364), (212, 0.016506357)]), # Class IDs and confidences
-        Bboxes: None,
-        Keypoints: None,
-        Masks: None,
-    },
-]
+[Model Preprocess]: 3.438084ms
+[ORT H2D]: 42ns
+[ORT Prepare Value]: 6.75µs
+[ORT Inference]: 2.464833ms
+[ORT D2H]: 1.75µs
+[Model Inference]: 2.508334ms
+[Model Postprocess]: 2.458µs
+[YOLOResult { Probs(top5): Some([(654, 0.5228457), (734, 0.42368317), (874, 0.0143324835), (627, 0.012642897), (656, 0.0077146036)]), Bboxes: None, Keypoints: None, Masks: None }] # Class IDs and confidences
 ```
 
 ### Object Detection
 
-Using the `CUDA` execution provider and a dynamic image size (`--height 640 --width 480`).
+Using the `CUDA` execution provider.
 
 ```bash
-cargo run --release -- --cuda --model ../assets/weights/yolov8m-dynamic.onnx --source ../assets/images/bus.jpg --plot --height 640 --width 480
+cargo run --release -- --cuda --model yolo26n.onnx --source ../../ultralytics/assets/bus.jpg --plot
 ```
 
 ### Pose Detection
@@ -214,17 +179,17 @@ cargo run --release -- --cuda --model ../assets/weights/yolov8m-dynamic.onnx --s
 Using the `TensorRT` execution provider.
 
 ```bash
-cargo run --release -- --trt --model ../assets/weights/yolov8m-pose.onnx --source ../assets/images/bus.jpg --plot
+cargo run --release -- --trt --model yolo26n-pose.onnx --source ../../ultralytics/assets/bus.jpg --plot
 ```
 
 ### Instance Segmentation
 
-Using the `TensorRT` execution provider with an FP16 model (`--fp16`).
+Using the `TensorRT` execution provider with an FP16 engine (`--fp16`).
 
 ```bash
-cargo run --release -- --trt --fp16 --model ../assets/weights/yolov8m-seg.onnx --source ../assets/images/0172.jpg --plot
+cargo run --release -- --trt --fp16 --model yolo26n-seg.onnx --source ../../ultralytics/assets/bus.jpg --plot
 ```
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you find any issues or have suggestions for improvement, please feel free to open an issue or submit a pull request to the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

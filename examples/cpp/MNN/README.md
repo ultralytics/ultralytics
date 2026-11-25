@@ -2,12 +2,12 @@
 
 <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="MNN" src="https://img.shields.io/badge/MNN-FF6A00.svg?logo=alibabacloud&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 
-A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.com) task and model generation with the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine and [OpenCV](https://opencv.org/). Point it at any `.mnn` model; the task, class names, and input size are read from the model `bizCode` metadata, and the right post-processing is selected automatically.
+A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.com) model generation with the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine and [OpenCV](https://opencv.org/). Point it at any `.mnn` model; the task, class names, and input size are read from the model `bizCode` metadata, and the right post-processing is selected automatically.
 
 ## ✨ Features
 
-- **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and Ultralytics YOLO26 semantic segmentation.
-- **All generations:** [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26). Grid and end-to-end outputs are detected automatically.
+- **Tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), Ultralytics YOLO26 [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), [classify](https://docs.ultralytics.com/tasks/classify), [pose](https://docs.ultralytics.com/tasks/pose), and [OBB](https://docs.ultralytics.com/tasks/obb) (not [depth](https://docs.ultralytics.com/tasks/depth)).
+- **All generations:** [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26). Grid outputs (YOLOv8/11, or a default YOLO26 export) and NMS-free YOLO26 outputs (`nms=False`) are detected automatically.
 - **Zero configuration:** the task, class names, and `imgsz` come from the MNN `bizCode` metadata. When a model has none (for example after a plain `MNNConvert`), the task is inferred from the output shapes and names fall back to COCO.
 
 ## 📋 Dependencies
@@ -15,7 +15,7 @@ A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.co
 | Dependency                                        | Version  | Description                             |
 | :------------------------------------------------ | :------- | :-------------------------------------- |
 | [MNN](https://mnn-docs.readthedocs.io/en/latest/) | >=2.0.0  | The core inference engine from Alibaba. |
-| [OpenCV](https://opencv.org/)                     | >=4.0.0  | Image I/O, drawing, and NMS.            |
+| [OpenCV](https://opencv.org/)                     | >=4.7.0  | Image I/O, drawing, and NMS.            |
 | [C++](https://en.cppreference.com/)               | >=17     | Modern C++ compiler.                    |
 | [CMake](https://cmake.org/documentation/)         | >=3.12.0 | Build system.                           |
 
@@ -24,7 +24,7 @@ A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.co
 Export directly to MNN with the Ultralytics `export` mode. This is the **recommended** path: it keeps the model metadata in `bizCode`, so the task and class names are read automatically.
 
 ```bash
-yolo export model=yolo26n.pt imgsz=640 format=mnn # detect (also -seg / -pose / -obb / -cls / -sem)
+yolo export model=yolo26n.pt imgsz=640 format=mnn # detect (also -seg / -sem / -cls / -pose / -obb)
 ```
 
 > [!NOTE]
@@ -48,10 +48,10 @@ cmake -DMNN_BUILD_CONVERTER=ON -DCMAKE_BUILD_TYPE=Release ..
 make -j$(nproc)
 ```
 
-Then build the example, pointing it at the MNN headers and library:
+Then build the example, pointing it at the MNN headers and library (without these flags it looks in `include/` and `libs/` inside this folder):
 
 ```bash
-cd ultralytics/examples/cpp/MNN
+cd /path/to/ultralytics/examples/cpp/MNN
 mkdir build && cd build
 cmake .. -DMNN_INCLUDE_DIR=/path/to/MNN/include -DMNN_LIB_DIR=/path/to/MNN/build
 cmake --build . --config Release
@@ -82,4 +82,4 @@ export LD_LIBRARY_PATH=/path/to/MNN/build:$LD_LIBRARY_PATH
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

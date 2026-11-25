@@ -2,12 +2,12 @@
 
 <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="LibTorch" src="https://img.shields.io/badge/LibTorch-EE4C2C.svg?logo=pytorch&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 
-A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.com) task and model generation as [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) with the [LibTorch (PyTorch C++ API)](https://docs.pytorch.org/cppdocs/) and [OpenCV](https://opencv.org/). Point it at any exported `.torchscript` model; the task, class names, and input size are read from the model metadata, and the right post-processing is selected automatically.
+A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.com) model generation as [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) with the [LibTorch (PyTorch C++ API)](https://docs.pytorch.org/cppdocs/) and [OpenCV](https://opencv.org/). Point it at any exported `.torchscript` model; the task, class names, and input size are read from the model metadata, and the right post-processing is selected automatically.
 
 ## ✨ Features
 
-- **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and Ultralytics YOLO26 semantic segmentation.
-- **All generations:** [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26). Grid (YOLOv8/11) and end-to-end (YOLO26) outputs are detected automatically.
+- **Tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), Ultralytics YOLO26 [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), [classify](https://docs.ultralytics.com/tasks/classify), [pose](https://docs.ultralytics.com/tasks/pose), and [OBB](https://docs.ultralytics.com/tasks/obb) (not [depth](https://docs.ultralytics.com/tasks/depth)).
+- **All generations:** [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26). Grid outputs (YOLOv8/11, or a default YOLO26 export) and NMS-free YOLO26 outputs (`nms=False`) are detected automatically.
 - **Zero configuration:** task, class names, and `imgsz` come from the TorchScript `config.txt` metadata that Ultralytics embeds on export.
 
 ## 📋 Dependencies
@@ -16,7 +16,7 @@ Ensure you have the following dependencies installed before proceeding:
 
 | Dependency   | Version  | Resource                                     |
 | :----------- | :------- | :------------------------------------------- |
-| OpenCV       | >=4.0.0  | [https://opencv.org/](https://opencv.org/)   |
+| OpenCV       | >=4.7.0  | [https://opencv.org/](https://opencv.org/)   |
 | C++ Standard | >=17     | [https://isocpp.org/](https://isocpp.org/)   |
 | CMake        | >=3.18   | [https://cmake.org/](https://cmake.org/)     |
 | Libtorch     | >=1.12.1 | [https://pytorch.org/](https://pytorch.org/) |
@@ -28,7 +28,7 @@ You can download the required version of LibTorch from the official [PyTorch](ht
 Export any model and task to TorchScript with the Ultralytics `export` mode:
 
 ```bash
-yolo export model=yolo26n.pt imgsz=640 format=torchscript # detect (also -seg / -pose / -obb / -cls / -sem)
+yolo export model=yolo26n.pt imgsz=640 format=torchscript # detect (also -seg / -sem / -cls / -pose / -obb)
 ```
 
 [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) grid models work too — the output layout is detected automatically.
@@ -74,4 +74,4 @@ The annotated result is always written to `--out` and the detections are printed
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

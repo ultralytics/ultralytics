@@ -1,4 +1,4 @@
-# Regions Counting Using Ultralytics YOLO26 (Inference on Video)
+# Region Counting with Ultralytics YOLO26 (Inference on Video)
 
 <img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 
@@ -48,7 +48,7 @@ Execute the script using the following commands. You can customize the source, m
 
 ### Note
 
-Once the video starts playing, you can dynamically reposition the counting regions within the video frame by clicking and dragging them with your left mouse button.
+Once the video starts playing, you can dynamically reposition the counting regions within the video frame by clicking and dragging them with your left mouse button (requires `--view-img`). Press `q` to quit.
 
 ```bash
 # Run inference on a video source, saving results and viewing output
@@ -73,15 +73,16 @@ Learn more about inference arguments in the Ultralytics [Predict Mode documentat
 
 The script accepts several command-line arguments for customization:
 
-- `--source`: Path to the input video file.
-- `--device`: Computation device (`cpu` or GPU ID like `0`).
-- `--save-img`: Boolean flag to save output frames with detections.
+- `--source`: Path to the input video file (required).
+- `--device`: Computation device; `0` runs on the first CUDA GPU, anything else (including the default) runs on the CPU.
+- `--save-img`: Boolean flag to save the annotated video to `ultralytics_rc_output/exp*/<source name>.avi`.
+- `--exist-ok`: Boolean flag to reuse the existing `ultralytics_rc_output/exp` directory instead of incrementing it.
 - `--view-img`: Boolean flag to display the output video stream in real-time.
-- `--weights`: Path to the [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) model file (`.pt`). Defaults typically use a standard model like `yolo26n.pt`.
+- `--weights`: Path to the [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) model file (`.pt`) (default: `yolo26n.pt`).
 - `--classes`: Filter detections by specific class IDs (e.g., `--classes 0 2 3` to detect classes 0, 2, and 3).
-- `--line-thickness`: Thickness of the [bounding box](https://www.ultralytics.com/glossary/bounding-box) lines.
-- `--region-thickness`: Thickness of the lines defining the counting regions.
-- `--track-thickness`: Thickness of the object tracking lines.
+- `--line-thickness`: Thickness of the [bounding box](https://www.ultralytics.com/glossary/bounding-box) lines (default: `2`).
+- `--region-thickness`: Thickness of the lines defining the counting regions (default: `4`).
+- `--track-thickness`: Thickness of the object tracking lines (default: `2`).
 
 Explore different models and training options in the [Ultralytics documentation](https://docs.ultralytics.com).
 
@@ -133,4 +134,4 @@ Yes, you can use different Ultralytics YOLO model versions (like YOLOv8, YOLO11,
 
 ## 🤝 Contributing
 
-Contributions to improve this example or add new features are welcome! Please feel free to submit Pull Requests or open Issues on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics). Remember to check the official [Region Counting guide](https://docs.ultralytics.com/guides/region-counting) for the latest maintained version.
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

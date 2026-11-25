@@ -1,4 +1,4 @@
-# High Resolution Tiling
+# Ultralytics YOLO High-Resolution Tiling
 
 <img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a>
 
@@ -24,4 +24,8 @@ for result in model.predict("video.mp4", tile=640, stream=True, save=True):
     print(result.boxes)
 ```
 
-`tile=True` uses `imgsz` for the tile size; a positive integer selects the tile size in source pixels. Existing prediction arguments such as `device`, `show`, and `save` apply. See [High Resolution Tiling](https://docs.ultralytics.com/guides/high-resolution-tiling) for training, validation, supported tasks, and performance guidance.
+`tile=True` uses `imgsz` for the tile size; a positive integer or `[h, w]` list selects the tile size in source pixels, and `tile_overlap` (default `0.2`) sets the fraction each tile shares with its neighbor. Existing prediction arguments such as `device`, `show`, and `save` apply. See [High Resolution Tiling](https://docs.ultralytics.com/guides/high-resolution-tiling) for training, validation, supported tasks, and performance guidance.
+
+## 🤝 Contributing
+
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

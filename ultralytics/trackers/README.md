@@ -34,7 +34,7 @@ Ultralytics YOLO supports the following tracking algorithms. Enable them by pass
 - **BoT-SORT:** Use [`botsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml) to enable this tracker. Based on the [BoT-SORT paper](https://arxiv.org/abs/2206.14651) and its official [code implementation](https://github.com/NirAharon/BoT-SORT).
 - **ByteTrack:** Use [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml) to enable this tracker. Based on the [ByteTrack paper](https://arxiv.org/abs/2110.06864) and its official [code implementation](https://github.com/FoundationVision/ByteTrack).
 - **OC-SORT:** Use [`ocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/ocsort.yaml) to enable this tracker. Based on the [OC-SORT paper](https://arxiv.org/abs/2203.14360) (observation-centric SORT with ORU/OCM/OCR).
-- **Deep OC-SORT:** Use [`deepocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/deepocsort.yaml) to enable this tracker. Based on the [Deep OC-SORT paper](https://arxiv.org/abs/2302.11813), adding adaptive ReID appearance fusion and camera motion compensation on top of OC-SORT.
+- **Deep OC-SORT:** Use [`deepocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/deepocsort.yaml) to enable this tracker. Based on the [Deep OC-SORT paper](https://arxiv.org/abs/2302.11813), adding optional adaptive ReID appearance fusion (`with_reid`) and camera motion compensation (`gmc_method`) on top of OC-SORT; both are off by default.
 - **FastTracker:** Use [`fasttrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/fasttrack.yaml) to enable this tracker. Based on the [FastTracker paper](https://arxiv.org/abs/2508.14370): occlusion-aware ByteTrack variant with Kalman rollback and init-IoU suppression.
 - **TrackTrack:** Use [`tracktrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/tracktrack.yaml) to enable this tracker. Based on the [TrackTrack paper](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) (CVPR 2025) — multi-cue iterative association with Track-Aware Initialization.
 
@@ -52,6 +52,7 @@ from ultralytics import YOLO
 model = YOLO("yolo26n.pt")  # Load an official Detect model
 # model = YOLO("yolo26n-seg.pt")  # Load an official Segment model
 # model = YOLO("yolo26n-pose.pt")  # Load an official Pose model
+# model = YOLO("yolo26n-obb.pt")  # Load an official OBB model
 # model = YOLO("path/to/best.pt")  # Load a custom trained model
 
 # Perform tracking with the model
@@ -65,6 +66,7 @@ results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Track
 yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" # Official Detect model
 # yolo track model=yolo26n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
 # yolo track model=yolo26n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Official Pose model
+# yolo track model=yolo26n-obb.pt source="https://youtu.be/LNwODJXcvt4"  # Official OBB model
 # yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Custom trained model
 
 # Track using ByteTrack tracker
@@ -77,7 +79,7 @@ As shown above, tracking is available for all [Detect](https://docs.ultralytics.
 
 ### Tracking Arguments
 
-Tracking configuration shares properties with the Predict mode, such as `conf` (confidence threshold), `iou` ([Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold), and `show` (display results). For additional configurations, refer to the [Predict mode documentation](https://docs.ultralytics.com/modes/predict).
+Tracking configuration shares properties with the Predict mode, such as `conf` (confidence threshold), `iou` ([Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold), and `show` (display results). Tracking lowers the default `conf` to 0.1 so trackers receive low-confidence detections. For additional configurations, refer to the [Predict mode documentation](https://docs.ultralytics.com/modes/predict).
 
 ```python
 # Python

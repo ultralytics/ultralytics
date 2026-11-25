@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, cpu_threads
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -33,7 +33,7 @@ class MNNBackend(BaseBackend):
 
         MNN = import_execstack("MNN", "_mnncengine*.so", "_tools*.so")
 
-        config = {"precision": "low", "backend": "CPU", "numThread": (os.cpu_count() + 1) // 2}
+        config = {"precision": "low", "backend": "CPU", "numThread": cpu_threads((os.cpu_count() + 1) // 2)}
         rt = MNN.nn.create_runtime_manager((config,))
         self.net = MNN.nn.load_module_from_file(str(weight), [], [], runtime_manager=rt, rearrange=True)
         self.expr = MNN.expr

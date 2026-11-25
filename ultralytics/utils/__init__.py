@@ -987,7 +987,7 @@ def read_device_model() -> str:
 
 
 def cpu_threads(n: int) -> int:
-    """Cap an inference runtime's CPU thread count at 8 and, on Linux, at the CPUs the process may use.
+    """Cap an inference runtime's CPU thread count, on Linux, at the CPUs the process may use.
 
     Runtimes such as ONNX Runtime and NCNN size their default pools to the host's cores, ignoring the affinity mask
     (`taskset`, Docker `--cpuset-cpus`) and a cgroup v2 CPU quota (Docker `--cpus`, Kubernetes CPU limits).
@@ -1003,7 +1003,7 @@ def cpu_threads(n: int) -> int:
         cpu_max = Path("/sys/fs/cgroup/cpu.max")
         if cpu_max.is_file() and (q := cpu_max.read_text().split())[0] != "max":
             n = min(n, int(q[0]) // int(q[1]))
-    return max(1, min(8, n))
+    return max(1, n)
 
 
 def is_ubuntu() -> bool:

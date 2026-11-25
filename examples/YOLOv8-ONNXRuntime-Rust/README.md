@@ -8,13 +8,14 @@ This repository provides a Rust demonstration for performing Ultralytics YOLO ta
 
 - Runs Ultralytics YOLO26 ONNX exports for detection, segmentation, classification, and pose.
 
-Newly updated YOLOv8 example code is located in [this repository](https://github.com/jamjamjon/usls/tree/main/examples/yolo).
+For a maintained Rust library and CLI covering every Ultralytics YOLO task, see [Ultralytics Inference for Rust](https://docs.ultralytics.com/inference).
 
 ## 🚀 Features
 
 - Supports `Detection`, `Segmentation`, `Classification`, and `Pose(Keypoints)-Detection` tasks.
 - Supports `FP16` & `FP32` [ONNX](https://onnx.ai/) models.
 - Supports `CPU`, `CUDA`, and `TensorRT` execution providers to accelerate computation.
+- Supports dynamic input shapes (`batch`, `width`, `height`).
 
 ## 🛠️ Installation
 
@@ -45,11 +46,14 @@ pip install -U ultralytics
 Then, export the desired [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) (or [YOLOv8](https://docs.ultralytics.com/models/yolov8)) models to the ONNX format. See the [Export documentation](https://docs.ultralytics.com/modes/export) for more details.
 
 ```bash
-# Export ONNX models with fixed input shapes (dynamic=True exports are not supported by this example)
+# Export ONNX models with fixed input shapes
 yolo export model=yolo26n.pt format=onnx
 yolo export model=yolo26n-seg.pt format=onnx
 yolo export model=yolo26n-cls.pt format=onnx
 yolo export model=yolo26n-pose.pt format=onnx
+
+# Export an ONNX model with dynamic shapes (batch, height, width)
+yolo export model=yolo26n.pt format=onnx dynamic=True
 ```
 
 ### 2. Run Inference
@@ -80,6 +84,22 @@ Set `--device-id` to select a specific GPU device. If the CUDA execution provide
 
 ```bash
 cargo run --release -- --cuda --device-id 0 --model MODEL_PATH.onnx --source SOURCE_IMAGE.jpg
+```
+
+Set `--batch` to perform inference with a specific batch size. Fixed-shape models must use their exported batch size; dynamic models also need `--height` and `--width`.
+
+```bash
+cargo run --release -- --cuda --batch 2 --height 640 --width 640 --model MODEL_PATH_dynamic.onnx --source SOURCE_IMAGE.jpg
+```
+
+If you're using `--trt` with a model exported with dynamic batch dimensions, you can explicitly specify the minimum, optimal, and maximum batch sizes for TensorRT optimization using `--batch-min`, `--batch`, and `--batch-max`. Refer to the [TensorRT Execution Provider documentation](https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#explicit-shape-range-for-dynamic-shape-input) for details.
+
+#### Dynamic Image Size
+
+Set `--height` and `--width` to perform inference with dynamic image sizes; both are required for models exported with dynamic input shapes (`dynamic=True`).
+
+```bash
+cargo run --release -- --cuda --height 640 --width 480 --model MODEL_PATH_dynamic.onnx --source SOURCE_IMAGE.jpg
 ```
 
 #### Profiling Performance

@@ -43,10 +43,9 @@ All Python examples live under [`./python`](./python). The inference examples su
 
 ### Rust
 
-| Title                                                             | Backend      | Contributor                               |
-| ----------------------------------------------------------------- | ------------ | ----------------------------------------- |
-| [YOLOv8 All Tasks ONNX Runtime Rust](./YOLOv8-ONNXRuntime-Rust)   | ONNX Runtime | [jamjamjon](https://github.com/jamjamjon) |
-| [YOLOv5-YOLO11 ONNX Runtime Rust](./YOLO-Series-ONNXRuntime-Rust) | ONNX Runtime | [jamjamjon](https://github.com/jamjamjon) |
+| Title                                               | Backend      | Contributor                               |
+| --------------------------------------------------- | ------------ | ----------------------------------------- |
+| [YOLO ONNX Runtime Rust](./YOLOv8-ONNXRuntime-Rust) | ONNX Runtime | [jamjamjon](https://github.com/jamjamjon) |
 
 ### C# / .NET
 

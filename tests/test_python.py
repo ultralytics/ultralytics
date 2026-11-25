@@ -878,6 +878,17 @@ def test_val_save_json_semantic(tmp_path):
         assert abs(correct / total - metrics.results_dict["metrics/pixel_acc"]) < 0.05, f"rect={rect}: masks misaligned"
 
 
+def test_coco_average_precision():
+    """Check COCO recall thresholds, score ties, and classes without detections."""
+    from ultralytics.utils.metrics import ap_per_class
+
+    # At the first IoU both objects are found before the FP. At the second, only the second box matches.
+    tp = np.array([[1, 0], [1, 1], [0, 0]], dtype=bool)
+    results = ap_per_class(tp, np.ones(3), np.zeros(3), np.array([0, 0, 1]))
+    np.testing.assert_allclose(results[5], [[1.0, 0.5 * 51 / 101], [0.0, 0.0]])
+    np.testing.assert_array_equal(results[-1][0], 1.0)
+
+
 def test_pose_metrics_curves():
     """Test that pose curve labels contain four unique box and pose series."""
     from ultralytics.utils.metrics import PoseMetrics

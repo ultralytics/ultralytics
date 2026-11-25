@@ -236,7 +236,7 @@ The class names are in `yolo26n_paddle_model/metadata.yaml`. For depth and OBB m
 
 ### NVIDIA GPUs
 
-Paddle Inference runs on NVIDIA GPUs with the `paddlepaddle-gpu` build, which you install instead of `paddlepaddle`, as both provide the same `paddle` module. Its 3.x versions are published on the [PaddlePaddle package index](https://www.paddlepaddle.org.cn/en/install/quick), not on PyPI, where the newest `paddlepaddle-gpu` is 2.6.2; install it with the command from that page for your CUDA version. By the Ultralytics code:
+Paddle Inference runs on NVIDIA GPUs with the `paddlepaddle-gpu` build, which you install instead of `paddlepaddle`, as both provide the same `paddle` module. Its 3.x versions are published on the [PaddlePaddle package index](https://www.paddlepaddle.org.cn/en/install/quick), not on PyPI, which has only 2.x `paddlepaddle-gpu` builds, below the 3.0.0 that Ultralytics requires; install it with the command from that page for your CUDA version. By the Ultralytics code:
 
 - **Installation**: when `paddlepaddle-gpu` is installed, Ultralytics checks that it is 3.0.0 or newer, stops with an error if it is older, and never replaces it with the CPU build.
 - **Inference**: when PyTorch sees a CUDA GPU and `device` is not `cpu`, for example `device=0` or `device` unset, Ultralytics turns on the GPU in Paddle Inference with `enable_use_gpu`, on the GPU with that index and with a 2,048 MB initial memory pool. It does this with the CPU build of `paddlepaddle` too; what the CPU build then does was not run for this page.
@@ -269,7 +269,7 @@ For other errors, see the [Common Issues guide](../guides/yolo-common-issues.md)
 
 ## Benchmarks
 
-There are no earlier PaddlePaddle benchmarks from Ultralytics. The tables below compare PyTorch, ONNX, and PaddlePaddle models of every YOLO26 detection model on the CPU of the export host, an **AMD EPYC 9655** server shared with other jobs. Every process was limited to 8 CPUs with `taskset -c 0-7`. PyTorch ran on the 8 threads that Ultralytics sets, and Paddle Inference, with oneDNN, on the same 8 threads, see [Deploy](#deploy). The results apply to this setup.
+There are no earlier PaddlePaddle benchmarks from Ultralytics. The tables below compare PyTorch, ONNX, and PaddlePaddle models of every YOLO26 detection model on the CPU of the export host, an **AMD EPYC 9655** server shared with other jobs. Every process was limited to the 8 CPUs of one 8-core CCD of the processor with `taskset -c 40-47`. PyTorch and ONNX Runtime ran on the 8 threads that Ultralytics sets, and Paddle Inference, with oneDNN, on the same 8 threads, see [Deploy](#deploy). The results apply to this setup.
 
 === "Latency"
 
@@ -277,11 +277,11 @@ There are no earlier PaddlePaddle benchmarks from Ultralytics. The tables below 
 
     | Model   | `imgsz` | PyTorch   | ONNX FP32 | PaddlePaddle FP32 |
     | ------- | ------- | --------- | --------- | ----------------- |
-    | YOLO26n | 640     | **9.6**   | 17.6      | 33.3              |
-    | YOLO26s | 640     | **23.1**  | 30.9      | 60.9              |
-    | YOLO26m | 640     | **55.1**  | 67.5      | 131.2             |
-    | YOLO26l | 640     | **67.5**  | 113.2     | 175.1             |
-    | YOLO26x | 640     | **119.8** | 134.8     | 283.0             |
+    | YOLO26n | 640     | **10.0**  | 16.6      | 33.4              |
+    | YOLO26s | 640     | **25.5**  | 31.3      | 63.0              |
+    | YOLO26m | 640     | 65.1      | **57.9**  | 125.9             |
+    | YOLO26l | 640     | 74.1      | **70.7**  | 166.1             |
+    | YOLO26x | 640     | 144.4     | **130.4** | 280.1             |
 
 === "Accuracy"
 
@@ -289,11 +289,11 @@ There are no earlier PaddlePaddle benchmarks from Ultralytics. The tables below 
 
     | Model   | PyTorch | ONNX FP32 | PaddlePaddle FP32 |
     | ------- | ------- | --------- | ----------------- |
-    | YOLO26n | 42.1    | 42.0      | 42.0              |
-    | YOLO26s | 48.9    | 49.4      | 49.4              |
-    | YOLO26m | 53.0    | 53.4      | 53.4              |
-    | YOLO26l | 54.9    | 55.4      | 55.4              |
-    | YOLO26x | 55.0    | 55.6      | 55.6              |
+    | YOLO26n | 42.0    | 42.0      | 42.0              |
+    | YOLO26s | 49.4    | 49.4      | 49.4              |
+    | YOLO26m | 53.4    | 53.4      | 53.4              |
+    | YOLO26l | 55.4    | 55.4      | 55.4              |
+    | YOLO26x | 55.6    | 55.6      | 55.6              |
 
 === "Size"
 
@@ -307,12 +307,12 @@ There are no earlier PaddlePaddle benchmarks from Ultralytics. The tables below 
     | YOLO26l | 53.2    | 99.6      | 99.8              |
     | YOLO26x | 118.7   | 223.3     | 223.5             |
 
-- **Latency**: PyTorch was the fastest at every size. PaddlePaddle took 1.5 to 2.1 times as long as ONNX and 2.4 to 3.5 times as long as PyTorch.
-- **Accuracy**: PaddlePaddle gave the same mAP as ONNX at every size. PyTorch differed from both by up to 0.6 points, because it ran at a different input size, see the note below.
+- **Latency**: PyTorch was the fastest for YOLO26n and YOLO26s, and ONNX for the larger models. PaddlePaddle took 2.0 to 2.4 times as long as ONNX and 1.9 to 3.4 times as long as PyTorch.
+- **Accuracy**: PaddlePaddle and PyTorch gave the same mAP as ONNX at every size.
 - **Size**: the PaddlePaddle model files were 0.1 to 0.2 MB larger than the ONNX file.
-- **All CPUs**: without `taskset`, on all 384 logical CPUs, YOLO26n took 34.8 ms as PaddlePaddle and 14.3 ms as PyTorch, both on 8 threads, in one run each.
+- **All CPUs**: without `taskset`, on all 384 logical CPUs, YOLO26n took 33.8 ms as PaddlePaddle, 14.7 ms as PyTorch, and 14.6 ms as ONNX, all on 8 threads, as the mean of two runs.
 
-Measured with `ultralytics` 8.4.218, `paddlepaddle` 3.2.2, X2Paddle 1.6.0, PyTorch 2.15.0, and ONNX Runtime 1.32.0 at `batch=1`. PyTorch ran with the `val` default `rect=True`, which resizes each image to fit its own aspect ratio instead of the fixed 640x640 input of the exported models, so its latency and mAP are not like-for-like; with `rect=False`, YOLO26n reached 42.0 mAP in PyTorch, the same as ONNX. Accuracy is on the last 500 images of COCO val2017 in sorted order, so it differs from the values for the full validation set on the [YOLO26 model page](../models/yolo26.md). Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing; the two runs differed by up to 22%.
+Measured with `ultralytics` 8.4.218, `paddlepaddle` 3.2.2, X2Paddle 1.6.0, PyTorch 2.15.0, and ONNX Runtime 1.32.0 at `batch=1`. PyTorch ran with `rect=False`, at the same 640x640 input as the exported models. Accuracy is on the last 500 images of COCO val2017 in sorted order, so it differs from the values for the full validation set on the [YOLO26 model page](../models/yolo26.md). Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing; the two runs differed by up to 26%, and runs that overlapped a burst of other jobs on the server were repeated.
 
 ## About PaddlePaddle
 
@@ -337,8 +337,8 @@ Developed by [Baidu](https://www.baidu.com/), PaddlePaddle (**PA**rallel **D**is
 
 ### Can I deploy the exported model with Paddle Lite, Paddle Serving, or Paddle.js?
 
-Not as exported. The export writes the PIR format of PaddlePaddle 3, `model.json` and `model.pdiparams`, which Paddle Inference reads. The `opt` tool of Paddle Lite 2.12, the newest version on PyPI, failed on it with `Check failed: (idx < static_cast<int32_t>(BlocksSize())): 0!<0 idx >= blocks.size()`. [Paddle Serving](https://github.com/PaddlePaddle/Serving) was archived in October 2026, and its README recommends NVIDIA Triton Inference Server; for Triton, export to [ONNX](onnx.md) or [TensorRT](tensorrt.md). [Paddle.js](https://github.com/PaddlePaddle/Paddle.js), last released in 2021, converts the earlier PaddlePaddle model format, and was not tried for this page.
+Not as exported. The export writes the PIR format of PaddlePaddle 3, `model.json` and `model.pdiparams`, which Paddle Inference reads. The `opt` tool of Paddle Lite 2.12 from PyPI failed on it with `Check failed: (idx < static_cast<int32_t>(BlocksSize())): 0!<0 idx >= blocks.size()`. [Paddle Serving](https://github.com/PaddlePaddle/Serving) was archived in October 2026, and its README recommends NVIDIA Triton Inference Server; for Triton, export to [ONNX](onnx.md) or [TensorRT](tensorrt.md). [Paddle.js](https://github.com/PaddlePaddle/Paddle.js), last released in 2021, converts the earlier PaddlePaddle model format, and was not tried for this page.
 
 ### Should I use PaddlePaddle or ONNX for CPU deployment?
 
-On the CPU of the benchmark server, ONNX: both gave the same mAP, and the PaddlePaddle models took 1.5 to 2.1 times as long per image, see [Benchmarks](#benchmarks). ONNX also runs depth and OBB models correctly with its default settings, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). PaddlePaddle fits an application that already runs Paddle Inference.
+On the CPU of the benchmark server, ONNX: both gave the same mAP, and the PaddlePaddle models took 2.0 to 2.4 times as long per image, see [Benchmarks](#benchmarks). ONNX also runs depth and OBB models correctly with its default settings, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). PaddlePaddle fits an application that already runs Paddle Inference.

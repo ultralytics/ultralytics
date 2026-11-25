@@ -265,7 +265,7 @@ To create a dataset:
 5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private). A new public dataset starts with **CC BY 4.0** selected; pick another license or **None** to change it
 6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
-![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/2d90456710a8b99b2fb2b85b54642fb7.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/829a866ee0425dca19d878a8e0cb9156.avif)<!-- screenshot -->
 
 To add files to an existing dataset, open its dataset page and either drag the files onto the gallery or click the upload icon in the page header. The upload icon opens your browser's native file picker directly because the dataset task is already defined.
 
@@ -343,7 +343,7 @@ Open the [Clustering](#clustering) panel from the gallery toolbar to explore you
 | **Compact** | Smaller thumbnails for quick scanning                                             |
 | **Table**   | List with thumbnail, filename, dimensions, size, split, classes, and label counts |
 
-![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.ul.run/i/8d1bce8510945878ac52bdfc577a7301.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.ul.run/i/e1ee0ccc1b65ad62c48fb3f871880a34.avif)<!-- screenshot -->
 
 ### Sorting and Filtering
 
@@ -411,7 +411,7 @@ Click any image to open the fullscreen viewer with:
 - **Pixel view**: Toggle pixelated rendering for close inspection
 - **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 
-![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/e468cbb1faf97aa8518846788e435894.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/6968dd5bef1881e578411ff5e16180e6.avif)<!-- screenshot -->
 
 ### Filter by Split
 
@@ -447,7 +447,7 @@ Analysis runs in the background in two stages, `Computing embeddings` and `Clust
 
 Once analysis completes, the panel shows a 2D scatter of all analyzed images with a legend and a point counter. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about — the counter then reads `visible / total points`.
 
-![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.ul.run/i/8126ac6ef5087cfa9fd43114c037db7e.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.ul.run/i/753f9d5bb96bd4eb0e5a4a05895aed61.avif)<!-- screenshot -->
 
 #### Color By
 

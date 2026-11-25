@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER, cpu_threads
@@ -53,6 +52,4 @@ class MNNBackend(BaseBackend):
         # NOTE: need this copy(), or it'd get incorrect results on ARM devices
         if output_var:
             return [x.read().copy() for x in output_var]
-        if self.metadata.get("args", {}).get("nms") and self.task in {"detect", "pose"}:
-            return [np.empty((im.shape[0], 0, 6))]
         raise RuntimeError("Alibaba MNN inference returned no output tensors.")

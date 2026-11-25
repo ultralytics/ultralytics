@@ -34,7 +34,7 @@ poses = pipeline(frame)  # frame in, raw (N, 57) NumPy array out — drops strai
 Note that this example returns the model's raw NumPy rows rather than typed
 `Results` objects — see the two examples below.
 
-## Examples
+## 📂 Examples
 
 The two examples take different approaches; pick whichever is closer to how you
 already work.
@@ -42,7 +42,8 @@ already work.
 `yolo26-pose-tracker.py` keeps OpenCV for capture, drawing, and post-processing, and
 only runs the model (and, optionally, a tracker) through Axelera. The pose-only
 pipeline returns the model's raw NumPy rows, so it slots into NumPy post-processing
-you already have. Uses a YOLO26 `nms=False` (NMS-free) export.
+you already have. Uses the NMS-free head that YOLO26 detect, segment, pose, and OBB
+Axelera exports keep.
 
 `yolo11-seg.py` runs the whole pipeline through the runtime instead: hardware decode
 operators, typed `Results` objects, `cv.create_source()` for capture, and the
@@ -58,28 +59,31 @@ Tracking is the one runtime feature the first example opts into: `op.tracker()` 
 typed objects, so the tracking path adds `op.ax_pose()` and yields `TrackedObject`;
 `--tracker none` skips that and stays raw NumPy.
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Install
 
-If you followed the
-[Axelera integration guide](../../../docs/en/integrations/axelera.md), `axelera-rt`
-is already installed — running `yolo predict` or `yolo val` with an Axelera
-model auto-installs the runtime dependencies. If you need to install manually:
+Running `yolo predict` or `yolo val` with an Axelera model, as in the
+[Axelera integration guide](https://docs.ultralytics.com/integrations/axelera),
+auto-installs `axelera-rt`. To install it manually:
 
 ```bash
 pip install axelera-rt==1.9.0 --no-cache-dir --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
 ```
 
-You will also need `opencv-python` and `numpy` (likely already present).
+You will also need `opencv-python` and `numpy` (likely already present), and the
+Metis kernel driver `metis-dkms` 1.7.0 or newer on the device host (see
+[Driver Installation](https://docs.ultralytics.com/integrations/axelera#driver-installation)).
 
 ### Compile
 
 Export and compile your trained model directly to Axelera format using the
-Ultralytics CLI:
+Ultralytics CLI. The export runs on Linux x86-64 with Python 3.10 to 3.13 and PyTorch
+2.8 to 2.14, installs the `axelera-devkit==1.9.0` compiler if it is missing, and builds an INT8 model
+calibrated on the images in `data`:
 
 ```bash
-yolo export model=your-model.pt format=axelera
+yolo export model=your-model.pt format=axelera data=your-data.yaml
 ```
 
 To reproduce these examples, export the pretrained Ultralytics models:
@@ -156,7 +160,7 @@ python yolo11-seg.py --model yolo11n-seg.axm --source video.mp4 --no-display    
 | `--no-display` | _off_               | all       | Disable the GUI window (headless mode)                                                                                                                           |
 | `--output`     | `output.mp4` (pose) | pose, seg | Output video path. Pose: written in headless mode (`--no-display`). Seg: off by default; renders via the display app, so cannot be combined with `--no-display`. |
 
-## What You'll See in the Code
+## 🔍 What You'll See in the Code
 
 ### Custom Operators
 
@@ -257,7 +261,7 @@ metadata) is preserved — use `tracked.tracked` on each result to access the
 original keypoints, masks, or other model outputs. You'll see this pattern in
 `yolo26-pose-tracker.py`.
 
-## Learn More
+## 📚 Learn More
 
 The [Voyager SDK](https://github.com/axelera-ai-hub/voyager-sdk) has everything
 beyond these introductory examples: advanced pipeline patterns, ReID and
@@ -266,3 +270,7 @@ application templates, and the full API reference.
 
 Questions or feedback? Join the
 [Axelera community](https://community.axelera.ai/).
+
+## 🤝 Contributing
+
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

@@ -4,7 +4,7 @@
 
 <img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a>
 
-This directory groups all of the Python examples for [Ultralytics YOLO](https://docs.ultralytics.com/models) models in one place. Each subfolder is a self-contained project with its own `README.md` and `requirements.txt`, showing how to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models.
+This directory groups all of the Python examples for [Ultralytics YOLO](https://docs.ultralytics.com/models) models in one place. Each subfolder is a self-contained project with its own `README.md` (plus a `requirements.txt` where it needs packages beyond `ultralytics`), showing how to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models.
 
 The inference examples support **every task** ([detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [semantic](https://docs.ultralytics.com/tasks/semantic), [depth](https://docs.ultralytics.com/tasks/depth), [classify](https://docs.ultralytics.com/tasks/classify), [pose](https://docs.ultralytics.com/tasks/pose), and [OBB](https://docs.ultralytics.com/tasks/obb)) plus [RT-DETR](https://docs.ultralytics.com/models/rtdetr), and share their pre and post-processing in [`common`](./common), so each `main.py` only has to run the model.
 
@@ -25,7 +25,7 @@ The inference examples support **every task** ([detect](https://docs.ultralytics
 The inference examples follow the same flow: **export a model → install the requirements → run the script**. Install the [Ultralytics package](https://docs.ultralytics.com/quickstart) first (`pip install ultralytics`) so the `yolo export` command is available.
 
 > [!NOTE]
-> ONNXRuntime reads the task, class names, and input size from the model metadata, so the same script handles any model. **OpenCV-DNN** reads no metadata and infers the task from the output shapes, so semantic, depth, classify, OBB, and RT-DETR models need `--task` (and `--imgsz`).
+> ONNXRuntime reads the task, class names, and input size from the model metadata, so the same script handles any model. **OpenCV-DNN** reads no metadata and infers the task from the output shapes, so semantic, depth, classify, grid OBB, and RT-DETR models need `--task`, and models not exported at 640 need `--imgsz`.
 
 ### ONNXRuntime
 
@@ -49,7 +49,7 @@ yolo export model=yolo26n.pt format=onnx opset=12
 # 2. Install
 cd examples/python/OpenCV-DNN && pip install -r requirements.txt
 
-# 3. Run (use --task and --imgsz for semantic, depth, classify, OBB, and RT-DETR)
+# 3. Run (add --task for semantic, depth, classify, grid OBB, and RT-DETR, and --imgsz if not 640)
 python main.py --model yolo26n.onnx --source bus.jpg
 ```
 

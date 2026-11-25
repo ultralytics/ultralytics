@@ -1,4 +1,4 @@
-# Shared Helpers for the Inference in C++
+# Shared Helpers for the C++ Inference Examples
 
 Header-only utilities shared across the [Ultralytics YOLO](https://docs.ultralytics.com) C++ examples. They have no dependencies beyond [OpenCV](https://opencv.org/) and the C++ standard library, so an example can use them by adding this folder to its include path:
 

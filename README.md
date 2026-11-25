@@ -122,9 +122,9 @@ Discover more examples in the YOLO [Python Docs](https://docs.ultralytics.com/us
 
 ## ✨ Models
 
-> **[YOLO27 — Coming Soon](https://docs.ultralytics.com/models/yolo27/):** Preview the upcoming family, currently undergoing final R&D. Models are not yet available, and no launch date is set.
+> **[YOLO27 — Coming Soon](https://docs.ultralytics.com/models/yolo27):** Preview the upcoming family, currently undergoing final R&D. Models are not yet available, and no launch date is set.
 
-Ultralytics supports a wide range of YOLO models, from early versions like [YOLOv3](https://docs.ultralytics.com/models/yolov3) to the latest [YOLO26](https://docs.ultralytics.com/models/yolo26). The tables below showcase YOLO26 models pretrained on [COCO](https://docs.ultralytics.com/datasets/detect/coco) for [Detection](https://docs.ultralytics.com/tasks/detect), [Segmentation](https://docs.ultralytics.com/tasks/segment), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose). [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) models are pretrained on [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes), [Depth Estimation](https://docs.ultralytics.com/tasks/depth) models are pretrained on a broad multi-dataset mix and evaluated on [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html), [Classification](https://docs.ultralytics.com/tasks/classify) models are pretrained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet), and [OBB](https://docs.ultralytics.com/tasks/obb) models are pretrained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10). [Tracking](https://docs.ultralytics.com/modes/track) mode is compatible with Detection, Segmentation, Pose, and OBB models. The listed [pretrained models](https://docs.ultralytics.com/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+Ultralytics supports a wide range of YOLO models, from early versions like [YOLOv3](https://docs.ultralytics.com/models/yolov3) to the latest [YOLO26](https://docs.ultralytics.com/models/yolo26). The tables below showcase YOLO26 models for every supported task: [Detection](https://docs.ultralytics.com/tasks/detect) and [Segmentation](https://docs.ultralytics.com/tasks/segment) models are pretrained on [COCO](https://docs.ultralytics.com/datasets/detect/coco), [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) models on [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes), [Depth Estimation](https://docs.ultralytics.com/tasks/depth) models on a broad multi-dataset mix (evaluated on [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html)), [Classification](https://docs.ultralytics.com/tasks/classify) models on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet), [Pose Estimation](https://docs.ultralytics.com/tasks/pose) models on [COCO-Pose](https://docs.ultralytics.com/datasets/pose/coco), and [OBB](https://docs.ultralytics.com/tasks/obb) models on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10). [Tracking](https://docs.ultralytics.com/modes/track) mode is compatible with Detection, Segmentation, Pose, and OBB models. The listed [pretrained models](https://docs.ultralytics.com/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 <a href="https://docs.ultralytics.com/tasks" target="_blank">
     <img width="100%" src="https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif" alt="Ultralytics YOLO supported tasks">
@@ -144,8 +144,8 @@ Explore the [Detection Docs](https://docs.ultralytics.com/tasks/detect) for usag
 | [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l) | 640                         | 55.0                              | 54.4                                       | 286.2 ± 2.0                          | 6.2 ± 0.2                                 | 24.8                     | 86.8                    |
 | [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x) | 640                         | 57.5                              | 56.9                                       | 525.8 ± 4.0                          | 11.8 ± 0.2                                | 55.7                     | 194.4                   |
 
-- **mAP<sup>val</sup>** values refer to single-model single-scale performance on the [COCO val2017](https://cocodataset.org/) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics) for details. <br>Reproduce with `yolo val detect data=coco.yaml device=0`. Add `nms=False` to reproduce the e2e column.
-- **Speed** metrics are averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce with `yolo val detect data=coco.yaml batch=1 device=0|cpu nms=False`
+- **mAP<sup>val</sup>** values refer to single-model single-scale performance on the [COCO val2017](https://cocodataset.org/) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics) for details. <br>Reproduce with `yolo detect val data=coco.yaml device=0`. Add `nms=False` to reproduce the e2e column.
+- **Speed** metrics are averaged over COCO val images with [ONNX](https://onnx.ai/) on CPU and [TensorRT10](https://developer.nvidia.com/tensorrt) on an NVIDIA T4 GPU.
 
 </details>
 
@@ -161,8 +161,8 @@ Refer to the [Segmentation Docs](https://docs.ultralytics.com/tasks/segment) for
 | [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-seg) | 640                         | 54.4                                       | 45.5                                        | 387.0 ± 3.7                          | 8.0 ± 0.1                                 | 28.0                     | 140.1                   |
 | [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-seg) | 640                         | 56.5                                       | 47.0                                        | 787.0 ± 6.8                          | 16.4 ± 0.1                                | 62.8                     | 314.0                   |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics) for details. <br>Reproduce with `yolo val segment data=coco.yaml device=0 nms=False`
-- **Speed** metrics are averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce with `yolo val segment data=coco.yaml batch=1 device=0|cpu nms=False`
+- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics) for details. <br>Reproduce with `yolo segment val data=coco.yaml device=0 nms=False`
+- **Speed** metrics are averaged over COCO val images with [ONNX](https://onnx.ai/) on CPU and [TensorRT10](https://developer.nvidia.com/tensorrt) on an NVIDIA T4 GPU.
 
 </details>
 
@@ -195,7 +195,7 @@ See the [Depth Estimation Docs](https://docs.ultralytics.com/tasks/depth) for us
 | [YOLO26l-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-depth) | 768                         | 0.930                       | 0.083                 | 0.351              | 821.9 ± 50.7                         | 7.7 ± 0.1                                 | 27.7                     | 157.0                   |
 | [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) | 768                         | 0.933                       | 0.080                 | 0.344              | 1240.9 ± 73.3                        | 13.6 ± 0.2                                | 57.0                     | 301.7                   |
 
-- **δ<sup>NYU</sup><sub>1</sub>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
+- **δ<sup>NYU</sup><sub>1</sub>** is the fraction of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
 - Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: δ<sub>1</sub> 0.783 (n), 0.793 (s), 0.840 (m), 0.853 (l), 0.860 (x).
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
@@ -216,8 +216,8 @@ Consult the [Classification Docs](https://docs.ultralytics.com/tasks/classify) f
 | [YOLO26l-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-cls) | 224                         | 79.0                   | 94.6                   | 23.2 ± 0.3                           | 2.8 ± 0.0                                 | 14.1                     | 6.0                            |
 | [YOLO26x-cls](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-cls) | 224                         | 79.9                   | 95.0                   | 41.4 ± 0.9                           | 3.8 ± 0.0                                 | 29.6                     | 13.5                           |
 
-- **acc** values represent model accuracy on the [ImageNet](https://www.image-net.org/) dataset validation set. <br>Reproduce with `yolo val classify data=path/to/ImageNet device=0`
-- **Speed** metrics are averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce with `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
+- **acc** values represent model accuracy on the [ImageNet](https://www.image-net.org/) dataset validation set. <br>Reproduce with `yolo classify val data=path/to/ImageNet device=0`
+- **Speed** metrics are averaged over ImageNet val images with [ONNX](https://onnx.ai/) on CPU and [TensorRT10](https://developer.nvidia.com/tensorrt) on an NVIDIA T4 GPU.
 
 </details>
 
@@ -233,8 +233,8 @@ See the [Pose Estimation Docs](https://docs.ultralytics.com/tasks/pose) for usag
 | [YOLO26l-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-pose) | 640                         | 70.4                                        | 90.5                                     | 275.4 ± 2.4                          | 6.5 ± 0.1                                 | 25.9                     | 91.7                    |
 | [YOLO26x-pose](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-pose) | 640                         | 71.6                                        | 91.6                                     | 565.4 ± 3.0                          | 12.2 ± 0.2                                | 57.6                     | 202.3                   |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO Keypoints val2017](https://docs.ultralytics.com/datasets/pose/coco) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics) for details. <br>Reproduce with `yolo val pose data=coco-pose.yaml device=0 nms=False`
-- **Speed** metrics are averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce with `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu nms=False`
+- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO Keypoints val2017](https://docs.ultralytics.com/datasets/pose/coco) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics) for details. <br>Reproduce with `yolo pose val data=coco-pose.yaml device=0 nms=False`
+- **Speed** metrics are averaged over COCO val images with [ONNX](https://onnx.ai/) on CPU and [TensorRT10](https://developer.nvidia.com/tensorrt) on an NVIDIA T4 GPU.
 
 </details>
 
@@ -250,8 +250,8 @@ Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb) for usage examples.
 | [YOLO26l-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26l-obb) | 1024                        | 56.2                                        | 81.6                                     | 735.6 ± 3.1                          | 13.0 ± 0.2                                | 25.6                     | 232.4                   |
 | [YOLO26x-obb](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-obb) | 1024                        | 56.7                                        | 81.7                                     | 1485.7 ± 11.5                        | 30.5 ± 0.9                                | 57.6                     | 520.1                   |
 
-- **mAP<sup>test</sup>** values are for single-model multiscale performance on the [DOTAv1 test set](https://captain-whu.github.io/DOTA/dataset.html). <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test nms=False save_json=True` and submit merged results to the [DOTA evaluation server](https://captain-whu.github.io/DOTA/evaluation.html).
-- **Speed** metrics are averaged over [DOTAv1 val images](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10) using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu nms=False`
+- **mAP<sup>test</sup>** values are for single-model multiscale performance on the [DOTAv1 test set](https://captain-whu.github.io/DOTA/dataset.html). <br>Reproduce by `yolo obb val data=DOTAv1.yaml device=0 split=test nms=False save_json=True` and submit merged results to the [DOTA evaluation server](https://captain-whu.github.io/DOTA/evaluation.html).
+- **Speed** metrics are averaged over [DOTAv1 val images](https://docs.ultralytics.com/datasets/obb/dota-v2#dota-v10) with [ONNX](https://onnx.ai/) on CPU and [TensorRT10](https://developer.nvidia.com/tensorrt) on an NVIDIA T4 GPU.
 
 </details>
 

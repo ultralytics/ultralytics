@@ -68,8 +68,8 @@ python main.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --device 0
 ## 🛠️ Usage Options
 
 - `--weights`: Path to the YOLO [model weights](https://www.ultralytics.com/glossary/model-weights) file (default: `"yolo26n.pt"`). You can choose other models like `yolo26s.pt`, `yolo26m.pt`, etc.
-- `--device`: CUDA device identifier (e.g., `0` or `0,1,2,3`) or `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu) (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
-- `--source`: Path to a local video file or a YouTube URL (default: "[rickroll](https://www.youtube.com/watch?v=dQw4w9WgXcQ)").
+- `--device`: CUDA device identifier (e.g., `0` or `0,1,2,3`), `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu), or `mps` for Apple silicon GPUs (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
+- `--source`: Path to a local MP4 video file or a YouTube URL (default: "[rickroll](https://www.youtube.com/watch?v=dQw4w9WgXcQ)").
 - `--output-path`: Path to save the output video file (default: `output_video.mp4`).
 - `--crop-margin-percentage`: Percentage of margin to add around detected objects before cropping for classification (default: `10`).
 - `--num-video-sequence-samples`: Number of video frames sampled from a sequence to feed into the classifier (default: `8`).
@@ -99,7 +99,7 @@ Additionally, you can choose between different video classification models:
 
 1.  **Hugging Face Models**: You can use any compatible video classification model available on Hugging Face Hub. The default is:
     - `"microsoft/xclip-base-patch32"`
-2.  **TorchVision Models**: These models do not support zero-shot classification with custom text labels but offer pre-trained classification capabilities. Options include:
+2.  **TorchVision Models**: These models do not support zero-shot classification with custom text labels; they ignore `--labels` and `--fp16` and predict Kinetics-400 action labels. Options include:
     - `"s3d"`
     - `"r3d_18"`
     - `"swin3d_t"`
@@ -113,8 +113,8 @@ Additionally, you can choose between different video classification models:
 
 ### 4. Can I Employ Other YOLO Versions?
 
-Certainly! While this example defaults to `yolo26n.pt`, you have the flexibility to specify different Ultralytics YOLO model weights using the `--weights` option. For instance, you could use `yolo26s.pt`, `yolo26m.pt`, `yolo26l.pt`, or `yolo26x.pt` for potentially higher detection accuracy at the cost of inference speed. You can even use models trained for other tasks if applicable, though detection models are standard here. Check the [Ultralytics documentation](https://docs.ultralytics.com) for available models and their performance metrics.
+Certainly! While this example defaults to `yolo26n.pt`, you have the flexibility to specify different Ultralytics YOLO model weights using the `--weights` option. For instance, you could use `yolo26s.pt`, `yolo26m.pt`, `yolo26l.pt`, or `yolo26x.pt` for potentially higher detection accuracy at the cost of inference speed. The script tracks only class `0` (`person`), so use a detection model whose class `0` is person, such as the COCO-pretrained models. Check the [Ultralytics documentation](https://docs.ultralytics.com) for available models and their performance metrics.
 
----
+## 🤝 Contributing
 
-We hope this guide helps you implement zero-shot action recognition using Ultralytics YOLO26! Feel free to explore the code and experiment with different options. If you encounter issues or have suggestions, please consider contributing by opening an issue or pull request on the [GitHub repository](https://github.com/ultralytics/ultralytics). See our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for more details.
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

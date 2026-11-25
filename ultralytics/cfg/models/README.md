@@ -10,7 +10,7 @@ To get started, choose a `*.yaml` file (see the [YAML format](https://www.ultral
 
 ## 🚀 Usage
 
-Model configuration files (`*.yaml`) can be used directly from the [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli) via the `yolo` command:
+Model configuration files (`*.yaml`) can be used directly from the [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli) via the `yolo` command. Model sizes share one file: `yolo26n.yaml` loads [`26/yolo26.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26.yaml) with the `n` scale.
 
 ```bash
 # Train a YOLO26n detection model using the coco8 dataset for 100 epochs
@@ -50,7 +50,12 @@ Ultralytics supports a variety of model architectures. Visit the [Ultralytics Mo
 - [YOLOv10](https://docs.ultralytics.com/models/yolov10)
 - [YOLOv9](https://docs.ultralytics.com/models/yolov9)
 - [YOLOv8](https://docs.ultralytics.com/models/yolov8)
+- [YOLOv6](https://docs.ultralytics.com/models/yolov6)
 - [YOLOv5](https://docs.ultralytics.com/models/yolov5)
+- [YOLOv3](https://docs.ultralytics.com/models/yolov3)
+- [YOLOE](https://docs.ultralytics.com/models/yoloe)
+- [YOLO-World](https://docs.ultralytics.com/models/yolo-world)
+- [RT-DETR](https://docs.ultralytics.com/models/rtdetr)
 - [And more...](https://docs.ultralytics.com/models)
 
 You can easily use any of these models by loading their configuration files (`.yaml`) or their [pre-trained](https://docs.pytorch.org/tutorials/beginner/transfer_learning_tutorial.html) checkpoints (`.pt`).

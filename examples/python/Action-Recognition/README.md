@@ -68,7 +68,7 @@ python main.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --device 0
 ## 🛠️ Usage Options
 
 - `--weights`: Path to the YOLO [model weights](https://www.ultralytics.com/glossary/model-weights) file (default: `"yolo26n.pt"`). You can choose other models like `yolo26s.pt`, `yolo26m.pt`, etc.
-- `--device`: CUDA device identifier (e.g., `0` or `0,1,2,3`) `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu), or `mps` for Apple silicon GPUs (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
+- `--device`: CUDA device identifier (e.g., `0` or `0,1,2,3`), `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu), or `mps` for Apple silicon GPUs (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
 - `--source`: Path to a local MP4 video file or a YouTube URL (default: "[rickroll](https://www.youtube.com/watch?v=dQw4w9WgXcQ)").
 - `--output-path`: Path to save the output video file (default: `output_video.mp4`).
 - `--crop-margin-percentage`: Percentage of margin to add around detected objects before cropping for classification (default: `10`).

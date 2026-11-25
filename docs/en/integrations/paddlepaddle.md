@@ -112,7 +112,7 @@ On a shared AMD EPYC 9655 server, exports of YOLO26n took 2 to 3 s with the pack
 
 ## Supported Tasks
 
-PaddlePaddle export supports all seven Ultralytics tasks: [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [OBB](../tasks/obb.md). Semantic segmentation and depth estimation are available only with [YOLO26](../models/yolo26.md), the only family that ships those heads. On x86-64 CPUs, `YOLO()` returns less accurate depth maps and wrong boxes for OBB models, because of a default setting of Paddle Inference, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). For this page, the YOLO26n checkpoint of every task was exported and run on the export host, and so were [YOLO11](../models/yolo11.md), [YOLOv10](../models/yolov10.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) detection models. [RT-DETR](../models/rtdetr.md) does not convert, see [Limitations and Troubleshooting](#limitations-and-troubleshooting).
+PaddlePaddle export supports all seven Ultralytics tasks: [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [OBB](../tasks/obb.md). Semantic segmentation and depth estimation are available only with [YOLO26](../models/yolo26.md), the only family that ships those heads. For this page, the YOLO26n checkpoint of every task was exported and run on the export host, and so were [YOLO11](../models/yolo11.md), [YOLOv10](../models/yolov10.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) detection models. [RT-DETR](../models/rtdetr.md) does not convert, see [Limitations and Troubleshooting](#limitations-and-troubleshooting).
 
 ## Export Arguments
 
@@ -190,12 +190,10 @@ The table below compares the raw outputs with those of the [ONNX](onnx.md) expor
 | Detect   | 0.0031                       |
 | Segment  | 0.0023                       |
 | Semantic | Same class on every pixel    |
-| Depth    | 6.4                          |
+| Depth    | 0.0001                       |
 | Classify | below 0.0001                 |
 | Pose     | 0.0024                       |
-| OBB      | 138.9                        |
-
-The depth and OBB outputs differ far more than those of the other tasks, because of the oneDNN setting described in [Limitations and Troubleshooting](#limitations-and-troubleshooting).
+| OBB      | 0.0042                       |
 
 `YOLO("yolo26n_paddle_model")` reads the layout from `metadata.yaml`, so you only need these details when you run the model in your own code. The keys of `metadata.yaml` include `names`, `task`, `imgsz`, `stride`, `batch`, `end2end`, `args`, and, for pose models, `kpt_shape`.
 
@@ -221,7 +219,7 @@ output = predictor.get_output_handle(predictor.get_output_names()[0]).copy_to_cp
 assert output.shape == (1, 84, 8400)
 ```
 
-The class names are in `yolo26n_paddle_model/metadata.yaml`. For depth and OBB models, also call `config.disable_mkldnn()` before `create_predictor`, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). Paddle Inference also has a C++ API with the same `Config` and predictor calls, see the [Paddle Inference documentation](https://www.paddlepaddle.org.cn/inference/master/guides/introduction/index_intro.html).
+The class names are in `yolo26n_paddle_model/metadata.yaml`. On x86-64 CPUs, also call `config.delete_pass("inplace_pass")` before `create_predictor` for OBB models, and `config.delete_pass("onednn_placement_pass")` for depth models, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). Paddle Inference also has a C++ API with the same `Config` and predictor calls, see the [Paddle Inference documentation](https://www.paddlepaddle.org.cn/inference/master/guides/introduction/index_intro.html).
 
 ## Deploy
 
@@ -254,7 +252,7 @@ GPU inference was not run for this page: the test server could not reach the Pad
 
 ## Limitations and Troubleshooting
 
-- **Depth and OBB models on x86-64 CPUs**: oneDNN, which Paddle Inference turns on by default on x86-64 CPUs, changes the outputs of these models, and `YOLO()` runs the model with it. Depth maps are less accurate: on the 4 validation images of `depth8.yaml`, YOLO26n-depth reached a delta1 of 0.851 and an RMSE of 0.260, against 0.854 and 0.205 as ONNX. OBB models get wrong angles and box centers: on the 4 validation images of `dota8.yaml`, YOLO26n-OBB reached 0.383 mAP50-95, against 0.894 as ONNX, and YOLO11n-OBB 0.439 against 0.817. With oneDNN turned off through `config.disable_mkldnn()`, the same models reached exactly the ONNX values. To run depth and OBB models correctly on the CPU, export them to another format such as [ONNX](onnx.md) or [OpenVINO](openvino.md), or run them with [Paddle Inference](#run-with-paddle-inference) directly and call `config.disable_mkldnn()`. Without oneDNN, the YOLO26 detection models ran 4.8 to 15.4 times slower in an earlier run on the same server, on one thread; set the thread count too, see [Deploy](#deploy).
+- **Depth and OBB models in your own Paddle Inference code**: on x86-64 CPUs, where the default settings of Paddle Inference turn oneDNN on, `inplace_pass` lets the OBB angle be overwritten, which also moves the box centers, and `onednn_placement_pass` runs the bilinear resizes of the depth head without their `align_corners=True`. With the default settings, YOLO26n-OBB reached 0.383 mAP50-95 on the 4 validation images of `dota8.yaml`, against 0.894 as ONNX, and YOLO26n-depth a delta1 of 0.851 and an RMSE of 0.260 on those of `depth8.yaml`, against 0.854 and 0.205. `YOLO()` deletes the pass for each task and reaches the same mAP50-95, delta1, and RMSE as ONNX; delete it too when you run the model with [Paddle Inference](#run-with-paddle-inference). In `YOLO().predict` on the benchmark server, limited to 8 CPUs, YOLO26s-OBB and YOLO26m-OBB then took 1.2 to 1.4 times as long as with the default settings, and the YOLO26n to YOLO26m depth models 1.4 to 1.8 times, against 3.2 to 5.5 times with `config.disable_mkldnn()`, which turns oneDNN off, and 8 threads.
 - **RT-DETR**: the export of `rtdetr-l.pt` fails with `Model is not supported yet.`
 - **Python 3.14 and newer**: `paddlepaddle` has no packages for them, so pip finds no version to install, for example `Could not find a version that satisfies the requirement paddlepaddle<3.3.0,>=3.0.0 (from versions: none)` on Linux x86-64, and the export fails with `No module named 'paddle'`. Use Python 3.13 or older.
 - **`paddlepaddle` 3.3 or newer**: the first export and the first prediction replace it with a version older than 3.3, see the version requirements in [Quickstart](#quickstart). In an environment that needs a newer `paddlepaddle` for other code, export in a separate environment.
@@ -341,4 +339,4 @@ Not as exported. The export writes the PIR format of PaddlePaddle 3, `model.json
 
 ### Should I use PaddlePaddle or ONNX for CPU deployment?
 
-On the CPU of the benchmark server, ONNX: both gave the same mAP, and the PaddlePaddle models took 2.0 to 2.3 times as long per image, see [Benchmarks](#benchmarks). ONNX also runs depth and OBB models correctly with its default settings, see [Limitations and Troubleshooting](#limitations-and-troubleshooting). PaddlePaddle fits an application that already runs Paddle Inference.
+On the CPU of the benchmark server, ONNX: both gave the same mAP, and the PaddlePaddle models took 2.0 to 2.3 times as long per image, see [Benchmarks](#benchmarks). PaddlePaddle fits an application that already runs Paddle Inference.

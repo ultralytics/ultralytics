@@ -37,7 +37,7 @@ YOLO26 Classify models pretrained on the [ImageNet](../datasets/classify/imagene
 {% include "macros/yolo-cls-perf.md" %}
 
 - **acc** values are model accuracies on the [ImageNet](https://www.image-net.org/) dataset validation set. <br>Reproduce with `yolo classify val data=path/to/ImageNet device=0`
-- **Speed** averaged over ImageNet val images with ONNX on CPU and TensorRT10 on an NVIDIA T4 GPU. <br>Reproduce with `yolo classify val data=path/to/ImageNet batch=1 device=0|cpu`
+- **Speed** averaged over ImageNet val images with ONNX on CPU and TensorRT10 on an NVIDIA T4 GPU.
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary classification speed and model sizes.

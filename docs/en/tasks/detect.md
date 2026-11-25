@@ -37,7 +37,7 @@ YOLO26 Detect models pretrained on the [COCO](../datasets/detect/coco.md) datase
 {% include "macros/yolo-det-perf.md" %}
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce with `yolo detect val data=coco.yaml device=0`. Add `nms=False` to reproduce the e2e column.
-- **Speed** averaged over COCO val images with ONNX on CPU and TensorRT10 on an NVIDIA T4 GPU. <br>Reproduce with `yolo detect val data=coco.yaml batch=1 device=0|cpu nms=False`
+- **Speed** averaged over COCO val images with ONNX on CPU and TensorRT10 on an NVIDIA T4 GPU.
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary COCO detection results.

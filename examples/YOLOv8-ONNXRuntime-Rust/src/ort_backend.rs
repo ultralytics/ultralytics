@@ -344,9 +344,6 @@ impl OrtBackend {
             println!("[ORT Prepare Value]: {:?}", t.elapsed());
         }
 
-        // compute output shapes before calling session.run to avoid borrowing self immutably while session is mutably borrowed
-        let out_shapes = self.output_shapes();
-
         // run
         let t = std::time::Instant::now();
         let ys = self.session.run(ort::inputs![input])?;
@@ -357,12 +354,11 @@ impl OrtBackend {
         // d2h
         Ok(ys
             .iter()
-            .enumerate()
-            .map(|(idx, (_k, v))| {
+            .map(|(_k, v)| {
                 // d2h
                 let t = std::time::Instant::now();
                 // try_extract_tensor for f16 returns (shape, slice)
-                let (_shape, slice) = v.try_extract_tensor::<f16>().unwrap();
+                let (shape, slice) = v.try_extract_tensor::<f16>().unwrap();
                 if profile {
                     println!("[ORT D2H]: {:?}", t.elapsed());
                 }
@@ -370,8 +366,7 @@ impl OrtBackend {
                 // f16->f32
                 let t_ = std::time::Instant::now();
                 // build ndarray from the returned slice using the runtime output shape
-                let out_shape = out_shapes[idx].clone();
-                let dims = out_shape.iter().map(|&d| d as usize).collect::<Vec<_>>();
+                let dims = shape.iter().map(|&d| d as usize).collect::<Vec<_>>();
                 let arr_f16 = Array::from_shape_vec(IxDyn(&dims), slice.to_vec()).unwrap();
                 let v = arr_f16.mapv(f16::to_f32);
                 if profile {
@@ -401,9 +396,6 @@ impl OrtBackend {
             println!("[ORT Prepare Value]: {:?}", t.elapsed());
         }
 
-        // compute output shapes before calling session.run to avoid borrowing self immutably while session is mutably borrowed
-        let out_shapes = self.output_shapes();
-
         // run
         let t = std::time::Instant::now();
         let ys = self.session.run(ort::inputs![input])?;
@@ -414,18 +406,16 @@ impl OrtBackend {
         // d2h
         Ok(ys
             .iter()
-            .enumerate()
-            .map(|(idx, (_k, v))| {
+            .map(|(_k, v)| {
                 let t = std::time::Instant::now();
                 // try_extract_tensor for f32 returns (shape, slice)
-                let (_shape, slice) = v.try_extract_tensor::<f32>().unwrap();
+                let (shape, slice) = v.try_extract_tensor::<f32>().unwrap();
                 if profile {
                     println!("[ORT D2H]: {:?}", t.elapsed());
                 }
 
                 // build ndarray from the returned slice using the runtime output shape
-                let out_shape = out_shapes[idx].clone();
-                let dims = out_shape.iter().map(|&d| d as usize).collect::<Vec<_>>();
+                let dims = shape.iter().map(|&d| d as usize).collect::<Vec<_>>();
                 Array::from_shape_vec(IxDyn(&dims), slice.to_vec()).unwrap()
             })
             .collect::<Vec<Array<f32, IxDyn>>>())

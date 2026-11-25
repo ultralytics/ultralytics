@@ -158,7 +158,8 @@ class DetectionValidator(BaseValidator):
         self.confusion_matrix = ConfusionMatrix(
             names=model.names,
             save_matches=self.args.plots and self.args.visualize,
-            save_cells=self.args.task == "detect" and self.args.mode == "train",  # read by the Platform callback
+            # Final validation of a training run only, read by the Platform callback
+            save_cells=self.args.task == "detect" and self.args.mode == "train" and not self.training,
         )
 
     def get_desc(self) -> str:

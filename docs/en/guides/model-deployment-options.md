@@ -1,8 +1,8 @@
 ---
 title: YOLO26 Deployment Options Compared
 comments: true
-description: Compare YOLO26 deployment and export formats, from PyTorch, ONNX, TensorRT, and OpenVINO to CoreML, LiteRT, and edge NPUs, by speed and compatibility.
-keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, LiteRT, ONNX, CoreML, edge AI, NPU, model deployment
+description: Compare YOLO26 deployment and export formats, from PyTorch, ONNX, TensorRT, and OpenVINO to CoreML, LiteRT, and edge NPUs, and find measured YOLO26 benchmarks for Jetson, Raspberry Pi, NPUs, and phones.
+keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, LiteRT, ONNX, CoreML, edge AI, NPU, model deployment, YOLO26 benchmarks, edge device benchmarks
 ---
 
 # Comparative Analysis of YOLO26 Deployment Options
@@ -96,7 +96,29 @@ The following table summarizes the deployment options for YOLO26 models across t
 | NXP               | Compilation validated; measure latency on board | i.MX95 with a compatible Neutron 3.3.0 runtime                                                         | NXP eIQ Neutron SDK                           | Embedded computer vision                    | Match compiler, delegate, and firmware versions | On-device local inference                         | Neutron NPU with CPU fallback       |
 | ST Edge AI        | INT8 inference on STM32 microcontrollers        | STM32 devices such as STM32N6 through ST Edge AI Core                                                  | STM32 AI Model Zoo and ST Edge AI tools       | Low-power embedded and battery devices      | ST Edge AI Core releases                        | On-device local inference                         | STM32N6 Neural-ART NPU and Arm CPUs |
 
-This comparison gives you a high-level overview. For deployment, weigh the specific requirements and constraints of your project against each option, and consult the linked integration guide for the format you choose.
+This comparison gives you a high-level overview. For deployment, weigh the specific requirements and constraints of your project against each option, and consult the linked integration guide for the format you choose. For measured speed and accuracy on real devices, see the [published YOLO26 device benchmarks](#published-yolo26-device-benchmarks) below.
+
+## Published YOLO26 Device Benchmarks
+
+The Ultralytics team publishes measured YOLO26 speed, and usually accuracy, for these devices on each format's or device's own page:
+
+| Device                                                                                      | Runs on               | Formats measured                      | Results                                                                  |
+| ------------------------------------------------------------------------------------------- | --------------------- | ------------------------------------- | ------------------------------------------------------------------------ |
+| NVIDIA Jetson AGX Thor, AGX Orin 64GB, Orin Nano Super and Orin NX 16GB                     | GPU                   | 11 formats, including TensorRT        | [NVIDIA Jetson](nvidia-jetson.md#nvidia-jetson-yolo26-benchmarks)        |
+| NVIDIA RTX PRO 6000 Blackwell Server Edition                                                | GPU                   | PyTorch, TensorRT FP32, FP16 and INT8 | [TensorRT](../integrations/tensorrt.md#fp32-fp16-and-int8-compared)      |
+| NVIDIA T4                                                                                   | GPU                   | TensorRT 10 (and ONNX on a CPU)       | [YOLO26 performance metrics](../models/yolo26.md#performance-metrics)    |
+| AMD Radeon 8060S (Ryzen AI Max+ PRO 395)                                                    | GPU                   | PyTorch, ONNX on MIGraphX             | [AMD](../integrations/amd.md#benchmarks)                                 |
+| Intel Core Ultra X7 358H and earlier Core Ultra processors                                  | CPU, GPU and NPU      | PyTorch, OpenVINO FP32, FP16 and INT8 | [OpenVINO](../integrations/openvino.md#intel-core-ultra-cpu-gpu-and-npu) |
+| Raspberry Pi 5                                                                              | CPU                   | 8 formats, including NCNN and MNN     | [Raspberry Pi](raspberry-pi.md#raspberry-pi-5-yolo26-benchmarks)         |
+| Raspberry Pi 5 with the AI HAT+ (Hailo-8)                                                   | Hailo-8 NPU           | PyTorch, Hailo                        | [Hailo](../integrations/hailo.md#benchmarks)                             |
+| Raspberry Pi 5 with a DEEPX DX-M1 module                                                    | DEEPX NPU             | PyTorch, DEEPX                        | [DEEPX](../integrations/deepx.md#benchmarks)                             |
+| Radxa Rock 5B (Rockchip RK3588)                                                             | Rockchip NPU          | RKNN FP16 and INT8                    | [Rockchip RKNN](../integrations/rockchip-rknn.md#benchmarks)             |
+| Axelera Metis PCIe and M.2 (Axelera's figures)                                              | Metis AIPU            | Axelera                               | [Axelera AI](../integrations/axelera.md#benchmarks)                      |
+| Xiaomi 17, Google Pixel 10, Samsung Galaxy S26 and Xiaomi 17T Pro (MediaTek Dimensity 9500) | CPU, GPU and NPU      | LiteRT                                | [LiteRT](../integrations/litert.md#measured-performance)                 |
+| Xiaomi 17 (Snapdragon 8 Elite Gen 5) and a Snapdragon X Elite laptop                        | Hexagon NPU           | Qualcomm QNN, LiteRT                  | [Qualcomm QNN](../integrations/qnn.md#measured-performance)              |
+| iPhone 17 Pro and Apple M4                                                                  | CPU and Neural Engine | CoreML                                | [CoreML](../integrations/coreml.md#measured-performance)                 |
+
+Each page states the models, precision, image size and software versions it measured, and setups differ between pages, so compare numbers within one table rather than across pages. The [Sony IMX500](../integrations/sony-imx500.md#benchmarks) page measures YOLOv8n and YOLO11n only, and the [Huawei Ascend](../integrations/ascend.md), [AMD Xilinx](../integrations/xilinx.md), [NXP](../integrations/nxp.md) and [ST Edge AI](../integrations/stedgeai.md) pages publish no latency measured on the device yet. To measure your own model on your own hardware, run [benchmark mode](../modes/benchmark.md).
 
 ## Conclusion
 

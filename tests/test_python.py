@@ -769,6 +769,25 @@ def test_track_reid_auto_user_detections(tracker_type):
     assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
 
 
+def test_deepocsort_gmc_warps_observations():
+    """Deep OC-SORT camera motion compensation moves the stored observations and ORU state with the Kalman state."""
+    from ultralytics.trackers.deep_oc_sort import DeepOCSortTrack
+    from ultralytics.trackers.utils.kalman_filter import KalmanFilterXYAH
+
+    track = DeepOCSortTrack(np.array([100.0, 100.0, 40.0, 80.0, 0]), 0.9, 0)  # xywh and detection index
+    track.activate(KalmanFilterXYAH(), 1)
+    track.predict()
+    track.update(DeepOCSortTrack(np.array([110.0, 100.0, 40.0, 80.0, 0]), 0.9, 0), 2)
+    observations, saved_mean = {k: v.copy() for k, v in track.observations.items()}, track._saved_mean.copy()
+    DeepOCSortTrack.multi_gmc([track], np.array([[1.0, 0.0, 50.0], [0.0, 1.0, 20.0]]))  # camera pan
+    assert np.allclose(track._saved_mean[:2], saved_mean[:2] + np.array([50, 20])), "ORU state not warped"
+    for frame, box in observations.items():
+        assert np.allclose(track.observations[frame], box + np.array([50, 20, 50, 20])), (
+            f"frame {frame} observation not warped"
+        )
+    assert np.array_equal(track.last_observation, track.observations[2])
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path, solution_assets):

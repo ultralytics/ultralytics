@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings
+from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, plt_settings
 from ultralytics.utils.plotting import colors
 from ultralytics.utils.torch_utils import autocast
 
@@ -768,12 +768,11 @@ def plot_mc_curve(
         on_plot(save_dir, {"type": f"{ylabel.lower()}_curve", "x": px.tolist(), "y": py.tolist()})
 
 
-_AP_X = np.linspace(0, 1, 101)  # 101-point interp (COCO), constant across compute_ap calls
-_TRAPZ = np.trapezoid if checks.check_version(np.__version__, ">=2.0") else np.trapz  # np.trapz deprecated
+_AP_X = np.linspace(0, 1, 101)  # COCO recall thresholds
 
 
 def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.ndarray, np.ndarray]:
-    """Compute the average precision (AP) given the recall and precision curves.
+    """Compute COCO average precision (AP) at 101 recall thresholds given the recall and precision curves.
 
     Args:
         recall (list[float]): The recall curve.
@@ -789,9 +788,9 @@ def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.n
     mpre = np.concatenate(([1.0], precision, [0.0], [0.0]))
 
     # Compute the precision envelope
-    mpre = np.flip(np.maximum.accumulate(np.flip(mpre)))
+    np.maximum.accumulate(mpre[::-1], out=mpre[::-1])
 
-    ap = _TRAPZ(np.interp(_AP_X, mrec, mpre), _AP_X)  # 101-point interpolation (COCO)
+    ap = mpre[1 + np.searchsorted(recall, _AP_X)].mean()  # first detection reaching each recall, zero past max recall
 
     return ap, mpre, mrec
 
@@ -837,10 +836,6 @@ def ap_per_class(
         prec_values (np.ndarray): Precision at each x recall value at IoU 0.5 for each class, shape (nc, 1000).
     """
     names = names if names is not None else {}
-    # Sort by confidence
-    i = np.argsort(-conf)
-    tp, conf, pred_cls = tp[i], conf[i], pred_cls[i]
-
     # Find unique classes
     unique_classes, nt = np.unique(target_cls, return_counts=True)
     nc = unique_classes.shape[0]  # number of classes with labels
@@ -850,31 +845,31 @@ def ap_per_class(
 
     # Average precision, precision and recall curves
     ap, p_curve, r_curve = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000))
-    for ci, c in enumerate(unique_classes):
-        i = pred_cls == c
-        n_l = nt[ci]  # number of labels
-        n_p = i.sum()  # number of predictions
-        if n_p == 0 or n_l == 0:
-            prec_values.append(np.zeros_like(x))  # keep one row per class, aligned with `ap` and `names`
+    # Group once, then stably rank each class by confidence as in COCO.
+    order = np.argsort(pred_cls, kind="stable")
+    starts = np.searchsorted(pred_cls, unique_classes, sorter=order)
+    ends = np.searchsorted(pred_cls, unique_classes, side="right", sorter=order)
+    for ci, (start, end) in enumerate(zip(starts, ends)):
+        idx = order[start:end]
+        if not idx.size:
+            prec_values.append(np.zeros_like(x))
             continue
 
-        # Accumulate FPs and TPs
-        fpc = (1 - tp[i]).cumsum(0)
-        tpc = tp[i].cumsum(0)
-
-        # Recall
-        recall = tpc / (n_l + eps)  # recall curve
-        r_curve[ci] = np.interp(-x, -conf[i], recall[:, 0], left=0)  # negative x, xp because xp decreases
-
-        # Precision
-        precision = tpc / (tpc + fpc)  # precision curve
-        p_curve[ci] = np.interp(-x, -conf[i], precision[:, 0], left=1)  # p at pr_score
-
-        # AP from recall-precision curve
-        for j in range(tp.shape[1]):
-            ap[ci, j], mpre, mrec = compute_ap(recall[:, j], precision[:, j])
+        idx = idx[np.argsort(-conf[idx], kind="stable")]
+        for j, correct in enumerate(tp[idx].T):
+            if j == 0:  # confidence curves need every detection
+                ranks = np.arange(1, idx.size + 1)
+                tpc = correct.cumsum()
+            else:  # only true positives can raise recall or the precision envelope
+                ranks = np.flatnonzero(correct) + 1
+                tpc = np.arange(1, ranks.size + 1)
+            recall, precision = tpc / nt[ci], tpc / ranks
+            ap[ci, j], mpre, _ = compute_ap(recall, precision)
             if j == 0:
-                prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP50
+                neg_conf = -conf[idx]
+                r_curve[ci] = np.interp(-x, neg_conf, recall, left=0)
+                p_curve[ci] = np.interp(-x, neg_conf, precision, left=1)
+                prec_values.append(mpre[1 + np.searchsorted(recall, x)])  # same envelope as AP50
 
     prec_values = np.array(prec_values) if prec_values else np.zeros((1, 1000))  # (nc, 1000)
 

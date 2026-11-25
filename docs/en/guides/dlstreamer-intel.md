@@ -182,7 +182,7 @@ DL Streamer supports these YOLO26 task variants:
 - **Instance Segmentation**: yolo26s-seg (and all size variants)
 - **Classification**: yolo26s-cls (composite pipeline with detection)
 - **Pose Estimation**: yolo26s-pose (and all size variants)
-- **Oriented Bounding Box (OBB)**: yolo26s-obb (and all size variants)
+- **Oriented Bounding Box (OBB)**: yolo26s-obb (and all size variants), with INT8 weights only. DL Streamer identifies INT8 models by an `int8: true` key in `metadata.yaml`, which Ultralytics exports record as `quantize: 8`, so it rejects these exports with `YOLOv26 OBB model with FP16/FP32 precision is not supported`.
 
 ### How can I export detections as structured data?
 

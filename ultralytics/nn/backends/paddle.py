@@ -49,8 +49,7 @@ class PaddleBackend(BaseBackend):
         config = pdi.Config(str(model_file), str(params_file))
         if cuda:
             config.enable_use_gpu(memory_pool_init_size_mb=2048, device_id=self.device.index or 0)
-        elif config.mkldnn_enabled() and self.task in {"obb", "depth"}:
-            # drop the oneDNN pass that corrupts OBB angles (in-place cos/sin) or depth resizes (align_corners)
+        elif config.mkldnn_enabled() and self.task in {"obb", "depth"}:  # oneDNN bugs PaddlePaddle/Paddle#79984, #79985
             config.delete_pass("inplace_pass" if self.task == "obb" else "onednn_placement_pass")
 
         self.predictor = pdi.create_predictor(config)

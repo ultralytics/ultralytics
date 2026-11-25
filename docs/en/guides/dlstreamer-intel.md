@@ -46,16 +46,16 @@ DL Streamer uses models in [OpenVINO™ IR format](https://docs.openvino.ai/2026
 ```bash
 mkdir -p ~/intel/dlstreamer_demo && cd ~/intel/dlstreamer_demo
 python3 -m venv .dls-venv && source .dls-venv/bin/activate
-pip install openvino==2026.2.0 ultralytics==8.4.92
+pip install openvino==2026.2.0 ultralytics
 ```
 
 2.  Download the PyTorch [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s) model from Ultralytics, convert it to OpenVINO™ IR format, and generate an INT8 precision variant.
 
 ```bash
-yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml
+yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml nms=False
 ```
 
-The model is exported to the `~/intel/dlstreamer_demo/yolo26s_int8_openvino_model` folder.
+The model is exported to the `~/intel/dlstreamer_demo/yolo26s_int8_openvino_model` folder. `nms=False` exports the NMS-free output of YOLO26, which DL Streamer decodes for YOLO26 models; without it, the export contains the raw output and DL Streamer finds no objects.
 
 ### Model Precision
 
@@ -63,13 +63,13 @@ DL Streamer supports FP32, FP16, and INT8 precision models. Each requires a sepa
 
 ```bash
 # FP32 (default precision, highest accuracy)
-yolo export model=yolo26s.pt format=openvino dynamic=True
+yolo export model=yolo26s.pt format=openvino dynamic=True nms=False
 
 # FP16 (recommended for GPU inference, good accuracy/performance balance)
-yolo export model=yolo26s.pt format=openvino dynamic=True quantize=16
+yolo export model=yolo26s.pt format=openvino dynamic=True quantize=16 nms=False
 
 # INT8 (maximum performance, requires calibration dataset)
-yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml
+yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml nms=False
 ```
 
 The examples below use the INT8 model exported in the [preparation step](#yolo26-model-preparation). To use FP32 or FP16 models, replace the model path accordingly (e.g. `yolo26s_openvino_model/yolo26s.xml`).
@@ -182,7 +182,7 @@ DL Streamer supports these YOLO26 task variants:
 - **Instance Segmentation**: yolo26s-seg (and all size variants)
 - **Classification**: yolo26s-cls (composite pipeline with detection)
 - **Pose Estimation**: yolo26s-pose (and all size variants)
-- **Oriented Bounding Box (OBB)**: yolo26s-obb (and all size variants)
+- **Oriented Bounding Box (OBB)**: yolo26s-obb (and all size variants), with INT8 weights only. DL Streamer identifies INT8 models by an `int8: true` key in `metadata.yaml`, which Ultralytics exports record as `quantize: 8`, so it rejects these exports with `YOLOv26 OBB model with FP16/FP32 precision is not supported`.
 
 ### How can I export detections as structured data?
 

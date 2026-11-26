@@ -382,7 +382,7 @@ The latency of YOLO26n with each Core ML compute unit, measured with `coremltool
 - **FP32** gave the same outputs with `CPU_AND_NE` as with `CPU_ONLY`. Only the GPU compute units made it faster.
 - **INT8** made the package 3.7 to 4.0 times smaller than FP32.
 
-Measured with `ultralytics` 8.4.215, `coremltools` 9.0, and PyTorch 2.15.0 at `batch=1` on November 17, 2026. Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing. A second run of the three YOLO26n Core ML cases on the same day differed by up to 2.3 ms, 21.0 against 18.8 ms for FP32.
+Measured with `ultralytics` 8.4.215, `coremltools` 9.0, and PyTorch 2.15.0 at `batch=1`. Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing. A second run of the three YOLO26n Core ML cases differed by up to 2.3 ms, 21.0 against 18.8 ms for FP32.
 
 ## About Core ML
 

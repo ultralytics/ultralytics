@@ -48,6 +48,7 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
+from ultralytics.utils.metrics import _match_iou
 from ultralytics.utils.ops import Profile, linear_sum_assignment
 from ultralytics.utils.torch_utils import (
     attempt_compile,
@@ -407,28 +408,17 @@ class BaseValidator:
         Returns:
             (torch.Tensor): Boolean correct tensor of shape (N, T) for T IoU thresholds (10 by default).
         """
-        # Dx10 matrix, where D - detections, 10 - IoU thresholds
-        correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
         # LxD matrix where L - labels (rows), D - detections (columns)
-        correct_class = true_classes[:, None] == pred_classes
-        iou = iou * correct_class  # zero out the wrong classes
-        iou = iou.cpu().numpy()
+        iou = (iou * (true_classes[:, None] == pred_classes)).cpu().numpy()
         thresholds = self.iouv.cpu().numpy()
-        if use_scipy:
-            for i, threshold in enumerate(thresholds):
-                cost_matrix = iou * (iou >= threshold)
-                if cost_matrix.any():
-                    labels_idx, detections_idx = linear_sum_assignment(-cost_matrix)  # negate to maximize IoU
-                    valid = cost_matrix[labels_idx, detections_idx] > 0
-                    if valid.any():
-                        correct[detections_idx[valid], i] = True
-        else:
-            matched = np.zeros((iou.shape[0], len(thresholds)), dtype=bool)  # targets claimed at each threshold
-            for j in np.flatnonzero((iou >= thresholds.min()).any(0)):  # detections in descending confidence order
-                available = np.where(matched, 0, iou[:, j, None])  # IoU with each unclaimed target per threshold
-                k = available.argmax(0)  # best unclaimed target per threshold
-                correct[j] = available[k, range(len(thresholds))] >= thresholds
-                matched[k, range(len(thresholds))] |= correct[j]
+        if not use_scipy:
+            return torch.from_numpy(_match_iou(iou, thresholds))
+        correct = np.zeros((len(pred_classes), len(thresholds)), dtype=bool)
+        for i, threshold in enumerate(thresholds):
+            cost_matrix = iou * (iou >= threshold)
+            if cost_matrix.any():
+                labels_idx, detections_idx = linear_sum_assignment(-cost_matrix)  # negate to maximize IoU
+                correct[detections_idx, i] = cost_matrix[labels_idx, detections_idx] > 0
         return torch.from_numpy(correct)
 
     @smart_inference_mode(False)

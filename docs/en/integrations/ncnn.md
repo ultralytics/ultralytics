@@ -287,7 +287,7 @@ The sizes of the exported YOLO26 detection models, as the sum of `model.ncnn.par
 | YOLO26l | 53.2    | 99.4      | 49.8      |
 | YOLO26x | 118.7   | 223.0     | 111.7     |
 
-Exported with `ultralytics` 8.4.215, NCNN 1.0.20261020, and PNNX 20260526 on November 16, 2026.
+Exported with `ultralytics` 8.4.215, NCNN 1.0.20261020, and PNNX 20260526.
 
 ## About NCNN
 

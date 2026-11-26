@@ -302,7 +302,7 @@ The tables below compare PyTorch with FP32, FP16, and INT8 TensorRT 11.4 engines
 
 For NVIDIA Jetson and DGX Spark, see the [Jetson benchmarks](../guides/nvidia-jetson.md#nvidia-jetson-yolo26-benchmarks) and the [DGX Spark guide](../guides/nvidia-dgx-spark.md).
 
-Measured with `ultralytics` 8.4.211, TensorRT 11.4.0, PyTorch 2.15.0, and CUDA 13.2 at `batch=1` on November 13, 2026. Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing.
+Measured with `ultralytics` 8.4.211, TensorRT 11.4.0, PyTorch 2.15.0, and CUDA 13.2 at `batch=1`. Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing.
 
 ## About TensorRT
 

@@ -155,15 +155,9 @@ class DetectionValidator(BaseValidator):
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
         self.metrics.area_ap = {}
-        self.confusion_matrix = ConfusionMatrix(
-            names=model.names,
-            save_matches=self.args.plots and self.args.visualize,
-            # Final validation of a training run only, read by the Platform callback
-            save_cells=self.args.plots
-            and self.args.task == "detect"
-            and self.args.mode == "train"
-            and not self.training,
-        )
+        self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
+        if self.args.plots and self.args.task == "detect" and self.args.mode == "train" and not self.training:
+            self.confusion_matrix.cells = {}  # a training run's final validation records them for the Platform callback
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""

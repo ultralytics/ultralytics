@@ -355,20 +355,13 @@ class ConfusionMatrix(DataExportMixin):
             boxes) with the image's boxes in that cell as normalized xyxy: prediction and conf, then any matched truth.
     """
 
-    def __init__(
-        self,
-        names: dict[int, str] | None = None,
-        task: str = "detect",
-        save_matches: bool = False,
-        save_cells: bool = False,
-    ):
+    def __init__(self, names: dict[int, str] | None = None, task: str = "detect", save_matches: bool = False):
         """Initialize a ConfusionMatrix instance.
 
         Args:
             names (dict[int, str], optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, one of 'detect', 'semantic', 'classify', or 'obb'.
             save_matches (bool, optional): Save the indices of GTs, TPs, FPs, FNs for visualization.
-            save_cells (bool, optional): Save the images and boxes behind each cell, see `cells`.
         """
         names = names if names is not None else {}
         self.task = task
@@ -380,7 +373,7 @@ class ConfusionMatrix(DataExportMixin):
         )
         self.names = names  # name of classes
         self.matches = {} if save_matches else None
-        self.cells = {} if save_cells else None
+        self.cells = None  # set to {} to record them
 
     def _append_matches(self, mtype: str, batch: dict[str, Any], idx: int) -> None:
         """Append the matches to TP, FP, FN or GT list for the last batch.

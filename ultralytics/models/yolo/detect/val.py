@@ -357,7 +357,7 @@ class DetectionValidator(BaseValidator):
                 self.confusion_matrix.cells = {}
                 for cells in gathered_cells or []:
                     for cell, counts in cells.items():
-                        self.confusion_matrix.add_cell(cell, *counts)
+                        self.confusion_matrix._add_cell(cell, *counts)
 
     def get_stats(self) -> dict[str, Any]:
         """Calculate and return metrics statistics.

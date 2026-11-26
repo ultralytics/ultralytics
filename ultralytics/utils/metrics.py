@@ -438,9 +438,9 @@ class ConfusionMatrix(DataExportMixin):
 
         for cell, pairs in hits.items():
             items = sorted((item(d, g) for d, g in pairs), key=lambda x: -x[0])
-            self.add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items])])
+            self._add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items])])
 
-    def add_cell(self, cell: tuple[int, int], objects: int, images: int, examples: list[tuple]) -> None:
+    def _add_cell(self, cell: tuple[int, int], objects: int, images: int, examples: list[tuple]) -> None:
         """Add counts and examples to a cell of `cells`, keeping the 10 top-scoring images of a false-detection cell.
 
         Args:

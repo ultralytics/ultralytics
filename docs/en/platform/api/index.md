@@ -2752,9 +2752,8 @@ GET /api/explore/search
 | `maxImages` | int     | Return only datasets with at most this many images; with `type=images`, only images from such datasets                                                                              |
 
 **Response:** `projects`, `datasets`, and `hasMore`. `type=images` returns its matches in `images` instead, best match
-first, each with its source `dataset` and a 0–1 similarity `score`; with `q` it searches public datasets, plus your own
-and team datasets when you send an API key. Without `q`, it lists one image from each of the newest public datasets,
-unranked with `score` `1`, honoring the filters.
+first, each with its source `dataset` and a 0–1 similarity `score`. With `q`, it searches public datasets only.
+Without `q`, it lists one image from each of the newest public datasets, unranked with `score` `1`, honoring the filters.
 
 `type=models` returns public models in `models`, one per training dataset (or per project without one) except official
 `@ultralytics` models, which each keep their own entry; clones and models that haven't finished training are left out.

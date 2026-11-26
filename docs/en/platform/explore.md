@@ -29,7 +29,8 @@ flowchart TD
 The Explore page features four tabs:
 
 - **Public Datasets**: Community training data with image previews
-- **Search Images**: Find images by what they show. Results come only from public datasets.
+- **Search Images**: Images from public datasets only, found by what they show. To include your own and team datasets, use
+  [Find similar images](data/datasets.md#find-similar-images) in the dataset editor.
 - **Public Projects**: Complete experiments containing trained models
 - **Public Models**: Trained models found by what they detect, each with its training images and headline metrics
 
@@ -68,8 +69,8 @@ search, and their cards show the matching images. Searching an official dataset'
 `hit uav`) puts the official `@ultralytics` dataset above copies that share its name. Before you search, the Images tab
 lists one image from each of the newest public datasets. Search it by what images show with
 [semantic search](https://www.ultralytics.com/glossary/semantic-search): describe a scene such as `cats on a sofa`. Click any image to open a side panel with its annotations, source dataset, class counts, and license, followed by up to
-24 similar images, including ones from the same dataset, when you are signed in; click one to open it in the panel. On
-narrow screens such as phones, the image opens full size instead.
+24 similar images from public datasets when you are signed in. Matches can come from the same dataset. Click a match
+to open it in the panel. On narrow screens such as phones, the image opens full size instead.
 
 To search by a photo instead, click the search-by-image icon in the Datasets, Images, or Models search bar, or drop an
 image onto the page. iPhone HEIC photos work too: the browser converts them to JPEG before searching. The Images tab

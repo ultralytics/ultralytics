@@ -407,16 +407,17 @@ class ConfusionMatrix(DataExportMixin):
                 # NOTE: masks.max() > 1.0 means overlap_mask=True with (1, H, W) shape
                 self.matches[mtype][k] += [v[0] == idx + 1] if v.max() > 1.0 else [v[idx]]
 
-    def _save_cells(self, detections: dict[str, torch.Tensor], batch: dict[str, Any], gt_match: np.ndarray) -> None:
+    def _save_cells(
+        self, detections: dict[str, torch.Tensor], batch: dict[str, Any], hits: dict[tuple[int, int], list]
+    ) -> None:
         """Add the image to every cell it has boxes in, ranking boxes by confidence and missed boxes by area.
 
         Args:
             detections (dict[str, torch.Tensor]): Detections above the confidence threshold.
             batch (dict[str, Any]): Ground truth with 'im_file', 'ori_shape', 'imgsz' and 'ratio_pad' keys.
-            gt_match (np.ndarray): Index of the matched detection for each ground truth, -1 when missed.
+            hits (dict[tuple[int, int], list]): (detection, ground truth) index pairs per (predicted, true) cell, -1
+                for none.
         """
-        if self.cells is None:
-            return
         from .ops import scale_boxes
 
         h, w = batch["ori_shape"]
@@ -428,18 +429,15 @@ class ConfusionMatrix(DataExportMixin):
         conf = detections["conf"].cpu().numpy().astype(float)
         pred = np.column_stack([normalize(detections["bboxes"]), conf.round(3)]).tolist()
         gt, conf = normalize(batch["bboxes"]).tolist(), conf.tolist()  # rank by the unrounded confidence
-        det_cls, gt_cls = detections["cls"].int().tolist(), batch["cls"].int().tolist()
-        groups = defaultdict(list)
-        for g, d in enumerate(gt_match.tolist()):
-            if d >= 0:
-                groups[det_cls[d], gt_cls[g]].append((conf[d], pred[d] + gt[g]))
-            else:
+
+        def item(d, g):
+            if d < 0:  # a missed ground truth, ranked by area
                 x1, y1, x2, y2 = gt[g]
-                groups[self.nc, gt_cls[g]].append(((x2 - x1) * (y2 - y1), gt[g]))
-        for d in sorted(set(range(len(det_cls))) - set(gt_match.tolist())):
-            groups[det_cls[d], self.nc].append((conf[d], pred[d]))
-        for cell, items in groups.items():
-            items.sort(key=lambda x: -x[0])
+                return (x2 - x1) * (y2 - y1), gt[g]
+            return conf[d], (pred[d] + gt[g] if g >= 0 else pred[d])
+
+        for cell, pairs in hits.items():
+            items = sorted((item(d, g) for d, g in pairs), key=lambda x: -x[0])
             self.add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items])])
 
     def add_cell(self, cell: tuple[int, int], objects: int, images: int, examples: list[tuple]) -> None:
@@ -519,10 +517,12 @@ class ConfusionMatrix(DataExportMixin):
                     gt_match[gt_idx] = det_idx
                     iou[gt_idx] = 0
         matched_det = set(gt_match[gt_match >= 0].tolist())
+        hits = defaultdict(list)  # (detection, ground truth) index pairs per cell, -1 for none, for `cells`
         for i, gc in enumerate(gt_classes):
             if (di := gt_match[i].item()) >= 0:
                 dc = detection_classes[di]
                 self.matrix[dc, gc] += 1  # TP if class is correct else both an FP and an FN
+                hits[dc, gc].append((di, i))
                 if dc == gc:
                     self._append_matches("TP", detections, di)
                 else:
@@ -530,13 +530,16 @@ class ConfusionMatrix(DataExportMixin):
                     self._append_matches("FN", batch, i)
             else:
                 self.matrix[self.nc, gc] += 1  # FN
+                hits[self.nc, gc].append((-1, i))
                 self._append_matches("FN", batch, i)
 
         for i, dc in enumerate(detection_classes):
             if i not in matched_det:
                 self.matrix[dc, self.nc] += 1  # FP
+                hits[dc, self.nc].append((i, -1))
                 self._append_matches("FP", detections, i)
-        self._save_cells(detections, batch, gt_match)
+        if self.cells is not None and hits:
+            self._save_cells(detections, batch, hits)
 
     def tp_fp(self) -> tuple[np.ndarray, np.ndarray]:
         """Return true positives and false positives.

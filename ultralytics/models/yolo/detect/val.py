@@ -159,7 +159,10 @@ class DetectionValidator(BaseValidator):
             names=model.names,
             save_matches=self.args.plots and self.args.visualize,
             # Final validation of a training run only, read by the Platform callback
-            save_cells=self.args.task == "detect" and self.args.mode == "train" and not self.training,
+            save_cells=self.args.plots
+            and self.args.task == "detect"
+            and self.args.mode == "train"
+            and not self.training,
         )
 
     def get_desc(self) -> str:

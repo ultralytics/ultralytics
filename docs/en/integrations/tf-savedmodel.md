@@ -247,14 +247,12 @@ for x1, y1, x2, y2, score, cls in y[y[:, 4] > 0.25]:
 
 ### Run with TensorFlow Serving
 
-[TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving) loads a SavedModel from a numbered version directory and serves it over REST on port 8501 and gRPC on port 8500; the gRPC port was not run for this page. To serve an Ultralytics YOLO26 export with the [TensorFlow Serving Docker image](https://www.tensorflow.org/tfx/serving/docker), copy the export directory into version `1` and start the container:
+[TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving) loads a SavedModel from a numbered version directory and serves it over REST on port 8501 and gRPC on port 8500; the gRPC port was not run for this page. To serve an Ultralytics YOLO26 export with the [TensorFlow Serving Docker image](https://www.tensorflow.org/tfx/serving/docker), mount the export directory read-only as version `1`:
 
 ```bash
 # Export first: yolo export model=yolo26n.pt format=saved_model nms=False
-mkdir -p serving/yolo26n
-cp -r yolo26n_saved_model serving/yolo26n/1
 docker run -d --rm --name yolo26n-serving -p 8501:8501 \
-  -v "$PWD/serving/yolo26n:/models/yolo26n" -e MODEL_NAME=yolo26n tensorflow/serving:2.21.0
+  -v "$PWD/yolo26n_saved_model:/models/yolo26n/1:ro" -e MODEL_NAME=yolo26n tensorflow/serving:2.21.0
 ```
 
 The [REST predict API](https://www.tensorflow.org/tfx/serving/api_rest) takes the letterboxed image as a nested list. This Python client for the Ultralytics YOLO26 model sends `bus.jpg` from the working directory and prints the detections in the coordinates of the original image:
@@ -323,7 +321,7 @@ With `tensorflow/serving:2.21.0` on the export host, the client printed the same
 - **Checkpoints trained with `quantize=8`**: a checkpoint fine-tuned with [quantization-aware training](../modes/export.md#quantization-aware-training) fails with `format='saved_model' cannot export a QAT model: its Q/DQ ranges are only read by the 'onnx' and 'engine' backends. Export a non-QAT checkpoint to this format instead.` Export the checkpoint you started the fine-tuning from, or export the QAT checkpoint to [ONNX](onnx.md) or [TensorRT](tensorrt.md).
 - **Leftover files**: every export leaves the intermediate `yolo26n.onnx` next to the `.pt` file, replacing an existing `yolo26n.onnx`, and the `onnx2tf` sample file `calibration_image_sample_data_20x128x128x3_float32.npy` in the working directory. The SavedModel does not need them.
 - **Output directory**: every export of one checkpoint writes `yolo26n_saved_model/` and deletes an existing directory of that name first, whatever its `imgsz`, `batch`, or `nms`. Rename the directory before you export a second variant, and keep `_saved_model` in the name.
-- **macOS with Python 3.13 or newer**: according to the Ultralytics code, the export stops with `TensorFlow exports not supported on macOS with Python>=3.13: the ai-edge-litert macOS wheel fails to load (missing libpywrap_litert_common.dylib). TensorFlow export works on Linux Python 3.13.` Use Python 3.12 on macOS; this was not run.
+- **macOS with Python 3.13 or newer**: according to the Ultralytics code, the export stops with `TensorFlow exports not supported on macOS with Python>=3.13: the ai-edge-litert macOS wheel fails to load (missing libpywrap_litert_common.dylib). TensorFlow export works on Linux Python 3.13.` Use Python 3.12 on macOS. YOLO26n export, prediction, and validation were tested with that version on an Apple M4.
 - **Windows and ARM64 Linux**: TensorFlow has packages for both, but exports there were not run for this page.
 
 For other errors, see the [Common Issues guide](../guides/yolo-common-issues.md).
@@ -390,7 +388,7 @@ Measured with `ultralytics` 8.4.219, TensorFlow 2.19.0, `onnx2tf` 1.28.8, PyTorc
 
 ### Can I serve an Ultralytics YOLO26 SavedModel with TensorFlow Serving?
 
-Yes: TensorFlow Serving loads the `yolo26n_saved_model/` directory that Ultralytics writes, copied into a numbered version directory, and serves its `serving_default` signature over REST, and over gRPC, which was not run for this page. With `tensorflow/serving:2.21.0`, an export with `nms=False` returned the same detections over REST as `YOLO()`, see [Run with TensorFlow Serving](#run-with-tensorflow-serving). The model takes a fixed-size, letterboxed NHWC image, so the client does the preprocessing and maps the boxes back.
+Yes: TensorFlow Serving loads the `yolo26n_saved_model/` directory that Ultralytics writes, mounted as a numbered version directory, and serves its `serving_default` signature over REST, and over gRPC, which was not run for this page. With `tensorflow/serving:2.21.0`, an export with `nms=False` returned the same detections over REST as `YOLO()`, see [Run with TensorFlow Serving](#run-with-tensorflow-serving). The model takes a fixed-size, letterboxed NHWC image, so the client does the preprocessing and maps the boxes back.
 
 ### Does an Ultralytics TF SavedModel run on a GPU?
 

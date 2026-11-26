@@ -238,7 +238,8 @@ def kpt_iou(
         area (torch.Tensor): A tensor of shape (N,) representing areas from ground truth.
         sigma (list[float]): A list containing 17 values representing keypoint scales.
         eps (float, optional): A small value to avoid division by zero.
-        bboxes (torch.Tensor, optional): Original COCO xywh boxes (top-left origin) for targets without visible keypoints.
+        bboxes (torch.Tensor, optional): Original COCO xywh boxes (top-left origin) for targets without visible
+            keypoints.
 
     Returns:
         (torch.Tensor): A tensor of shape (N, M) representing keypoint similarities.

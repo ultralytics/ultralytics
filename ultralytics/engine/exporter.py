@@ -29,6 +29,7 @@ Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
 NXP                     | `nxp`                     | yolo26n_nxp.tflite
 ST Edge AI              | `stedgeai`                | yolo26n_stedgeai.onnx
+AXERA                   | `axera`                   | yolo26n_axera_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -68,6 +69,7 @@ Inference:
                          yolo26n_ascend_model       # Huawei Ascend
                          yolo26n_xilinx_model       # AMD Xilinx
                          yolo26n_stedgeai.onnx      # ST Edge AI
+                         yolo26n_axera_model        # AXERA
 """
 
 from __future__ import annotations
@@ -317,6 +319,15 @@ def export_formats():
             ["quantize", "data", "fraction", "opset", "simplify"],
             "base",
         ],
+        [
+            "AXERA",
+            "axera",
+            "_axera_model",
+            False,
+            False,
+            ["name", "quantize", "opset", "simplify", "data", "fraction"],
+            "base",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -486,7 +497,7 @@ EXPORT_ENVS = {
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
 FP16_FORMATS = frozenset(
-    {"torchscript", "onnx", "openvino", "engine", "coreml", "coreai", "mnn", "ncnn", "rknn", "ascend"}
+    {"torchscript", "onnx", "openvino", "engine", "coreml", "coreai", "mnn", "ncnn", "rknn", "ascend", "axera"}
 )
 INT8_FORMATS = frozenset(
     {
@@ -506,12 +517,13 @@ INT8_FORMATS = frozenset(
         "xilinx",
         "executorch",
         "stedgeai",
+        "axera",
     }
 )
 W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset(
-    {"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx", "nxp"}
+    {"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx", "nxp", "axera"}
 )
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
@@ -631,6 +643,7 @@ class Exporter:
         export_ascend: Export model to Huawei Ascend format.
         export_xilinx: Export model to AMD Xilinx Vitis AI format.
         export_stedgeai: Export model to ST Edge AI ONNX format.
+        export_axera: Export model to AXERA format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -741,8 +754,15 @@ class Exporter:
         }:
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
-        if fmt in {"axelera", "hailo", "xilinx", "nxp"} and not self.args.data:
+        if fmt in {"axelera", "hailo", "xilinx", "nxp", "axera"} and not self.args.data:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
+        if fmt == "axera":
+            if not self.args.name:
+                LOGGER.warning(
+                    "AXERA export requires a missing 'name' arg for the target chip. Using default name='AX650'."
+                )
+                self.args.name = "AX650"
+            self.args.quantize = self.args.quantize or 8
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
             blocks = {str(x[2]) for x in model.yaml.get("backbone", []) + model.yaml.get("head", [])}
@@ -1186,6 +1206,17 @@ class Exporter:
                 torch.nn.functional.interpolate(batch["img"].float(), size=self.imgsz).permute(0, 2, 3, 1).numpy()
             )
         return images
+
+    def _int8_calibration_files(self, prefix=""):
+        """Return the image files of the INT8 calibration dataset, for compilers that read images from disk."""
+        dataset = self.get_int8_calibration_dataloader(prefix).dataset
+        return getattr(dataset, "im_files", None) or [x[0] for x in getattr(dataset, "samples", [])]
+
+    def _head_scope(self):
+        """Return the ONNX node-name scope of the model head, or None when it has no per-level head convs to cut at."""
+        # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs
+        if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder":
+            return f"/model.{len(self.model.model) - 1}/"
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):  # noqa: B008
@@ -1669,12 +1700,7 @@ class Exporter:
         rknn_dataset = None
         with tempfile.TemporaryDirectory() as tmp:
             if self.args.quantize == 8:
-                dataloader = self.get_int8_calibration_dataloader(prefix)
-                image_paths = getattr(dataloader.dataset, "im_files", None)
-                if image_paths is None and hasattr(dataloader.dataset, "samples"):
-                    image_paths = [x[0] for x in dataloader.dataset.samples]
-                if not image_paths:
-                    raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
+                image_paths = self._int8_calibration_files(prefix)
                 # RKNN Toolkit splits dataset.txt lines on spaces, so link images under space-free names
                 links = [Path(tmp) / f"{i}{Path(x).suffix}" for i, x in enumerate(image_paths)]
                 for link, x in zip(links, image_paths):
@@ -1690,11 +1716,24 @@ class Exporter:
                 dataset=rknn_dataset,
                 metadata=self.metadata,
                 prefix=prefix,
-                # Foreign models such as YOLO-NAS have no layer list and RT-DETR has no per-level head convs to cut at
-                head=f"/model.{len(self.model.model) - 1}/"
-                if hasattr(self.model, "model") and self.metadata["head"] != "RTDETRDecoder"
-                else None,
+                head=self._head_scope(),
             )
+
+    @try_export
+    def export_axera(self, prefix=colorstr("AXERA:")):  # noqa: B008
+        """Export YOLO model to AXERA .axmodel format with the Pulsar2 compiler."""
+        from ultralytics.utils.export.axera import onnx2axera
+
+        return onnx2axera(
+            onnx_file=self.export_onnx(),
+            output_dir=self.file.parent / f"{self.file.stem}_axera_model",
+            name=self.args.name,
+            quantize=self.args.quantize,
+            images=self._int8_calibration_files(prefix),
+            head=self._head_scope(),
+            metadata=self.metadata,
+            prefix=prefix,
+        )
 
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008

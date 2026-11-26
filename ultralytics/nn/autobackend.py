@@ -20,6 +20,7 @@ from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, select_device,
 from .backends import (
     AscendBackend,
     AxeleraBackend,
+    AxeraBackend,
     CoreAIBackend,
     CoreMLBackend,
     DeepXBackend,
@@ -123,6 +124,7 @@ class AutoBackend(nn.Module):
             | NCNN                  | *_ncnn_model/          |
             | IMX                   | *_imx_model/           |
             | RKNN                  | *_rknn_model/          |
+            | AXERA                 | *_axera_model/         |
             | Triton Inference      | http:// or grpc:// URL |
             | ExecuTorch            | *_executorch_model/    |
             | Axelera AI            | *_axelera_model/       |
@@ -179,6 +181,7 @@ class AutoBackend(nn.Module):
         "triton": TritonBackend,
         "executorch": ExecuTorchBackend,
         "axelera": AxeleraBackend,
+        "axera": AxeraBackend,
         "deepx": DeepXBackend,
         "qnn": QNNBackend,
         "hailo": HailoBackend,
@@ -278,7 +281,7 @@ class AutoBackend(nn.Module):
         elif channels_last:
             LOGGER.warning(f"'channels_last=True' applies only to native PyTorch models, ignoring format='{format}'.")
 
-        self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn"}
+        self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn", "axera"}
         self.format = format
 
         # Ensure backend has names (fallback to default if not set by metadata)

@@ -8,6 +8,7 @@ Each backend implements the `BaseBackend` interface and can be used independentl
 
 from .ascend import AscendBackend
 from .axelera import AxeleraBackend
+from .axera import AxeraBackend
 from .base import BaseBackend
 from .coreai import CoreAIBackend
 from .coreml import CoreMLBackend
@@ -30,6 +31,7 @@ from .triton import TritonBackend
 __all__ = [
     "AscendBackend",
     "AxeleraBackend",
+    "AxeraBackend",
     "BaseBackend",
     "CoreAIBackend",
     "CoreMLBackend",

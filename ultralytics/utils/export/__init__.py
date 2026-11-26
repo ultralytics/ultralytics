@@ -2,6 +2,7 @@
 
 from .ascend import onnx2ascend
 from .axelera import torch2axelera
+from .axera import onnx2axera
 from .coreai import torch2coreai
 from .coreml import torch2coreml
 from .deepx import onnx2deepx
@@ -22,6 +23,7 @@ from .xilinx import onnx2xilinx
 __all__ = [
     "keras2pb",
     "onnx2ascend",
+    "onnx2axera",
     "onnx2deepx",
     "onnx2engine",
     "onnx2mnn",

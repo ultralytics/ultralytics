@@ -1,11 +1,11 @@
 ---
-title: YOLO Performance Metrics
+title: YOLO Performance Metrics - mAP50 vs mAP50-95, Precision, Recall
 comments: true
-description: Understand YOLO26 performance metrics such as mAP, IoU, F1 score, precision, and recall, and learn how to compute and interpret them with val mode.
-keywords: YOLO26 performance metrics, mAP, IoU, F1 Score, Precision, Recall, object detection, Ultralytics
+description: "mAP50 scores YOLO26 detections at an IoU of 0.50, while mAP50-95 averages AP over ten IoU thresholds from 0.50 to 0.95. Learn what these, precision, recall, IoU and F1 mean and how to compute them with val mode."
+keywords: YOLO26 performance metrics, mAP50, mAP50-95, mAP50 vs mAP50-95, mAP, IoU, F1 Score, Precision, Recall, object detection, Ultralytics
 ---
 
-# Performance Metrics Deep Dive
+# YOLO Performance Metrics: mAP50, mAP50-95, Precision and Recall
 
 ## Introduction
 
@@ -28,7 +28,7 @@ The following metrics are important for YOLO26 and broadly applicable across dif
 
 - **[Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU):** IoU is a measure that quantifies the overlap between a predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) and a ground truth bounding box. It plays a fundamental role in evaluating the accuracy of object localization.
 
-- **Average Precision (AP):** AP computes the area under the precision-recall curve, providing a single value that encapsulates the model's precision and recall performance.
+- **Average Precision (AP):** AP computes the area under the precision-recall curve, providing a single value that encapsulates the model's precision and recall performance. Ultralytics samples the curve at COCO's 101 recall thresholds (0.00 to 1.00), taking at each one the highest precision reached at that recall or beyond, so a perfect detector scores 1.0. Since `ultralytics 8.4.219` uses this rule, the same weights can score slightly higher or lower than with earlier versions, so compare runs made with the same package version.
 
 - **[Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP):** mAP extends the concept of AP by calculating the average AP values across multiple object classes. This is useful in multi-class object detection scenarios to provide a comprehensive evaluation of the model's performance.
 
@@ -73,7 +73,7 @@ The speed of inference can be as critical as accuracy, especially in real-time o
 
 #### COCO Metrics Evaluation
 
-For users validating on the [COCO dataset](../datasets/detect/coco.md) with `coco.yaml`, the predictions are also saved to `predictions.json` and additional metrics are calculated with [`faster-coco-eval`](https://github.com/MiXaiLL76/faster_coco_eval). These metrics give insights into precision and recall at different IoU thresholds and for objects of different sizes. On other detection datasets, pass `save_json=True` to get them. The object that `model.val()` returns keeps the values Ultralytics computes itself, so `metrics.box.map` can differ slightly from the printed COCO-style AP (0.402 against 0.408 for YOLO26n on COCO val2017). The small-, medium-, and large-object mAP are added to `metrics.results_dict` as `metrics/mAP_small(B)`, `metrics/mAP_medium(B)`, and `metrics/mAP_large(B)`.
+For users validating on the [COCO dataset](../datasets/detect/coco.md) with `coco.yaml`, the predictions are also saved to `predictions.json` and additional metrics are calculated with [`faster-coco-eval`](https://github.com/MiXaiLL76/faster_coco_eval). These metrics give insights into precision and recall at different IoU thresholds and for objects of different sizes. On other detection datasets, pass `save_json=True` to get them. The object that `model.val()` returns keeps the values Ultralytics computes itself, so `metrics.box.map` can differ slightly from the printed COCO-style AP (about half a point of mAP<sub>50-95</sub> for YOLO26n on COCO val2017). Both score AP at the same 101 recall thresholds, so the gap mainly comes from how detections are matched to objects, from COCO's limit of 100 detections per image (native validation keeps up to `max_det`, default 300), and from the crowd regions in the official COCO annotations that YOLO labels omit. The small-, medium-, and large-object mAP are added to `metrics.results_dict` as `metrics/mAP_small(B)`, `metrics/mAP_medium(B)`, and `metrics/mAP_large(B)`.
 
 #### Visual Outputs
 

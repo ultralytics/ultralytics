@@ -76,11 +76,12 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
 
 
 def _confusion_payload(confusion_matrix, conf, budget):
-    """Return confusion matrix cells with example images in at most `budget` JSON bytes, counts before examples.
+    """Return confusion matrix cells with example images in at most `budget` JSON bytes, or its empty frame if smaller.
 
-    Cells are [predicted, true, objects, images, examples], each example [image index, boxes]. Background-column cells
-    carry at most their top 10 images; any other cell with fewer examples than images was cut. Cells go confused,
-    missed, false-detection, then correct, largest first, each with its images by confidence (missed: by box area).
+    Counts are budgeted before examples. Cells are [predicted, true, objects, images, examples], each example [image
+    index, boxes]. Background-column cells carry at most their top 10 images; any other cell with fewer examples than
+    images was cut. Cells go confused, missed, false-detection, then correct, largest first, each with its images by
+    confidence (missed: by box area).
     """
     nc = confusion_matrix.nc
 

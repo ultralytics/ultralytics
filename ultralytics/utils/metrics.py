@@ -435,7 +435,7 @@ class ConfusionMatrix(DataExportMixin):
             self._add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items])])
 
     def _add_cell(self, cell: tuple[int, int], objects: int, images: int, examples: list[tuple]) -> None:
-        """Add counts and examples to a cell of `cells`, keeping the 10 top-scoring images of a false-detection cell.
+        """Add counts and examples to a cell, keeping the 10 top-scoring images of a correct or false-detection cell.
 
         Args:
             cell (tuple[int, int]): Predicted and true class index, `nc` for background.
@@ -446,7 +446,7 @@ class ConfusionMatrix(DataExportMixin):
         counts = self.cells.setdefault(cell, [0, 0, []])
         counts[0] += objects
         counts[1] += images
-        if cell[1] < self.nc:
+        if cell[0] != cell[1] and cell[1] < self.nc:  # confused or missed: every image
             counts[2].extend(examples)
         else:  # min-heap, so a weaker image is dropped without sorting
             for example in examples:

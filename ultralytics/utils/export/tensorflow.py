@@ -17,10 +17,10 @@ from ultralytics.utils.tal import make_anchors
 
 
 def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
-    """Patch Detect and Pose head decoding with TensorFlow-export-compatible normalized implementations.
+    """Normalize box and keypoint coordinates and scale segmentation outputs for Edge TPU and ST Edge AI exports.
 
     Segment heads divide their mask coefficients by 16 and multiply their prototypes by 16, so the coefficients fit the
-    per-tensor INT8 scale they share with the boxes and scores while the mask logits stay the same.
+    per-tensor INT8 range they share with boxes and scores. The reciprocal factors preserve the float mask logits.
 
     Args:
         model (torch.nn.Module): Model whose Detect, Pose and Segment heads are patched in place.

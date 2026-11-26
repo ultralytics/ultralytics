@@ -169,7 +169,6 @@ class DetectionValidator(BaseValidator):
             )
             key = self._annotation_file, frozenset(selected)
             if key not in self._coco_cache:
-                labels = None
                 if self.args.task == "segment" and not check_requirements(
                     "faster-coco-eval>=1.6.7", install=not self.training
                 ):
@@ -180,8 +179,8 @@ class DetectionValidator(BaseValidator):
                         for a in json.load(f)["annotations"]:
                             if a["category_id"] in key[1]:
                                 labels[a["image_id"]].append(a)
-                self._coco_cache = {key: labels}
-            self.coco_labels = self._coco_cache[key]
+                    self._coco_cache = {key: labels}
+            self.coco_labels = self._coco_cache.get(key)
         self.metrics.names = model.names
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()

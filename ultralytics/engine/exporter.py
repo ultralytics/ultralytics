@@ -1333,11 +1333,7 @@ class Exporter:
 
         def serialize(ov_model, file):
             """Set RT info, serialize, and save metadata YAML."""
-            # Raw (no NMS, not end2end) Detect/Segment/OBB outputs have the YOLOv8 layout that DL Streamer decodes
-            # without metadata.yaml (Model API: Detect only)
-            raw = isinstance(head, Detect) and not (self.args.nms or self.metadata["end2end"])
-            model_type = raw and {"detect": "YOLOv8", "segment": "YOLOv8-SEG", "obb": "YOLOv8-OBB"}.get(self.model.task)
-            ov_model.set_rt_info(model_type or "YOLO", ["model_info", "model_type"])
+            ov_model.set_rt_info(self.pretty_name, ["model_info", "model_type"])
             ov_model.set_rt_info(True, ["model_info", "reverse_input_channels"])
             ov_model.set_rt_info(114, ["model_info", "pad_value"])
             ov_model.set_rt_info([255.0], ["model_info", "scale_values"])

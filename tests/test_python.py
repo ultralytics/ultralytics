@@ -880,13 +880,23 @@ def test_val_save_json_semantic(tmp_path):
 
 def test_coco_average_precision():
     """Check COCO recall thresholds, score ties, and classes without detections."""
-    from ultralytics.utils.metrics import ap_per_class
+    from ultralytics.utils.metrics import _match_iou, ap_per_class
 
     # At the first IoU both objects are found before the FP. At the second, only the second box matches.
     tp = np.array([[1, 0], [1, 1], [0, 0]], dtype=bool)
     results = ap_per_class(tp, np.ones(3), np.zeros(3), np.array([0, 0, 1]))
     np.testing.assert_allclose(results[5], [[1.0, 0.5 * 51 / 101], [0.0, 0.0]])
     np.testing.assert_array_equal(results[-1][0], 1.0)
+
+    # Prefer an ordinary match over a crowd. Two further detections can both be absorbed by the same crowd.
+    overlap = np.array([[0.8, 0, 0], [1.0, 0.7, 0.7]])
+    crowd = np.array([False, True])
+    np.testing.assert_array_equal(_match_iou(overlap, np.array([0.5, 0.75]), crowd, crowd), [[1, 1], [-1, 0], [-1, 0]])
+
+    # A crowd detection is ignored at the first threshold and counts as an FP at the second.
+    matches = np.array([[-1, 0], [1, 1]], dtype=np.int8)
+    ap = ap_per_class(matches, np.ones(2), np.zeros(2), np.zeros(1))[5]
+    np.testing.assert_array_equal(ap, [[1.0, 0.5]])
 
 
 def test_pose_metrics_curves():

@@ -51,6 +51,8 @@ class PoseValidator(DetectionValidator):
         for OKS calculation and sets up PoseMetrics for evaluation.
     """
 
+    _coco_metrics = (*DetectionValidator._coco_metrics, ("tp_p", "keypoints", "Pose", 20))
+
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize a PoseValidator object for pose estimation validation.
 
@@ -251,8 +253,10 @@ class PoseValidator(DetectionValidator):
             ),
         }
 
-    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
-        """Evaluate pose estimation model using COCO JSON format."""
-        anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
-        pred_json = self.save_dir / "predictions.json"  # predictions
-        return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "keypoints"], suffix=["Box", "Pose"])
+    def _coco_task_overlap(self, anns, predn, idx, crowd):
+        """Compute OKS using the annotated area and COCO's expanded boxes for people without visible keypoints."""
+        kpts = torch.tensor([a["keypoints"] for a in anns], dtype=torch.float64).reshape(len(anns), -1, 3)
+        pred = predn["keypoints"].cpu().double()[idx]
+        area = torch.tensor([a["area"] for a in anns], dtype=torch.float64)
+        boxes = torch.tensor([a["bbox"] for a in anns], dtype=torch.float64)
+        return kpt_iou(kpts, pred, area, self.sigma, eps=np.spacing(1), bboxes=boxes).numpy()

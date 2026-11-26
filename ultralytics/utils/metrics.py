@@ -64,23 +64,44 @@ def bbox_ioa(box1: np.ndarray, box2: np.ndarray, iou: bool = False, eps: float =
         (np.ndarray): A numpy array of shape (N, M) representing the intersection over box2 area, or the IoU if
             iou=True.
     """
-    # Get the coordinates of bounding boxes
-    b1_x1, b1_y1, b1_x2, b1_y2 = box1.T
-    b2_x1, b2_y1, b2_x2, b2_y2 = box2.T
-
-    # Intersection area
-    inter_area = (np.minimum(b1_x2[:, None], b2_x2) - np.maximum(b1_x1[:, None], b2_x1)).clip(0) * (
-        np.minimum(b1_y2[:, None], b2_y2) - np.maximum(b1_y1[:, None], b2_y1)
-    ).clip(0)
-
-    # Box2 area
-    area = (b2_x2 - b2_x1) * (b2_y2 - b2_y1)
+    inter_area = _box_intersection(box1, box2)
+    area = (box2[:, 2] - box2[:, 0]) * (box2[:, 3] - box2[:, 1])
     if iou:
-        box1_area = (b1_x2 - b1_x1) * (b1_y2 - b1_y1)
+        box1_area = (box1[:, 2] - box1[:, 0]) * (box1[:, 3] - box1[:, 1])
         area = area + box1_area[:, None] - inter_area
 
     # Intersection over box2 area
     return inter_area / (area + eps)
+
+
+def _box_intersection(box1: np.ndarray, box2: np.ndarray) -> np.ndarray:
+    """Return pairwise intersection areas for two sets of xyxy boxes."""
+    x1, y1, x2, y2 = box1.T
+    x3, y3, x4, y4 = box2.T
+    return (np.minimum(x2[:, None], x4) - np.maximum(x1[:, None], x3)).clip(0) * (
+        np.minimum(y2[:, None], y4) - np.maximum(y1[:, None], y3)
+    ).clip(0)
+
+
+def _match_iou(iou: np.ndarray, thresholds: np.ndarray, ignore=None, crowd=None) -> np.ndarray:
+    """Greedily match ranked detections at each threshold, preferring ordinary targets and allowing crowd reuse."""
+    result = np.zeros((iou.shape[1], len(thresholds)), dtype=bool if ignore is None else np.int8)
+    matched = np.zeros((iou.shape[0], len(thresholds)), dtype=bool)
+    has_ignored = ignore is not None and ignore.any()
+    cols = np.arange(len(thresholds))
+    for j in np.flatnonzero((iou >= thresholds.min()).any(0)):
+        available = np.where(matched, 0, iou[:, j, None])
+        if has_ignored:
+            available[ignore] *= ~(available[~ignore] >= thresholds).any(0)
+        k = available.argmax(0)
+        hits = available[k, cols] >= thresholds
+        if not has_ignored:
+            result[j] = hits
+            matched[k, cols] |= hits
+        else:
+            result[j] = np.where(ignore[k], -hits.astype(np.int8), hits)
+            matched[k, cols] |= hits & ~crowd[k]
+    return result
 
 
 def box_iou(box1: torch.Tensor, box2: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
@@ -188,16 +209,26 @@ def mask_iou(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> tor
     Returns:
         (torch.Tensor): A tensor of shape (N, M) representing masks IoU.
     """
+    intersection, area1, area2 = _mask_areas(mask1, mask2)
+    return intersection / (area1[:, None] + area2 - intersection + eps)
+
+
+def _mask_areas(mask1, mask2):
+    """Return pairwise mask intersection and individual pixel areas without integer or FP16 overflow."""
     dtype = torch.promote_types(torch.promote_types(mask1.dtype, mask2.dtype), torch.float32)
-    mask1, mask2 = mask1.to(dtype), mask2.to(dtype)  # avoid integer wrap and FP16 overflow
+    mask1, mask2 = mask1.to(dtype), mask2.to(dtype)
     with autocast(False, device=mask1.device.type):
         intersection = torch.matmul(mask1, mask2.T).clamp_(0)
-    union = (mask1.sum(1)[:, None] + mask2.sum(1)[None]) - intersection  # (area1 + area2) - intersection
-    return intersection / (union + eps)
+    return intersection, mask1.sum(1), mask2.sum(1)
 
 
 def kpt_iou(
-    kpt1: torch.Tensor, kpt2: torch.Tensor, area: torch.Tensor, sigma: list[float], eps: float = 1e-7
+    kpt1: torch.Tensor,
+    kpt2: torch.Tensor,
+    area: torch.Tensor,
+    sigma: list[float],
+    eps: float = 1e-7,
+    bboxes: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """Calculate Object Keypoint Similarity (OKS).
 
@@ -207,6 +238,7 @@ def kpt_iou(
         area (torch.Tensor): A tensor of shape (N,) representing areas from ground truth.
         sigma (list[float]): A list containing 17 values representing keypoint scales.
         eps (float, optional): A small value to avoid division by zero.
+        bboxes (torch.Tensor, optional): Original COCO xywh boxes (top-left origin) for targets without visible keypoints.
 
     Returns:
         (torch.Tensor): A tensor of shape (N, M) representing keypoint similarities.
@@ -214,6 +246,12 @@ def kpt_iou(
     d = (kpt1[:, None, :, 0] - kpt2[..., 0]).pow(2) + (kpt1[:, None, :, 1] - kpt2[..., 1]).pow(2)  # (N, M, 17)
     sigma = torch.tensor(sigma, device=kpt1.device, dtype=kpt1.dtype)  # (17, )
     kpt_mask = kpt1[..., 2] != 0  # (N, 17)
+    if bboxes is not None:
+        hidden = ~kpt_mask.any(1)
+        xy, wh = bboxes[hidden, None, None, :2], bboxes[hidden, None, None, 2:]
+        points = kpt2[None, ..., :2]
+        d[hidden] = ((xy - wh - points).clamp_min(0) + (points - xy - 2 * wh).clamp_min(0)).square().sum(-1)
+        kpt_mask[hidden] = True
     e = d / ((2 * sigma).pow(2) * (area[:, None, None] + eps) * 2)  # from cocoeval
     # e = d / ((area[None, :, None] + eps) * sigma) ** 2 / 2  # from formula
     return ((-e).exp() * kpt_mask[:, None]).sum(-1) / (kpt_mask.sum(-1)[:, None] + eps)
@@ -810,7 +848,7 @@ def ap_per_class(
     """Compute the average precision per class for object detection evaluation.
 
     Args:
-        tp (np.ndarray): Binary (N, 10) array marking whether each detection is correct at IoU thresholds 0.5:0.95.
+        tp (np.ndarray): Array of matches at each IoU threshold (1 true positive, 0 false positive, -1 ignored).
         conf (np.ndarray): Array of confidence scores of the detections.
         pred_cls (np.ndarray): Array of predicted classes of the detections.
         target_cls (np.ndarray): Array of true classes of the targets.
@@ -857,8 +895,13 @@ def ap_per_class(
 
         idx = idx[np.argsort(-conf[idx], kind="stable")]
         for j, correct in enumerate(tp[idx].T):
-            if j == 0:  # confidence curves need every detection
-                ranks = np.arange(1, idx.size + 1)
+            scored = idx
+            # A crowd match may be ignored at only some IoU thresholds.
+            if correct.dtype != bool and (correct < 0).any():
+                keep = correct >= 0
+                scored, correct = idx[keep], correct[keep]
+            if j == 0:  # confidence curves need every scored detection
+                ranks = np.arange(1, correct.size + 1)
                 tpc = correct.cumsum()
             else:  # only true positives can raise recall or the precision envelope
                 ranks = np.flatnonzero(correct) + 1
@@ -866,7 +909,10 @@ def ap_per_class(
             recall, precision = tpc / nt[ci], tpc / ranks
             ap[ci, j], mpre, _ = compute_ap(recall, precision)
             if j == 0:
-                neg_conf = -conf[idx]
+                if not correct.size:
+                    prec_values.append(np.zeros_like(x))
+                    continue
+                neg_conf = -conf[scored]
                 r_curve[ci] = np.interp(-x, neg_conf, recall, left=0)
                 p_curve[ci] = np.interp(-x, neg_conf, precision, left=1)
                 prec_values.append(mpre[1 + np.searchsorted(recall, x)])  # same envelope as AP50
@@ -1071,8 +1117,8 @@ class Metric(SimpleClass):
             im_name (str): Image path relative to the common image directory.
         """
         # Use the default IoU=0.5 column to match the validator's image-level matching policy.
-        tp = int(tp[:, 0].sum())
-        num_preds = pred_cls.shape[0]
+        num_preds = pred_cls.shape[0] - (tp[:, 0] < 0).sum()
+        tp = int((tp[:, 0] > 0).sum())
         num_targets = target_cls.shape[0]
         fp = num_preds - tp
         fn = num_targets - tp
@@ -1288,8 +1334,13 @@ class DetMetrics(SimpleClass, DataExportMixin):
         keys = ("P", "R", "F1", "mAP50", "mAP75", "mAP50-95")
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
-            ap = metric.all_ap[i]
-            values = (metric.p[i], metric.r[i], metric.f1[i], ap[0], ap[5], ap.mean())
+            j = np.flatnonzero(metric.ap_class_index == self.ap_class_index[i])
+            if j.size:
+                k = j.item()
+                ap = metric.all_ap[k]
+                values = (metric.p[k], metric.r[k], metric.f1[k], ap[0], ap[5], ap.mean())
+            else:
+                values = (0.0,) * len(keys)
             s.update({f"{prefix}-{k}": float(round(v, decimals)) for k, v in zip(keys, values)})
         return summary
 
@@ -1473,6 +1524,7 @@ class PoseMetrics(DetMetrics):
         super().__init__(names)
         self.pose = Metric()
         self.stats["tp_p"] = []  # add additional stats for pose
+        self.stats["target_cls_p"] = []
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1481,8 +1533,9 @@ class PoseMetrics(DetMetrics):
             stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
                 keys in self.stats, plus 'im_name' for per-image metrics.
         """
+        stat.setdefault("target_cls_p", stat["target_cls"])
         super().update_stats(stat)  # update box stats
-        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls_p"], stat["pred_cls"], stat["im_name"])
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""
@@ -1505,7 +1558,7 @@ class PoseMetrics(DetMetrics):
             stats["tp_p"],
             stats["conf"],
             stats["pred_cls"],
-            stats["target_cls"],
+            stats["target_cls_p"],
             plot=plot,
             on_plot=on_plot,
             save_dir=save_dir,
@@ -1533,7 +1586,8 @@ class PoseMetrics(DetMetrics):
 
     def class_result(self, i: int) -> list[float]:
         """Return the class-wise detection results for a specific class i."""
-        return DetMetrics.class_result(self, i) + self.pose.class_result(i)
+        index = np.flatnonzero(self.pose.ap_class_index == self.ap_class_index[i])
+        return DetMetrics.class_result(self, i) + (self.pose.class_result(index.item()) if index.size else (0.0,) * 4)
 
     @property
     def maps(self) -> np.ndarray:

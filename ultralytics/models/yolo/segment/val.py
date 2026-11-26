@@ -11,8 +11,7 @@ import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
-from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import SegmentMetrics, mask_iou
+from ultralytics.utils.metrics import SegmentMetrics, _mask_areas, mask_iou
 
 
 class SegmentationValidator(DetectionValidator):
@@ -32,6 +31,8 @@ class SegmentationValidator(DetectionValidator):
         >>> validator = SegmentationValidator(args=args)
         >>> validator()
     """
+
+    _coco_metrics = (*DetectionValidator._coco_metrics, ("tp_m", "segm", "Mask", 100))
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics.
@@ -67,11 +68,11 @@ class SegmentationValidator(DetectionValidator):
             model (torch.nn.Module): Model to validate.
         """
         super().init_metrics(model)
-        if self.args.save_json:
-            check_requirements("faster-coco-eval>=1.6.7")
         # More accurate vs faster
         self.process = (
-            ops.process_mask_native if self.args.save_json or self.args.save_txt or self.args.tile else ops.process_mask
+            ops.process_mask_native
+            if self.coco_labels is not None or self.args.save_json or self.args.save_txt or self.args.tile
+            else ops.process_mask
         )
 
     def get_desc(self) -> str:
@@ -291,17 +292,18 @@ class SegmentationValidator(DetectionValidator):
         if "tile" not in pbatch:  # untiled masks keep the existing COCO-evaluated rounding
             return {**super().scale_preds(predn, pbatch), "masks": masks.byte()}
         masks = masks.gt_(0.5).byte()
-        if not (self.args.save_json or self.args.save_txt):  # sample source pixels 2 mod 4, the target mask centers
+        if self.coco_labels is None and not (self.args.save_json or self.args.save_txt):
+            # Sample source pixels 2 mod 4, the target mask centers.
             x0, y0 = pbatch["tile"][:2]
             masks = masks[:, (2 - y0) % 4 :: 4, (2 - x0) % 4 :: 4].contiguous()  # pending tile masks 16x smaller
         return {**super().scale_preds(predn, pbatch), "masks": masks}
 
-    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
-        """Return COCO-style instance segmentation evaluation metrics."""
-        pred_json = self.save_dir / "predictions.json"  # predictions
-        anno_json = (
-            self.data["path"]
-            / "annotations"
-            / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
-        )  # annotations
-        return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "segm"], suffix=["Box", "Mask"])
+    def _coco_task_overlap(self, anns, predn, idx, crowd):
+        """Decode original COCO annotations and compare their pixels with the masks used by JSON export."""
+        from faster_coco_eval.core.mask import decode, segmToRle
+
+        masks = predn["masks"]
+        h, w = masks.shape[-2:]
+        gt = decode([segmToRle(a["segmentation"], w, h) for a in anns]).transpose(2, 0, 1)
+        inter, g, d = _mask_areas(torch.from_numpy(gt).flatten(1), masks[idx.tolist()].cpu().flatten(1))
+        return self._coco_iou(inter.numpy().astype(np.float64), g.numpy(), d.numpy(), crowd)

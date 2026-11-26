@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import os
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +17,7 @@ from ultralytics.data.utils import get_split_fraction
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
+from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, _box_intersection, _match_iou, box_iou
 from ultralytics.utils.plotting import plot_images
 from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
@@ -41,6 +43,8 @@ class DetectionValidator(BaseValidator):
         >>> validator = DetectionValidator(args=args)
         >>> validator()
     """
+
+    _coco_metrics = (("tp", "bbox", "Box", 100),)
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize detection validator with necessary variables and settings.
@@ -151,6 +155,23 @@ class DetectionValidator(BaseValidator):
         self.pred_counts = []
         if self.build_gdict:
             self.gdict = {"images": [], "annotations": [], "categories": [{"id": x} for x in self.class_map]}
+        self.coco_labels = None
+        if (
+            self.is_coco
+            and Path(val).name == "val2017.txt"
+            and self.args.task in {"detect", "segment", "pose"}
+            and not self.args.single_cls
+            and self._annotation_file.is_file()
+            and (self.args.task != "segment" or check_requirements("faster-coco-eval>=1.6.7"))
+        ):
+            selected = range(len(self.names)) if self.args.classes is None else np.atleast_1d(self.args.classes)
+            categories = {self.class_map[c] for c in selected}
+            self.coco_labels = defaultdict(list)
+            with open(self._annotation_file, encoding="utf-8") as f:
+                for a in json.load(f)["annotations"]:
+                    if a["category_id"] in categories:
+                        self.coco_labels[a["image_id"]].append(a)
+            self.metrics.stats["image_id"] = []
         self.metrics.names = model.names
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
@@ -257,14 +278,29 @@ class DetectionValidator(BaseValidator):
             if self.is_custom_json:
                 self.pred_counts.append(len(predn["cls"]))
 
-            no_pred = predn["cls"].shape[0] == 0
-            self.metrics.update_stats(
-                {
+            has_pred = len(predn["cls"]) > 0
+            predn_scaled, records = predn, []
+            if has_pred and (self.args.save_json or self.args.save_txt or self.coco_labels is not None):
+                predn_scaled = self.scale_preds(predn, pbatch)
+                if self.args.save_json:
+                    first = len(self.jdict)
+                    self.pred_to_json(predn_scaled, pbatch)
+                    records = self.jdict[first:]
+                elif self.coco_labels is not None:
+                    records = self._coco_predictions(predn_scaled, pbatch)
+            if self.coco_labels is not None:
+                stat = self._coco_stats(records, predn_scaled, pbatch)
+            else:
+                stat = {
                     **self._process_batch(predn, pbatch),
                     "target_cls": cls,
-                    "target_img": np.unique(cls),
-                    "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
-                    "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
+                    "conf": predn["conf"].cpu().numpy(),
+                    "pred_cls": predn["cls"].cpu().numpy(),
+                }
+            self.metrics.update_stats(
+                {
+                    **stat,
+                    "target_img": np.unique(stat["target_cls"]),
                     "im_name": Path(pbatch["im_file"]).absolute().relative_to(self.label_root).as_posix(),
                 }
             )
@@ -279,14 +315,7 @@ class DetectionValidator(BaseValidator):
                         self.args.show_conf,
                     )
 
-            if no_pred:
-                continue
-
-            if self.args.save_json or self.args.save_txt:
-                predn_scaled = self.scale_preds(predn, pbatch)
-            if self.args.save_json:
-                self.pred_to_json(predn_scaled, pbatch)
-            if self.args.save_txt:  # flatten the split-relative path so a/1.jpg and b/1.jpg write a_1.txt and b_1.txt
+            if self.args.save_txt and has_pred:  # flatten the split-relative path to avoid filename collisions
                 name = "_".join(Path(pbatch["im_file"]).absolute().relative_to(self.label_root).with_suffix("").parts)
                 self.save_one_txt(
                     predn_scaled, self.args.save_conf, pbatch["ori_shape"], self.save_dir / "labels" / f"{name}.txt"
@@ -341,6 +370,7 @@ class DetectionValidator(BaseValidator):
             self._gather_image_metrics(self.metrics.box)
             self.jdict = []
             self.metrics.clear_stats()
+            self.metrics.stats.pop("image_id", None)
         if self.args.plots and RANK > -1:
             matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
             dist.reduce(matrix, dst=0, op=dist.ReduceOp.SUM)
@@ -353,6 +383,10 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Dictionary containing metrics results.
         """
+        if self.coco_labels is not None:  # COCO breaks equal-score ties in ascending image ID order
+            order = np.argsort(self.metrics.stats.pop("image_id"))
+            for key, values in self.metrics.stats.items():
+                self.metrics.stats[key] = [values[i] for i in order]
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         stats = self.metrics.results_dict
         if self.args.save_json and self.args.task == "detect":
@@ -519,21 +553,82 @@ class DetectionValidator(BaseValidator):
             ...     "score": 0.236,
             ... }
         """
+        self.jdict.extend(self._coco_predictions(predn, pbatch))
+
+    def _coco_predictions(self, predn, pbatch):
+        """Build the original-image detections used by JSON export and official COCO box matching."""
         path = Path(pbatch["im_file"])
-        stem = path.stem
-        image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn["bboxes"])  # xywh
-        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-        for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
-            self.jdict.append(
-                {
-                    "image_id": image_id,
-                    "file_name": path.name,
-                    "category_id": self.class_map[int(c)],
-                    "bbox": [round(x, 3) for x in b],
-                    "score": round(s, 5),
-                }
-            )
+        image_id = int(path.stem) if path.stem.isnumeric() else path.stem
+        boxes = ops.xyxy2xywh(predn["bboxes"])
+        boxes[:, :2] -= boxes[:, 2:] / 2  # preserve the exported coordinates used by the reference evaluator
+        return [
+            {
+                "image_id": image_id,
+                "file_name": path.name,
+                "category_id": self.class_map[int(c)],
+                "bbox": [round(x, 3) for x in b],
+                "score": round(s, 5),
+            }
+            for b, s, c in zip(boxes.tolist(), predn["conf"].tolist(), predn["cls"].tolist())
+        ]
+
+    def _coco_stats(self, records, predn, batch):
+        """Score official annotations in original pixels using the detections and score precision of COCO export."""
+        image_id = int(Path(batch["im_file"]).stem)
+        labels = self.coco_labels[image_id]
+        conf = np.array([r["score"] for r in records])
+        categories = np.array([r["category_id"] for r in records])
+        gt_categories = np.array([a["category_id"] for a in labels])
+        target_cls = np.array([self.class_map.index(c) for c in gt_categories], dtype=int)
+        crowd = np.array([bool(a["iscrowd"]) for a in labels], dtype=bool)
+        stat = {
+            "image_id": image_id,
+            "target_cls": target_cls[~crowd],
+            "conf": conf,
+            "pred_cls": predn["cls"].cpu().numpy(),
+        }
+        ignored = {"tp": crowd, "tp_m": crowd}
+        if self.args.task == "pose":
+            ignored["tp_p"] = crowd | np.array([a["num_keypoints"] == 0 for a in labels], dtype=bool)
+            stat["target_cls_p"] = target_cls[~ignored["tp_p"]]
+        thresholds = np.linspace(0.5, 0.95, self.niou)
+        order = np.argsort(-conf, kind="stable")
+        for key, _, _, _ in self._coco_metrics:
+            stat[key] = np.full((len(records), self.niou), -1, dtype=np.int8)
+        for c in np.unique(categories):
+            ranked = order[categories[order] == c]
+            gt = np.flatnonzero(gt_categories == c)[::-1]  # the last ground truth wins an overlap tie in COCO
+            anns = [labels[i] for i in gt]
+            for key, _, _, limit in self._coco_metrics:
+                idx = ranked[:limit]
+                if gt.size:
+                    if key == "tp":
+                        g = np.array([a["bbox"] for a in anns], dtype=np.float64)
+                        d = np.array([records[i]["bbox"] for i in idx], dtype=np.float64)
+                        inter = _box_intersection(ops.ltwh2xyxy(g), ops.ltwh2xyxy(d))
+                        iou = self._coco_iou(inter, g[:, 2:].prod(1), d[:, 2:].prod(1), crowd[gt])
+                    else:
+                        iou = self._coco_task_overlap(anns, predn, idx, crowd[gt])
+                    stat[key][idx] = _match_iou(iou, thresholds, ignored[key][gt], crowd[gt])
+                else:
+                    stat[key][idx] = 0
+        return stat
+
+    @staticmethod
+    def _coco_iou(inter, gt_area, dt_area, crowd):
+        """Normalize box or mask intersection by detection area for crowds and union for ordinary targets."""
+        area = np.where(crowd[:, None], dt_area, dt_area + gt_area[:, None] - inter)
+        return np.divide(inter, area, out=np.zeros_like(inter, dtype=np.float64), where=inter > 0)
+
+    @property
+    def _annotation_file(self):
+        """Return the reference annotation file for this validation split and task."""
+        name = "instances_val2017.json"
+        if self.args.task == "pose":
+            name = "person_keypoints_val2017.json"
+        elif self.is_lvis:
+            name = f"lvis_v1_{self.args.split}.json"
+        return self.data["path"] / "annotations" / name
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Scale predictions to the original image size."""
@@ -565,12 +660,9 @@ class DetectionValidator(BaseValidator):
             ]
         else:
             pred_json = self.jdict if self.training else self.save_dir / "predictions.json"
-        anno_json = self.gdict or (
-            self.data["path"]
-            / "annotations"
-            / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
-        )
-        return self.coco_evaluate(stats, pred_json, anno_json)
+        iou_types = [kind for _, kind, _, _ in self._coco_metrics]
+        suffix = [name for _, _, name, _ in self._coco_metrics]
+        return self.coco_evaluate(stats, pred_json, self.gdict or self._annotation_file, iou_types, suffix)
 
     def coco_evaluate(
         self,

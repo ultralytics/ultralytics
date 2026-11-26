@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
+from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS, cpu_threads
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -76,6 +76,10 @@ class OpenVINOBackend(BaseBackend):
         # Force sync inference because AsyncInferQueue can hang indefinitely on Intel and AMD CPUs, see
         # https://github.com/ultralytics/ultralytics/issues/25923.
         config = {"PERFORMANCE_HINT": "LATENCY"}
+        if device_name == "CPU":  # CPU plugin sizes its pool to host physical cores, ignoring cgroup v2 CPU quotas
+            import psutil  # scoped as slow import
+
+            config["INFERENCE_NUM_THREADS"] = cpu_threads(psutil.cpu_count(logical=False) or os.cpu_count())
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32

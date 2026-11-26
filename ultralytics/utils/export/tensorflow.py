@@ -293,7 +293,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         "--show_operations",
         "--search_delegate",
         "--delegate_search_step",
-        "10",
+        "20",
         "--timeout_sec",
         "180",
         str(tflite_file),

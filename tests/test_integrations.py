@@ -9,8 +9,9 @@ import pytest
 
 from tests import SOURCE
 from ultralytics import YOLO, download
-from ultralytics.utils import ASSETS_URL, DATASETS_DIR, SETTINGS
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, SETTINGS, YAML
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.downloads import safe_download
 
 
 @pytest.mark.slow
@@ -127,30 +128,40 @@ def test_triton(tmp_path, isolated_model):
 
 
 @pytest.mark.skipif(not check_requirements("faster-coco-eval", install=False), reason="faster-coco-eval not installed")
-def test_faster_coco_eval():
-    """Validate YOLO model predictions on COCO dataset using faster-coco-eval."""
+def test_faster_coco_eval(tmp_path):
+    """Compare native box, mask and keypoint AP on a COCO image with a crowd and people without labeled keypoints."""
     from ultralytics.models.yolo.detect import DetectionValidator
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator
 
-    args = {"model": "yolo26n.pt", "data": "coco8.yaml", "save_json": True, "imgsz": 64}
-    validator = DetectionValidator(args=args)
-    validator()
-    validator.is_coco = True
-    _ = validator.eval_json(validator.stats)
+    args = {"imgsz": 320, "save_json": True, "plots": False, "project": str(tmp_path)}
+    assert YOLO("yolo26n.pt").val(data="coco8.yaml", **args).area_ap  # custom text labels
+    download(
+        [f"{ASSETS_URL}/{name}_val2017.json" for name in ("instances", "person_keypoints")],
+        dir=DATASETS_DIR / "annotations",
+    )
+    image = safe_download(
+        "https://s3.amazonaws.com/images.cocodataset.org/val2017/000000007511.jpg", dir=tmp_path / "coco"
+    )
+    split = image.with_name("val2017.txt")
+    split.write_text(str(image), encoding="utf-8")
+    data = tmp_path / "data.yaml"
+    YAML.save(
+        data,
+        {"path": str(DATASETS_DIR), "train": str(split), "val": str(split), "names": ["person"], "kpt_shape": [17, 3]},
+    )
 
-    args = {"model": "yolo26n-seg.pt", "data": "coco8-seg.yaml", "save_json": True, "imgsz": 64}
-    validator = SegmentationValidator(args=args)
-    validator()
-    validator.is_coco = True
-    validator.data["path"] = DATASETS_DIR
-    download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "annotations")
-    _ = validator.eval_json(validator.stats)
-
-    args = {"model": "yolo26n-pose.pt", "data": "coco8-pose.yaml", "save_json": True, "imgsz": 64}
-    validator = PoseValidator(args=args)
-    validator()
-    validator.is_coco = True
-    validator.data["path"] = DATASETS_DIR
-    download(f"{ASSETS_URL}/person_keypoints_val2017.json", dir=DATASETS_DIR / "annotations")
-    _ = validator.eval_json(validator.stats)
+    for cls, weight, metrics in (
+        (DetectionValidator, "yolo26n.pt", ("box",)),
+        (SegmentationValidator, "yolo26n-seg.pt", ("box", "seg")),
+        (PoseValidator, "yolo26n-pose.pt", ("box", "pose")),
+    ):
+        validator = cls(args={**args, "model": weight, "data": str(data), "classes": [0]})
+        reference = validator()
+        assert validator.metrics.area_ap  # the external evaluator ran successfully
+        for attr in metrics:
+            native = getattr(validator.metrics, attr)
+            suffix = {"box": "B", "seg": "M", "pose": "P"}[attr]
+            assert native.map > 0
+            assert native.map == pytest.approx(reference[f"metrics/mAP50-95({suffix})"], rel=0, abs=3e-16)
+            assert native.map50 == pytest.approx(reference[f"metrics/mAP50({suffix})"], rel=0, abs=3e-16)

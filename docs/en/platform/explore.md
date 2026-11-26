@@ -29,8 +29,7 @@ flowchart TD
 The Explore page features four tabs:
 
 - **Public Datasets**: Community training data with image previews
-- **Search Images**: Images from public datasets, and from your own and team datasets when signed in, found by what
-  they show
+- **Search Images**: Find images by what they show. Results come only from public datasets.
 - **Public Projects**: Complete experiments containing trained models
 - **Public Models**: Trained models found by what they detect, each with its training images and headline metrics
 

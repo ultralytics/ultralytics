@@ -157,7 +157,10 @@ class DetectionValidator(BaseValidator):
         self.metrics.area_ap = {}
         self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
         if self.args.plots and self.args.task == "detect" and self.args.mode == "train" and not self.training:
-            self.confusion_matrix.cells = {}  # a training run's final validation records them for the Platform callback
+            from ultralytics.utils.callbacks.platform import platform_api_key
+
+            if platform_api_key(self.args):  # seen by every DDP rank, unlike the rank-0 Platform callback
+                self.confusion_matrix.cells = {}  # a training run's final validation records them for Platform
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""

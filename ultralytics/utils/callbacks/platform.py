@@ -334,12 +334,17 @@ def _get_system_metrics(trainer):
         return None
 
 
+def platform_api_key(args):
+    """Return the API key a run with these args reports to Platform with, or None when it does not report."""
+    if TESTS_RUNNING or not args.project:
+        return None
+    return os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
+
+
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start, continuing the recorded Platform model when resuming."""
     global _api_key
-    if TESTS_RUNNING or not trainer.args.project:
-        return
-    _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
+    _api_key = platform_api_key(trainer.args)
     if not _api_key:
         return
     if sys.version_info < (3, 11):

@@ -308,7 +308,7 @@ The tables below compare PyTorch with FP32, FP16, and INT8 ONNX models of every 
 - **FP16** halved the file size within 0.1 mAP of FP32 and ran up to 1.4 times faster than FP32 on the GPU, with no speedup on the CPU.
 - **INT8** gave the smallest file but lost 2.2 to 3.0 mAP and ran slower than FP32 on both the GPU and the CPU.
 
-Measured with `ultralytics` 8.4.211, ONNX Runtime 1.30.0, PyTorch 2.15.0, and CUDA 13.2 at `batch=1` on November 13, 2026. Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing.
+Measured with `ultralytics` 8.4.211, ONNX Runtime 1.30.0, PyTorch 2.15.0, and CUDA 13.2 at `batch=1`. Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing.
 
 ## About ONNX
 

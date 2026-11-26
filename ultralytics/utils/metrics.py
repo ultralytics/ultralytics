@@ -510,12 +510,13 @@ class ConfusionMatrix(DataExportMixin):
                     gt_match[gt_idx] = det_idx
                     iou[gt_idx] = 0
         matched_det = set(gt_match[gt_match >= 0].tolist())
-        hits = defaultdict(list)  # (detection, ground truth) index pairs per cell, -1 for none, for `cells`
+        hits = None if self.cells is None else defaultdict(list)  # (detection, truth) pairs per cell, -1 for none
         for i, gc in enumerate(gt_classes):
             if (di := gt_match[i].item()) >= 0:
                 dc = detection_classes[di]
                 self.matrix[dc, gc] += 1  # TP if class is correct else both an FP and an FN
-                hits[dc, gc].append((di, i))
+                if hits is not None:
+                    hits[dc, gc].append((di, i))
                 if dc == gc:
                     self._append_matches("TP", detections, di)
                 else:
@@ -523,15 +524,17 @@ class ConfusionMatrix(DataExportMixin):
                     self._append_matches("FN", batch, i)
             else:
                 self.matrix[self.nc, gc] += 1  # FN
-                hits[self.nc, gc].append((-1, i))
+                if hits is not None:
+                    hits[self.nc, gc].append((-1, i))
                 self._append_matches("FN", batch, i)
 
         for i, dc in enumerate(detection_classes):
             if i not in matched_det:
                 self.matrix[dc, self.nc] += 1  # FP
-                hits[dc, self.nc].append((i, -1))
+                if hits is not None:
+                    hits[dc, self.nc].append((i, -1))
                 self._append_matches("FP", detections, i)
-        if self.cells is not None and hits:
+        if hits:
             self._save_cells(detections, batch, hits)
 
     def tp_fp(self) -> tuple[np.ndarray, np.ndarray]:

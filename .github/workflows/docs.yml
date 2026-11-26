@@ -84,6 +84,9 @@ jobs:
           --ignore BLE001,D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012,S110 \
           .
       - name: Update Docs Authors
+        # Same-repo PRs only: fork PRs get a read-only token, so the YAML could never be pushed back. A fork author
+        # is added by the next same-repo PR, which scans all of main's history; noreply addresses need no entry.
+        if: github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

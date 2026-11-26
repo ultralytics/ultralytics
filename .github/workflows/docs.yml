@@ -86,11 +86,11 @@ jobs:
       - name: Check Docs Authors
         run: |
           python - <<'EOF'
-          import subprocess, yaml
+          import re, subprocess, yaml
           known = {email.lower() for email in yaml.safe_load(open("docs/mkdocs_github_authors.yaml"))}
           log = subprocess.check_output(["git", "log", "--format=%ae", "--", "docs/en", "ultralytics"], text=True)
           for email in sorted({email.lower() for email in log.split()} - known):
-              if not email.endswith("@users.noreply.github.com"):
+              if not re.fullmatch(r"\d+\+[^@]+@users\.noreply\.github\.com", email):  # <id>+<login> needs no entry
                   print(f"::warning::{email} is missing from docs/mkdocs_github_authors.yaml, so docs pages omit this author")
           EOF
       - name: Validate Docs with Zensical

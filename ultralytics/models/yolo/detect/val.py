@@ -577,15 +577,14 @@ class DetectionValidator(BaseValidator):
         image_id = int(Path(batch["im_file"]).stem)
         labels = self.coco_labels[image_id]
         conf = np.array([r["score"] for r in records])
-        categories = np.array([r["category_id"] for r in records])
-        gt_categories = np.array([a["category_id"] for a in labels])
-        target_cls = np.array([self.class_map.index(c) for c in gt_categories], dtype=int)
+        pred_cls = predn["cls"].cpu().numpy()
+        target_cls = np.array([self.class_map.index(a["category_id"]) for a in labels], dtype=int)
         crowd = np.array([bool(a["iscrowd"]) for a in labels], dtype=bool)
         stat = {
             "image_id": image_id,
             "target_cls": target_cls[~crowd],
             "conf": conf,
-            "pred_cls": predn["cls"].cpu().numpy(),
+            "pred_cls": pred_cls,
         }
         ignored = {"tp": crowd, "tp_m": crowd}
         if self.args.task == "pose":
@@ -595,9 +594,9 @@ class DetectionValidator(BaseValidator):
         order = np.argsort(-conf, kind="stable")
         for key, _, _, _ in self._coco_metrics:
             stat[key] = np.full((len(records), self.niou), -1, dtype=np.int8)
-        for c in np.unique(categories):
-            ranked = order[categories[order] == c]
-            gt = np.flatnonzero(gt_categories == c)[::-1]  # the last ground truth wins an overlap tie in COCO
+        for c in np.unique(pred_cls):
+            ranked = order[pred_cls[order] == c]
+            gt = np.flatnonzero(target_cls == c)[::-1]  # the last ground truth wins an overlap tie in COCO
             anns = [labels[i] for i in gt]
             for key, _, _, limit in self._coco_metrics:
                 idx = ranked[:limit]

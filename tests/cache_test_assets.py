@@ -13,10 +13,10 @@ from pathlib import Path
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from tests import MODEL, SOLUTION_ASSETS
+from tests import MODEL, SOLUTION_ASSETS, coco_eval_image
 from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2MODEL
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.utils import ARM64, ASSETS_URL, DATASETS_DIR, IS_RASPBERRYPI, LINUX, LOGGER, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS_URL, IS_RASPBERRYPI, LINUX, LOGGER, WEIGHTS_DIR, checks
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
 
 WEIGHTS = [
@@ -64,8 +64,7 @@ def cache_datasets() -> None:
             check_cls_dataset(ds)
         else:
             check_det_dataset(ds, autodownload=True)
-    for name in "instances_val2017.json", "person_keypoints_val2017.json":
-        safe_download(f"{ASSETS_URL}/{name}", dir=DATASETS_DIR / "annotations")
+    coco_eval_image()
     LOGGER.info("[cache] Datasets done.")
 
 

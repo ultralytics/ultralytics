@@ -1,17 +1,17 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
+import shutil
 import subprocess
 import time
 from pathlib import Path
 
 import pytest
 
-from tests import SOURCE
-from ultralytics import YOLO, download
-from ultralytics.utils import ASSETS_URL, DATASETS_DIR, SETTINGS, YAML
+from tests import SOURCE, coco_eval_image
+from ultralytics import YOLO
+from ultralytics.utils import DATASETS_DIR, SETTINGS, YAML
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.downloads import safe_download
 
 
 @pytest.mark.slow
@@ -136,14 +136,9 @@ def test_faster_coco_eval(tmp_path):
 
     args = {"imgsz": 320, "save_json": True, "plots": False, "project": str(tmp_path)}
     assert YOLO("yolo26n.pt").val(data="coco8.yaml", **args).area_ap  # custom text labels
-    download(
-        [f"{ASSETS_URL}/{name}_val2017.json" for name in ("instances", "person_keypoints")],
-        dir=DATASETS_DIR / "annotations",
-    )
-    image = safe_download(
-        "https://s3.amazonaws.com/images.cocodataset.org/val2017/000000007511.jpg", dir=tmp_path / "coco"
-    )
-    split = image.with_name("val2017.txt")
+    split = tmp_path / "coco" / "val2017.txt"
+    split.parent.mkdir()
+    image = shutil.copy2(coco_eval_image(), split.parent)
     split.write_text(str(image), encoding="utf-8")
     data = tmp_path / "data.yaml"
     YAML.save(

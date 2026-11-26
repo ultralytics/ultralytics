@@ -416,7 +416,8 @@ class ConfusionMatrix(DataExportMixin):
         h, w = batch["ori_shape"]
 
         def normalize(boxes):
-            boxes = scale_boxes(batch["imgsz"], boxes.clone(), (h, w), ratio_pad=batch["ratio_pad"])
+            boxes = boxes.clone().float()  # fp32, as fp16 rounds a wide image's edge past its width
+            boxes = scale_boxes(batch["imgsz"], boxes, (h, w), ratio_pad=batch["ratio_pad"])
             return (boxes.cpu().numpy() / [w, h, w, h]).round(4)
 
         conf = detections["conf"].cpu().numpy().astype(float)

@@ -36,6 +36,8 @@ All Ultralytics YOLO tasks export and run on the host. Output shapes are for `im
 | [Pose Estimation](../tasks/pose.md)           | `[1, 4 + nc + nk, 8400]`: boxes and keypoints normalized to `[0, 1]`                                 |
 | [Oriented Detection](../tasks/obb.md)         | `[1, 4 + nc + 1, 8400]`: boxes normalized to `[0, 1]`, angle in radians; requires a square `imgsz`   |
 
+For instance segmentation, the export divides mask coefficients by 16 and multiplies prototypes by 16. This keeps the coefficients close to the normalized boxes in the shared INT8 tensor. A custom decoder can multiply the coefficients and prototypes from the same export as usual. The factors cancel before quantization.
+
 RT-DETR and YOLO-NAS models are not supported.
 
 ## Usage
@@ -134,13 +136,15 @@ The table below compares YOLO26n at each model's default `imgsz` (640, semantic 
 | Task     | Metric              | ONNX float    | ST Edge AI float | ST Edge AI INT8 |
 | :------- | :------------------ | :------------ | :--------------- | :-------------- |
 | Detect   | mAP50-95            | 0.686         | 0.686            | 0.639           |
-| Segment  | box / mask mAP50-95 | 0.638 / 0.540 | 0.638 / 0.540    | 0.356 / 0.401   |
+| Segment  | box / mask mAP50-95 | 0.643 / 0.553 | 0.643 / 0.553    | 0.540 / 0.541   |
 | Semantic | mIoU                | 0.610         | 0.610            | 0.609           |
 | Depth    | delta1              | 0.852         | 0.852            | 0.840           |
 | Pose     | box / pose mAP50-95 | 0.697 / 0.459 | 0.697 / 0.459    | 0.650 / 0.267   |
 | OBB      | mAP50-95            | 0.894         | 0.894            | 0.806           |
 
-The float export matches the standard ONNX export on every task. Instance segmentation and pose lose the most accuracy under whole-graph INT8, because mask coefficients and keypoints share one output scale with the boxes; validate these two tasks carefully on your own data before deploying.
+The segmentation row uses the four COCO8-seg validation images at `imgsz=640` with ONNX Runtime 1.32. On all 5,000 COCO val2017 images, the YOLO26n-seg ST Edge AI INT8 export scored **0.325 box AP and 0.294 mask AP** with ONNX Runtime on CPU at `imgsz=512`. The previous export scored 0.148 and 0.184, respectively. Both used the same 300 COCO train2017 images for calibration and COCO evaluation at IoU thresholds 0.50–0.95.
+
+The float export matches the standard ONNX export on every task in the table. Pose loses the most accuracy under whole-graph INT8 because keypoints share one output scale with the boxes.
 
 ## Deploy to STM32
 

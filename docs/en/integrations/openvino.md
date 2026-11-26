@@ -311,7 +311,7 @@ All values in this section were measured on the CPU of one server with two **AMD
 - **FP16** halved the model size within 0.1 mAP of FP32, at the FP32 latency (within 3%).
 - **INT8** ran 1.02 to 1.33 times faster than FP32, made the model 3.1 to 3.9 times smaller, and lost 0.5 to 0.9 mAP.
 
-Measured with `ultralytics` 8.4.212, OpenVINO 2026.4.1, NNCF 3.4.0, and PyTorch 2.15.0 at `batch=1` on November 14, 2026. Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing. PyTorch, FP32, and FP16 values are the mean of three runs, which differed by up to 26% for PyTorch and 6% for OpenVINO. INT8 models were calibrated on 591 COCO train2017 images (`split=train fraction=0.005`) and built three times; INT8 values are the mean of the three builds. The 8-CPU table uses one INT8 build run three times.
+Measured with `ultralytics` 8.4.212, OpenVINO 2026.4.1, NNCF 3.4.0, and PyTorch 2.15.0 at `batch=1`. Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing. PyTorch, FP32, and FP16 values are the mean of three runs, which differed by up to 26% for PyTorch and 6% for OpenVINO. INT8 models were calibrated on 591 COCO train2017 images (`split=train fraction=0.005`) and built three times; INT8 values are the mean of the three builds. The 8-CPU table uses one INT8 build run three times.
 
 ### Intel Core Ultra CPU, GPU, and NPU
 

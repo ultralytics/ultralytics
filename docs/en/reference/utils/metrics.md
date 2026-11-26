@@ -52,6 +52,14 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.metrics._box_intersection
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.metrics._match_iou
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.metrics.box_iou
 
 <br><br><hr><br>
@@ -61,6 +69,10 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.metrics.mask_iou
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.metrics._mask_areas
 
 <br><br><hr><br>
 

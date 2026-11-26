@@ -5,7 +5,7 @@ description: Export Ultralytics YOLO26 models to TensorFlow SavedModel with form
 keywords: YOLO26, TF SavedModel, TensorFlow SavedModel, saved_model export, TensorFlow Serving, onnx2tf, tf.saved_model.load, NHWC, Ultralytics, model deployment
 ---
 
-# Google TensorFlow SavedModel Export
+# TF SavedModel Export
 
 [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model) is the standard serialization format of [TensorFlow](https://www.ultralytics.com/glossary/tensorflow): a directory with the graph, the [weights](https://www.ultralytics.com/glossary/model-weights), and the signatures that TensorFlow, [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving), and other TensorFlow tools load without the code that built the model. Exporting an [Ultralytics YOLO26](../models/yolo26.md) model with `format="saved_model"` converts it through ONNX with [`onnx2tf`](https://github.com/PINTO0309/onnx2tf) into a `yolo26n_saved_model/` directory with FP32 weights and a channels-last (NHWC) input, which `YOLO()`, TensorFlow in Python, and TensorFlow Serving load.
 
@@ -329,6 +329,10 @@ With `tensorflow/serving:2.21.0` on the export host, the client printed the same
 For other errors, see the [Common Issues guide](../guides/yolo-common-issues.md).
 
 ## Benchmarks
+
+TF SavedModel models were benchmarked on the CPU of the export host for this page. The [NVIDIA Jetson guide](../guides/nvidia-jetson.md#nvidia-jetson-yolo26-benchmarks) compares TF SavedModel with the other export formats on Jetson devices.
+
+### FP32 on a Server CPU
 
 The tables below compare PyTorch, the ONNX export, and the TF SavedModel of every YOLO26 detection model on the CPU of the export host, an **AMD EPYC 9655** server shared with other jobs. For the latency table, every process was limited to the 8 CPUs of one 8-core CCD of the processor with `taskset -c 40-47`. The results apply to this x86 setup; TF SavedModel was not benchmarked on a GPU for this page, see [Deploy](#deploy).
 

@@ -408,8 +408,8 @@ class ConfusionMatrix(DataExportMixin):
         Args:
             detections (dict[str, torch.Tensor]): Detections above the confidence threshold.
             batch (dict[str, Any]): Ground truth with 'im_file', 'ori_shape', 'imgsz' and 'ratio_pad' keys.
-            hits (dict[tuple[int, int], list]): (detection, ground truth) index pairs per (predicted, true) cell, -1
-                for none.
+            hits (dict[tuple[int, int], list]): (detection, ground truth) index pairs per (predicted, true) cell, -1 for
+                none.
         """
         from .ops import scale_boxes
 

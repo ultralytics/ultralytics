@@ -76,7 +76,8 @@ class OpenVINOBackend(BaseBackend):
         # Force sync inference because AsyncInferQueue can hang indefinitely on Intel and AMD CPUs, see
         # https://github.com/ultralytics/ultralytics/issues/25923.
         config = {"PERFORMANCE_HINT": "LATENCY"}
-        if device_name == "CPU":  # CPU plugin sizes its pool to host physical cores, ignoring cgroup v2 CPU quotas
+        # Linux CPU plugin sizes its pool to host physical cores, ignoring cgroup v2 CPU quotas
+        if LINUX and device_name == "CPU":
             import psutil  # scoped as slow import
 
             config["INFERENCE_NUM_THREADS"] = cpu_threads(psutil.cpu_count(logical=False) or os.cpu_count())

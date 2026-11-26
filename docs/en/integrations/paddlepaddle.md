@@ -14,7 +14,7 @@ keywords: YOLO26, PaddlePaddle, Paddle export, Paddle Inference, X2Paddle, pdipa
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format` argument | `paddle`                                                                                                                                                                                                                                                  |
 | Output            | `yolo26n_paddle_model/`, a directory with the model in `inference_model/`, the Python code that X2Paddle generated, and [`metadata.yaml`](#output-format)                                                                                                 |
-| Runs on           | CPUs through Paddle Inference, and NVIDIA GPUs with the `paddlepaddle-gpu` build, which was [not run for this page](#nvidia-gpus)                                                                                                                         |
+| Runs on           | CPUs through Paddle Inference, and NVIDIA GPUs with the [`paddlepaddle-gpu` build](#nvidia-gpus), tested on an RTX PRO 6000 Blackwell                                                                                                                     |
 | Runtime           | Paddle Inference: the `paddle.inference` module of the `paddlepaddle` package, or the Paddle Inference C++ library                                                                                                                                        |
 | Precision         | FP32 only. YOLO26n is 10.0 MB                                                                                                                                                                                                                             |
 | Export host       | Linux x86-64 with Python 3.8 to 3.13 and macOS on Apple silicon with Python 3.13, where the exports for this page ran; ARM64 Linux and Windows have `paddlepaddle` packages but were not run, and NVIDIA Jetson is not supported. The export needs no GPU |
@@ -239,10 +239,10 @@ The class names are in `yolo26n_paddle_model/metadata.yaml`. On x86-64 CPUs, als
 Paddle Inference runs on NVIDIA GPUs with the `paddlepaddle-gpu` build, which you install instead of `paddlepaddle`, as both provide the same `paddle` module. Its 3.x versions are published on the [PaddlePaddle package index](https://www.paddlepaddle.org.cn/en/install/quick), not on PyPI, which has only 2.x `paddlepaddle-gpu` builds, below the 3.0.0 that Ultralytics requires; install it with the command from that page for your CUDA version. By the Ultralytics code:
 
 - **Installation**: when `paddlepaddle-gpu` is installed, Ultralytics checks that it is 3.0.0 or newer, stops with an error if it is older, and never replaces it with the CPU build.
-- **Inference**: when PyTorch sees a CUDA GPU and `device` is not `cpu`, for example `device=0` or `device` unset, Ultralytics turns on the GPU in Paddle Inference with `enable_use_gpu`, on the GPU with that index and with a 2,048 MB initial memory pool. It does this with the CPU build of `paddlepaddle` too, but there the call only logs `Please use PaddlePaddle with GPU version.` and `use_gpu` stays off: `device=0` requests the GPU, and Paddle Inference still runs on the CPU unless the `paddlepaddle-gpu` build is installed. A CPU run on x86-64 then meets the oneDNN behaviors of [Limitations and Troubleshooting](#limitations-and-troubleshooting), which `YOLO()` avoids for the affected tasks.
+- **Inference**: When PyTorch sees CUDA, `device=0` requests GPU 0 from Paddle Inference with a 2,048 MB initial memory pool. The CPU wheel logs `Please use PaddlePaddle with GPU version.` and leaves `config.use_gpu()` false. Ultralytics then applies the same x86-64 oneDNN workarounds for OBB and depth as for `device="cpu"`. See the [CPU fallback benchmarks](#cpu-fallback-on-a-cuda-host).
 - **Export**: `device=0` traces the model on the GPU; the conversion itself needs no GPU and no GPU build.
 
-GPU inference was not run for this page: the test server could not reach the PaddlePaddle package index, and on a server without a visible GPU, `device=0` fails with `Invalid CUDA 'device=0' requested`.
+On an NVIDIA RTX PRO 6000 Blackwell with the CUDA 13.0 build of `paddlepaddle-gpu` 3.2.2, `device=0` enabled GPU inference. With 640-pixel FP32 exports, YOLO26n-OBB reached 0.8944 mAP50-95 on `dota8.yaml` and YOLO26n-depth reached 0.2088 RMSE on `depth8.yaml`. On a host without a visible CUDA GPU, use `device="cpu"`.
 
 ### Deployment Guides
 
@@ -313,6 +313,18 @@ There are no earlier PaddlePaddle benchmarks from Ultralytics. The tables below 
 - **All CPUs**: without `taskset`, on all 384 logical CPUs, YOLO26n took 33.8 ms as PaddlePaddle, 14.7 ms as PyTorch, and 14.6 ms as ONNX, all on 8 threads, as the mean of two runs.
 
 Measured with `ultralytics` 8.4.218, `paddlepaddle` 3.2.2, X2Paddle 1.6.0, PyTorch 2.15.0, and ONNX Runtime 1.32.0 at `batch=1`. PyTorch ran with `rect=False`, at the same 640x640 input as the exported models. Accuracy is on the last 500 images of COCO val2017 in sorted order, so it differs from the values for the full validation set on the [YOLO26 model page](../models/yolo26.md). Latency is the inference stage that `val` reports and does not include preprocessing or postprocessing; the two runs differed by up to 26%, and runs that overlapped a burst of other jobs on the server were repeated.
+
+### CPU Fallback on a CUDA Host
+
+On a server with an AMD EPYC 9655 and an NVIDIA RTX PRO 6000 Blackwell, `device=0` with the `paddlepaddle` 3.2.2 CPU wheel ran Paddle Inference on the CPU. Each pair compares the same FP32 export at `imgsz=640` and `batch=1` with the default oneDNN passes and with the [task-specific workarounds](#limitations-and-troubleshooting) Ultralytics applies on fallback. OBB mAP50-95 is on all 458 [DOTAv1](../datasets/obb/dota-v2.md#dota-v10) validation images (28,853 objects), and depth RMSE is on all 654 [NYU Depth V2](../datasets/depth/nyu-depth-v2.md) validation images.
+
+| Model   | OBB mAP50-95, default | OBB mAP50-95, corrected ↑ | Depth RMSE, default | Depth RMSE, corrected ↓ |
+| ------- | --------------------: | ------------------------: | ------------------: | ----------------------: |
+| YOLO26n |                0.0721 |                    0.3577 |              0.5518 |                  0.5465 |
+| YOLO26s |                0.0742 |                    0.4024 |              0.5720 |                  0.5392 |
+| YOLO26m |                0.0803 |                    0.4414 |              0.5669 |                  0.5282 |
+| YOLO26l |                0.0864 |                    0.4461 |              0.5641 |                  0.5277 |
+| YOLO26x |                0.0864 |                    0.4609 |              0.5575 |                  0.5198 |
 
 ## About PaddlePaddle
 

@@ -254,7 +254,7 @@ for x1, y1, x2, y2, score, cls in y[y[:, 4] > 0.25]:
 mkdir -p serving/yolo26n
 cp -r yolo26n_saved_model serving/yolo26n/1
 docker run -d --rm --name yolo26n-serving -p 8501:8501 \
-    -v "$PWD/serving/yolo26n:/models/yolo26n" -e MODEL_NAME=yolo26n tensorflow/serving:2.21.0
+  -v "$PWD/serving/yolo26n:/models/yolo26n" -e MODEL_NAME=yolo26n tensorflow/serving:2.21.0
 ```
 
 The [REST predict API](https://www.tensorflow.org/tfx/serving/api_rest) takes the letterboxed image as a nested list. This Python client for the Ultralytics YOLO26 model sends `bus.jpg` from the working directory and prints the detections in the coordinates of the original image:

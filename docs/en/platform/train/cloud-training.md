@@ -141,7 +141,7 @@ This preserves the data used for the run even if you later add or remove images,
     - **H200 NVL / H200 SXM**: 141–143 GB Hopper for high-memory workloads (available on all plans)
     - **B200 / B300**: 180–288 GB NVIDIA Blackwell for the largest workloads — requires [Pro or Enterprise](../account/billing.md#plans)
 
-The dialog shows your current **balance** and a **Top Up** button. The cost card estimates the total duration and price for your configuration (model size, dataset images, epochs, image size, batch size, optimizer, and GPU speed) and also reports the estimated seconds per epoch and the dataset image count.
+The dialog shows your current **balance** and a **Top Up** button. The cost card estimates the total duration and price for your configuration (model size, dataset images, epochs, image size, batch size, optimizer, and GPU speed) and also reports the estimated time per epoch and the dataset image count. Durations roll up into hours and days, such as `~5d 19h` total and `~1h 23m` per epoch, and appear once a GPU is selected.
 
 !!! tip "Live Capacity and Automatic Failover"
 

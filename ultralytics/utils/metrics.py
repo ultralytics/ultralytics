@@ -95,12 +95,11 @@ def _match_iou(iou: np.ndarray, thresholds: np.ndarray, ignore=None, crowd=None)
             available[ignore] *= ~(available[~ignore] >= thresholds).any(0)
         k = available.argmax(0)
         hits = available[k, cols] >= thresholds
-        if not has_ignored:
-            result[j] = hits
-            matched[k, cols] |= hits
-        else:
-            result[j] = np.where(ignore[k], -hits.astype(np.int8), hits)
-            matched[k, cols] |= hits & ~crowd[k]
+        result[j] = hits
+        if has_ignored:
+            result[j, ignore[k]] *= -1
+            hits &= ~crowd[k]
+        matched[k, cols] |= hits
     return result
 
 
@@ -253,9 +252,9 @@ def kpt_iou(
         points = kpt2[None, ..., :2]
         d[hidden] = ((xy - wh - points).clamp_min(0) + (points - xy - 2 * wh).clamp_min(0)).square().sum(-1)
         kpt_mask[hidden] = True
-    e = d / ((2 * sigma).pow(2) * (area[:, None, None] + eps) * 2)  # from cocoeval
-    # e = d / ((area[None, :, None] + eps) * sigma) ** 2 / 2  # from formula
-    return ((-e).exp() * kpt_mask[:, None]).sum(-1) / (kpt_mask.sum(-1)[:, None] + eps)
+    e = d / (2 * sigma).square() / (area[:, None, None] + eps) / 2
+    count = kpt_mask.sum(-1)[:, None]
+    return ((-e).exp() * kpt_mask[:, None]).sum(-1) / (count if bboxes is not None else count + eps)
 
 
 def _get_covariance_matrix(boxes: torch.Tensor, floor: float = 0.0) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -880,7 +879,8 @@ def ap_per_class(
     nc = unique_classes.shape[0]  # number of classes with labels
 
     # Create Precision-Recall curve and compute AP for each class
-    x, prec_values = np.linspace(0, 1, 1000), []
+    x = np.linspace(0, 1, 1000)
+    prec_values = np.zeros((max(nc, 1), x.size))
 
     # Average precision, precision and recall curves
     ap, p_curve, r_curve = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000))
@@ -891,7 +891,6 @@ def ap_per_class(
     for ci, (start, end) in enumerate(zip(starts, ends)):
         idx = order[start:end]
         if not idx.size:
-            prec_values.append(np.zeros_like(x))
             continue
 
         idx = idx[np.argsort(-conf[idx], kind="stable")]
@@ -909,16 +908,11 @@ def ap_per_class(
                 tpc = np.arange(1, ranks.size + 1)
             recall, precision = tpc / nt[ci], tpc / ranks
             ap[ci, j], mpre, _ = compute_ap(recall, precision)
-            if j == 0:
-                if not correct.size:
-                    prec_values.append(np.zeros_like(x))
-                    continue
+            if j == 0 and correct.size:
                 neg_conf = -conf[scored]
                 r_curve[ci] = np.interp(-x, neg_conf, recall, left=0)
                 p_curve[ci] = np.interp(-x, neg_conf, precision, left=1)
-                prec_values.append(mpre[1 + np.searchsorted(recall, x)])  # same envelope as AP50
-
-    prec_values = np.array(prec_values) if prec_values else np.zeros((1, 1000))  # (nc, 1000)
+                prec_values[ci] = mpre[1 + np.searchsorted(recall, x)]  # same envelope as AP50
 
     # Compute F1 (harmonic mean of precision and recall)
     f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + eps)
@@ -1171,6 +1165,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         summary: Generate a summarized representation of per-class detection metrics as a list of dictionaries.
     """
 
+    _ap_fields = (("Box", "tp", "box"),)
+
     def __init__(self, names: dict[int, str] | None = None) -> None:
         """Initialize a DetMetrics instance with class names.
 
@@ -1178,12 +1174,19 @@ class DetMetrics(SimpleClass, DataExportMixin):
             names (dict[int, str], optional): Dictionary of class names.
         """
         self.names = names if names is not None else {}
-        self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
-        self.stats = {"tp": [], "conf": [], "pred_cls": [], "target_cls": [], "target_img": []}
+        self.stats = {"conf": [], "pred_cls": [], "target_cls": [], "target_img": []}
+        for _, key, attr in self._ap_fields:
+            setattr(self, attr, Metric())
+            self.stats[key] = []
         self.nt_per_class = None
         self.nt_per_image = None
         self.area_ap = {}
+
+    def _ap_metrics(self):
+        """Yield the label, match array key and Metric for each evaluated output."""
+        for prefix, key, attr in self._ap_fields:
+            yield prefix, key, getattr(self, attr)
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1192,9 +1195,14 @@ class DetMetrics(SimpleClass, DataExportMixin):
             stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
                 keys in self.stats, plus 'im_name' for per-image metrics.
         """
+        for key in ("image_id", "target_cls_p"):  # extra fields supplied by official COCO annotations
+            if key in stat:
+                self.stats.setdefault(key, [])
         for k in self.stats:
             self.stats[k].append(stat[k])
-        self.box.update_image_metrics(stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        for _, key, metric in self._ap_metrics():
+            targets = stat.get("target_cls_p", stat["target_cls"]) if key == "tp_p" else stat["target_cls"]
+            metric.update_image_metrics(stat[key], targets, stat["pred_cls"], stat["im_name"])
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process predicted results for object detection and update metrics.
@@ -1207,57 +1215,81 @@ class DetMetrics(SimpleClass, DataExportMixin):
         Returns:
             (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = {k: np.concatenate(v, 0) for k, v in self.stats.items()}  # to numpy
+        stats = self.stats.copy()
+        if "image_id" in stats:  # COCO breaks equal-score ties in ascending image ID order, including across DDP ranks
+            order = np.argsort(stats.pop("image_id"))
+            stats = {k: [v[i] for i in order] for k, v in stats.items()}
+        stats = {k: np.concatenate(v, 0) for k, v in stats.items()}
         if not stats:
             return stats
-        results = ap_per_class(
-            stats["tp"],
-            stats["conf"],
-            stats["pred_cls"],
-            stats["target_cls"],
-            plot=plot,
-            save_dir=save_dir,
-            names=self.names,
-            on_plot=on_plot,
-            prefix="Box",
-        )[2:]
-        self.box.nc = len(self.names)
-        self.box.update(results)
+        for prefix, key, metric in self._ap_metrics():
+            targets = stats.get("target_cls_p", stats["target_cls"]) if key == "tp_p" else stats["target_cls"]
+            metric.nc = len(self.names)
+            metric.update(
+                ap_per_class(
+                    stats[key],
+                    stats["conf"],
+                    stats["pred_cls"],
+                    targets,
+                    plot=plot,
+                    save_dir=save_dir,
+                    names=self.names,
+                    on_plot=on_plot,
+                    prefix=prefix,
+                )[2:]
+            )
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
         return stats
 
     def clear_stats(self):
         """Clear the stored statistics."""
+        self.stats.pop("image_id", None)
+        self.stats.pop("target_cls_p", None)
         for v in self.stats.values():
             v.clear()
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""
-        self.box.clear_image_metrics()
+        for _, _, metric in self._ap_metrics():
+            metric.clear_image_metrics()
 
     @property
     def keys(self) -> list[str]:
         """Return a list of keys for accessing specific metrics."""
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
+        return [
+            f"metrics/{key}({prefix[0]})"
+            for prefix, _, _ in self._ap_fields
+            for key in ("precision", "recall", "mAP50", "mAP50-95")
+        ]
 
     def mean_results(self) -> list[float]:
         """Return mean precision, recall, mAP50, and mAP50-95."""
-        return self.box.mean_results()
+        return [value for _, _, metric in self._ap_metrics() for value in metric.mean_results()]
 
-    def class_result(self, i: int) -> tuple[float, float, float, float]:
-        """Return the result of evaluating the performance of an object detection model on a specific class."""
-        return self.box.class_result(i)
+    def _class_metrics(self, i):
+        """Align each output's AP rows to the box class, including classes with no labeled keypoints."""
+        cls = self.ap_class_index[i]
+        for prefix, _, metric in self._ap_metrics():
+            classes = metric.ap_class_index
+            j = np.searchsorted(classes, cls)
+            yield prefix, metric, j if j < len(classes) and classes[j] == cls else None
+
+    def class_result(self, i: int) -> tuple[float, ...]:
+        """Return precision, recall, mAP50 and mAP50-95 for each output for the given box class index."""
+        return tuple(
+            v for _, m, j in self._class_metrics(i) for v in (m.class_result(j) if j is not None else (0.0,) * 4)
+        )
 
     @property
     def maps(self) -> np.ndarray:
         """Return mean Average Precision (mAP) scores per class."""
-        return self.box.maps
+        return sum(metric.maps for _, _, metric in self._ap_metrics())
 
     @property
     def fitness(self) -> float:
         """Return the fitness of box object."""
-        return self.box.fitness()
+        return sum(metric.fitness() for _, _, metric in self._ap_metrics())
 
     @property
     def ap_class_index(self) -> list:
@@ -1274,12 +1306,16 @@ class DetMetrics(SimpleClass, DataExportMixin):
     @property
     def curves(self) -> list[str]:
         """Return a list of curves for accessing specific metrics curves."""
-        return ["Precision-Recall(B)", "F1-Confidence(B)", "Precision-Confidence(B)", "Recall-Confidence(B)"]
+        return [
+            f"{curve}({prefix[0]})"
+            for prefix, _, _ in self._ap_fields
+            for curve in ("Precision-Recall", "F1-Confidence", "Precision-Confidence", "Recall-Confidence")
+        ]
 
     @property
     def curves_results(self) -> list[list]:
         """Return a list of computed performance metrics and statistics."""
-        return self.box.curves_results
+        return [curve for _, _, metric in self._ap_metrics() for curve in metric.curves_results]
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
         """Generate a summarized representation of per-class detection metrics as a list of dictionaries.
@@ -1302,48 +1338,23 @@ class DetMetrics(SimpleClass, DataExportMixin):
             >>> detection_summary = results.summary()
             >>> print(detection_summary)
         """
-        per_class = {
-            "Box-P": self.box.p,
-            "Box-R": self.box.r,
-            "Box-F1": self.box.f1,
-        }
-        return [
-            {
-                "Class": self.names[self.ap_class_index[i]],
-                "Images": int(self.nt_per_image[self.ap_class_index[i]]),
-                "Instances": int(self.nt_per_class[self.ap_class_index[i]]),
-                **{k: float(round(v[i], decimals)) for k, v in per_class.items()},
-                "mAP50": float(round(self.class_result(i)[2], decimals)),
-                "mAP75": float(round(self.box.all_ap[i, 5], decimals)),
-                "mAP50-95": float(round(self.class_result(i)[3], decimals)),
+        rows = []
+        for i, cls in enumerate(self.ap_class_index):
+            row = {
+                "Class": self.names[cls],
+                "Images": int(self.nt_per_image[cls]),
+                "Instances": int(self.nt_per_class[cls]),
             }
-            for i in range(len(per_class["Box-P"]))
-        ]
-
-    def _task_summary(self, prefix: str, metric: Metric, normalize: bool, decimals: int) -> list[dict[str, Any]]:
-        """Extend the box summary rows with per-class P, R, F1, mAP50, mAP75, and mAP50-95 of a task metric.
-
-        Args:
-            prefix (str): Column name prefix for the task metric, e.g. "Mask" or "Pose".
-            metric (Metric): Task metric whose per-class values are appended to each row.
-            normalize (bool): Passed through to the box summary.
-            decimals (int): Number of decimal places to round the metrics values to.
-
-        Returns:
-            (list[dict[str, Any]]): Box summary rows extended with the prefixed task metric columns.
-        """
-        keys = ("P", "R", "F1", "mAP50", "mAP75", "mAP50-95")
-        summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
-        for i, s in enumerate(summary):
-            j = np.flatnonzero(metric.ap_class_index == self.ap_class_index[i])
-            if j.size:
-                k = j.item()
-                ap = metric.all_ap[k]
-                values = (metric.p[k], metric.r[k], metric.f1[k], ap[0], ap[5], ap.mean())
-            else:
-                values = (0.0,) * len(keys)
-            s.update({f"{prefix}-{k}": float(round(v, decimals)) for k, v in zip(keys, values)})
-        return summary
+            for prefix, metric, j in self._class_metrics(i):
+                values = (0.0,) * 6
+                if j is not None:
+                    p, r, ap50, ap = metric.class_result(j)
+                    values = (p, r, metric.f1[j], ap50, metric.all_ap[j, 5], ap)
+                for key, value in zip(("P", "R", "F1", "mAP50", "mAP75", "mAP50-95"), values):
+                    name = key if prefix == "Box" and key.startswith("mAP") else f"{prefix}-{key}"
+                    row[name] = float(round(value, decimals))
+            rows.append(row)
+        return rows
 
 
 class SegmentMetrics(DetMetrics):
@@ -1371,124 +1382,7 @@ class SegmentMetrics(DetMetrics):
         summary: Generate a summarized representation of per-class segmentation metrics as a list of dictionaries.
     """
 
-    def __init__(self, names: dict[int, str] | None = None) -> None:
-        """Initialize a SegmentMetrics instance with class names.
-
-        Args:
-            names (dict[int, str], optional): Dictionary of class names.
-        """
-        DetMetrics.__init__(self, names)
-        self.seg = Metric()
-        self.stats["tp_m"] = []  # add additional stats for masks
-
-    def update_stats(self, stat: dict[str, Any]) -> None:
-        """Update statistics by appending new values to existing stat collections.
-
-        Args:
-            stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
-                keys in self.stats, plus 'im_name' for per-image metrics.
-        """
-        super().update_stats(stat)  # update box stats
-        self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
-
-    def clear_image_metrics(self) -> None:
-        """Clear stored per-image metrics."""
-        super().clear_image_metrics()
-        self.seg.clear_image_metrics()
-
-    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
-        """Process the detection and segmentation metrics over the given set of predictions.
-
-        Args:
-            save_dir (Path): Directory to save plots. Defaults to Path(".").
-            plot (bool): Whether to plot precision-recall curves. Defaults to False.
-            on_plot (callable, optional): Function to call after plots are generated. Defaults to None.
-
-        Returns:
-            (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
-        """
-        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
-        results_mask = ap_per_class(
-            stats["tp_m"],
-            stats["conf"],
-            stats["pred_cls"],
-            stats["target_cls"],
-            plot=plot,
-            on_plot=on_plot,
-            save_dir=save_dir,
-            names=self.names,
-            prefix="Mask",
-        )[2:]
-        self.seg.nc = len(self.names)
-        self.seg.update(results_mask)
-        return stats
-
-    @property
-    def keys(self) -> list[str]:
-        """Return a list of keys for accessing metrics."""
-        return [
-            *DetMetrics.keys.fget(self),
-            "metrics/precision(M)",
-            "metrics/recall(M)",
-            "metrics/mAP50(M)",
-            "metrics/mAP50-95(M)",
-        ]
-
-    def mean_results(self) -> list[float]:
-        """Return the mean metrics for bounding box and segmentation results."""
-        return DetMetrics.mean_results(self) + self.seg.mean_results()
-
-    def class_result(self, i: int) -> list[float]:
-        """Return classification results for a specified class index."""
-        return DetMetrics.class_result(self, i) + self.seg.class_result(i)
-
-    @property
-    def maps(self) -> np.ndarray:
-        """Return mAP scores for object detection and segmentation models."""
-        return DetMetrics.maps.fget(self) + self.seg.maps
-
-    @property
-    def fitness(self) -> float:
-        """Return the fitness score for both segmentation and bounding box models."""
-        return self.seg.fitness() + DetMetrics.fitness.fget(self)
-
-    @property
-    def curves(self) -> list[str]:
-        """Return a list of curves for accessing specific metrics curves."""
-        return [
-            *DetMetrics.curves.fget(self),
-            "Precision-Recall(M)",
-            "F1-Confidence(M)",
-            "Precision-Confidence(M)",
-            "Recall-Confidence(M)",
-        ]
-
-    @property
-    def curves_results(self) -> list[list]:
-        """Return a list of computed performance metrics and statistics."""
-        return DetMetrics.curves_results.fget(self) + self.seg.curves_results
-
-    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
-        """Generate a summarized representation of per-class segmentation metrics as a list of dictionaries.
-
-        Extends the box summary rows with mask precision, recall, F1-score, mAP50, mAP75, and mAP50-95 for each class.
-
-        Args:
-            normalize (bool): For Segment metrics, everything is normalized by default [0-1].
-            decimals (int): Number of decimal places to round the metrics values to.
-
-        Returns:
-            (list[dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric
-                values.
-
-        Examples:
-            >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo26n-seg.pt")
-            >>> results = model.val(data="coco8-seg.yaml")
-            >>> seg_summary = results.summary(decimals=4)
-            >>> print(seg_summary)
-        """
-        return self._task_summary("Mask", self.seg, normalize, decimals)
+    _ap_fields = (*DetMetrics._ap_fields, ("Mask", "tp_m", "seg"))
 
 
 class PoseMetrics(DetMetrics):
@@ -1516,127 +1410,7 @@ class PoseMetrics(DetMetrics):
         summary: Generate a summarized representation of per-class pose metrics as a list of dictionaries.
     """
 
-    def __init__(self, names: dict[int, str] | None = None) -> None:
-        """Initialize the PoseMetrics class with class names.
-
-        Args:
-            names (dict[int, str], optional): Dictionary of class names.
-        """
-        super().__init__(names)
-        self.pose = Metric()
-        self.stats["tp_p"] = []  # add additional stats for pose
-        self.stats["target_cls_p"] = []
-
-    def update_stats(self, stat: dict[str, Any]) -> None:
-        """Update statistics by appending new values to existing stat collections.
-
-        Args:
-            stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
-                keys in self.stats, plus 'im_name' for per-image metrics.
-        """
-        stat.setdefault("target_cls_p", stat["target_cls"])
-        super().update_stats(stat)  # update box stats
-        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls_p"], stat["pred_cls"], stat["im_name"])
-
-    def clear_image_metrics(self) -> None:
-        """Clear stored per-image metrics."""
-        super().clear_image_metrics()
-        self.pose.clear_image_metrics()
-
-    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
-        """Process the detection and pose metrics over the given set of predictions.
-
-        Args:
-            save_dir (Path): Directory to save plots. Defaults to Path(".").
-            plot (bool): Whether to plot precision-recall curves. Defaults to False.
-            on_plot (callable, optional): Function to call after plots are generated.
-
-        Returns:
-            (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
-        """
-        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
-        results_pose = ap_per_class(
-            stats["tp_p"],
-            stats["conf"],
-            stats["pred_cls"],
-            stats["target_cls_p"],
-            plot=plot,
-            on_plot=on_plot,
-            save_dir=save_dir,
-            names=self.names,
-            prefix="Pose",
-        )[2:]
-        self.pose.nc = len(self.names)
-        self.pose.update(results_pose)
-        return stats
-
-    @property
-    def keys(self) -> list[str]:
-        """Return a list of evaluation metric keys."""
-        return [
-            *DetMetrics.keys.fget(self),
-            "metrics/precision(P)",
-            "metrics/recall(P)",
-            "metrics/mAP50(P)",
-            "metrics/mAP50-95(P)",
-        ]
-
-    def mean_results(self) -> list[float]:
-        """Return the mean results of box and pose."""
-        return DetMetrics.mean_results(self) + self.pose.mean_results()
-
-    def class_result(self, i: int) -> list[float]:
-        """Return the class-wise detection results for a specific class i."""
-        index = np.flatnonzero(self.pose.ap_class_index == self.ap_class_index[i])
-        return DetMetrics.class_result(self, i) + (self.pose.class_result(index.item()) if index.size else (0.0,) * 4)
-
-    @property
-    def maps(self) -> np.ndarray:
-        """Return the mean average precision (mAP) per class for both box and pose detections."""
-        return DetMetrics.maps.fget(self) + self.pose.maps
-
-    @property
-    def fitness(self) -> float:
-        """Return combined fitness score for pose and box detection."""
-        return self.pose.fitness() + DetMetrics.fitness.fget(self)
-
-    @property
-    def curves(self) -> list[str]:
-        """Return a list of curves for accessing specific metrics curves."""
-        return [
-            *DetMetrics.curves.fget(self),
-            "Precision-Recall(P)",
-            "F1-Confidence(P)",
-            "Precision-Confidence(P)",
-            "Recall-Confidence(P)",
-        ]
-
-    @property
-    def curves_results(self) -> list[list]:
-        """Return a list of computed performance metrics and statistics."""
-        return DetMetrics.curves_results.fget(self) + self.pose.curves_results
-
-    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
-        """Generate a summarized representation of per-class pose metrics as a list of dictionaries.
-
-        Extends the box summary rows with pose precision, recall, F1-score, mAP50, mAP75, and mAP50-95 for each class.
-
-        Args:
-            normalize (bool): For Pose metrics, everything is normalized by default [0-1].
-            decimals (int): Number of decimal places to round the metrics values to.
-
-        Returns:
-            (list[dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric
-                values.
-
-        Examples:
-            >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo26n-pose.pt")
-            >>> results = model.val(data="coco8-pose.yaml")
-            >>> pose_summary = results.summary(decimals=4)
-            >>> print(pose_summary)
-        """
-        return self._task_summary("Pose", self.pose, normalize, decimals)
+    _ap_fields = (*DetMetrics._ap_fields, ("Pose", "tp_p", "pose"))
 
 
 class ClassifyMetrics(SimpleClass, DataExportMixin):

@@ -51,8 +51,6 @@ class PoseValidator(DetectionValidator):
         for OKS calculation and sets up PoseMetrics for evaluation.
     """
 
-    _coco_metrics = (*DetectionValidator._coco_metrics, ("tp_p", "keypoints", "Pose", 20))
-
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize a PoseValidator object for pose estimation validation.
 
@@ -76,22 +74,6 @@ class PoseValidator(DetectionValidator):
         batch = super().preprocess_targets(batch)
         batch["keypoints"] = batch["keypoints"].float()
         return batch
-
-    def get_desc(self) -> str:
-        """Return description of evaluation metrics in string format."""
-        return ("%22s" + "%11s" * 10) % (
-            "Class",
-            "Images",
-            "Instances",
-            "Box(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-            "Pose(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-        )
 
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize evaluation metrics for YOLO pose validation.
@@ -192,11 +174,6 @@ class PoseValidator(DetectionValidator):
         tp.update({"tp_p": tp_p})  # update tp with kpts IoU
         return tp
 
-    def gather_stats(self) -> None:
-        """Gather stats from all GPUs."""
-        super().gather_stats()  # gather stats from DetectionValidator
-        self._gather_image_metrics(self.metrics.pose)
-
     def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """Save YOLO pose detections to a text file in normalized coordinates.
 
@@ -220,26 +197,12 @@ class PoseValidator(DetectionValidator):
             keypoints=predn["keypoints"],
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
-        """Convert YOLO predictions to COCO JSON format.
-
-        This method takes prediction tensors and batch data, converts the bounding boxes from YOLO format to COCO
-        format, and appends the results with keypoints to the internal JSON dictionary (self.jdict).
-
-        Args:
-            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'keypoints'
-                tensors.
-            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
-
-        Notes:
-            The method extracts the image ID from the filename stem (either as an integer if numeric, or as a string),
-            converts bounding boxes from xyxy to xywh format, and adjusts coordinates from center to top-left corner
-            before saving to the JSON dictionary.
-        """
-        super().pred_to_json(predn, pbatch)
-        kpts = predn["keypoints"]
-        for i, k in enumerate(kpts.flatten(1, 2).tolist()):
-            self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
+    def _coco_predictions(self, predn, pbatch):
+        """Attach original-image keypoints to the box records used for JSON export."""
+        records = super()._coco_predictions(predn, pbatch)
+        for record, points in zip(records, predn["keypoints"].flatten(1).tolist()):
+            record["keypoints"] = points
+        return records
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Scale boxes and keypoints to the original image size."""

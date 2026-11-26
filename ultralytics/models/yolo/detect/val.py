@@ -44,8 +44,6 @@ class DetectionValidator(BaseValidator):
         >>> validator()
     """
 
-    _coco_metrics = (("tp", "bbox", "Box", 100),)
-
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize detection validator with necessary variables and settings.
 
@@ -59,6 +57,7 @@ class DetectionValidator(BaseValidator):
         self.is_coco = False
         self.is_lvis = False
         self.class_map = None
+        self._coco_cache = {}
         self.args.task = "detect"
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP50-95
         self.niou = self.iouv.numel()
@@ -162,16 +161,27 @@ class DetectionValidator(BaseValidator):
             and self.args.task in {"detect", "segment", "pose"}
             and not self.args.single_cls
             and self._annotation_file.is_file()
-            and (self.args.task != "segment" or check_requirements("faster-coco-eval>=1.6.7"))
         ):
-            selected = range(len(self.names)) if self.args.classes is None else np.atleast_1d(self.args.classes)
-            categories = {self.class_map[c] for c in selected}
-            self.coco_labels = defaultdict(list)
-            with open(self._annotation_file, encoding="utf-8") as f:
-                for a in json.load(f)["annotations"]:
-                    if a["category_id"] in categories:
-                        self.coco_labels[a["image_id"]].append(a)
-            self.metrics.stats["image_id"] = []
+            selected = (
+                self.class_map[: self.nc]
+                if self.args.classes is None
+                else (self.class_map[c] for c in np.atleast_1d(self.args.classes))
+            )
+            key = self._annotation_file, frozenset(selected)
+            if key not in self._coco_cache:
+                labels = None
+                if self.args.task == "segment" and not check_requirements(
+                    "faster-coco-eval>=1.6.7", install=not self.training
+                ):
+                    LOGGER.warning("COCO mask decoder unavailable. Evaluating boxes and masks with YOLO text labels.")
+                else:
+                    labels = defaultdict(list)
+                    with open(key[0], encoding="utf-8") as f:
+                        for a in json.load(f)["annotations"]:
+                            if a["category_id"] in key[1]:
+                                labels[a["image_id"]].append(a)
+                self._coco_cache = {key: labels}
+            self.coco_labels = self._coco_cache[key]
         self.metrics.names = model.names
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
@@ -180,7 +190,10 @@ class DetectionValidator(BaseValidator):
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
-        return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
+        columns = ["Images", "Instances"]
+        for name, _, _ in self.metrics._ap_metrics():
+            columns.extend((f"{name}(P", "R", "mAP50", "mAP50-95)"))
+        return ("%22s" + "%11s" * len(columns)) % ("Class", *columns)
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Apply Non-maximum suppression to prediction outputs.
@@ -287,7 +300,7 @@ class DetectionValidator(BaseValidator):
                     self.pred_to_json(predn_scaled, pbatch)
                     records = self.jdict[first:]
                 elif self.coco_labels is not None:
-                    records = self._coco_predictions(predn_scaled, pbatch)
+                    records = DetectionValidator._coco_predictions(self, predn_scaled, pbatch)
             if self.coco_labels is not None:
                 stat = self._coco_stats(records, predn_scaled, pbatch)
             else:
@@ -351,7 +364,7 @@ class DetectionValidator(BaseValidator):
             merged_stats = {key: [] for key in self.metrics.stats}
             for stats_dict in gathered_stats:
                 for key, value in stats_dict.items():
-                    merged_stats[key].extend(value)
+                    merged_stats.setdefault(key, []).extend(value)
             gathered_json = [None] * dist.get_world_size()
             dist.gather_object(
                 (self.jdict, self.gdict if self.build_gdict else None, self.pred_counts), gathered_json, dst=0
@@ -362,15 +375,15 @@ class DetectionValidator(BaseValidator):
                 for key in "images", "annotations":
                     self.gdict[key] = [x for _, gdict, _ in gathered_json for x in gdict[key]]
             self.metrics.stats = merged_stats
-            self._gather_image_metrics(self.metrics.box)
             self.seen = self.num_images
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
             dist.gather_object((self.jdict, self.gdict if self.build_gdict else None, self.pred_counts), None, dst=0)
-            self._gather_image_metrics(self.metrics.box)
             self.jdict = []
             self.metrics.clear_stats()
-            self.metrics.stats.pop("image_id", None)
+        if RANK > -1:
+            for _, _, metric in self.metrics._ap_metrics():
+                self._gather_image_metrics(metric)
         if self.args.plots and RANK > -1:
             matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
             dist.reduce(matrix, dst=0, op=dist.ReduceOp.SUM)
@@ -383,10 +396,6 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Dictionary containing metrics results.
         """
-        if self.coco_labels is not None:  # COCO breaks equal-score ties in ascending image ID order
-            order = np.argsort(self.metrics.stats.pop("image_id"))
-            for key, values in self.metrics.stats.items():
-                self.metrics.stats[key] = [values[i] for i in order]
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         stats = self.metrics.results_dict
         if self.args.save_json and self.args.task == "detect":
@@ -586,21 +595,19 @@ class DetectionValidator(BaseValidator):
             "conf": conf,
             "pred_cls": pred_cls,
         }
-        ignored = {"tp": crowd, "tp_m": crowd}
-        if self.args.task == "pose":
-            ignored["tp_p"] = crowd | np.array([a["num_keypoints"] == 0 for a in labels], dtype=bool)
-            stat["target_cls_p"] = target_cls[~ignored["tp_p"]]
         thresholds = np.linspace(0.5, 0.95, self.niou)
         order = np.argsort(-conf, kind="stable")
-        for key, _, _, _ in self._coco_metrics:
-            stat[key] = np.full((len(records), self.niou), -1, dtype=np.int8)
-        for c in np.unique(pred_cls):
-            ranked = order[pred_cls[order] == c]
-            gt = np.flatnonzero(target_cls == c)[::-1]  # the last ground truth wins an overlap tie in COCO
-            anns = [labels[i] for i in gt]
-            for key, _, _, limit in self._coco_metrics:
-                idx = ranked[:limit]
+        for _, key, _ in self.metrics._ap_metrics():
+            ignore = crowd
+            if key == "tp_p":
+                ignore = crowd | np.array([a["num_keypoints"] == 0 for a in labels], dtype=bool)
+                stat["target_cls_p"] = target_cls[~ignore]
+            matches = np.full((len(records), self.niou), -1, dtype=np.int8)
+            for c in np.unique(pred_cls):
+                idx = order[pred_cls[order] == c][: 20 if key == "tp_p" else 100]
+                gt = np.flatnonzero(target_cls == c)[::-1]  # the last target wins equal-overlap ties in COCO
                 if gt.size:
+                    anns = [labels[i] for i in gt]
                     if key == "tp":
                         g = np.array([a["bbox"] for a in anns], dtype=np.float64)
                         d = np.array([records[i]["bbox"] for i in idx], dtype=np.float64)
@@ -608,9 +615,10 @@ class DetectionValidator(BaseValidator):
                         iou = self._coco_iou(inter, g[:, 2:].prod(1), d[:, 2:].prod(1), crowd[gt])
                     else:
                         iou = self._coco_task_overlap(anns, predn, idx, crowd[gt])
-                    stat[key][idx] = _match_iou(iou, thresholds, ignored[key][gt], crowd[gt])
+                    matches[idx] = _match_iou(iou, thresholds, ignore[gt], crowd[gt])
                 else:
-                    stat[key][idx] = 0
+                    matches[idx] = 0
+            stat[key] = matches
         return stat
 
     @staticmethod
@@ -659,8 +667,8 @@ class DetectionValidator(BaseValidator):
             ]
         else:
             pred_json = self.jdict if self.training else self.save_dir / "predictions.json"
-        iou_types = [kind for _, kind, _, _ in self._coco_metrics]
-        suffix = [name for _, _, name, _ in self._coco_metrics]
+        suffix = [prefix for prefix, _, _ in self.metrics._ap_metrics()]
+        iou_types = [{"Box": "bbox", "Mask": "segm", "Pose": "keypoints"}[name] for name in suffix]
         return self.coco_evaluate(stats, pred_json, self.gdict or self._annotation_file, iou_types, suffix)
 
     def coco_evaluate(

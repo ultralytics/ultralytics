@@ -32,8 +32,6 @@ class SegmentationValidator(DetectionValidator):
         >>> validator()
     """
 
-    _coco_metrics = (*DetectionValidator._coco_metrics, ("tp_m", "segm", "Mask", 100))
-
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics.
 
@@ -75,22 +73,6 @@ class SegmentationValidator(DetectionValidator):
             else ops.process_mask
         )
 
-    def get_desc(self) -> str:
-        """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 10) % (
-            "Class",
-            "Images",
-            "Instances",
-            "Box(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-            "Mask(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-        )
-
     def postprocess(self, preds: list[torch.Tensor]) -> list[dict[str, torch.Tensor]]:
         """Post-process YOLO predictions and return output detections with proto.
 
@@ -119,6 +101,8 @@ class SegmentationValidator(DetectionValidator):
             (dict[str, Any]): Prepared batch with processed annotations.
         """
         prepared_batch = super()._prepare_batch(si, batch)
+        if self.coco_labels is not None and not (self.args.plots and self.args.visualize):
+            return prepared_batch  # the scorer reads the original COCO masks
         nl = prepared_batch["cls"].shape[0]
         if self.args.overlap_mask:
             masks = batch["masks"][si]
@@ -134,11 +118,6 @@ class SegmentationValidator(DetectionValidator):
                 masks = masks.gt_(0.5)
         prepared_batch["masks"] = masks
         return prepared_batch
-
-    def gather_stats(self) -> None:
-        """Gather stats from all GPUs."""
-        super().gather_stats()  # gather stats from DetectionValidator
-        self._gather_image_metrics(self.metrics.seg)
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
         """Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
@@ -211,7 +190,7 @@ class SegmentationValidator(DetectionValidator):
             masks=torch.as_tensor(predn["masks"], dtype=torch.uint8),
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
+    def _coco_predictions(self, predn, pbatch):
         """Save one JSON result for COCO evaluation.
 
         Args:
@@ -279,12 +258,10 @@ class SegmentationValidator(DetectionValidator):
         pred_masks = predn["masks"].transpose(2, 1).contiguous().view(len(predn["masks"]), -1)  # N, H*W
         h, w = predn["masks"].shape[1:3]
         counts = multi_encode(pred_masks)
-        rles = []
-        for c in counts:
-            rles.append({"size": [h, w], "counts": to_string(c)})
-        super().pred_to_json(predn, pbatch)
-        for i, r in enumerate(rles):
-            self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
+        records = super()._coco_predictions(predn, pbatch)
+        for record, runs in zip(records, counts):
+            record["segmentation"] = {"size": [h, w], "counts": to_string(runs)}
+        return records
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Scale predictions to the original image size."""
@@ -305,5 +282,5 @@ class SegmentationValidator(DetectionValidator):
         masks = predn["masks"]
         h, w = masks.shape[-2:]
         gt = decode([segmToRle(a["segmentation"], w, h) for a in anns]).transpose(2, 0, 1)
-        inter, g, d = _mask_areas(torch.from_numpy(gt).flatten(1), masks[idx.tolist()].cpu().flatten(1))
-        return self._coco_iou(inter.numpy().astype(np.float64), g.numpy(), d.numpy(), crowd)
+        inter, g, d = _mask_areas(torch.from_numpy(gt).to(masks.device).flatten(1), masks[idx.tolist()].flatten(1))
+        return self._coco_iou(inter.cpu().numpy().astype(np.float64), g.cpu().numpy(), d.cpu().numpy(), crowd)

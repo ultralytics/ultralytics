@@ -10,7 +10,7 @@ import pytest
 
 from tests import SOURCE, coco_eval_image
 from ultralytics import YOLO
-from ultralytics.utils import DATASETS_DIR, SETTINGS, YAML
+from ultralytics.utils import DATASETS_DIR, ROOT, SETTINGS, YAML
 from ultralytics.utils.checks import check_requirements
 
 
@@ -141,22 +141,19 @@ def test_faster_coco_eval(tmp_path):
     image = shutil.copy2(coco_eval_image(), split.parent)
     split.write_text(str(image), encoding="utf-8")
     data = tmp_path / "data.yaml"
-    YAML.save(
-        data,
-        {"path": str(DATASETS_DIR), "train": str(split), "val": str(split), "names": ["person"], "kpt_shape": [17, 3]},
-    )
-
     for cls, weight, metrics in (
         (DetectionValidator, "yolo26n.pt", ("box",)),
         (SegmentationValidator, "yolo26n-seg.pt", ("box", "seg")),
         (PoseValidator, "yolo26n-pose.pt", ("box", "pose")),
     ):
-        validator = cls(args={**args, "model": weight, "data": str(data), "classes": [0]})
+        cfg = YAML.load(ROOT / "cfg/datasets" / ("coco-pose.yaml" if cls is PoseValidator else "coco.yaml"))
+        YAML.save(data, {**cfg, "path": str(DATASETS_DIR), "train": str(split), "val": str(split)})
+        validator = cls(args={**args, "model": weight, "data": str(data)})
         reference = validator()
-        assert validator.metrics.area_ap  # the external evaluator ran successfully
         for attr in metrics:
             native = getattr(validator.metrics, attr)
             suffix = {"box": "B", "seg": "M", "pose": "P"}[attr]
+            assert f"metrics/mAP_large({suffix})" in validator.metrics.area_ap  # the reference ran for this output
             assert native.map > 0
             assert native.map == pytest.approx(reference[f"metrics/mAP50-95({suffix})"], rel=0, abs=3e-16)
             assert native.map50 == pytest.approx(reference[f"metrics/mAP50({suffix})"], rel=0, abs=3e-16)

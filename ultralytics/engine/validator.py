@@ -409,9 +409,7 @@ class BaseValidator:
             (torch.Tensor): Boolean correct tensor of shape (N, T) for T IoU thresholds (10 by default).
         """
         # LxD matrix where L - labels (rows), D - detections (columns)
-        correct_class = true_classes[:, None] == pred_classes
-        iou = iou * correct_class  # zero out the wrong classes
-        iou = iou.cpu().numpy()
+        iou = (iou * (true_classes[:, None] == pred_classes)).cpu().numpy()
         thresholds = self.iouv.cpu().numpy()
         if not use_scipy:
             return torch.from_numpy(_match_iou(iou, thresholds))
@@ -420,9 +418,7 @@ class BaseValidator:
             cost_matrix = iou * (iou >= threshold)
             if cost_matrix.any():
                 labels_idx, detections_idx = linear_sum_assignment(-cost_matrix)  # negate to maximize IoU
-                valid = cost_matrix[labels_idx, detections_idx] > 0
-                if valid.any():
-                    correct[detections_idx[valid], i] = True
+                correct[detections_idx, i] = cost_matrix[labels_idx, detections_idx] > 0
         return torch.from_numpy(correct)
 
     @smart_inference_mode(False)

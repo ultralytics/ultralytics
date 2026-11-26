@@ -596,6 +596,7 @@ class DetectionValidator(BaseValidator):
         }
         thresholds = np.linspace(0.5, 0.95, self.niou)
         order = np.argsort(-conf, kind="stable")
+        outside = np.array([not 0 <= r["bbox"][2] * r["bbox"][3] <= 1e10 for r in records], dtype=bool)
         for _, key, _ in self.metrics._ap_metrics():
             ignore = crowd
             if key == "tp_p":
@@ -617,6 +618,8 @@ class DetectionValidator(BaseValidator):
                     matches[idx] = _match_iou(iou, thresholds, ignore[gt], crowd[gt])
                 else:
                     matches[idx] = 0
+            if outside.any():  # COCO ignores unmatched detections outside its all-area range
+                matches[(matches == 0) & outside[:, None]] = -1
             stat[key] = matches
         return stat
 

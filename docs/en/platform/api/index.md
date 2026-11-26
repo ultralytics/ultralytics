@@ -2758,8 +2758,9 @@ Without `q`, it lists one image from each of the newest public datasets, unranke
 `type=models` returns public models in `models`, one per training dataset (or per project without one) except official
 `@ultralytics` models, which each keep their own entry; clones and models that haven't finished training are left out.
 With `q`, matching official models come first, then models whose name or project matches, then models trained on the
-public datasets whose images best match. Without `q`, it lists models trained on public datasets, newest first. It
-honors `task` and `author`, and sorts by `relevance`, `newest`, or `oldest`; other sorts list the newest first.
+public datasets that match `q`, in `type=datasets` relevance order: by their text fields, then by their images. Without
+`q`, it lists models trained on public datasets, newest first. It honors `task` and `author`, and sorts by `relevance`,
+`newest`, or `oldest`; other sorts list the newest first.
 
 ```bash
 curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=detect&sort=stars&limit=20"

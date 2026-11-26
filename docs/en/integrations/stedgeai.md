@@ -36,6 +36,8 @@ All Ultralytics YOLO tasks export and run on the host. Output shapes are for `im
 | [Pose Estimation](../tasks/pose.md)           | `[1, 4 + nc + nk, 8400]`: boxes and keypoints normalized to `[0, 1]`                                 |
 | [Oriented Detection](../tasks/obb.md)         | `[1, 4 + nc + 1, 8400]`: boxes normalized to `[0, 1]`, angle in radians; requires a square `imgsz`   |
 
+Instance segmentation divides the mask coefficients by 16 and multiplies the mask prototypes by 16, so the coefficients fit the INT8 scale of the boxes and their product, the mask logits, is unchanged.
+
 RT-DETR and YOLO-NAS models are not supported.
 
 ## Usage
@@ -134,13 +136,13 @@ The table below compares YOLO26n at each model's default `imgsz` (640, semantic 
 | Task     | Metric              | ONNX float    | ST Edge AI float | ST Edge AI INT8 |
 | :------- | :------------------ | :------------ | :--------------- | :-------------- |
 | Detect   | mAP50-95            | 0.686         | 0.686            | 0.639           |
-| Segment  | box / mask mAP50-95 | 0.638 / 0.540 | 0.638 / 0.540    | 0.356 / 0.401   |
+| Segment  | box / mask mAP50-95 | 0.643 / 0.553 | 0.643 / 0.553    | 0.607 / 0.556   |
 | Semantic | mIoU                | 0.610         | 0.610            | 0.609           |
 | Depth    | delta1              | 0.852         | 0.852            | 0.840           |
 | Pose     | box / pose mAP50-95 | 0.697 / 0.459 | 0.697 / 0.459    | 0.650 / 0.267   |
 | OBB      | mAP50-95            | 0.894         | 0.894            | 0.806           |
 
-The float export matches the standard ONNX export on every task. Instance segmentation and pose lose the most accuracy under whole-graph INT8, because mask coefficients and keypoints share one output scale with the boxes; validate these two tasks carefully on your own data before deploying.
+The float export matches the standard ONNX export on every task. Pose loses the most accuracy under whole-graph INT8, because keypoints share one output scale with the boxes; validate it carefully on your own data before deploying.
 
 ## Deploy to STM32
 

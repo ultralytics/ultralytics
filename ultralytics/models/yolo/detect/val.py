@@ -186,7 +186,7 @@ class DetectionValidator(BaseValidator):
         self.metrics.clear_image_metrics()
         self.metrics.area_ap = {}
         self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
-        if self.args.plots and self.args.task == "detect" and self.args.mode == "train" and not self.training:
+        if self.args.task == "detect" and self.args.mode == "train" and not self.training:
             from ultralytics.utils.callbacks.platform import platform_api_key
 
             if platform_api_key(self.args):  # seen by every DDP rank, unlike the rank-0 Platform callback

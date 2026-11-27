@@ -97,20 +97,18 @@ def _confusion_payload(confusion_matrix, conf, budget):
             break
         size += cost
         cells.append([p, t, objects, count, []])
-    images, index = [], {}
+    index = {}  # image id -> its position in "images", in insertion order
     for cell, (_, (_, _, examples)) in zip(cells, ranked):
         for _, name, boxes in sorted(examples, reverse=True):
             image = Path(name).stem.split("_", 1)[0]
-            i = index.get(image, len(images))
-            cost = len(json.dumps([i, boxes])) + 2 + (len(json.dumps(image)) + 2 if i == len(images) else 0)
+            i = index.get(image, len(index))
+            cost = len(json.dumps([i, boxes])) + 2 + (len(json.dumps(image)) + 2 if i == len(index) else 0)
             if size + cost > budget:
                 break  # the cell keeps its top images; later cells may still fit theirs
             size += cost
-            if i == len(images):
-                index[image] = i
-                images.append(image)
+            index[image] = i
             cell[4].append([i, boxes])
-    return {"conf": conf, "images": images, "cells": cells}
+    return {"conf": conf, "images": list(index), "cells": cells}
 
 
 def _sanitize_json_value(value):

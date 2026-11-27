@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import platform
 from pathlib import Path
 
@@ -39,8 +40,13 @@ class TensorFlowBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the model file or directory.
         """
+        import torchvision  # noqa (import before TensorFlow, whose LLVM options clash with triton's)
+
         if self.format in {"saved_model", "pb"}:
             import tensorflow as tf
+
+            with contextlib.suppress(Exception):  # fails only if TF GPUs are already initialized by earlier user code
+                tf.config.set_visible_devices([], "GPU")  # AutoBackend runs these formats on CPU
 
         if self.format == "saved_model":
             LOGGER.info(f"Loading {weight} for TensorFlow SavedModel inference...")

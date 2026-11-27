@@ -100,6 +100,8 @@ def onnx2saved_model(
         - Downloads the onnx2tf calibration sample data file if not already present.
         - Removes temporary files and renames quantized models after conversion.
     """
+    import torchvision  # noqa (import before TensorFlow, whose LLVM options clash with triton's)
+
     try:
         import tensorflow as tf
     except ImportError:
@@ -197,6 +199,7 @@ def onnx2saved_model(
         custom_input_op_name_np_data_path=np_data,
         enable_batchmatmul_unfold=not use_int8,  # fix lower no. of detected objects on GPU delegate
         output_signaturedefs=True,  # fix error with Attention block group convolution
+        output_nms_with_dynamic_tensor=True,  # fix repeated top box when NMS keeps fewer than max_det boxes
         disable_group_convolution=disable_group_convolution,  # fix error with group convolution
     )
 

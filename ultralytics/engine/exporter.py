@@ -1750,6 +1750,7 @@ class Exporter:
         return onnx2deepx(
             onnx_file=f,
             imgsz=self.imgsz,
+            channels=self.im.shape[1],
             dataset=self.get_int8_calibration_dataloader(prefix),
             metadata=self.metadata,
             optimize=self.args.optimize,

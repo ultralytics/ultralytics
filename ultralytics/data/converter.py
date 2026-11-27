@@ -366,7 +366,7 @@ def convert_coco(
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
             with open(label_file, "a", encoding="utf-8") as file:
                 rows = keypoints if use_keypoints else segments if use_segments else bboxes
-                file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in dict.fromkeys(map(tuple, rows)))
+                file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in map(tuple, rows))
 
         if dropped and not use_keypoints:  # segments are unused when keypoints own the output
             LOGGER.warning(

@@ -100,6 +100,8 @@ def onnx2saved_model(
         - Downloads the onnx2tf calibration sample data file if not already present.
         - Removes temporary files and renames quantized models after conversion.
     """
+    import torchvision  # noqa (import before TensorFlow, whose LLVM options clash with triton's)
+
     try:
         import tensorflow as tf
     except ImportError:

@@ -39,6 +39,8 @@ class TensorFlowBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the model file or directory.
         """
+        import torchvision  # noqa (import before TensorFlow, whose LLVM options clash with triton's)
+
         if self.format in {"saved_model", "pb"}:
             import tensorflow as tf
 

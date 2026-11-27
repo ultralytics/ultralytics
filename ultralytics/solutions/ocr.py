@@ -42,6 +42,8 @@ class TextRecognizer:
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
         cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
         model = str(attempt_download_asset(model))
+        if model.endswith(".engine") and not cuda:
+            raise ValueError(f"TensorRT engine '{model}' needs an NVIDIA CUDA device, not device={device}.")
         engine |= model.endswith(".engine")
         self.session = None
         if engine and cuda:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time

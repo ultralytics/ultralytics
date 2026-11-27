@@ -53,7 +53,7 @@ The project page has two main areas:
 
 A controls row above both areas holds the model search box, **Compare with AI** (Editor role or higher, once the project has two or more completed models), the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle. On desktop, the controls row and models sidebar stay in view while the charts or table scroll.
 
-![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/737d0ac83b03b989e182523cb22beae5.avif)<!-- screenshot -->
+![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/2b7c23210ca96498de93671f3b8e71e8.avif)<!-- screenshot -->
 
 ### Project Header
 
@@ -87,7 +87,7 @@ Toggle between three view modes using the view controls. The selected mode is re
 - **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
 - **Table**: Comparison table showing training arguments and final metrics side by side. Enable **Diff** to show only the columns where values differ across models.
 
-![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/37fcd9ad499485c91fdaab7089f2c7b9.avif)<!-- screenshot -->
+![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/c33210932cf4a0f40a0fd0051b62d4c0.avif)<!-- screenshot -->
 
 ### Filter and Sort
 

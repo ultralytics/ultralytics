@@ -103,7 +103,7 @@ flowchart TD
 - **Project Organization**: Group related models, compare experiments, track activity
 - **24 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
 
-![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/78d6e38a07e3885956acdce96a7fc061.avif)<!-- screenshot -->
+![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/2b7c23210ca96498de93671f3b8e71e8.avif)<!-- screenshot -->
 
 You can train models either through the web UI (cloud training) or from your own machine (remote training):
 

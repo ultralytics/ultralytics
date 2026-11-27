@@ -456,7 +456,7 @@ Visualization arguments:
 | [LiteRT](../integrations/litert.md)                          | CPU                | CPU        | -                                     | -         | Intel GPU through the OpenVINO plugin   | Intel NPU through the OpenVINO plugin |
 | [PaddlePaddle](../integrations/paddlepaddle.md)              | CUDA GPU, else CPU | CPU        | NVIDIA GPU                            | -         | -                                       | -                                     |
 
-`-` means the runtime has no backend for that device. ONNX, TensorRT and PaddlePaddle check the name with PyTorch first, so they reject a device PyTorch cannot see and otherwise run on their default hardware. OpenVINO warns and falls back to AUTO when a requested Intel device is missing, and the LiteRT Intel plugin falls back to CPU. Other formats choose their own hardware: [CoreML](../integrations/coreml.md) runs on the Apple Neural Engine and CPU, [Edge TPU](../integrations/edge-tpu.md) takes `tpu:0`, [NCNN](../integrations/ncnn.md) takes `vulkan:0` for its Vulkan GPU path, and the remaining formats run on their target's CPU or accelerator. The older `intel:cpu`, `intel:gpu` and `intel:npu` names still work as deprecated aliases for `cpu`, `xpu` and `npu`.
+`-` means the runtime has no backend for that device. TorchScript exports of YOLO26 and YOLO11 fail on `mps` at the first prediction, see [TorchScript limitations](../integrations/torchscript.md#limitations-and-troubleshooting). ONNX, TensorRT and PaddlePaddle check the name with PyTorch first, so they reject a device PyTorch cannot see and otherwise run on their default hardware. OpenVINO warns and falls back to AUTO when a requested Intel device is missing, and the LiteRT Intel plugin falls back to CPU. Other formats choose their own hardware: [CoreML](../integrations/coreml.md) runs on the Apple Neural Engine and CPU, [Edge TPU](../integrations/edge-tpu.md) takes `tpu:0`, [NCNN](../integrations/ncnn.md) takes `vulkan:0` for its Vulkan GPU path, and the remaining formats run on their target's CPU or accelerator. The older `intel:cpu`, `intel:gpu` and `intel:npu` names still work as deprecated aliases for `cpu`, `xpu` and `npu`.
 
 !!! example
 
@@ -924,6 +924,36 @@ The `plot()` method supports various arguments to customize the output:
 | `filename`   | `str`                        | Path and name of the file to save the annotated image if `save` is `True`. | `None`            |
 | `color_mode` | `str`                        | Specify the color mode, e.g., 'instance' or 'class'.                       | `'class'`         |
 | `txt_color`  | `tuple[int, int, int]`       | BGR text color for classification labels.                                  | `(255, 255, 255)` |
+
+### Custom Class Colors
+
+`plot()` has no `colors` argument: with the default `color_mode='class'`, each class's color comes from the model. To choose them, add a `colors` list of quoted `"#rrggbb"` strings, indexed by class id, to your [dataset YAML](../datasets/detect/index.md#ultralytics-yolo-format) before training. The trained model saves the list, so `plot()`, `show=True` and `save=True` draw that class's boxes, oriented boxes, masks and labels in it, and exported models keep it. Classes beyond the end of the list use the default palette, and a list with any malformed entry is ignored with a warning. On [Ultralytics Platform](../platform/data/annotation.md#class-colors), the colors you pick on a dataset's **Classes** tab reach models trained on it the same way.
+
+!!! example "Class colors from the dataset YAML"
+
+    === "dataset.yaml"
+
+        ```yaml
+        path: datasets/ppe
+        train: images/train
+        val: images/val
+        names:
+          0: helmet
+          1: no-helmet
+        colors: ["#00c853", "#ff1744"] # helmet green, no-helmet red
+        ```
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+        model.train(data="dataset.yaml", epochs=100)  # the trained model stores the colors
+
+        results = model("site.jpg")
+        results[0].plot()  # helmets green, missing helmets red
+        ```
 
 ## Thread-Safe Inference
 

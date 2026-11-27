@@ -45,7 +45,7 @@ This page lists the tools and platforms that Ultralytics integrates with to supp
 
 - [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
 
-- [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is a serialization format for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) models, enabling sharing and deployment across a wide range of platforms, from servers to edge devices.
+- [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is the standard serialization format of [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), a directory that TensorFlow loads in Python and [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving) serves on servers. For mobile and edge devices, export [LiteRT](litert.md) instead.
 
 - [TorchScript](torchscript.md): Part of the [PyTorch](https://pytorch.org/) framework, TorchScript runs models from C++ without Python. PyTorch has deprecated it, so Ultralytics keeps it for existing C++ applications; use [ExecuTorch](executorch.md) for new mobile and edge deployments.
 

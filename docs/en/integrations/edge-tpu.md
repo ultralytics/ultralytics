@@ -50,6 +50,8 @@ Edge TPU export supports six of the seven Ultralytics tasks. Semantic segmentati
 
 The Edge TPU compiler maps the operations it supports onto the accelerator and leaves the rest on the CPU, so task support does not mean every operation runs on the TPU.
 
+For instance segmentation, the INT8 export scales mask coefficients and prototypes reciprocally to preserve box precision. Decode masks by multiplying the two outputs from the same export. The [ST Edge AI integration](stedgeai.md#supported-tasks) uses the same output convention.
+
 ## Exporting YOLO26 Models to Edge TPU
 
 You can expand model compatibility and deployment flexibility by converting YOLO26 models to TensorFlow Edge TPU.

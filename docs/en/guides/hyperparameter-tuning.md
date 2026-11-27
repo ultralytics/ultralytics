@@ -11,13 +11,13 @@ keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optim
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/j0MOGKBqx7E"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Lv7Ebh91wdg"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Tune Hyperparameters for Better Model Performance 🚀
+  <strong>Watch:</strong> What are the Hyperparameters | How Ultralytics YOLO Training Hyperparameters Work | Research 🚀
 </p>
 
 ## What are Hyperparameters?

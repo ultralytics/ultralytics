@@ -183,6 +183,7 @@ jobs:
           fi
           uv pip install -e ".[${{ matrix.extras || 'export-base,export-openvino,solutions' }}]" \
             $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
+            ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.13' && 'faster-coco-eval' || '' }} \
             --torch-backend cpu
       - name: Check environment
         run: |

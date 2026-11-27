@@ -75,22 +75,6 @@ class PoseValidator(DetectionValidator):
         batch["keypoints"] = batch["keypoints"].float()
         return batch
 
-    def get_desc(self) -> str:
-        """Return description of evaluation metrics in string format."""
-        return ("%22s" + "%11s" * 10) % (
-            "Class",
-            "Images",
-            "Instances",
-            "Box(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-            "Pose(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-        )
-
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize evaluation metrics for YOLO pose validation.
 
@@ -190,11 +174,6 @@ class PoseValidator(DetectionValidator):
         tp.update({"tp_p": tp_p})  # update tp with kpts IoU
         return tp
 
-    def gather_stats(self) -> None:
-        """Gather stats from all GPUs."""
-        super().gather_stats()  # gather stats from DetectionValidator
-        self._gather_image_metrics(self.metrics.pose)
-
     def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """Save YOLO pose detections to a text file in normalized coordinates.
 
@@ -218,26 +197,12 @@ class PoseValidator(DetectionValidator):
             keypoints=predn["keypoints"],
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
-        """Convert YOLO predictions to COCO JSON format.
-
-        This method takes prediction tensors and batch data, converts the bounding boxes from YOLO format to COCO
-        format, and appends the results with keypoints to the internal JSON dictionary (self.jdict).
-
-        Args:
-            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'keypoints'
-                tensors.
-            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
-
-        Notes:
-            The method extracts the image ID from the filename stem (either as an integer if numeric, or as a string),
-            converts bounding boxes from xyxy to xywh format, and adjusts coordinates from center to top-left corner
-            before saving to the JSON dictionary.
-        """
-        super().pred_to_json(predn, pbatch)
-        kpts = predn["keypoints"]
-        for i, k in enumerate(kpts.flatten(1, 2).tolist()):
-            self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
+    def _coco_predictions(self, predn, pbatch):
+        """Attach original-image keypoints to the box records used for JSON export."""
+        records = super()._coco_predictions(predn, pbatch)
+        for record, points in zip(records, predn["keypoints"].flatten(1).tolist()):
+            record["keypoints"] = points
+        return records
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Scale boxes and keypoints to the original image size."""
@@ -251,8 +216,10 @@ class PoseValidator(DetectionValidator):
             ),
         }
 
-    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
-        """Evaluate pose estimation model using COCO JSON format."""
-        anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
-        pred_json = self.save_dir / "predictions.json"  # predictions
-        return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "keypoints"], suffix=["Box", "Pose"])
+    def _coco_task_overlap(self, anns, predn, idx, crowd):
+        """Compute OKS using the annotated area and COCO's expanded boxes for people without visible keypoints."""
+        kpts = torch.tensor([a["keypoints"] for a in anns], dtype=torch.float64).reshape(len(anns), -1, 3)
+        pred = predn["keypoints"].cpu().double()[idx]
+        area = torch.tensor([a["area"] for a in anns], dtype=torch.float64)
+        boxes = torch.tensor([a["bbox"] for a in anns], dtype=torch.float64)
+        return kpt_iou(kpts, pred, area, self.sigma, eps=np.spacing(1), bboxes=boxes).numpy()

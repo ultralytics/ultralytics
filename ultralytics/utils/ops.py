@@ -794,7 +794,14 @@ def scale_masks(
         theta = masks.new_tensor([[[sw, 0, sw - 1], [0, sh, sh - 1]]])
         grid = F.affine_grid(theta, (1, 1, im0_h, im0_w), align_corners=False).expand(len(masks), -1, -1, -1)
         return F.grid_sample(masks, grid, mode=mode, padding_mode="border", align_corners=False)
-    return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
+    masks = masks[..., top:bottom, left:right]
+    if masks.shape[-2:] == (im0_h, im0_w):
+        return masks.to(torch.float32, copy=True)
+    masks = masks.float()
+    if mode == "bilinear" and masks.is_cuda and not torch.is_grad_enabled():
+        # CUDA bilinear forward is deterministic. F.interpolate decomposes it to provide a deterministic backward.
+        return torch.ops.aten.upsample_bilinear2d(masks, (im0_h, im0_w), False)
+    return F.interpolate(masks, shape, mode=mode)
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):
